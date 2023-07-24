@@ -189,6 +189,129 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
   await parseWebhookPullRequestEvents(payload, ctx)
 }
 
+const parseWebhookPullRequestReview = async (
+  payload: any,
+  ctx: IProcessWebhookStreamContext,
+): Promise<void> => {
+  if (payload.action === 'submitted') {
+    // additional comments to existing review threads also result in submitted events
+    // since these will be handled in pull_request_review_comment.created events
+    // we're ignoring when state is commented and it has no body.
+    if (payload.review.state === 'commented' && payload.review.body === null) {
+      return
+    }
+
+    const member = await prepareWebhookMember(payload.sender.login, ctx)
+
+    await ctx.publishData<GithubWebhookData>({
+      webhookType: GithubWehookEvent.PULL_REQUEST_REVIEW,
+      data: payload,
+      member,
+    })
+  }
+}
+
+const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext) => {
+  if (payload.action === 'created' || payload.action === 'deleted') {
+    const member = await prepareWebhookMember(payload.sender.login, ctx)
+
+    if (member && payload.starred_at !== null) {
+      await ctx.publishData<GithubWebhookData>({
+        webhookType: GithubWehookEvent.STAR,
+        data: payload,
+        member,
+      })
+    }
+  }
+}
+
+const parseWebhookFork = async (payload: any, ctx: IProcessWebhookStreamContext) => {
+  const member = await prepareWebhookMember(payload.sender.login, ctx)
+
+  if (member) {
+    await ctx.publishData<GithubWebhookData>({
+      webhookType: GithubWehookEvent.FORK,
+      data: payload,
+      member,
+    })
+  }
+}
+
+const parseWebhookComment = async (
+  event: string,
+  payload: any,
+  ctx: IProcessWebhookStreamContext,
+) => {
+  let type: GithubWehookEvent
+  let sourceParentId: string
+
+  switch (event) {
+    case 'discussion_comment': {
+      switch (payload.action) {
+        case 'created':
+        case 'edited':
+          type = GithubWehookEvent.DISCUSSION_COMMENT
+          sourceParentId = payload.discussion.node_id.toString()
+          break
+        default:
+          return undefined
+      }
+      break
+    }
+
+    case 'issue_comment': {
+      switch (payload.action) {
+        case 'created':
+        case 'edited': {
+          if ('pull_request' in payload.issue) {
+            type = GithubWehookEvent.PULL_REQUEST_COMMENT
+          } else {
+            type = GithubWehookEvent.ISSUE_COMMENT
+          }
+          sourceParentId = payload.issue.node_id.toString()
+          break
+        }
+
+        default:
+          return undefined
+      }
+      break
+    }
+
+    default: {
+      return undefined
+    }
+  }
+
+  const member = await prepareWebhookMember(payload.sender.login, ctx)
+
+  if (member) {
+    await ctx.publishData<GithubWebhookData>({
+      webhookType: type,
+      data: payload,
+      member,
+      sourceParentId,
+    })
+  }
+}
+
+const parseWebhookPullRequestReviewComment = async (
+  payload: any,
+  ctx: IProcessWebhookStreamContext,
+) => {
+  if (payload.action === 'created') {
+    const member = await prepareWebhookMember(payload.comment.user.login, ctx)
+
+    if (member) {
+      await ctx.publishData<GithubWebhookData>({
+        webhookType: GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT,
+        data: payload,
+        member,
+      })
+    }
+  }
+}
+
 const handler: ProcessWebhookStreamHandler = async (ctx) => {
   const identifier = ctx.stream.identifier
 
@@ -204,29 +327,29 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
 
   switch (event) {
     case GithubWehookEvent.ISSUES:
-      parseWebhookIssue(data, ctx)
+      await parseWebhookIssue(data, ctx)
       break
     case GithubWehookEvent.DISCUSSION:
-      parseWebhookDiscussion(data, ctx)
+      await parseWebhookDiscussion(data, ctx)
       break
     case GithubWehookEvent.PULL_REQUEST:
-      parseWebhookPullRequest(data, ctx)
+      await parseWebhookPullRequest(data, ctx)
       break
     case GithubWehookEvent.PULL_REQUEST_REVIEW:
-      // parseWebhookPullRequestReview(data, ctx)
+      await parseWebhookPullRequestReview(data, ctx)
       break
     case GithubWehookEvent.STAR:
-      // parseWebhookStar(data, ctx)
+      await parseWebhookStar(data, ctx)
       break
     case GithubWehookEvent.FORK:
-      // parseWebhookFork(data, ctx)
+      await parseWebhookFork(data, ctx)
       break
     case GithubWehookEvent.DISCUSSION_COMMENT:
     case GithubWehookEvent.ISSUE_COMMENT:
-      // parseWebhookComment(data, ctx)
+      await parseWebhookComment(event, data, ctx)
       break
     case GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT:
-      // parseWebhookPullRequestReviewComment(data, ctx)
+      await parseWebhookPullRequestReviewComment(data, ctx)
       break
     default:
       await ctx.abortWithError(`Unknown Github webhook event: ${event}`)

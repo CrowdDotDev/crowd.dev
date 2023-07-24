@@ -47,6 +47,7 @@ export enum GithubWehookEvent {
   DISCUSSION_COMMENT = 'discussion_comment',
   PULL_REQUEST_REVIEW_COMMENT = 'pull_request_review_comment',
   ISSUE_COMMENT = 'issue_comment',
+  PULL_REQUEST_COMMENT = 'pull_request_comment',
 }
 
 export enum GithubStreamType {
