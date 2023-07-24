@@ -3258,23 +3258,41 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const query = `
-      INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
-      VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-      ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
-    `
-
-    await seq.query(query, {
-      replacements: {
-        memberId,
-        organizationId,
-        title: title || null,
-        dateStart: dateStart || null,
-        dateEnd: dateEnd || null,
+    await seq.query(
+      `
+        DELETE FROM "memberOrganizations"
+        WHERE "memberId" = :memberId
+        AND "organizationId" = :organizationId
+        AND "dateEnd" IS NULL
+      `,
+      {
+        replacements: {
+          memberId,
+          organizationId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
       },
-      type: QueryTypes.INSERT,
-      transaction,
-    })
+    )
+
+    await seq.query(
+      `
+        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
+        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
+        ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
+      `,
+      {
+        replacements: {
+          memberId,
+          organizationId,
+          title: title || null,
+          dateStart: dateStart || null,
+          dateEnd: dateEnd || null,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      },
+    )
   }
 
   static sortOrganizations(organizations) {
