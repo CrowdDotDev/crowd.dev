@@ -32,9 +32,9 @@ export const batchCreateOrganizations = async (
     const hubspotCompanies = []
 
     for (const organization of organizations) {
-      if (!organization.website) {
+      if (!organization.website || !getOrganizationDomain(organization.website)) {
         ctx.log.warn(
-          `Organization ${organization.id} can't be created in hubspot! Organization doesn't have any associated website.`,
+          `Organization ${organization.id} can't be created in hubspot! Organization doesn't have any associated website or domain can't be derived from existing website.`,
         )
       } else {
         const organizationDomain = getOrganizationDomain(organization.website)
