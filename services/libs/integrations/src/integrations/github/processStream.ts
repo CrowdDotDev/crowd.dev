@@ -45,7 +45,6 @@ let githubAuthenticator: AuthInterface | undefined = undefined
 
 function getAuth(ctx: IProcessStreamContext): AuthInterface | undefined {
   const GITHUB_CONFIG = ctx.platformSettings as GithubPlatformSettings
-  console.log('GITHUB_CONFIG', GITHUB_CONFIG)
   const privateKey = GITHUB_CONFIG.privateKey
     ? Buffer.from(GITHUB_CONFIG.privateKey, 'base64').toString('ascii')
     : undefined
@@ -606,6 +605,7 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
         await ctx.publishData<GithubApiData>({
           type: GithubActivityType.AUTHORED_COMMIT,
           data: record,
+          sourceParentId: response.repository.pullRequest.id,
           member,
           repo: data.repo,
         })

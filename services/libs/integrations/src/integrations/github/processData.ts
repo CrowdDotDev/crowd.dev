@@ -132,7 +132,7 @@ const parseFork: ProcessDataHandler = async (ctx) => {
     type: GithubActivityType.FORK,
     sourceId: data.id,
     sourceParentId: '',
-    timestamp: new Date(data.starredAt).toISOString(),
+    timestamp: new Date(data.createdAt).toISOString(),
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID.fork.score,
@@ -557,6 +557,7 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
   const memberData = apiData.member
 
   const member = parseMember(memberData)
+  const sourceParentId = apiData.sourceParentId // this is a pull request id
 
   const activity: IActivityData = {
     channel: apiData.repo.url,
@@ -564,7 +565,7 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
     body: data.commit.message,
     type: 'authored-commit',
     sourceId: data.commit.oid,
-    sourceParentId: `${data.repository.pullRequest.id}`,
+    sourceParentId: `${sourceParentId}`,
     timestamp: new Date(data.commit.authoredDate).toISOString(),
     attributes: {
       insertions: 'additions' in data.commit ? data.commit.additions : 0,
@@ -577,6 +578,7 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].score,
+    isContribution: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -993,7 +995,8 @@ const parseWebhookComment = async (ctx: IProcessDataContext) => {
       break
     }
 
-    case GithubWehookEvent.ISSUE_COMMENT: {
+    case GithubWehookEvent.ISSUE_COMMENT:
+    case GithubWehookEvent.PULL_REQUEST_COMMENT: {
       switch (payload.action) {
         case 'created':
         case 'edited': {
@@ -1089,6 +1092,40 @@ const parseWebhookPullRequestReviewThreadComment = async (ctx: IProcessDataConte
   }
 }
 
+const parseDiscussionStarted: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const memberData = apiData.member
+
+  const member = parseMember(memberData)
+
+  const activity: IActivityData = {
+    type: GithubActivityType.DISCUSSION_STARTED,
+    sourceId: data.id,
+    sourceParentId: '',
+    timestamp: new Date(data.createdAt).toISOString(),
+    body: data.bodyText,
+    url: data.url ? data.url : '',
+    channel: apiData.repo.url,
+    title: data.title,
+    attributes: {
+      category: {
+        id: data.category.id,
+        isAnswerable: data.category.isAnswerable,
+        name: data.category.name,
+        slug: data.category.slug,
+        emoji: data.category.emoji,
+        description: data.category.description,
+      },
+    },
+    member,
+    score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
+    isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
 const handler: ProcessDataHandler = async (ctx) => {
   const data = ctx.data as any
 
@@ -1137,6 +1174,9 @@ const handler: ProcessDataHandler = async (ctx) => {
       case GithubActivityType.ISSUE_COMMENT:
         await parseIssueComment(ctx)
         break
+      case GithubActivityType.DISCUSSION_STARTED:
+        await parseDiscussionStarted(ctx)
+        break
       case GithubActivityType.DISCUSSION_COMMENT:
         await parseDiscussionComment(ctx)
         break
@@ -1169,6 +1209,7 @@ const handler: ProcessDataHandler = async (ctx) => {
         break
       case GithubWehookEvent.DISCUSSION_COMMENT:
       case GithubWehookEvent.ISSUE_COMMENT:
+      case GithubWehookEvent.PULL_REQUEST_COMMENT:
         await parseWebhookComment(ctx)
         break
       case GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT:
