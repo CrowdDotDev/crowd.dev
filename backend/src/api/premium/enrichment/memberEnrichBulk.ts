@@ -9,6 +9,7 @@ import PermissionChecker from '../../../services/user/permissionChecker'
 import { FeatureFlag, FeatureFlagRedisKey } from '../../../types/common'
 import track from '../../../segment/track'
 import { PLAN_LIMITS } from '../../../feature-flags/isFeatureEnabled'
+import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 
 const log = getServiceLogger()
 
@@ -16,6 +17,7 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
   const membersToEnrich = req.body.members
   const tenant = req.currentTenant.id
+  const segmentIds = SequelizeRepository.getSegmentIds(req)
 
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
@@ -52,7 +54,7 @@ export default async (req, res) => {
   )
 
   // send the message
-  await sendBulkEnrichMessage(tenant, membersToEnrich)
+  await sendBulkEnrichMessage(tenant, membersToEnrich, segmentIds)
 
   // update enrichment count, we'll also check failed enrichments and deduct these from grand total in bulkEnrichmentWorker
   const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()
