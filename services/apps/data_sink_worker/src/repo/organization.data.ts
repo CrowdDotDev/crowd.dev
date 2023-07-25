@@ -1,5 +1,5 @@
 import { DbColumnSet, DbInstance } from '@crowd/database'
-import { IOrganizationSocial } from '@crowd/types'
+import { IAttributes, IOrganizationSocial } from '@crowd/types'
 
 export interface IDbOrganization {
   id: string
@@ -22,7 +22,7 @@ export interface IDbOrganization {
   headline: string | null
   industry: string | null
   founded: string | null
-  attributes: any | null
+  attributes: IAttributes | null
 }
 
 export interface IDbInsertOrganizationData {
@@ -45,7 +45,7 @@ export interface IDbInsertOrganizationData {
   headline: string | null
   industry: string | null
   founded: string | null
-  attributes?: any | null
+  attributes?: IAttributes | null
 }
 
 let insertOrganizationColumnSet: DbColumnSet
@@ -111,7 +111,7 @@ export interface IDbUpdateOrganizationCacheData {
 
 export interface IDbUpdateOrganizationData extends IDbUpdateOrganizationCacheData {
   displayName: string | null
-  attributes: any | null
+  attributes: IAttributes | null
 }
 
 let updateOrganizationColumnSet: DbColumnSet
