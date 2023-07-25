@@ -94,8 +94,8 @@ const rules: any = computed(() => ({
 
 const canSyncMembers = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-  console.log(hubspot);
   const enabledFor = hubspot.settings?.enabledFor || [];
+  // TODO: change to enum when merged
   return enabledFor.includes('members');
 });
 

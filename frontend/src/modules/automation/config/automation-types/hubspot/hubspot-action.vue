@@ -13,6 +13,7 @@
         v-model="form.action"
         placeholder="Select option"
         class="w-full"
+        :disabled="!props.trigger"
         @blur="$v.action.$touch"
       >
         <el-option
@@ -48,7 +49,7 @@
 
 <script setup lang="ts">
 import {
-  computed, defineEmits, defineProps, onMounted,
+  computed, defineEmits, defineProps, onMounted, watch,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { required } from '@vuelidate/validators';
@@ -103,6 +104,12 @@ const rules: any = {
 };
 
 const $v = useVuelidate(rules, form);
+
+watch(() => props.trigger, () => {
+  if (props.trigger && actionOptions.value.length > 0) {
+    form.value.action = actionOptions.value[0].value;
+  }
+});
 
 const memberOptions: HubspotActionOption[] = [
   {

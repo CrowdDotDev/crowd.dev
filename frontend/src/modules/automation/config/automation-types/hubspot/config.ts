@@ -1,8 +1,18 @@
 import { AutomationTypeConfig } from '@/modules/automation/config/automation-types';
 import { FeatureFlag } from '@/featureFlag';
-import AutomationsHubspotAction from './hubspot-action.vue';
-import AutomationsHubspotTrigger from './hubspot-trigger.vue';
+import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
+import noOfActivities from '@/modules/member/config/filters/noOfActivities/config';
+import activityType from '@/modules/member/config/filters/activityType/config';
+import tags from '@/modules/member/config/filters/tags/config';
+import noOfMembers from '@/modules/organization/config/filters/noOfMembers/config';
+import headcount from '@/modules/organization/config/filters/headcount/config';
+import industry from '@/modules/organization/config/filters/industry/config';
+import seniorityLevel from '@/modules/member/config/filters/seniorityLevel/config';
+import annualRevenue from '@/modules/organization/config/filters/annualRevenue/config';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AutomationsHubspotPaywall from './hubspot-paywall.vue';
+import AutomationsHubspotTrigger from './hubspot-trigger.vue';
+import AutomationsHubspotAction from './hubspot-action.vue';
 
 export const hubspot: AutomationTypeConfig = {
   name: 'HubSpot',
@@ -15,21 +25,18 @@ export const hubspot: AutomationTypeConfig = {
   triggerText: 'Define the conditions that will trigger your HubSpot action.',
   actionText: 'Define which action will take place in HubSpot based on the defined conditions.',
   canCreate(store) {
-    // const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-    // return hubspot.status === 'done' && FeatureFlag.isFlagEnabled('hubspot');
-    return true;
+    const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+    return hubspot.status === 'done' && FeatureFlag.isFlagEnabled('hubspot');
   },
   disabled(store) {
-    // const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-    // return FeatureFlag.isFlagEnabled('hubspot') && hubspot.status !== 'done';
-    return false;
+    const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+    return FeatureFlag.isFlagEnabled('hubspot') && hubspot.status !== 'done';
   },
   tooltip(store) {
-    // const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-    // if (FeatureFlag.isFlagEnabled('hubspot') && hubspot.status !== 'done') {
-    //   return 'Connect with HubSpot via Integrations to enable this automation';
-    // }
-    // return null;
+    const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+    if (FeatureFlag.isFlagEnabled('hubspot') && hubspot.status !== 'done') {
+      return 'Connect with HubSpot via Integrations to enable this automation';
+    }
     return null;
   },
   actionButton() {
@@ -53,4 +60,19 @@ export const hubspot: AutomationTypeConfig = {
   },
   actionComponent: AutomationsHubspotAction,
   triggerComponent: AutomationsHubspotTrigger,
+};
+
+export const hubspotMemberFilters: Record<string, FilterConfig> = {
+  noOfActivities,
+  activityType,
+  seniorityLevel,
+  tags,
+};
+
+export const hubspotOrganizationFilters: Record<string, FilterConfig> = {
+  noOfActivities,
+  noOfMembers,
+  headcount,
+  industry,
+  annualRevenue,
 };

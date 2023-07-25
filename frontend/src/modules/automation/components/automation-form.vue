@@ -100,7 +100,7 @@ import {
   computed, defineProps, defineEmits, reactive, ref, watch, onMounted,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
-import { email, required } from "@vuelidate/validators";
+import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { useAutomationStore } from '@/modules/automation/store';
@@ -192,7 +192,8 @@ const doSubmit = () => {
   }
   sending.value = true;
   const data = {
-    name: form.name ?? i18n(`entities.automation.triggers.${form.trigger}`),
+    name: form.name && form.name.length > 0
+      ? form.name : i18n(`entities.automation.triggers.${form.trigger}`),
     type: type.value,
     trigger: form.trigger,
     settings: {

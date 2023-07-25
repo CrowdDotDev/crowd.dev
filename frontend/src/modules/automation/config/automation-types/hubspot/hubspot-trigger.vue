@@ -28,7 +28,7 @@
       <!-- Header -->
       <div class="flex justify-between items-center pb-3 pr-12">
         <p class="text-xs leading-5 font-semibold">
-          Condition(s) <span class="text-brand-500">*</span>
+          Condition(s)
         </p>
         <el-dropdown v-if="settings.list?.length > 0" placement="bottom-end">
           <p class="text-xs leading-5 font-medium text-gray-900">
@@ -110,10 +110,14 @@ import { required } from '@vuelidate/validators';
 import {
   HubspotAutomationTrigger,
 } from '@/modules/automation/config/automation-types/hubspot/types/HubspotAutomationTrigger';
-import { memberFilters } from '@/modules/member/config/filters/main';
-import { organizationFilters } from '@/modules/organization/config/filters/main';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import { useStore } from 'vuex';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import {
+  hubspotMemberFilters,
+  hubspotOrganizationFilters,
+} from '@/modules/automation/config/automation-types/hubspot/config';
 
 const props = defineProps<{
   trigger: HubspotAutomationTrigger,
@@ -123,6 +127,8 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:trigger', value: HubspotAutomationTrigger),
   (e: 'update:settings', value: any),
 }>();
+
+const store = useStore();
 
 const trigger = computed<HubspotAutomationTrigger>({
   get() {
@@ -142,23 +148,28 @@ const settings = computed<any>({
   },
 });
 
-const triggerOptions = ref([
-  {
-    label: 'Member attributes match condition(s)',
-    value: HubspotAutomationTrigger.MEMBER_ATTRIBUTE_MATCH,
-  },
-  {
-    label: 'Organization attributes match condition(s)',
-    value: HubspotAutomationTrigger.ORGANIZATION_ATTRIBUTE_MATCH,
-  },
-]);
+const triggerOptions = computed(() => {
+  const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+  // TODO: remove test properties when merged and change to enum
+  const enabledFor = hubspot.settings?.enabledFor || ['members', 'organizations'];
+  return [
+    ...(enabledFor.includes('members') ? [{
+      label: 'Member attributes match condition(s)',
+      value: HubspotAutomationTrigger.MEMBER_ATTRIBUTE_MATCH,
+    }] : []),
+    ...(enabledFor.includes('organizations') ? [{
+      label: 'Organization attributes match condition(s)',
+      value: HubspotAutomationTrigger.ORGANIZATION_ATTRIBUTE_MATCH,
+    }] : []),
+  ];
+});
 
 const filterConfigs = computed<Record<string, FilterConfig>>(() => {
   if (trigger.value === HubspotAutomationTrigger.MEMBER_ATTRIBUTE_MATCH) {
-    return memberFilters;
+    return hubspotMemberFilters;
   }
   if (trigger.value === HubspotAutomationTrigger.ORGANIZATION_ATTRIBUTE_MATCH) {
-    return organizationFilters;
+    return hubspotOrganizationFilters;
   }
   return {} as Record<string, FilterConfig>;
 });
