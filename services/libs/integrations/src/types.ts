@@ -172,6 +172,11 @@ export interface IIntegrationDescriptor {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   startSyncRemote?: StartIntegrationSyncHandler
 
+  /**
+   * Function that will be called from integration sync worker for outgoing integrations.
+   * Gets two arrays, entities to create and entities to update.
+   * Logic for calling the required api endpoints per integration lives here.
+   */
   processSyncRemote?: ProcessIntegrationSyncHandler
 }
 

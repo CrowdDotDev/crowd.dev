@@ -154,7 +154,7 @@ export default class IntegrationRunService extends LoggerBase {
         }
 
         try {
-          this.log.info('Trying to start syncRemote!')
+          this.log.info('Trying to process startSyncRemote!')
 
           const service = singleOrDefault(
             INTEGRATION_SERVICES,
@@ -185,7 +185,7 @@ export default class IntegrationRunService extends LoggerBase {
 
             await service.startSyncRemote(syncRemoteContext)
 
-            this.log.info('Triggering start sync remote!')
+            this.log.info('Finished processing startSyncRemote!')
           } else {
             this.log.info(
               {

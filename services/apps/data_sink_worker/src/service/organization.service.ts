@@ -230,7 +230,11 @@ export class OrganizationService extends LoggerBase {
         if (dbOrganization) {
           this.log.trace({ organizationId: dbOrganization.id }, 'Found existing organization.')
 
-          await this.findOrCreate(tenantId, segmentId, organization)
+          // send to findOrCreate with found organization's name, since we use the name field as the primary key
+          await this.findOrCreate(tenantId, segmentId, {
+            ...organization,
+            name: dbOrganization.name,
+          })
         } else {
           this.log.info(
             'No organization found for enriching. This organization enrich process had no affect.',

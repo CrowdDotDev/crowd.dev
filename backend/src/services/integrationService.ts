@@ -863,7 +863,6 @@ export default class IntegrationService {
     let token: string
     try {
       token = await getToken(nangoId, PlatformType.HUBSPOT, this.options.log)
-      this.options.log.info(`TOKEN IS: ${token}`)
     } catch (err) {
       this.options.log.error(err, 'Error while verifying HubSpot tenant token in Nango!')
       throw new Error400(this.options.language, 'errors.noNangoToken.message')
