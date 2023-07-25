@@ -11,7 +11,7 @@ export const getContactAssociations = async (
   contactId: string,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
 ): Promise<IHubspotAssociation[]> => {
-  const config: AxiosRequestConfig<any> = {
+  const config: AxiosRequestConfig<unknown> = {
     method: 'get',
     url: `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}/associations/${association}`,
   }

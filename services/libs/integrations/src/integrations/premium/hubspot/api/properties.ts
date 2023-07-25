@@ -9,7 +9,7 @@ export const getProperties = async (
   endpoint: HubspotEndpoint,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
 ): Promise<IHubspotProperty[]> => {
-  const config: AxiosRequestConfig<any> = {
+  const config: AxiosRequestConfig<unknown> = {
     method: 'get',
     url: `https://api.hubapi.com/crm/v3/properties/${endpoint}`,
   }

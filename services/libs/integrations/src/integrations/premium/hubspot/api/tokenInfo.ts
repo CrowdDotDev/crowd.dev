@@ -13,7 +13,7 @@ export const getTokenInfo = async (
 
     const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
 
-    const config: AxiosRequestConfig<any> = {
+    const config: AxiosRequestConfig<unknown> = {
       method: 'get',
       url: `https://api.hubapi.com/oauth/v1/access-tokens/${accessToken}`,
     }

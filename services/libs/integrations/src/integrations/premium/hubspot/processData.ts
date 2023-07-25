@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ProcessDataHandler } from '@/types'
 import { HubspotEntity, HubspotStream, IHubspotData, IHubspotIntegrationSettings } from './types'
 import { IntegrationResultType } from '@crowd/types'

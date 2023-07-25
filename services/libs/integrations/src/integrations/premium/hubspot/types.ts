@@ -6,10 +6,10 @@ export enum HubspotPropertyType {
   STRING = 'string',
   NUMBER = 'number',
 }
-
 export interface IFieldProperty {
   hubspotType: HubspotPropertyType
   readonly?: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serialize?: (object: any) => string | number
   deserialize?: (string: string) => object
 }
