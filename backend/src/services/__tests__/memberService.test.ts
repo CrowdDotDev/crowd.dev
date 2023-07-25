@@ -760,7 +760,6 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
-
       })
     })
 
