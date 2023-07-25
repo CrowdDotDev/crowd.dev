@@ -9,7 +9,7 @@ import { HUBSPOT_MEMBER_ATTRIBUTES } from './memberAttributes'
 const descriptor: IIntegrationDescriptor = {
   type: 'hubspot',
   memberAttributes: HUBSPOT_MEMBER_ATTRIBUTES,
-  checkEvery: 2,
+  checkEvery: 8 * 60, // 8 hours
   generateStreams,
   processStream,
   processData,
