@@ -19,7 +19,7 @@ defineProps({
 const connectUrl = computed(() => {
   const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
 
-  return `${config.backendUrl}/config/${
+  return `${config.backendUrl}/slack/${
     store.getters['auth/currentTenant'].id
   }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
 });

@@ -144,7 +144,7 @@
       <el-card v-if="isAPIConnectionValid && props.integration?.settings?.forumHostname" shadow="never" class="rounded-[6px]">
         <div class="mb-3 flex flex-row w-full justify-between">
           <el-button :disabled="isWebhookVerifying" class="btn btn--bordered" @click="verifyWebhook()">
-            Verify config
+            Verify webhook
           </el-button>
           <div v-if="isWebhookVerifying == null" />
           <div v-else-if="isWebhookVerifying">
