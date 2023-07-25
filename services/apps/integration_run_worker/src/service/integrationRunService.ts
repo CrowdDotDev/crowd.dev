@@ -374,6 +374,10 @@ export default class IntegrationRunService extends LoggerBase {
           integrationService.memberAttributes,
         )
 
+        // delete the attributes cache
+        const cache = new RedisCache('memberAttributes', this.redisClient, this.log)
+        await cache.delete(runInfo.tenantId)
+
         await txRunRepo.updateIntegrationSettings(runId, {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...(runInfo.integrationSettings as any),
