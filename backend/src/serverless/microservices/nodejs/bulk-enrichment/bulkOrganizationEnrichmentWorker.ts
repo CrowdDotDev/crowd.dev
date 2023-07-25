@@ -6,7 +6,10 @@ import { PLAN_LIMITS } from '../../../../feature-flags/isFeatureEnabled'
 import OrganizationEnrichmentService from '../../../../services/premium/enrichment/organizationEnrichmentService'
 import { FeatureFlag, FeatureFlagRedisKey } from '../../../../types/common'
 
-export async function BulkorganizationEnrichmentWorker(tenantId: string) {
+export async function BulkorganizationEnrichmentWorker(
+  tenantId: string,
+  maxEnrichLimit: number = 0,
+) {
   const userContext = await getUserContext(tenantId)
   const redis = await getRedisClient(REDIS_CONFIG, true)
   const organizationEnrichmentCountCache = new RedisCache(
@@ -18,9 +21,14 @@ export async function BulkorganizationEnrichmentWorker(tenantId: string) {
     (await organizationEnrichmentCountCache.get(userContext.currentTenant.id)) ?? '0',
     10,
   )
-  const remainderEnrichmentLimit =
-    PLAN_LIMITS[userContext.currentTenant.plan][FeatureFlag.ORGANIZATION_ENRICHMENT] -
-    usedEnrichmentCount
+
+  // Discard limits and credits if maxEnrichLimit is provided
+  const skipCredits = maxEnrichLimit > 0
+
+  const remainderEnrichmentLimit = skipCredits
+    ? maxEnrichLimit // Use maxEnrichLimit as the limit if provided
+    : PLAN_LIMITS[userContext.currentTenant.plan][FeatureFlag.ORGANIZATION_ENRICHMENT] -
+      usedEnrichmentCount
 
   let enrichedOrgs = []
   if (remainderEnrichmentLimit > 0) {
@@ -33,9 +41,11 @@ export async function BulkorganizationEnrichmentWorker(tenantId: string) {
     enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone()
   }
 
-  await organizationEnrichmentCountCache.set(
-    userContext.currentTenant.id,
-    (usedEnrichmentCount + enrichedOrgs.length).toString(),
-    getSecondsTillEndOfMonth(),
-  )
+  if (!skipCredits) {
+    await organizationEnrichmentCountCache.set(
+      userContext.currentTenant.id,
+      (usedEnrichmentCount + enrichedOrgs.length).toString(),
+      getSecondsTillEndOfMonth(),
+    )
+  }
 }

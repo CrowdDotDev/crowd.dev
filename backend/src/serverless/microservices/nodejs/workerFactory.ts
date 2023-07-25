@@ -77,10 +77,15 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         bulkEnrichMessage.tenant,
         bulkEnrichMessage.memberIds,
         bulkEnrichMessage.segmentIds,
+        bulkEnrichMessage.notifyFrontend,
+        bulkEnrichMessage.skipCredits,
       )
     case 'enrich-organizations': {
       const bulkEnrichMessage = event as OrganizationBulkEnrichMessage
-      return BulkorganizationEnrichmentWorker(bulkEnrichMessage.tenantId)
+      return BulkorganizationEnrichmentWorker(
+        bulkEnrichMessage.tenantId,
+        bulkEnrichMessage.maxEnrichLimit,
+      )
     }
     case 'enrich_member_organizations':
       const message = event as EnrichMemberOrganizationsQueueMessage
