@@ -18,7 +18,7 @@ import {
   IActivityScoringGrid,
 } from '@crowd/types'
 import { GITHUB_GRID } from './grid'
-import { generateSourceIdHash } from '@/helpers'
+import { generateSourceIdHash } from '../../helpers'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 

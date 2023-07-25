@@ -244,7 +244,6 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     let integration
-    let run
     try {
       if (setupAction === 'request') {
         return await this.createOrUpdate(
@@ -322,22 +321,22 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending GitHub message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration
