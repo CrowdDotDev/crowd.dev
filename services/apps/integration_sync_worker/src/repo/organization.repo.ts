@@ -1,6 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IOrganization, PlatformType } from '@crowd/types'
+import { IOrganizationIdWithAttributes } from './organization.data'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -44,7 +45,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async findOrganizationAttributes(organizationId: string): Promise<any> {
+  public async findOrganizationAttributes(
+    organizationId: string,
+  ): Promise<IOrganizationIdWithAttributes> {
     return await this.db().oneOrNone(
       `select id, attributes from organizations where id = $(organizationId)`,
       {

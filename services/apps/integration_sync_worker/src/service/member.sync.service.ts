@@ -125,6 +125,7 @@ export class MemberSyncService extends LoggerBase {
           },
         ],
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
 
     if (isMultiSegment) {
@@ -156,7 +157,7 @@ export class MemberSyncService extends LoggerBase {
           },
         ],
         searchAfter,
-      )) as ISearchHit<any>[]
+      )) as ISearchHit<IMember>[]
 
       const translatedMembers: IMember[] = markedMembers.reduce((acc, member) => {
         const membersWithCrowdFields = translator.translateObjectToCrowd(member._source)

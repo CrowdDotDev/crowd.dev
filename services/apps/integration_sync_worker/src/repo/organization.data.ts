@@ -1,6 +1,6 @@
 import { IAttributes } from '@crowd/types'
 
-export interface IMemberIdWithAttributes {
+export interface IOrganizationIdWithAttributes {
   id: string
   attributes: IAttributes
 }

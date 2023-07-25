@@ -1,6 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMember, IMemberAttribute, PlatformType } from '@crowd/types'
+import { IMemberIdWithAttributes } from './member.data'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -59,7 +60,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async findMemberAttributes(memberId: string): Promise<any> {
+  public async findMemberAttributes(memberId: string): Promise<IMemberIdWithAttributes> {
     return await this.db().oneOrNone(`select id, attributes from members where id = $(memberId)`, {
       memberId,
     })
