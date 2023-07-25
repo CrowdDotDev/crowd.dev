@@ -19,6 +19,50 @@ export enum GithubActivityType {
   AUTHORED_COMMIT = 'authored-commit',
 }
 
+export interface GithubPullRequest {
+  state: string
+  title: string
+  id: string
+  url: string
+  createdAt: string
+  number: string
+  additions: number
+  deletions: number
+  changedFiles: number
+  authorAssociation: string
+  labels?: {
+    nodes?: any[]
+  }
+  bodyText: string
+}
+
+export interface GithubIssue {
+  state: string
+  title: string
+  id: string
+  url: string
+  createdAt: string
+  bodyText: string
+}
+
+export interface GithubPullRequestTimelineItem {
+  __typename: string
+  id: string
+  actor: any
+  createdAt: string
+  assignee?: any
+  submittedAt?: string
+  body?: string
+  state?: string
+}
+
+export interface GithubIssueTimelineItem {
+  __typename: string
+  id: string
+  actor?: any
+  createdAt: string
+}
+
 export interface GithubWebhookPayload {
   signature: string
   event: any

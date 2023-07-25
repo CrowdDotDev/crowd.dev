@@ -45,11 +45,12 @@ let githubAuthenticator: AuthInterface | undefined = undefined
 
 function getAuth(ctx: IProcessStreamContext): AuthInterface | undefined {
   const GITHUB_CONFIG = ctx.platformSettings as GithubPlatformSettings
+  console.log('GITHUB_CONFIG', GITHUB_CONFIG)
   const privateKey = GITHUB_CONFIG.privateKey
     ? Buffer.from(GITHUB_CONFIG.privateKey, 'base64').toString('ascii')
     : undefined
 
-  if (githubAuthenticator === null) {
+  if (githubAuthenticator === undefined) {
     githubAuthenticator = privateKey
       ? createAppAuth({
           appId: GITHUB_CONFIG.appId,

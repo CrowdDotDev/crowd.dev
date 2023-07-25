@@ -273,13 +273,13 @@ const parseWebhookComment = async (
         }
 
         default:
-          return undefined
+          return
       }
       break
     }
 
     default: {
-      return undefined
+      return
     }
   }
 

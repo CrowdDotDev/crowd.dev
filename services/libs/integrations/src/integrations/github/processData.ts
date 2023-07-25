@@ -9,6 +9,10 @@ import {
   GithubPrepareMemberOutput,
   GithubActivitySubType,
   GithubWehookEvent,
+  GithubPullRequest,
+  GithubIssue,
+  GithubPullRequestTimelineItem,
+  GithubIssueTimelineItem,
 } from './types'
 import {
   IActivityData,
@@ -140,7 +144,7 @@ const parseFork: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
+  const data = apiData.data as GithubPullRequest
   const memberData = apiData.member
 
   const member = parseMember(memberData)
@@ -172,30 +176,31 @@ const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const relatedData = apiData.relatedData
+  const data = apiData.data as GithubPullRequestTimelineItem
+  const relatedData = apiData.relatedData as GithubPullRequest
   const memberData = apiData.member
+  const repo = apiData.repo
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_CLOSED,
-    sourceId: `gen-CE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
+    sourceId: `gen-CE_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
       data.createdAt,
     ).toISOString()}`,
-    sourceParentId: relatedData.sourceId,
+    sourceParentId: relatedData.id,
     timestamp: new Date(data.createdAt).toISOString(),
     body: '',
-    url: relatedData.url,
-    channel: relatedData.channel,
+    url: relatedData.url ? relatedData.url : '',
+    channel: repo.url,
     title: '',
     attributes: {
-      state: (relatedData.attributes as any).state,
-      additions: (relatedData.attributes as any).additions,
-      deletions: (relatedData.attributes as any).deletions,
-      changedFiles: (relatedData.attributes as any).changedFiles,
-      authorAssociation: (relatedData.attributes as any).authorAssociation,
-      labels: (relatedData.attributes as any).labels,
+      state: relatedData.state.toLowerCase(),
+      additions: relatedData.additions,
+      deletions: relatedData.deletions,
+      changedFiles: relatedData.changedFiles,
+      authorAssociation: relatedData.authorAssociation,
+      labels: relatedData.labels?.nodes.map((l) => l.name),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].score,
@@ -207,8 +212,8 @@ const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestReviewRequested: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const relatedData = apiData.relatedData
+  const data = apiData.data as GithubPullRequestTimelineItem
+  const relatedData = apiData.relatedData as GithubPullRequest
   const memberData = apiData.member
   const objectMemberData = apiData.objectMember
 
@@ -219,29 +224,29 @@ const parsePullRequestReviewRequested: ProcessDataHandler = async (ctx) => {
 
   const sourceId =
     subType === GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_SINGLE
-      ? `gen-RRE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${
+      ? `gen-RRE_${relatedData.id}_${memberData.memberFromApi.login}_${
           objectMemberData.memberFromApi.login
         }_${new Date(data.createdAt).toISOString()}`
-      : `gen-RRE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${
+      : `gen-RRE_${relatedData.id}_${memberData.memberFromApi.login}_${
           objectMemberData.memberFromApi.login
         }_${new Date(data.createdAt).toISOString()}`
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
     sourceId: sourceId,
-    sourceParentId: relatedData.sourceId,
+    sourceParentId: relatedData.id,
     timestamp: new Date(data.createdAt).toISOString(),
     body: '',
     url: relatedData.url,
-    channel: relatedData.channel,
+    channel: apiData.repo.url,
     title: '',
     attributes: {
-      state: (relatedData.attributes as any).state,
-      additions: (relatedData.attributes as any).additions,
-      deletions: (relatedData.attributes as any).deletions,
-      changedFiles: (relatedData.attributes as any).changedFiles,
-      authorAssociation: (relatedData.attributes as any).authorAssociation,
-      labels: (relatedData.attributes as any).labels,
+      state: relatedData.state.toLowerCase(),
+      additions: relatedData.additions,
+      deletions: relatedData.deletions,
+      changedFiles: relatedData.changedFiles,
+      authorAssociation: relatedData.authorAssociation,
+      labels: relatedData.labels?.nodes.map((l) => l.name),
     },
     member,
     objectMember,
@@ -254,30 +259,31 @@ const parsePullRequestReviewRequested: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestReviewed: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const relatedData = apiData.relatedData
+  const data = apiData.data as GithubPullRequestTimelineItem
+  const relatedData = apiData.relatedData as GithubPullRequest
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_REVIEWED,
-    sourceId: `gen-PRR_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
-      data.createdAt,
+    sourceId: `gen-PRR_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
+      data.submittedAt,
     ).toISOString()}`,
-    sourceParentId: relatedData.sourceId,
-    timestamp: new Date(data.createdAt).toISOString(),
+    sourceParentId: relatedData.id,
+    timestamp: new Date(data.submittedAt).toISOString(),
     url: relatedData.url,
     channel: apiData.repo.url,
+    body: data.body,
     title: '',
     attributes: {
       reviewState: data.state,
-      state: (relatedData.attributes as any).state,
-      additions: (relatedData.attributes as any).additions,
-      deletions: (relatedData.attributes as any).deletions,
-      changedFiles: (relatedData.attributes as any).changedFiles,
-      authorAssociation: (relatedData.attributes as any).authorAssociation,
-      labels: (relatedData.attributes as any).labels,
+      state: relatedData.state.toLowerCase(),
+      additions: relatedData.additions,
+      deletions: relatedData.deletions,
+      changedFiles: relatedData.changedFiles,
+      authorAssociation: relatedData.authorAssociation,
+      labels: relatedData.labels,
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].score,
@@ -289,8 +295,8 @@ const parsePullRequestReviewed: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestAssigned: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const relatedData = apiData.relatedData
+  const data = apiData.data as GithubPullRequestTimelineItem
+  const relatedData = apiData.relatedData as GithubPullRequest
   const memberData = apiData.member
   const objectMemberData = apiData.objectMember
 
@@ -299,22 +305,22 @@ const parsePullRequestAssigned: ProcessDataHandler = async (ctx) => {
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_ASSIGNED,
-    sourceId: `gen-AE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${
+    sourceId: `gen-AE_${relatedData.id}_${memberData.memberFromApi.login}_${
       objectMemberData.memberFromApi.login
     }_${new Date(data.createdAt).toISOString()}`,
-    sourceParentId: relatedData.sourceId,
+    sourceParentId: relatedData.id,
     timestamp: new Date(data.createdAt).toISOString(),
     body: '',
     url: relatedData.url,
     channel: apiData.repo.url,
     title: '',
     attributes: {
-      state: (relatedData.attributes as any).state,
-      additions: (relatedData.attributes as any).additions,
-      deletions: (relatedData.attributes as any).deletions,
-      changedFiles: (relatedData.attributes as any).changedFiles,
-      authorAssociation: (relatedData.attributes as any).authorAssociation,
-      labels: (relatedData.attributes as any).labels,
+      state: relatedData.state.toLowerCase(),
+      additions: relatedData.additions,
+      deletions: relatedData.deletions,
+      changedFiles: relatedData.changedFiles,
+      authorAssociation: relatedData.authorAssociation,
+      labels: relatedData.labels?.nodes?.map((l) => l.name),
     },
     member,
     objectMember,
@@ -327,30 +333,30 @@ const parsePullRequestAssigned: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestMerged: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const relatedData = apiData.relatedData
+  const data = apiData.data as GithubPullRequestTimelineItem
+  const relatedData = apiData.relatedData as GithubPullRequest
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_MERGED,
-    sourceId: `gen-ME_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
+    sourceId: `gen-ME_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
       data.createdAt,
     ).toISOString()}`,
-    sourceParentId: relatedData.sourceId,
+    sourceParentId: relatedData.id,
     timestamp: new Date(data.createdAt).toISOString(),
     body: '',
     url: relatedData.url,
     channel: apiData.repo.url,
     title: '',
     attributes: {
-      state: (relatedData.attributes as any).state,
-      additions: (relatedData.attributes as any).additions,
-      deletions: (relatedData.attributes as any).deletions,
-      changedFiles: (relatedData.attributes as any).changedFiles,
-      authorAssociation: (relatedData.attributes as any).authorAssociation,
-      labels: (relatedData.attributes as any).labels,
+      state: relatedData.state.toLowerCase(),
+      additions: relatedData.additions,
+      deletions: relatedData.deletions,
+      changedFiles: relatedData.changedFiles,
+      authorAssociation: relatedData.authorAssociation,
+      labels: relatedData.labels?.nodes.map((l) => l.name),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].score,
@@ -362,7 +368,7 @@ const parsePullRequestMerged: ProcessDataHandler = async (ctx) => {
 
 const parseIssueOpened: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
+  const data = apiData.data as GithubIssue
   const memberData = apiData.member
 
   const member = parseMember(memberData)
@@ -389,25 +395,26 @@ const parseIssueOpened: ProcessDataHandler = async (ctx) => {
 
 const parseIssueClosed: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const relatedData = apiData.relatedData
+  const data = apiData.data as GithubIssueTimelineItem
+  const relatedData = apiData.relatedData as GithubIssue
   const memberData = apiData.member
+  const repo = apiData.repo
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.ISSUE_CLOSED,
-    sourceId: `gen-CE_${relatedData.sourceId}_${memberData.memberFromApi.login}_${new Date(
+    sourceId: `gen-CE_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
       data.createdAt,
     ).toISOString()}`,
-    sourceParentId: relatedData.sourceId,
+    sourceParentId: relatedData.id,
     timestamp: new Date(data.createdAt).toISOString(),
     body: '',
-    url: relatedData.url,
-    channel: relatedData.channel,
+    url: relatedData.url ? relatedData.url : '',
+    channel: repo.url,
     title: '',
     attributes: {
-      state: (relatedData.attributes as any).state,
+      state: relatedData.state.toLowerCase(),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].score,
@@ -641,6 +648,447 @@ const parseWebhookIssue = async (ctx: IProcessDataContext) => {
   }
 }
 
+const parseWebhookDiscussion = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
+
+  const member = parseMember(memberData)
+  if (payload.action === 'answered') {
+    if (member) {
+      const answer = payload.answer
+      const activity: IActivityData = {
+        member,
+        type: GithubActivityType.DISCUSSION_COMMENT,
+        timestamp: new Date(answer.created_at).toISOString(),
+        sourceId: answer.node_id.toString(),
+        sourceParentId: payload.discussion.node_id.toString(),
+        attributes: {
+          isSelectedAnswer: true,
+        },
+        channel: payload.repository.html_url,
+        body: answer.body,
+        url: answer.html_url,
+        score: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score + 2,
+        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
+      }
+
+      await ctx.publishActivity(activity)
+    }
+  }
+
+  if (!['edited', 'created'].includes(payload.action)) {
+    return
+  }
+
+  const discussion = payload.discussion
+
+  if (member) {
+    const activity: IActivityData = {
+      member,
+      type: GithubActivityType.DISCUSSION_STARTED,
+      timestamp: new Date(discussion.created_at).toISOString(),
+      sourceId: discussion.node_id.toString(),
+      sourceParentId: null,
+      url: discussion.html_url,
+      title: discussion.title,
+      channel: payload.repository.html_url,
+      body: discussion.body,
+      attributes: {
+        category: {
+          id: discussion.category.node_id,
+          isAnswerable: discussion.category.is_answerable,
+          name: discussion.category.name,
+          slug: discussion.category.slug,
+          emoji: discussion.category.emoji,
+          description: discussion.category.description,
+        },
+      },
+      score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
+      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const parseWebhookPullRequest = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
+
+  const member = parseMember(memberData)
+  const objectMemberData = data.objectMember
+  const objectMember = objectMemberData ? parseMember(objectMemberData) : null
+
+  let type: GithubActivityType
+  let scoreGrid: IActivityScoringGrid
+  let timestamp: string
+  let sourceParentId: string
+  let sourceId: string
+  let body = ''
+  let title = ''
+
+  switch (payload.action) {
+    case 'edited':
+    case 'opened':
+    case 'reopened': {
+      type = GithubActivityType.PULL_REQUEST_OPENED
+      scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED]
+      timestamp = payload.pull_request.created_at
+      sourceId = payload.pull_request.node_id.toString()
+      sourceParentId = null
+      body = payload.pull_request.body
+      title = payload.pull_request.title
+      break
+    }
+
+    case 'closed': {
+      type = GithubActivityType.PULL_REQUEST_CLOSED
+      scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED]
+      timestamp = payload.pull_request.closed_at
+      sourceParentId = payload.pull_request.node_id.toString()
+      sourceId = `gen-CE_${payload.pull_request.node_id.toString()}_${
+        payload.sender.login
+      }_${new Date(payload.pull_request.closed_at).toISOString()}`
+      break
+    }
+
+    case 'assigned': {
+      type = GithubActivityType.PULL_REQUEST_ASSIGNED
+      scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED]
+      timestamp = payload.pull_request.updated_at
+      sourceParentId = payload.pull_request.node_id.toString()
+      sourceId = `gen-AE_${payload.pull_request.node_id.toString()}_${payload.sender.login}_${
+        payload.assignee.login
+      }_${new Date(payload.pull_request.updated_at).toISOString()}`
+      break
+    }
+
+    case 'review_requested': {
+      type = GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED
+      scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED]
+      timestamp = payload.pull_request.updated_at
+      sourceParentId = payload.pull_request.node_id.toString()
+      sourceId = `gen-RRE_${payload.pull_request.node_id.toString()}_${payload.sender.login}_${
+        payload.requested_reviewer.login
+      }_${new Date(payload.pull_request.updated_at).toISOString()}`
+      break
+    }
+
+    case 'merged': {
+      type = GithubActivityType.PULL_REQUEST_MERGED
+      scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED]
+      timestamp = payload.pull_request.merged_at
+      sourceParentId = payload.pull_request.node_id.toString()
+      sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
+        payload.pull_request.merged_by.login
+      }_${new Date(payload.pull_request.merged_at).toISOString()}`
+      break
+    }
+
+    default: {
+      return undefined
+    }
+  }
+
+  const pull = payload.pull_request
+
+  if (member) {
+    const activity: IActivityData = {
+      member,
+      objectMember,
+      type,
+      timestamp: new Date(timestamp).toISOString(),
+      sourceId,
+      sourceParentId,
+      url: pull.html_url,
+      title,
+      channel: payload.repository.html_url,
+      body,
+      score: scoreGrid.score,
+      isContribution: scoreGrid.isContribution,
+      attributes: {
+        state: pull.state,
+        additions: pull.additions,
+        deletions: pull.deletions,
+        changedFiles: pull.changed_files,
+        authorAssociation: pull.author_association,
+        labels: pull.labels.map((l) => l.name),
+      },
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const parseWebhookPullRequestReview = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
+
+  const member = parseMember(memberData)
+
+  let type: GithubActivityType
+  let scoreGrid: IActivityScoringGrid
+  let timestamp: string
+  let sourceParentId: string
+  let sourceId: string
+  let body = ''
+
+  switch (payload.action) {
+    case 'submitted': {
+      // additional comments to existing review threads also result in submitted events
+      // since these will be handled in pull_request_review_comment.created events
+      // we're ignoring when state is commented and it has no body.
+      if (payload.review.state === 'commented' && payload.review.body === null) {
+        return undefined
+      }
+
+      type = GithubActivityType.PULL_REQUEST_REVIEWED
+      scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED]
+      timestamp = payload.review.submitted_at
+      sourceParentId = payload.pull_request.node_id.toString()
+      sourceId = `gen-PRR_${payload.pull_request.node_id.toString()}_${
+        payload.sender.login
+      }_${new Date(payload.review.submitted_at).toISOString()}`
+      body = payload.review.body
+      break
+    }
+    default: {
+      return undefined
+    }
+  }
+
+  const pull = payload.pull_request
+
+  if (member) {
+    const activity: IActivityData = {
+      member,
+      type,
+      timestamp: new Date(timestamp).toISOString(),
+      sourceId,
+      sourceParentId,
+      url: pull.html_url,
+      title: '',
+      channel: payload.repository.html_url,
+      body,
+      score: scoreGrid.score,
+      isContribution: scoreGrid.isContribution,
+      attributes: {
+        reviewState: (payload.review?.state as string).toUpperCase(),
+        state: pull.state,
+        authorAssociation: pull.author_association,
+        labels: pull.labels.map((l) => l.name),
+      },
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const parseWebhookStar = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
+
+  const member = parseMember(memberData)
+
+  let type: GithubActivityType
+  switch (payload.action) {
+    case 'created': {
+      type = GithubActivityType.STAR
+      break
+    }
+
+    case 'deleted': {
+      type = GithubActivityType.UNSTAR
+      break
+    }
+
+    default: {
+      return
+    }
+  }
+
+  if (
+    member &&
+    (type === GithubActivityType.UNSTAR ||
+      (type === GithubActivityType.STAR && payload.starred_at !== null))
+  ) {
+    const starredAt =
+      type === GithubActivityType.STAR
+        ? new Date(payload.starred_at).toISOString()
+        : new Date().toISOString()
+
+    const activity: IActivityData = {
+      member,
+      type,
+      timestamp: starredAt,
+      sourceId: generateSourceIdHash(
+        payload.sender.login,
+        type,
+        Math.floor(new Date(payload.starred_at).getTime() / 1000).toString(),
+        PlatformType.GITHUB,
+      ),
+      sourceParentId: null,
+      channel: payload.repository.html_url,
+      score:
+        type === 'star'
+          ? GITHUB_GRID[GithubActivityType.STAR].score
+          : GITHUB_GRID[GithubActivityType.UNSTAR].score,
+      isContribution:
+        type === 'star'
+          ? GITHUB_GRID[GithubActivityType.STAR].isContribution
+          : GITHUB_GRID[GithubActivityType.UNSTAR].isContribution,
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const parseWebhookFork = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
+
+  const member = parseMember(memberData)
+
+  if (member) {
+    const activity: IActivityData = {
+      member,
+      type: GithubActivityType.FORK,
+      timestamp: new Date(payload.forkee.created_at).toISOString(),
+      sourceId: payload.forkee.node_id.toString(),
+      sourceParentId: null,
+      channel: payload.repository.html_url,
+      score: GITHUB_GRID.fork.score,
+      isContribution: GITHUB_GRID.fork.isContribution,
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const parseWebhookComment = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
+
+  const member = parseMember(memberData)
+  let type: GithubActivityType
+  let sourceParentId: string | undefined
+
+  switch (data.webhookType) {
+    case GithubWehookEvent.DISCUSSION_COMMENT: {
+      switch (payload.action) {
+        case 'created':
+        case 'edited':
+          type = GithubActivityType.DISCUSSION_COMMENT
+          sourceParentId = payload.discussion.node_id.toString()
+          break
+        default:
+          return undefined
+      }
+      break
+    }
+
+    case GithubWehookEvent.ISSUE_COMMENT: {
+      switch (payload.action) {
+        case 'created':
+        case 'edited': {
+          if ('pull_request' in payload.issue) {
+            type = GithubActivityType.PULL_REQUEST_COMMENT
+          } else {
+            type = GithubActivityType.ISSUE_COMMENT
+          }
+          sourceParentId = payload.issue.node_id.toString()
+          break
+        }
+
+        default:
+          return
+      }
+      break
+    }
+
+    default: {
+      return
+    }
+  }
+
+  if (member) {
+    const comment = payload.comment
+    const activity: IActivityData = {
+      member,
+      type,
+      timestamp: new Date(comment.created_at).toISOString(),
+      sourceId: comment.node_id.toString(),
+      sourceParentId,
+      url: comment.html_url,
+      body: comment.body,
+      channel: payload.repository.html_url,
+      score: GITHUB_GRID[type].score,
+      isContribution: GITHUB_GRID[type].isContribution,
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const parseWebhookPullRequestReviewThreadComment = async (ctx: IProcessDataContext) => {
+  const data = ctx.data as GithubWebhookData
+  const payload = data.data
+  const memberData = data.member
+
+  const member = parseMember(memberData)
+
+  let type: GithubActivityType
+  let scoreGrid: IActivityScoringGrid
+  let timestamp: string
+  let sourceParentId: string
+  let sourceId: string
+  let body = ''
+
+  switch (payload.action) {
+    case 'created': {
+      type = GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT
+      scoreGrid = GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT]
+      timestamp = payload.comment.created_at
+      sourceParentId = payload.pull_request.node_id
+      sourceId = payload.comment.node_id
+      body = payload.comment.body
+      break
+    }
+    default: {
+      return undefined
+    }
+  }
+
+  if (member) {
+    const activity: IActivityData = {
+      member,
+      type,
+      timestamp: new Date(timestamp).toISOString(),
+      sourceId,
+      sourceParentId,
+      url: payload.comment.html_url,
+      title: '',
+      channel: payload.repository.html_url,
+      body,
+      score: scoreGrid.score,
+      isContribution: scoreGrid.isContribution,
+      attributes: {
+        state: payload.pull_request.state,
+        authorAssociation: payload.pull_request.author_association,
+        labels: payload.pull_request.labels.map((l) => l.name),
+      },
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
 const handler: ProcessDataHandler = async (ctx) => {
   const data = ctx.data as any
 
@@ -705,28 +1153,26 @@ const handler: ProcessDataHandler = async (ctx) => {
         await parseWebhookIssue(ctx)
         break
       case GithubWehookEvent.DISCUSSION:
-        // await parseWebhookDiscussion(ctx)
+        await parseWebhookDiscussion(ctx)
         break
       case GithubWehookEvent.PULL_REQUEST:
-        // await parseWebhookPullRequest(ctx)
+        await parseWebhookPullRequest(ctx)
         break
       case GithubWehookEvent.PULL_REQUEST_REVIEW:
-        // await parseWebhookPullRequestReview(ctx)
+        await parseWebhookPullRequestReview(ctx)
         break
       case GithubWehookEvent.STAR:
-        // await parseWebhookStar(ctx)
+        await parseWebhookStar(ctx)
         break
       case GithubWehookEvent.FORK:
-        // await parseWebhookFork(ctx)
+        await parseWebhookFork(ctx)
         break
       case GithubWehookEvent.DISCUSSION_COMMENT:
-        // await parseWebhookDiscussionComment(ctx)
+      case GithubWehookEvent.ISSUE_COMMENT:
+        await parseWebhookComment(ctx)
         break
       case GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT:
-        // await parseWebhookPullRequestReviewComment(ctx)
-        break
-      case GithubWehookEvent.ISSUE_COMMENT:
-        // await parseWebhookIssueComment(ctx)
+        await parseWebhookPullRequestReviewThreadComment(ctx)
         break
       default:
         await ctx.abortWithError(`Webhook event not supported '${webhookEvent}'!`)
