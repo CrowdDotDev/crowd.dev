@@ -161,6 +161,7 @@ export default class IntegrationRunService extends LoggerBase {
             (s) => s.type === runInfo.integrationType,
           )
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const settings = runInfo.integrationSettings as any
 
           if (
