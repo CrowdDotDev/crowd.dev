@@ -47,11 +47,11 @@
             Action
           </h5>
           <p class="text-2xs text-gray-500">
-            {{ typeData.triggerText }}
+            {{ typeData.actionText }}
           </p>
         </div>
         <div>
-          <component :is="typeData.actionComponent" v-model="form.settings" />
+          <component :is="typeData.actionComponent" v-model="form.settings" :trigger="form.trigger" />
         </div>
       </div>
     </template>

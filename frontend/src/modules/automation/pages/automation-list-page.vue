@@ -32,42 +32,54 @@
             </el-button>
           </template>
 
-          <div
+          <el-tooltip
             v-for="(automationType, key) of automationTypes"
             :key="key"
-            class="popover-item h-auto mb-1 py-2 px-2.5"
-            :class="{
-              'hover:bg-white !cursor-default': !automationType.canCreate(store),
-              'opacity-50': automationType.disabled && automationType.disabled(store),
-            }"
-            @click="createAutomation(key)"
+            :content="automationType.tooltip && automationType.tooltip(store)"
+            :disabled="!(automationType.tooltip && automationType.tooltip(store))"
+            placement="top"
           >
-            <div class="flex">
-              <div class="mt-0.5">
-                <img :alt="automationType.name" :src="automationType.icon" class="w-4 max-w-4">
-              </div>
-              <div class="pl-2">
-                <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
-                  {{ automationType.name }}
-                </h6>
-                <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
-                  {{ automationType.description }}
-                </p>
-                <el-button
-                  v-if="automationType.actionButton && automationType.actionButton(store)"
-                  class="btn btn--primary btn--sm !h-8 mt-3"
-                  @click="automationType.actionButton(store).action()"
-                >
-                  {{ automationType.actionButton(store).label }}
-                </el-button>
+            <div
+
+              class="popover-item h-auto mb-1 py-2 px-2.5"
+              :class="{
+                'hover:bg-white !cursor-default': !automationType.canCreate(store),
+                'opacity-50': automationType.disabled && automationType.disabled(store),
+              }"
+              @click="createAutomation(key)"
+            >
+              <div class="flex">
+                <div class="mt-0.5">
+                  <img :alt="automationType.name" :src="automationType.icon" class="w-4 max-w-4">
+                </div>
+                <div class="pl-2">
+                  <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
+                    {{ automationType.name }}
+                  </h6>
+                  <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
+                    {{ automationType.description }}
+                  </p>
+                  <el-button
+                    v-if="automationType.actionButton && automationType.actionButton(store)"
+                    class="btn btn--bordered btn--sm !h-8 mt-3"
+                    @click="automationType.actionButton(store).action()"
+                  >
+                    {{ automationType.actionButton(store).label }}
+                  </el-button>
+                </div>
               </div>
             </div>
-          </div>
+          </el-tooltip>
         </el-popover>
       </div>
     </div>
+    <component
+      :is="automationTypes[filter.type].paywallComponent(store)"
+      v-if="filter.type && filter.type !== 'all' && automationTypes[filter.type]?.paywallComponent
+        && automationTypes[filter.type]?.paywallComponent(store)"
+    />
     <div
-      v-if="loadingAutomations"
+      v-else-if="loadingAutomations"
       v-loading="loadingAutomations"
       class="app-page-spinner"
     />
