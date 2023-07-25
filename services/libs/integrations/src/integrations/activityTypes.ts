@@ -196,7 +196,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         formatter: {
           channel: defaultGithubChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
             return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
           },
         },
@@ -211,7 +211,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         formatter: {
           channel: defaultGithubChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
             return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> to <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
           },
         },
@@ -226,7 +226,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         formatter: {
           channel: defaultGithubChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
             return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
           },
         },
@@ -241,7 +241,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         formatter: {
           channel: defaultGithubChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent.title}`
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
             return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
           },
         },
@@ -257,7 +257,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGithubChannelFormatter,
           self: (activity) => {
             const prNumberAndTitle = `#${activity.url.split('/')[6].split('#')[0]} ${
-              activity.parent.title
+              activity.parent?.title
             }`
             return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
           },

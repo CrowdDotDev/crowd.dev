@@ -1100,7 +1100,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     for (const record of records) {
       switch (record.__typename) {
         case GithubPullRequestEvents.ASSIGN:
-          if (record.actor.login && record.assignee.login) {
+          if (record.actor?.login && record.assignee?.login) {
             const member = await GithubIntegrationService.parseMember(record.actor, context)
             const objectMember = await GithubIntegrationService.parseMember(
               record.assignee,
@@ -1678,7 +1678,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     for (const record of records) {
       switch (record.__typename) {
         case GithubPullRequestEvents.CLOSE:
-          if (record.actor.login) {
+          if (record.actor?.login) {
             const member = await GithubIntegrationService.parseMember(record.actor, context)
             out.push({
               username: member.username[PlatformType.GITHUB].username,
