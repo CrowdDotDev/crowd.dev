@@ -11,7 +11,7 @@ import reddit from './reddit';
 import linkedin from './linkedin';
 import zapier from './zapier';
 import crunchbase from './crunchbase';
-import make from './make';
+// import make from './make';
 import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
@@ -29,13 +29,13 @@ class IntegrationsConfig {
       linkedin,
       stackoverflow,
       zapier,
+      n8n,
       git,
       crunchbase,
       discourse,
       hubspot,
-      make,
+      // make,
       facebook,
-      n8n,
     };
   }
 
