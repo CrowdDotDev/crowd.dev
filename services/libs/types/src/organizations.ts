@@ -1,3 +1,5 @@
+import { IAttributes } from './attributes'
+
 export interface IOrganization {
   id?: string
   name: string
@@ -18,7 +20,7 @@ export interface IOrganization {
   headline?: string
   industry?: string
   founded?: string
-  attributes?: any
+  attributes?: IAttributes
 }
 
 export interface IOrganizationSocial {

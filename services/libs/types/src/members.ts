@@ -1,3 +1,4 @@
+import { IAttributes } from './attributes'
 import { MemberAttributeType } from './enums/members'
 import { IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITagOpensearch } from './tags'
@@ -31,7 +32,7 @@ export interface IMember {
   id: string
   tenantId: string
   segmentId: string
-  attributes: any
+  attributes: IAttributes
   emails: string[]
   score: number
   lastEnriched: string
@@ -48,6 +49,7 @@ export interface IMember {
   tags: ITagOpensearch[]
   toMergeIds: string[]
   noMergeIds: string[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   username: any
-  lastActivity: any
+  lastActivity: unknown
 }

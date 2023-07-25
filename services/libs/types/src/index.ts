@@ -37,3 +37,5 @@ export * from './enums/webhooks'
 export * from './enums/entities'
 
 export * from './tags'
+
+export * from './attributes'
