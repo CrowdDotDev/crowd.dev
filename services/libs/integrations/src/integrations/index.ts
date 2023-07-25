@@ -28,6 +28,7 @@ export * from './premium/linkedin/types'
 export * from './premium/linkedin/memberAttributes'
 
 export * from './premium/hubspot/types'
+export * from './premium/hubspot/api/types'
 export * from './premium/hubspot/field-mapper/mapperFactory'
 export { getProperties as getHubspotProperties } from './premium/hubspot/api/properties'
 export { getTokenInfo as getHubspotTokenInfo } from './premium/hubspot/api/tokenInfo'

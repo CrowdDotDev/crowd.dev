@@ -9,7 +9,11 @@ import { ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IntegrationRepository } from '@/repo/integration.repo'
 import { FieldTranslatorFactory } from '@crowd/opensearch'
-import { IIntegrationProcessRemoteSyncContext, INTEGRATION_SERVICES } from '@crowd/integrations'
+import {
+  IBatchCreateMemberResult,
+  IIntegrationProcessRemoteSyncContext,
+  INTEGRATION_SERVICES,
+} from '@crowd/integrations'
 import { IDbIntegration } from '@/repo/integration.data'
 import { SearchSyncWorkerEmitter } from '@crowd/sqs'
 
@@ -74,7 +78,7 @@ export class MemberSyncService extends LoggerBase {
         context,
       )
 
-      for (const newMember of newMembers) {
+      for (const newMember of newMembers as IBatchCreateMemberResult[]) {
         await this.memberRepo.setIntegrationSourceId(
           newMember.memberId,
           integration.platform as PlatformType,
@@ -222,7 +226,7 @@ export class MemberSyncService extends LoggerBase {
           context,
         )
 
-        for (const newMember of newMembers) {
+        for (const newMember of newMembers as IBatchCreateMemberResult[]) {
           await this.memberRepo.setIntegrationSourceId(
             newMember.memberId,
             integration.platform as PlatformType,

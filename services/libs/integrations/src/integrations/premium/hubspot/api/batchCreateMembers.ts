@@ -5,11 +5,7 @@ import { getNangoToken } from './../../../nango'
 import { IMember, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
-
-export interface IBatchCreateMemberResult {
-  memberId: string
-  sourceId: string
-}
+import { IBatchCreateMemberResult } from './types'
 
 export const batchCreateMembers = async (
   nangoId: string,

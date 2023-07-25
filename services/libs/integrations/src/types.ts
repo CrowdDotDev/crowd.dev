@@ -9,7 +9,7 @@ import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
 import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
-import { IBatchCreateOrganizationsResult } from './integrations/premium/hubspot/api/batchCreateOrganizations'
+import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
 
 export interface IIntegrationContext {
   onboarding?: boolean
@@ -99,7 +99,7 @@ export type ProcessIntegrationSyncHandler = <T>(
   toUpdate: T[],
   entity: Entity,
   ctx: IIntegrationProcessRemoteSyncContext,
-) => Promise<IBatchCreateOrganizationsResult[]>
+) => Promise<IBatchOperationResult>
 
 export interface IIntegrationDescriptor {
   /**

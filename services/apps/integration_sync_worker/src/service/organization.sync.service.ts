@@ -4,7 +4,11 @@ import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IntegrationRepository } from '@/repo/integration.repo'
-import { IIntegrationProcessRemoteSyncContext, INTEGRATION_SERVICES } from '@crowd/integrations'
+import {
+  IBatchCreateOrganizationsResult,
+  IIntegrationProcessRemoteSyncContext,
+  INTEGRATION_SERVICES,
+} from '@crowd/integrations'
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { IDbIntegration } from '@/repo/integration.data'
 
@@ -58,7 +62,7 @@ export class OrganizationSyncService extends LoggerBase {
         context,
       )
 
-      for (const newOrganization of newOrganizations) {
+      for (const newOrganization of newOrganizations as IBatchCreateOrganizationsResult[]) {
         await this.organizationRepo.setIntegrationSourceId(
           newOrganization.organizationId,
           integration.platform as PlatformType,
@@ -136,7 +140,7 @@ export class OrganizationSyncService extends LoggerBase {
           context,
         )
 
-        for (const newOrganization of newOrganizations) {
+        for (const newOrganization of newOrganizations as IBatchCreateOrganizationsResult[]) {
           await this.organizationRepo.setIntegrationSourceId(
             newOrganization.organizationId,
             integration.platform as PlatformType,

@@ -6,11 +6,7 @@ import { IOrganization, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
 import { getOrganizationDomain } from './utils/getOrganizationDomain'
-
-export interface IBatchCreateOrganizationsResult {
-  organizationId: string
-  sourceId: string
-}
+import { IBatchCreateOrganizationsResult } from './types'
 
 export const batchCreateOrganizations = async (
   nangoId: string,

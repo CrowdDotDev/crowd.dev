@@ -11,18 +11,16 @@ import { RequestThrottler } from '@crowd/common'
 import { batchCreateMembers } from './api/batchCreateMembers'
 import { batchUpdateMembers } from './api/batchUpdateMembers'
 import { HubspotOrganizationFieldMapper } from './field-mapper/organizationFieldMapper'
-import {
-  IBatchCreateOrganizationsResult,
-  batchCreateOrganizations,
-} from './api/batchCreateOrganizations'
+import { batchCreateOrganizations } from './api/batchCreateOrganizations'
 import { batchUpdateOrganizations } from './api/batchUpdateOrganizations'
+import { IBatchOperationResult } from './api/types'
 
 const handler: ProcessIntegrationSyncHandler = async <T>(
   toCreate: T[],
   toUpdate: T[],
   entity: Entity,
   ctx: IIntegrationProcessRemoteSyncContext,
-): Promise<IBatchCreateOrganizationsResult[]> => {
+): Promise<IBatchOperationResult> => {
   const nangoId = `${ctx.tenantId}-${ctx.integration.platform}`
 
   const integrationContext = {
