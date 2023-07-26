@@ -3,6 +3,7 @@ import { router } from '@/router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 const workflowMax = {
+  scale: 'unlimited',
   enterprise: 'unlimited',
   growth: 10,
   essential: 2,
