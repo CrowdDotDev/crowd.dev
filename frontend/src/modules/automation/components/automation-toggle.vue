@@ -32,7 +32,6 @@ const { changePublishState } = useAutomationStore();
 const canEnable = computed(() => {
   const { type } = props.automation;
   if (automationTypes[type]?.enableGuard) {
-    console.log(automationTypes[type]?.enableGuard(props.automation, store));
     return props.automation.state === 'active' || automationTypes[type]?.enableGuard(props.automation, store);
   }
   return true;

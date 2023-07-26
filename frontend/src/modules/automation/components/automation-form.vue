@@ -133,7 +133,6 @@ const emit = defineEmits(['update:modelValue', 'update:automation']);
 const { createAutomation, updateAutomation, getAutomations } = useAutomationStore();
 
 const store = useStore();
-const fetchIntegrations = () => store.dispatch('integration/doFetch');
 
 const isDrawerOpen = computed({
   get() {

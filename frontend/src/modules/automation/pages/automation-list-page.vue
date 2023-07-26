@@ -118,15 +118,13 @@
 
 <script setup>
 import {
-  ref, onMounted, computed,
+  ref, onMounted,
 } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
 import AppAutomationForm from '@/modules/automation/components/automation-form.vue';
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
-import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
 import { FeatureFlag } from '@/featureFlag';
@@ -159,6 +157,7 @@ const { getAutomations, changeAutomationFilter } = automationStore;
 const { currentTenant } = mapGetters('auth');
 
 const store = useStore();
+const fetchIntegrations = () => store.dispatch('integration/doFetch');
 
 /**
  * Check if tenant has feature flag enabled
@@ -200,28 +199,8 @@ const updateAutomation = (automation) => {
   editAutomation.value = automation;
 };
 
-// Slack connect
-const slackConnected = computed(() => currentTenant.value?.settings[0].slackWebHook);
-
-const slackConnectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?activeTab=automations&success=true`;
-
-  return `${config.backendUrl}/tenant/${
-    currentTenant.value.id
-  }/automation/config?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
-});
-
-const authenticateSlack = () => {
-  window.open(slackConnectUrl.value, '_self');
-};
-
-const createSlackAutomation = () => {
-  if (slackConnected.value) {
-    createAutomation('slack');
-  }
-};
-
 onMounted(() => {
+  fetchIntegrations();
   getAutomations();
 });
 
