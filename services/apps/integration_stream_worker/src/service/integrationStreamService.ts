@@ -312,6 +312,7 @@ export default class IntegrationStreamService extends LoggerBase {
           data,
           undefined,
           webhookId,
+          streamInfo.integrationId,
         )
       },
       updateIntegrationSettings: async (settings) => {
@@ -451,6 +452,7 @@ export default class IntegrationStreamService extends LoggerBase {
           data,
           streamInfo.runId,
           undefined,
+          undefined,
         )
       },
       updateIntegrationSettings: async (settings) => {
@@ -529,6 +531,7 @@ export default class IntegrationStreamService extends LoggerBase {
     data?: unknown,
     runId?: string,
     webhookId?: string,
+    integrationId?: string,
   ): Promise<void> {
     try {
       if (!runId && !webhookId) {
@@ -547,7 +550,8 @@ export default class IntegrationStreamService extends LoggerBase {
 
       if (webhookId) {
         // publishing webhook stream
-        //  no need to create a stream for webhook, it will be created automatically
+        await this.repo.publishWebhookStream(identifier, webhookId, data, integrationId, tenantId)
+
         await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
       }
     } catch (err) {
