@@ -23,6 +23,7 @@ export enum FeatureFlag {
   EAGLE_EYE = 'eagle-eye',
   CSV_EXPORT = 'csv-export',
   LINKEDIN = 'linkedin',
+  HUBSPOT = 'hubspot',
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
