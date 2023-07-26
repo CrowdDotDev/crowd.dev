@@ -27,6 +27,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@crowd/logging": "file:../logging",
     "uuid": "^9.0.0"
   }
 }

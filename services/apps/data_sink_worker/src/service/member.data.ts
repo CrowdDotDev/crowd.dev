@@ -7,6 +7,7 @@ export interface IMemberUpdateData {
   weakIdentities?: IMemberIdentity[]
   identities: IMemberIdentity[]
   organizations?: IOrganization[]
+  displayName?: string
 }
 
 export interface IMemberCreateData {
