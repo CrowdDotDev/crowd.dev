@@ -1,7 +1,7 @@
 <template>
   <app-drawer
     v-model="isDrawerVisible"
-    title="Discourse"
+    title="HubSpot"
     size="600px"
     pre-title="Integration"
     :show-footer="true"
@@ -12,7 +12,7 @@
       <img
         :src="hubspotDetails.image"
         class="w-6 h-6 mr-2"
-        alt="Discourse logo"
+        alt="HubSpot logo"
       />
     </template>
     <template #content>
