@@ -10,9 +10,27 @@ import industry from '@/modules/organization/config/filters/industry/config';
 import seniorityLevel from '@/modules/member/config/filters/seniorityLevel/config';
 import annualRevenue from '@/modules/organization/config/filters/annualRevenue/config';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import {
+  HubspotAutomationTrigger,
+} from '@/modules/automation/config/automation-types/hubspot/types/HubspotAutomationTrigger';
 import AutomationsHubspotPaywall from './hubspot-paywall.vue';
 import AutomationsHubspotTrigger from './hubspot-trigger.vue';
 import AutomationsHubspotAction from './hubspot-action.vue';
+
+export const hubspotMemberFilters: Record<string, FilterConfig> = {
+  noOfActivities,
+  activityType,
+  seniorityLevel,
+  tags,
+};
+
+export const hubspotOrganizationFilters: Record<string, FilterConfig> = {
+  noOfActivities,
+  noOfMembers,
+  headcount,
+  industry,
+  annualRevenue,
+};
 
 export const hubspot: AutomationTypeConfig = {
   name: 'HubSpot',
@@ -58,21 +76,28 @@ export const hubspot: AutomationTypeConfig = {
     }
     return AutomationsHubspotPaywall;
   },
+  settingsMap(settings: any, trigger: string) {
+    const { operator, list, data } = settings;
+
+    let filters: Record<string, FilterConfig> = {};
+    if (trigger === HubspotAutomationTrigger.MEMBER_ATTRIBUTE_MATCH) {
+      filters = hubspotMemberFilters;
+    }
+    if (trigger === HubspotAutomationTrigger.ORGANIZATION_ATTRIBUTE_MATCH) {
+      filters = hubspotOrganizationFilters;
+    }
+
+    const apiFilterData = list.map((property: string) => {
+      const config: FilterConfig = filters[property];
+      return config.apiFilterRenderer(data[property]);
+    }).flat();
+    return {
+      ...settings,
+      filter: {
+        [operator]: apiFilterData,
+      },
+    };
+  },
   actionComponent: AutomationsHubspotAction,
   triggerComponent: AutomationsHubspotTrigger,
-};
-
-export const hubspotMemberFilters: Record<string, FilterConfig> = {
-  noOfActivities,
-  activityType,
-  seniorityLevel,
-  tags,
-};
-
-export const hubspotOrganizationFilters: Record<string, FilterConfig> = {
-  noOfActivities,
-  noOfMembers,
-  headcount,
-  industry,
-  annualRevenue,
 };

@@ -65,6 +65,7 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { HubspotEntity } from "@/integrations/hubspot/types/HubspotEntity";
 
 const store = useStore();
 
@@ -95,8 +96,7 @@ const rules: any = computed(() => ({
 const canSyncMembers = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
   const enabledFor = hubspot.settings?.enabledFor || [];
-  // TODO: change to enum when merged
-  return enabledFor.includes('members');
+  return enabledFor.includes(HubspotEntity.MEMBERS);
 });
 
 const $v = useVuelidate(rules, form);

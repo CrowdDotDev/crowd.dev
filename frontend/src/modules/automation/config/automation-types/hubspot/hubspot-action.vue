@@ -81,7 +81,7 @@ const defaultValue = {
   list: [],
   data: {},
   operator: 'and',
-  filters: {},
+  filter: {},
   action: '',
   contactList: '',
   companyList: '',

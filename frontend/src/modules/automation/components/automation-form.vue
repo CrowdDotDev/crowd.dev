@@ -191,13 +191,18 @@ const doSubmit = () => {
     return;
   }
   sending.value = true;
+  let { settings } = form;
+  if (automationTypes[type.value].settingsMap) {
+    settings = automationTypes[type.value].settingsMap(settings, form.trigger);
+  }
+
   const data = {
     name: form.name && form.name.length > 0
       ? form.name : i18n(`entities.automation.triggers.${form.trigger}`),
     type: type.value,
     trigger: form.trigger,
     settings: {
-      ...form.settings,
+      ...settings,
     },
   };
   if (!isEdit.value) {

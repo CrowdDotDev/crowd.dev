@@ -17,10 +17,11 @@
         @change="resetFilterForm()"
       >
         <el-option
-          v-for="{ value, label } of triggerOptions"
+          v-for="{ value, label, display } of triggerOptions"
           :key="value"
           :value="value"
           :label="label"
+          :disabled="!display"
         />
       </el-select>
     </app-form-item>
@@ -118,6 +119,7 @@ import {
   hubspotMemberFilters,
   hubspotOrganizationFilters,
 } from '@/modules/automation/config/automation-types/hubspot/config';
+import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 
 const props = defineProps<{
   trigger: HubspotAutomationTrigger,
@@ -150,17 +152,18 @@ const settings = computed<any>({
 
 const triggerOptions = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-  // TODO: remove test properties when merged and change to enum
-  const enabledFor = hubspot.settings?.enabledFor || ['members', 'organizations'];
+  const enabledFor = hubspot.settings?.enabledFor || [];
   return [
-    ...(enabledFor.includes('members') ? [{
+    {
       label: 'Member attributes match condition(s)',
       value: HubspotAutomationTrigger.MEMBER_ATTRIBUTE_MATCH,
-    }] : []),
-    ...(enabledFor.includes('organizations') ? [{
+      display: enabledFor.includes(HubspotEntity.MEMBERS),
+    },
+    {
       label: 'Organization attributes match condition(s)',
       value: HubspotAutomationTrigger.ORGANIZATION_ATTRIBUTE_MATCH,
-    }] : []),
+      display: enabledFor.includes(HubspotEntity.ORGANIZATIONS),
+    },
   ];
 });
 
