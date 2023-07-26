@@ -315,11 +315,13 @@ const parseWebhookPullRequestReviewComment = async (
 const handler: ProcessWebhookStreamHandler = async (ctx) => {
   const identifier = ctx.stream.identifier
 
+  // this is for pull request commits which are published during runtime
   if (identifier.startsWith(GithubStreamType.PULL_COMMITS)) {
     // we are reusing code here with another type of context
     // everything should work except for ctx.aborRuntWithError
     await processPullCommitsStream(ctx as IProcessStreamContext)
   } else {
+    // this is for normal weqbook events
     const { signature, event, data } = ctx.stream.data as GithubWebhookPayload
 
     await verifyWebhookSignature(signature, data, ctx)
