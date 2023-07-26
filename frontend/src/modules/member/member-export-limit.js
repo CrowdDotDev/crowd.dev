@@ -14,6 +14,9 @@ const exportMax = {
  * @returns maximum number of exports
  */
 export const getExportMax = (plan) => {
+  if (plan === Plans.values.scale) {
+    return exportMax.scale;
+  }
   if (plan === Plans.values.enterprise) {
     return exportMax.enterprise;
   } if (

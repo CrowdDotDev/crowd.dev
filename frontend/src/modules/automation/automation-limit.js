@@ -14,6 +14,9 @@ const workflowMax = {
  * @returns maximum number of workflows
  */
 export const getWorkflowMax = (plan) => {
+  if (plan === Plans.values.scale) {
+    return workflowMax.scale;
+  }
   if (plan === Plans.values.enterprise) {
     return workflowMax.enterprise;
   } if (
