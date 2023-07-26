@@ -13,6 +13,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import {
   HubspotAutomationTrigger,
 } from '@/modules/automation/config/automation-types/hubspot/types/HubspotAutomationTrigger';
+import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import AutomationsHubspotPaywall from './hubspot-paywall.vue';
 import AutomationsHubspotTrigger from './hubspot-trigger.vue';
 import AutomationsHubspotAction from './hubspot-action.vue';
@@ -97,6 +98,17 @@ export const hubspot: AutomationTypeConfig = {
         [operator]: apiFilterData,
       },
     };
+  },
+  enableGuard(automation: any, store: string) {
+    const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+    const enabledFor = hubspot.settings?.enabledFor || [];
+    if (automation.trigger === HubspotAutomationTrigger.MEMBER_ATTRIBUTE_MATCH) {
+      return enabledFor.includes(HubspotEntity.MEMBERS);
+    }
+    if (automation.trigger === HubspotAutomationTrigger.ORGANIZATION_ATTRIBUTE_MATCH) {
+      return enabledFor.includes(HubspotEntity.ORGANIZATIONS);
+    }
+    return true;
   },
   actionComponent: AutomationsHubspotAction,
   triggerComponent: AutomationsHubspotTrigger,

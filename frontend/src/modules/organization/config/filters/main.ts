@@ -1,6 +1,5 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
-import annualRevenue from '@/modules/organization/config/filters/annualRevenue/config';
 import noOfMembers from './noOfMembers/config';
 import noOfActivities from './noOfActivities/config';
 import activeOn from './activeOn/config';
@@ -27,7 +26,6 @@ export const organizationFilters: Record<string, FilterConfig> = {
   lastActivityDate,
   location,
   type,
-  annualRevenue,
 };
 
 export const organizationSearchFilter: SearchFilterConfig = {

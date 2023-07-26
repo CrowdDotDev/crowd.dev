@@ -31,8 +31,12 @@
         class="w-full"
         @blur="$v.companyList.$touch"
       >
-        <!-- TODO: list company lists -->
-        <el-option :value="'customlist1'" :label="'Custom list 1'" />
+        <el-option
+          v-for="list of props.lists.organizations"
+          :key="list.id"
+          :value="list.id"
+          :label="list.name"
+        />
       </el-select>
     </app-form-item>
     <app-form-item
@@ -51,8 +55,12 @@
         class="w-full"
         @blur="$v.contactList.$touch"
       >
-        <!-- TODO: list contact list -->
-        <el-option :value="'customlist1'" :label="'Custom list 1'" />
+        <el-option
+          v-for="list of props.lists.members"
+          :key="list.id"
+          :value="list.id"
+          :label="list.name"
+        />
       </el-select>
     </app-form-item>
   </div>
@@ -66,11 +74,13 @@ import useVuelidate from '@vuelidate/core';
 import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from "@/integrations/hubspot/types/HubspotEntity";
+import { HubspotLists } from "@/integrations/hubspot/types/HubspotLists";
 
 const store = useStore();
 
 const props = defineProps<{
   modelValue: any,
+  lists: HubspotLists,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: any)}>();

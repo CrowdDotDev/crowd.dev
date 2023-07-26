@@ -38,10 +38,12 @@
       <app-automation-hubspot-action-contact-list
         v-if="form.action === HubspotAutomationAction.ADD_TO_CONTACT_LIST"
         v-model="form"
+        :lists="lists"
       />
       <app-automation-hubspot-action-company-list
         v-else-if="form.action === HubspotAutomationAction.ADD_TO_COMPANY_LIST"
         v-model="form"
+        :lists="lists"
       />
     </div>
   </div>
@@ -49,7 +51,7 @@
 
 <script setup lang="ts">
 import {
-  computed, defineEmits, defineProps, onMounted, watch,
+  computed, defineEmits, defineProps, onMounted, ref, watch,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { required } from '@vuelidate/validators';
@@ -63,6 +65,8 @@ import {
 
 import AppAutomationHubspotActionContactList from '@/modules/automation/config/automation-types/hubspot/actions/hubspot-action-contact-list.vue';
 import AppAutomationHubspotActionCompanyList from '@/modules/automation/config/automation-types/hubspot/actions/hubspot-action-company-list.vue';
+import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
+import { HubspotLists } from '@/integrations/hubspot/types/HubspotLists';
 
 interface HubspotActionOption {
   label: string;
@@ -76,6 +80,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: any)}>();
+
+const lists = ref<HubspotLists>({
+  members: [],
+  organizations: [],
+});
 
 const defaultValue = {
   list: [],
@@ -137,10 +146,24 @@ const actionOptions = computed<HubspotActionOption[]>(() => {
   return [];
 });
 
+const getLists = () => {
+  HubspotApiService.getLists()
+    .then((hubspotLists) => {
+      lists.value = hubspotLists;
+    })
+    .catch(() => {
+      lists.value = {
+        members: [],
+        organizations: [],
+      };
+    });
+};
+
 onMounted(() => {
   if (Object.keys(props.modelValue).length === 0) {
     emit('update:modelValue', defaultValue);
   }
+  getLists();
 });
 
 </script>

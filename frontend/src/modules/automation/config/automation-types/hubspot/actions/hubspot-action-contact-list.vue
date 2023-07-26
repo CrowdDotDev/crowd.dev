@@ -15,8 +15,12 @@
         class="w-full"
         @blur="$v.contactList.$touch"
       >
-        <!-- TODO: list contact list -->
-        <el-option :value="'customlist1'" :label="'Custom list 1'" />
+        <el-option
+          v-for="list of props.lists.members"
+          :key="list.id"
+          :value="list.id"
+          :label="list.name"
+        />
       </el-select>
     </app-form-item>
   </div>
@@ -27,9 +31,11 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import { computed, defineEmits, defineProps } from 'vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { HubspotLists } from '@/integrations/hubspot/types/HubspotLists';
 
 const props = defineProps<{
   modelValue: any,
+  lists: HubspotLists,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: any)}>();

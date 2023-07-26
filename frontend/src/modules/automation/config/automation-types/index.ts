@@ -26,7 +26,8 @@ export interface AutomationTypeConfig {
   actionComponent: any; // Component which handeles form for action
   triggerComponent: any; // Component which handeles form for trigger
   paywallComponent?: (store: any) => any | null;
-  settingsMap?: (settings: any, trigger: string) => any;
+  settingsMap?: (settings: any, trigger: string) => any; // Mapping automation settings before they are sent to backend
+  enableGuard?: (automation: any, store: any) => boolean; // Guard protecting automation from enabling
 }
 
 export const automationTypes: Record<string, AutomationTypeConfig> = {
