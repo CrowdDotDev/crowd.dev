@@ -154,6 +154,7 @@ describe('OrganizationRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
+        attributes: {},
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
     })
@@ -205,6 +206,7 @@ describe('OrganizationRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
+        attributes: {},
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
 
@@ -248,6 +250,7 @@ describe('OrganizationRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
+        attributes: {},
       }
       const organizationById = await OrganizationRepository.findById(
         organizationCreated.id,
@@ -296,6 +299,7 @@ describe('OrganizationRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
+        attributes: {},
       }
       const organizatioFound = await OrganizationRepository.findByName(
         organizationCreated.name,
@@ -333,6 +337,7 @@ describe('OrganizationRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
+        attributes: {},
       }
       const organizatioFound = await OrganizationRepository.findByUrl(
         organizationCreated.url,
@@ -1327,6 +1332,7 @@ describe('OrganizationRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
+        attributes: {},
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)

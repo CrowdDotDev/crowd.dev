@@ -150,6 +150,10 @@ export default (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      attributes: {
+        type: DataTypes.JSONB,
+        defaultValue: {},
+      },
     },
     {
       indexes: [

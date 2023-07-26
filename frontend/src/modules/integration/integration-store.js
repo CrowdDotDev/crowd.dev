@@ -468,6 +468,32 @@ export default {
       }
     },
 
+    async doHubspotConnect(
+      { commit },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.hubspotConnect();
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              'Hubspot integration created successfully',
+          },
+        );
+
+        router.push('/integrations');
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
+
     async doGitConnect(
       { commit },
       { remotes, isUpdate },

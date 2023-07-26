@@ -507,6 +507,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 
@@ -582,6 +583,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 
@@ -661,6 +663,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 
@@ -756,6 +759,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 

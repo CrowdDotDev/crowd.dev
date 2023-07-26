@@ -1,6 +1,7 @@
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
+  IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
   SqsClient,
   getSqsClient,
@@ -52,4 +53,13 @@ export const getSearchSyncWorkerEmitter = async (): Promise<SearchSyncWorkerEmit
   searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(getClient(), log)
   await searchSyncWorkerEmitter.init()
   return searchSyncWorkerEmitter
+}
+
+let integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
+export const getIntegrationSyncWorkerEmitter = async (): Promise<IntegrationSyncWorkerEmitter> => {
+  if (integrationSyncWorkerEmitter) return integrationSyncWorkerEmitter
+
+  integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(getClient(), log)
+  await integrationSyncWorkerEmitter.init()
+  return integrationSyncWorkerEmitter
 }
