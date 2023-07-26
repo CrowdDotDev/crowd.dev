@@ -319,40 +319,40 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
     // we are reusing code here with another type of context
     // everything should work except for ctx.aborRuntWithError
     await processPullCommitsStream(ctx as IProcessStreamContext)
-  }
+  } else {
+    const { signature, event, data } = ctx.stream.data as GithubWebhookPayload
 
-  const { signature, event, data } = ctx.stream.data as GithubWebhookPayload
+    await verifyWebhookSignature(signature, data, ctx)
 
-  await verifyWebhookSignature(signature, data, ctx)
-
-  switch (event) {
-    case GithubWehookEvent.ISSUES:
-      await parseWebhookIssue(data, ctx)
-      break
-    case GithubWehookEvent.DISCUSSION:
-      await parseWebhookDiscussion(data, ctx)
-      break
-    case GithubWehookEvent.PULL_REQUEST:
-      await parseWebhookPullRequest(data, ctx)
-      break
-    case GithubWehookEvent.PULL_REQUEST_REVIEW:
-      await parseWebhookPullRequestReview(data, ctx)
-      break
-    case GithubWehookEvent.STAR:
-      await parseWebhookStar(data, ctx)
-      break
-    case GithubWehookEvent.FORK:
-      await parseWebhookFork(data, ctx)
-      break
-    case GithubWehookEvent.DISCUSSION_COMMENT:
-    case GithubWehookEvent.ISSUE_COMMENT:
-      await parseWebhookComment(event, data, ctx)
-      break
-    case GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT:
-      await parseWebhookPullRequestReviewComment(data, ctx)
-      break
-    default:
-      await ctx.abortWithError(`Unknown Github webhook event: ${event}`)
+    switch (event) {
+      case GithubWehookEvent.ISSUES:
+        await parseWebhookIssue(data, ctx)
+        break
+      case GithubWehookEvent.DISCUSSION:
+        await parseWebhookDiscussion(data, ctx)
+        break
+      case GithubWehookEvent.PULL_REQUEST:
+        await parseWebhookPullRequest(data, ctx)
+        break
+      case GithubWehookEvent.PULL_REQUEST_REVIEW:
+        await parseWebhookPullRequestReview(data, ctx)
+        break
+      case GithubWehookEvent.STAR:
+        await parseWebhookStar(data, ctx)
+        break
+      case GithubWehookEvent.FORK:
+        await parseWebhookFork(data, ctx)
+        break
+      case GithubWehookEvent.DISCUSSION_COMMENT:
+      case GithubWehookEvent.ISSUE_COMMENT:
+        await parseWebhookComment(event, data, ctx)
+        break
+      case GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT:
+        await parseWebhookPullRequestReviewComment(data, ctx)
+        break
+      default:
+        await ctx.abortWithError(`Unknown Github webhook event: ${event}`)
+    }
   }
 }
 
