@@ -151,8 +151,8 @@ const parseWebhookPullRequestEvents = async (
           createdAt: payload.repository.created_at,
         }
 
-        // this will create a fake webhook and stream for it
-        // this way we don't need integration run
+        // this will create a CROWD_GENERATED webhook and stream for it
+        // this way we don't need integration run to publish new streams
         await ctx.publishStream<GithubBasicStream>(
           `${GithubStreamType.PULL_COMMITS}:${prNumber}:firstPage`,
           {
