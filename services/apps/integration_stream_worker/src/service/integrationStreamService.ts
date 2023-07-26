@@ -172,22 +172,34 @@ export default class IntegrationStreamService extends LoggerBase {
       return
     }
 
-    // creating stream to process webhook
-    // webhookId is used as stream identifier
-    const streamId = await this.repo.publishWebhookStream(
-      webhookId,
-      webhookId,
-      webhookInfo.payload,
-      webhookInfo.integrationId,
-      webhookInfo.tenantId,
-    )
+    let streamId: string | undefined
+
+    // let's see if we already have a stream for this webhook
+    streamId = await this.repo.getStreamIdByWebhookId(webhookId)
 
     if (!streamId) {
-      this.log.error({ webhookId }, 'Could not create webhook stream!')
-      return
-    }
+      // no stream found, let's create one
+      this.log.debug({ webhookId }, 'No existing stream found for the webhook, creating it!')
 
-    this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
+      // creating stream to process webhook
+      // webhookId is used as stream identifier
+      streamId = await this.repo.publishWebhookStream(
+        webhookId,
+        webhookId,
+        webhookInfo.payload,
+        webhookInfo.integrationId,
+        webhookInfo.tenantId,
+      )
+
+      if (!streamId) {
+        this.log.error({ webhookId }, 'Could not create webhook stream!')
+        return
+      }
+
+      this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
+    } else {
+      this.log.debug({ webhookId, streamId }, 'Found existing webhook stream, using it!')
+    }
 
     // getting all stream info
     const streamInfo = await this.repo.getStreamData(streamId)

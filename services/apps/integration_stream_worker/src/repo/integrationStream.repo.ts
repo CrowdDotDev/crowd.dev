@@ -347,4 +347,24 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
     return null
   }
+
+  public async getStreamIdByWebhookId(webhookId: string): Promise<string | undefined> {
+    const result = await this.db().oneOrNone(
+      `
+    select id
+    from integration.streams
+    where "webhookId" = $(webhookId)
+    limit 1;
+    `,
+      {
+        webhookId,
+      },
+    )
+
+    if (result) {
+      return result.id
+    }
+
+    return null
+  }
 }
