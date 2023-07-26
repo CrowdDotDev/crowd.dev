@@ -2,6 +2,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IWebhookData } from './incomingWebhook.data'
 import { WebhookState } from '@crowd/types'
+import { generateUUIDv1 } from '@crowd/common'
 
 export default class IncomingWebhookRepository extends RepositoryBase<IncomingWebhookRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -77,23 +78,29 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     const result = await this.db().oneOrNone(
       `
         insert into "incomingWebhooks" (
+          id,
           "tenantId",
           "integrationId",
+          state,
           type,
           payload
         ) values (
+          $(id),
           $(tenantId),
           $(integrationId),
+          $(state),
           $(type),
           $(payload)
         )
         returning id
       `,
       {
+        id: generateUUIDv1(),
         tenantId,
         integrationId,
         type,
-        payload,
+        payload: JSON.stringify(payload),
+        state: WebhookState.PENDING,
       },
     )
 
