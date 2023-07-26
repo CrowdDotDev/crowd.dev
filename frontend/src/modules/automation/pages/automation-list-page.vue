@@ -55,6 +55,9 @@
                 <div class="pl-2">
                   <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
                     {{ automationType.name }}
+                    <sup v-if="plan(automationType)" class="text-brand-500">
+                      {{ plan(automationType) }}
+                    </sup>
                   </h6>
                   <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
                     {{ automationType.description }}
@@ -118,7 +121,7 @@
 
 <script setup>
 import {
-  ref, onMounted,
+  ref, onMounted, computed,
 } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { storeToRefs } from 'pinia';
@@ -131,6 +134,7 @@ import { FeatureFlag } from '@/featureFlag';
 import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 
 import { useStore } from 'vuex';
+import config from '@/config';
 import { automationTypes } from '../config/automation-types';
 
 const options = ref([
@@ -197,6 +201,16 @@ const updateAutomation = (automation) => {
   openAutomationForm.value = true;
   automationFormType.value = automation.type;
   editAutomation.value = automation;
+};
+
+const plan = (type) => {
+  if (type.plan && type.featureFlag && !FeatureFlag.isFlagEnabled(type.featureFlag)) {
+    if (config.isCommunityVersion) {
+      return 'Premium';
+    }
+    return type.plan;
+  }
+  return null;
 };
 
 onMounted(() => {

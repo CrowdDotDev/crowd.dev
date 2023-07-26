@@ -37,6 +37,8 @@ export const hubspot: AutomationTypeConfig = {
   name: 'HubSpot',
   description: 'Send members or organizations to HubSpot',
   icon: '/images/integrations/hubspot.png',
+  plan: 'Scale',
+  featureFlag: FeatureFlag.flags.hubspot,
   emptyScreen: {
     title: 'No HubSpot automations yet',
     body: 'Send members or organizations to HubSpot based on certain conditions.',
@@ -45,21 +47,21 @@ export const hubspot: AutomationTypeConfig = {
   actionText: 'Define which action will take place in HubSpot based on the defined conditions.',
   canCreate(store) {
     const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-    return hubspot.status === 'done' && FeatureFlag.isFlagEnabled('hubspot');
+    return hubspot.status === 'done' && FeatureFlag.isFlagEnabled(FeatureFlag.flags.hubspot);
   },
   disabled(store) {
     const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-    return FeatureFlag.isFlagEnabled('hubspot') && hubspot.status !== 'done';
+    return FeatureFlag.isFlagEnabled(FeatureFlag.flags.hubspot) && hubspot.status !== 'done';
   },
   tooltip(store) {
     const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-    if (FeatureFlag.isFlagEnabled('hubspot') && hubspot.status !== 'done') {
+    if (FeatureFlag.isFlagEnabled(FeatureFlag.flags.hubspot) && hubspot.status !== 'done') {
       return 'Connect with HubSpot via Integrations to enable this automation';
     }
     return null;
   },
   actionButton() {
-    const hubspotEnabeled = FeatureFlag.isFlagEnabled('hubspot');
+    const hubspotEnabeled = FeatureFlag.isFlagEnabled(FeatureFlag.flags.hubspot);
     if (hubspotEnabeled) {
       return null;
     }
@@ -71,7 +73,7 @@ export const hubspot: AutomationTypeConfig = {
     };
   },
   paywallComponent() {
-    const hubspotEnabeled = FeatureFlag.isFlagEnabled('hubspot');
+    const hubspotEnabeled = FeatureFlag.isFlagEnabled(FeatureFlag.flags.hubspot);
     if (hubspotEnabeled) {
       return null;
     }

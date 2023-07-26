@@ -132,8 +132,6 @@ const emit = defineEmits(['update:modelValue', 'update:automation']);
 
 const { createAutomation, updateAutomation, getAutomations } = useAutomationStore();
 
-const store = useStore();
-
 const isDrawerOpen = computed({
   get() {
     return props.modelValue;
@@ -232,7 +230,6 @@ const doSubmit = () => {
 };
 
 onMounted(() => {
-  fetchIntegrations();
   if (type.value && props.automation) {
     fillForm(props.automation);
   } else {

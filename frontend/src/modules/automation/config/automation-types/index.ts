@@ -15,6 +15,8 @@ export interface AutomationTypeConfig {
   name: string; // Name of the automation
   description: string; // Description shown under name in dropdown
   icon: string; // Icon of the automation type
+  plan?: string; // Plan name
+  featureFlag?: string; // Plan name
   canCreate: (store: any) => boolean; // method if creation of that automation type is disabled
   actionButton?: (store: any) => AutomationTypeAction | null; // Action button to show in dropdown
   disabled?: (store: any) => boolean | string; // If dropdown option is disabled
