@@ -11,6 +11,8 @@ import {
 } from './types'
 import { getUserIdsFromComments, setFullUser } from './utils'
 
+const DEVTO_MAX_COMMENTS_RETROSPECT_IN_HOURS = 24
+
 const getDevToArticle = async (ctx: IProcessStreamContext, id: number): Promise<IDevToArticle> => {
   const cached = await ctx.cache.get(`article:${id}`)
   if (cached) {
@@ -76,6 +78,30 @@ const processArticleStream: ProcessStreamHandler = async (ctx) => {
       { devtoArticleId: articleId, nComments: comments.length },
       'We have found comments for this article!',
     )
+
+    if (!ctx.onboarding) {
+      // let's get a date of the most recent comment
+      const mostRecentComment = comments.reduce((acc, comment) => {
+        if (new Date(comment.created_at) > new Date(acc)) {
+          return comment.created_at
+        }
+        return acc
+      }, comments[0].created_at)
+
+      // if the most recent comment is older than DEVTO_MAX_COMMENTS_RETROSPECT_IN_HOURS day, we don't need to process this article
+      const mostRecentCommentDate = new Date(mostRecentComment)
+      const now = new Date()
+      const diff = now.getTime() - mostRecentCommentDate.getTime()
+      const hours = diff / (1000 * 60 * 60)
+      if (hours > DEVTO_MAX_COMMENTS_RETROSPECT_IN_HOURS) {
+        ctx.log.debug(
+          { devtoArticleId: articleId, mostRecentComment, hours },
+          `Most recent comment is older than ${DEVTO_MAX_COMMENTS_RETROSPECT_IN_HOURS} hours, skipping processing`,
+        )
+        return
+      }
+    }
+
     const userIds = getUserIdsFromComments(comments)
     for (const userId of userIds) {
       const fullUser = await getDevToUser(ctx, userId)
