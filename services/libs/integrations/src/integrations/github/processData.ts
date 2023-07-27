@@ -36,6 +36,14 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         username: memberFromApi.login,
       },
     ],
+    ...(memberFromApi?.twitterUsername && {
+      weakIdentities: [
+        {
+          platform: PlatformType.TWITTER,
+          username: memberFromApi.twitterUsername,
+        },
+      ],
+    }),
     displayName: memberFromApi.name,
     attributes: {
       [MemberAttributeName.IS_HIREABLE]: {
