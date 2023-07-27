@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
+    "target": "es2017",
+    "module": "commonjs",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "declaration": true,
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "moduleResolution": "node16",
+    "experimentalDecorators": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@crowd/*": ["../../../libs/*/dist"],
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

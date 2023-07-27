@@ -1,10 +1,10 @@
 import { PlatformType } from '@crowd/types'
-import IntegrationRepository from '../../database/repositories/integrationRepository'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
-import { WebhookType } from '../../types/webhooks'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
+import IntegrationRepository from '../repo/integrationRepository'
+import SequelizeRepository from '../repo/sequelizeRepository'
+import IncomingWebhookRepository from '../repo/incomingWebhookRepository'
+import { WebhookType } from '../types/webhooks'
+import { sendNodeWorkerMessage } from '../utils/nodeWorkerSQS'
+import { NodeWorkerProcessWebhookMessage } from '../types/mq/nodeWorkerProcessWebhookMessage'
 
 export default async (req, res) => {
   const signature = req.headers['x-hub-signature']
@@ -40,7 +40,8 @@ export default async (req, res) => {
 
     await req.responseHandler.success(req, res, {}, 204)
   } else {
+    console.log('Req', req)
     req.log.error({ identifier }, 'No integration found for incoming GitHub Webhook!')
-    await req.responseHandler.success(req, res, {}, 200)
+    await req?.responseHandler?.success(req, res, {}, 200)
   }
 }

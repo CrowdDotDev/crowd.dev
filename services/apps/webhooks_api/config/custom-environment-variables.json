@@ -1,0 +1,187 @@
+{
+  "api": {
+    "url": "CROWD_API_URL",
+    "edition": "CROWD_EDITION",
+    "frontendUrl": "CROWD_API_FRONTEND_URL",
+    "frontendUrlWithSubdomain": "CROWD_API_FRONTEND_URL_WITH_SUBDOMAINS",
+    "jwtSecret": "CROWD_API_JWT_SECRET",
+    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN"
+  },
+  "redis": {
+    "username": "CROWD_REDIS_USERNAME",
+    "password": "CROWD_REDIS_PASSWORD",
+    "host": "CROWD_REDIS_HOST",
+    "port": "CROWD_REDIS_PORT"
+  },
+  "sqs": {
+    "host": "CROWD_SQS_HOST",
+    "port": "CROWD_SQS_PORT",
+    "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
+    "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
+    "integrationRunWorkerQueue": "CROWD_SQS_INTEGRATION_RUN_WORKER_QUEUE",
+    "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
+    "aws": {
+      "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
+      "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY",
+      "region": "CROWD_SQS_AWS_REGION"
+    }
+  },
+  "s3": {
+    "host": "CROWD_S3_HOST",
+    "port": "CROWD_S3_PORT",
+    "integrationsAssetsBucket": "CROWD_S3_INTEGRATION_ASSETS_BUCKET",
+    "microservicesAssetsBucket": "CROWD_S3_MICROSERVICES_ASSETS_BUCKET",
+    "aws": {
+      "accountId": "CROWD_S3_AWS_ACCOUNT_ID",
+      "accessKeyId": "CROWD_S3_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_S3_AWS_SECRET_ACCESS_KEY",
+      "region": "CROWD_S3_AWS_REGION"
+    }
+  },
+  "db": {
+    "readHost": "CROWD_DB_READ_HOST",
+    "writeHost": "CROWD_DB_WRITE_HOST",
+    "port": "CROWD_DB_PORT",
+    "username": "CROWD_DB_USERNAME",
+    "password": "CROWD_DB_PASSWORD",
+    "apiUsername": "CROWD_DB_API_USERNAME",
+    "apiPassword": "CROWD_DB_API_PASSWORD",
+    "nodejsWorkerUsername": "CROWD_DB_NODEJS_WORKER_USERNAME",
+    "nodejsWorkerPassword": "CROWD_DB_NODEJS_WORKER_PASSWORD",
+    "jobGeneratorUsername": "CROWD_DB_JOB_GENERATOR_USERNAME",
+    "jobGeneratorPassword": "CROWD_DB_JOB_GENERATOR_PASSWORD",
+    "database": "CROWD_DB_DATABASE",
+    "logging": "CROWD_DB_LOGGING"
+  },
+  "cubejs": {
+    "url": "CROWD_CUBEJS_URL",
+    "jwtSecret": "CROWD_CUBEJS_JWT_SECRET",
+    "jwtExpiry": "CROWD_CUBEJS_JWT_EXPIRY"
+  },
+  "segment": {
+    "writeKey": "CROWD_SEGMENT_WRITE_KEY"
+  },
+  "comprehend": {
+    "aws": {
+      "accountId": "CROWD_COMPREHEND_AWS_ACCOUNT_ID",
+      "accessKeyId": "CROWD_COMPREHEND_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_COMPREHEND_AWS_SECRET_ACCESS_KEY",
+      "region": "CROWD_COMPREHEND_AWS_REGION"
+    }
+  },
+  "clearbit": {
+    "apiKey": "CROWD_CLEARBIT_API_KEY"
+  },
+  "netlify": {
+    "apiKey": "CROWD_NETLIFY_API_KEY",
+    "siteDomain": "CROWD_NETLIFY_SITE_DOMAIN"
+  },
+  "sendgrid": {
+    "key": "CROWD_SENDGRID_KEY",
+    "webhookSigningSecret": "CROWD_SENDGRID_WEBHOOK_SIGNING_SECRET",
+    "emailFrom": "CROWD_SENDGRID_EMAIL_FROM",
+    "nameFrom": "CROWD_SENDGRID_NAME_FROM",
+    "templateEmailAddressVerification": "CROWD_SENDGRID_TEMPLATE_EMAIL_ADDRESS_VERIFICATION",
+    "templateInvitation": "CROWD_SENDGRID_TEMPLATE_INVITATION",
+    "templatePasswordReset": "CROWD_SENDGRID_TEMPLATE_PASSWORD_RESET",
+    "templateWeeklyAnalytics": "CROWD_SENDGRID_TEMPLATE_WEEKLY_ANALYTICS",
+    "templateIntegrationDone": "CROWD_SENDGRID_TEMPLATE_INTEGRATION_DONE",
+    "templateCsvExport": "CROWD_SENDGRID_TEMPLATE_CSV_EXPORT",
+    "templateEagleEyeDigest": "CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST",
+    "weeklyAnalyticsUnsubscribeGroupId": "CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID"
+  },
+  "plans": {
+    "stripePricePremium": "CROWD_STRIPE_PRICE_PREMIUM",
+    "stripePriceEnterprise": "CROWD_STRIPE_PRICE_ENTERPRISE",
+    "stripeSecretKey": "CROWD_STRIPE_SECRET_KEY",
+    "stripWebhookSigningSecret": "CROWD_STRIPE_WEBHOOK_SIGNING_SECRET",
+    "stripeEagleEyePlanProductId": "CROWD_STRIPE_EAGLE_EYE_PLAN_PRODUCT_ID",
+    "stripeGrowthPlanProductId": "CROWD_STRIPE_GROWTH_PLAN_PRODUCT_ID"
+  },
+  "twitter": {
+    "clientId": "CROWD_TWITTER_CLIENT_ID",
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET"
+  },
+  "slack": {
+    "clientId": "CROWD_SLACK_CLIENT_ID",
+    "clientSecret": "CROWD_SLACK_CLIENT_SECRET",
+    "reporterToken": "CROWD_SLACK_REPORTER_TOKEN",
+    "reporterChannel": "CROWD_SLACK_REPORTER_CHANNEL",
+    "teamId": "CROWD_SLACK_TEAM_ID",
+    "appId": "CROWD_SLACK_APP_ID",
+    "appToken": "CROWD_SLACK_APP_TOKEN"
+  },
+  "slackNotifier": {
+    "clientId": "CROWD_SLACK_NOTIFIER_CLIENT_ID",
+    "clientSecret": "CROWD_SLACK_NOTIFIER_CLIENT_SECRET"
+  },
+  "google": {
+    "clientId": "CROWD_GOOGLE_CLIENT_ID",
+    "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
+    "callbackUrl": "CROWD_GOOGLE_CALLBACK_URL"
+  },
+  "discord": {
+    "token": "CROWD_DISCORD_TOKEN",
+    "token2": "CROWD_DISCORD_TOKEN_2"
+  },
+  "github": {
+    "appId": "CROWD_GITHUB_APP_ID",
+    "clientId": "CROWD_GITHUB_CLIENT_ID",
+    "clientSecret": "CROWD_GITHUB_CLIENT_SECRET",
+    "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
+    "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
+    "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
+  },
+  "stackexchange": {
+    "key": "CROWD_STACKEXCHANGE_KEY"
+  },
+  "nango": {
+    "url": "CROWD_NANGO_URL",
+    "secretKey": "CROWD_NANGO_SECRET_KEY"
+  },
+  "enrichment": {
+    "url": "CROWD_ENRICHMENT_URL",
+    "apiKey": "CROWD_ENRICHMENT_API_KEY"
+  },
+  "organizationEnrichment": {
+    "apiKey": "CROWD_ORGANIZATION_ENRICHMENT_API_KEY"
+  },
+  "eagleEye": {
+    "url": "CROWD_EAGLE_EYE_URL",
+    "apiKey": "CROWD_EAGLE_EYE_API_KEY"
+  },
+  "slackAlerting": {
+    "url": "CROWD_SLACK_ALERTING_URL"
+  },
+  "sampleData": {
+    "tenantId": "CROWD_SAMPLE_DATA_TENANT_ID"
+  },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "adminApiKey": "CROWD_UNLEASH_ADMIN_API_KEY",
+    "frontendApiKey": "CROWD_UNLEASH_FRONTEND_API_KEY",
+    "backendApiKey": "CROWD_UNLEASH_BACKEND_API_KEY",
+    "db": {
+      "host": "CROWD_UNLEASH_DB_HOST",
+      "port": "CROWD_UNLEASH_DB_PORT",
+      "username": "CROWD_UNLEASH_DB_USERNAME",
+      "password": "CROWD_UNLEASH_DB_PASSWORD",
+      "database": "CROWD_UNLEASH_DB_DATABASE"
+    }
+  },
+  "weeklyEmails": {
+    "enabled": "CROWD_WEEKLY_EMAILS_ENABLED"
+  },
+  "opensearch": {
+    "node": "CROWD_OPENSEARCH_NODE",
+    "region": "CROWD_OPENSEARCH_AWS_REGION",
+    "accessKeyId": "CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID",
+    "secretAccessKey": "CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY"
+  },
+  "auth0": {
+    "domain": "CROWD_AUTH0_DOMAIN",
+    "clientId": "CROWD_AUTH0_CLIENT_ID",
+    "cert": "CROWD_AUTH0_CERT"
+  }
+}

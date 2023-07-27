@@ -1,0 +1,57 @@
+{
+  "api": {
+    "port": 8080,
+    "documentation": false
+  },
+  "integrationProcessing": {
+    "maxRetries": 5
+  },
+  "sqs": {},
+  "s3": {},
+  "db": {
+    "dialect": "postgres",
+    "logging": false,
+    "transactions": false
+  },
+  "cubejs": {},
+  "searchEngine": {},
+  "segment": {},
+  "comprehend": {
+    "aws": {}
+  },
+  "clearbit": {},
+  "netlify": {},
+  "sendgrid": {},
+  "plans": {},
+  "devto": {},
+  "twitter": {
+    "maxRetrospectInSeconds": 7380,
+    "limitResetFrequencyDays": 30
+  },
+  "slack": {
+    "maxRetrospectInSeconds": 3600
+  },
+  "slackNotifier": {},
+  "google": {},
+  "discord": {
+    "maxRetrospectInSeconds": 3600
+  },
+  "github": {},
+  "stackexchange": {},
+  "enrichment": {},
+  "organizationEnrichment": {},
+  "eagleEye": {},
+  "unleash": {
+    "db": {}
+  },
+  "slackAlerting": {
+    "url": ""
+  },
+  "sampleData": {
+    "tenantId": ""
+  },
+  "weeklyEmails": {
+    "enabled": "true"
+  },
+  "auth0": {}
+}

@@ -1,7 +1,7 @@
-import stripeWebhookWorker from '../../serverless/integrations/workers/stripeWebhookWorker'
+import sendgridWebhookWorker from '../integrations/workers/sendgridWebhookWorker'
 
 export default async (req, res) => {
-  const out = await stripeWebhookWorker(req)
+  const out = await sendgridWebhookWorker(req)
   let status = 200
   if (out.status === 204) {
     status = 204

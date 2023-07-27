@@ -203,11 +203,6 @@ setImmediate(async () => {
 
   app.use('/', routes)
 
-  const webhookRoutes = express.Router()
-  require('./webhooks').default(webhookRoutes)
-  require('../services/webhooks').default(webhookRoutes)
-  app.use('/webhooks', webhookRoutes)
-
   const io = require('@pm2/io')
 
   app.use(errorMiddleware)
