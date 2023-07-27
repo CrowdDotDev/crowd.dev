@@ -243,7 +243,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
       GithubStreamType.DISCUSSIONS,
     ]) {
       // this firstPage thing is important to avoid duplicate streams and for handleNextPageStream to work
-      await ctx.publishStream<GithubBasicStream>(`${endpoint}:firstPage`, {
+      await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
         repo,
         page: '',
       })
