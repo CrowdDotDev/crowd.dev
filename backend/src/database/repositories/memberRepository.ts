@@ -9,7 +9,7 @@ import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { KUBE_MODE, SERVICE } from '../../conf'
+import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -3245,8 +3245,7 @@ class MemberRepository {
     const query = `
       INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
       VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-      ON CONFLICT ("memberId", "organizationId") DO UPDATE
-      SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd
+      ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
     `
 
     await seq.query(query, {
@@ -3264,8 +3263,8 @@ class MemberRepository {
 
   static sortOrganizations(organizations) {
     organizations.sort((a, b) => {
-      a = a.dataValues ? a.get({ plain: true }) : {}
-      b = b.dataValues ? b.get({ plain: true }) : {}
+      a = a.dataValues ? a.get({ plain: true }) : a
+      b = b.dataValues ? b.get({ plain: true }) : b
 
       const aDate = a.memberOrganizations?.dateStart
       const bDate = b.memberOrganizations?.dateStart
@@ -3274,7 +3273,7 @@ class MemberRepository {
         return bDate.getTime() - aDate.getTime()
       }
       if (!aDate && !bDate) {
-        return 0
+        return a.name.localeCompare(b.name)
       }
       if (!bDate) {
         return 1

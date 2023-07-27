@@ -10,6 +10,7 @@ export const FEATURE_FLAGS = {
   linkedin: 'linkedin',
   memberEnrichment: 'member-enrichment',
   csvExport: 'csv-export',
+  hubspot: 'hubspot',
 };
 
 class FeatureFlagService {
@@ -94,6 +95,13 @@ class FeatureFlagService {
       return 'Premium';
     }
     return 'Growth';
+  }
+
+  scaleFeatureCopy() {
+    if (config.isCommunityVersion) {
+      return 'Premium';
+    }
+    return 'Scale';
   }
 }
 

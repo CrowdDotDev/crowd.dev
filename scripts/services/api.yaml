@@ -30,6 +30,8 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
+      args:
+        INSTALL_DEV_DEPENDENCIES: 'true'
     command: 'npm run start:api:dev'
     working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'
@@ -46,7 +48,7 @@ services:
     networks:
       - crowd-bridge
     volumes:
-      - ../../backend:/usr/crowd/app/backend
+      - ../../backend/src:/usr/crowd/app/backend/src
       - /usr/crowd/app/backend/node_modules
 
 networks:

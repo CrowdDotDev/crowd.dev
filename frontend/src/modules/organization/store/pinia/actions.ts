@@ -7,7 +7,7 @@ export default {
   fetchOrganizations(this: OrganizationState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
     const mappedBody = reload ? this.savedFilterBody : body;
     this.selectedOrganizations = [];
-    return OrganizationService.listOrganizations(mappedBody)
+    return OrganizationService.query(mappedBody)
       .then((data: Pagination<Organization>) => {
         this.organizations = data.rows;
         this.totalOrganizations = data.count;
@@ -18,6 +18,13 @@ export default {
         this.organizations = [];
         this.totalOrganizations = 0;
         return Promise.reject(err);
+      });
+  },
+  fetchOrganization(this: OrganizationState, id: string): Promise<Organization> {
+    return OrganizationService.find(id)
+      .then((organization: Organization) => {
+        this.organization = organization;
+        return Promise.resolve(organization);
       });
   },
 };

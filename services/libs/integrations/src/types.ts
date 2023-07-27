@@ -1,9 +1,18 @@
-import { IMemberAttribute, IActivityData } from '@crowd/types'
+import {
+  IMemberAttribute,
+  IActivityData,
+  IntegrationResultType,
+  IMemberIdentity,
+  Entity,
+} from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
+import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
+import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
+
 export interface IIntegrationContext {
-  onboarding: boolean
+  onboarding?: boolean
   integration: IIntegration
   log: Logger
   cache: ICache
@@ -12,6 +21,22 @@ export interface IIntegrationContext {
   updateIntegrationSettings: (settings: unknown) => Promise<void>
 
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+}
+
+export interface IIntegrationStartRemoteSyncContext {
+  integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
+  integration: IIntegration
+  tenantId: string
+  log: Logger
+}
+
+export interface IIntegrationProcessRemoteSyncContext {
+  tenantId: string
+  integration: IIntegration
+  memberAttributes?: IMemberAttribute[]
+  platforms?: IMemberIdentity[]
+  log: Logger
+  serviceSettings: IIntegrationServiceSettings
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
@@ -33,6 +58,26 @@ export interface IProcessStreamContext extends IIntegrationContext {
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
 
+export interface IProcessWebhookStreamContext {
+  integration: IIntegration
+  log: Logger
+  cache: ICache
+
+  publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
+  updateIntegrationSettings: (settings: unknown) => Promise<void>
+  stream: IIntegrationStream
+  serviceSettings: IIntegrationServiceSettings
+  platformSettings?: unknown
+
+  publishData: <T>(data: T) => Promise<void>
+
+  abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+
+  globalCache: ICache
+
+  getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+}
+
 export interface IProcessDataContext extends IIntegrationContext {
   data: unknown
   platformSettings?: unknown
@@ -40,11 +85,21 @@ export interface IProcessDataContext extends IIntegrationContext {
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
   publishActivity: (activity: IActivityData) => Promise<void>
+
+  publishCustom: (entity: unknown, type: IntegrationResultType) => Promise<void>
 }
 
 export type GenerateStreamsHandler = (ctx: IGenerateStreamsContext) => Promise<void>
 export type ProcessStreamHandler = (ctx: IProcessStreamContext) => Promise<void>
+export type ProcessWebhookStreamHandler = (ctx: IProcessWebhookStreamContext) => Promise<void>
 export type ProcessDataHandler = (ctx: IProcessDataContext) => Promise<void>
+export type StartIntegrationSyncHandler = (ctx: IIntegrationStartRemoteSyncContext) => Promise<void>
+export type ProcessIntegrationSyncHandler = <T>(
+  toCreate: T[],
+  toUpdate: T[],
+  entity: Entity,
+  ctx: IIntegrationProcessRemoteSyncContext,
+) => Promise<IBatchOperationResult>
 
 export interface IIntegrationDescriptor {
   /**
@@ -67,6 +122,17 @@ export interface IIntegrationDescriptor {
    * @param ctx Everything that is needed to process a single stream
    */
   processStream: ProcessStreamHandler
+
+  /**
+   * Function that will be called to process a single webhook stream.
+   * The results of this function should be raw data fetched from external API
+   * that will be processed later by the processData function.
+   *
+   * Use ctx.publishData to store data for later processing
+   * Use ctx.publishStream to create a new stream if needed
+   * @param ctx Everything that is needed to process a single stream
+   */
+  processWebhookStream?: ProcessWebhookStreamHandler
 
   /**
    * Function that will be called to process a single stream data.
@@ -98,6 +164,20 @@ export interface IIntegrationDescriptor {
   // if undefined it will never check
   // if 0 it will check the same as if it was 1 - every minute
   checkEvery?: number
+
+  /**
+   * Function that will be called if defined, after an integration goes into done state.
+   * Mainly responsible for sending queue messages to integration-sync-worker
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  startSyncRemote?: StartIntegrationSyncHandler
+
+  /**
+   * Function that will be called from integration sync worker for outgoing integrations.
+   * Gets two arrays, entities to create and entities to update.
+   * Logic for calling the required api endpoints per integration lives here.
+   */
+  processSyncRemote?: ProcessIntegrationSyncHandler
 }
 
 export interface IIntegrationServiceSettings {

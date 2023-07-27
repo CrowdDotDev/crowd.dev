@@ -1,11 +1,19 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IActivityData, IntegrationResultState, IntegrationResultType } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  IOrganization,
+  IntegrationResultState,
+  IntegrationResultType,
+} from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import MemberService from './member.service'
 import { SLACK_ALERTING_CONFIG } from '@/conf'
 import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
+import { OrganizationService } from './organization.service'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -53,6 +61,7 @@ export default class DataSinkService extends LoggerBase {
       apiDataId: resultInfo.apiDataId,
       streamId: resultInfo.streamId,
       runId: resultInfo.runId,
+      webhookId: resultInfo.webhookId,
       integrationId: resultInfo.integrationId,
       platform: resultInfo.platform,
     })
@@ -65,15 +74,14 @@ export default class DataSinkService extends LoggerBase {
       }
 
       await this.repo.resetResults([resultId])
-      // await this.triggerResultError(resultId, 'check-result-state', 'Result is not pending.', {
-      //   actualState: resultInfo.state,
-      // })
       return
     }
 
     this.log.debug('Marking result as in progress.')
     await this.repo.markResultInProgress(resultId)
-    await this.repo.touchRun(resultInfo.runId)
+    if (resultInfo.runId) {
+      await this.repo.touchRun(resultInfo.runId)
+    }
 
     try {
       const data = resultInfo.data
@@ -92,6 +100,37 @@ export default class DataSinkService extends LoggerBase {
             resultInfo.integrationId,
             resultInfo.platform,
             activityData,
+          )
+          break
+        }
+
+        case IntegrationResultType.MEMBER_ENRICH: {
+          const service = new MemberService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.log,
+          )
+          const memberData = data.data as IMemberData
+
+          await service.processMemberEnrich(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            memberData,
+          )
+          break
+        }
+
+        case IntegrationResultType.ORGANIZATION_ENRICH: {
+          const service = new OrganizationService(this.store, this.log)
+          const organizationData = data.data as IOrganization
+
+          await service.processOrganizationEnrich(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            organizationData,
           )
           break
         }
@@ -132,7 +171,9 @@ export default class DataSinkService extends LoggerBase {
         frameworkVersion: 'new',
       })
     } finally {
-      await this.repo.touchRun(resultInfo.runId)
+      if (resultInfo.runId) {
+        await this.repo.touchRun(resultInfo.runId)
+      }
     }
   }
 }

@@ -139,7 +139,7 @@ export default class MemberEnrichmentService extends LoggerBase {
     this.attributes = (await memberAttributeSettingsService.findAndCountAll({})).rows
   }
 
-  async bulkEnrich(memberIds: string[]) {
+  async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
@@ -171,37 +171,39 @@ export default class MemberEnrichmentService extends LoggerBase {
 
     // Send websocket messages to frontend after all requests have been made
     // Only send error message if all enrichments failed
-    if (!enrichedMembers) {
-      apiPubSubEmitter.emit(
-        'user',
-        new ApiWebsocketMessage(
-          'bulk-enrichment',
-          JSON.stringify({
-            failedEnrichedMembers: memberIds.length - enrichedMembers,
-            enrichedMembers,
-            tenantId: this.options.currentTenant.id,
-            success: false,
-          }),
-          undefined,
-          this.options.currentTenant.id,
-        ),
-      )
-    }
-    // Send success message if there were enrichedMembers
-    else {
-      apiPubSubEmitter.emit(
-        'user',
-        new ApiWebsocketMessage(
-          'bulk-enrichment',
-          JSON.stringify({
-            enrichedMembers,
-            tenantId: this.options.currentTenant.id,
-            success: true,
-          }),
-          undefined,
-          this.options.currentTenant.id,
-        ),
-      )
+    if (notifyFrontend) {
+      if (!enrichedMembers) {
+        apiPubSubEmitter.emit(
+          'user',
+          new ApiWebsocketMessage(
+            'bulk-enrichment',
+            JSON.stringify({
+              failedEnrichedMembers: memberIds.length - enrichedMembers,
+              enrichedMembers,
+              tenantId: this.options.currentTenant.id,
+              success: false,
+            }),
+            undefined,
+            this.options.currentTenant.id,
+          ),
+        )
+      }
+      // Send success message if there were enrichedMembers
+      else {
+        apiPubSubEmitter.emit(
+          'user',
+          new ApiWebsocketMessage(
+            'bulk-enrichment',
+            JSON.stringify({
+              enrichedMembers,
+              tenantId: this.options.currentTenant.id,
+              success: true,
+            }),
+            undefined,
+            this.options.currentTenant.id,
+          ),
+        )
+      }
     }
 
     return { enrichedMemberCount: enrichedMembers }

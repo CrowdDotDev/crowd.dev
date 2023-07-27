@@ -37,6 +37,19 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
+  public async findMemberByEmail(tenantId: string, email: string): Promise<IDbMember | null> {
+    return await this.db().oneOrNone(
+      `${this.selectMemberQuery}
+      where "tenantId" = $(tenantId)
+      and $(email) = ANY ("emails")
+    `,
+      {
+        tenantId,
+        email,
+      },
+    )
+  }
+
   public async findMember(
     tenantId: string,
     segmentId: string,

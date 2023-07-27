@@ -8,6 +8,7 @@
           'border-b': ci < trendingConversations.length - 1,
         }"
         :loading="true"
+        @conversation-destroyed="refreshConversations"
       />
     </div>
     <div v-else>
@@ -19,6 +20,7 @@
         }"
         :conversation="conversation"
         @details="conversationId = conversation.id"
+        @conversation-destroyed="refreshConversations"
       />
 
       <app-dashboard-empty-state
@@ -66,7 +68,6 @@ export default {
   data() {
     return {
       conversationId: null,
-      storeUnsubscribe: () => {},
     };
   },
   computed: {
@@ -75,22 +76,12 @@ export default {
       'conversations',
     ]),
   },
-  created() {
-    this.storeUnsubscribe = this.$store.subscribe(
-      (mutation) => {
-        if (
-          mutation.type
-          === 'communityHelpCenter/DESTROY_SUCCESS'
-        ) {
-          this.$store.dispatch(
-            'dashboard/getTrendingConversations',
-          );
-        }
-      },
-    );
-  },
-  beforeUnmount() {
-    this.storeUnsubscribe();
+  methods: {
+    refreshConversations() {
+      this.$store.dispatch(
+        'dashboard/getTrendingConversations',
+      );
+    },
   },
 };
 </script>

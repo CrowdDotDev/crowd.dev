@@ -336,6 +336,9 @@ export default class MemberService extends LoggerBase {
 
           // Collect unique domains
           for (const email of data.emails) {
+            if (!email) {
+              continue
+            }
             const domain = email.split('@')[1]
             emailDomains.add(domain)
           }
@@ -343,9 +346,11 @@ export default class MemberService extends LoggerBase {
           // Fetch organization ids for these domains
           const organizationService = new OrganizationService(this.options)
           for (const domain of emailDomains) {
-            const organizationRecord = await organizationService.findByUrl(domain)
-            if (organizationRecord) {
-              organizations.push(organizationRecord.id)
+            if (domain) {
+              const organizationRecord = await organizationService.findByUrl(domain)
+              if (organizationRecord) {
+                organizations.push(organizationRecord.id)
+              }
             }
           }
         }

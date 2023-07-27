@@ -1,16 +1,12 @@
 import Roles from '@/security/roles';
 import { i18n, init as i18nInit } from '@/i18n';
-import IdField from '@/shared/fields/id-field';
 import StringField from '@/shared/fields/string-field';
 import BooleanField from '@/shared/fields/boolean-field';
 import ImagesField from '@/shared/fields/images-field';
 import DateTimeField from '@/shared/fields/date-time-field';
-import DateTimeRangeField from '@/shared/fields/date-time-range-field';
-import GenericField from '@/shared/fields/generic-field';
 import EnumeratorField from '@/shared/fields/enumerator-field';
 import { GenericModel } from '@/shared/model/generic-model';
 import Storage from '@/security/storage';
-import { EmailsField } from '@/shared/form/fields/email-field';
 import { RolesField } from '@/shared/form/fields/roles-field';
 
 i18nInit();
@@ -20,7 +16,7 @@ function label(name) {
 }
 
 const fields = {
-  id: new IdField('id', label('id')),
+  id: new StringField('id', label('id')),
   firstName: new StringField(
     'firstName',
     label('firstName'),
@@ -93,9 +89,6 @@ const fields = {
     Storage.values.userAvatarsProfiles,
     { max: 1 },
   ),
-  emails: new EmailsField('emails', label('emails'), {
-    required: true,
-  }),
   rolesRequired: new RolesField('roles', label('roles'), {
     required: true,
   }),
@@ -118,15 +111,6 @@ const fields = {
     'createdAt',
     label('createdAt'),
   ),
-  updatedAt: new DateTimeField(
-    'updatedAt',
-    label('updatedAt'),
-  ),
-  createdAtRange: new DateTimeRangeField(
-    'createdAtRange',
-    label('createdAtRange'),
-  ),
-  roleUser: new GenericField('roleUser', label('roleUser')),
   acceptedTermsAndPrivacy: new BooleanField(
     'acceptedTermsAndPrivacy',
     label('acceptedTermsAndPrivacy'),
