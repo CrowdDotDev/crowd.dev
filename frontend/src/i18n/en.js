@@ -445,6 +445,7 @@ const en = {
       },
       Activities: {
         count: '[Activities] Count',
+        cumulativeCount: '[Activities] Cumulative Count',
         type: '[Activities] Type',
         platform: '[Activities] Platform',
         date: '[Activities] Date',
@@ -457,8 +458,6 @@ const en = {
         location: '[Members] Location',
         organization: '[Members] Organization',
         joinedAt: '[Members] Joined Date',
-        averageTimeToFirstInteraction:
-          '[Members] Avg. Time To First Interaction',
       },
       MemberTags: {
         count: '[Members] # of Tags',
@@ -570,6 +569,7 @@ const en = {
       fullName: 'Name',
       firstName: 'First name',
       lastName: 'Last name',
+      acceptedTermsAndPrivacy: 'Terms and privacy',
       status: 'Status',
       phoneNumber: 'Phone Number',
       role: 'Role',

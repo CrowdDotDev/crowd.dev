@@ -18,6 +18,18 @@ export const PLAN_LIMITS = {
     [FeatureFlag.MEMBER_ENRICHMENT]: 1000,
     [FeatureFlag.ORGANIZATION_ENRICHMENT]: 200,
   },
+  [Plans.values.scale]: {
+    [FeatureFlag.AUTOMATIONS]: 100,
+    [FeatureFlag.CSV_EXPORT]: 100,
+    [FeatureFlag.MEMBER_ENRICHMENT]: 10000,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: 2000,
+  },
+  [Plans.values.enterprise]: {
+    [FeatureFlag.AUTOMATIONS]: Infinity,
+    [FeatureFlag.CSV_EXPORT]: Infinity,
+    [FeatureFlag.MEMBER_ENRICHMENT]: Infinity,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: Infinity,
+  },
 }
 
 export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {

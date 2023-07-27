@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-x-12 grid-cols-3 mb-16">
+  <div class="grid gap-x-12 grid-cols-4 mb-16">
     <div v-if="showHeader">
       <h6>Custom attributes</h6>
       <p class="text-gray-500 text-2xs leading-normal mt-1">
@@ -12,7 +12,7 @@
         Manage global attributes
       </el-button>
     </div>
-    <div :class="showHeader ? 'col-span-2' : 'col-span-3'">
+    <div :class="showHeader ? 'col-span-3' : 'col-span-4'">
       <div class="flex gap-3 border-b h-8 items-center">
         <span
           class="uppercase text-gray-400 text-2xs font-semibold tracking-wide w-1/3"

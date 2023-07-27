@@ -49,17 +49,16 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import {
-  defineProps, computed, onMounted, ref,
-} from 'vue';
+import { onMounted, ref } from 'vue';
 
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header.vue';
 import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside.vue';
 import AppOrganizationViewMembers from '@/modules/organization/components/view/organization-view-members.vue';
+import Message from '@/shared/message/message';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
 
-const store = useStore();
 const props = defineProps({
   id: {
     type: String,
@@ -67,13 +66,19 @@ const props = defineProps({
   },
 });
 
-const organization = computed(() => store.getters['organization/find'](props.id) || {});
+const organizationStore = useOrganizationStore();
+const { organization } = storeToRefs(organizationStore);
+const { fetchOrganization } = organizationStore;
 
 const loading = ref(true);
 const tab = ref('members');
 
-onMounted(async () => {
-  await store.dispatch('organization/doFind', props.id);
+onMounted(() => {
+  try {
+    fetchOrganization(props.id);
+  } catch (e) {
+    Message.error('Something went wrong');
+  }
   loading.value = false;
 });
 </script>

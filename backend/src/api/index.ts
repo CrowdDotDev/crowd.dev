@@ -151,6 +151,7 @@ setImmediate(async () => {
 
   app.use(
     bodyParser.json({
+      limit: '5mb',
       verify(req, res, buf) {
         const url = (<any>req).originalUrl
         if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
@@ -162,7 +163,7 @@ setImmediate(async () => {
     }),
   )
 
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }))
 
   // Configure the Entity routes
   const routes = express.Router()

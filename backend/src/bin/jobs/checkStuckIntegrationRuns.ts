@@ -209,10 +209,13 @@ export const checkRuns = async (): Promise<void> => {
       }
     }
 
+    const lastCreatedAt = runs[runs.length - 1].createdAt
+
     runs = await runsRepo.findIntegrationsByState(
       [IntegrationRunState.PENDING, IntegrationRunState.PROCESSING],
       1,
       10,
+      lastCreatedAt,
     )
   }
 }

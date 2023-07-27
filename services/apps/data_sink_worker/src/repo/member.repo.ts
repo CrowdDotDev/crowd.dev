@@ -30,29 +30,46 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
 
     this.selectMemberQuery = `
-      select ${this.selectMemberColumnSet.columns.map((c) => `"${c.name}"`).join(', ')}
-      from "members"
+      select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      from "members" m
     `
     this.insertMemberIdentityColumnSet = getInsertMemberIdentityColumnSet(this.dbInstance)
     this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
+  public async findMemberByEmail(tenantId: string, email: string): Promise<IDbMember | null> {
+    return await this.db().oneOrNone(
+      `${this.selectMemberQuery}
+      where "tenantId" = $(tenantId)
+      and $(email) = ANY ("emails")
+    `,
+      {
+        tenantId,
+        email,
+      },
+    )
+  }
+
   public async findMember(
     tenantId: string,
+    segmentId: string,
     platform: string,
     username: string,
   ): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
-      where "id" in (
-        select "memberId" from "memberIdentities"
-        where "tenantId" = $(tenantId) and
-        "platform" = $(platform) and
-        "username" = $(username)
-      )
+      where m.id in (select ms."memberId"
+                    from "memberSegments" ms
+                              inner join "memberIdentities" mi
+                                        on ms."tenantId" = mi."tenantId" and ms."memberId" = mi."memberId"
+                    where ms."tenantId" = $(tenantId)
+                      and ms."segmentId" = $(segmentId)
+                      and mi.platform = $(platform)
+                      and mi.username = $(username));
     `,
       {
         tenantId,
+        segmentId,
         platform,
         username,
       },
@@ -102,7 +119,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async findById(id: string): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(`${this.selectMemberQuery} where id = $(id)`, { id })
+    return await this.db().oneOrNone(`${this.selectMemberQuery} where m.id = $(id)`, { id })
   }
 
   public async create(tenantId: string, data: IDbMemberCreateData): Promise<string> {

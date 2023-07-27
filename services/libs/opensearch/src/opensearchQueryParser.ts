@@ -236,11 +236,9 @@ export class OpensearchQueryParser {
         throw new Error('IN should be used with an array of values!')
       }
 
-      const subQueries = value.map((v) => ({ match: { [searchKey]: v } }))
-
       return {
-        bool: {
-          should: subQueries,
+        terms: {
+          [searchKey]: value,
         },
       }
     }
@@ -287,6 +285,48 @@ export class OpensearchQueryParser {
       return {
         bool: {
           should: subQueries,
+        },
+      }
+    }
+
+    if (operator === Operator.ARRAY_LENGTH) {
+      if (typeof value !== 'object') {
+        throw new Error(
+          'Array length should be used with an object containing operators and their values!',
+        )
+      }
+
+      const operatorsMapping = {
+        gte: '>=',
+        lte: '<=',
+        gt: '>',
+        lt: '<',
+        eq: '==',
+      }
+
+      const scriptQueries = Object.entries(value).map(([lengthOperator, arrayLength]) => {
+        if (typeof arrayLength !== 'number') {
+          throw new Error(`Array length value for operator ${lengthOperator} should be a number!`)
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(operatorsMapping, lengthOperator)) {
+          throw new Error(`Invalid operator "${lengthOperator}" used in ARRAY_LENGTH`)
+        }
+
+        return {
+          script: {
+            source: `doc['${searchKey}'].length ${operatorsMapping[lengthOperator]} params.length`,
+            lang: 'painless',
+            params: {
+              length: arrayLength,
+            },
+          },
+        }
+      })
+
+      return {
+        bool: {
+          must: scriptQueries,
         },
       }
     }

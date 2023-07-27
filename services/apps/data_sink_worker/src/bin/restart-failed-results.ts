@@ -7,7 +7,7 @@ import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
 
 const log = getServiceLogger()
 
-const processArguments = process.argv.slice(3)
+const processArguments = process.argv.slice(2)
 
 if (processArguments.length !== 1) {
   log.error('Expected 1 argument: runId')
@@ -28,7 +28,7 @@ setImmediate(async () => {
 
   let results = await repo.getFailedResults(runId, 1, 20)
   while (results.length > 0) {
-    await repo.resetFailedResults(results.map((r) => r.id))
+    await repo.resetResults(results.map((r) => r.id))
 
     for (const result of results) {
       await emitter.sendMessage(

@@ -1,9 +1,19 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IActivityData, IntegrationResultState, IntegrationResultType } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  IOrganization,
+  IntegrationResultState,
+  IntegrationResultType,
+} from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import MemberService from './member.service'
+import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
+import { OrganizationService } from './organization.service'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -51,21 +61,27 @@ export default class DataSinkService extends LoggerBase {
       apiDataId: resultInfo.apiDataId,
       streamId: resultInfo.streamId,
       runId: resultInfo.runId,
+      webhookId: resultInfo.webhookId,
       integrationId: resultInfo.integrationId,
       platform: resultInfo.platform,
     })
 
     if (resultInfo.state !== IntegrationResultState.PENDING) {
-      this.log.error({ actualState: resultInfo.state }, 'Result is not pending.')
-      await this.triggerResultError(resultId, 'check-result-state', 'Result is not pending.', {
-        actualState: resultInfo.state,
-      })
+      this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
+      if (resultInfo.state === IntegrationResultState.PROCESSED) {
+        this.log.warn('Result has already been processed. Skipping...')
+        return
+      }
+
+      await this.repo.resetResults([resultId])
       return
     }
 
     this.log.debug('Marking result as in progress.')
     await this.repo.markResultInProgress(resultId)
-    await this.repo.touchRun(resultInfo.runId)
+    if (resultInfo.runId) {
+      await this.repo.touchRun(resultInfo.runId)
+    }
 
     try {
       const data = resultInfo.data
@@ -88,11 +104,42 @@ export default class DataSinkService extends LoggerBase {
           break
         }
 
+        case IntegrationResultType.MEMBER_ENRICH: {
+          const service = new MemberService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.log,
+          )
+          const memberData = data.data as IMemberData
+
+          await service.processMemberEnrich(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            memberData,
+          )
+          break
+        }
+
+        case IntegrationResultType.ORGANIZATION_ENRICH: {
+          const service = new OrganizationService(this.store, this.log)
+          const organizationData = data.data as IOrganization
+
+          await service.processOrganizationEnrich(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            organizationData,
+          )
+          break
+        }
+
         default: {
           throw new Error(`Unknown result type: ${data.type}`)
         }
       }
-      await this.repo.markResultProcessed(resultId)
+      await this.repo.deleteResult(resultId)
     } catch (err) {
       this.log.error(err, 'Error processing result.')
       await this.triggerResultError(
@@ -102,8 +149,31 @@ export default class DataSinkService extends LoggerBase {
         undefined,
         err,
       )
+
+      await sendSlackAlert({
+        slackURL: SLACK_ALERTING_CONFIG().url,
+        alertType: SlackAlertTypes.SINK_WORKER_ERROR,
+        integration: {
+          id: resultInfo.integrationId,
+          platform: resultInfo.platform,
+          tenantId: resultInfo.tenantId,
+          resultId: resultInfo.id,
+          apiDataId: resultInfo.apiDataId,
+        },
+        userContext: {
+          currentTenant: {
+            name: resultInfo.name,
+            plan: resultInfo.plan,
+            isTrial: resultInfo.isTrialPlan,
+          },
+        },
+        log: this.log,
+        frameworkVersion: 'new',
+      })
     } finally {
-      await this.repo.touchRun(resultInfo.runId)
+      if (resultInfo.runId) {
+        await this.repo.touchRun(resultInfo.runId)
+      }
     }
   }
 }

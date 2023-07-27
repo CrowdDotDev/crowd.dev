@@ -1,31 +1,5 @@
 <template>
   <div>
-    <!-- Work experience -->
-    <div
-      v-if="member.attributes.workExperiences"
-      class="font-medium text-black mb-4"
-    >
-      Work experience
-    </div>
-    <app-member-custom-attributes-array-renderer
-      title="Work experience"
-      :attribute="member.attributes.workExperiences"
-      more-label="experiences"
-    >
-      <template #itemSlot="{ item }">
-        <div class="block py-3">
-          <div
-            class="text-xs text-gray-900 break-keep text-left"
-          >
-            {{ item.title }}
-          </div>
-          <div class="text-gray-500 text-2xs">
-            {{ item.company }}
-          </div>
-        </div>
-      </template>
-    </app-member-custom-attributes-array-renderer>
-
     <!-- Education -->
     <div
       v-if="member.attributes.education"

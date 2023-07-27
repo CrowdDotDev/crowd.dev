@@ -6,6 +6,7 @@ import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   SearchSyncWorkerEmitter,
+  IntegrationSyncWorkerEmitter,
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
@@ -28,6 +29,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -44,6 +46,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         this.streamWorkerEmitter,
         this.runWorkerEmitter,
         this.searchSyncWorkerEmitter,
+        this.integrationSyncWorkerEmitter,
         this.apiPubSubEmitter,
         new DbStore(this.log, this.dbConn),
         this.log,

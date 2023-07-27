@@ -29,13 +29,19 @@ export type ActivityAutomationData = {
   activityId: string
 }
 
-export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & ActivityAutomationData
+export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage &
+  ActivityAutomationData & {
+    segmentId: string
+  }
 
 export type MemberAutomationData = {
   memberId: string
 }
 
-export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & MemberAutomationData
+export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage &
+  MemberAutomationData & {
+    segmentId: string
+  }
 
 export type ProcessAutomationMessage = BaseNodeMicroserviceMessage & {
   automationType: AutomationType
@@ -70,9 +76,13 @@ export type BulkEnrichMessage = {
   service: string
   tenant: string
   memberIds: string[]
+  segmentIds: string[]
+  notifyFrontend: boolean
+  skipCredits: boolean
 }
 
 export type OrganizationBulkEnrichMessage = {
   service: string
   tenantId: string
+  maxEnrichLimit: number
 }

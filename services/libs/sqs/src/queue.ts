@@ -3,11 +3,12 @@ import {
   DeleteMessageRequest,
   GetQueueUrlCommand,
   ReceiveMessageRequest,
+  SendMessageBatchRequestEntry,
   SendMessageRequest,
 } from '@aws-sdk/client-sqs'
-import { IS_PROD_ENV, IS_STAGING_ENV, timeout } from '@crowd/common'
+import { IS_PROD_ENV, IS_STAGING_ENV, generateUUIDv1, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { deleteMessage, receiveMessage, sendMessage } from './client'
+import { deleteMessage, receiveMessage, sendMessage, sendMessagesBulk } from './client'
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
 import { IQueueMessage, ISqsQueueEmitter } from '@crowd/types'
 
@@ -133,6 +134,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
           this.processMessage(JSON.parse(message.Body))
             // when the message is processed, delete it from the queue
             .then(async () => {
+              this.log.trace({ messageReceiptHandle: message.ReceiptHandle }, 'Deleting message')
               await this.deleteMessage(message.ReceiptHandle)
               this.removeJob()
             })
@@ -192,5 +194,30 @@ export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueE
     }
 
     await sendMessage(this.sqsClient, params)
+  }
+
+  public async sendMessages<T extends IQueueMessage>(
+    messages: { payload: T; groupId: string; deduplicationId?: string; id?: string }[],
+  ): Promise<void> {
+    if (messages.length > 10) {
+      throw new Error('Maximum number of messages to send is 10!')
+    }
+    const time = new Date().getTime()
+
+    const entries: SendMessageBatchRequestEntry[] = messages.map((msg) => {
+      return {
+        Id: msg.id || generateUUIDv1(),
+        MessageBody: JSON.stringify(msg.payload),
+        MessageDeduplicationId: this.isFifo
+          ? msg.deduplicationId || `${msg.groupId}-${time}`
+          : undefined,
+        MessageGroupId: msg.groupId,
+      }
+    })
+
+    await sendMessagesBulk(this.sqsClient, {
+      QueueUrl: this.getQueueUrl(),
+      Entries: entries,
+    })
   }
 }

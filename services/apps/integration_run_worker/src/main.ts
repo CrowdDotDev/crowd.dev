@@ -3,6 +3,7 @@ import { getServiceLogger } from '@crowd/logging'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
+  IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
@@ -25,6 +26,7 @@ setImmediate(async () => {
   const runWorkerEmitter = new IntegrationRunWorkerEmitter(sqsClient, log)
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
+  const integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(sqsClient, log)
 
   const apiPubSubEmitter = new ApiPubSubEmitter(redisClient, log)
 
@@ -35,6 +37,7 @@ setImmediate(async () => {
     streamWorkerEmitter,
     runWorkerEmitter,
     searchSyncWorkerEmitter,
+    integrationSyncWorkerEmitter,
     apiPubSubEmitter,
     log,
     MAX_CONCURRENT_PROCESSING,
@@ -44,6 +47,7 @@ setImmediate(async () => {
     await streamWorkerEmitter.init()
     await runWorkerEmitter.init()
     await searchSyncWorkerEmitter.init()
+    await integrationSyncWorkerEmitter.init()
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')

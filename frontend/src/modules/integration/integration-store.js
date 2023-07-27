@@ -76,6 +76,10 @@ export default {
       (i) => i.status === 'no-data',
     ),
 
+    needsReconnect: (state, getters) => getters.array.filter(
+      (i) => i.status === 'needs-reconnect',
+    ),
+
     count: (state) => state.count,
 
     hasRows: (state, getters) => getters.count > 0,
@@ -454,6 +458,32 @@ export default {
           {
             title:
               'Stack Overflow integration created successfully',
+          },
+        );
+
+        router.push('/integrations');
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
+
+    async doHubspotConnect(
+      { commit },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.hubspotConnect();
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              'Hubspot integration created successfully',
           },
         );
 

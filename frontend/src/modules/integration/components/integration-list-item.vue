@@ -21,6 +21,12 @@
       >
         <i class="ri-time-line mr-1" /> Waiting for approval
       </div>
+      <div
+        v-else-if="isNeedsToBeReconnected"
+        class="text-yellow-600 flex items-center text-sm"
+      >
+        <i class="ri-alert-line mr-1" /> Needs to be reconnected
+      </div>
       <div v-else-if="isConnected" class="flex items-center">
         <div
           v-loading="true"
@@ -41,6 +47,9 @@
         <span class="block font-semibold">{{ integration.name }}</span>
         <span v-if="integration.premium" class="text-2xs text-brand-500 ml-1">{{
           FeatureFlag.premiumFeatureCopy()
+        }}</span>
+        <span v-if="integration.scale" class="text-2xs text-brand-500 ml-1">{{
+          FeatureFlag.scaleFeatureCopy()
         }}</span>
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
@@ -63,7 +72,7 @@
               @click="connect"
             >
               {{
-                integration.premium === true && !hasIntegration
+                (integration.premium || integration.scale) && !hasIntegration
                   ? "Upgrade Plan"
                   : "Connect"
               }}
@@ -131,6 +140,10 @@ const isWaitingForAction = computed(
 
 const isWaitingApproval = computed(
   () => props.integration.status === 'waiting-approval',
+);
+
+const isNeedsToBeReconnected = computed(
+  () => props.integration.status === 'needs-reconnect',
 );
 
 const loadingDisconnect = ref(false);

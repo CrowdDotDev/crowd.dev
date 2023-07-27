@@ -192,6 +192,10 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findAndCountAll(args, this.options)
   }
 
+  async findByUrl(url) {
+    return OrganizationRepository.findByUrl(url, this.options)
+  }
+
   async query(data) {
     const advancedFilter = data.filter
     const orderBy = data.orderBy

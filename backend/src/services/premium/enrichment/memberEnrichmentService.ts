@@ -2,6 +2,7 @@ import { LoggerBase } from '@crowd/logging'
 import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
+import moment from 'moment'
 import {
   ApiWebsocketMessage,
   MemberAttributeName,
@@ -29,6 +30,9 @@ import {
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
 } from './types/memberEnrichmentTypes'
+import OrganizationService from '../../organizationService'
+import MemberRepository from '../../../database/repositories/memberRepository'
+import OrganizationRepository from '../../../database/repositories/organizationRepository'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -135,7 +139,7 @@ export default class MemberEnrichmentService extends LoggerBase {
     this.attributes = (await memberAttributeSettingsService.findAndCountAll({})).rows
   }
 
-  async bulkEnrich(memberIds: string[]) {
+  async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
@@ -167,37 +171,39 @@ export default class MemberEnrichmentService extends LoggerBase {
 
     // Send websocket messages to frontend after all requests have been made
     // Only send error message if all enrichments failed
-    if (!enrichedMembers) {
-      apiPubSubEmitter.emit(
-        'user',
-        new ApiWebsocketMessage(
-          'bulk-enrichment',
-          JSON.stringify({
-            failedEnrichedMembers: memberIds.length - enrichedMembers,
-            enrichedMembers,
-            tenantId: this.options.currentTenant.id,
-            success: false,
-          }),
-          undefined,
-          this.options.currentTenant.id,
-        ),
-      )
-    }
-    // Send success message if there were enrichedMembers
-    else {
-      apiPubSubEmitter.emit(
-        'user',
-        new ApiWebsocketMessage(
-          'bulk-enrichment',
-          JSON.stringify({
-            enrichedMembers,
-            tenantId: this.options.currentTenant.id,
-            success: true,
-          }),
-          undefined,
-          this.options.currentTenant.id,
-        ),
-      )
+    if (notifyFrontend) {
+      if (!enrichedMembers) {
+        apiPubSubEmitter.emit(
+          'user',
+          new ApiWebsocketMessage(
+            'bulk-enrichment',
+            JSON.stringify({
+              failedEnrichedMembers: memberIds.length - enrichedMembers,
+              enrichedMembers,
+              tenantId: this.options.currentTenant.id,
+              success: false,
+            }),
+            undefined,
+            this.options.currentTenant.id,
+          ),
+        )
+      }
+      // Send success message if there were enrichedMembers
+      else {
+        apiPubSubEmitter.emit(
+          'user',
+          new ApiWebsocketMessage(
+            'bulk-enrichment',
+            JSON.stringify({
+              enrichedMembers,
+              tenantId: this.options.currentTenant.id,
+              success: true,
+            }),
+            undefined,
+            this.options.currentTenant.id,
+          ),
+        )
+      }
     }
 
     return { enrichedMemberCount: enrichedMembers }
@@ -267,7 +273,38 @@ export default class MemberEnrichmentService extends LoggerBase {
         this.options,
       )
 
-      return memberService.upsert({ ...normalized, platform: Object.keys(member.username)[0] })
+      const result = await memberService.upsert({
+        ...normalized,
+        platform: Object.keys(member.username)[0],
+      })
+
+      // for every work experience in `enrichmentData`
+      //   - upsert organization
+      //   - upsert `memberOrganization` relation
+      const organizationService = new OrganizationService(this.options)
+      if (enrichmentData.work_experiences) {
+        for (const workExperience of enrichmentData.work_experiences) {
+          const org = await organizationService.findOrCreate({
+            name: workExperience.company,
+          })
+
+          const dateEnd = workExperience.endDate
+            ? moment.utc(workExperience.endDate).toISOString()
+            : null
+
+          const data = {
+            memberId: result.id,
+            organizationId: org.id,
+            title: workExperience.title,
+            dateStart: workExperience.startDate,
+            dateEnd,
+          }
+          await MemberRepository.createOrUpdateWorkExperience(data, this.options)
+          await OrganizationRepository.includeOrganizationToSegments(org.id, this.options)
+        }
+      }
+
+      return result
     }
     return null
   }
@@ -300,6 +337,12 @@ export default class MemberEnrichmentService extends LoggerBase {
           organization.location = organizationsByWorkExperience[0].location
           organization.linkedin = organizationsByWorkExperience[0].companyLinkedInUrl
           organization.url = organizationsByWorkExperience[0].companyUrl
+
+          // fetch jobTitle from most recent work experience
+          member.attributes.jobTitle = {
+            custom: organizationsByWorkExperience[0].title,
+            default: organizationsByWorkExperience[0].title,
+          }
         }
       }
 

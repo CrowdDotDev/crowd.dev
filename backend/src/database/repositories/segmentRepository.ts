@@ -467,7 +467,7 @@ class SegmentRepository extends RepositoryBase<
       {
         replacements: {
           tenantId: this.currentTenant.id,
-          name: `${criteria.filter?.name}%`,
+          name: `%${criteria.filter?.name}%`,
           status: criteria.filter?.status,
         },
         type: QueryTypes.SELECT,
@@ -493,7 +493,7 @@ class SegmentRepository extends RepositoryBase<
     }
 
     if (criteria.filter?.parentSlug) {
-      searchQuery += ` AND s."parentSlug" ilike :parent_slug `
+      searchQuery += ` AND s."parentSlug" = :parent_slug `
     }
 
     const projects = await this.options.database.sequelize.query(
@@ -520,7 +520,7 @@ class SegmentRepository extends RepositoryBase<
           tenantId: this.currentTenant.id,
           name: `%${criteria.filter?.name}%`,
           status: criteria.filter?.status,
-          parent_slug: `%${criteria.filter?.parentSlug}%`,
+          parent_slug: `${criteria.filter?.parentSlug}`,
         },
         type: QueryTypes.SELECT,
       },
@@ -544,7 +544,7 @@ class SegmentRepository extends RepositoryBase<
   }
 
   async getDefaultSegment() {
-    const segments = await this.querySubprojects({})
+    const segments = await this.querySubprojects({ limit: 1, offset: 0 })
     return segments.rows[0] || null
   }
 
@@ -560,11 +560,11 @@ class SegmentRepository extends RepositoryBase<
     }
 
     if (criteria.filter?.parentSlug) {
-      searchQuery += ` AND s."parentSlug" ilike :parent_slug `
+      searchQuery += ` AND s."parentSlug" = :parent_slug `
     }
 
     if (criteria.filter?.grandparentSlug) {
-      searchQuery += ` AND s."grandparentSlug" ilike :grandparent_slug `
+      searchQuery += ` AND s."grandparentSlug" = :grandparent_slug `
     }
 
     const subprojects = await this.options.database.sequelize.query(
@@ -585,8 +585,8 @@ class SegmentRepository extends RepositoryBase<
           tenantId: this.currentTenant.id,
           name: `%${criteria.filter?.name}%`,
           status: criteria.filter?.status,
-          parent_slug: `%${criteria.filter?.parentSlug}%`,
-          grandparent_slug: `%${criteria.filter?.grandparentSlug}%`,
+          parent_slug: `${criteria.filter?.parentSlug}`,
+          grandparent_slug: `${criteria.filter?.grandparentSlug}`,
         },
         type: QueryTypes.SELECT,
       },
@@ -642,8 +642,10 @@ class SegmentRepository extends RepositoryBase<
     activityTypes.default = lodash.cloneDeep(DEFAULT_ACTIVITY_TYPE_SETTINGS)
     activityTypes.custom = {}
 
-    if (Object.keys(record.customActivityTypes).length > 0) {
-      activityTypes.custom = record.customActivityTypes
+    const customActivityTypes = record.customActivityTypes || {}
+
+    if (Object.keys(customActivityTypes).length > 0) {
+      activityTypes.custom = customActivityTypes
     }
 
     return activityTypes

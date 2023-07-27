@@ -21,4 +21,5 @@ export interface IIntegration {
   platform: string
   status: IntegrationState
   settings: unknown
+  token: string | null
 }

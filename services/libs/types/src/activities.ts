@@ -70,6 +70,18 @@ export interface IActivityData {
    * Mutually exclusive with username field.
    */
   member?: IMemberData
+
+  /**
+   * Object member username that generated this activity.
+   * Mutually exclusive with objectMember field.
+   */
+  objectMemberUsername?: string
+
+  /**
+   * Object member that generated this activity.
+   * Mutually exclusive with objectMemberUsername field.
+   */
+  objectMember?: IMemberData
 }
 
 export interface IActivityScoringGrid {

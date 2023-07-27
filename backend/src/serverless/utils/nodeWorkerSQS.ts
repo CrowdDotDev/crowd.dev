@@ -84,11 +84,13 @@ export const sendNodeWorkerMessage = async (
 export const sendNewActivityNodeSQSMessage = async (
   tenant: string,
   activityId: string,
+  segmentId: string,
 ): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
     activityId,
+    segmentId,
     trigger: AutomationTrigger.NEW_ACTIVITY,
     service: 'automation',
   }
@@ -98,11 +100,13 @@ export const sendNewActivityNodeSQSMessage = async (
 export const sendNewMemberNodeSQSMessage = async (
   tenant: string,
   memberId: string,
+  segmentId: string,
 ): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
     memberId,
+    segmentId,
     trigger: AutomationTrigger.NEW_MEMBER,
     service: 'automation',
   }
@@ -128,12 +132,21 @@ export const sendExportCSVNodeSQSMessage = async (
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
 
-export const sendBulkEnrichMessage = async (tenant: string, memberIds: string[]): Promise<void> => {
+export const sendBulkEnrichMessage = async (
+  tenant: string,
+  memberIds: string[],
+  segmentIds: string[],
+  notifyFrontend: boolean = true,
+  skipCredits: boolean = false,
+): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     service: 'bulk-enrich',
     memberIds,
     tenant,
+    segmentIds,
+    notifyFrontend,
+    skipCredits,
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

@@ -461,7 +461,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -478,6 +478,11 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: null,
         twitter: null,
         linkedin: null,
@@ -502,6 +507,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 
@@ -531,7 +537,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -548,6 +554,11 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: null,
         twitter: null,
         linkedin: null,
@@ -572,6 +583,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 
@@ -605,7 +617,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -622,6 +634,11 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: null,
         twitter: null,
         linkedin: null,
@@ -646,6 +663,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 
@@ -678,7 +696,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].dataValues
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -696,6 +714,11 @@ describe('MemberService tests', () => {
         emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
         phoneNumbers: ['+42 424242'],
         logo: 'https://logo.clearbit.com/crowd.dev',
+        memberOrganizations: {
+          dateEnd: null,
+          dateStart: null,
+          title: null,
+        },
         tags: [],
         twitter: {
           id: '1362101830923259908',
@@ -736,6 +759,7 @@ describe('MemberService tests', () => {
         employeeCountByCountry: null,
         address: null,
         profiles: null,
+        attributes: {},
       })
     })
 
@@ -1723,7 +1747,9 @@ describe('MemberService tests', () => {
       // Sequelize returns associations as array of models, we need to get plain objects
       mergedMember.activities = mergedMember.activities.map((i) => i.get({ plain: true }))
       mergedMember.tags = mergedMember.tags.map((i) => i.get({ plain: true }))
-      mergedMember.organizations = mergedMember.organizations.map((i) => i.get({ plain: true }))
+      mergedMember.organizations = mergedMember.organizations.map((i) =>
+        SequelizeTestUtils.objectWithoutKey(i.get({ plain: true }), ['memberOrganizations']),
+      )
       mergedMember.tasks = mergedMember.tasks.map((i) => i.get({ plain: true }))
       mergedMember.notes = mergedMember.notes.map((i) => i.get({ plain: true }))
 
@@ -1769,9 +1795,24 @@ describe('MemberService tests', () => {
       t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
 
       // remove organizations->member relations as well (we should be only checking 1-deep relations)
-      o1 = SequelizeTestUtils.objectWithoutKey(o1, ['memberCount', 'joinedAt', 'activityCount'])
-      o2 = SequelizeTestUtils.objectWithoutKey(o2, ['memberCount', 'joinedAt', 'activityCount'])
-      o3 = SequelizeTestUtils.objectWithoutKey(o3, ['memberCount', 'joinedAt', 'activityCount'])
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, [
+        'memberCount',
+        'joinedAt',
+        'activityCount',
+        'memberOrganizations',
+      ])
+      o2 = SequelizeTestUtils.objectWithoutKey(o2, [
+        'memberCount',
+        'joinedAt',
+        'activityCount',
+        'memberOrganizations',
+      ])
+      o3 = SequelizeTestUtils.objectWithoutKey(o3, [
+        'memberCount',
+        'joinedAt',
+        'activityCount',
+        'memberOrganizations',
+      ])
 
       // remove tasks->member and tasks->activity tasks->assignees relations as well (we should be only checking 1-deep relations)
       task1 = SequelizeTestUtils.objectWithoutKey(task1, ['members', 'activities', 'assignees'])

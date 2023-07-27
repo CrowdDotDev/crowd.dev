@@ -32,18 +32,6 @@ export default [
         props: {
           module: 'organizations',
         },
-        beforeEnter: async (to) => {
-          if (
-            to.query.activeTab !== undefined
-            && to.query.activeTab
-              !== store.getters['organization/activeView']?.id
-          ) {
-            store.dispatch(
-              'organization/doChangeActiveView',
-              to.query.activeTab,
-            );
-          }
-        },
       },
       {
         name: 'organizationCreate',

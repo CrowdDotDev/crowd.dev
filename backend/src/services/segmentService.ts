@@ -117,6 +117,7 @@ export default class SegmentService extends LoggerBase {
         grandparentSlug: data.parentSlug,
         name: data.name,
         parentName: data.name,
+        grandparentName: parent.name,
       })
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -384,19 +385,23 @@ export default class SegmentService extends LoggerBase {
   }
 
   static async getTenantActivityTypes(subprojects: any) {
-    return subprojects.reduce(
-      (acc: any, subproject) => ({
+    if (!subprojects) {
+      return { custom: {}, default: {} }
+    }
+    return subprojects.reduce((acc: any, subproject) => {
+      const activityTypes = SegmentRepository.buildActivityTypes(subproject)
+
+      return {
         custom: {
           ...acc.custom,
-          ...subproject.activityTypes.custom,
+          ...activityTypes.custom,
         },
         default: {
           ...acc.default,
-          ...subproject.activityTypes.default,
+          ...activityTypes.default,
         },
-      }),
-      {},
-    )
+      }
+    }, {})
   }
 
   static async getTenantActivityChannels(subprojects: any) {

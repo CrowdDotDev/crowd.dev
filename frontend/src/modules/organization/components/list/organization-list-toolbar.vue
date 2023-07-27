@@ -75,6 +75,7 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import Errors from '@/shared/error/errors';
 import { Excel } from '@/shared/excel/excel';
+import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
@@ -148,18 +149,22 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
 const handleDoExport = async () => {
   try {
     const filter = {
-      id: {
-        in: selectedOrganizations.value.map((o) => o.id),
-      },
+      and: [
+        ...DEFAULT_ORGANIZATION_FILTERS,
+        {
+          id: {
+            in: selectedOrganizations.value.map((o) => o.id),
+          },
+        },
+      ],
     };
 
-    const response = await OrganizationService.list(
+    const response = await OrganizationService.query({
       filter,
-      `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      null,
-      null,
-      false,
-    );
+      orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+      limit: null,
+      offset: null,
+    });
 
     Excel.exportAsExcelFile(
       response.rows.map((o) => ({
