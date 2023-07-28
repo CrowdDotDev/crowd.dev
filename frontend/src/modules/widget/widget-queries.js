@@ -139,7 +139,7 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
   filters: [
     {
       member: 'Members.joinedAtUnixTs',
-      operator: 'beforeDate',
+      operator: 'lt',
       values: [
         moment()
           .utc()
