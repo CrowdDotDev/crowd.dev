@@ -70,3 +70,14 @@ export const SEARCH_SYNC_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
   deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
   fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
 }
+
+export const INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
+  name: 'integration-sync-worker',
+  type: SqsQueueType.FIFO,
+  waitTimeSeconds: 20, // seconds
+  visibilityTimeout: 30, // seconds
+  messageRetentionPeriod: 345600, // 4 days
+  deliveryDelay: 0,
+  deduplicationScope: SqsQueueDeduplicationType.MESSAGE_GROUP,
+  fifoThroughputLimit: SqsFifoThroughputLimitType.PER_MESSAGE_GROUP_ID,
+}

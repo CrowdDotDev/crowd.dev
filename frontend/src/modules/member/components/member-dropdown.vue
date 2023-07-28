@@ -83,6 +83,37 @@
             class="text-xs"
           >Merge member</span>
         </el-dropdown-item>
+
+        <!-- Hubspot -->
+        <el-dropdown-item
+          v-if="!isSyncingWithHubspot"
+          class="h-10"
+          :command="{
+            action: 'syncHubspot',
+            member: member,
+          }"
+          :disabled="!isHubspotConnected || member.emails.length === 0"
+        >
+          <app-svg name="hubspot" class="h-4 w-4 text-current" />
+          <span
+            class="text-xs pl-2"
+          >Sync with HubSpot</span>
+        </el-dropdown-item>
+        <el-dropdown-item
+          v-else
+          class="h-10"
+          :command="{
+            action: 'stopSyncHubspot',
+            member: member,
+          }"
+          :disabled="!isHubspotConnected || member.emails.length === 0"
+        >
+          <app-svg name="hubspot" class="h-4 w-4 text-current" />
+          <span
+            class="text-xs pl-2"
+          >Stop sync with HubSpot</span>
+        </el-dropdown-item>
+
         <el-dropdown-item
           v-if="!member.attributes.isTeamMember?.default"
           class="h-10"
@@ -173,6 +204,9 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
+import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 
 export default {
   name: 'AppMemberDropdown',
@@ -225,6 +259,14 @@ export default {
         this.currentUser,
       ).destroyLockedForSampleData;
     },
+    isSyncingWithHubspot() {
+      return this.member.attributes?.syncRemote?.hubspot || false;
+    },
+    isHubspotConnected() {
+      const hubspot = CrowdIntegrations.getMappedConfig('hubspot', this.$store);
+      const enabledFor = hubspot.settings?.enabledFor || [];
+      return hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS);
+    },
   },
   methods: {
     ...mapActions({
@@ -255,6 +297,27 @@ export default {
     async handleCommand(command) {
       if (command.action === 'memberDelete') {
         await this.doDestroyWithConfirm(command.member.id);
+      } else if (
+        command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
+      ) {
+        // Hubspot
+        const sync = command.action === 'syncHubspot';
+        (sync ? HubspotApiService.syncMember(command.member.id) : HubspotApiService.stopSyncMember(command.member.id))
+          .then(() => {
+            if (this.$route.name === 'member') {
+              this.fetchMembers({ reload: true });
+            } else {
+              this.doFind(command.member.id);
+            }
+            if (sync) {
+              Message.success('Member is now syncing with HubSpot');
+            } else {
+              Message.success('Member syncing stopped');
+            }
+          })
+          .catch(() => {
+            Message.error('There was an error');
+          });
       } else if (
         command.action === 'memberMarkAsTeamMember'
       ) {

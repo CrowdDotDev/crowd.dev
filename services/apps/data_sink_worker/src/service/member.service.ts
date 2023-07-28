@@ -1,14 +1,15 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
-import { areArraysEqual, isObjectEmpty } from '@crowd/common'
+import { areArraysEqual, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { IMemberIdentity } from '@crowd/types'
+import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { IMemberData, IMemberIdentity, PlatformType } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import IntegrationRepository from '@/repo/integration.repo'
 import { OrganizationService } from './organization.service'
 
 export default class MemberService extends LoggerBase {
@@ -69,7 +70,7 @@ export default class MemberService extends LoggerBase {
         if (data.organizations) {
           const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, org)
             organizationIds.push(id)
           }
 
@@ -146,6 +147,7 @@ export default class MemberService extends LoggerBase {
             weakIdentities: toUpdate.weakIdentities || original.weakIdentities,
             // leave this one empty if nothing changed - we are only adding up new identities not removing them
             identities: toUpdate.identities,
+            displayName: toUpdate.displayName || original.displayName,
           })
           await txRepo.addToSegment(id, tenantId, segmentId)
 
@@ -164,7 +166,7 @@ export default class MemberService extends LoggerBase {
         if (data.organizations) {
           const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, org)
             organizationIds.push(id)
           }
 
@@ -182,6 +184,77 @@ export default class MemberService extends LoggerBase {
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
+      throw err
+    }
+  }
+
+  public async processMemberEnrich(
+    tenantId: string,
+    integrationId: string,
+    platform: PlatformType,
+    member: IMemberData,
+  ): Promise<void> {
+    this.log = getChildLogger('MemberService.processMemberEnrich', this.log, {
+      integrationId,
+      tenantId,
+    })
+
+    try {
+      this.log.debug('Processing member enrich.')
+
+      if (
+        (!member.emails || member.emails.length === 0) &&
+        (!member.identities || member.identities.length === 0)
+      ) {
+        const errorMessage = `Member can't be enriched. It is missing both emails and identities fields.`
+        this.log.error(errorMessage)
+        throw new Error(errorMessage)
+      }
+
+      await this.store.transactionally(async (txStore) => {
+        const txRepo = new MemberRepository(txStore, this.log)
+        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+
+        const dbIntegration = await txIntegrationRepo.findById(integrationId)
+        const segmentId = dbIntegration.segmentId
+
+        // first try finding the member using the identity
+        const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
+        let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
+
+        if (!dbMember && member.emails && member.emails.length > 0) {
+          const email = member.emails[0]
+
+          // try finding the member using e-mail
+          dbMember = await txRepo.findMemberByEmail(tenantId, email)
+        }
+
+        if (dbMember) {
+          this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+
+          await this.update(
+            dbMember.id,
+            tenantId,
+            segmentId,
+            integrationId,
+            {
+              attributes: member.attributes,
+              emails: member.emails || [],
+              joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
+              weakIdentities: member.weakIdentities || undefined,
+              identities: member.identities,
+              organizations: member.organizations,
+              displayName: member.displayName || undefined,
+            },
+            dbMember,
+            false,
+          )
+        } else {
+          this.log.info('No member found for enriching. This member enrich process had no affect.')
+        }
+      })
+    } catch (err) {
+      this.log.error(err, 'Error while processing a member enrich!')
       throw err
     }
   }
@@ -296,6 +369,7 @@ export default class MemberService extends LoggerBase {
       attributes,
       weakIdentities,
       identities,
+      displayName: member.displayName || dbMember.displayName,
     }
   }
 }

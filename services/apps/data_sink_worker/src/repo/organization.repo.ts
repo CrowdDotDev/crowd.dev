@@ -4,6 +4,7 @@ import {
   IDbCacheOrganization,
   IDbInsertOrganizationData,
   IDbOrganization,
+  IDbUpdateOrganizationCacheData,
   IDbUpdateOrganizationData,
   getInsertCacheOrganizationColumnSet,
   getInsertOrganizationColumnSet,
@@ -34,14 +35,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `
       select  id,
               name,
-              description,
-              location,
-              logo,
               url,
+              description,
+              emails,
+              logo,
+              tags,
               github,
               twitter,
+              linkedin,
+              crunchbase,
+              employees,
+              location,
               website,
-              enriched
+              type,
+              size,
+              headline,
+              industry,
+              founded
       from "organizationCaches"
       where name = $(name);`,
       { name },
@@ -68,7 +78,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return id
   }
 
-  public async updateCache(id: string, data: IDbUpdateOrganizationData): Promise<void> {
+  public async updateCache(id: string, data: IDbUpdateOrganizationCacheData): Promise<void> {
     const prepared = RepositoryBase.prepare(
       {
         ...data,
@@ -85,21 +95,78 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async findByName(tenantId: string, name: string): Promise<IDbOrganization> {
+  public async findByName(
+    tenantId: string,
+    segmentId: string,
+    name: string,
+  ): Promise<IDbOrganization> {
     const result = await this.db().oneOrNone(
       `
-      select  id,
-              name,
-              description,
-              location,
-              logo,
-              url,
-              github,
-              twitter,
-              website
-      from organizations
-      where "tenantId" = $(tenantId) and name = $(name);`,
-      { tenantId, name },
+      select  o.id,
+              o.name,
+              o.url,
+              o.description,
+              o.emails,
+              o.logo,
+              o.tags,
+              o.github,
+              o.twitter,
+              o.linkedin,
+              o.crunchbase,
+              o.employees,
+              o.location,
+              o.website,
+              o.type,
+              o.size,
+              o.headline,
+              o.industry,
+              o.founded,
+              o.attributes
+      from organizations o
+      where o."tenantId" = $(tenantId) and o.name = $(name)
+      and o.id in (select os."organizationId"
+                    from "organizationSegments" os
+                      where os."segmentId" = $(segmentId))`,
+      { tenantId, name, segmentId },
+    )
+
+    return result
+  }
+
+  public async findBySourceId(
+    tenantId: string,
+    segmentId: string,
+    platform: string,
+    sourceId: string,
+  ): Promise<IDbOrganization> {
+    const result = await this.db().oneOrNone(
+      `
+      select  o.id,
+              o.name,
+              o.url,
+              o.description,
+              o.emails,
+              o.logo,
+              o.tags,
+              o.github,
+              o.twitter,
+              o.linkedin,
+              o.crunchbase,
+              o.employees,
+              o.location,
+              o.website,
+              o.type,
+              o.size,
+              o.headline,
+              o.industry,
+              o.founded,
+              o.attributes
+      from organizations o
+      where o."tenantId" = $(tenantId) and COALESCE(((o.attributes -> 'sourceId'::text) ->> '${platform}'::text)::text, '') = $(sourceId)
+      and o.id in (select os."organizationId"
+                    from "organizationSegments" os
+                      where os."segmentId" = $(segmentId))`,
+      { tenantId, sourceId, segmentId },
     )
 
     return result
@@ -157,7 +224,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     const valueString = valueStrings.join(',')
 
     const query = `
-    insert into "organizationSegments"("organizationId", "segmentId", "tenantId", "createdAt")
+    insert into "organizationSegments"("tenantId", "segmentId", "organizationId", "createdAt")
     values ${valueString}
     on conflict do nothing;
     `
@@ -174,7 +241,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     for (let i = 0; i < orgIds.length; i++) {
       const orgId = orgIds[i]
       parameters[`orgId_${i}`] = orgId
-      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now()))`)
+      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now())`)
     }
 
     const valueString = valueStrings.join(',')

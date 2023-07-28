@@ -29,7 +29,7 @@
     @apply mr-2;
   }
 
-  i:not(.ri-delete-bin-line) {
+  i:not(.ri-delete-bin-line), svg {
     @apply text-gray-400;
   }
 

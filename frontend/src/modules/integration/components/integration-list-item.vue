@@ -48,6 +48,9 @@
         <span v-if="integration.premium" class="text-2xs text-brand-500 ml-1">{{
           FeatureFlag.premiumFeatureCopy()
         }}</span>
+        <span v-if="integration.scale" class="text-2xs text-brand-500 ml-1">{{
+          FeatureFlag.scaleFeatureCopy()
+        }}</span>
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
@@ -69,7 +72,7 @@
               @click="connect"
             >
               {{
-                integration.premium === true && !hasIntegration
+                (integration.premium || integration.scale) && !hasIntegration
                   ? "Upgrade Plan"
                   : "Connect"
               }}
