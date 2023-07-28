@@ -101,12 +101,12 @@ export class OpenSearchService extends LoggerBase {
       await this.client.indices.putSettings({
         index: indexName,
         body: {
-          'analysis': {
-            'analyzer': {
-              'lowercase_keyword_analyzer': { 
-                'type': 'custom',
-                'tokenizer': 'keyword',
-                'filter': ['lowercase']
+          analysis: {
+            analyzer: {
+              lowercase_keyword_analyzer: { 
+                type: 'custom', 
+                tokenizer: 'keyword', 
+                filter: ['lowercase']
               }
             }
           }
