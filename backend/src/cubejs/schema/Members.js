@@ -97,6 +97,7 @@ cube(`Members`, {
       measures: [Members.count],
       dimensions: [
         Members.score,
+        Members.joinedAt,
         Members.location,
         Members.tenantId,
         Members.isTeamMember,
@@ -141,6 +142,25 @@ cube(`Members`, {
         Members.isOrganization,
         Segments.id,
         Activities.type,
+      ],
+      timeDimension: Activities.date,
+      granularity: `day`,
+      refreshKey: {
+        every: `10 minute`,
+      },
+    },
+
+    MembersByActivityIsContribution: {
+      measures: [Members.count],
+      dimensions: [
+        Members.score,
+        Members.location,
+        Members.tenantId,
+        Members.isTeamMember,
+        Members.isBot,
+        Members.isOrganization,
+        Segments.id,
+        Activities.iscontribution,
       ],
       timeDimension: Activities.date,
       granularity: `day`,
