@@ -139,13 +139,14 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
   filters: [
     {
       member: 'Members.joinedAtUnixTs',
-      operator: 'beforeDate',
+      operator: 'lt',
       values: [
         moment()
           .utc()
           .startOf('day')
           .subtract(period.value, period.granularity)
-          .unix(),
+          .unix()
+          .toString(),
       ],
     },
     ...getCubeFilters({
