@@ -145,7 +145,8 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
           .utc()
           .startOf('day')
           .subtract(period.value, period.granularity)
-          .unix().toString(),
+          .unix()
+          .toString(),
       ],
     },
     ...getCubeFilters({
