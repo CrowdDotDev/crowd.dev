@@ -2,42 +2,34 @@
   <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit attributes">
     <template #content>
       <div class="px-6 pb-6">
-        <el-form :model="form" class="attributes-form">
+        <el-form :model="model" class="attributes-form">
           <div class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-3 px-4 mt-2">
             <i class="ri-alert-fill text-yellow-500 text-base " />
             <span class="text-xs leading-5 text-gray-900">Some changes may overwrite current attributes from the
               selected members.</span>
           </div>
-          <!-- <h2 class="text-lg font-semibold mb-4">Attributes</h2> -->
-
-          <!-- <div class="mt-6 mb-8 flex flex-col gap-4">
+          <div class="mt-6 mb-8 flex flex-col gap-4">
             <h6 class="text-xs text-gray-400">
               DEFAULT ATTRIBUTES
             </h6>
 
-            <div class="flex">
+            <div v-for="(attribute, index) in defaultAttributes" :key="index" class="flex">
               <div class="flex flex-col flex-shrink-0 w-1/3">
-                <span class="text-xs font-medium text-black">{attribute}</span>
-                <p class="text-2xs">
-                  {attribute type}
+                <span class="text-xs font-medium text-gray-900">{{ attribute.label }}</span>
+                <p class="text-2xs text-gray-500">
+                  {{ attributesTypes[attribute.type] }}
                 </p>
               </div>
-              <el-input v-model="computedVisible" type="text" class="flex-grow ml-4" />
-            </div>
 
-            <div class="flex">
-              <div class="flex flex-col flex-shrink-0 w-1/3">
-                <span class="text-xs font-medium text-black">{attribute}</span>
-                <p class="text-2xs">
-                  {attribute type}
-                </p>
-              </div>
-              <el-input v-model="computedVisible" type="text" class="flex-grow ml-4" />
+              <el-input
+                v-model="model[attribute.name]"
+                :type="attribute.type"
+                clearable
+              />
             </div>
-
-          </div> -->
-          <div class="mt-6 mb-10 flex flex-col gap-8">
-            <h6 class="text-xs text-gray-400">
+          </div>
+          <div class="mt-6 mb-10 flex flex-col gap-4">
+            <h6 class="text-xs text-gray-400 pb-4">
               CUSTOM ATTRIBUTES
             </h6>
 
@@ -132,6 +124,7 @@ import { MemberModel } from '@/modules/member/member-model';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import { FormSchema } from '@/shared/form/form-schema';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { onSelectMouseLeave } from '@/utils/select';
 
 const CalendarIcon = h(
   'i', // type
@@ -170,38 +163,54 @@ const attributesTypes = {
 const loading = ref(false);
 
 const model = ref({
+  bio: '',
+  jobTitle: '',
+  location: '',
   yearsOfExperience: '',
   country: '',
   isHireable: '',
   expertise: '',
   seniorityLevel: '',
-})
+});
 
-const customAttributes = [
-  {
-    label: 'Years of Experience', name: 'yearsOfExperience', type: 'number',
+
+const attributes = [
+{
+    label: 'Bio', name: 'bio', type: 'string', isDefault: true,
   },
   {
-    label: 'Country', name: 'country', type: 'string',
+    label: 'Job Title', name: 'jobTitle', type: 'string', isDefault: true,
   },
   {
-    label: 'is Hireable', name: 'isHireable', type: 'boolean',
+    label: 'Location', name: 'location', type: 'string', isDefault: true,
   },
   {
-    label: 'Expertise', name: 'expertise', type: 'multiSelect',
+    label: 'Years of Experience', name: 'yearsOfExperience', type: 'number', isDefault: false,
   },
   {
-    label: 'Skills', name: 'skills', type: 'multiSelect',
+    label: 'Country', name: 'country', type: 'string', isDefault: false,
   },
   {
-    label: 'Seniority Level', name: 'seniorityLevel', type: 'string',
+    label: 'is Hireable', name: 'isHireable', type: 'boolean', isDefault: false,
+  },
+  {
+    label: 'Expertise', name: 'expertise', type: 'multiSelect', isDefault: false,
+  },
+  {
+    label: 'Skills', name: 'skills', type: 'multiSelect', isDefault: false,
+  },
+  {
+    label: 'Seniority Level', name: 'seniorityLevel', type: 'string', isDefault: false,
   },
 ];
 
+const defaultAttributes = attributes.filter((attribute) => attribute.isDefault);
+const customAttributes = attributes.filter((attribute) => !attribute.isDefault);
+
 const handleSubmit = async () => {
-  this.loading = true;
+  loading.value = true;
   // do something
-  console.log("helo", this.model);
+  console.log('helo', model.value);
 };
 
 const handleCancel = () => {
