@@ -3274,7 +3274,7 @@ class MemberRepository {
   }
 
   static async createOrUpdateWorkExperience(
-    { memberId, organizationId, title, dateStart, dateEnd },
+    { memberId, organizationId, title = null, dateStart = null, dateEnd = null },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
@@ -3315,6 +3315,33 @@ class MemberRepository {
         transaction,
       },
     )
+  }
+
+  static async findWorkExperience(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND "dateEnd" IS NULL
+      ORDER BY "dateStart" DESC
+      LIMIT 1
+    `
+
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
   }
 
   static sortOrganizations(organizations) {

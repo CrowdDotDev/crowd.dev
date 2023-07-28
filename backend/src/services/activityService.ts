@@ -21,6 +21,7 @@ import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberService from './memberService'
 import SegmentService from './segmentService'
+import MemberAffiliationService from './memberAffiliationService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -133,6 +134,9 @@ export default class ActivityService extends LoggerBase {
           // Get the first key of the username object as a string
           data.username = displayName
         }
+
+        const memberAffilationService = new MemberAffiliationService(this.options)
+        data.organizationId = await memberAffilationService.findAffiliation(data.member)
 
         record = await ActivityRepository.create(data, repositoryOptions)
 
@@ -471,8 +475,6 @@ export default class ActivityService extends LoggerBase {
     const logger = this.options.log
     const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
-    const segment = await SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-
     const errorDetails: any = {}
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
@@ -599,18 +601,8 @@ export default class ActivityService extends LoggerBase {
 
       data.member = member.id
 
-      if (member.organizations.length > 0) {
-        // check member has any affiliation set for current segment
-
-        const affiliations = member.affiliations.filter((a) => a.segmentId === segment.id)
-
-        if (affiliations.length > 0) {
-          data.organizationId = affiliations[0].organizationId
-        } else {
-          // set it to the first organization of member
-          data.organizationId = member.organizations[0].id
-        }
-      }
+      const memberAffilationService = new MemberAffiliationService(this.options)
+      data.organizationId = await memberAffilationService.findAffiliation(member.id)
 
       const record = await this.upsert(data, activityExists, fireCrowdWebhooks, false)
 

@@ -15,6 +15,8 @@ import { populateSegments, switchSegments } from '../../database/utils/segmentTe
 import SegmentRepository from '../../database/repositories/segmentRepository'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import { SegmentStatus } from '../../types/segmentTypes'
+import OrganizationService from '../organizationService'
+import MemberSegmentAffiliationRepository from '../../database/repositories/memberSegmentAffiliationRepository'
 
 const db = null
 const searchEngine = null
@@ -2828,6 +2830,164 @@ describe('ActivityService tests', () => {
       expect(activityParentCreated.conversationId).toBe(conversationCreated.id)
 
       expect(conversationCreated.published).toStrictEqual(false)
+    })
+  })
+
+  describe('affiliations', () => {
+    let options
+    let activityService
+    let memberService
+    let organizationService
+    let memberSegmentAffiliationRepository
+
+    let defaultActivity
+    let defaultMember
+
+    beforeEach(async () => {
+      options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(options)
+
+      activityService = new ActivityService(options)
+      memberService = new MemberService(options)
+      organizationService = new OrganizationService(options)
+      memberSegmentAffiliationRepository = new MemberSegmentAffiliationRepository(options)
+
+      defaultActivity = {
+        type: 'question',
+        timestamp: '2020-05-27T15:13:30Z',
+        username: 'test',
+        platform: PlatformType.GITHUB,
+        sourceId: 'sourceId#1',
+      }
+      defaultMember = {
+        username: {
+          [PlatformType.GITHUB]: 'test',
+        },
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+    })
+
+    async function createMember(data = {}) {
+      return await memberService.upsert({
+        ...defaultMember,
+        ...data,
+      })
+    }
+
+    async function createActivity(memberId, data = {}) {
+      return await activityService.upsert({
+        ...defaultActivity,
+        member: memberId,
+        ...data,
+      })
+    }
+
+    async function createOrg(name, data = {}) {
+      return await organizationService.findOrCreate({
+        name,
+        ...data,
+      })
+    }
+
+    async function addWorkExperience(memberId, orgId, data = {}) {
+      return await MemberRepository.createOrUpdateWorkExperience({
+        memberId,
+        organizationId: orgId,
+        ...data,
+      }, options)
+    }
+
+    describe('new activities', () => {
+      it('Should affiliate nothing if member has no organizations and no affiliations', async () => {
+        const member = await createMember()
+        const activity = await createActivity(member.id)
+
+        expect(activity.organization).toBeNull()
+      })
+
+      it('Should affiliate work experience if member has organizations', async () => {
+        const member = await createMember()
+        const organization = await createOrg('hello')
+        await addWorkExperience(member.id, organization.id)
+        const activity = await createActivity(member.id)
+
+        expect(activity.organization.id).toBe(organization.id)
+      })
+
+      it('Should affiliate with most recent open work experience if member has multiple organizations', async () => {
+        const member = await createMember()
+        const org1 = await createOrg('org1')
+        const org2 = await createOrg('org2')
+
+        await addWorkExperience(member.id, org1.id, {
+          dateStart: '2020-01-01',
+        })
+        await addWorkExperience(member.id, org2.id, {
+          dateStart: '2020-02-01',
+        })
+
+        const activity = await createActivity(member.id)
+
+        expect(activity.organization.id).toBe(org2.id)
+      })
+
+      it('Should affiliate with most recent open work experience, even if there is a more recent closed one', async () => {
+        const member = await createMember()
+        const org1 = await createOrg('org1')
+        const org2 = await createOrg('org2')
+
+        await addWorkExperience(member.id, org1.id, {
+          dateStart: '2020-01-01',
+        })
+        await addWorkExperience(member.id, org2.id, {
+          dateStart: '2020-02-01',
+          dateEnd: '2020-03-01',
+        })
+
+        const activity = await createActivity(member.id)
+
+        expect(activity.organization.id).toBe(org1.id)
+      })
+
+      it('Should affiliate with manual affiliation if member has organizations and affiliations', async () => {
+        const member = await createMember()
+        const org1 = await createOrg('org1')
+        const org2 = await createOrg('org2')
+
+        await addWorkExperience(member.id, org1.id, {
+          dateStart: '2020-01-01',
+        })
+
+        await memberSegmentAffiliationRepository.createOrUpdate({
+          memberId: member.id,
+          segmentId: options.currentSegments[0].id,
+          organizationId: org2.id,
+        })
+
+        const activity = await createActivity(member.id)
+
+        expect(activity.organization.id).toBe(org2.id)
+      })
+
+      it('Should affiliate to invidiual if member has organizations and affiliations', async () => {
+        const member = await createMember()
+        const org1 = await createOrg('org1')
+
+        await addWorkExperience(member.id, org1.id, {
+          dateStart: '2020-01-01',
+        })
+
+        await memberSegmentAffiliationRepository.createOrUpdate({
+          memberId: member.id,
+          segmentId: options.currentSegments[0].id,
+          organizationId: null,
+        })
+
+        const activity = await createActivity(member.id)
+
+        expect(activity.organization).toBeNull()
+      })
     })
   })
 })

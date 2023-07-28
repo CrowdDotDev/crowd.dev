@@ -8,6 +8,7 @@ import {
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 import Error404 from '../../errors/Error404'
+import SequelizeRepository from './sequelizeRepository'
 
 class MemberSegmentAffiliationRepository extends RepositoryBase<
   MemberSegmentAffiliation,
@@ -153,6 +154,37 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     )
 
     return records
+  }
+
+  async findForMember(memberId: string): Promise<MemberSegmentAffiliation> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+
+    const seq = SequelizeRepository.getSequelize(this.options)
+
+    const records = await seq.query(
+      `
+        SELECT * FROM "memberSegmentAffiliations"
+        WHERE "memberId" = :memberId
+          AND "segmentId" = :segmentId
+        LIMIT 1
+      `,
+      {
+        replacements: {
+          memberId,
+          segmentId: segment.id,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0] as MemberSegmentAffiliation
   }
 
   private async updateAffiliation(memberId, segmentId, organizationId) {
