@@ -103,14 +103,14 @@ export class OpenSearchService extends LoggerBase {
         body: {
           analysis: {
             analyzer: {
-              lowercase_keyword_analyzer: { 
-                type: 'custom', 
-                tokenizer: 'keyword', 
-                filter: ['lowercase']
-              }
-            }
-          }
-        }
+              lowercase_keyword_analyzer: {
+                type: 'custom',
+                tokenizer: 'keyword',
+                filter: ['lowercase'],
+              },
+            },
+          },
+        },
       })
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to add analyzer to index!')
@@ -126,8 +126,19 @@ export class OpenSearchService extends LoggerBase {
         },
       },
     })
-    await this.ensureIndexExists(OpenSearchIndex.MEMBERS)
+    // After ensuring the index exists, close the index before applying new settings
+    await this.client.indices.close({
+      index: OpenSearchIndex.MEMBERS,
+    })
+
+    // Apply new settings (add analyzer) after closing the index
     await this.addIndexAnalyzer(OpenSearchIndex.MEMBERS)
+
+    // After applying new settings, open the index
+    await this.client.indices.open({
+      index: OpenSearchIndex.MEMBERS,
+    })
+
     await this.ensureIndexExists(OpenSearchIndex.ACTIVITIES)
   }
 
