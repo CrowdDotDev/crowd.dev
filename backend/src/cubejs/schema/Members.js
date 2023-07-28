@@ -97,7 +97,7 @@ cube(`Members`, {
       measures: [Members.count],
       dimensions: [
         Members.score,
-        Members.joinedAt,
+        Members.joinedAtUnixTs,
         Members.location,
         Members.tenantId,
         Members.isTeamMember,
@@ -312,6 +312,12 @@ cube(`Members`, {
       sql: `${CUBE}."joinedAt"`,
       type: `time`,
     },
+
+    joinedAtUnixTs: {
+      sql: `EXTRACT(EPOCH FROM ${CUBE}."joinedAt")`,
+      type: `number`,
+    },
+
     score: {
       sql: `${CUBE}."score"`,
       type: `number`,
