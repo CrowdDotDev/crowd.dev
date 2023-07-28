@@ -13,6 +13,7 @@ const prefixedMapping = {
         path_match: '.*',
         mapping: {
           type: 'text',
+          analyzer: 'lowercase_keyword_analyzer',
         },
       },
     },

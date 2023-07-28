@@ -95,6 +95,29 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  // Adds custom analyzer to specified OpenSearch index
+  private async addIndexAnalyzer(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      await this.client.indices.putSettings({
+        index: indexName,
+        body: {
+          "analysis": {
+            "analyzer": {
+              "lowercase_keyword_analyzer": { 
+                "type": "custom",
+                "tokenizer": "keyword",
+                "filter": ["lowercase"]
+              }
+            }
+          }
+        }
+      })
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to add analyzer to index!')
+      throw err
+    }
+  }
+
   public async initialize() {
     await this.client.cluster.putSettings({
       body: {
@@ -104,6 +127,7 @@ export class OpenSearchService extends LoggerBase {
       },
     })
     await this.ensureIndexExists(OpenSearchIndex.MEMBERS)
+    await this.addIndexAnalyzer(OpenSearchIndex.MEMBERS)
     await this.ensureIndexExists(OpenSearchIndex.ACTIVITIES)
   }
 
