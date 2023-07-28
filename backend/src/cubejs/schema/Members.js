@@ -117,6 +117,7 @@ cube(`Members`, {
       dimensions: [
         Members.score,
         Members.location,
+        Members.joinedAtUnixTs,
         Members.tenantId,
         Members.isTeamMember,
         Members.isBot,
