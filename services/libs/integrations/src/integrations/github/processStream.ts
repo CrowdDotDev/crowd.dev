@@ -137,7 +137,10 @@ async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promis
   return ''
 }
 
-const handleNextPageStream = async (ctx: IProcessStreamContext, response: GraphQlQueryResponse) => {
+const publishNextPageStream = async (
+  ctx: IProcessStreamContext,
+  response: GraphQlQueryResponse,
+) => {
   const data = ctx.stream.data as GithubBasicStream
   // the last part of stream identifier is page number (e.g commits:12345:1)
   const streamIdentifier = ctx.stream.identifier.split(':').slice(0, -1).join(':')
@@ -258,7 +261,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).node?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   for (const record of result.data) {
     const member = await prepareMember(record.node, ctx)
@@ -282,7 +285,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).owner?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   for (const record of result.data) {
     const member = await prepareMember(record.owner, ctx)
@@ -306,31 +309,31 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
-  for (const record1 of result.data) {
-    const member = await prepareMember(record1.author, ctx)
+  for (const pull of result.data) {
+    const member = await prepareMember(pull.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
       type: GithubActivityType.PULL_REQUEST_OPENED,
-      data: record1,
+      data: pull,
       member,
       repo: data.repo,
     })
 
     // now we need to parse pullRequestEvents
-    for (const record2 of record1.timelineItems.nodes) {
-      switch (record2.__typename) {
+    for (const pullEvent of pull.timelineItems.nodes) {
+      switch (pullEvent.__typename) {
         case GithubPullRequestEvents.ASSIGN: {
-          if (record2?.actor?.login && record2?.assignee?.login) {
-            const member = await prepareMember(record2.actor, ctx)
-            const objectMember = await prepareMember(record2.assignee, ctx)
+          if (pullEvent?.actor?.login && pullEvent?.assignee?.login) {
+            const member = await prepareMember(pullEvent.actor, ctx)
+            const objectMember = await prepareMember(pullEvent.assignee, ctx)
 
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_ASSIGNED,
-              data: record2,
-              relatedData: record1,
+              data: pullEvent,
+              relatedData: pull,
               member,
               objectMember,
               repo: data.repo,
@@ -340,32 +343,32 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         }
         case GithubPullRequestEvents.REQUEST_REVIEW: {
           if (
-            record2?.actor?.login &&
-            (record2?.requestedReviewer?.login || record2?.requestedReviewer?.members)
+            pullEvent?.actor?.login &&
+            (pullEvent?.requestedReviewer?.login || pullEvent?.requestedReviewer?.members)
           ) {
             // Requested review from single member
-            if (record2?.requestedReviewer?.login) {
-              const member = await prepareMember(record2.actor, ctx)
-              const objectMember = await prepareMember(record2.requestedReviewer, ctx)
+            if (pullEvent?.requestedReviewer?.login) {
+              const member = await prepareMember(pullEvent.actor, ctx)
+              const objectMember = await prepareMember(pullEvent.requestedReviewer, ctx)
               await ctx.publishData<GithubApiData>({
                 type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
-                data: record2,
+                data: pullEvent,
                 subType: GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_SINGLE,
-                relatedData: record1,
+                relatedData: pull,
                 member,
                 objectMember,
                 repo: data.repo,
               })
-            } else if (record2?.requestedReviewer?.members) {
-              const member = await prepareMember(record2.actor, ctx)
+            } else if (pullEvent?.requestedReviewer?.members) {
+              const member = await prepareMember(pullEvent.actor, ctx)
 
-              for (const teamMember of record2.requestedReviewer.members.nodes) {
+              for (const teamMember of pullEvent.requestedReviewer.members.nodes) {
                 const objectMember = await prepareMember(teamMember, ctx)
                 await ctx.publishData<GithubApiData>({
                   type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
-                  data: record2,
+                  data: pullEvent,
                   subType: GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_MULTIPLE,
-                  relatedData: record1,
+                  relatedData: pull,
                   member,
                   objectMember,
                   repo: data.repo,
@@ -376,12 +379,12 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
           break
         }
         case GithubPullRequestEvents.REVIEW: {
-          if (record2?.author?.login && record2?.submittedAt) {
-            const member = await prepareMember(record2.author, ctx)
+          if (pullEvent?.author?.login && pullEvent?.submittedAt) {
+            const member = await prepareMember(pullEvent.author, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_REVIEWED,
-              data: record2,
-              relatedData: record1,
+              data: pullEvent,
+              relatedData: pull,
               member,
               repo: data.repo,
             })
@@ -389,12 +392,12 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
           break
         }
         case GithubPullRequestEvents.MERGE: {
-          if (record2?.actor?.login) {
-            const member = await prepareMember(record2.actor, ctx)
+          if (pullEvent?.actor?.login) {
+            const member = await prepareMember(pullEvent.actor, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_MERGED,
-              data: record2,
-              relatedData: record1,
+              data: pullEvent,
+              relatedData: pull,
               member,
               repo: data.repo,
             })
@@ -402,12 +405,12 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
           break
         }
         case GithubPullRequestEvents.CLOSE: {
-          if (record2?.actor?.login) {
-            const member = await prepareMember(record2.actor, ctx)
+          if (pullEvent?.actor?.login) {
+            const member = await prepareMember(pullEvent.actor, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_MERGED,
-              data: record2,
-              relatedData: record1,
+              data: pullEvent,
+              relatedData: pull,
               member,
               repo: data.repo,
             })
@@ -416,7 +419,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         }
         default:
           ctx.log.warn(
-            `Unsupported pull request event:  ${record2.__typename}. This event will not be parsed.`,
+            `Unsupported pull request event:  ${pullEvent.__typename}. This event will not be parsed.`,
           )
       }
     }
@@ -479,7 +482,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   // get member info for each comment
   for (const record of result.data) {
@@ -507,10 +510,9 @@ const processPullReviewThreadsStream: ProcessStreamHandler = async (ctx) => {
   const result = await pullRequestReviewThreadsQuery.getSinglePage(data.page)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   // no data to publish, just add new streams for comments inside
-
   // add each review thread as separate stream for comments inside
   for (const thread of result.data) {
     await ctx.publishStream<GithubBasicStream>(
@@ -539,7 +541,7 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
   result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   // get additional member info for each comment
   for (const record of result.data) {
@@ -586,7 +588,7 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
   }
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   // getting additional member info for each commit
   {
@@ -623,28 +625,28 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
-  for (const record1 of result.data) {
-    const member = await prepareMember(record1.author, ctx)
+  for (const issue of result.data) {
+    const member = await prepareMember(issue.author, ctx)
 
     await ctx.publishData<GithubApiData>({
       type: GithubActivityType.ISSUE_OPENED,
-      data: record1,
+      data: issue,
       member,
       repo: data.repo,
     })
 
     // now need to parse issue events
-    for (const record2 of record1.timelineItems.nodes) {
-      switch (record2.__typename) {
+    for (const issueEvent of issue.timelineItems.nodes) {
+      switch (issueEvent.__typename) {
         case GithubPullRequestEvents.CLOSE: {
-          if (record2?.actor?.login) {
-            const member = await prepareMember(record2.actor, ctx)
+          if (issueEvent?.actor?.login) {
+            const member = await prepareMember(issueEvent.actor, ctx)
             await ctx.publishData<GithubApiData>({
               type: GithubActivityType.ISSUE_CLOSED,
-              data: record2,
-              relatedData: record1,
+              data: issueEvent,
+              relatedData: issue,
               member,
               repo: data.repo,
             })
@@ -653,7 +655,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
         }
         default:
           ctx.log.warn(
-            `Unsupported issue event:  ${record2.__typename}. This event will not be parsed.`,
+            `Unsupported issue event:  ${issueEvent.__typename}. This event will not be parsed.`,
           )
       }
     }
@@ -680,7 +682,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   // get additional member info for each comment
   for (const record of result.data) {
@@ -704,16 +706,16 @@ const processDiscussionsStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   // get additional member info for each comment
-  for (const d of result.data) {
-    const member = await prepareMember(d.author, ctx)
+  for (const discussion of result.data) {
+    const member = await prepareMember(discussion.author, ctx)
 
     // publish data
     await ctx.publishData<GithubApiData>({
       type: GithubActivityType.DISCUSSION_STARTED,
-      data: d,
+      data: discussion,
       member,
       repo: data.repo,
     })
@@ -743,7 +745,7 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
   result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
-  await handleNextPageStream(ctx, result)
+  await publishNextPageStream(ctx, result)
 
   for (const record of result.data) {
     if (!('author' in record)) {
@@ -815,28 +817,45 @@ const handler: ProcessStreamHandler = async (ctx) => {
 
     // if all checks are passed, we can start processing
 
-    if (streamIdentifier.startsWith(GithubStreamType.STARGAZERS)) {
-      await processStargazersStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.FORKS)) {
-      await processForksStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.PULLS)) {
-      await processPullsStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.PULL_COMMENTS)) {
-      await processPullCommentsStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.PULL_REVIEW_THREADS)) {
-      await processPullReviewThreadsStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.PULL_REVIEW_THREAD_COMMENTS)) {
-      await processPullReviewThreadCommentsStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.PULL_COMMITS)) {
-      await processPullCommitsStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.ISSUES)) {
-      await processIssuesStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.ISSUE_COMMENTS)) {
-      await processIssueCommentsStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.DISCUSSIONS)) {
-      await processDiscussionsStream(ctx)
-    } else if (streamIdentifier.startsWith(GithubStreamType.DISCUSSION_COMMENTS)) {
-      await processDiscussionCommentsStream(ctx)
+    // Extract the stream type from the identifier
+    const streamType = streamIdentifier.split(':')[0]
+
+    switch (streamType) {
+      case GithubStreamType.STARGAZERS:
+        await processStargazersStream(ctx)
+        break
+      case GithubStreamType.FORKS:
+        await processForksStream(ctx)
+        break
+      case GithubStreamType.PULLS:
+        await processPullsStream(ctx)
+        break
+      case GithubStreamType.PULL_COMMENTS:
+        await processPullCommentsStream(ctx)
+        break
+      case GithubStreamType.PULL_REVIEW_THREADS:
+        await processPullReviewThreadsStream(ctx)
+        break
+      case GithubStreamType.PULL_REVIEW_THREAD_COMMENTS:
+        await processPullReviewThreadCommentsStream(ctx)
+        break
+      case GithubStreamType.PULL_COMMITS:
+        await processPullCommitsStream(ctx)
+        break
+      case GithubStreamType.ISSUES:
+        await processIssuesStream(ctx)
+        break
+      case GithubStreamType.ISSUE_COMMENTS:
+        await processIssueCommentsStream(ctx)
+        break
+      case GithubStreamType.DISCUSSIONS:
+        await processDiscussionsStream(ctx)
+        break
+      case GithubStreamType.DISCUSSION_COMMENTS:
+        await processDiscussionCommentsStream(ctx)
+        break
+      default:
+        console.error(`No matching process function for streamType: ${streamType}`)
     }
   }
 }

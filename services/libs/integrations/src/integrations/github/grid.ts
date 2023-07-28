@@ -67,7 +67,7 @@ export const GITHUB_GRID: Record<GithubActivityType, IActivityScoringGrid> = {
     isContribution: true,
   },
   [GithubActivityType.AUTHORED_COMMIT]: {
-    score: 0, // not sure what to put here
+    score: 2,
     isContribution: true,
   },
 }

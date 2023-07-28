@@ -365,6 +365,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       return result.id
     }
 
-    return null
+    return undefined
   }
 }

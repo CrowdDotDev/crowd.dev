@@ -1,4 +1,3 @@
-// generateStreams.ts content
 import { GenerateStreamsHandler } from '../../types'
 import { GithubIntegrationSettings, GithubRootStream, GithubStreamType } from './types'
 

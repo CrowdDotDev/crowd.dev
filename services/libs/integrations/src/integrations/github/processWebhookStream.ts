@@ -177,6 +177,8 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
     for (const teamMember of teamMembers.data) {
       await parseWebhookPullRequestEvents({ ...payload, requested_reviewer: teamMember }, ctx)
     }
+
+    return
   }
 
   if (payload.action === 'closed' && payload.pull_request.merged) {
@@ -184,6 +186,8 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
     revisedPayload.pull_request.state = 'merged'
 
     await parseWebhookPullRequestEvents(revisedPayload, ctx)
+
+    return
   }
 
   await parseWebhookPullRequestEvents(payload, ctx)
