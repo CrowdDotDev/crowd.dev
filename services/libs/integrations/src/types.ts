@@ -33,8 +33,6 @@ export interface IIntegrationStartRemoteSyncContext {
 export interface IIntegrationProcessRemoteSyncContext {
   tenantId: string
   integration: IIntegration
-  memberAttributes?: IMemberAttribute[]
-  platforms?: string[]
   log: Logger
   serviceSettings: IIntegrationServiceSettings
 }

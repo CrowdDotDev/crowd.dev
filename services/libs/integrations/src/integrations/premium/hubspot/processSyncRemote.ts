@@ -43,8 +43,8 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.MEMBERS,
         settings.hubspotId,
-        ctx.memberAttributes,
-        ctx.platforms,
+        settings.crowdAttributes,
+        settings.platforms,
       ) as HubspotMemberFieldMapper
 
       memberMapper.setFieldMap(
