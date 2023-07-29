@@ -34,7 +34,7 @@ export interface IIntegrationProcessRemoteSyncContext {
   tenantId: string
   integration: IIntegration
   memberAttributes?: IMemberAttribute[]
-  platforms?: IMemberIdentity[]
+  platforms?: string[]
   log: Logger
   serviceSettings: IIntegrationServiceSettings
 }

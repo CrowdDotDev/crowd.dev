@@ -7,15 +7,21 @@ import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
 const processContact: ProcessDataHandler = async (ctx) => {
   const data = ctx.data as IHubspotData
 
-  const memberMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.MEMBERS)
-  const orgMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
-
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
 
-  memberMapper.setHubspotId(settings.hubspotId)
+  const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
+    HubspotEntity.MEMBERS,
+    settings.hubspotId,
+    settings.crowdAttributes,
+    settings.platforms,
+  )
+  const orgMapper = HubspotFieldMapperFactory.getFieldMapper(
+    HubspotEntity.ORGANIZATIONS,
+    settings.hubspotId,
+  )
+
   memberMapper.setFieldMap(settings.attributesMapping[HubspotEntity.MEMBERS])
   orgMapper.setFieldMap(settings.attributesMapping[HubspotEntity.ORGANIZATIONS])
-  orgMapper.setHubspotId(settings.hubspotId)
 
   const member = memberMapper.getEntity(data.element, orgMapper)
 
@@ -24,13 +30,14 @@ const processContact: ProcessDataHandler = async (ctx) => {
 
 const processCompany: ProcessDataHandler = async (ctx) => {
   const data = ctx.data as IHubspotData
-
-  const orgMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
-
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
 
+  const orgMapper = HubspotFieldMapperFactory.getFieldMapper(
+    HubspotEntity.ORGANIZATIONS,
+    settings.hubspotId,
+  )
+
   orgMapper.setFieldMap(settings.attributesMapping[HubspotEntity.ORGANIZATIONS])
-  orgMapper.setHubspotId(settings.hubspotId)
 
   const organization = orgMapper.getEntity(data.element, orgMapper)
 

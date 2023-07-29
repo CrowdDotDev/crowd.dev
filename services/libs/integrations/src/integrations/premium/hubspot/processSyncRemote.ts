@@ -32,6 +32,8 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
     },
   } as IGenerateStreamsContext
 
+  const settings = ctx.integration.settings as IHubspotIntegrationSettings
+
   const throttler = new RequestThrottler(100, 10000, ctx.log)
 
   switch (entity) {
@@ -40,6 +42,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
 
       const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.MEMBERS,
+        settings.hubspotId,
         ctx.memberAttributes,
         ctx.platforms,
       ) as HubspotMemberFieldMapper
@@ -75,6 +78,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
 
       const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.ORGANIZATIONS,
+        settings.hubspotId,
       ) as HubspotOrganizationFieldMapper
 
       organizationMapper.setFieldMap(
