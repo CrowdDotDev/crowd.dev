@@ -2,7 +2,7 @@
   <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit attributes">
     <template #content>
       <div class="px-6 pb-6">
-        <el-form :model="model" class="attributes-form">
+        <el-form :model="formModel" class="attributes-form">
           <div class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-3 px-4 mt-2">
             <i class="ri-alert-fill text-yellow-500 text-base " />
             <span class="text-xs leading-5 text-gray-900">Some changes may overwrite current attributes from the
@@ -21,19 +21,55 @@
                 </p>
               </div>
 
-              <el-input
-                v-model="model[attribute.name]"
-                :type="attribute.type"
-                clearable
+              <app-autocomplete-many-input
+                v-if="attribute.type === 'multiSelect'"
+                v-model="formModel[attribute.name]"
+                :fetch-fn="fetchOrganizationsFn"
+                :create-fn="createOrganizationFn"
+                placeholder="Select an option or create one"
+                input-class="w-full multi-select-field"
+                :create-if-not-found="true"
+                :collapse-tags="true"
+                :parse-model="true"
+                :are-options-in-memory="true"
+              >
+                <template #option="{ item }">
+                  <div class="flex items-center">
+                    <app-avatar
+                      :entity="{
+                        displayName: item.label,
+                        avatar: item.logo,
+                      }"
+                      size="xxs"
+                      class="mr-2"
+                    />
+                    {{ item.label }}
+                  </div>
+                </template>
+              </app-autocomplete-many-input>
+
+              <el-date-picker
+                v-else-if="attribute.type === 'date'"
+                v-model="formModel[attribute.name]"
+                :prefix-icon="CalendarIcon"
+                :clearable="false"
+                class="custom-date-picker"
+                size="large"
+                popper-class="date-picker-popper"
+                type="date"
+                value-format="YYYY-MM-DD"
+                format="YYYY-MM-DD"
+                placeholder="YYYY-MM-DD"
               />
             </div>
           </div>
-          <div class="mt-6 mb-10 flex flex-col gap-4">
-            <h6 class="text-xs text-gray-400 pb-4">
+
+          <div class="mb-10 flex flex-col gap-4">
+            <h6 class="text-xs text-gray-400 pb-3">
               CUSTOM ATTRIBUTES
             </h6>
 
-            <div v-for="(attribute, index) in customAttributes" :key="index" class="flex">
+            <div v-for="(attribute, index) in computedCustomAttributes" :key="index" class="flex">
               <div class="flex flex-col flex-shrink-0 w-1/3">
                 <span class="text-xs font-medium text-gray-900">{{ attribute.label }}</span>
                 <p class="text-2xs text-gray-500">
@@ -43,7 +79,7 @@
 
               <el-date-picker
                 v-if="attribute.type === 'date'"
-                v-model="model[attribute.name]"
+                v-model="formModel[attribute.name]"
                 :prefix-icon="CalendarIcon"
                 :clearable="false"
                 class="custom-date-picker"
@@ -53,9 +89,9 @@
                 format="YYYY-MM-DD"
                 placeholder="YYYY-MM-DD"
               />
-              <!-- <app-autocomplete-many-input
+              <app-autocomplete-many-input
                 v-else-if="attribute.type === 'multiSelect'"
-                v-model="model[attribute.name]"
+                v-model="formModel[attribute.name]"
                 :fetch-fn="
                   () => fetchCustomAttribute(attribute.id)
                 "
@@ -69,35 +105,26 @@
                 :collapse-tags="true"
                 :parse-model="true"
                 :are-options-in-memory="true"
-              /> -->
+              />
               <el-select
                 v-else-if="attribute.type === 'boolean'"
-                v-model="model[attribute.name]"
+                v-model="formModel[attribute.name]"
                 class="w-full"
                 clearable
                 placeholder="Select option"
               >
-                <el-option
-                  key="true"
-                  label="True"
-                  :value="true"
-                  @mouseleave="onSelectMouseLeave"
-                />
-                <el-option
-                  key="false"
-                  label="False"
-                  :value="false"
-                  @mouseleave="onSelectMouseLeave"
-                />
+                <el-option key="true" label="True" :value="true" @mouseleave="onSelectMouseLeave" />
+                <el-option key="false" label="False" :value="false" @mouseleave="onSelectMouseLeave" />
               </el-select>
 
-              <el-input
-                v-else
-                v-model="model[attribute.name]"
-                :type="attribute.type"
-                clearable
-              />
+              <el-input v-else v-model="formModel[attribute.name]" :type="attribute.type" clearable />
             </div>
+          </div>
+
+          <div class="flex justify-start">
+            <el-button class="btn btn-link btn-link--primary btn--sm mt-2" @click="toggleShowAttributes">
+              {{ showAllAttributes ? '- Show Less' : '+ Show More' }}
+            </el-button>
           </div>
         </el-form>
       </div>
@@ -114,7 +141,7 @@
   </app-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { mapActions } from 'vuex';
 import { storeToRefs } from 'pinia';
 import {
@@ -125,6 +152,11 @@ import AppDialog from '@/shared/dialog/dialog.vue';
 import { FormSchema } from '@/shared/form/form-schema';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { onSelectMouseLeave } from '@/utils/select';
+import { MemberService } from '@/modules/member/member-service';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import { Organization } from '@/modules/organization/types/Organization';
+
+type SelectOrganization = Organization & { label: string };
 
 const CalendarIcon = h(
   'i', // type
@@ -136,7 +168,7 @@ const CalendarIcon = h(
 );
 
 const memberStore = useMemberStore();
-const { selectedMembers } = storeToRefs(memberStore);
+const { selectedMembers, customAttributes } = storeToRefs(memberStore);
 
 const { fields } = MemberModel;
 const formSchema = new FormSchema([fields.attributes]);
@@ -150,6 +182,17 @@ const props = defineProps({
 
 const emits = defineEmits(['reload', 'update:modelValue']);
 
+const computedVisible = computed({
+  get() {
+    return props.modelValue;
+  },
+  set() {
+    emits('update:modelValue', false);
+  },
+});
+
+const showAllAttributes = ref(false);
+
 const attributesTypes = {
   string: 'Text',
   number: 'Number',
@@ -160,70 +203,116 @@ const attributesTypes = {
   multiSelect: 'Multi-select',
 };
 
-const loading = ref(false);
+// const loading = ref(false);
 
-const model = ref({
-  bio: '',
+const formModel = ref({
   jobTitle: '',
+  organization: [],
+  joinedAt: null,
   location: '',
-  yearsOfExperience: '',
+  isTeamMember: null,
+  isOrganization: null,
+  isHireable: null,
+  isBot: null,
+  yearsOfExperience: 0,
   country: '',
-  isHireable: '',
-  expertise: '',
+  expertise: [],
   seniorityLevel: '',
+  languages: [],
+  programmingLanguages: [],
+  skills: [],
 });
 
-
-const attributes = [
-{
-    label: 'Bio', name: 'bio', type: 'string', isDefault: true,
+const defaultAttributes = [
+  {
+    name: 'joinedAt',
+    label: 'Joined at',
+    type: 'date',
   },
   {
-    label: 'Job Title', name: 'jobTitle', type: 'string', isDefault: true,
-  },
-  {
-    label: 'Location', name: 'location', type: 'string', isDefault: true,
-  },
-  {
-    label: 'Years of Experience', name: 'yearsOfExperience', type: 'number', isDefault: false,
-  },
-  {
-    label: 'Country', name: 'country', type: 'string', isDefault: false,
-  },
-  {
-    label: 'is Hireable', name: 'isHireable', type: 'boolean', isDefault: false,
-  },
-  {
-    label: 'Expertise', name: 'expertise', type: 'multiSelect', isDefault: false,
-  },
-  {
-    label: 'Skills', name: 'skills', type: 'multiSelect', isDefault: false,
-  },
-  {
-    label: 'Seniority Level', name: 'seniorityLevel', type: 'string', isDefault: false,
+    name: 'organizations',
+    label: 'Organizations',
+    type: 'multiSelect',
   },
 ];
 
-const defaultAttributes = attributes.filter((attribute) => attribute.isDefault);
-const customAttributes = attributes.filter((attribute) => !attribute.isDefault);
+const computedCustomAttributes = computed(() => {
+  // Exclude custom attributes that are not useful for bulk edit
+  const filteredAttributes = customAttributes.value.filter(
+    ({ name }) => !['bio', 'url', 'name', 'education', 'websiteUrl',
+      'avatarUrl', 'sourceId', 'awards', 'workExperiences', 'certifications'].includes(name),
+  );
+
+  return showAllAttributes.value ? filteredAttributes : filteredAttributes.slice(0, 5);
+});
+
+const fetchOrganizationsFn = (query: number, limit:number) => OrganizationService.listAutocomplete(query, limit)
+  .then((options: SelectOrganization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
+    ...o,
+    displayName: o.label,
+    name: o.label,
+    memberOrganizations: {
+      title: '',
+      dateStart: '',
+      dateEnd: '',
+    },
+  })))
+  .catch(() => []);
+
+const createOrganizationFn = (value: string) => OrganizationService.create({
+  name: value,
+})
+  .then((newOrganization) => ({
+    id: newOrganization.id,
+    label: newOrganization.displayName || newOrganization.name,
+    displayName: newOrganization.displayName || newOrganization.name,
+    name: newOrganization.displayName || newOrganization.name,
+    memberOrganizations: {
+      title: '',
+      dateStart: '',
+      dateEnd: '',
+    },
+  }))
+  .catch(() => null);
+
+const fetchCustomAttribute = (id) => MemberService.getCustomAttribute(id)
+  .then((response) => response.options.sort().map((o) => ({
+    id: o,
+    label: o,
+  })))
+  .catch(() => []);
+
+const updateCustomAttribute = (attribute, value) => {
+  const options = [...attribute.options];
+
+  options.push(value);
+
+  return MemberService.updateCustomAttribute(attribute.id, {
+    options,
+  }).then(() => ({
+    id: value,
+    label: value,
+  }));
+};
+
+const toggleShowAttributes = () => {
+  showAllAttributes.value = !showAllAttributes.value;
+};
 
 const handleSubmit = async () => {
-  loading.value = true;
+  // loading.value = true;
   // do something
-  console.log('helo', model.value);
+  console.log('helo', formModel.value);
 };
 
 const handleCancel = () => {
-  computeVisible.value = false;
+  computedVisible.value = false;
 };
 
-const computedVisible = computed({
-  get() {
-    return props.modelValue;
-  },
-  set() {
-    emits['update:modelValue'](false);
-  },
-});
-
 </script>
+
+<style>
+.custom-date-picker {
+  width: 100% !important;
+}
+</style>
