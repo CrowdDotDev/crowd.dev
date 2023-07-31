@@ -117,6 +117,52 @@ export default {
     }
   },
 
+  async doBulkUpdateMembersAttributes(
+    { commit },
+    { members, attributesInCommon, attributesToSave },
+  ) {
+    const { fields } = MemberModel;
+    const formSchema = new FormSchema([
+      fields.username,
+      fields.info,
+      fields.tags,
+      fields.emails,
+    ]);
+
+    try {
+      // TODO: modify payload to update attributes
+      // const payload = members.reduce((acc, item) => {
+      //   const memberToUpdate = { ...item };
+      //   const attributesToKeep = item.attributes.filter(
+      //     (attribute) => attributesInCommon.filter(
+      //       (a) => a.id === attribute.id,
+      //     ).length === 0
+      //       && attributesToSave.filter((a) => a.id === attribute.id).length
+
+      //         === 0,
+      //   );
+
+      //   memberToUpdate.attributes = [...attributesToKeep, ...attributesToSave];
+      //   acc.push(
+      //     formSchema.cast({
+      //       id: memberToUpdate.id,
+      //       attributes: memberToUpdate.attributes,
+      //     }),
+      //   );
+      //   return acc;
+      // }, []);
+      // const updatedMembers = await MemberService.updateBulk(payload);
+      Message.success('Attributes updated successfully');
+      
+      commit('UPDATE_SUCCESS', updatedMembers);
+    } catch (error) {
+      Errors.handle(error);
+      Message.error('There was an error updating attributes');
+
+      commit('UPDATE_ERROR');
+    }
+  },
+
   async doEnrich({ commit, dispatch, rootGetters }, id) {
     try {
       const currentTenant = rootGetters['auth/currentTenant'];

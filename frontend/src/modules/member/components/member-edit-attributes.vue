@@ -28,6 +28,7 @@
                 :create-fn="createOrganizationFn"
                 placeholder="Select an option or create one"
                 input-class="w-full multi-select-field"
+                store-key="memberOrganizations"
                 :create-if-not-found="true"
                 :collapse-tags="true"
                 :parse-model="true"
@@ -77,20 +78,8 @@
                 </p>
               </div>
 
-              <el-date-picker
-                v-if="attribute.type === 'date'"
-                v-model="formModel[attribute.name]"
-                :prefix-icon="CalendarIcon"
-                :clearable="false"
-                class="custom-date-picker"
-                popper-class="date-picker-popper"
-                type="date"
-                value-format="YYYY-MM-DD"
-                format="YYYY-MM-DD"
-                placeholder="YYYY-MM-DD"
-              />
               <app-autocomplete-many-input
-                v-else-if="attribute.type === 'multiSelect'"
+                v-if="attribute.type === 'multiSelect'"
                 v-model="formModel[attribute.name]"
                 :fetch-fn="
                   () => fetchCustomAttribute(attribute.id)
@@ -116,14 +105,13 @@
                 <el-option key="true" label="True" :value="true" @mouseleave="onSelectMouseLeave" />
                 <el-option key="false" label="False" :value="false" @mouseleave="onSelectMouseLeave" />
               </el-select>
-
               <el-input v-else v-model="formModel[attribute.name]" :type="attribute.type" clearable />
             </div>
           </div>
 
           <div class="flex justify-start">
             <el-button class="btn btn-link btn-link--primary btn--sm mt-2" @click="toggleShowAttributes">
-              {{ showAllAttributes ? '- Show Less' : '+ Show More' }}
+              {{ showAllAttributes ? 'Show Less' : 'Show More' }}
             </el-button>
           </div>
         </el-form>
@@ -141,12 +129,13 @@
   </app-dialog>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { mapActions } from 'vuex';
 import { storeToRefs } from 'pinia';
 import {
-  reactive, ref, computed, h,
+  computed, h, ref, watch,
 } from 'vue';
+import isEqual from 'lodash/isEqual';
 import { MemberModel } from '@/modules/member/member-model';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import { FormSchema } from '@/shared/form/form-schema';
@@ -154,9 +143,9 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { onSelectMouseLeave } from '@/utils/select';
 import { MemberService } from '@/modules/member/member-service';
 import { OrganizationService } from '@/modules/organization/organization-service';
-import { Organization } from '@/modules/organization/types/Organization';
-
-type SelectOrganization = Organization & { label: string };
+import getCustomAttributes from '@/shared/fields/get-custom-attributes';
+import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
+import getAttributesModel from '@/shared/attributes/get-attributes-model';
 
 const CalendarIcon = h(
   'i', // type
@@ -171,7 +160,29 @@ const memberStore = useMemberStore();
 const { selectedMembers, customAttributes } = storeToRefs(memberStore);
 
 const { fields } = MemberModel;
-const formSchema = new FormSchema([fields.attributes]);
+const formSchema = computed(
+  () => new FormSchema([
+    fields.joinedAt,
+    fields.organizations,
+    fields.attributes,
+    ...getCustomAttributes({
+      customAttributes: customAttributes.value,
+      considerShowProperty: false,
+    }),
+  ]),
+);
+
+const attributesTypes = {
+  string: 'Text',
+  number: 'Number',
+  email: 'E-mail',
+  url: 'URL',
+  date: 'Date',
+  boolean: 'Boolean',
+  multiSelect: 'Multi-select',
+};
+
+const showAllAttributes = ref(false);
 
 const props = defineProps({
   modelValue: {
@@ -191,37 +202,60 @@ const computedVisible = computed({
   },
 });
 
-const showAllAttributes = ref(false);
+function filteredAttributes(attributes) {
+  return Object.keys(attributes).reduce((acc, item) => {
+    if (
+      ![
+        'bio',
+        'url',
+        'name',
+        'education',
+        'websiteUrl',
+        'avatarUrl',
+        'sourceId',
+        'emails',
+        'workExperiences',
+        'education',
+        'certifications',
+        'awards',
+      ].includes(item)
+    ) {
+      acc[item] = attributes[item];
+    }
+    return acc;
+  }, {});
+}
 
-const attributesTypes = {
-  string: 'Text',
-  number: 'Number',
-  email: 'E-mail',
-  url: 'URL',
-  date: 'Date',
-  boolean: 'Boolean',
-  multiSelect: 'Multi-select',
-};
 
-// const loading = ref(false);
+function getInitialModel() {
+  return JSON.parse(
+    JSON.stringify(
+      formSchema.value.initialValues({
+        joinedAt: '',
+        attributes: {},
+        organizations: [],
+      }),
+    ),
+  );
+}
 
-const formModel = ref({
-  jobTitle: '',
-  organization: [],
-  joinedAt: null,
-  location: '',
-  isTeamMember: null,
-  isOrganization: null,
-  isHireable: null,
-  isBot: null,
-  yearsOfExperience: 0,
-  country: '',
-  expertise: [],
-  seniorityLevel: '',
-  languages: [],
-  programmingLanguages: [],
-  skills: [],
-});
+const formModel = ref(getInitialModel());
+const hasFormChanged = computed(() => !isEqual(getInitialModel(), formModel.value));
+
+console.log('formModel', formModel.value);
+console.log('getInitialModel', getInitialModel());
+console.log('hasFormChanged', hasFormChanged.value);
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (value) {
+      formModel.value = getInitialModel();
+    }
+  },
+);
+
+
 
 const defaultAttributes = [
   {
@@ -246,8 +280,9 @@ const computedCustomAttributes = computed(() => {
   return showAllAttributes.value ? filteredAttributes : filteredAttributes.slice(0, 5);
 });
 
-const fetchOrganizationsFn = (query: number, limit:number) => OrganizationService.listAutocomplete(query, limit)
-  .then((options: SelectOrganization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
+// TODO: look into this func the props are not being passed
+const fetchOrganizationsFn = (query, limit) => OrganizationService.listAutocomplete(query, limit)
+  .then((options) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
     ...o,
     displayName: o.label,
     name: o.label,
@@ -259,7 +294,7 @@ const fetchOrganizationsFn = (query: number, limit:number) => OrganizationServic
   })))
   .catch(() => []);
 
-const createOrganizationFn = (value: string) => OrganizationService.create({
+const createOrganizationFn = (value) => OrganizationService.create({
   name: value,
 })
   .then((newOrganization) => ({
@@ -299,13 +334,64 @@ const toggleShowAttributes = () => {
   showAllAttributes.value = !showAllAttributes.value;
 };
 
+const { doBulkUpdateMembersAttributes } = mapActions('member', ['doBulkUpdateMembersAttributes']);
+
 const handleSubmit = async () => {
-  // loading.value = true;
-  // do something
-  console.log('helo', formModel.value);
+  const formattedAttributes = getParsedAttributes(
+    computedCustomAttributes.value,
+    formModel.value,
+  );
+
+  console.log('formModel', formModel.value);
+
+  console.log('formattedAttributes', formattedAttributes);
+
+  // Remove any existent empty data
+  const data = {
+    ...formModel.value.joinedAt && {
+      joinedAt: formModel.value.joinedAt,
+    },
+    ...formModel.value.organizations.length && {
+      organizations: formModel.value.organizations.map(
+        (o) => ({
+          id: o.id,
+          name: o.name,
+          ...o.memberOrganizations?.title && {
+            title: o.memberOrganizations?.title,
+          },
+          ...o.memberOrganizations?.dateStart && {
+            startDate: o.memberOrganizations?.dateStart,
+          },
+          ...o.memberOrganizations?.dateEnd && {
+            endDate: o.memberOrganizations?.dateEnd,
+          },
+        }),
+      ).filter(
+        (o) => !!o.id,
+      ),
+    },
+    ...(Object.keys(formattedAttributes).length
+      || formModel.value.attributes) && {
+      attributes: {
+        ...(Object.keys(formattedAttributes).length
+          && formattedAttributes)
+      },
+    },
+  };
+
+  console.log('data as payload', data);
+  console.log('hasFormChanged inside', hasFormChanged.value);
+
+
+  // computedVisible.value = false;
+  // emits('reload', true);
+
+  return null;
 };
 
 const handleCancel = () => {
+  // clear form
+  formModel.value = {};
   computedVisible.value = false;
 };
 
