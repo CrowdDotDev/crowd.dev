@@ -262,7 +262,6 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     let integration
-    let run
     try {
       if (setupAction === 'request') {
         return await this.createOrUpdate(
@@ -340,22 +339,22 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
-
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending GitHub message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration
@@ -688,14 +687,22 @@ export default class IntegrationService {
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
 
-    const identities = await TenantRepository.getAvailablePlatforms(tenantId, this.options)
+    const platforms = (await TenantRepository.getAvailablePlatforms(tenantId, this.options)).map(
+      (p) => p.platform,
+    )
+
+    const hubspotId = integration.settings.hubspotId
 
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
+      hubspotId,
       memberAttributeSettings,
-      identities,
+      platforms,
     )
-    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.ORGANIZATIONS,
+      hubspotId,
+    )
 
     // validate members
     if (onboardSettings.attributesMapping.members) {
@@ -738,6 +745,8 @@ export default class IntegrationService {
             ...integration.settings,
             attributesMapping: onboardSettings.attributesMapping,
             enabledFor: onboardSettings.enabledFor,
+            crowdAttributes: memberAttributeSettings,
+            platforms,
           },
           status: 'in-progress',
         },
@@ -769,12 +778,17 @@ export default class IntegrationService {
       this.options,
     )
 
+    // hubspotId is not used while getting the typemap, we can send it null
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
+      null,
       memberAttributeSettings,
       identities,
     )
-    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.ORGANIZATIONS,
+      null,
+    )
 
     return {
       members: memberMapper.getTypeMap(),
