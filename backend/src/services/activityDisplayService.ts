@@ -112,7 +112,7 @@ export default class ActivityDisplayService extends LoggerBase {
       if (
         activity.platform === PlatformType.DISCORD &&
         activity.type === DiscordActivityType.MESSAGE &&
-        activity.attributes && 
+        activity.attributes &&
         activity.attributes.thread === true
       ) {
         activity.type = DiscordActivityType.THREAD_MESSAGE
