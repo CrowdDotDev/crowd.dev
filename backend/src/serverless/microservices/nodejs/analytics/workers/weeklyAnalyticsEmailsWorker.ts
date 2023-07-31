@@ -561,7 +561,7 @@ async function getAnalyticsData(tenantId: string) {
         error: e,
       }
     }
-    
+
     const parsedRetryCount = parseInt(retryCount, 10)
     if (parsedRetryCount < MAX_RETRY_COUNT) {
       log.info(`Current retryCount for tenant is: ${retryCount}, trying to send the e-mail again!`)
@@ -574,7 +574,10 @@ async function getAnalyticsData(tenantId: string) {
       }
     }
 
-    log.info({error: JSON.stringify(e)},`Retried total of ${MAX_RETRY_COUNT} times. Skipping sending e-mail!`)
+    log.info(
+      { error: JSON.stringify(e) },
+      `Retried total of ${MAX_RETRY_COUNT} times. Skipping sending e-mail!`,
+    )
     return {
       shouldRetry: false,
       data: {},
