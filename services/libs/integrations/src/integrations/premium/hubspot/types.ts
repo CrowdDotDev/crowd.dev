@@ -1,4 +1,4 @@
-import { IMemberAttribute } from "@crowd/types"
+import { IMemberAttribute } from '@crowd/types'
 
 export enum HubspotPropertyType {
   BOOL = 'bool',

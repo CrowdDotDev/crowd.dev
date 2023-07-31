@@ -688,7 +688,9 @@ export default class IntegrationService {
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
 
-    const platforms = (await TenantRepository.getAvailablePlatforms(tenantId, this.options)).map( (p) => p.platform)
+    const platforms = (await TenantRepository.getAvailablePlatforms(tenantId, this.options)).map(
+      (p) => p.platform,
+    )
 
     const hubspotId = integration.settings.hubsputId
 
@@ -698,7 +700,10 @@ export default class IntegrationService {
       memberAttributeSettings,
       platforms,
     )
-    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS, hubspotId)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.ORGANIZATIONS,
+      hubspotId,
+    )
 
     // validate members
     if (onboardSettings.attributesMapping.members) {
@@ -743,7 +748,6 @@ export default class IntegrationService {
             enabledFor: onboardSettings.enabledFor,
             crowdAttributes: memberAttributeSettings,
             platforms,
-
           },
           status: 'in-progress',
         },
@@ -782,7 +786,10 @@ export default class IntegrationService {
       memberAttributeSettings,
       identities,
     )
-    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS, null)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.ORGANIZATIONS,
+      null,
+    )
 
     return {
       members: memberMapper.getTypeMap(),
