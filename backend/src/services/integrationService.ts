@@ -688,14 +688,22 @@ export default class IntegrationService {
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
 
-    const identities = await TenantRepository.getAvailablePlatforms(tenantId, this.options)
+    const platforms = (await TenantRepository.getAvailablePlatforms(tenantId, this.options)).map(
+      (p) => p.platform,
+    )
+
+    const hubspotId = integration.settings.hubspotId
 
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
+      hubspotId,
       memberAttributeSettings,
-      identities,
+      platforms,
     )
-    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.ORGANIZATIONS,
+      hubspotId,
+    )
 
     // validate members
     if (onboardSettings.attributesMapping.members) {
@@ -738,6 +746,8 @@ export default class IntegrationService {
             ...integration.settings,
             attributesMapping: onboardSettings.attributesMapping,
             enabledFor: onboardSettings.enabledFor,
+            crowdAttributes: memberAttributeSettings,
+            platforms,
           },
           status: 'in-progress',
         },
@@ -769,12 +779,17 @@ export default class IntegrationService {
       this.options,
     )
 
+    // hubspotId is not used while getting the typemap, we can send it null
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
+      null,
       memberAttributeSettings,
       identities,
     )
-    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(HubspotEntity.ORGANIZATIONS)
+    const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
+      HubspotEntity.ORGANIZATIONS,
+      null,
+    )
 
     return {
       members: memberMapper.getTypeMap(),

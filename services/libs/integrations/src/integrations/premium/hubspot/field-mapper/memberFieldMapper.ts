@@ -3,7 +3,6 @@
 import {
   IMemberAttribute,
   IMemberData,
-  IMemberIdentity,
   MemberAttributeName,
   MemberAttributeType,
   PlatformType,
@@ -79,32 +78,43 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     },
   }
 
-  public customAttributes?: IMemberAttribute[]
+  public customAttributes: IMemberAttribute[]
 
-  public identities?: IMemberIdentity[]
+  public platforms: string[]
 
-  constructor(customAttributes?: IMemberAttribute[], identities?: IMemberIdentity[]) {
-    super()
+  constructor(hubspotId: number, customAttributes: IMemberAttribute[], platforms: string[]) {
+    super(hubspotId)
 
-    if (customAttributes && identities) {
-      this.customAttributes = customAttributes
-      this.identities = identities
-      this.fieldProperties = this.getFieldProperties()
-    }
+    this.customAttributes = customAttributes
+    this.platforms = platforms
+    this.fieldProperties = this.getFieldProperties(customAttributes, platforms)
   }
 
-  override getFieldProperties(): Record<string, IFieldProperty> {
-    for (const customAttribute of this.customAttributes.filter((a) => a.show)) {
+  getFieldProperties(
+    customAttributes: IMemberAttribute[],
+    platforms: string[],
+  ): Record<string, IFieldProperty> {
+    const dynamicProperties = this.getDynamicFieldProperties(customAttributes, platforms)
+    return { ...this.fieldProperties, ...dynamicProperties }
+  }
+
+  getDynamicFieldProperties(
+    customAttributes: IMemberAttribute[],
+    platforms: string[],
+  ): Record<string, IFieldProperty> {
+    const dynamicFieldProperties: Record<string, IFieldProperty> = {}
+
+    for (const customAttribute of customAttributes.filter((a) => a.show)) {
       if (customAttribute.type === MemberAttributeType.BOOLEAN) {
-        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+        dynamicFieldProperties[`attributes.${customAttribute.name}`] = {
           hubspotType: HubspotPropertyType.BOOL,
         }
       } else if (customAttribute.type === MemberAttributeType.DATE) {
-        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+        dynamicFieldProperties[`attributes.${customAttribute.name}`] = {
           hubspotType: HubspotPropertyType.DATE,
         }
       } else if (customAttribute.type === MemberAttributeType.NUMBER) {
-        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+        dynamicFieldProperties[`attributes.${customAttribute.name}`] = {
           hubspotType: HubspotPropertyType.NUMBER,
         }
       } else if (
@@ -112,19 +122,19 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
           customAttribute.type,
         )
       ) {
-        this.fieldProperties[`attributes.${customAttribute.name}`] = {
+        dynamicFieldProperties[`attributes.${customAttribute.name}`] = {
           hubspotType: HubspotPropertyType.STRING,
         }
       }
     }
 
-    for (const identity of this.identities) {
-      this.fieldProperties[`identities.${identity.platform}`] = {
+    for (const platform of platforms) {
+      dynamicFieldProperties[`identities.${platform}`] = {
         hubspotType: HubspotPropertyType.STRING,
       }
     }
 
-    return this.fieldProperties
+    return dynamicFieldProperties
   }
 
   override getEntity(
