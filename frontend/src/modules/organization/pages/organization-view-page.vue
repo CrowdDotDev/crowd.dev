@@ -56,7 +56,8 @@ import AppOrganizationViewHeader from '@/modules/organization/components/view/or
 import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside.vue';
 import AppOrganizationViewMembers from '@/modules/organization/components/view/organization-view-members.vue';
 import Message from '@/shared/message/message';
-import { OrganizationService } from '../organization-service';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   id: {
@@ -64,14 +65,17 @@ const props = defineProps({
     default: null,
   },
 });
-const organization = ref({});
+
+const organizationStore = useOrganizationStore();
+const { organization } = storeToRefs(organizationStore);
+const { fetchOrganization } = organizationStore;
 
 const loading = ref(true);
 const tab = ref('members');
 
-onMounted(async () => {
+onMounted(() => {
   try {
-    organization.value = await OrganizationService.find(props.id);
+    fetchOrganization(props.id);
   } catch (e) {
     Message.error('Something went wrong');
   }

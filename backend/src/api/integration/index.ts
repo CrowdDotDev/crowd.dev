@@ -4,6 +4,8 @@ import SegmentRepository from '../../database/repositories/segmentRepository'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
+import { FeatureFlag } from '@/types/common'
+import { featureFlagMiddleware } from '@/middlewares/featureFlagMiddleware'
 
 export default (app) => {
   app.post(`/tenant/:tenantId/integration/query`, safeWrap(require('./integrationQuery').default))
@@ -74,6 +76,54 @@ export default (app) => {
   app.post(
     '/tenant/:tenantId/discourse-test-webhook',
     safeWrap(require('./helpers/discourseTestWebhook').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-connect',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotConnect').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-onboard',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotOnboard').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-update-properties',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotUpdateProperties').default),
+  )
+
+  app.get(
+    '/tenant/:tenantId/hubspot-mappable-fields',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotGetMappableFields').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-sync-member',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotSyncMember').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-stop-sync-member',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotStopSyncMember').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-sync-organization',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotSyncOrganization').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/hubspot-stop-sync-organization',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
   )
 
   // if (TWITTER_CONFIG.clientId) {

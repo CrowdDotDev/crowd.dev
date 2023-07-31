@@ -7,7 +7,7 @@ import { PlatformType } from '@crowd/types'
 
 const db = null
 
-describe('IntegrationService tests', () => {
+describe('PermissionChecker tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
   })

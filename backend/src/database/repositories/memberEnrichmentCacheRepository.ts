@@ -1,6 +1,7 @@
 import { QueryTypes } from 'sequelize'
 import { EnrichmentCache } from '../../services/premium/enrichment/types/memberEnrichmentTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import SequelizeRepository from './sequelizeRepository'
 
 class MemberEnrichmentCacheRepository {
   /**
@@ -18,6 +19,7 @@ class MemberEnrichmentCacheRepository {
     options: IRepositoryOptions,
   ): Promise<EnrichmentCache> {
     if (data && Object.keys(data).length > 0) {
+      const transaction = SequelizeRepository.getTransaction(options)
       await options.database.sequelize.query(
         `INSERT INTO "memberEnrichmentCache" ("createdAt", "updatedAt", "memberId", "data")
           VALUES
@@ -31,6 +33,7 @@ class MemberEnrichmentCacheRepository {
             data: JSON.stringify(data),
           },
           type: QueryTypes.UPSERT,
+          transaction,
         },
       )
     }
@@ -50,6 +53,7 @@ class MemberEnrichmentCacheRepository {
     memberId: string,
     options: IRepositoryOptions,
   ): Promise<EnrichmentCache> {
+    const transaction = SequelizeRepository.getTransaction(options)
     const records = await options.database.sequelize.query(
       `select *
        from "memberEnrichmentCache"
@@ -60,6 +64,7 @@ class MemberEnrichmentCacheRepository {
           memberId,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 
