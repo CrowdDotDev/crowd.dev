@@ -44,7 +44,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         },
       ],
     }),
-    displayName: memberFromApi.name.trim() || memberFromApi.login,
+    displayName: memberFromApi?.name?.trim() || memberFromApi.login,
     attributes: {
       [MemberAttributeName.IS_HIREABLE]: {
         [PlatformType.GITHUB]: memberFromApi.isHireable || false,
