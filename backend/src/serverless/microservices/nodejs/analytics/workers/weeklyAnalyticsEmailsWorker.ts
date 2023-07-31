@@ -2,7 +2,6 @@ import moment from 'moment'
 import { RedisCache, getRedisClient } from '@crowd/redis'
 import { QueryTypes } from 'sequelize'
 import { convert as convertHtmlToText } from 'html-to-text'
-import { prettyActivityTypes } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { ActivityDisplayVariant, PlatformType } from '@crowd/types'
 import getUserContext from '../../../../../database/utils/getUserContext'
@@ -458,7 +457,7 @@ async function getAnalyticsData(tenantId: string) {
         and a.timestamp between :startDate and :endDate
       group by c.id
       order by count(a.id) desc
-      limit 5;`,
+      limit 3;`,
           {
             replacements: {
               tenantId,
@@ -489,6 +488,12 @@ async function getAnalyticsData(tenantId: string) {
 
         c.platformIcon = `${s3Url}/email/${conversationStarterActivity.platform}.png`
 
+        const displayOptions = ActivityDisplayService.getDisplayOptions(
+          conversationStarterActivity,
+          SegmentRepository.getActivityTypes(userContext),
+          [ActivityDisplayVariant.SHORT],
+        )
+
         let prettyChannel = conversationStarterActivity.channel
 
         let prettyChannelHTML = `<span style='text-decoration:none;color:#4B5563'>${prettyChannel}</span>`
@@ -499,11 +504,7 @@ async function getAnalyticsData(tenantId: string) {
           prettyChannelHTML = `<span style='color:#e94f2e'><a target="_blank" style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:none;color:#e94f2e;font-size:14px;line-height:14px" href="${conversationStarterActivity.channel}">${prettyChannel}</a></span>`
         }
 
-        c.description = `${
-          prettyActivityTypes[conversationStarterActivity.platform][
-            conversationStarterActivity.type
-          ]
-        } in ${prettyChannelHTML}`
+        c.description = `${displayOptions.short} in ${prettyChannelHTML}`
 
         c.sourceLink = conversationStarterActivity.url
 
