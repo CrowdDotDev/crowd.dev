@@ -1,3 +1,5 @@
+import { IMemberAttribute } from '@crowd/types'
+
 export enum HubspotPropertyType {
   BOOL = 'bool',
   ENUMERATION = 'enumeration',
@@ -118,6 +120,8 @@ export interface IHubspotOnboardingSettings {
 export interface IHubspotIntegrationSettings extends IHubspotOnboardingSettings {
   hubspotId: number
   hubspotProperties: IHubspotProperty[]
+  crowdAttributes: IMemberAttribute[]
+  platforms: string[]
   updateMemberAttributes: boolean
   syncRemoteEnabled?: boolean
   blockSyncRemote?: boolean

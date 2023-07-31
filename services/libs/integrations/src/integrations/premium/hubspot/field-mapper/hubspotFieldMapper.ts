@@ -1,3 +1,4 @@
+import { IMemberAttribute } from '@crowd/types'
 import { HubspotEntity, HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 
 export abstract class HubspotFieldMapper {
@@ -9,7 +10,14 @@ export abstract class HubspotFieldMapper {
 
   public hubspotId: number
 
-  abstract getFieldProperties(): Record<string, IFieldProperty>
+  constructor(hubspotId: number) {
+    this.hubspotId = hubspotId
+  }
+
+  abstract getFieldProperties(
+    attributes?: IMemberAttribute[],
+    platforms?: string[],
+  ): Record<string, IFieldProperty>
 
   abstract getEntity(input: IHubspotObject, args?: unknown): unknown
 

@@ -2013,7 +2013,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           integrationId: context.integration.id,
         },
       } as PlatformIdentities,
-      displayName: memberFromApi.name,
+      displayName: memberFromApi?.name?.trim() || memberFromApi.login,
       attributes: {
         [MemberAttributeName.IS_HIREABLE]: {
           [PlatformType.GITHUB]: memberFromApi.isHireable || false,

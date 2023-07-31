@@ -1,10 +1,4 @@
-import {
-  IMemberAttribute,
-  IActivityData,
-  IntegrationResultType,
-  IMemberIdentity,
-  Entity,
-} from '@crowd/types'
+import { IMemberAttribute, IActivityData, IntegrationResultType, Entity } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
@@ -33,8 +27,6 @@ export interface IIntegrationStartRemoteSyncContext {
 export interface IIntegrationProcessRemoteSyncContext {
   tenantId: string
   integration: IIntegration
-  memberAttributes?: IMemberAttribute[]
-  platforms?: IMemberIdentity[]
   log: Logger
   serviceSettings: IIntegrationServiceSettings
 }

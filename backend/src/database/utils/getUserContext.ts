@@ -42,10 +42,12 @@ export default async function getUserContext(
     }
   }
 
+  const segmentRepository = new SegmentRepository(options)
+
   const segments =
     segmentIds && segmentIds.length
-      ? await new SegmentRepository(options).findInIds(segmentIds)
-      : []
+      ? await segmentRepository.findInIds(segmentIds)
+      : (await segmentRepository.querySubprojects({ limit: 1, offset: 0 })).rows
 
   // Inject user and tenant to IRepositoryOptions
   return SequelizeRepository.getDefaultIRepositoryOptions(user, tenant, segments)
