@@ -54,8 +54,11 @@ export const batchUpdateMembers = async (
             }
           } else if (crowdField.startsWith('identities')) {
             const identityPlatform = crowdField.split('.')[1] || null
-            if (identityPlatform && hubspotField && member.username[identityPlatform]?.[0]) {
-              hsMember.properties[hubspotField] = member.username[identityPlatform][0]
+
+            const identityFound = member.identities.find((i) => i.platform === identityPlatform)
+
+            if (identityPlatform && hubspotField && identityFound) {
+              hsMember.properties[hubspotField] = identityFound.username
             }
           } else if (crowdField === 'organizationName') {
             // send latest org of member as value
