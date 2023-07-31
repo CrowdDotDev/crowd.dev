@@ -106,7 +106,14 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
   const rehRepository = new RecurringEmailsHistoryRepository(userContext)
 
-  if (activeTenantIntegrations.length > 0) {
+  const isEmailAlreadySent =
+    (await rehRepository.findByWeekOfYear(
+      tenantId,
+      moment().utc().startOf('isoWeek').subtract(7, 'days').isoWeek().toString(),
+      RecurringEmailType.WEEKLY_ANALYTICS,
+    )) !== null
+
+  if (activeTenantIntegrations.length > 0 && !isEmailAlreadySent) {
     log.info(tenantId, ` has completed integrations. Eligible for weekly emails.. `)
     const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
 
@@ -205,7 +212,11 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     return { status: 200, emailSent: true }
   }
 
-  log.info({ tenantId }, 'No active integrations present in the tenant. Email will not be sent.')
+  if (isEmailAlreadySent) {
+    log.warn({ tenantId }, 'E-mail is already sent for this tenant this week. Skipping!')
+  } else {
+    log.info({ tenantId }, 'No active integrations present in the tenant. Email will not be sent.')
+  }
 
   return {
     status: 200,
