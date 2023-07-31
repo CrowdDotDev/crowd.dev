@@ -692,7 +692,7 @@ export default class IntegrationService {
       (p) => p.platform,
     )
 
-    const hubspotId = integration.settings.hubsputId
+    const hubspotId = integration.settings.hubspotId
 
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
