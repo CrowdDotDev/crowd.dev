@@ -3,6 +3,12 @@ export enum OpenSearchIndex {
   ACTIVITIES = 'activities',
 }
 
+// Keeps track of version numbers for all OpenSearch indexes, aiding in managing documents.
+// for eg: members_v1, activities_v1, etc.
+export const IndexVersions = new Map<OpenSearchIndex, number>()
+IndexVersions.set(OpenSearchIndex.MEMBERS, 1)
+IndexVersions.set(OpenSearchIndex.ACTIVITIES, 1)
+
 const prefixedMapping = {
   dynamic_templates: [
     // https://opensearch.org/docs/latest/field-types/supported-field-types/string/
@@ -566,6 +572,25 @@ const prefixedMapping = {
       },
     },
   ],
+}
+
+const prefixedSettings = {
+  settings: {
+    analysis: {
+      analyzer: {
+        lowercase_keyword_analyzer: {
+          type: 'custom',
+          tokenizer: 'keyword',
+          filter: ['lowercase'],
+        },
+      },
+    },
+  },
+}
+
+export const OPENSEARCH_INDEX_SETTINGS: Record<OpenSearchIndex, unknown> = {
+  [OpenSearchIndex.MEMBERS]: prefixedSettings,
+  [OpenSearchIndex.ACTIVITIES]: prefixedSettings,
 }
 
 export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {

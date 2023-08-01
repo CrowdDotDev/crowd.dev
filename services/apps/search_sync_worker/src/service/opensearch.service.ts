@@ -1,5 +1,10 @@
 import { OPENSEARCH_CONFIG } from '@/conf'
-import { OPENSEARCH_INDEX_MAPPINGS, OpenSearchIndex } from '@/types'
+import {
+  IndexVersions,
+  OPENSEARCH_INDEX_MAPPINGS,
+  OPENSEARCH_INDEX_SETTINGS,
+  OpenSearchIndex,
+} from '@/types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
@@ -35,7 +40,8 @@ export class OpenSearchService extends LoggerBase {
 
   private async doesIndexExist(indexName: OpenSearchIndex): Promise<boolean> {
     try {
-      const exists = await this.client.indices.exists({ index: indexName })
+      const version = IndexVersions.get(indexName)
+      const exists = await this.client.indices.exists({ index: `${indexName}_v${version}` })
       return exists.body
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to check if index exists!')
@@ -45,10 +51,13 @@ export class OpenSearchService extends LoggerBase {
 
   private async createIndex(indexName: OpenSearchIndex): Promise<void> {
     try {
+      const settings = OPENSEARCH_INDEX_SETTINGS[indexName]
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
+      const version = IndexVersions.get(indexName)
       await this.client.indices.create({
-        index: indexName,
+        index: `${indexName}_v${version}`,
         body: {
+          settings,
           mappings,
         },
       })
@@ -60,8 +69,9 @@ export class OpenSearchService extends LoggerBase {
 
   public async deleteIndex(indexName: OpenSearchIndex): Promise<void> {
     try {
+      const version = IndexVersions.get(indexName)
       await this.client.indices.delete({
-        index: indexName,
+        index: `${indexName}_v${version}`,
       })
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to delete index!')
@@ -69,12 +79,55 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async getIndexSettings(indexName: OpenSearchIndex): Promise<unknown> {
+    try {
+      const version = IndexVersions.get(indexName)
+      const settings = await this.client.indices.getSettings({
+        index: `${indexName}_v${version}`,
+      })
+      return settings.body
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to get index settings!')
+      throw err
+    }
+  }
+
+  public async setIndexSettings(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      const settings = OPENSEARCH_INDEX_SETTINGS[indexName]
+      const version = IndexVersions.get(indexName)
+      await this.client.indices.putSettings({
+        index: `${indexName}_v${version}`,
+        body: {
+          settings,
+        },
+      })
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to set index settings!')
+      throw err
+    }
+  }
+
+  public async getIndexMappings(indexName: OpenSearchIndex): Promise<unknown> {
+    try {
+      const version = IndexVersions.get(indexName)
+      const mappings = await this.client.indices.getMapping({
+        index: `${indexName}_v${version}`,
+      })
+      return mappings.body
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to get index mappings!')
+      throw err
+    }
+  }
+
   public async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
     try {
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
+      const version = IndexVersions.get(indexName)
 
       await this.client.indices.putMapping({
-        index: indexName,
+        index: `${indexName}_v${version}`,
         body: mappings,
       })
     } catch (err) {
@@ -95,29 +148,6 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  // Adds custom analyzer to specified OpenSearch index
-  private async addIndexAnalyzer(indexName: OpenSearchIndex): Promise<void> {
-    try {
-      await this.client.indices.putSettings({
-        index: indexName,
-        body: {
-          analysis: {
-            analyzer: {
-              lowercase_keyword_analyzer: {
-                type: 'custom',
-                tokenizer: 'keyword',
-                filter: ['lowercase'],
-              },
-            },
-          },
-        },
-      })
-    } catch (err) {
-      this.log.error(err, { indexName }, 'Failed to add analyzer to index!')
-      throw err
-    }
-  }
-
   public async initialize() {
     await this.client.cluster.putSettings({
       body: {
@@ -126,27 +156,16 @@ export class OpenSearchService extends LoggerBase {
         },
       },
     })
-    // After ensuring the index exists, close the index before applying new settings
-    await this.client.indices.close({
-      index: OpenSearchIndex.MEMBERS,
-    })
-
-    // Apply new settings (add analyzer) after closing the index
-    await this.addIndexAnalyzer(OpenSearchIndex.MEMBERS)
-
-    // After applying new settings, open the index
-    await this.client.indices.open({
-      index: OpenSearchIndex.MEMBERS,
-    })
-
+    await this.ensureIndexExists(OpenSearchIndex.MEMBERS)
     await this.ensureIndexExists(OpenSearchIndex.ACTIVITIES)
   }
 
   public async removeFromIndex(id: string, index: OpenSearchIndex): Promise<void> {
     try {
+      const version = IndexVersions.get(index)
       await this.client.delete({
         id,
-        index,
+        index: `${index}_v${version}`,
         refresh: true,
       })
     } catch (err) {
@@ -160,10 +179,11 @@ export class OpenSearchService extends LoggerBase {
   }
 
   public async index<T>(id: string, index: OpenSearchIndex, body: T): Promise<void> {
+    const version = IndexVersions.get(index)
     try {
       await this.client.index({
         id,
-        index,
+        index: `${index}_v${version}`,
         body,
         refresh: true,
       })
@@ -176,9 +196,10 @@ export class OpenSearchService extends LoggerBase {
   public async bulkIndex<T>(index: OpenSearchIndex, batch: IIndexRequest<T>[]): Promise<void> {
     try {
       const body = []
+      const version = IndexVersions.get(index)
       for (const doc of batch) {
         body.push({
-          index: { _index: index, _id: doc.id },
+          index: { _index: `${index}_v${version}`, _id: doc.id },
         })
         body.push({
           ...doc.body,
@@ -206,8 +227,9 @@ export class OpenSearchService extends LoggerBase {
     sourceExcludeFields?: string[],
   ): Promise<ISearchHit<T>[] | unknown> {
     try {
+      const version = IndexVersions.get(index)
       const payload = {
-        index,
+        index: `${index}_v${version}`,
         _source_excludes: sourceExcludeFields,
         _source_includes: sourceIncludeFields,
         body: {
