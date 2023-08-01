@@ -2,6 +2,8 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { Edition } from '@crowd/types'
 import { API_CONFIG, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
 import getTenatUser from './trackHelper'
+// eslint-disable-next-line import/no-cycle
+import addProductData from './addProductDataToCrowdTenant'
 
 const log = getServiceChildLogger('segment')
 
@@ -35,6 +37,15 @@ export default function identify(
 
     try {
       analytics.track(payload)
+
+      // send product analytics data to crowd tenant workspace
+      addProductData({
+        userId: userIdOut,
+        tenantId: tenantIdOut,
+        event,
+        timestamp,
+        properties,
+      })
     } catch (error) {
       log.error(error, { payload }, 'ERROR: Could not send the following payload to Segment')
     }
