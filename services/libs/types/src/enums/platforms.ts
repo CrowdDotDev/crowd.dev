@@ -18,6 +18,7 @@ export enum PlatformType {
   DISCOURSE = 'discourse',
   GIT = 'git',
   CRUNCHBASE = 'crunchbase',
+  HUBSPOT = 'hubspot',
   OTHER = 'other',
 }
 
@@ -37,6 +38,7 @@ export enum IntegrationType {
   STACKOVERFLOW = 'stackoverflow',
   DISCOURSE = 'discourse',
   GIT = 'git',
+  HUBSPOT = 'hubspot',
 }
 
 export const integrationLabel: Record<IntegrationType, string> = {
@@ -53,4 +55,5 @@ export const integrationLabel: Record<IntegrationType, string> = {
   [IntegrationType.STACKOVERFLOW]: 'Stack Overflow',
   [IntegrationType.DISCOURSE]: 'Discourse',
   [IntegrationType.GIT]: 'Git',
+  [IntegrationType.HUBSPOT]: 'HubSpot',
 }

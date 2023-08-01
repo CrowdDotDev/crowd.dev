@@ -38,11 +38,11 @@ export const plans = {
       sale: '🐦 Early bird offer',
     },
     {
-      key: crowdHostedPlans.enterprise,
-      title: 'Custom',
+      key: crowdHostedPlans.scale,
+      title: 'Scale',
       description:
         'Unlock community-led growth for your company',
-      price: 'from $850/month',
+      price: 'Custom price',
       featuresNote: 'Everything in Growth, plus:',
       features: [
         'Activity categorization & topic analysis',
