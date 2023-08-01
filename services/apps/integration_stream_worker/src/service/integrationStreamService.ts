@@ -257,6 +257,12 @@ export default class IntegrationStreamService extends LoggerBase {
 
     const globalCache = new RedisCache(`int-global`, this.redisClient, this.log)
 
+    const integrationCache = new RedisCache(
+      `int-${streamInfo.integrationId}`,
+      this.redisClient,
+      this.log,
+    )
+
     const nangoConfig = NANGO_CONFIG()
 
     const context: IProcessWebhookStreamContext = {
@@ -286,6 +292,7 @@ export default class IntegrationStreamService extends LoggerBase {
       log: this.log,
       cache,
       globalCache,
+      integrationCache,
 
       publishData: async (data) => {
         await this.publishData(
@@ -403,6 +410,12 @@ export default class IntegrationStreamService extends LoggerBase {
 
     const globalCache = new RedisCache(`int-global`, this.redisClient, this.log)
 
+    const integrationCache = new RedisCache(
+      `int-${streamInfo.integrationId}`,
+      this.redisClient,
+      this.log,
+    )
+
     const nangoConfig = NANGO_CONFIG()
 
     const context: IProcessStreamContext = {
@@ -433,6 +446,7 @@ export default class IntegrationStreamService extends LoggerBase {
       log: this.log,
       cache,
       globalCache,
+      integrationCache,
 
       publishData: async (data) => {
         await this.publishData(
