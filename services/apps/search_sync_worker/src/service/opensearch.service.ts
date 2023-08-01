@@ -92,22 +92,6 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  public async setIndexSettings(indexName: OpenSearchIndex): Promise<void> {
-    try {
-      const settings = OPENSEARCH_INDEX_SETTINGS[indexName]
-      const version = IndexVersions.get(indexName)
-      await this.client.indices.putSettings({
-        index: `${indexName}_v${version}`,
-        body: {
-          settings,
-        },
-      })
-    } catch (err) {
-      this.log.error(err, { indexName }, 'Failed to set index settings!')
-      throw err
-    }
-  }
-
   public async getIndexMappings(indexName: OpenSearchIndex): Promise<unknown> {
     try {
       const version = IndexVersions.get(indexName)
