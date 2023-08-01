@@ -33,7 +33,21 @@ setImmediate(async () => {
         await repo.resetStream(streamId)
       }
 
-      await emitter.triggerStreamProcessing(info.tenantId, info.integrationType, streamId)
+      if (info.runId && info.webhookId) {
+        log.error({ streamId }, 'Stream has both runId and webhookId!')
+        process.exit(1)
+      }
+
+      if (!info.runId && !info.webhookId) {
+        log.error({ streamId }, 'Stream has neither runId nor webhookId!')
+        process.exit(1)
+      }
+
+      if (info.runId) {
+        await emitter.triggerStreamProcessing(info.tenantId, info.integrationType, streamId)
+      } else if (info.webhookId) {
+        await emitter.triggerWebhookProcessing(info.tenantId, info.integrationType, info.webhookId)
+      }
     } else {
       log.error({ streamId }, 'Stream not found!')
       process.exit(1)

@@ -40,10 +40,6 @@ export class MemberSyncService extends LoggerBase {
   ): Promise<void> {
     const integration = await this.integrationRepo.findById(integrationId)
 
-    const platforms = await this.memberRepo.getExistingPlatforms(tenantId)
-
-    const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
-
     const member = await this.memberRepo.findMember(memberId)
 
     const membersToCreate = []
@@ -61,8 +57,6 @@ export class MemberSyncService extends LoggerBase {
       const context: IIntegrationProcessRemoteSyncContext = {
         integration,
         log: this.log,
-        memberAttributes: attributes,
-        platforms: platforms.map((p) => ({ platform: p, username: null })),
         serviceSettings: {
           nangoId: `${tenantId}-${integration.platform}`,
           nangoUrl: NANGO_CONFIG().url,
@@ -209,8 +203,6 @@ export class MemberSyncService extends LoggerBase {
         const context: IIntegrationProcessRemoteSyncContext = {
           integration,
           log: this.log,
-          memberAttributes: attributes,
-          platforms: platforms.map((p) => ({ platform: p, username: null })),
           serviceSettings: {
             nangoId: `${tenantId}-${integration.platform}`,
             nangoUrl: NANGO_CONFIG().url,

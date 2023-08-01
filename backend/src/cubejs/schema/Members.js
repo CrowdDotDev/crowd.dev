@@ -97,7 +97,7 @@ cube(`Members`, {
       measures: [Members.count],
       dimensions: [
         Members.score,
-        Members.joinedAt,
+        Members.joinedAtUnixTs,
         Members.location,
         Members.tenantId,
         Members.isTeamMember,
@@ -117,6 +117,7 @@ cube(`Members`, {
       dimensions: [
         Members.score,
         Members.location,
+        Members.joinedAtUnixTs,
         Members.tenantId,
         Members.isTeamMember,
         Members.isBot,
@@ -140,6 +141,7 @@ cube(`Members`, {
         Members.isTeamMember,
         Members.isBot,
         Members.isOrganization,
+        Members.joinedAtUnixTs,
         Segments.id,
         Activities.type,
       ],
@@ -159,6 +161,7 @@ cube(`Members`, {
         Members.isTeamMember,
         Members.isBot,
         Members.isOrganization,
+        Members.joinedAtUnixTs,
         Segments.id,
         Activities.iscontribution,
       ],
@@ -312,6 +315,12 @@ cube(`Members`, {
       sql: `${CUBE}."joinedAt"`,
       type: `time`,
     },
+
+    joinedAtUnixTs: {
+      sql: `EXTRACT(EPOCH FROM ${CUBE}."joinedAt")`,
+      type: `number`,
+    },
+
     score: {
       sql: `${CUBE}."score"`,
       type: `number`,

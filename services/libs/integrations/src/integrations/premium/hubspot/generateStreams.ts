@@ -26,6 +26,20 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       return
     }
 
+    if (!settings.crowdAttributes) {
+      await ctx.abortRunWithError(
+        `Member attributes that are mapped to a hubspot field are required for member field mapper.`,
+      )
+      return
+    }
+
+    if (!settings.platforms) {
+      await ctx.abortRunWithError(
+        `Identity platforms that are mapped to a hubspot field are required for member field mapper.`,
+      )
+      return
+    }
+
     await ctx.publishStream<IHubspotBaseStream>(`${HubspotEntity.MEMBERS}`, {})
   }
 

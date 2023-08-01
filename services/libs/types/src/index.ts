@@ -34,6 +34,7 @@ export * from './opensearch'
 
 export * from './enums/webhooks'
 
+export * from './graphql'
 export * from './enums/entities'
 
 export * from './tags'
