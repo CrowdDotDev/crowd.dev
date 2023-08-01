@@ -64,7 +64,7 @@ function getAuth(ctx: IProcessStreamContext): AuthInterface | undefined {
 
 const getTokenFromCache = async (ctx: IProcessStreamContext) => {
   const key = 'github-token-cache'
-  const cache = ctx.cache
+  const cache = ctx.integrationCache // this cache is tied up with integrationId
 
   const token = await cache.get(key)
 
@@ -77,7 +77,7 @@ const getTokenFromCache = async (ctx: IProcessStreamContext) => {
 
 const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenResponse) => {
   const key = 'github-token-cache'
-  const cache = ctx.cache
+  const cache = ctx.integrationCache // this cache is tied up with integrationId
 
   // cache for 5 minutes
   await cache.set(key, JSON.stringify(token), 5 * 60)
@@ -97,7 +97,7 @@ async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
       appToken = await getAppToken(jwtToken, ctx.integration.identifier)
     }
 
-    setTokenToCache(ctx, appToken)
+    await setTokenToCache(ctx, appToken)
 
     return appToken.token
   }
@@ -115,6 +115,9 @@ async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promis
     return ''
   }
 
+  // here we use cache for tenantId-integrationType
+  // So in LFX case different integration will have access to the same cache
+  // But this is fine
   const cache = ctx.cache
 
   const existing = await cache.get(login)
