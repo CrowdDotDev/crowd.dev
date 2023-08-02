@@ -22,7 +22,7 @@ interface CrowdAnalyticsData {
 const expandAttributes = (attributes: Object) => {
   const obj = {}
   Object.keys(attributes).forEach((key) => {
-    obj[key] = {
+    obj[key.toLowerCase()] = {
       [CROWD_ANALYTICS_PLATORM_NAME]: attributes[key],
     }
   }
