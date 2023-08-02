@@ -108,7 +108,7 @@ async function discordSetParentForThreads() {
               if (childCrowdActivityRowsAndCount.count === 1) {
                 // update both child.crowdInfo and child.parent
                 const childCrowdInfo = childCrowdActivityRowsAndCount.rows[0].crowdInfo
-                childCrowdInfo.url = `https://discordapp.com/channels/${discordIntegration.integrationIdentifier}/${act.crowdInfo.sourceId}/${childCrowdActivityRowsAndCount.rows[0].sourceId}`
+                childCrowdInfo.url = `https://discord.com/channels/${discordIntegration.integrationIdentifier}/${act.crowdInfo.sourceId}/${childCrowdActivityRowsAndCount.rows[0].sourceId}`
                 await actService.update(childCrowdActivityRowsAndCount.rows[0].id, {
                   childCrowdInfo,
                   sourceParentId: act.sourceId,
@@ -130,7 +130,7 @@ async function discordSetParentForThreads() {
               discordChannelMapping[act.crowdInfo.channel].id
             ) {
               const parentCrowdInfo = act.crowdInfo
-              parentCrowdInfo.url = `https://discordapp.com/channels/${
+              parentCrowdInfo.url = `https://discord.com/channels/${
                 discordIntegration.integrationIdentifier
               }/${discordChannelMapping[act.crowdInfo.channel].id}/${act.sourceId}`
               await actService.update(act.id, { crowdInfo: parentCrowdInfo })
@@ -143,7 +143,7 @@ async function discordSetParentForThreads() {
               discordChannelMapping[act.crowdInfo.channel].id
             ) {
               const parentCrowdInfo = act.crowdInfo
-              parentCrowdInfo.url = `https://discordapp.com/channels/${
+              parentCrowdInfo.url = `https://discord.com/channels/${
                 discordIntegration.integrationIdentifier
               }/${discordChannelMapping[act.crowdInfo.channel].id}/${act.sourceId}`
               await actService.update(act.id, { crowdInfo: parentCrowdInfo })
