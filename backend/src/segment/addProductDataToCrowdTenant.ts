@@ -62,6 +62,7 @@ export default async function addProductData(data: CrowdAnalyticsData) {
 
     const user = await UserRepository.findById(data.userId, repositoryOptions)
 
+    // this is an array of one tenant
     const tenant = await TenantRepository.getTenantInfo(data.tenantId, repositoryOptions)
 
     const timestamp = data.timestamp || new Date().toISOString()
@@ -79,9 +80,9 @@ export default async function addProductData(data: CrowdAnalyticsData) {
           createdAnAccount: true,
           firstName: user.firstName,
           lastName: user.lastName,
-          plan: tenant.plan,
-          isTrialPlan: tenant.isTrialPlan,
-          trialEndsAt: tenant.trialEndsAt,
+          plan: tenant[0]?.plan,
+          isTrialPlan: tenant[0]?.isTrialPlan,
+          trialEndsAt: tenant[0]?.trialEndsAt,
           })
         },
       },
