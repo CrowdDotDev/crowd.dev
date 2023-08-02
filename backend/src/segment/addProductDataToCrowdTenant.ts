@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { CROWD_ANALYTICS_CONFIG } from '@/conf'
+import { CROWD_ANALYTICS_CONFIG } from '../conf'
 import UserRepository from '../database/repositories/userRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'

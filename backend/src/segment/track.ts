@@ -18,10 +18,12 @@ export default async function identify(
     SEGMENT_CONFIG.writeKey &&
     // This is only for events in the hosted version. Self-hosted has less telemetry.
     (API_CONFIG.edition === Edition.CROWD_HOSTED || API_CONFIG.edition === Edition.LFX)
-  ) 
-  {
-
-    if (properties && properties?.platform && properties?.platform === CROWD_ANALYTICS_PLATORM_NAME) {
+  ) {
+    if (
+      properties &&
+      properties?.platform &&
+      properties?.platform === CROWD_ANALYTICS_PLATORM_NAME
+    ) {
       // no need to track crowd analytics events in segment
       // and this is also to ensure we don't get into an infinite loop
       return

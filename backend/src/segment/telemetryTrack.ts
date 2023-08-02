@@ -24,7 +24,11 @@ export default function track(
     API_CONFIG.edition === Edition.COMMUNITY &&
     !email.includes('crowd.dev')
   ) {
-    if (properties && properties?.platform && properties?.platform === CROWD_ANALYTICS_PLATORM_NAME) {
+    if (
+      properties &&
+      properties?.platform &&
+      properties?.platform === CROWD_ANALYTICS_PLATORM_NAME
+    ) {
       // no need to track crowd analytics events in segment
       // and this is also to ensure we don't get into an infinite loop
       return
