@@ -125,12 +125,13 @@
                 </div>
                 <section class="pt-1 pb-3">
                   <app-hubspot-property-map
-                    v-for="(type, field) in memberMappableFields"
-                    :key="field"
-                    v-model="form.mapping.members[field]"
-                    v-model:enabled="form.enabled.members[field]"
-                    :field="field as string"
-                    :hubspot-fields="getHubspotMemberFields(type, form.mapping.members[field])"
+                    v-for="(value, key) in memberMappableFields"
+                    :key="key"
+                    v-model="form.mapping.members[key]"
+                    v-model:enabled="form.enabled.members[key]"
+                    :field="key"
+                    :read-only="value.readonly"
+                    :hubspot-fields="getHubspotMemberFields(value.hubspotType, form.mapping.members[key])"
                   />
                 </section>
               </div>
@@ -165,12 +166,13 @@
                 </div>
                 <section class="pt-1 pb-3">
                   <app-hubspot-property-map
-                    v-for="(type, field) in organizationMappableFields"
-                    :key="field"
+                    v-for="(value, key) in organizationMappableFields"
+                    :key="key"
                     v-model="form.mapping.organizations[field]"
                     v-model:enabled="form.enabled.organizations[field]"
-                    :field="field as string"
-                    :hubspot-fields="getHubspotOrganizationFields(type, form.mapping.organizations[field])"
+                    :field="key"
+                    :read-only="value.readonly"
+                    :hubspot-fields="getHubspotOrganizationFields(value.hubspotType, form.mapping.organizations[field])"
                   />
                 </section>
               </div>
@@ -200,20 +202,28 @@
       </div>
     </template>
   </app-drawer>
+  <app-hubspot-read-only-attr-popover
+    v-model="isReadOnlyConfirmModalVisible"
+    :attributes="readOnlyAttributes"
+    @update:modelValue="isReadOnlyConfirmModalVisible = $event"
+    @doNotShowModal="handleDoNotShowModal"
+    @continue="handleContinue"
+  />
 </template>
 
 <script lang="ts" setup>
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
+import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { MappableFields } from '@/integrations/hubspot/types/MappableFields';
-import { useStore } from 'vuex';
 import { HubspotOnboard } from '@/integrations/hubspot/types/HubspotOnboard';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppHubspotPropertyMap from '@/integrations/hubspot/components/hubspot-property-map.vue';
+import AppHubspotReadOnlyAttrPopover from '@/integrations/hubspot/components/hubspot-readonly-attr-popover.vue';
 
 const props = defineProps<{
   modelValue: boolean
@@ -237,6 +247,12 @@ const isDrawerVisible = computed({
     emit('update:modelValue', val);
   },
 });
+
+const isReadOnlyConfirmModalVisible = ref<boolean>(false);
+const readOnlyAttributes = ref<string[]>([]);
+
+// updateData is a new reference of "data" object used in update() method
+const updateData = ref<HubspotOnboard | null>(null);
 
 const form = reactive({
   members: false,
@@ -313,6 +329,24 @@ const isMappingValid = computed(() => {
     && (form.members || form.organizations);
 });
 
+const getReadOnlyAttributes = (attributesMapping, mappableFields) => {
+  const filterReadOnlyAttributes = Object.keys(attributesMapping)
+    .filter((attribute) => mappableFields[attribute] && mappableFields[attribute].readonly);
+
+  return filterReadOnlyAttributes;
+};
+
+// save read only confirm modal to false in local storage
+const handleDoNotShowModal = () => {
+  localStorage.setItem('show_hubspot_read_only_confirm_modal', 'false');
+};
+
+// hide modal and execute update
+const handleContinue = () => {
+  isReadOnlyConfirmModalVisible.value = false;
+  executeUpdate(updateData.value);
+};
+
 const update = () => {
   if (!isMappingValid.value) {
     return;
@@ -341,6 +375,25 @@ const update = () => {
       [b]: form.mapping.organizations[b],
     }), {});
   }
+
+  const checkReadOnlyAttributes = [
+    ...getReadOnlyAttributes(data.attributesMapping.members, memberMappableFields.value),
+    ...getReadOnlyAttributes(data.attributesMapping.organizations, organizationMappableFields.value),
+  ];
+
+  const showReadOnlyModal = localStorage.getItem('show_hubspot_read_only_confirm_modal') === 'false';
+
+  if (checkReadOnlyAttributes.length > 0 && !showReadOnlyModal) {
+    readOnlyAttributes.value = checkReadOnlyAttributes;
+    isReadOnlyConfirmModalVisible.value = true;
+    updateData.value = data;
+  } else {
+    executeUpdate(data);
+  }
+};
+
+const executeUpdate = (data: HubspotOnboard) => {
+
   loading.value = true;
   HubspotApiService.finishOnboard(data)
     .then(() => {

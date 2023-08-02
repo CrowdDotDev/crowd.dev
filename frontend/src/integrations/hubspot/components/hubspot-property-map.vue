@@ -10,7 +10,10 @@
     </div>
     <div class="w-1/2 py-2">
       <div class="flex items-center w-full">
-        <div class="ri-arrow-left-right-line text-base text-gray-400 mr-4 h-4 flex items-center" />
+        <div
+          class="text-base text-gray-400 mr-4 h-4 flex items-center"
+          :class="readOnly ? 'ri-arrow-right-line' : 'ri-arrow-left-right-line'"
+        />
         <el-select
           v-if="props.hubspotFields.length > 0"
           v-model="mapping"
@@ -47,6 +50,7 @@ const props = defineProps<{
   modelValue: string,
   field: string,
   enabled: boolean,
+  readOnly: boolean,
   hubspotFields: HubspotProperty[]
 }>();
 
