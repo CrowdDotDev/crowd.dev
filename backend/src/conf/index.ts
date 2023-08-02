@@ -33,7 +33,6 @@ import {
   IOpenSearchConfig,
   Auth0Configuration,
   WeeklyEmailsConfiguration,
-  CrowdAnalyticsConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -131,6 +130,3 @@ export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
 
 export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
   config.get<WeeklyEmailsConfiguration>('weeklyEmails')
-
-export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
-  config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
