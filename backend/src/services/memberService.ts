@@ -798,35 +798,53 @@ export default class MemberService extends LoggerBase {
     }
   }
 
+  static getMergeSuggestionsByType(type: IMemberMergeSuggestionsType) {
+    switch (type) {
+      case IMemberMergeSuggestionsType.USERNAME: {
+        return MemberRepository.mergeSuggestionsByUsername
+      }
+      case IMemberMergeSuggestionsType.EMAIL: {
+        return MemberRepository.mergeSuggestionsByEmail
+      }
+      case IMemberMergeSuggestionsType.SIMILARITY: {
+        return MemberRepository.mergeSuggestionsBySimilarity
+      }
+      default:
+        return null
+    }
+  }
+
   async getMergeSuggestions(
     type: IMemberMergeSuggestionsType,
     numberOfHours: Number = 1.2,
-  ): Promise<IMemberMergeSuggestion[]> {
+  ): Promise<void> {
     // Adding a transaction so it will use the write database
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      let out = []
-      if (type === IMemberMergeSuggestionsType.USERNAME) {
-        out = await MemberRepository.mergeSuggestionsByUsername(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
+      const paginate = true
+      let offset = 0
+      const limit = 50
+
+      while (paginate) {
+        const mergeSuggestionFn = MemberService.getMergeSuggestionsByType(type)
+        if (!mergeSuggestionFn) break
+        const mergeResult = await mergeSuggestionFn(
+          numberOfHours,
+          {
+            ...this.options,
+            transaction,
+          },
+          limit,
+          offset,
+        )
+        if (!mergeResult?.length) break
+
+        await this.addToMerge(mergeResult)
+        offset = mergeResult.length + offset + 1
       }
-      if (type === IMemberMergeSuggestionsType.EMAIL) {
-        out = await MemberRepository.mergeSuggestionsByEmail(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
-      if (type === IMemberMergeSuggestionsType.SIMILARITY) {
-        out = await MemberRepository.mergeSuggestionsBySimilarity(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
+
       await SequelizeRepository.commitTransaction(transaction)
-      return out
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       this.log.error(error)
