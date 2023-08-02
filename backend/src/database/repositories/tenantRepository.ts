@@ -508,7 +508,7 @@ class TenantRepository {
 
   static async getTenantInfo(id: string, options: IRepositoryOptions) {
     const query = `
-        select name, plan, "isTrialPlan", "trialEndsAt" from tenants where "tenantId" = :tenantId
+        select name, plan, "isTrialPlan", "trialEndsAt" from tenants where "id" = :tenantId
     `
     const parameters: any = {
       tenantId: id,
