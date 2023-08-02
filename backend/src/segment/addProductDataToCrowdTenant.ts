@@ -25,8 +25,7 @@ const expandAttributes = (attributes: Object) => {
     obj[key.toLowerCase()] = {
       [CROWD_ANALYTICS_PLATORM_NAME]: attributes[key],
     }
-  }
-  )
+  })
   return obj
 }
 
@@ -77,13 +76,13 @@ export default async function addProductData(data: CrowdAnalyticsData) {
         attributes: {
           ...expandAttributes({
             email: user.email,
-          createdAnAccount: true,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          plan: tenant[0]?.plan,
-          isTrialPlan: tenant[0]?.isTrialPlan,
-          trialEndsAt: tenant[0]?.trialEndsAt,
-          })
+            createdAnAccount: true,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            plan: tenant[0]?.plan,
+            isTrialPlan: tenant[0]?.isTrialPlan,
+            trialEndsAt: tenant[0]?.trialEndsAt,
+          }),
         },
       },
       type: data.event,
