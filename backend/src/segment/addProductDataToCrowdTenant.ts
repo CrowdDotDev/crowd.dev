@@ -56,12 +56,24 @@ export default async function addProductData(data: CrowdAnalyticsData) {
     return
   }
 
+  if (!data?.userId) {
+    // we can't send data without a user id
+    return
+  }
+
+  if (!data?.tenantId) {
+    // we can't send data without a tenant id
+    return
+  }
+
   try {
     const repositoryOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     const user = await UserRepository.findById(data.userId, repositoryOptions)
 
     const tenant = await TenantRepository.getTenantInfo(data.tenantId, repositoryOptions)
+
+    const timestamp = data.timestamp || new Date().toISOString()
 
     const obj = {
       member: {
@@ -81,9 +93,9 @@ export default async function addProductData(data: CrowdAnalyticsData) {
         },
       },
       type: data.event,
-      timestamp: data.timestamp,
+      timestamp,
       platform: CROWD_ANALYTICS_PLATORM_NAME,
-      sourceId: `${data.userId}-${data.timestamp}-${data.event}`,
+      sourceId: `${data.userId}-${timestamp}-${data.event}`,
     }
     const endpoint = `${CROWD_ANALYTICS_BASE_URL}/api/tenant/${CROWD_ANALYTICS_TENANT_ID}/activity/with-member`
     await axios.post(endpoint, obj, {
