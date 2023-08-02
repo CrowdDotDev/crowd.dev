@@ -114,7 +114,7 @@ const parseMessage = async (ctx: IProcessDataContext) => {
       timestamp: new Date(record.timestamp).toISOString(),
       title: record.isThread || record.isForum ? record.channel.name : undefined,
       body: record.content ? replaceMentions(record.content, record.mentions) : '',
-      url: `https://discordapp.com/channels/${record.channel.guild_id}/${record.channel.id}/${record.id}`,
+      url: `https://discord.com/channels/${record.channel.guild_id}/${record.channel.id}/${record.id}`,
       channel: record.parentChannel || record.channel.name,
       attributes: {
         childChannel: record.parentChannel ? record.channel.name : undefined,
