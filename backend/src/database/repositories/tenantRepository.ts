@@ -505,22 +505,6 @@ class TenantRepository {
 
     return platforms
   }
-
-  static async getTenantInfo(id: string, options: IRepositoryOptions) {
-    const query = `
-        select name, plan, "isTrialPlan", "trialEndsAt" from tenants where "tenantId" = :tenantId
-    `
-    const parameters: any = {
-      tenantId: id,
-    }
-
-    const info = await options.database.sequelize.query(query, {
-      replacements: parameters,
-      type: QueryTypes.SELECT,
-    })
-
-    return info
-  }
 }
 
 export default TenantRepository
