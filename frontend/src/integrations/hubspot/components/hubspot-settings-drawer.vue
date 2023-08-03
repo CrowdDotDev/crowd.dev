@@ -168,11 +168,11 @@
                   <app-hubspot-property-map
                     v-for="(value, key) in organizationMappableFields"
                     :key="key"
-                    v-model="form.mapping.organizations[field]"
-                    v-model:enabled="form.enabled.organizations[field]"
+                    v-model="form.mapping.organizations[key]"
+                    v-model:enabled="form.enabled.organizations[key]"
                     :field="key"
                     :read-only="value.readonly"
-                    :hubspot-fields="getHubspotOrganizationFields(value.hubspotType, form.mapping.organizations[field])"
+                    :hubspot-fields="getHubspotOrganizationFields(value.hubspotType, form.mapping.organizations[key])"
                   />
                 </section>
               </div>

@@ -90,6 +90,7 @@
             <el-dropdown-item
               v-for="(config, key) in filterConfigs"
               :key="key"
+              :disabled="settings.list.includes(key)"
               @click="addFilter(key)"
             >
               {{ config.label }}
@@ -190,6 +191,9 @@ const $v = useVuelidate(rules, {
 
 const open = ref('');
 const addFilter = (key: string) => {
+  if (settings.value.list.includes(key)) {
+    return;
+  }
   settings.value.list.push(key);
   open.value = key;
 };

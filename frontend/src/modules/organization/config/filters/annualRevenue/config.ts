@@ -17,7 +17,7 @@ const annualRevenue: NumberFilterConfig = {
     return itemLabelRendererByType[FilterConfigType.NUMBER]('Annual revenue', value, options);
   },
   apiFilterRenderer(value: NumberFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.NUMBER]('revenueRange.max', value);
+    return apiFilterRendererByType[FilterConfigType.NUMBER]('revenueRange', value);
   },
 };
 
