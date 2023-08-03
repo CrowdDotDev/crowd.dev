@@ -84,6 +84,11 @@ export default async function addProductData(data: CrowdAnalyticsData) {
             trialEndsAt: tenant[0]?.trialEndsAt,
           }),
         },
+        organizations: [
+          {
+            name: tenant[0]?.name,
+          },
+        ],
       },
       type: data.event,
       timestamp,
