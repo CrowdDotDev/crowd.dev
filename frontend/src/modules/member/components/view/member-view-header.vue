@@ -71,8 +71,8 @@
 
     <div class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
       <div class="text-sm">
-        <app-tags :long="true" :member="member" @edit="isEditTagsDialogOpen = member" />
-        <app-tag-popover v-model="isEditTagsDialogOpen" />
+        <app-tags :long="true" :member="member" @edit="isEditTagsDialogOpen = true" />
+        <app-tag-popover v-model="isEditTagsDialogOpen" :member="member"  />
       </div>
     </div>
   </div>
@@ -100,7 +100,7 @@ defineProps({
   },
 });
 
-const isEditTagsDialogOpen = ref(null);
+const isEditTagsDialogOpen = ref(false);
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information

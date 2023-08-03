@@ -139,7 +139,7 @@
 
 <script setup>
 import {
-  computed, defineProps, defineEmits, reactive, ref, watch,
+  computed, defineProps, defineEmits, reactive, ref, watch, onMounted,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { required } from '@vuelidate/validators';
@@ -154,6 +154,7 @@ import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import formChangeDetector from '@/shared/form/form-change';
+import { useStore } from 'vuex';
 
 const props = defineProps({
   modelValue: {
@@ -176,6 +177,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'update:automation']);
 
 const { createAutomation, updateAutomation, getAutomations } = useAutomationStore();
+
+const store = useStore();
+const fetchIntegrations = () => store.dispatch('integration/doFetch');
 
 const isDrawerOpen = computed({
   get() {
@@ -236,14 +240,6 @@ const reset = () => {
   formSnapshot();
 };
 
-watch(() => props.modelValue, () => {
-  if (type.value && props.automation) {
-    fillForm(props.automation);
-  } else {
-    reset();
-  }
-});
-
 // Submit form
 const sending = ref(false);
 
@@ -287,6 +283,14 @@ const doSubmit = () => {
   }
 };
 
+onMounted(() => {
+  fetchIntegrations();
+  if (type.value && props.automation) {
+    fillForm(props.automation);
+  } else {
+    reset();
+  }
+});
 </script>
 
 <script>

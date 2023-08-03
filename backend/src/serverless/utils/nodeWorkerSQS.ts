@@ -132,12 +132,21 @@ export const sendExportCSVNodeSQSMessage = async (
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
 
-export const sendBulkEnrichMessage = async (tenant: string, memberIds: string[]): Promise<void> => {
+export const sendBulkEnrichMessage = async (
+  tenant: string,
+  memberIds: string[],
+  segmentIds: string[],
+  notifyFrontend: boolean = true,
+  skipCredits: boolean = false,
+): Promise<void> => {
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     service: 'bulk-enrich',
     memberIds,
     tenant,
+    segmentIds,
+    notifyFrontend,
+    skipCredits,
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

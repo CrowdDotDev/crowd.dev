@@ -80,7 +80,10 @@ const { currentTenant, currentUser } = mapGetters('auth');
 
 const identitiesDrawer = ref(false);
 
-const emails = computed(() => props.member.emails);
+const emails = computed(() => (props.member.emails
+  // Filters out any falsy values (like `null`, `undefined)
+  ? props.member.emails.filter(Boolean)
+  : []));
 
 const socialIdentities = computed(() => {
   const identities = { ...props.member.username };

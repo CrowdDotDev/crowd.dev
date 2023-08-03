@@ -198,7 +198,6 @@ const confidence = computed(() => {
 });
 
 const fetch = (page) => {
-  primary.value = 0;
   if (page > -1) {
     offset.value = page;
   }
@@ -209,6 +208,12 @@ const fetch = (page) => {
       offset.value = +res.offset;
       count.value = res.count;
       [membersToMerge.value] = res.rows;
+      
+      // Set member with maximum activities and identities as primary
+      if ((members[0].identities.length < members[1].identities.length) || 
+        (members[0].activityCount < members[1].activityCount)) {
+          primary.value = 1;
+      }
     })
     .catch(() => {
       Message.error(

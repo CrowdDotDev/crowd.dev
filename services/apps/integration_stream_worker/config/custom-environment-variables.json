@@ -29,5 +29,14 @@
   "discord": {
     "token": "CROWD_DISCORD_TOKEN",
     "token2": "CROWD_DISCORD_TOKEN_2"
+  },
+  "github": {
+    "appId": "CROWD_GITHUB_APP_ID",
+    "clientId": "CROWD_GITHUB_CLIENT_ID",
+    "clientSecret": "CROWD_GITHUB_CLIENT_SECRET",
+    "callbackUrl": "CROWD_GITHUB_CALLBACK_URL",
+    "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
+    "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
+    "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
   }
 }

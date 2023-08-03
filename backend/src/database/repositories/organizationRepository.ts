@@ -256,6 +256,7 @@ class OrganizationRepository {
           'employees',
           'twitter',
           'lastEnrichedAt',
+          'attributes',
         ]),
         updatedById: currentUser.id,
       },
@@ -568,11 +569,6 @@ class OrganizationRepository {
         },
         include: [
           {
-            model: options.database.activity,
-            as: 'activities',
-            attributes: [],
-          },
-          {
             model: options.database.memberIdentity,
             as: 'memberIdentities',
             attributes: [],
@@ -589,29 +585,18 @@ class OrganizationRepository {
       },
     ]
 
-    const activeOn = Sequelize.literal(
-      `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
-    )
+    const activeOn = Sequelize.literal(`ARRAY[]::TEXT[]`)
 
     // TODO: member identitites FIX
-    const identities = Sequelize.literal(
-      `array_agg( distinct "members->memberIdentities".platform)`,
-    )
+    const identities = Sequelize.literal(`ARRAY[]::TEXT[]`)
 
-    const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
+    const lastActive = Sequelize.literal(`NULL`)
 
-    const joinedAt = Sequelize.literal(`
-        MIN(
-          CASE
-            WHEN "members->activities".timestamp != '1970-01-01T00:00:00.000Z'
-            THEN "members->activities".timestamp
-          END
-        )
-      `)
+    const joinedAt = Sequelize.literal(`NULL`)
 
     const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 
-    const activityCount = Sequelize.literal(`COUNT("members->activities".id)::integer`)
+    const activityCount = Sequelize.literal(`NULL`)
 
     const segments = Sequelize.literal(
       `ARRAY_AGG(DISTINCT "segments->organizationSegments"."segmentId")`,
@@ -841,6 +826,7 @@ class OrganizationRepository {
               'updatedById',
               'isTeamOrganization',
               'type',
+              'attributes',
             ],
             'organization',
           ),
@@ -938,6 +924,7 @@ class OrganizationRepository {
             'employeeCountByCountry',
             'address',
             'profiles',
+            'attributes',
           ],
           'organization',
         ),

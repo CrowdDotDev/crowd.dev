@@ -1,5 +1,7 @@
+import { IAttributes } from './attributes'
 import { MemberAttributeType } from './enums/members'
-import { IOrganization } from './organizations'
+import { IOrganization, IOrganizationOpensearch } from './organizations'
+import { ITagOpensearch } from './tags'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
@@ -24,4 +26,30 @@ export interface IMemberData {
   attributes?: Record<string, unknown>
   joinedAt?: string
   organizations?: IOrganization[]
+}
+
+export interface IMember {
+  id: string
+  tenantId: string
+  segmentId: string
+  attributes: IAttributes
+  emails: string[]
+  score: number
+  lastEnriched: string
+  joinedAt: string
+  createdAt: string
+  reach: number
+  numberOfOpenSourceContributions: number
+  activeOn: string[]
+  activityCount: number
+  lastActive: string
+  averageSentiment: number
+  identities: IMemberIdentity[]
+  organizations: IOrganizationOpensearch[]
+  tags: ITagOpensearch[]
+  toMergeIds: string[]
+  noMergeIds: string[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  username: any
+  lastActivity: unknown
 }

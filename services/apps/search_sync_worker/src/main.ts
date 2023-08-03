@@ -12,7 +12,7 @@ const log = getServiceLogger()
 const MAX_CONCURRENT_PROCESSING = 2
 
 setImmediate(async () => {
-  log.info('Starting data sink worker...')
+  log.info('Starting search sync worker...')
 
   const openSearchService = new OpenSearchService(log)
 
