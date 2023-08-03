@@ -58,6 +58,7 @@ const mapping = computed<string>({
     return props.modelValue;
   },
   set(value: string) {
+    console.log(value);
     emit('update:modelValue', value);
   },
 });
