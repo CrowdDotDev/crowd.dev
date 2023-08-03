@@ -3,6 +3,7 @@ import { router } from '@/router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 const exportMax = {
+  scale: 'unlimited',
   enterprise: 'unlimited',
   growth: 10,
   essential: 2,
@@ -13,6 +14,9 @@ const exportMax = {
  * @returns maximum number of exports
  */
 export const getExportMax = (plan) => {
+  if (plan === Plans.values.scale) {
+    return exportMax.scale;
+  }
   if (plan === Plans.values.enterprise) {
     return exportMax.enterprise;
   } if (
