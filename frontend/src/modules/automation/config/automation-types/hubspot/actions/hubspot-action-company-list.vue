@@ -35,8 +35,8 @@
         >
           <el-option
             v-for="list of props.lists.members"
-            :key="list.id"
-            :value="list.id"
+            :key="list.listId"
+            :value="list.listId"
             :label="list.name"
           />
         </el-select>
@@ -74,7 +74,7 @@ const form = computed<any>({
 
 const rules: any = computed(() => ({
   contactList: {
-    required: (value: string) => (form.value.syncCompanyContacts ? value.length > 0 : true),
+    required: (value: string) => (form.value.syncCompanyContacts ? !!value : true),
   },
 }));
 
