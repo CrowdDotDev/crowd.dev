@@ -63,7 +63,6 @@ export default {
   },
 
   async created() {
-    await Auth0Service.init();
     await this.doInit();
 
     FeatureFlag.init(this.currentTenant);

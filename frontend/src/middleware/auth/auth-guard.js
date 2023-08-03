@@ -27,6 +27,7 @@ export default async function ({ to, store, router }) {
   }
 
   await store.dispatch('auth/doWaitUntilInit');
+  await Auth0Service.init();
 
   const currentUser = store.getters['auth/currentUser'];
 
@@ -34,14 +35,6 @@ export default async function ({ to, store, router }) {
     store.getters['auth/currentTenant'],
     currentUser,
   );
-
-  const isAuthenticated = await Auth0Service.isAuthenticated();
-
-  if (!permissionChecker.isAuthenticated || !isAuthenticated) {
-    router.push({ path: '/auth/signin' });
-    Auth0Service.localLogout();
-    return;
-  }
 
   // Temporary fix
   if (

@@ -1,5 +1,5 @@
 import config from '@/config';
-import { Auth0Client, User } from '@auth0/auth0-spa-js';
+import { Auth0Client } from '@auth0/auth0-spa-js';
 import { store } from '@/store';
 import { router } from '@/router';
 
@@ -26,15 +26,15 @@ class Auth0ServiceClass {
     return this.webAuth.loginWithRedirect();
   }
 
-  isAuthenticated() {
+  async isAuthenticated() {
     return this.webAuth.isAuthenticated();
   }
 
-  async handleAuth(): Promise<void> {
+  async handleAuth() {
     return this.webAuth.handleRedirectCallback();
   }
 
-  init() {
+  async init() {
     return this.webAuth.isAuthenticated().then((isAuthenticated) => {
       if (!isAuthenticated) {
         return this.webAuth.getTokenSilently().then(() => {
@@ -51,6 +51,8 @@ class Auth0ServiceClass {
           return Promise.reject();
         });
       }
+
+      store.dispatch('auth/authenticate');
 
       return Promise.resolve();
     });
@@ -72,12 +74,12 @@ class Auth0ServiceClass {
     localStorage.removeItem('jwt');
   }
 
-  public logout(): void {
+  public logout() {
     Auth0ServiceClass.localLogout();
     this.webAuth.logout();
   }
 
-  public getUser(): Promise<User> {
+  public getUser() {
     return this.webAuth.getUser().then((user) => user);
   }
 }
