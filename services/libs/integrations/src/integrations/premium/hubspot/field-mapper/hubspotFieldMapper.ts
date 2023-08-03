@@ -1,4 +1,11 @@
-import { HubspotEntity, HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
+import { IMemberAttribute } from '@crowd/types'
+import {
+  HubspotEntity,
+  HubspotPropertyType,
+  IFieldProperty,
+  IHubspotObject,
+  ITypeInfo,
+} from '../types'
 
 export abstract class HubspotFieldMapper {
   protected fieldProperties: Record<string, IFieldProperty>
@@ -9,7 +16,14 @@ export abstract class HubspotFieldMapper {
 
   public hubspotId: number
 
-  abstract getFieldProperties(): Record<string, IFieldProperty>
+  constructor(hubspotId: number) {
+    this.hubspotId = hubspotId
+  }
+
+  abstract getFieldProperties(
+    attributes?: IMemberAttribute[],
+    platforms?: string[],
+  ): Record<string, IFieldProperty>
 
   abstract getEntity(input: IHubspotObject, args?: unknown): unknown
 
@@ -37,15 +51,18 @@ export abstract class HubspotFieldMapper {
     return value
   }
 
-  public getTypeMap(): Record<string, HubspotPropertyType> {
+  public getTypeMap(): Record<string, ITypeInfo> {
     if (!this.fieldProperties) {
       throw new Error(`Can't find field properties of ${this.entity}!`)
     }
 
-    const typeMap: Record<string, HubspotPropertyType> = {}
+    const typeMap: Record<string, ITypeInfo> = {}
 
     Object.keys(this.fieldProperties).forEach((propertyName) => {
-      typeMap[propertyName] = this.fieldProperties[propertyName].hubspotType
+      typeMap[propertyName] = {
+        hubspotType: this.fieldProperties[propertyName].hubspotType,
+        readonly: this.fieldProperties[propertyName].readonly || false,
+      }
     })
 
     return typeMap

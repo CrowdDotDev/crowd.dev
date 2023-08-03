@@ -1,14 +1,14 @@
 import moment from 'moment'
+import { RedisCache, getRedisClient } from '@crowd/redis'
 import { QueryTypes } from 'sequelize'
 import { convert as convertHtmlToText } from 'html-to-text'
-import { prettyActivityTypes } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
-import { PlatformType } from '@crowd/types'
+import { ActivityDisplayVariant, PlatformType } from '@crowd/types'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
 import ConversationService from '../../../../../services/conversationService'
-import { SENDGRID_CONFIG, S3_CONFIG, WEEKLY_EMAILS_CONFIG } from '../../../../../conf'
+import { SENDGRID_CONFIG, S3_CONFIG, WEEKLY_EMAILS_CONFIG, REDIS_CONFIG } from '../../../../../conf'
 import CubeJsRepository from '../../../../../cubejs/cubeJsRepository'
 import { AnalyticsEmailsOutput } from '../../messageTypes'
 import getStage from '../../../../../services/helpers/getStage'
@@ -20,8 +20,11 @@ import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
 import SegmentRepository from '../../../../../database/repositories/segmentRepository'
+import ActivityDisplayService from '@/services/activityDisplayService'
 
 const log = getServiceChildLogger('weeklyAnalyticsEmailsWorker')
+
+const MAX_RETRY_COUNT = 5
 
 /**
  * Sends weekly analytics emails of a given tenant
@@ -102,7 +105,14 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
   const rehRepository = new RecurringEmailsHistoryRepository(userContext)
 
-  if (activeTenantIntegrations.length > 0) {
+  const isEmailAlreadySent =
+    (await rehRepository.findByWeekOfYear(
+      tenantId,
+      moment().utc().startOf('isoWeek').subtract(7, 'days').isoWeek().toString(),
+      RecurringEmailType.WEEKLY_ANALYTICS,
+    )) !== null
+
+  if (activeTenantIntegrations.length > 0 && !isEmailAlreadySent) {
     log.info(tenantId, ` has completed integrations. Eligible for weekly emails.. `)
     const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
 
@@ -201,7 +211,11 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     return { status: 200, emailSent: true }
   }
 
-  log.info({ tenantId }, 'No active integrations present in the tenant. Email will not be sent.')
+  if (isEmailAlreadySent) {
+    log.warn({ tenantId }, 'E-mail is already sent for this tenant this week. Skipping!')
+  } else {
+    log.info({ tenantId }, 'No active integrations present in the tenant. Email will not be sent.')
+  }
 
   return {
     status: 200,
@@ -413,7 +427,15 @@ async function getAnalyticsData(tenantId: string) {
     )
 
     topActivityTypes = topActivityTypes.map((a) => {
-      const prettyName: string = prettyActivityTypes[a.platform][a.type]
+      const displayOptions = ActivityDisplayService.getDisplayOptions(
+        {
+          platform: a.platform,
+          type: a.type,
+        },
+        SegmentRepository.getActivityTypes(userContext),
+        [ActivityDisplayVariant.SHORT],
+      )
+      const prettyName: string = displayOptions.short
       a.type = prettyName[0].toUpperCase() + prettyName.slice(1)
       a.percentage = Number((a.count / a.totalCount) * 100).toFixed(2)
       a.platformIcon = `${s3Url}/email/${a.platform}.png`
@@ -435,7 +457,7 @@ async function getAnalyticsData(tenantId: string) {
         and a.timestamp between :startDate and :endDate
       group by c.id
       order by count(a.id) desc
-      limit 5;`,
+      limit 3;`,
           {
             replacements: {
               tenantId,
@@ -466,6 +488,12 @@ async function getAnalyticsData(tenantId: string) {
 
         c.platformIcon = `${s3Url}/email/${conversationStarterActivity.platform}.png`
 
+        const displayOptions = ActivityDisplayService.getDisplayOptions(
+          conversationStarterActivity,
+          SegmentRepository.getActivityTypes(userContext),
+          [ActivityDisplayVariant.SHORT],
+        )
+
         let prettyChannel = conversationStarterActivity.channel
 
         let prettyChannelHTML = `<span style='text-decoration:none;color:#4B5563'>${prettyChannel}</span>`
@@ -476,15 +504,11 @@ async function getAnalyticsData(tenantId: string) {
           prettyChannelHTML = `<span style='color:#e94f2e'><a target="_blank" style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:none;color:#e94f2e;font-size:14px;line-height:14px" href="${conversationStarterActivity.channel}">${prettyChannel}</a></span>`
         }
 
-        c.description = `${
-          prettyActivityTypes[conversationStarterActivity.platform][
-            conversationStarterActivity.type
-          ]
-        } in ${prettyChannelHTML}`
+        c.description = `${displayOptions.short} in ${prettyChannelHTML}`
 
         c.sourceLink = conversationStarterActivity.url
 
-        c.member = conversationStarterActivity.member.username[conversationStarterActivity.platform]
+        c.member = conversationStarterActivity.member.displayName
 
         return c
       }),
@@ -495,6 +519,7 @@ async function getAnalyticsData(tenantId: string) {
         select * from integrations i
         where i."tenantId" = :tenantId
         and i.status = 'done'
+        and i."deletedAt" is null
         limit 1;`,
       {
         replacements: {
@@ -535,8 +560,38 @@ async function getAnalyticsData(tenantId: string) {
       },
     }
   } catch (e) {
+    // check redis for retry count
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const weeklyEmailsRetryCountsCache = new RedisCache('weeklyEmailsRetryCounts', redis, log)
+    const retryCount = await weeklyEmailsRetryCountsCache.get(tenantId)
+
+    if (!retryCount) {
+      weeklyEmailsRetryCountsCache.set(tenantId, '0', 432000) // set the ttl for 5 days
+      return {
+        shouldRetry: true,
+        data: {},
+        error: e,
+      }
+    }
+
+    const parsedRetryCount = parseInt(retryCount, 10)
+    if (parsedRetryCount < MAX_RETRY_COUNT) {
+      log.info(`Current retryCount for tenant is: ${retryCount}, trying to send the e-mail again!`)
+      // increase retryCount and retry the email
+      weeklyEmailsRetryCountsCache.set(tenantId, (parsedRetryCount + 1).toString(), 432000)
+      return {
+        shouldRetry: true,
+        data: {},
+        error: e,
+      }
+    }
+
+    log.info(
+      { error: JSON.stringify(e) },
+      `Retried total of ${MAX_RETRY_COUNT} times. Skipping sending e-mail!`,
+    )
     return {
-      shouldRetry: true,
+      shouldRetry: false,
       data: {},
       error: e,
     }

@@ -22,6 +22,9 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   if (ctx.stream.identifier === HubspotStream.MEMBERS) {
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
+      settings.hubspotId,
+      settings.crowdAttributes,
+      settings.platforms,
     ) as HubspotMemberFieldMapper
     memberMapper.setFieldMap(settings.attributesMapping.members)
     memberMapper.setHubspotId(settings.hubspotId)
@@ -33,6 +36,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     if (organizationsEnabled) {
       organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.ORGANIZATIONS,
+        settings.hubspotId,
       ) as HubspotOrganizationFieldMapper
 
       organizationMapper.setFieldMap(settings.attributesMapping.organizations)
@@ -65,6 +69,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   } else if (ctx.stream.identifier === HubspotStream.ORGANIZATIONS) {
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.ORGANIZATIONS,
+      settings.hubspotId,
     ) as HubspotOrganizationFieldMapper
 
     organizationMapper.setFieldMap(settings.attributesMapping.organizations)

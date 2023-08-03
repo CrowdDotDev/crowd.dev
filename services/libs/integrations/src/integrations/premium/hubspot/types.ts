@@ -1,3 +1,5 @@
+import { IMemberAttribute } from '@crowd/types'
+
 export enum HubspotPropertyType {
   BOOL = 'bool',
   ENUMERATION = 'enumeration',
@@ -81,6 +83,41 @@ export interface IHubspotProperty {
   modificationMetadata: IHubspotPropertyModificationMetadata
 }
 
+export interface IHubspotListMetadata {
+  size: number
+  lastSizeChangeAt: number
+  processing: string
+  lastProcessingStateChangeAt: number
+  error: string
+  listReferencesCount: number
+  parentFolderId: number
+}
+
+export interface IHubspotList {
+  portalId: number
+  listId: number
+  createdAt: number
+  updatedAt: number
+  name: string
+  listType: string
+  authorId: number
+  parentId: number
+  filters: string[]
+  metaData: IHubspotListMetadata
+  archived: boolean
+  teamIds: number[]
+  ilsFilterBranch: string
+  readOnly: boolean
+  internal: boolean
+  limitExempt: boolean
+  dynamic: boolean
+}
+
+export interface ITypeInfo {
+  hubspotType: HubspotPropertyType
+  readonly: boolean
+}
+
 export interface IHubspotObject {
   id: string
   properties: unknown
@@ -118,6 +155,8 @@ export interface IHubspotOnboardingSettings {
 export interface IHubspotIntegrationSettings extends IHubspotOnboardingSettings {
   hubspotId: number
   hubspotProperties: IHubspotProperty[]
+  crowdAttributes: IMemberAttribute[]
+  platforms: string[]
   updateMemberAttributes: boolean
   syncRemoteEnabled?: boolean
   blockSyncRemote?: boolean

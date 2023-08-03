@@ -44,7 +44,7 @@ export interface IMember {
   activityCount: number
   lastActive: string
   averageSentiment: number
-  identities: string[]
+  identities: IMemberIdentity[]
   organizations: IOrganizationOpensearch[]
   tags: ITagOpensearch[]
   toMergeIds: string[]
