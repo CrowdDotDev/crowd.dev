@@ -825,8 +825,8 @@ export default class IntegrationService {
     )
 
     return {
-      members: memberMapper.getTypeMapOld(),
-      organizations: organizationMapper.getTypeMapOld(),
+      members: memberMapper.getTypeMap(),
+      organizations: organizationMapper.getTypeMap(),
     }
   }
 
