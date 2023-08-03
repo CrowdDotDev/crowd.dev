@@ -16,65 +16,43 @@
       </el-checkbox>
     </el-tooltip>
 
-    <app-form-item
-      class="pb-4 mb-0"
-      label="HubSpot companies list"
-      :required="true"
-      :validation="$v.companyList"
-      :error-messages="{
-        required: 'This field is required',
-      }"
-    >
-      <el-select
-        v-model="form.companyList"
-        placeholder="Select option"
-        class="w-full"
-        @blur="$v.companyList.$touch"
+    <div v-if="form.syncCompanyContacts" class="flex items-end">
+      <div class="ri-corner-down-right-line text-xl mr-4 mb-2 text-gray-400 h-6 flex items-center" />
+      <app-form-item
+        class="!mb-0 w-full"
+        label="HubSpot contacts list"
+        :required="true"
+        :validation="$v.contactList"
+        :error-messages="{
+          required: 'This field is required',
+        }"
       >
-        <el-option
-          v-for="list of props.lists.organizations"
-          :key="list.id"
-          :value="list.id"
-          :label="list.name"
-        />
-      </el-select>
-    </app-form-item>
-    <app-form-item
-      v-if="form.syncCompanyContacts"
-      class="pb-4"
-      label="HubSpot contacts list"
-      :required="true"
-      :validation="$v.contactList"
-      :error-messages="{
-        required: 'This field is required',
-      }"
-    >
-      <el-select
-        v-model="form.contactList"
-        placeholder="Select option"
-        class="w-full"
-        @blur="$v.contactList.$touch"
-      >
-        <el-option
-          v-for="list of props.lists.members"
-          :key="list.id"
-          :value="list.id"
-          :label="list.name"
-        />
-      </el-select>
-    </app-form-item>
+        <el-select
+          v-model="form.contactList"
+          placeholder="Select option"
+          class="w-full"
+          @blur="$v.contactList.$touch"
+        >
+          <el-option
+            v-for="list of props.lists.members"
+            :key="list.id"
+            :value="list.id"
+            :label="list.name"
+          />
+        </el-select>
+      </app-form-item>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import AppFormItem from '@/shared/form/form-item.vue';
 import { computed, defineEmits, defineProps } from 'vue';
-import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { HubspotEntity } from "@/integrations/hubspot/types/HubspotEntity";
-import { HubspotLists } from "@/integrations/hubspot/types/HubspotLists";
+import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
+import { HubspotLists } from '@/integrations/hubspot/types/HubspotLists';
 
 const store = useStore();
 
@@ -95,9 +73,6 @@ const form = computed<any>({
 });
 
 const rules: any = computed(() => ({
-  companyList: {
-    required,
-  },
   contactList: {
     required: (value: string) => (form.value.syncCompanyContacts ? value.length > 0 : true),
   },

@@ -130,8 +130,8 @@ const memberOptions: HubspotActionOption[] = [
 
 const organizationOptions: HubspotActionOption[] = [
   {
-    label: 'Add organization to a HubSpot companies list',
-    description: 'Send organization to HubSpot and add it to a companies list.',
+    label: 'Create company(ies) in HubSpot',
+    description: 'Send organization(s) to HubSpot matching your conditions criteria.',
     value: HubspotAutomationAction.ADD_TO_COMPANY_LIST,
   },
 ];
