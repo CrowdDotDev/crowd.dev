@@ -4,7 +4,7 @@ import {
   ProcessIntegrationSyncHandler,
 } from '@/types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
-import { Entity, IMember, IOrganization } from '@crowd/types'
+import { AutomationSyncTrigger, Entity, IMember, IOrganization } from '@crowd/types'
 import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
 import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
 import { RequestThrottler } from '@crowd/common'
@@ -14,6 +14,7 @@ import { HubspotOrganizationFieldMapper } from './field-mapper/organizationField
 import { batchCreateOrganizations } from './api/batchCreateOrganizations'
 import { batchUpdateOrganizations } from './api/batchUpdateOrganizations'
 import { IBatchOperationResult } from './api/types'
+import { addContactsToList } from './api/addContactsToList'
 
 const handler: ProcessIntegrationSyncHandler = async <T>(
   toCreate: T[],
@@ -68,6 +69,21 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
           memberMapper,
           integrationContext,
           throttler,
+        )
+      }
+
+      // we should also add members to hubspot lists, if it's coming from an automation
+      if (ctx.automation.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH) {
+        const vids: string[] = [
+          ...membersCreatedInHubspot.map((m) => m.sourceId),
+          ...(toUpdate as IMember[]).map((m) => m.attributes.sourceId.hubspot),
+        ]
+
+        await addContactsToList(
+          nangoId,
+          ctx.automation.settings.contactList,
+          vids,
+          integrationContext,
         )
       }
 

@@ -1,5 +1,5 @@
 import { Logger } from '@crowd/logging'
-import { IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
+import { AutomationSyncTrigger, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
 import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
 
 export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
@@ -50,6 +50,34 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
         memberId,
       },
       `integration-sync-member-${memberId}`,
+    )
+  }
+
+  public async triggerOnboardAutomation(
+    tenantId: string,
+    integrationId: string,
+    automationId: string,
+    automationTrigger: AutomationSyncTrigger,
+  ): Promise<void> {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+    if (!automationId) {
+      throw new Error('automationId is required!')
+    }
+    if (!integrationId) {
+      throw new Error('integrationId is required!')
+    }
+    await this.sendMessage(
+      `integration-onboard-automation-${integrationId}-${tenantId}`,
+      {
+        type: IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION,
+        tenantId,
+        integrationId,
+        automationId,
+        automationTrigger,
+      },
+      `integration-onboard-automation-${automationId}`,
     )
   }
 

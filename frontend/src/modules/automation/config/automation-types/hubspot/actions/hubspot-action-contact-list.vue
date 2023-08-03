@@ -17,8 +17,8 @@
       >
         <el-option
           v-for="list of props.lists.members"
-          :key="list.id"
-          :value="list.id"
+          :key="list.listId"
+          :value="list.listId"
           :label="list.name"
         />
       </el-select>

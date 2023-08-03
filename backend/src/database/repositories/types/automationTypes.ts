@@ -1,3 +1,4 @@
+import { AutomationSyncTrigger } from '@crowd/types'
 import {
   AutomationExecutionState,
   AutomationSettings,
@@ -9,7 +10,7 @@ import {
 export interface DbAutomationInsertData {
   name: string
   type: AutomationType
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   settings: AutomationSettings
   state: AutomationState
 }

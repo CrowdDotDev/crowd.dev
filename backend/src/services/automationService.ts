@@ -1,7 +1,9 @@
+import { AutomationSyncTrigger, PlatformType } from '@crowd/types'
 import {
   AutomationCriteria,
   AutomationData,
   AutomationState,
+  AutomationType,
   CreateAutomationRequest,
   UpdateAutomationRequest,
 } from '../types/automationTypes'
@@ -10,6 +12,9 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
 import { PageData } from '../types/common'
 import { ServiceBase } from './serviceBase'
+import { getIntegrationSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import IntegrationRepository from '@/database/repositories/integrationRepository'
+import Error404 from '@/errors/Error404'
 
 export default class AutomationService extends ServiceBase<
   AutomationData,
@@ -38,6 +43,28 @@ export default class AutomationService extends ServiceBase<
       })
 
       await SequelizeRepository.commitTransaction(txOptions.transaction)
+
+      // check automation type, if hubspot trigger an automation onboard
+      if (req.type === AutomationType.HUBSPOT) {
+        let integration
+
+        try {
+          integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
+            ...this.options,
+          })
+        } catch (err) {
+          this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
+          throw new Error404()
+        }
+
+        const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
+        await integrationSyncWorkerEmitter.triggerOnboardAutomation(
+          this.options.currentTenant.id,
+          integration.id,
+          result.id,
+          req.trigger as AutomationSyncTrigger,
+        )
+      }
 
       return result
     } catch (error) {

@@ -1,4 +1,10 @@
-import { IMemberAttribute, IActivityData, IntegrationResultType, Entity } from '@crowd/types'
+import {
+  IMemberAttribute,
+  IActivityData,
+  IntegrationResultType,
+  Entity,
+  IAutomation,
+} from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
@@ -9,6 +15,9 @@ export interface IIntegrationContext {
   onboarding?: boolean
   integration: IIntegration
   log: Logger
+  /**
+   * Cache that is tied up to the tenantId and integration type
+   */
   cache: ICache
 
   publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
@@ -20,6 +29,7 @@ export interface IIntegrationContext {
 export interface IIntegrationStartRemoteSyncContext {
   integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
   integration: IIntegration
+  automations: IAutomation[]
   tenantId: string
   log: Logger
 }
@@ -29,6 +39,7 @@ export interface IIntegrationProcessRemoteSyncContext {
   integration: IIntegration
   log: Logger
   serviceSettings: IIntegrationServiceSettings
+  automation?: IAutomation
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
@@ -45,7 +56,15 @@ export interface IProcessStreamContext extends IIntegrationContext {
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
+  /**
+   * Global cache that is shared between all integrations
+   */
   globalCache: ICache
+
+  /**
+   * Cache that is shared between all streams of the same integration (integrationId)
+   */
+  integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
@@ -65,7 +84,15 @@ export interface IProcessWebhookStreamContext {
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
+  /**
+   * Global cache that is shared between all integrations
+   */
   globalCache: ICache
+
+  /**
+   * Cache that is shared between all streams of the same integration (integrationId)
+   */
+  integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
