@@ -73,7 +73,7 @@
           :disabled="isEditLockedForSampleData"
         >
           <i class="ri-lg ri-file-edit-line mr-1" />
-          Edit attributes
+          Edit attribute
         </el-dropdown-item>
         <el-dropdown-item
           :command="{ action: 'editTags' }"
@@ -105,7 +105,7 @@
     <app-tag-popover v-model="bulkTagsUpdateVisible"
       @reload="fetchMembers({ reload: true })" />
 
-    <app-edit-attributes-popover
+    <app-bulk-edit-attribute-popover
       v-model="bulkAttributesUpdateVisible"
       @reload="fetchMembers({ reload: true })"
     />
@@ -131,7 +131,7 @@ import {
   getEnrichmentMax,
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
-import AppEditAttributesPopover from '@/modules/member/components/member-edit-attributes.vue';
+import AppBulkEditAttributePopover from '@/modules/member/components/member-edit-attribute.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 

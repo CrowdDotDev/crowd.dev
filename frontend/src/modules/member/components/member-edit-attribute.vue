@@ -1,118 +1,31 @@
 <template>
-  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit attributes">
+  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit attribute">
     <template #content>
       <div class="px-6 pb-6">
-        <el-form :model="formModel" class="attributes-form">
-          <div class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-3 px-4 mt-2">
+        <el-form
+          ref="formRef"
+          :model="formModel"
+          class="attributes-form"
+          label-position="top"
+        >
+          <!-- <div class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-3 px-4 mt-2">
             <i class="ri-alert-fill text-yellow-500 text-base " />
             <span class="text-xs leading-5 text-gray-900">Some changes may overwrite current attributes from the
               selected members.</span>
-          </div>
-          <div class="mt-6 mb-8 flex flex-col gap-4">
-            <h6 class="text-xs text-gray-400">
-              DEFAULT ATTRIBUTES
-            </h6>
-
-            <div v-for="(attribute, index) in defaultAttributes" :key="index" class="flex">
-              <div class="flex flex-col flex-shrink-0 w-1/3">
-                <span class="text-xs font-medium text-gray-900">{{ attribute.label }}</span>
-                <p class="text-2xs text-gray-500">
-                  {{ attributesTypes[attribute.type] }}
-                </p>
-              </div>
-
-              <app-autocomplete-many-input
-                v-if="attribute.type === 'multiSelect'"
-                v-model="formModel[attribute.name]"
-                :fetch-fn="fetchOrganizationsFn"
-                :create-fn="createOrganizationFn"
-                placeholder="Select an option or create one"
-                input-class="w-full multi-select-field"
-                store-key="memberOrganizations"
-                :create-if-not-found="true"
-                :collapse-tags="true"
-                :parse-model="true"
-                :are-options-in-memory="true"
-              >
-                <template #option="{ item }">
-                  <div class="flex items-center">
-                    <app-avatar
-                      :entity="{
-                        displayName: item.label,
-                        avatar: item.logo,
-                      }"
-                      size="xxs"
-                      class="mr-2"
-                    />
-                    {{ item.label }}
-                  </div>
-                </template>
-              </app-autocomplete-many-input>
-
-              <el-date-picker
-                v-else-if="attribute.type === 'date'"
-                v-model="formModel[attribute.name]"
-                :prefix-icon="CalendarIcon"
-                :clearable="false"
-                class="custom-date-picker"
-                size="large"
-                popper-class="date-picker-popper"
-                type="date"
-                value-format="YYYY-MM-DD"
-                format="YYYY-MM-DD"
-                placeholder="YYYY-MM-DD"
-              />
-            </div>
-          </div>
-
-          <div class="mb-10 flex flex-col gap-4">
-            <h6 class="text-xs text-gray-400 pb-3">
-              CUSTOM ATTRIBUTES
-            </h6>
-
-            <div v-for="(attribute, index) in computedCustomAttributes" :key="index" class="flex">
-              <div class="flex flex-col flex-shrink-0 w-1/3">
-                <span class="text-xs font-medium text-gray-900">{{ attribute.label }}</span>
-                <p class="text-2xs text-gray-500">
-                  {{ attributesTypes[attribute.type] }}
-                </p>
-              </div>
-
-              <app-autocomplete-many-input
-                v-if="attribute.type === 'multiSelect'"
-                v-model="formModel[attribute.name]"
-                :fetch-fn="
-                  () => fetchCustomAttribute(attribute.id)
-                "
-                :create-fn="
-                  (value) =>
-                    updateCustomAttribute(attribute, value)
-                "
-                placeholder="Select an option or create one"
-                input-class="w-full multi-select-field"
-                :create-if-not-found="true"
-                :collapse-tags="true"
-                :parse-model="true"
-                :are-options-in-memory="true"
-              />
+          </div> -->
+          <div class="mt-2 mb-5">
+            <el-form-item
+              label="Choose attribute"
+              required="true"
+            >
               <el-select
-                v-else-if="attribute.type === 'boolean'"
-                v-model="formModel[attribute.name]"
+                ref="focus"
                 class="w-full"
                 clearable
                 placeholder="Select option"
-              >
-                <el-option key="true" label="True" :value="true" @mouseleave="onSelectMouseLeave" />
-                <el-option key="false" label="False" :value="false" @mouseleave="onSelectMouseLeave" />
-              </el-select>
-              <el-input v-else v-model="formModel[attribute.name]" :type="attribute.type" clearable />
-            </div>
-          </div>
-
-          <div class="flex justify-start">
-            <el-button class="btn btn-link btn-link--primary btn--sm mt-2" @click="toggleShowAttributes">
-              {{ showAllAttributes ? 'Show Less' : 'Show More' }}
-            </el-button>
+                v-model="formModel.name"
+              />
+            </el-form-item>
           </div>
         </el-form>
       </div>
@@ -226,7 +139,6 @@ function filteredAttributes(attributes) {
   }, {});
 }
 
-
 function getInitialModel() {
   return JSON.parse(
     JSON.stringify(
@@ -254,8 +166,6 @@ watch(
     }
   },
 );
-
-
 
 const defaultAttributes = [
   {
@@ -374,14 +284,13 @@ const handleSubmit = async () => {
       || formModel.value.attributes) && {
       attributes: {
         ...(Object.keys(formattedAttributes).length
-          && formattedAttributes)
+          && formattedAttributes),
       },
     },
   };
 
   console.log('data as payload', data);
   console.log('hasFormChanged inside', hasFormChanged.value);
-
 
   // computedVisible.value = false;
   // emits('reload', true);
@@ -395,6 +304,12 @@ const handleCancel = () => {
   computedVisible.value = false;
 };
 
+</script>
+
+<script>
+export default {
+  name: 'AppBulkEditAttributePopover',
+};
 </script>
 
 <style>
