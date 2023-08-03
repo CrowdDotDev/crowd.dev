@@ -8,6 +8,7 @@ export enum HubspotPropertyType {
   STRING = 'string',
   NUMBER = 'number',
 }
+
 export interface IFieldProperty {
   hubspotType: HubspotPropertyType
   readonly?: boolean

@@ -13,6 +13,7 @@ import {
   IHubspotTokenInfo,
   HubspotEndpoint,
   IHubspotManualSyncPayload,
+  getHubspotLists,
 } from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
@@ -768,6 +769,39 @@ export default class IntegrationService {
     )
   }
 
+  async hubspotGetLists() {
+    const tenantId = this.options.currentTenant.id
+    const nangoId = `${tenantId}-${PlatformType.HUBSPOT}`
+
+    let token: string
+    try {
+      token = await getToken(nangoId, PlatformType.HUBSPOT, this.options.log)
+    } catch (err) {
+      this.options.log.error(err, 'Error while verifying HubSpot tenant token in Nango!')
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    if (!token) {
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    const context = {
+      log: this.options.log,
+      serviceSettings: {
+        nangoId,
+        nangoUrl: NANGO_CONFIG.url,
+        nangoSecretKey: NANGO_CONFIG.secretKey,
+      },
+    }
+
+    const memberLists = await getHubspotLists(nangoId, context)
+
+    return {
+      members: memberLists,
+      organizations: [], // hubspot doesn't support company lists yet
+    }
+  }
+
   async hubspotGetMappableFields() {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
@@ -791,8 +825,8 @@ export default class IntegrationService {
     )
 
     return {
-      members: memberMapper.getTypeMap(),
-      organizations: organizationMapper.getTypeMap(),
+      members: memberMapper.getTypeMapOld(),
+      organizations: organizationMapper.getTypeMapOld(),
     }
   }
 

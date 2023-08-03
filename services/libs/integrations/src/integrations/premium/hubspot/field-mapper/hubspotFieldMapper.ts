@@ -68,6 +68,20 @@ export abstract class HubspotFieldMapper {
     return typeMap
   }
 
+  public getTypeMapOld(): Record<string, HubspotPropertyType> {
+    if (!this.fieldProperties) {
+      throw new Error(`Can't find field properties of ${this.entity}!`)
+    }
+
+    const typeMap: Record<string, HubspotPropertyType> = {}
+
+    Object.keys(this.fieldProperties).forEach((propertyName) => {
+      typeMap[propertyName] = this.fieldProperties[propertyName].hubspotType
+    })
+
+    return typeMap
+  }
+
   public getCrowdFieldName(hubspotAttributeName: string): string {
     if (!this.fieldMap) {
       throw new Error(`${this.entity} field map is not set!`)

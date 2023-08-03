@@ -9,7 +9,7 @@ import {
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
-import { IQueueMessage, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
+import { AutomationSyncTrigger, IQueueMessage, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
 import { Client } from '@opensearch-project/opensearch'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
@@ -70,6 +70,29 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
             data.tenantId,
             data.integrationId,
           )
+          break
+        case IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION:
+
+            if (data.automationTrigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH) {
+              await this.initMemberService().syncAllFilteredMembers(
+                data.tenantId,
+                data.integrationId,
+                data.automationId,
+              )
+
+            }
+            // else if (data.trigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH) {
+            //   await this.initOrganizationService().syncAllFilteredOrganizations(
+            //     data.tenantId,
+            //     data.integrationId,
+            //   )
+// 
+            // }
+            else {
+              const errorMessage = `Unsupported trigger for onboard automation message!`
+              this.log.error( { message }, errorMessage)
+              throw new Error(errorMessage)
+            }
           break
 
         default:
