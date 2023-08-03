@@ -12,7 +12,7 @@
         <app-lf-search-input
           v-if="pagination.total && !isProjectAdminUser"
           placeholder="Search project group..."
-          @on-change="(query) => searchProjectGroup(query, null)"
+          @on-change="(query) => searchProjectGroup(query, null, adminOnly)"
         />
       </div>
     </div>
@@ -22,18 +22,18 @@
       <el-tab-pane label="All project groups" name="all-project-groups" />
     </el-tabs>
 
+    <app-lf-search-input
+      v-if="pagination.total && isProjectAdminUser"
+      class="my-6"
+      placeholder="Search project group..."
+      @on-change="(query) => searchProjectGroup(query, null, adminOnly)"
+    />
     <div
       v-if="loading"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5 mt-10"
     />
     <div v-else>
-      <app-lf-search-input
-        v-if="pagination.total && isProjectAdminUser"
-        class="my-6"
-        placeholder="Search project group..."
-        @on-change="(query) => searchProjectGroup(query, null)"
-      />
       <app-empty-state-cta
         v-if="!pagination.total"
         class="mt-20"
@@ -140,9 +140,9 @@ const route = useRoute();
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const lsSegmentsStore = useLfSegmentsStore();
-const { projectGroups, userProjectGroups } = storeToRefs(lsSegmentsStore);
+const { projectGroups } = storeToRefs(lsSegmentsStore);
 const {
-  listProjectGroups, listUserProjectGroups, updateSelectedProjectGroup, searchProjectGroup, searchUserProjectGroup,
+  listProjectGroups, updateSelectedProjectGroup, searchProjectGroup,
 } = lsSegmentsStore;
 
 const activeTab = ref();
@@ -152,27 +152,14 @@ const isProjectAdminUser = computed(() => {
     currentTenant.value,
     currentUser.value,
   );
+
   return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
 });
+const adminOnly = computed(() => isProjectAdminUser.value && activeTab.value === 'project-groups');
 
-const config = computed(() => {
-  if (!isProjectAdminUser.value || activeTab.value === 'all-project-groups') {
-    return {
-      ...projectGroups.value,
-      listProjectGroups,
-      searchProjectGroup,
-    };
-  }
-
-  return {
-    ...userProjectGroups.value,
-    listProjectGroups: listUserProjectGroups,
-    searchProjectGroup: searchUserProjectGroup,
-  };
-});
-const loading = computed(() => config.value.loading);
-const pagination = computed(() => config.value.pagination);
-const list = computed(() => config.value.list);
+const loading = computed(() => projectGroups.value.loading);
+const pagination = computed(() => projectGroups.value.pagination);
+const list = computed(() => projectGroups.value.list);
 
 const computedActiveTab = computed({
   get() {
@@ -191,6 +178,11 @@ const imageErrors = reactive({});
 watch(() => route.query.activeTab, (newActiveTab) => {
   if (newActiveTab && isProjectAdminUser.value) {
     activeTab.value = newActiveTab;
+    listProjectGroups({
+      limit: null,
+      offset: 0,
+      adminOnly: adminOnly.value,
+    });
   }
 });
 
@@ -199,7 +191,11 @@ onMounted(() => {
     activeTab.value = route.query.activeTab || 'project-groups';
   }
 
-  config.value.listProjectGroups();
+  listProjectGroups({
+    limit: null,
+    offset: 0,
+    adminOnly: adminOnly.value,
+  });
 });
 
 const handleImageError = (id, e) => {

@@ -9,10 +9,13 @@
 </template>
 
 <script setup>
-import { h, ref } from 'vue';
+import { h, ref, watch } from 'vue';
 import debounce from 'lodash/debounce';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
 const emit = defineEmits(['onChange']);
+
 defineProps({
   placeholder: {
     type: String,
@@ -31,6 +34,12 @@ const SearchIcon = h(
 const debouncedChange = debounce((value) => {
   emit('onChange', value);
 }, 300);
+
+watch(() => route.query.activeTab, (newActiveTab, oldActiveTab) => {
+  if (newActiveTab !== oldActiveTab) {
+    searchInput.value = null;
+  }
+});
 </script>
 
 <script>

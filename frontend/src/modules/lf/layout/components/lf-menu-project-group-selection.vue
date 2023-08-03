@@ -22,7 +22,7 @@
     :teleported="false"
     width="255px"
   >
-    <div v-if="projectGroups.list.length > 5" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
+    <div v-if="projectGroupsList.length > 5" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
       <el-input
         id="filterSearch"
         ref="searchQueryInput"
@@ -96,8 +96,8 @@ const ArrowUpIcon = h(
 );
 
 const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup, projectGroups } = storeToRefs(lsSegmentsStore);
-const { updateSelectedProjectGroup, listProjectGroups } = lsSegmentsStore;
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { updateSelectedProjectGroup } = lsSegmentsStore;
 
 const inputRef = ref(null);
 const searchQuery = ref('');
@@ -129,17 +129,14 @@ const queryProjectGroups = () => {
   });
 };
 
-watch(projectGroups, (updatedProjectGroups) => {
-  projectGroupsList.value = updatedProjectGroups.list;
-}, {
-  deep: true,
+watch(isPopoverVisible, (isVisible) => {
+  if (isVisible) {
+    queryProjectGroups();
+  }
 });
 
 onMounted(() => {
-  listProjectGroups({
-    limit: null,
-    reset: true,
-  });
+  queryProjectGroups();
 });
 
 const onSearchProjects = debounce(() => {
