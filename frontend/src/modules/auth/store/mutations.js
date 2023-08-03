@@ -43,7 +43,6 @@ export default {
       if (timestampSignup >= timeStamp2023
         && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
         formbricks.track('pmfSurveyOpen');
-        formbricks.refresh();
       }
     }
   },
@@ -157,7 +156,6 @@ export default {
       if (timestampSignup >= timeStamp2023
         && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
         formbricks.track('pmfSurveyOpen');
-        formbricks.refresh();
       }
     }
   },
