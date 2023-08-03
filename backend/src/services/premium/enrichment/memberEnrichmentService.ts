@@ -34,6 +34,7 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -232,6 +233,8 @@ export default class MemberEnrichmentService extends LoggerBase {
         await this.getAttributes()
       }
 
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(options)
       const member = await memberService.findById(memberId, false, false)
@@ -285,10 +288,15 @@ export default class MemberEnrichmentService extends LoggerBase {
         options,
       )
 
-      let result = await memberService.upsert({
-        ...normalized,
-        platform: Object.keys(member.username)[0],
-      })
+      let result = await memberService.upsert(
+        {
+          ...normalized,
+          platform: Object.keys(member.username)[0],
+        },
+        false,
+        true,
+        false,
+      )
 
       // for every work experience in `enrichmentData`
       //   - upsert organization
@@ -315,6 +323,8 @@ export default class MemberEnrichmentService extends LoggerBase {
           await OrganizationRepository.includeOrganizationToSegments(org.id, options)
         }
       }
+
+      await searchSyncEmitter.triggerMemberSync(options.currentTenant.id, result.id, true)
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)
