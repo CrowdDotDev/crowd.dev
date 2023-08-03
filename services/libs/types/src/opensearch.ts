@@ -88,4 +88,6 @@ export enum Operator {
   CONTAINS = 'contains',
 
   NOT = 'not',
+
+  ARRAY_LENGTH = 'arrayLength',
 }

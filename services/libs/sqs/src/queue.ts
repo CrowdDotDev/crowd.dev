@@ -134,6 +134,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
           this.processMessage(JSON.parse(message.Body))
             // when the message is processed, delete it from the queue
             .then(async () => {
+              this.log.trace({ messageReceiptHandle: message.ReceiptHandle }, 'Deleting message')
               await this.deleteMessage(message.ReceiptHandle)
               this.removeJob()
             })

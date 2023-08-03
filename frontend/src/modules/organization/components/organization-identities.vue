@@ -75,6 +75,24 @@
           )
         "
       />
+
+      <!-- HubSpot -->
+      <app-platform
+        v-if="!!organization.attributes?.url?.hubspot && !!organization.attributes?.domain?.hubspot"
+        platform="hubspot"
+        track-event-name="Click Organization Contact"
+        track-event-channel="HubSpot"
+        tooltip-label="HubSpot profile"
+        :username-handles="[organization.attributes?.domain?.hubspot]"
+        :has-tooltip="true"
+        :href="getIdentityLink('hubspot')"
+        :as-link="
+          !!(
+            organization.attributes?.url?.hubspot
+            || organization.attributes?.domain?.hubspot
+          )
+        "
+      />
     </div>
 
     <!-- Facebook -->
@@ -150,7 +168,8 @@ const showDivider = computed(
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
     return withHttp(props.organization[platform]?.url);
-  } if (props.organization[platform]?.handle) {
+  }
+  if (props.organization[platform]?.handle) {
     let url;
 
     if (platform === 'linkedin') {
@@ -168,6 +187,9 @@ const getIdentityLink = (platform) => {
     }
 
     return `${url}${props.organization[platform].handle}`;
+  }
+  if (props.organization.attributes?.url?.[platform]) {
+    return props.organization.attributes?.url?.[platform];
   }
 
   return null;

@@ -27,6 +27,7 @@ export enum MemberAttributeName {
   IS_BOT = 'isBot',
   TIMEZONE = 'timezone',
   KARMA = 'karma',
+  SYNC_REMOTE = 'syncRemote',
 }
 
 export const MemberAttributes = {
@@ -93,6 +94,10 @@ export const MemberAttributes = {
   [MemberAttributeName.KARMA]: {
     name: MemberAttributeName.KARMA,
     label: 'Karma',
+  },
+  [MemberAttributeName.SYNC_REMOTE]: {
+    name: MemberAttributeName.SYNC_REMOTE,
+    label: 'Sync remote',
   },
 }
 

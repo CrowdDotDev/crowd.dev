@@ -15,6 +15,23 @@ const constaintConfiguration = {
   [FeatureFlag.AUTOMATIONS]: [
     [
       {
+        values: [Plans.values.scale],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.AUTOMATIONS].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'automationCount',
+        caseInsensitive: false,
+      },
+    ],
+    [
+      {
         values: [Plans.values.growth],
         inverted: false,
         operator: 'IN',
@@ -62,6 +79,23 @@ const constaintConfiguration = {
   [FeatureFlag.CSV_EXPORT]: [
     [
       {
+        values: [Plans.values.scale],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.CSV_EXPORT].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'csvExportCount',
+        caseInsensitive: false,
+      },
+    ],
+    [
+      {
         values: [Plans.values.growth],
         inverted: false,
         operator: 'IN',
@@ -98,7 +132,7 @@ const constaintConfiguration = {
   [FeatureFlag.EAGLE_EYE]: [
     [
       {
-        values: [Plans.values.growth, Plans.values.eagleEye],
+        values: [Plans.values.growth, Plans.values.eagleEye, Plans.values.scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
@@ -109,7 +143,18 @@ const constaintConfiguration = {
   [FeatureFlag.LINKEDIN]: [
     [
       {
-        values: [Plans.values.growth],
+        values: [Plans.values.growth, Plans.values.scale],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+  [FeatureFlag.HUBSPOT]: [
+    [
+      {
+        values: [Plans.values.scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
@@ -118,6 +163,23 @@ const constaintConfiguration = {
     ],
   ],
   [FeatureFlag.MEMBER_ENRICHMENT]: [
+    [
+      {
+        values: [Plans.values.scale],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.MEMBER_ENRICHMENT].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'memberEnrichmentCount',
+        caseInsensitive: false,
+      },
+    ],
     [
       {
         values: [Plans.values.growth],
@@ -154,6 +216,23 @@ const constaintConfiguration = {
     ],
   ],
   [FeatureFlag.ORGANIZATION_ENRICHMENT]: [
+    [
+      {
+        values: [Plans.values.scale],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+      {
+        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
+        values: [],
+        inverted: false,
+        operator: 'NUM_LT',
+        contextName: 'organizationEnrichmentCount',
+        caseInsensitive: false,
+      },
+    ],
     [
       {
         values: [Plans.values.growth],

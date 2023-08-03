@@ -1,17 +1,37 @@
-import { IMemberAttribute, IActivityData } from '@crowd/types'
+import { IMemberAttribute, IActivityData, IntegrationResultType, Entity } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
+
+import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
+import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
 
 export interface IIntegrationContext {
   onboarding?: boolean
   integration: IIntegration
   log: Logger
+  /**
+   * Cache that is tied up to the tenantId and integration type
+   */
   cache: ICache
 
   publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
   updateIntegrationSettings: (settings: unknown) => Promise<void>
 
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+}
+
+export interface IIntegrationStartRemoteSyncContext {
+  integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
+  integration: IIntegration
+  tenantId: string
+  log: Logger
+}
+
+export interface IIntegrationProcessRemoteSyncContext {
+  tenantId: string
+  integration: IIntegration
+  log: Logger
+  serviceSettings: IIntegrationServiceSettings
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
@@ -28,7 +48,15 @@ export interface IProcessStreamContext extends IIntegrationContext {
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
+  /**
+   * Global cache that is shared between all integrations
+   */
   globalCache: ICache
+
+  /**
+   * Cache that is shared between all streams of the same integration (integrationId)
+   */
+  integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
@@ -48,7 +76,15 @@ export interface IProcessWebhookStreamContext {
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
+  /**
+   * Global cache that is shared between all integrations
+   */
   globalCache: ICache
+
+  /**
+   * Cache that is shared between all streams of the same integration (integrationId)
+   */
+  integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
@@ -60,12 +96,21 @@ export interface IProcessDataContext extends IIntegrationContext {
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
   publishActivity: (activity: IActivityData) => Promise<void>
+
+  publishCustom: (entity: unknown, type: IntegrationResultType) => Promise<void>
 }
 
 export type GenerateStreamsHandler = (ctx: IGenerateStreamsContext) => Promise<void>
 export type ProcessStreamHandler = (ctx: IProcessStreamContext) => Promise<void>
 export type ProcessWebhookStreamHandler = (ctx: IProcessWebhookStreamContext) => Promise<void>
 export type ProcessDataHandler = (ctx: IProcessDataContext) => Promise<void>
+export type StartIntegrationSyncHandler = (ctx: IIntegrationStartRemoteSyncContext) => Promise<void>
+export type ProcessIntegrationSyncHandler = <T>(
+  toCreate: T[],
+  toUpdate: T[],
+  entity: Entity,
+  ctx: IIntegrationProcessRemoteSyncContext,
+) => Promise<IBatchOperationResult>
 
 export interface IIntegrationDescriptor {
   /**
@@ -130,6 +175,20 @@ export interface IIntegrationDescriptor {
   // if undefined it will never check
   // if 0 it will check the same as if it was 1 - every minute
   checkEvery?: number
+
+  /**
+   * Function that will be called if defined, after an integration goes into done state.
+   * Mainly responsible for sending queue messages to integration-sync-worker
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  startSyncRemote?: StartIntegrationSyncHandler
+
+  /**
+   * Function that will be called from integration sync worker for outgoing integrations.
+   * Gets two arrays, entities to create and entities to update.
+   * Logic for calling the required api endpoints per integration lives here.
+   */
+  processSyncRemote?: ProcessIntegrationSyncHandler
 }
 
 export interface IIntegrationServiceSettings {

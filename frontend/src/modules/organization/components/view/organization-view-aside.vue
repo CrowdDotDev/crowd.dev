@@ -117,6 +117,28 @@
             class="ri-external-link-line text-gray-300"
           />
         </a>
+        <a
+          v-if="getIdentityLink('hubspot')"
+          class="px-6 py-2 flex justify-between items-center relative"
+          :class="
+            getIdentityLink('hubspot')
+              ? 'hover:bg-gray-50 transition-colors cursor-pointer'
+              : ''
+          "
+          :href="getIdentityLink('hubspot')"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <div class="flex gap-3 items-center">
+            <app-platform platform="hubspot" />
+            <span class="text-gray-900 text-xs">
+              HubSpot</span>
+          </div>
+          <i
+            v-if="getIdentityLink('hubspot')"
+            class="ri-external-link-line text-gray-300"
+          />
+        </a>
         <el-divider
           v-if="showDivider"
           class="border-t-gray-200"
@@ -239,7 +261,8 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
 const getIdentityLink = (platform) => {
   if (props.organization[platform]?.url) {
     return withHttp(props.organization[platform]?.url);
-  } if (props.organization[platform]?.handle) {
+  }
+  if (props.organization[platform]?.handle) {
     let url;
 
     if (platform === 'linkedin') {
@@ -258,12 +281,15 @@ const getIdentityLink = (platform) => {
 
     return `${url}${props.organization[platform].handle}`;
   }
+  if (props.organization.attributes?.url?.[platform]) {
+    return props.organization.attributes?.url?.[platform];
+  }
   return null;
 };
 </script>
 
 <script>
 export default {
-  name: 'AppMemberViewAside',
+  name: 'AppOrganizationViewAside',
 };
 </script>

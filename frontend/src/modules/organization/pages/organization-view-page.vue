@@ -61,7 +61,8 @@ import AppOrganizationViewMembers from '@/modules/organization/components/view/o
 import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { OrganizationService } from '../organization-service';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   id: {
@@ -70,17 +71,19 @@ const props = defineProps({
   },
 });
 
+const organizationStore = useOrganizationStore();
+const { organization } = storeToRefs(organizationStore);
+const { fetchOrganization } = organizationStore;
+
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const organization = ref({});
 
 const loading = ref(true);
 const tab = ref('members');
 
-onMounted(async () => {
+onMounted(() => {
   try {
-    organization.value = await OrganizationService.find(props.id);
+    fetchOrganization(props.id);
   } catch (e) {
     Message.error('Something went wrong');
   }
