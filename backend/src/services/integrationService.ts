@@ -891,7 +891,6 @@ export default class IntegrationService {
               [HubspotEntity.ORGANIZATIONS]: hubspotOrganizationProperties,
             },
           },
-          status: 'in-progress',
         },
         transaction,
       )

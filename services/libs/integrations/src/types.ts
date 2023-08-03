@@ -15,6 +15,9 @@ export interface IIntegrationContext {
   onboarding?: boolean
   integration: IIntegration
   log: Logger
+  /**
+   * Cache that is tied up to the tenantId and integration type
+   */
   cache: ICache
 
   publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
@@ -53,7 +56,15 @@ export interface IProcessStreamContext extends IIntegrationContext {
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
+  /**
+   * Global cache that is shared between all integrations
+   */
   globalCache: ICache
+
+  /**
+   * Cache that is shared between all streams of the same integration (integrationId)
+   */
+  integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }
@@ -73,7 +84,15 @@ export interface IProcessWebhookStreamContext {
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
+  /**
+   * Global cache that is shared between all integrations
+   */
   globalCache: ICache
+
+  /**
+   * Cache that is shared between all streams of the same integration (integrationId)
+   */
+  integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
 }

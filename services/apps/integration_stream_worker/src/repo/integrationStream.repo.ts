@@ -75,6 +75,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
             r.state    as "runState",
             s."runId",
             s."tenantId",
+            s."webhookId",
             i.settings as "integrationSettings",
             s.id,
             s.state,
