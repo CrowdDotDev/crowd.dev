@@ -47,6 +47,7 @@ import {
 import Error400 from '../../errors/Error400'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
+import MemberAffiliationRepository from './memberAffiliationRepository'
 
 const { Op } = Sequelize
 
@@ -3274,7 +3275,14 @@ class MemberRepository {
   }
 
   static async createOrUpdateWorkExperience(
-    { memberId, organizationId, title = null, dateStart = null, dateEnd = null },
+    {
+      memberId,
+      organizationId,
+      title = null,
+      dateStart = null,
+      dateEnd = null,
+      updateAffiliation = true,
+    },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
@@ -3315,6 +3323,10 @@ class MemberRepository {
         transaction,
       },
     )
+
+    if (updateAffiliation) {
+      await MemberAffiliationRepository.update(memberId, options)
+    }
   }
 
   static async findWorkExperience(memberId: string, options: IRepositoryOptions) {
