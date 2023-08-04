@@ -69,7 +69,7 @@
           {{ markAsTeamMemberOptions.copy }}
         </el-dropdown-item>
         <el-dropdown-item
-          :command="{ action: 'editAttributes' }"
+          :command="{ action: 'editAttribute' }"
           :disabled="isEditLockedForSampleData"
         >
           <i class="ri-lg ri-file-edit-line mr-1" />
@@ -299,10 +299,8 @@ const handleDoExport = async () => {
   }
 };
 
-const handleEditAttributes = async () => {
-  // do something
+const handleEditAttribute = async () => {
   bulkAttributesUpdateVisible.value = true;
-  console.log('handleEditAttributes clicked');
 };
 
 const handleAddTags = async () => {
@@ -335,8 +333,8 @@ const handleCommand = async (command) => {
     await handleDoExport();
   } else if (command.action === 'mergeMembers') {
     await handleMergeMembers();
-  } else if (command.action === 'editAttributes') {
-    await handleEditAttributes();
+  } else if (command.action === 'editAttribute') {
+    await handleEditAttribute();
   } else if (command.action === 'editTags') {
     await handleAddTags();
   } else if (command.action === 'destroyAll') {
