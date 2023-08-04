@@ -55,6 +55,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
       `INSERT INTO "membersSyncRemote" ("id", "memberId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
           VALUES
               (:id, :memberId, :sourceId, :integrationId, :syncFrom, :metaData, :lastSyncedAt, :status)
+              conflict do nothing
           RETURNING "id"
         `,
       {

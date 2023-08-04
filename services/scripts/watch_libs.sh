@@ -22,7 +22,7 @@ $(npx --yes chokidar-cli --version >/dev/null 2>&1)
 declare -A DEPENDENCIES
 
 DEPENDENCIES=(
-  ["common"]=""
+  ["common"]="types"
   ["types"]=""
   ["logging"]="common"
   ["redis"]="common logging types"
