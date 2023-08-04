@@ -58,10 +58,16 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           break
         case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN:
           const msg = message as StartIntegrationRunQueueMessage
-          await service.startIntegrationRun(msg.integrationId, msg.onboarding)
+          await service.startIntegrationRun(
+            msg.integrationId,
+            msg.onboarding,
+            msg.isManulRun,
+            msg.manualSettings,
+          )
           break
         case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
-          await service.generateStreams((message as GenerateRunStreamsQueueMessage).runId)
+          const msg2 = message as GenerateRunStreamsQueueMessage
+          await service.generateStreams(msg2.runId, msg2.isManulRun, msg2.manualSettings)
           break
         case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
           await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)

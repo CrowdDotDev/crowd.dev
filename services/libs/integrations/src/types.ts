@@ -37,6 +37,8 @@ export interface IIntegrationProcessRemoteSyncContext {
 export interface IGenerateStreamsContext extends IIntegrationContext {
   serviceSettings: IIntegrationServiceSettings
   platformSettings?: unknown
+  isManualRun?: boolean
+  manualSettings?: unknown
 }
 
 export interface IProcessStreamContext extends IIntegrationContext {

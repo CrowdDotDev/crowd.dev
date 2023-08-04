@@ -14,13 +14,22 @@ export class CheckRunsQueueMessage implements IQueueMessage {
 export class StartIntegrationRunQueueMessage implements IQueueMessage {
   public readonly type: string = IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN
 
-  constructor(public readonly integrationId: string, public readonly onboarding: boolean) {}
+  constructor(
+    public readonly integrationId: string,
+    public readonly onboarding: boolean,
+    public readonly isManulRun?: boolean,
+    public readonly manualSettings?: unknown,
+  ) {}
 }
 
 export class GenerateRunStreamsQueueMessage implements IQueueMessage {
   public readonly type: string = IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS
 
-  constructor(public readonly runId: string) {}
+  constructor(
+    public readonly runId: string,
+    public readonly isManulRun?: boolean,
+    public readonly manualSettings?: unknown,
+  ) {}
 }
 
 export class StreamProcessedQueueMessage implements IQueueMessage {
