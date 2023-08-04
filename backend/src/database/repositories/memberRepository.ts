@@ -3329,14 +3329,21 @@ class MemberRepository {
     }
   }
 
-  static async findWorkExperience(memberId: string, options: IRepositoryOptions) {
+  static async findWorkExperience(
+    memberId: string,
+    timestamp: string,
+    options: IRepositoryOptions,
+  ) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
-        AND "dateEnd" IS NULL
+        AND (
+          ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
+          OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
+        )
       ORDER BY "dateStart" DESC
       LIMIT 1
     `
@@ -3344,6 +3351,7 @@ class MemberRepository {
     const records = await seq.query(query, {
       replacements: {
         memberId,
+        timestamp,
       },
       type: QueryTypes.SELECT,
       transaction,

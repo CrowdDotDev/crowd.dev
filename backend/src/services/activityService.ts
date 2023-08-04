@@ -136,7 +136,10 @@ export default class ActivityService extends LoggerBase {
         }
 
         const memberAffilationService = new MemberAffiliationService(this.options)
-        data.organizationId = await memberAffilationService.findAffiliation(data.member)
+        data.organizationId = await memberAffilationService.findAffiliation(
+          data.member,
+          data.timestamp,
+        )
 
         record = await ActivityRepository.create(data, repositoryOptions)
 
@@ -602,7 +605,7 @@ export default class ActivityService extends LoggerBase {
       data.member = member.id
 
       const memberAffilationService = new MemberAffiliationService(this.options)
-      data.organizationId = await memberAffilationService.findAffiliation(member.id)
+      data.organizationId = await memberAffilationService.findAffiliation(member.id, data.timestamp)
 
       const record = await this.upsert(data, activityExists, fireCrowdWebhooks, false)
 

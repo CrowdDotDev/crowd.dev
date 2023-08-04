@@ -12,7 +12,7 @@ export default class MemberAffiliationService extends LoggerBase {
     this.options = options
   }
 
-  async findAffiliation(memberId: string): Promise<string> {
+  async findAffiliation(memberId: string, timestamp: string): Promise<string> {
     const memberSegmentAffiliationRepository = new MemberSegmentAffiliationRepository(this.options)
 
     const manualAffiliation = await memberSegmentAffiliationRepository.findForMember(memberId)
@@ -20,7 +20,11 @@ export default class MemberAffiliationService extends LoggerBase {
       return manualAffiliation.organizationId
     }
 
-    const currentEmployment: any = await MemberRepository.findWorkExperience(memberId, this.options)
+    const currentEmployment: any = await MemberRepository.findWorkExperience(
+      memberId,
+      timestamp,
+      this.options,
+    )
     if (currentEmployment) {
       return currentEmployment.organizationId
     }

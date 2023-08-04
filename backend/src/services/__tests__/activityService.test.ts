@@ -2966,10 +2966,34 @@ describe('ActivityService tests', () => {
       it('Should affiliate work experience if member has organizations', async () => {
         const member = await createMember()
         const organization = await createOrg('hello')
-        await addWorkExperience(member.id, organization.id)
-        const activity = await createActivity(member.id)
+        await addWorkExperience(member.id, organization.id, {
+          dateStart: '2020-01-01',
+        })
+        const activity = await createActivity(member.id, {
+          timestamp: '2023-01-01',
+        })
 
         expect(activity.organization.id).toBe(organization.id)
+      })
+
+      it('Should affiliate with matching work experience if activity is from the past', async () => {
+        const member = await createMember()
+        const org1 = await createOrg('org1')
+        const org2 = await createOrg('org2')
+
+        await addWorkExperience(member.id, org1.id, {
+          dateStart: '2020-01-01',
+          dateEnd: '2020-02-01',
+        })
+        await addWorkExperience(member.id, org2.id, {
+          dateStart: '2020-02-01',
+        })
+
+        const activity = await createActivity(member.id, {
+          timestamp: '2020-01-15',
+        })
+
+        expect(activity.organization.id).toBe(org1.id)
       })
 
       it('Should affiliate with most recent open work experience if member has multiple organizations', async () => {
@@ -2984,7 +3008,9 @@ describe('ActivityService tests', () => {
           dateStart: '2020-02-01',
         })
 
-        const activity = await createActivity(member.id)
+        const activity = await createActivity(member.id, {
+          timestamp: '2020-03-01',
+        })
 
         expect(activity.organization.id).toBe(org2.id)
       })
