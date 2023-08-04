@@ -8,15 +8,15 @@
           class="attributes-form mt-1 mb-5"
           label-position="top"
         >
-          <div class="mb-2">
+          
             <el-form-item
               label="Choose attribute"
+              class="mb-6"
               required="true"
             >
               <app-bulk-edit-attribute-dropdown v-model="attributesData" @change="handleDropdownChange" @clear="handleDropdownClear" />
             </el-form-item>
-          </div>
-
+          
           <!-- Show value field only if attribute is selected -->
           <div v-if="Object.keys(selectedAttribute).length > 0">
             <el-form-item
@@ -24,16 +24,16 @@
               required="true"
             >
               <app-autocomplete-many-input
-                v-if="selectedAttribute.name === 'organizations' && selectedAttribute.type === 'multiSelect'"
+                v-if="selectedAttribute.type === 'multiSelect'"
                 v-model="formModel[selectedAttribute.name]"
-                :fetch-fn="fetchOrganizationsFn"
-                :create-fn="createOrganizationFn"
-                placeholder="Select or create an organization"
-                input-class="organization-input w-full"
+                :fetch-fn="multiSelectFetchFn"
+                :create-fn="multiSelectCreateFn"
+                :placeholder="multiSelectPlaceholder"
+                :input-class="multiSelectClassName"
                 :create-if-not-found="true"
                 :in-memory-filter="false"
               >
-                <template #option="{ item }">
+                <template v-if="selectedAttribute.name === 'organizations'" #default="{ item }">
                   <div class="flex items-center">
                     <app-avatar
                       :entity="{
@@ -47,23 +47,6 @@
                   </div>
                 </template>
               </app-autocomplete-many-input>
-              <app-autocomplete-many-input
-                v-else-if="selectedAttribute.type === 'multiSelect'"
-                v-model="formModel[selectedAttribute.name]"
-                :fetch-fn="
-                  () => fetchCustomAttribute(selectedAttribute.id)
-                "
-                :create-fn="
-                  (value) =>
-                    updateCustomAttribute(selectedAttribute, value)
-                "
-                placeholder="Select an option or create one"
-                input-class="w-full multi-select-field"
-                :create-if-not-found="true"
-                :collapse-tags="true"
-                :parse-model="true"
-                :are-options-in-memory="true"
-              />
               <el-date-picker
                 v-else-if="selectedAttribute.type === 'date'"
                 v-model="formModel[selectedAttribute.name]"
@@ -89,7 +72,12 @@
               <el-input v-else v-model="formModel[selectedAttribute.name]" placeholder="Enter value" :type="selectedAttribute.type" clearable />
             </el-form-item>
 
-            <div class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-2 px-4 mt-6">
+            <div v-if="selectedAttribute.type === 'multiSelect'" class="flex items-center gap-2 -mt-2">
+              <i class="ri-information-line text-gray-400 text-lg " />
+              <span class="text-xs leading-5 text-gray-500">Values will be added to each selected member and the existing ones won’t be overwritten.</span>
+            </div>
+
+            <div v-else class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-2 px-4 mt-6">
               <i class="ri-alert-fill text-yellow-500 text-base " />
               <span class="text-xs leading-5 text-gray-900">Changes will overwrite the current attribute value of the selected members.</span>
             </div>
@@ -101,7 +89,7 @@
         <el-button class="btn btn--bordered btn--md mr-3" @click="handleCancel">
           Cancel
         </el-button>
-        <el-button class="btn btn--primary btn--md" @click="handleSubmit">
+        <el-button class="btn btn--primary btn--md" @click="handleSubmit" :disabled="!hasFormChanged">
           Submit
         </el-button>
       </div>
@@ -110,7 +98,7 @@
 </template>
 
 <script setup>
-import { mapActions } from 'vuex';
+import { useStore } from 'vuex';
 import { storeToRefs } from 'pinia';
 import {
   computed, h, ref, watch,
@@ -125,7 +113,6 @@ import { MemberService } from '@/modules/member/member-service';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
-import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import AppBulkEditAttributeDropdown from '@/modules/member/components/bulk/bulk-edit-attribute-dropdown.vue';
 
 const CalendarIcon = h(
@@ -138,6 +125,7 @@ const CalendarIcon = h(
 );
 
 const memberStore = useMemberStore();
+const store = useStore();
 const { selectedMembers, customAttributes } = storeToRefs(memberStore);
 
 const { fields } = MemberModel;
@@ -152,16 +140,6 @@ const formSchema = computed(
     }),
   ]),
 );
-
-const attributesTypes = {
-  string: 'Text',
-  number: 'Number',
-  email: 'E-mail',
-  url: 'URL',
-  date: 'Date',
-  boolean: 'Boolean',
-  multiSelect: 'Multi-select',
-};
 
 const props = defineProps({
   modelValue: {
@@ -202,9 +180,7 @@ function getInitialModel() {
 
 const selectedAttribute = ref({});
 const formModel = ref(getInitialModel());
-// const hasFormChanged = computed(() => !isEqual(getInitialModel(), formModel.value));
-
-console.log('formModel under', formModel.value);
+const hasFormChanged = computed(() => !isEqual(getInitialModel(), formModel.value));
 
 watch(
   () => props.modelValue,
@@ -215,6 +191,36 @@ watch(
     }
   },
 );
+
+// since we have multi-select input for both the organizations and custom attributes, 
+// need to dynamically set the appropriate methods based on the context.
+const multiSelectFetchFn = computed(() => {
+  if (selectedAttribute.value.name === 'organizations') {
+    return fetchOrganizationsFn;
+  }
+  return () => fetchCustomAttribute(selectedAttribute.value.id);
+});
+
+const multiSelectCreateFn = computed(() => {
+  if (selectedAttribute.value.name === 'organizations') {
+    return createOrganizationFn;
+  }
+  return (value) => updateCustomAttribute(selectedAttribute.value, value);
+});
+
+const multiSelectPlaceholder = computed(() => {
+  if (selectedAttribute.value.name === 'organizations') {
+    return 'Select or create an organization';
+  }
+  return 'Enter option(s) or create one';
+});
+
+const multiSelectClassName = computed(() => {
+  if (selectedAttribute.value.name === 'organizations') {
+    return 'organization-input w-full';
+  }
+  return 'w-full multi-select-field';
+});
 
 const defaultAttributes = [
   {
@@ -250,13 +256,6 @@ const handleDropdownChange = (value) => {
     const selected = computedCustomAttributes.value.find((attribute) => attribute.name === value.custom.name);
     selectedAttribute.value = selected;
   }
-
-  console.log('selectedAttribute', selectedAttribute.value);
-  console.log('organization fetch', fetchOrganizationsFn("c", 20));
-};
-
-const handleDropdownClear = () => {
-  selectedAttribute.value = {};
 };
 
 const fetchOrganizationsFn = (query, limit) => OrganizationService.listAutocomplete(query, limit)
@@ -308,13 +307,58 @@ const updateCustomAttribute = (attribute, value) => {
   }));
 };
 
-const { doBulkUpdateMembersAttributes } = mapActions('member', ['doBulkUpdateMembersAttributes']);
-
 const handleSubmit = async () => {
-  // computedVisible.value = false;
-  // emits('reload', true);
-  console.log('handleSubmit', formModel.value);
+  const formattedAttributes = getParsedAttributes(
+    computedCustomAttributes.value,
+    formModel.value,
+  );
+
+  // Remove any existent empty data
+  const data = {
+    ...formModel.value.joinedAt && {
+      joinedAt: formModel.value.joinedAt,
+    },
+    ...formModel.value.organizations.length && {
+      organizations: formModel.value.organizations.map(
+        (o) => ({
+          id: o.id,
+          name: o.name,
+          ...o.memberOrganizations?.title && {
+            title: o.memberOrganizations?.title,
+          },
+          ...o.memberOrganizations?.dateStart && {
+            startDate: o.memberOrganizations?.dateStart,
+          },
+          ...o.memberOrganizations?.dateEnd && {
+            endDate: o.memberOrganizations?.dateEnd,
+          },
+        }),
+      ).filter(
+        (o) => !!o.id,
+      ),
+    },
+    ...(Object.keys(formattedAttributes).length
+      || formModel.value.attributes) && {
+      attributes: {
+        ...(Object.keys(formattedAttributes).length
+          && formattedAttributes)
+      },
+    },
+  };
+
+  await store.dispatch('member/doBulkUpdateMembersAttribute', {
+    members: [...selectedMembers.value],
+    attributesToSave: data,
+  });
+
+  computedVisible.value = false;
+  emits('reload', true);
+
   return null;
+};
+
+const handleDropdownClear = () => {
+  selectedAttribute.value = {};
 };
 
 const handleCancel = () => {
