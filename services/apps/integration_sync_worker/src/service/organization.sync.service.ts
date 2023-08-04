@@ -13,11 +13,13 @@ import {
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { IDbIntegration } from '@/repo/integration.data'
 import { AutomationRepository } from '@/repo/automation.repo'
+import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
 
 export class OrganizationSyncService extends LoggerBase {
   private readonly organizationRepo: OrganizationRepository
   private readonly integrationRepo: IntegrationRepository
   private readonly automationRepo: AutomationRepository
+  private readonly automationExecutionRepo: AutomationExecutionRepository
 
   constructor(store: DbStore, parentLog: Logger) {
     super(parentLog)
@@ -25,6 +27,7 @@ export class OrganizationSyncService extends LoggerBase {
     this.integrationRepo = new IntegrationRepository(store, this.log)
     this.organizationRepo = new OrganizationRepository(store, this.log)
     this.automationRepo = new AutomationRepository(store, this.log)
+    this.automationExecutionRepo = new AutomationExecutionRepository(store, this.log)
   }
 
   public async syncOrganization(
@@ -184,106 +187,138 @@ export class OrganizationSyncService extends LoggerBase {
     let filteredOrganizations
     let offset
 
-    do {
-      const organizationsToCreate: IOrganization[] = []
-      const organizationsToUpdate: IOrganization[] = []
+    try {
+      do {
+        const organizationsToCreate: IOrganization[] = []
+        const organizationsToUpdate: IOrganization[] = []
 
-      offset = filteredOrganizations ? offset + batchSize : 0
+        offset = filteredOrganizations ? offset + batchSize : 0
 
-      filteredOrganizations = await this.organizationRepo.findFilteredOrganizations(
-        tenantId,
-        [integration.segmentId],
-        integration.platform,
-        automation.settings.filter,
-        batchSize,
-        offset,
-      )
-
-      for (const organizationToSync of filteredOrganizations) {
-        this.log.trace(
-          `Syncing organization ${organizationToSync.id} to ${integration.platform} remote!`,
-        )
-
-        let syncRemote = await this.organizationRepo.findSyncRemote(
-          organizationToSync.id,
-          integration.id,
-          automation.id,
-        )
-
-        // member isn't marked yet, mark it
-        if (!syncRemote) {
-          syncRemote = await this.organizationRepo.markOrganizationForSyncing({
-            integrationId: integration.id,
-            organizationId: organizationToSync.id,
-            metaData: null,
-            syncFrom: automation.id,
-          })
-        }
-
-        const organization = await this.organizationRepo.findOrganization(
-          organizationToSync.id,
+        filteredOrganizations = await this.organizationRepo.findFilteredOrganizations(
           tenantId,
+          [integration.segmentId],
+          integration.platform,
+          automation.settings.filter,
+          batchSize,
+          offset,
         )
 
-        if (syncRemote.sourceId) {
-          organization.attributes = {
-            ...organization.attributes,
-            sourceId: {
-              [integration.platform]: syncRemote.sourceId,
-            },
+        for (const organizationToSync of filteredOrganizations) {
+          this.log.trace(
+            `Syncing organization ${organizationToSync.id} to ${integration.platform} remote!`,
+          )
+
+          let syncRemote = await this.organizationRepo.findSyncRemote(
+            organizationToSync.id,
+            integration.id,
+            automation.id,
+          )
+
+          // member isn't marked yet, mark it
+          if (!syncRemote) {
+            syncRemote = await this.organizationRepo.markOrganizationForSyncing({
+              integrationId: integration.id,
+              organizationId: organizationToSync.id,
+              metaData: null,
+              syncFrom: automation.id,
+            })
           }
-          organizationsToUpdate.push(organization)
-        } else {
-          organizationsToCreate.push(organization)
+
+          const organization = await this.organizationRepo.findOrganization(
+            organizationToSync.id,
+            tenantId,
+          )
+
+          if (syncRemote.sourceId) {
+            organization.attributes = {
+              ...organization.attributes,
+              sourceId: {
+                [integration.platform]: syncRemote.sourceId,
+              },
+            }
+            organizationsToUpdate.push(organization)
+          } else {
+            organizationsToCreate.push(organization)
+          }
         }
-      }
 
-      const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)
-
-      if (service.processSyncRemote) {
-        const context: IIntegrationProcessRemoteSyncContext = {
-          integration,
-          log: this.log,
-          serviceSettings: {
-            nangoId: `${tenantId}-${integration.platform}`,
-            nangoUrl: NANGO_CONFIG().url,
-            nangoSecretKey: NANGO_CONFIG().secretKey,
-          },
-          tenantId,
-        }
-
-        const newOrganizations = await service.processSyncRemote<IOrganization>(
-          organizationsToCreate,
-          organizationsToUpdate,
-          Entity.ORGANIZATIONS,
-          context,
+        const service = singleOrDefault(
+          INTEGRATION_SERVICES,
+          (s) => s.type === integration.platform,
         )
 
-        for (const newOrganization of newOrganizations as IBatchCreateOrganizationsResult[]) {
-          await this.organizationRepo.setIntegrationSourceId(
-            newOrganization.organizationId,
-            integration.id,
-            newOrganization.sourceId,
+        if (service.processSyncRemote) {
+          const context: IIntegrationProcessRemoteSyncContext = {
+            integration,
+            log: this.log,
+            serviceSettings: {
+              nangoId: `${tenantId}-${integration.platform}`,
+              nangoUrl: NANGO_CONFIG().url,
+              nangoSecretKey: NANGO_CONFIG().secretKey,
+            },
+            tenantId,
+          }
+
+          const newOrganizations = await service.processSyncRemote<IOrganization>(
+            organizationsToCreate,
+            organizationsToUpdate,
+            Entity.ORGANIZATIONS,
+            context,
           )
 
-          await this.organizationRepo.setLastSyncedAt(
-            newOrganization.organizationId,
-            integration.id,
-          )
-        }
+          for (const newOrganization of newOrganizations as IBatchCreateOrganizationsResult[]) {
+            await this.organizationRepo.setIntegrationSourceId(
+              newOrganization.organizationId,
+              integration.id,
+              newOrganization.sourceId,
+            )
 
-        for (const updatedOrganization of organizationsToUpdate) {
-          await this.organizationRepo.setLastSyncedAt(updatedOrganization.id, integration.id)
-        }
+            await this.organizationRepo.setLastSyncedAt(
+              newOrganization.organizationId,
+              integration.id,
+            )
+          }
 
-        if (syncOrganizationMembers) {
-          organizationsIdsSyncedToReturn.push(...organizationsToCreate.map((o) => o.id))
-          organizationsIdsSyncedToReturn.push(...organizationsToUpdate.map((o) => o.id))
+          for (const updatedOrganization of organizationsToUpdate) {
+            await this.organizationRepo.setLastSyncedAt(updatedOrganization.id, integration.id)
+          }
+
+          if (syncOrganizationMembers) {
+            organizationsIdsSyncedToReturn.push(...organizationsToCreate.map((o) => o.id))
+            organizationsIdsSyncedToReturn.push(...organizationsToUpdate.map((o) => o.id))
+          }
+        } else {
+          this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
         }
-      } else {
-        this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
-      }
-    } while (filteredOrganizations.length > 0)
+      } while (filteredOrganizations.length > 0)
+
+      await this.automationExecutionRepo.addExecution({
+        automationId: automation.id,
+        type: automation.type,
+        trigger: automation.trigger,
+        tenantId: automation.tenantId,
+        state: 'success',
+        payload: {
+          type: automation.type,
+          trigger: automation.trigger,
+        },
+        error: null,
+      })
+    } catch (e) {
+      await this.automationExecutionRepo.addExecution({
+        automationId: automation.id,
+        type: automation.type,
+        trigger: automation.trigger,
+        tenantId: automation.tenantId,
+        state: 'error',
+        payload: {
+          type: automation.type,
+          trigger: automation.trigger,
+        },
+        error: JSON.stringify(e),
+      })
+      throw e
+    }
 
     return syncOrganizationMembers ? organizationsIdsSyncedToReturn : []
   }

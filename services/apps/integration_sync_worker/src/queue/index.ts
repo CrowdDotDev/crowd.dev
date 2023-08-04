@@ -3,12 +3,7 @@ import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import {
-  INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
-  SearchSyncWorkerEmitter,
-  SqsClient,
-  SqsQueueReceiver,
-} from '@crowd/sqs'
+import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import {
   AutomationSyncTrigger,
   IQueueMessage,
@@ -21,7 +16,6 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     client: SqsClient,
     private readonly dbConn: DbConnection,
     private readonly openSearchClient: Client,
-    private readonly searchSyncEmitter: SearchSyncWorkerEmitter,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
@@ -32,7 +26,6 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     return new MemberSyncService(
       new DbStore(this.log, this.dbConn),
       new OpenSearchService(this.log, this.openSearchClient),
-      this.searchSyncEmitter,
       this.log,
     )
   }

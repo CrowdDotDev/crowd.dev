@@ -1,6 +1,6 @@
 import { NANGO_CONFIG, SERVICE_CONFIG } from '@/conf'
 import { MemberRepository } from '../repo/member.repo'
-import { Entity, IMember, OpenSearchIndex, PlatformType } from '@crowd/types'
+import { Entity, IMember, OpenSearchIndex } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -15,18 +15,18 @@ import {
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
 import { IDbIntegration } from '@/repo/integration.data'
-import { SearchSyncWorkerEmitter } from '@crowd/sqs'
 import { AutomationRepository } from '@/repo/automation.repo'
+import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
   private readonly integrationRepo: IntegrationRepository
   private readonly automationRepo: AutomationRepository
+  private readonly automationExecutionRepo: AutomationExecutionRepository
 
   constructor(
     store: DbStore,
     private readonly openSearchService: OpenSearchService,
-    private readonly searchSyncEmitter: SearchSyncWorkerEmitter,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -34,6 +34,7 @@ export class MemberSyncService extends LoggerBase {
     this.memberRepo = new MemberRepository(store, this.log)
     this.integrationRepo = new IntegrationRepository(store, this.log)
     this.automationRepo = new AutomationRepository(store, this.log)
+    this.automationExecutionRepo = new AutomationExecutionRepository(store, this.log)
   }
 
   public async syncMember(
@@ -253,29 +254,6 @@ export class MemberSyncService extends LoggerBase {
 
     const parsed = OpensearchQueryParser.parse(parseOptions, OpenSearchIndex.MEMBERS, translator)
 
-    // only get members that aren't marked as sync yet
-    // parsed.query.bool.must.push({
-    //   bool: {
-    //     should: [
-    //       {
-    //         bool: {
-    //           must_not: {
-    //             exists: {
-    //               field: `obj_attributes.obj_syncRemote.bool_${integration.platform}`,
-    //             },
-    //           },
-    //         },
-    //       },
-    //       {
-    //         term: {
-    //           [`obj_attributes.obj_syncRemote.bool_${integration.platform}`]: false,
-    //         },
-    //       },
-    //     ],
-    //     minimum_should_match: 1,
-    //   },
-    // })
-
     // add tenant filter
     parsed.query.bool.must.push({
       term: {
@@ -334,100 +312,136 @@ export class MemberSyncService extends LoggerBase {
       'Trying to sync members that conform to sent filter!',
     )
 
-    do {
-      const membersToCreate: IMember[] = []
-      const membersToUpdate: IMember[] = []
+    try {
+      do {
+        const membersToCreate: IMember[] = []
+        const membersToUpdate: IMember[] = []
 
-      offset = filteredMembers ? offset + batchSize : 0
-      parsed.from = offset
+        offset = filteredMembers ? offset + batchSize : 0
+        parsed.from = offset
 
-      filteredMembers = await this.openSearchService.client.search({
-        index: OpenSearchIndex.MEMBERS,
-        body: parsed,
-      })
+        filteredMembers = await this.openSearchService.client.search({
+          index: OpenSearchIndex.MEMBERS,
+          body: parsed,
+        })
 
-      this.log.trace('Found members: ')
-      this.log.trace(filteredMembers)
+        this.log.trace('Found members: ')
+        this.log.trace(filteredMembers)
 
-      const translatedMembers: IMember[] = filteredMembers.body.hits.hits.reduce((acc, member) => {
-        const membersWithCrowdFields = translator.translateObjectToCrowd(member._source)
-        acc.push(membersWithCrowdFields)
-        return acc
-      }, [])
-
-      while (translatedMembers.length > 0) {
-        const memberToSync = translatedMembers.shift()
-
-        this.log.trace(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
-
-        let syncRemote = await this.memberRepo.findSyncRemote(
-          memberToSync.id,
-          integration.id,
-          automation.id,
-        )
-
-        // member isn't marked yet, mark it
-        if (!syncRemote) {
-          syncRemote = await this.memberRepo.markMemberForSyncing({
-            integrationId: integration.id,
-            memberId: memberToSync.id,
-            metaData: null,
-            syncFrom: automation.id,
-          })
-        }
-
-        if (syncRemote.sourceId) {
-          memberToSync.attributes = {
-            ...memberToSync.attributes,
-            sourceId: {
-              [integration.platform]: syncRemote.sourceId,
-            },
-          }
-          membersToUpdate.push(memberToSync)
-        } else {
-          membersToCreate.push(memberToSync)
-        }
-      }
-
-      const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)
-
-      if (service.processSyncRemote) {
-        const context: IIntegrationProcessRemoteSyncContext = {
-          integration,
-          log: this.log,
-          serviceSettings: {
-            nangoId: `${tenantId}-${integration.platform}`,
-            nangoUrl: NANGO_CONFIG().url,
-            nangoSecretKey: NANGO_CONFIG().secretKey,
+        const translatedMembers: IMember[] = filteredMembers.body.hits.hits.reduce(
+          (acc, member) => {
+            const membersWithCrowdFields = translator.translateObjectToCrowd(member._source)
+            acc.push(membersWithCrowdFields)
+            return acc
           },
-          tenantId,
-          automation,
-        }
-
-        const newMembers = await service.processSyncRemote<IMember>(
-          membersToCreate,
-          membersToUpdate,
-          Entity.MEMBERS,
-          context,
+          [],
         )
 
-        for (const newMember of newMembers as IBatchCreateMemberResult[]) {
-          await this.memberRepo.setIntegrationSourceId(
-            newMember.memberId,
+        while (translatedMembers.length > 0) {
+          const memberToSync = translatedMembers.shift()
+
+          this.log.trace(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
+
+          let syncRemote = await this.memberRepo.findSyncRemote(
+            memberToSync.id,
             integration.id,
-            newMember.sourceId,
+            automation.id,
           )
 
-          await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+          // member isn't marked yet, mark it
+          if (!syncRemote) {
+            syncRemote = await this.memberRepo.markMemberForSyncing({
+              integrationId: integration.id,
+              memberId: memberToSync.id,
+              metaData: null,
+              syncFrom: automation.id,
+            })
+          }
+
+          if (syncRemote.sourceId) {
+            memberToSync.attributes = {
+              ...memberToSync.attributes,
+              sourceId: {
+                [integration.platform]: syncRemote.sourceId,
+              },
+            }
+            membersToUpdate.push(memberToSync)
+          } else {
+            membersToCreate.push(memberToSync)
+          }
         }
 
-        for (const updatedMember of membersToUpdate) {
-          await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+        const service = singleOrDefault(
+          INTEGRATION_SERVICES,
+          (s) => s.type === integration.platform,
+        )
+
+        if (service.processSyncRemote) {
+          const context: IIntegrationProcessRemoteSyncContext = {
+            integration,
+            log: this.log,
+            serviceSettings: {
+              nangoId: `${tenantId}-${integration.platform}`,
+              nangoUrl: NANGO_CONFIG().url,
+              nangoSecretKey: NANGO_CONFIG().secretKey,
+            },
+            tenantId,
+            automation,
+          }
+
+          const newMembers = await service.processSyncRemote<IMember>(
+            membersToCreate,
+            membersToUpdate,
+            Entity.MEMBERS,
+            context,
+          )
+
+          for (const newMember of newMembers as IBatchCreateMemberResult[]) {
+            await this.memberRepo.setIntegrationSourceId(
+              newMember.memberId,
+              integration.id,
+              newMember.sourceId,
+            )
+
+            await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+          }
+
+          for (const updatedMember of membersToUpdate) {
+            await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+          }
+        } else {
+          this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
         }
-      } else {
-        this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
-      }
-    } while (filteredMembers.length > 0)
+      } while (filteredMembers.length > 0)
+
+      await this.automationExecutionRepo.addExecution({
+        automationId: automation.id,
+        type: automation.type,
+        trigger: automation.trigger,
+        tenantId: automation.tenantId,
+        state: 'success',
+        payload: {
+          type: automation.type,
+          trigger: automation.trigger,
+        },
+        error: null,
+      })
+    } catch (e) {
+      await this.automationExecutionRepo.addExecution({
+        automationId: automation.id,
+        type: automation.type,
+        trigger: automation.trigger,
+        tenantId: automation.tenantId,
+        state: 'error',
+        payload: {
+          type: automation.type,
+          trigger: automation.trigger,
+        },
+        error: JSON.stringify(e),
+      })
+
+      throw e
+    }
   }
 
   public async syncOrganizationMembers(

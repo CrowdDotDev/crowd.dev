@@ -151,10 +151,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     segmentIds: string[],
     platform: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     filter: any,
     limit: number,
     offset: number,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: any = {
       tenantId,
       segmentIds,

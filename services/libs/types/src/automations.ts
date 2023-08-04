@@ -20,10 +20,25 @@ export interface IAutomation {
   type: AutomationType
   tenantId: string
   trigger: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings: any
   state: string
   createdAt: string
   updatedAt: string
   createdById: string
   updatedById: string
+}
+
+export interface IAutomationExecution {
+  id?: string
+  automationId: string
+  type: string
+  tenantId: string
+  trigger: string
+  state: string
+  error: string
+  executedAt?: string
+  eventId?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any
 }
