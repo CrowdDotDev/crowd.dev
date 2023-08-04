@@ -487,6 +487,9 @@ export default class IntegrationService {
     }
 
     await memberService.update(payload.memberId, { attributes: member.attributes })
+
+    const memberSyncRemoteRepository = new MemberSyncRemoteRepository(this.options)
+    await memberSyncRemoteRepository.stopMemberManualSync(member.id)
   }
 
   async hubspotSyncMember(payload: IHubspotManualSyncPayload) {
@@ -585,6 +588,9 @@ export default class IntegrationService {
     await organizationService.update(payload.organizationId, {
       attributes: organization.attributes,
     })
+
+    const organizationSyncRemoteRepository = new OrganizationSyncRemoteRepository(this.options)
+    await organizationSyncRemoteRepository.stopOrganizationManualSync(organization.id)
   }
 
   async hubspotSyncOrganization(payload: IHubspotManualSyncPayload) {

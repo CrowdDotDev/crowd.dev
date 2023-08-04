@@ -29,6 +29,21 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
     )
   }
 
+  async stopOrganizationManualSync(organizationId: string) {
+    await this.options.database.sequelize.query(
+      `update "organizationsSyncRemote" set status = :status where "organizationId" = :organizationId and "syncFrom" = :manualSync
+        `,
+      {
+        replacements: {
+          status: SyncStatus.STOPPED,
+          organizationId,
+          manualSync: 'manual',
+        },
+        type: QueryTypes.UPDATE,
+      },
+    )
+  }
+
   async markOrganizationForSyncing(
     data: IOrganizationSyncRemoteData,
   ): Promise<IOrganizationSyncRemoteData> {

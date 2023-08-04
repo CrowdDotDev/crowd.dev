@@ -29,6 +29,21 @@ class MemberSyncRemoteRepository extends RepositoryBase<
     )
   }
 
+  async stopMemberManualSync(memberId: string) {
+    await this.options.database.sequelize.query(
+      `update "membersSyncRemote" set status = :status where "memberId" = :memberId and "syncFrom" = :manualSync
+        `,
+      {
+        replacements: {
+          status: SyncStatus.STOPPED,
+          memberId,
+          manualSync: 'manual',
+        },
+        type: QueryTypes.UPDATE,
+      },
+    )
+  }
+
   async markMemberForSyncing(data: IMemberSyncRemoteData): Promise<IMemberSyncRemoteData> {
     const existingSyncRemote = await this.findByMemberId(data.memberId)
 
