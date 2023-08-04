@@ -57,7 +57,7 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
       `INSERT INTO "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
           VALUES
               (:id, :organizationId, :sourceId, :integrationId, :syncFrom, :metaData, :lastSyncedAt, :status)
-              conflict do nothing
+              on conflict do nothing
           RETURNING "id"
         `,
       {
