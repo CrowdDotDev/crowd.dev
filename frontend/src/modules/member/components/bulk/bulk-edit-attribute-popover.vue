@@ -51,7 +51,7 @@
                 v-else-if="selectedAttribute.type === 'date'"
                 v-model="formModel[selectedAttribute.name]"
                 :prefix-icon="CalendarIcon"
-                class="custom-date-picker"
+                class="custom-date-picker attribute-date-picker"
                 size="large"
                 popper-class="date-picker-popper"
                 type="date"
@@ -376,7 +376,7 @@ export default {
 </script>
 
 <style>
-.custom-date-picker {
+.custom-date-picker.attribute-date-picker {
   width: 100% !important;
 }
 </style>
