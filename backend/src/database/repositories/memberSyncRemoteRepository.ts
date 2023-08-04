@@ -57,7 +57,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
               (:id, :memberId, :sourceId, :integrationId, :syncFrom, :metaData, :lastSyncedAt, :status)
           on conflict ("integrationId", "memberId", "syncFrom")
           do update 
-              set "id" = membersSyncRemote."id" 
+              set "id" = EXCLUDED."id" 
           returning "id"
         `,
       {

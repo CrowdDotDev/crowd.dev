@@ -59,7 +59,7 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
               (:id, :organizationId, :sourceId, :integrationId, :syncFrom, :metaData, :lastSyncedAt, :status)
               on conflict ("organizationId", "integrationId", "syncFrom")
               do update 
-              set "id" = organizationsSyncRemote."id" 
+              set "id" = EXCLUDED."id" 
           returning "id"
         `,
       {
