@@ -841,7 +841,7 @@ export default class IntegrationService {
       HubspotEntity.MEMBERS,
       null,
       memberAttributeSettings,
-      identities,
+      identities.map((i) => i.platform),
     )
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.ORGANIZATIONS,
