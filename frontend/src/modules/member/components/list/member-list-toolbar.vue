@@ -131,7 +131,7 @@ import {
   getEnrichmentMax,
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
-import AppBulkEditAttributePopover from '@/modules/member/components/member-edit-attribute.vue';
+import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 
