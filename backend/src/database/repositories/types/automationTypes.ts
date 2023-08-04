@@ -26,7 +26,7 @@ export interface DbAutomationExecutionInsertData {
   automationId: string
   type: AutomationType
   tenantId: string
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   state: AutomationExecutionState
   error: any | null
   executedAt: Date
