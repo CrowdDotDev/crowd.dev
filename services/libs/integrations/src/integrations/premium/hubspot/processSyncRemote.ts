@@ -39,7 +39,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
 
   switch (entity) {
     case Entity.MEMBERS: {
-      let membersCreatedInHubspot
+      let membersCreatedInHubspot = []
 
       const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.MEMBERS,
@@ -73,7 +73,10 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       }
 
       // we should also add members to hubspot lists, if it's coming from an automation
-      if (ctx.automation.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH) {
+      if (
+        ctx.automation &&
+        ctx.automation.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH
+      ) {
         const vids: string[] = [
           ...membersCreatedInHubspot.map((m) => m.sourceId),
           ...(toUpdate as IMember[]).map((m) => m.attributes.sourceId.hubspot),

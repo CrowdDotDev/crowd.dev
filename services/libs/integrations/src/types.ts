@@ -188,7 +188,6 @@ export interface IIntegrationDescriptor {
    * Function that will be called if defined, after an integration goes into done state.
    * Mainly responsible for sending queue messages to integration-sync-worker
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   startSyncRemote?: StartIntegrationSyncHandler
 
   /**

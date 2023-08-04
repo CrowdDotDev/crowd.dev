@@ -9,7 +9,11 @@ import {
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
-import { AutomationSyncTrigger, IQueueMessage, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
+import {
+  AutomationSyncTrigger,
+  IQueueMessage,
+  IntegrationSyncWorkerQueueMessageType,
+} from '@crowd/types'
 import { Client } from '@opensearch-project/opensearch'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
@@ -56,6 +60,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
             data.tenantId,
             data.integrationId,
             data.memberId,
+            data.syncRemoteId,
           )
           break
         case IntegrationSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
@@ -63,6 +68,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
             data.tenantId,
             data.integrationId,
             data.organizationId,
+            data.syncRemoteId,
           )
           break
         case IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS:
@@ -72,27 +78,37 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           )
           break
         case IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION:
-
-            if (data.automationTrigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH) {
-              await this.initMemberService().syncAllFilteredMembers(
+          if (data.automationTrigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH) {
+            await this.initMemberService().syncAllFilteredMembers(
+              data.tenantId,
+              data.integrationId,
+              data.automationId,
+            )
+          } else if (
+            data.automationTrigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH
+          ) {
+            const organizationIds =
+              await this.initOrganizationService().syncAllFilteredOrganizations(
                 data.tenantId,
                 data.integrationId,
                 data.automationId,
               )
 
+            // also sync organization members if syncAllFilteredOrganizations return the ids
+            while (organizationIds.length > 0) {
+              const organizationId = organizationIds.shift()
+              await this.initMemberService().syncOrganizationMembers(
+                data.tenantId,
+                data.integrationId,
+                data.automationId,
+                organizationId,
+              )
             }
-            // else if (data.trigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH) {
-            //   await this.initOrganizationService().syncAllFilteredOrganizations(
-            //     data.tenantId,
-            //     data.integrationId,
-            //   )
-// 
-            // }
-            else {
-              const errorMessage = `Unsupported trigger for onboard automation message!`
-              this.log.error( { message }, errorMessage)
-              throw new Error(errorMessage)
-            }
+          } else {
+            const errorMessage = `Unsupported trigger for onboard automation message!`
+            this.log.error({ message }, errorMessage)
+            throw new Error(errorMessage)
+          }
           break
 
         default:

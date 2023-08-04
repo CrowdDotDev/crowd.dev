@@ -6,6 +6,8 @@ import { IMember, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
 import { IBatchCreateMemberResult } from './types'
+import { batchUpdateMembers } from './batchUpdateMembers'
+import { getContactById } from './contactById'
 
 export const batchCreateMembers = async (
   nangoId: string,
@@ -101,7 +103,43 @@ export const batchCreateMembers = async (
       return acc
     }, [])
   } catch (err) {
-    ctx.log.error({ err }, 'Error while batch create contacts to HubSpot')
-    throw err
+    // this means that member actually exists in hubspot but we tried re-creating it
+    // handle it gracefully
+    if (err.response?.data?.category === 'CONFLICT') {
+      ctx.log.warn(
+        { err },
+        'Conflict while batch create contacts in HubSpot. Trying to resolve the conflicts...',
+      )
+      const match = err.response?.data?.message.match(/ID: (\d+)/)
+      const id = match ? match[1] : null
+      if (id) {
+        const member = await getContactById(nangoId, id, memberMapper, ctx, throttler)
+
+        if (member) {
+          // exclude found member from batch payload
+          const createMembers = members.filter(
+            (m) => !m.emails.includes((member.properties as any).crowd_emails),
+          )
+
+          const updateMembers = members
+            .filter((m) => m.emails.includes((member.properties as any).crowd_emails))
+            .map((m) => {
+              m.attributes = {
+                ...m.attributes,
+                sourceId: {
+                  hubspot: id,
+                },
+              }
+              return m
+            })
+
+          await batchUpdateMembers(nangoId, updateMembers, memberMapper, ctx, throttler)
+          return await batchCreateMembers(nangoId, createMembers, memberMapper, ctx, throttler)
+        }
+      }
+    } else {
+      ctx.log.error({ err }, 'Error while batch create contacts to HubSpot')
+      throw err
+    }
   }
 }

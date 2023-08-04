@@ -71,7 +71,7 @@ export interface AutomationData {
   name: string
   type: AutomationType
   tenantId: string
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   settings: AutomationSettings
   state: AutomationState
   createdAt: string

@@ -15,6 +15,8 @@ import { ServiceBase } from './serviceBase'
 import { getIntegrationSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import IntegrationRepository from '@/database/repositories/integrationRepository'
 import Error404 from '@/errors/Error404'
+import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
+import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 
 export default class AutomationService extends ServiceBase<
   AutomationData,
@@ -89,6 +91,42 @@ export default class AutomationService extends ServiceBase<
       // update an existing automation including its state
       const result = await new AutomationRepository(txOptions).update(id, req)
       await SequelizeRepository.commitTransaction(txOptions.transaction)
+      // check automation type, if hubspot trigger an automation onboard
+      if (result.type === AutomationType.HUBSPOT) {
+        let integration
+
+        try {
+          integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
+            ...this.options,
+          })
+        } catch (err) {
+          this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
+          throw new Error404()
+        }
+
+        if (
+          result.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH ||
+          result.trigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH
+        ) {
+          if (result.state === AutomationState.ACTIVE) {
+            const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
+            await integrationSyncWorkerEmitter.triggerOnboardAutomation(
+              this.options.currentTenant.id,
+              integration.id,
+              result.id,
+              result.trigger as AutomationSyncTrigger,
+            )
+          } else if (result.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH) {
+            // disable memberSyncRemote for given automationId
+            const syncRepo = new MemberSyncRemoteRepository(this.options)
+            await syncRepo.stopSyncingAutomation(result.id)
+          } else if (result.trigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH) {
+            // disable organizationSyncRemote for given automationId
+            const syncRepo = new OrganizationSyncRemoteRepository(this.options)
+            await syncRepo.stopSyncingAutomation(result.id)
+          }
+        }
+      }
       return result
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(txOptions.transaction)

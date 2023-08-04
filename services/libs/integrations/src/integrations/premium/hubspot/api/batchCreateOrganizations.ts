@@ -7,6 +7,8 @@ import { RequestThrottler } from '@crowd/common'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
 import { getOrganizationDomain } from './utils/getOrganizationDomain'
 import { IBatchCreateOrganizationsResult } from './types'
+import { getCompanyById } from './companyById'
+import { batchUpdateOrganizations } from './batchUpdateOrganizations'
 
 export const batchCreateOrganizations = async (
   nangoId: string,
@@ -90,7 +92,55 @@ export const batchCreateOrganizations = async (
       return acc
     }, [])
   } catch (err) {
-    ctx.log.error({ err }, 'Error while batch create companies in HubSpot!')
-    throw err
+    // this means that organization actually exists in hubspot but we tried re-creating it
+    // handle it gracefully
+    if (err.response?.data?.category === 'CONFLICT') {
+      ctx.log.warn(
+        { err },
+        'Conflict while batch create companies in HubSpot. Trying to resolve the conflicts...',
+      )
+      const match = err.response?.data?.message.match(/ID: (\d+)/)
+      const id = match ? match[1] : null
+      if (id) {
+        const organization = await getCompanyById(nangoId, id, organizationMapper, ctx, throttler)
+
+        if (organization) {
+          // exclude found organization from batch payload
+          const createOrganizations = organizations.filter(
+            (o) => !o.website.includes((organization.properties as any).domain),
+          )
+
+          const updateOrganizations = organizations
+            .filter((o) => o.website.includes((organization.properties as any).domain))
+            .map((o) => {
+              o.attributes = {
+                ...o.attributes,
+                sourceId: {
+                  hubspot: id,
+                },
+              }
+              return o
+            })
+
+          await batchUpdateOrganizations(
+            nangoId,
+            updateOrganizations,
+            organizationMapper,
+            ctx,
+            throttler,
+          )
+          return await batchCreateOrganizations(
+            nangoId,
+            createOrganizations,
+            organizationMapper,
+            ctx,
+            throttler,
+          )
+        }
+      }
+    } else {
+      ctx.log.error({ err }, 'Error while batch create companies to HubSpot')
+      throw err
+    }
   }
 }

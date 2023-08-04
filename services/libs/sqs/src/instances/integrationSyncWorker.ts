@@ -29,6 +29,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     tenantId: string,
     integrationId: string,
     memberId: string,
+    syncRemoteId: string,
   ): Promise<void> {
     if (!tenantId) {
       throw new Error('tenantId is required!')
@@ -41,6 +42,10 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('memberId is required!')
     }
 
+    if (!syncRemoteId) {
+      throw new Error('syncRemoteId is required!')
+    }
+
     await this.sendMessage(
       `integration-sync-member-${tenantId}`,
       {
@@ -48,6 +53,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
         tenantId,
         integrationId,
         memberId,
+        syncRemoteId,
       },
       `integration-sync-member-${memberId}`,
     )
@@ -106,12 +112,17 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     tenantId: string,
     integrationId: string,
     organizationId: string,
+    syncRemoteId: string,
   ): Promise<void> {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
     if (!integrationId) {
       throw new Error('integrationId is required!')
+    }
+
+    if (!syncRemoteId) {
+      throw new Error('syncRemoteId is required!')
     }
 
     await this.sendMessage(
@@ -121,6 +132,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
         tenantId,
         integrationId,
         organizationId,
+        syncRemoteId,
       },
       `integration-sync-organization-${organizationId}`,
     )

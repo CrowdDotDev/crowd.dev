@@ -42,3 +42,7 @@ export * from './tags'
 export * from './attributes'
 
 export * from './automations'
+
+export * from './query'
+
+export * from './sync'

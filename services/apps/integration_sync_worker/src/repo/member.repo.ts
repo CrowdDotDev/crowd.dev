@@ -1,11 +1,114 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
+import { generateUUIDv1 as uuid } from '@crowd/common'
+
 import { Logger } from '@crowd/logging'
-import { IMember, IMemberAttribute, PlatformType } from '@crowd/types'
+import {
+  IMember,
+  IMemberAttribute,
+  IMemberSyncRemoteData,
+  PlatformType,
+  SyncStatus,
+} from '@crowd/types'
 import { IMemberIdWithAttributes } from './member.data'
+
+export interface IMemberIdObject {
+  memberId: string
+}
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
+  }
+
+  public async findSyncRemoteByMemberId(memberId: string): Promise<IMemberSyncRemoteData> {
+    return await this.db().oneOrNone(
+      `SELECT *
+      FROM "membersSyncRemote"
+      WHERE "memberId" = $(memberId)
+      and "sourceId" is not null
+      limit 1;`,
+      { memberId },
+    )
+  }
+
+  public async markMemberForSyncing(data: IMemberSyncRemoteData): Promise<IMemberSyncRemoteData> {
+    const existingSyncRemote = await this.findSyncRemoteByMemberId(data.memberId)
+
+    if (existingSyncRemote) {
+      data.sourceId = existingSyncRemote.sourceId
+    }
+
+    const id = await this.db()
+      .one(
+        `insert into "membersSyncRemote" ("id", "memberId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
+      values
+          ($(id), $(memberId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
+      returning "id"
+    `,
+        {
+          id: uuid(),
+          memberId: data.memberId,
+          integrationId: data.integrationId,
+          syncFrom: data.syncFrom,
+          metaData: data.metaData || null,
+          lastSyncedAt: data.lastSyncedAt || null,
+          sourceId: data.sourceId || null,
+          status: SyncStatus.ACTIVE,
+        },
+      )
+      .then((data) => data.id)
+
+    return this.findSyncRemoteById(id)
+  }
+
+  public async findSyncRemoteById(syncRemoteId: string): Promise<IMemberSyncRemoteData> {
+    return await this.db().oneOrNone(
+      `select * from "membersSyncRemote" where id = $(syncRemoteId)`,
+      { syncRemoteId },
+    )
+  }
+
+  public async findSyncRemote(
+    memberId: string,
+    integrationId: string,
+    syncFrom: string,
+  ): Promise<IMemberSyncRemoteData> {
+    return await this.db().oneOrNone(
+      `select * from "membersSyncRemote" where "memberId" = $(memberId) and "integrationId" = $(integrationId) and "syncFrom" = $(syncFrom)`,
+      {
+        memberId,
+        integrationId,
+        syncFrom,
+      },
+    )
+  }
+
+  public async setLastSyncedAtBySyncRemoteId(syncRemoteId: string): Promise<void> {
+    this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
+
+    await this.db().none(
+      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where id = $(syncRemoteId)`,
+      {
+        syncRemoteId,
+        status: SyncStatus.ACTIVE,
+      },
+    )
+  }
+
+  public async setLastSyncedAt(memberId: string, integrationId: string): Promise<void> {
+    this.log.debug(
+      `Setting lastSyncedAt for member ${memberId} and integration ${integrationId} to now!`,
+    )
+
+    await this.db().none(
+      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where "memberId" = $(memberId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
+      {
+        memberId,
+        integrationId,
+        status: SyncStatus.ACTIVE,
+        neverStatus: SyncStatus.NEVER,
+      },
+    )
   }
 
   public async getTenantMemberAttributes(tenantId: string): Promise<IMemberAttribute[]> {
@@ -32,30 +135,31 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async setIntegrationSourceId(
     memberId: string,
-    platform: string,
+    integrationId: string,
     sourceId: string,
   ): Promise<void> {
-    const member = await this.db().oneOrNone(
-      `select id, attributes from members where id = $(memberId)`,
-      { memberId },
+    this.log.debug(
+      `Updating member ${memberId} in integration ${integrationId} sourceId to ${sourceId}.`,
     )
 
-    if (member.attributes.sourceId) {
-      member.attributes.sourceId[platform] = sourceId
-      member.attributes.sourceId.default = sourceId
-    } else {
-      member.attributes.sourceId = {
-        [platform]: sourceId,
-        default: sourceId,
-      }
-    }
-
-    this.log.debug(`Updating member ${memberId} ${platform} sourceId to ${sourceId}.`)
     await this.db().none(
-      `update members set "attributes" = $(attributes)::jsonb where id = $(memberId)`,
+      `update "membersSyncRemote" set "sourceId" = $(sourceId) where "memberId" = $(memberId) and "integrationId" = $(integrationId)`,
       {
         memberId,
-        attributes: JSON.stringify(member.attributes),
+        integrationId,
+        sourceId,
+      },
+    )
+  }
+
+  public async setSyncRemoteSourceId(syncRemoteId: string, sourceId: string): Promise<void> {
+    this.log.debug(`Updating syncRemote ${syncRemoteId} sourceId to ${sourceId}.`)
+
+    await this.db().none(
+      `update "membersSyncRemote" set "sourceId" = $(sourceId) where id = $(syncRemoteId)`,
+      {
+        syncRemoteId,
+        sourceId,
       },
     )
   }
@@ -64,6 +168,47 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return await this.db().oneOrNone(`select id, attributes from members where id = $(memberId)`, {
       memberId,
     })
+  }
+
+  public async findMarkedMembers(
+    integrationId: string,
+    limit: number,
+    offset: number,
+  ): Promise<IMemberSyncRemoteData[]> {
+    const results = await this.db().any(
+      `select distinct "memberId", "sourceId"
+        from "membersSyncRemote"
+        where status = $(status)
+        order by "memberId", "sourceId"
+        limit $(limit) offset $(offset)`,
+      {
+        integrationId,
+        limit,
+        offset,
+        status: SyncStatus.ACTIVE,
+      },
+    )
+    return results
+  }
+
+  public async findOrganizationMembers(
+    organizationId: string,
+    limit: number,
+    offset: number,
+  ): Promise<IMemberIdObject[]> {
+    const results = await this.db().any(
+      `select distinct "memberId"
+        from "memberOrganizations"
+        where "organizationId" = $(organizationId)
+        order by "memberId"
+        limit $(limit) offset $(offset)`,
+      {
+        organizationId,
+        limit,
+        offset,
+      },
+    )
+    return results
   }
 
   public async findMember(id: string): Promise<IMember> {

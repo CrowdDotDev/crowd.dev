@@ -33,3 +33,13 @@ export interface IOrganizationOpensearch {
   logo: string
   displayName: string
 }
+
+export interface IOrganizationSyncRemoteData {
+  id?: string
+  organizationId: string
+  sourceId?: string
+  integrationId: string
+  syncFrom: string
+  metaData: string
+  lastSyncedAt?: string
+}

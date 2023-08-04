@@ -12,7 +12,7 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
     platform: string,
   ): Promise<IAutomation[] | null> {
     const results = await this.db().any(
-      `select * from automations where platform = $(platform) and "tenantId" = $(tenantId) and trigger in ($(syncAutomationTriggers:csv))`,
+      `select * from automations where type = $(platform) and "tenantId" = $(tenantId) and trigger in ($(syncAutomationTriggers:csv))`,
       {
         tenantId,
         platform,

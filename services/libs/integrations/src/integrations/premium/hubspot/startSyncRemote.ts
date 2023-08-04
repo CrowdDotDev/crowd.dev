@@ -1,6 +1,6 @@
 import { StartIntegrationSyncHandler } from '@/types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
-import { AutomationSyncTrigger } from '@crowd/types'
+import { AutomationState, AutomationSyncTrigger } from '@crowd/types'
 
 const handler: StartIntegrationSyncHandler = async (ctx) => {
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
@@ -12,7 +12,9 @@ const handler: StartIntegrationSyncHandler = async (ctx) => {
     )
 
     const memberSyncAutomations = ctx.automations.filter(
-      (a) => a.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH,
+      (a) =>
+        a.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH &&
+        a.state === AutomationState.ACTIVE,
     )
 
     // sync filter automations
@@ -34,7 +36,9 @@ const handler: StartIntegrationSyncHandler = async (ctx) => {
     )
 
     const organizationSyncAutomations = ctx.automations.filter(
-      (a) => a.trigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH,
+      (a) =>
+        a.trigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH &&
+        a.state === AutomationState.ACTIVE,
     )
 
     // sync filter automations

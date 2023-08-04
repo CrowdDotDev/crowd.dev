@@ -40,6 +40,8 @@ import MemberAttributeSettingsRepository from '../database/repositories/memberAt
 import TenantRepository from '../database/repositories/tenantRepository'
 import MemberService from './memberService'
 import OrganizationService from './organizationService'
+import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
+import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -517,6 +519,16 @@ export default class IntegrationService {
       member.attributes.syncRemote.default = true
     }
 
+    const memberSyncRemoteRepo = new MemberSyncRemoteRepository(this.options)
+
+    const memberSyncRemote = await memberSyncRemoteRepo.markMemberForSyncing({
+      integrationId: integration.id,
+      memberId: member.id,
+      metaData: null,
+      syncFrom: 'manual',
+      lastSyncedAt: null,
+    })
+
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     // set integration.settings.syncRemoteEnabled to true, and mark member as syncRemote
@@ -544,6 +556,7 @@ export default class IntegrationService {
       this.options.currentTenant.id,
       integration.id,
       payload.memberId,
+      memberSyncRemote.id,
     )
   }
 
@@ -613,6 +626,16 @@ export default class IntegrationService {
       organization.attributes.syncRemote.default = true
     }
 
+    const organizationSyncRemoteRepo = new OrganizationSyncRemoteRepository(this.options)
+
+    const organizationSyncRemote = await organizationSyncRemoteRepo.markOrganizationForSyncing({
+      integrationId: integration.id,
+      organizationId: organization.id,
+      metaData: null,
+      syncFrom: 'manual',
+      lastSyncedAt: null,
+    })
+
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     // set integration.settings.syncRemoteEnabled to true, and mark organization as syncRemote
@@ -642,6 +665,7 @@ export default class IntegrationService {
       this.options.currentTenant.id,
       integration.id,
       payload.organizationId,
+      organizationSyncRemote.id,
     )
   }
 

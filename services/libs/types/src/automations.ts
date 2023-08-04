@@ -9,6 +9,11 @@ export enum AutomationType {
   HUBSPOT = 'hubspot',
 }
 
+export enum AutomationState {
+  ACTIVE = 'active',
+  DISABLED = 'disabled',
+}
+
 export interface IAutomation {
   id: string
   name: string

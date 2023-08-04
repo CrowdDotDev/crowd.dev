@@ -230,6 +230,12 @@ export class OrganizationService extends LoggerBase {
         if (dbOrganization) {
           this.log.trace({ organizationId: dbOrganization.id }, 'Found existing organization.')
 
+          // set a record in organizationsSyncRemote to save the sourceId
+          // we can't use organization.attributes because of segments
+          if (sourceId) {
+            await txRepo.addToSyncRemote(dbOrganization.id, dbIntegration.id, sourceId)
+          }
+
           // send to findOrCreate with found organization's name, since we use the name field as the primary key
           await this.findOrCreate(tenantId, segmentId, {
             ...organization,
