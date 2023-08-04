@@ -54,11 +54,13 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
     }
 
     const organizationSyncRemoteInserted = await this.options.database.sequelize.query(
-      `INSERT INTO "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
+      `insert into "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
           VALUES
               (:id, :organizationId, :sourceId, :integrationId, :syncFrom, :metaData, :lastSyncedAt, :status)
-              on conflict do nothing
-          RETURNING "id"
+              on conflict ("organizationId", "integrationId", "syncFrom")
+              do update 
+              set "id" = organizationsSyncRemote."id" 
+          returning "id"
         `,
       {
         replacements: {
