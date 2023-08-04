@@ -7,6 +7,7 @@ import { formatNumber } from '@/utils/number';
 import Message from '@/shared/message/message';
 import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
 
+const scaleEnrichmentMax = 10000;
 const growthEnrichmentMax = 1000;
 const essentialEnrichmentMax = 5;
 
@@ -19,6 +20,11 @@ export const getEnrichmentMax = (plan) => {
     plan === Plans.values.enterprise
   ) {
     return 'unlimited';
+  }
+  if (
+    plan === Plans.values.scale
+  ) {
+    return scaleEnrichmentMax;
   }
   if (
     plan === Plans.values.growth
