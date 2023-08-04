@@ -188,5 +188,11 @@
   "auth0": {
     "clientId": "CROWD_AUTH0_CLIENT_ID",
     "jwks": "CROWD_AUTH0_JWKS"
+  },
+  "crowdAnalytics": {
+    "isEnabled": "CROWD_ANALYTICS_IS_ENABLED",
+    "tenantId": "CROWD_ANALYTICS_TENANT_ID",
+    "baseUrl": "CROWD_ANALYTICS_BASE_URL",
+    "apiToken": "CROWD_ANALYTICS_API_TOKEN"
   }
 }
