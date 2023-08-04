@@ -29,6 +29,44 @@ class MemberSyncRemoteRepository extends RepositoryBase<
     )
   }
 
+  async findRemoteSync(integrationId: string, memberId: string, syncFrom: string) {
+    const records = await this.options.database.sequelize.query(
+      `SELECT *
+             FROM "membersSyncRemote"
+             WHERE "integrationId" = :integrationId and "memberId" = :memberId and "syncFrom" = :syncFrom;
+            `,
+      {
+        replacements: {
+          integrationId,
+          memberId,
+          syncFrom,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
+
+  async startManualSync(id: string, sourceId: string) {
+    await this.options.database.sequelize.query(
+      `update "membersSyncRemote" set status = :status, "sourceId" = :sourceId where "id" = :id
+        `,
+      {
+        replacements: {
+          status: SyncStatus.ACTIVE,
+          id,
+          sourceId,
+        },
+        type: QueryTypes.UPDATE,
+      },
+    )
+  }
+
   async stopMemberManualSync(memberId: string) {
     await this.options.database.sequelize.query(
       `update "membersSyncRemote" set status = :status where "memberId" = :memberId and "syncFrom" = :manualSync
@@ -49,6 +87,17 @@ class MemberSyncRemoteRepository extends RepositoryBase<
 
     if (existingSyncRemote) {
       data.sourceId = existingSyncRemote.sourceId
+    }
+
+    const existingManualSyncRemote = await this.findRemoteSync(
+      data.integrationId,
+      data.memberId,
+      data.syncFrom,
+    )
+
+    if (existingManualSyncRemote) {
+      await this.startManualSync(existingManualSyncRemote.id, data.sourceId)
+      return existingManualSyncRemote.id
     }
 
     const memberSyncRemoteInserted = await this.options.database.sequelize.query(

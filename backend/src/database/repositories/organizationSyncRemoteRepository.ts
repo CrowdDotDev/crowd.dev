@@ -44,6 +44,44 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
     )
   }
 
+  async startManualSync(id: string, sourceId: string) {
+    await this.options.database.sequelize.query(
+      `update "organizationsSyncRemote" set status = :status, "sourceId" = :sourceId where "id" = :id
+        `,
+      {
+        replacements: {
+          status: SyncStatus.ACTIVE,
+          id,
+          sourceId,
+        },
+        type: QueryTypes.UPDATE,
+      },
+    )
+  }
+
+  async findRemoteSync(integrationId: string, organizationId: string, syncFrom: string) {
+    const records = await this.options.database.sequelize.query(
+      `SELECT *
+             FROM "organizationsSyncRemote"
+             WHERE "integrationId" = :integrationId and "organizationId" = :organizationId and "syncFrom" = :syncFrom;
+            `,
+      {
+        replacements: {
+          integrationId,
+          organizationId,
+          syncFrom,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
+
   async markOrganizationForSyncing(
     data: IOrganizationSyncRemoteData,
   ): Promise<IOrganizationSyncRemoteData> {
@@ -53,13 +91,21 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
       data.sourceId = existingSyncRemote.sourceId
     }
 
+    const existingManualSyncRemote = await this.findRemoteSync(
+      data.integrationId,
+      data.organizationId,
+      data.syncFrom,
+    )
+
+    if (existingManualSyncRemote) {
+      await this.startManualSync(existingManualSyncRemote.id, data.sourceId)
+      return existingManualSyncRemote.id
+    }
+
     const organizationSyncRemoteInserted = await this.options.database.sequelize.query(
       `insert into "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
           VALUES
               (:id, :organizationId, :sourceId, :integrationId, :syncFrom, :metaData, :lastSyncedAt, :status)
-              on conflict ("organizationId", "integrationId", "syncFrom")
-              do update 
-              set "id" = EXCLUDED."id" 
           returning "id"
         `,
       {
