@@ -2,6 +2,7 @@ import { LoggerBase } from '@crowd/logging'
 import { IServiceOptions } from './IServiceOptions'
 import MemberSegmentAffiliationRepository from '../database/repositories/memberSegmentAffiliationRepository'
 import MemberRepository from '../database/repositories/memberRepository'
+import MemberAffiliationRepository from '../database/repositories/memberAffiliationRepository'
 
 export default class MemberAffiliationService extends LoggerBase {
   options: IServiceOptions
@@ -25,5 +26,9 @@ export default class MemberAffiliationService extends LoggerBase {
     }
 
     return null
+  }
+
+  async updateAffiliation(memberId: string) {
+    await MemberAffiliationRepository.update(memberId, this.options)
   }
 }
