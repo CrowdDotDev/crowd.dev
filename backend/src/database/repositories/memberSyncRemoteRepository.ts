@@ -104,9 +104,6 @@ class MemberSyncRemoteRepository extends RepositoryBase<
       `insert into "membersSyncRemote" ("id", "memberId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
           values
               (:id, :memberId, :sourceId, :integrationId, :syncFrom, :metaData, :lastSyncedAt, :status)
-          on conflict ("integrationId", "memberId", "syncFrom")
-          do update 
-              set "id" = EXCLUDED."id" 
           returning "id"
         `,
       {
