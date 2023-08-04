@@ -60,7 +60,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
         replacements: {
           status: SyncStatus.ACTIVE,
           id,
-          sourceId,
+          sourceId: sourceId || null,
         },
         type: QueryTypes.UPDATE,
       },
