@@ -61,7 +61,7 @@ setImmediate(async () => {
       true,
       // this is to enable manual run
       true,
-      // this is the manual settings
+      // we are inject manual settings here
       { repoFullName: repoFullName },
     )
   } else {
