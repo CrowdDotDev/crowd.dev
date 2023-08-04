@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getServiceChildLogger } from '@crowd/logging'
 import { CROWD_ANALYTICS_CONFIG } from '../conf'
 import UserRepository from '../database/repositories/userRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
@@ -10,6 +11,8 @@ const CROWD_ANALYTICS_BASE_URL = CROWD_ANALYTICS_CONFIG.baseUrl
 const CROWD_ANALYTICS_TOKEN = CROWD_ANALYTICS_CONFIG.apiToken
 
 export const CROWD_ANALYTICS_PLATORM_NAME = 'crowd.dev-analytics'
+
+const log = getServiceChildLogger('segment')
 
 interface CrowdAnalyticsData {
   userId: string
@@ -102,6 +105,6 @@ export default async function addProductData(data: CrowdAnalyticsData) {
       },
     })
   } catch (error) {
-    // do nothing
+    log.error(error, { data }, 'ERROR: Could not send the following payload to Crowd Analytics')
   }
 }

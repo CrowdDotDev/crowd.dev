@@ -56,7 +56,7 @@ export default async function identify(
         properties,
       })
     } catch (error) {
-      log.error(error, { payload }, 'ERROR: Could not send the following payload to Segment')
+      log.error(error, { payload }, 'Could not send the following payload to Segment')
     }
   }
 }
