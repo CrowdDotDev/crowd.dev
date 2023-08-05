@@ -17,6 +17,7 @@ import IntegrationRepository from '@/database/repositories/integrationRepository
 import Error404 from '@/errors/Error404'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
+import AutomationExecutionRepository from '@/database/repositories/automationExecutionRepository'
 
 export default class AutomationService extends ServiceBase<
   AutomationData,
@@ -44,8 +45,6 @@ export default class AutomationService extends ServiceBase<
         state: AutomationState.ACTIVE,
       })
 
-      await SequelizeRepository.commitTransaction(txOptions.transaction)
-
       // check automation type, if hubspot trigger an automation onboard
       if (req.type === AutomationType.HUBSPOT) {
         let integration
@@ -59,6 +58,18 @@ export default class AutomationService extends ServiceBase<
           throw new Error404()
         }
 
+        // enable sync remote for integration
+        integration = await IntegrationRepository.update(
+          integration.id,
+          {
+            settings: {
+              ...integration.settings,
+              syncRemoteEnabled: true,
+            },
+          },
+          txOptions,
+        )
+
         const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
         await integrationSyncWorkerEmitter.triggerOnboardAutomation(
           this.options.currentTenant.id,
@@ -67,6 +78,8 @@ export default class AutomationService extends ServiceBase<
           req.trigger as AutomationSyncTrigger,
         )
       }
+
+      await SequelizeRepository.commitTransaction(txOptions.transaction)
 
       return result
     } catch (error) {
@@ -160,6 +173,13 @@ export default class AutomationService extends ServiceBase<
     const txOptions = await this.getTxRepositoryOptions()
 
     try {
+      // delete automation executions
+      await new AutomationExecutionRepository(txOptions).destroyAllAutomation(ids)
+
+      // delete syncRemote rows coming from automations
+      await new MemberSyncRemoteRepository(txOptions).destroyAllAutomation(ids)
+      await new OrganizationSyncRemoteRepository(txOptions).destroyAllAutomation(ids)
+
       const result = await new AutomationRepository(txOptions).destroyAll(ids)
       await SequelizeRepository.commitTransaction(txOptions.transaction)
       return result

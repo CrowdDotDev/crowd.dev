@@ -106,16 +106,18 @@ export class OrganizationSyncService extends LoggerBase {
 
       for (const organizationToSync of markedOrganizations) {
         this.log.trace(
-          `Syncing organization ${organizationToSync.id} to ${integration.platform} remote!`,
+          `Syncing organization ${organizationToSync.organizationId} to ${integration.platform} remote!`,
         )
 
         const organization = await this.organizationRepo.findOrganization(
-          organizationToSync.id,
+          organizationToSync.organizationId,
           tenantId,
         )
 
         if (organizationToSync.sourceId) {
           // append sourceId to object - it'll be used for updating the remote counterpart
+          organization.attributes = organization.attributes || {}
+
           organization.attributes = {
             ...organization.attributes,
             sourceId: {

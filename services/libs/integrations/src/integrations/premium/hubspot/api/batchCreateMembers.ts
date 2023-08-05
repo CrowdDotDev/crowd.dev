@@ -106,9 +106,9 @@ export const batchCreateMembers = async (
     // this means that member actually exists in hubspot but we tried re-creating it
     // handle it gracefully
     if (err.response?.data?.category === 'CONFLICT') {
-      ctx.log.warn(
+      ctx.log.info(
         { err },
-        'Conflict while batch create contacts in HubSpot. Trying to resolve the conflicts...',
+        'Conflict while batch create contacts in HubSpot. Trying to resolve the conflicts.',
       )
       const match = err.response?.data?.message.match(/ID: (\d+)/)
       const id = match ? match[1] : null

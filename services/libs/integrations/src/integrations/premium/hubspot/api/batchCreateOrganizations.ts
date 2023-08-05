@@ -31,7 +31,7 @@ export const batchCreateOrganizations = async (
 
     for (const organization of organizations) {
       if (!organization.website || !getOrganizationDomain(organization.website)) {
-        ctx.log.warn(
+        ctx.log.info(
           `Organization ${organization.id} can't be created in hubspot! Organization doesn't have any associated website or domain can't be derived from existing website.`,
         )
       } else {
@@ -97,7 +97,7 @@ export const batchCreateOrganizations = async (
     if (err.response?.data?.category === 'CONFLICT') {
       ctx.log.warn(
         { err },
-        'Conflict while batch create companies in HubSpot. Trying to resolve the conflicts...',
+        'Conflict while batch create companies in HubSpot. Trying to resolve the conflicts.',
       )
       const match = err.response?.data?.message.match(/ID: (\d+)/)
       const id = match ? match[1] : null

@@ -66,6 +66,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `select distinct "organizationId", "sourceId"
         from "organizationsSyncRemote"
         where status = $(status)
+        and "integrationId" = $(integrationId)
+        and "organizationId" is not null
         order by "organizationId", "sourceId"
         limit $(limit) offset $(offset)`,
       {

@@ -179,6 +179,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       `select distinct "memberId", "sourceId"
         from "membersSyncRemote"
         where status = $(status)
+        and "integrationId" = $(integrationId)
+        and "memberId" is not null
         order by "memberId", "sourceId"
         limit $(limit) offset $(offset)`,
       {

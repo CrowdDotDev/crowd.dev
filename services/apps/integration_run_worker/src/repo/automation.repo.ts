@@ -11,18 +11,33 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
     tenantId: string,
     platform: string,
   ): Promise<IAutomation[] | null> {
-    const results = await this.db().any(
-      `select * from automations where type = $(platform) and "tenantId" = $(tenantId) and trigger in ($(syncAutomationTriggers:csv))`,
-      {
-        tenantId,
-        platform,
-        syncAutomationTriggers: [
-          AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH,
-          AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH,
-        ],
-      },
-    )
+    const pageSize = 10
+    const syncAutomations: IAutomation[] = []
 
-    return results
+    let results
+    let offset
+
+    do {
+      offset = results ? pageSize + offset : 0
+      results = await this.db().any(
+        `select * from automations 
+         where type = $(platform) and "tenantId" = $(tenantId) and trigger in ($(syncAutomationTriggers:csv))
+         limit $(limit) offset $(offset)`,
+        {
+          tenantId,
+          platform,
+          syncAutomationTriggers: [
+            AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH,
+            AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH,
+          ],
+          limit: pageSize,
+          offset,
+        },
+      )
+
+      syncAutomations.push(...results)
+    } while (results.length > 0)
+
+    return syncAutomations
   }
 }

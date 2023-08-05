@@ -137,6 +137,29 @@ export default class AutomationExecutionRepository extends RepositoryBase<
     throw new Error('Method not implemented.')
   }
 
+  async destroyAllAutomation(automationIds: string[]): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const currentTenant = this.currentTenant
+
+    const query = `
+    delete 
+    from "automationExecutions"
+    where "automationId" in (:automationIds)
+      and "tenantId" = :tenantId;`
+
+    await seq.query(query, {
+      replacements: {
+        automationIds,
+        tenantId: currentTenant.id,
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
   override async destroyAll(ids: string[]): Promise<void> {
     throw new Error('Method not implemented.')
   }

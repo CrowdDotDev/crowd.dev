@@ -137,6 +137,25 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
     return organizationSyncRemote
   }
 
+  async destroyAllAutomation(automationIds: string[]): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+    delete 
+    from "organizationsSyncRemote"
+    where "syncFrom" in (:automationIds);`
+
+    await seq.query(query, {
+      replacements: {
+        automationIds,
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
   async findByOrganizationId(organizationId: string): Promise<IOrganizationSyncRemoteData> {
     const transaction = SequelizeRepository.getTransaction(this.options)
 
