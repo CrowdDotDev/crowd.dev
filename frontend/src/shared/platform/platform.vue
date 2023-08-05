@@ -97,6 +97,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  backupUrl: {
+    type: String,
+    default: null,
+  },
 });
 
 const imageProperties = computed(() => CrowdIntegrations.getConfig(props.platform));
@@ -105,7 +109,7 @@ const href = computed(() => {
     return props.href;
   }
 
-  return (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null);
+  return (props.usernameHandles.length === 1 ? (CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) ?? props.backupUrl) : null);
 });
 
 const trackClick = () => {

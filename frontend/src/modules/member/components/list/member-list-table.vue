@@ -294,7 +294,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-identities :username="scope.row.username" />
+                    <app-member-identities :username="scope.row.username" :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
