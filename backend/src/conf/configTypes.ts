@@ -232,3 +232,10 @@ export interface IOpenSearchConfig {
   accessKeyId?: string
   secretAccessKey?: string
 }
+
+export interface CrowdAnalyticsConfiguration {
+  isEnabled: string
+  tenantId: string
+  baseUrl: string
+  apiToken: string
+}

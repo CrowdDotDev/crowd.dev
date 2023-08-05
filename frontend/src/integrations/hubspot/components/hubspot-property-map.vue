@@ -21,6 +21,7 @@
           class="w-full"
           clearable
           placement="bottom-end"
+          filterable
         >
           <el-option
             v-for="hubspotField of props.hubspotFields"

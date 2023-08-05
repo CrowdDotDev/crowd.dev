@@ -10,6 +10,7 @@ import {
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
   PlatformType,
+  IOrganization,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
@@ -340,9 +341,9 @@ export default class MemberEnrichmentService extends LoggerBase {
     }
 
     if (enrichmentData.company) {
-      const organization = {
+      const organization: IOrganization = {
         name: enrichmentData.company,
-      } as any
+      }
 
       // check for more info about the company in work experiences
       if (enrichmentData.work_experiences && enrichmentData.work_experiences.length > 0) {
@@ -351,7 +352,14 @@ export default class MemberEnrichmentService extends LoggerBase {
         )
         if (organizationsByWorkExperience.length > 0) {
           organization.location = organizationsByWorkExperience[0].location
-          organization.linkedin = organizationsByWorkExperience[0].companyLinkedInUrl
+          const linkedinUrl = organizationsByWorkExperience[0].companyLinkedInUrl
+          if (linkedinUrl) {
+            organization.linkedin = {
+              handle: linkedinUrl.split('/').pop(),
+              // remove https/http if exists
+              url: linkedinUrl.replace(/(^\w+:|^)\/\//, ''),
+            }
+          }
           organization.url = organizationsByWorkExperience[0].companyUrl
 
           // fetch jobTitle from most recent work experience
