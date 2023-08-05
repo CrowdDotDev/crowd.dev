@@ -3,6 +3,7 @@ import { IOrganizationSyncRemoteData, SyncStatus } from '@crowd/types'
 import { QueryTypes } from 'sequelize'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
+import SequelizeRepository from './sequelizeRepository'
 
 class OrganizationSyncRemoteRepository extends RepositoryBase<
   IOrganizationSyncRemoteData,
@@ -45,6 +46,8 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
   }
 
   async startManualSync(id: string, sourceId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     await this.options.database.sequelize.query(
       `update "organizationsSyncRemote" set status = :status, "sourceId" = :sourceId where "id" = :id
         `,
@@ -55,11 +58,14 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
           sourceId: sourceId || null,
         },
         type: QueryTypes.UPDATE,
+        transaction,
       },
     )
   }
 
   async findRemoteSync(integrationId: string, organizationId: string, syncFrom: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const records = await this.options.database.sequelize.query(
       `SELECT *
              FROM "organizationsSyncRemote"
@@ -72,6 +78,7 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
           syncFrom,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 
@@ -85,6 +92,8 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
   async markOrganizationForSyncing(
     data: IOrganizationSyncRemoteData,
   ): Promise<IOrganizationSyncRemoteData> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const existingSyncRemote = await this.findByOrganizationId(data.organizationId)
 
     if (existingSyncRemote) {
@@ -120,6 +129,7 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
           status: SyncStatus.ACTIVE,
         },
         type: QueryTypes.INSERT,
+        transaction,
       },
     )
 
@@ -128,6 +138,8 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
   }
 
   async findByOrganizationId(organizationId: string): Promise<IOrganizationSyncRemoteData> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const records = await this.options.database.sequelize.query(
       `SELECT *
              FROM "organizationsSyncRemote"
@@ -140,6 +152,7 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
           organizationId,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 
@@ -151,6 +164,8 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
   }
 
   async findById(id: string): Promise<IOrganizationSyncRemoteData> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const records = await this.options.database.sequelize.query(
       `SELECT *
              FROM "organizationsSyncRemote"
@@ -161,6 +176,7 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
           id,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 

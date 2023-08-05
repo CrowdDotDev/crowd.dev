@@ -35,6 +35,7 @@ import { IntegrationRunState } from '../types/integrationRunTypes'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
+  getSearchSyncWorkerEmitter,
 } from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
@@ -42,6 +43,7 @@ import MemberService from './memberService'
 import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
+import MemberRepository from '@/database/repositories/memberRepository'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -471,25 +473,38 @@ export default class IntegrationService {
       throw new Error('memberId is required in the payload while syncing member to hubspot!')
     }
 
-    // update member.attributes.syncRemote.hubspot to false
-    const memberService = new MemberService(this.options)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    const member = await memberService.findById(payload.memberId)
+    try {
+      // update member.attributes.syncRemote.hubspot to false
+      const memberService = new MemberService(this.options)
 
-    if (!member.attributes.syncRemote) {
-      member.attributes.syncRemote = {
-        default: false,
-        [PlatformType.HUBSPOT]: false,
+      const member = await memberService.findById(payload.memberId)
+
+      if (!member.attributes.syncRemote) {
+        member.attributes.syncRemote = {
+          default: false,
+          [PlatformType.HUBSPOT]: false,
+        }
+      } else {
+        member.attributes.syncRemote[PlatformType.HUBSPOT] = false
+        member.attributes.syncRemote.default = false
       }
-    } else {
-      member.attributes.syncRemote[PlatformType.HUBSPOT] = false
-      member.attributes.syncRemote.default = false
+
+      await memberService.update(payload.memberId, { attributes: member.attributes }, transaction)
+
+      const memberSyncRemoteRepository = new MemberSyncRemoteRepository({
+        ...this.options,
+        transaction,
+      })
+      await memberSyncRemoteRepository.stopMemberManualSync(member.id)
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      this.options.log.error(err, 'Error while stopping hubspot member sync!')
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
     }
-
-    await memberService.update(payload.memberId, { attributes: member.attributes })
-
-    const memberSyncRemoteRepository = new MemberSyncRemoteRepository(this.options)
-    await memberSyncRemoteRepository.stopMemberManualSync(member.id)
   }
 
   async hubspotSyncMember(payload: IHubspotManualSyncPayload) {
@@ -497,45 +512,42 @@ export default class IntegrationService {
       throw new Error('memberId is required in the payload while syncing member to hubspot!')
     }
 
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
     let integration
+    let member
+    let memberSyncRemote
 
     try {
       integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
         ...this.options,
+        transaction,
       })
-    } catch (err) {
-      this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
-      throw new Error404()
-    }
-    // update member.attributes.syncRemote.hubspot to true
-    const memberService = new MemberService(this.options)
 
-    const member = await memberService.findById(payload.memberId)
+      member = await MemberRepository.findById(payload.memberId, { ...this.options, transaction })
 
-    if (!member.attributes.syncRemote) {
-      member.attributes.syncRemote = {
-        default: true,
-        [PlatformType.HUBSPOT]: true,
+      if (!member.attributes.syncRemote) {
+        member.attributes.syncRemote = {
+          default: true,
+          [PlatformType.HUBSPOT]: true,
+        }
+      } else {
+        member.attributes.syncRemote[PlatformType.HUBSPOT] = true
+        member.attributes.syncRemote.default = true
       }
-    } else {
-      member.attributes.syncRemote[PlatformType.HUBSPOT] = true
-      member.attributes.syncRemote.default = true
-    }
 
-    const memberSyncRemoteRepo = new MemberSyncRemoteRepository(this.options)
+      const memberSyncRemoteRepo = new MemberSyncRemoteRepository({ ...this.options, transaction })
 
-    const memberSyncRemote = await memberSyncRemoteRepo.markMemberForSyncing({
-      integrationId: integration.id,
-      memberId: member.id,
-      metaData: null,
-      syncFrom: 'manual',
-      lastSyncedAt: null,
-    })
+      memberSyncRemote = await memberSyncRemoteRepo.markMemberForSyncing({
+        integrationId: integration.id,
+        memberId: member.id,
+        metaData: null,
+        syncFrom: 'manual',
+        lastSyncedAt: null,
+      })
 
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+      const memberService = new MemberService(this.options)
 
-    // set integration.settings.syncRemoteEnabled to true, and mark member as syncRemote
-    try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.HUBSPOT,
@@ -546,10 +558,12 @@ export default class IntegrationService {
         },
         transaction,
       )
-      await memberService.update(payload.memberId, { attributes: member.attributes })
+
+      await memberService.update(payload.memberId, { attributes: member.attributes }, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
+      this.options.log.error(err, 'Error while starting Hubspot member sync!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
@@ -561,6 +575,10 @@ export default class IntegrationService {
       payload.memberId,
       memberSyncRemote.id,
     )
+
+    // send it to opensearch because in member.update we bypass while passing transactions
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, member.id)
   }
 
   async hubspotStopSyncOrganization(payload: IHubspotManualSyncPayload) {
@@ -570,27 +588,42 @@ export default class IntegrationService {
       )
     }
 
-    // update organization.attributes.syncRemote.hubspot to false
-    const organizationService = new OrganizationService(this.options)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    const organization = await organizationService.findById(payload.organizationId)
+    try {
+      // update organization.attributes.syncRemote.hubspot to false
+      const organizationService = new OrganizationService(this.options)
 
-    if (!organization.attributes.syncRemote) {
-      organization.attributes.syncRemote = {
-        default: false,
-        [PlatformType.HUBSPOT]: false,
+      const organization = await organizationService.findById(payload.organizationId)
+
+      if (!organization.attributes.syncRemote) {
+        organization.attributes.syncRemote = {
+          default: false,
+          [PlatformType.HUBSPOT]: false,
+        }
+      } else {
+        organization.attributes.syncRemote[PlatformType.HUBSPOT] = false
+        organization.attributes.syncRemote.default = false
       }
-    } else {
-      organization.attributes.syncRemote[PlatformType.HUBSPOT] = false
-      organization.attributes.syncRemote.default = false
+
+      await organizationService.update(
+        payload.organizationId,
+        {
+          attributes: organization.attributes,
+        },
+        transaction,
+      )
+
+      const organizationSyncRemoteRepository = new OrganizationSyncRemoteRepository({
+        ...this.options,
+        transaction,
+      })
+      await organizationSyncRemoteRepository.stopOrganizationManualSync(organization.id)
+    } catch (err) {
+      this.options.log.error(err, 'Error while stopping Hubspot organization sync!')
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
     }
-
-    await organizationService.update(payload.organizationId, {
-      attributes: organization.attributes,
-    })
-
-    const organizationSyncRemoteRepository = new OrganizationSyncRemoteRepository(this.options)
-    await organizationSyncRemoteRepository.stopOrganizationManualSync(organization.id)
   }
 
   async hubspotSyncOrganization(payload: IHubspotManualSyncPayload) {
@@ -600,52 +633,53 @@ export default class IntegrationService {
       )
     }
 
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
     let integration
+    let organization
+    let organizationSyncRemote
 
     try {
       integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
         ...this.options,
+        transaction,
       })
-    } catch (err) {
-      this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
-      throw new Error404()
-    }
-    // update organization.attributes.syncRemote.hubspot to true
-    const organizationService = new OrganizationService(this.options)
 
-    const organization = await organizationService.findById(payload.organizationId)
+      // update organization.attributes.syncRemote.hubspot to true
+      const organizationService = new OrganizationService(this.options)
 
-    if (!organization.attributes) {
-      organization.attributes = {
-        syncRemote: {
+      organization = await organizationService.findById(payload.organizationId)
+
+      if (!organization.attributes) {
+        organization.attributes = {
+          syncRemote: {
+            default: true,
+            [PlatformType.HUBSPOT]: true,
+          },
+        }
+      } else if (!organization.attributes.syncRemote) {
+        organization.attributes.syncRemote = {
           default: true,
           [PlatformType.HUBSPOT]: true,
-        },
+        }
+      } else {
+        organization.attributes.syncRemote[PlatformType.HUBSPOT] = true
+        organization.attributes.syncRemote.default = true
       }
-    } else if (!organization.attributes.syncRemote) {
-      organization.attributes.syncRemote = {
-        default: true,
-        [PlatformType.HUBSPOT]: true,
-      }
-    } else {
-      organization.attributes.syncRemote[PlatformType.HUBSPOT] = true
-      organization.attributes.syncRemote.default = true
-    }
 
-    const organizationSyncRemoteRepo = new OrganizationSyncRemoteRepository(this.options)
+      const organizationSyncRemoteRepo = new OrganizationSyncRemoteRepository({
+        ...this.options,
+        transaction,
+      })
 
-    const organizationSyncRemote = await organizationSyncRemoteRepo.markOrganizationForSyncing({
-      integrationId: integration.id,
-      organizationId: organization.id,
-      metaData: null,
-      syncFrom: 'manual',
-      lastSyncedAt: null,
-    })
+      organizationSyncRemote = await organizationSyncRemoteRepo.markOrganizationForSyncing({
+        integrationId: integration.id,
+        organizationId: organization.id,
+        metaData: null,
+        syncFrom: 'manual',
+        lastSyncedAt: null,
+      })
 
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    // set integration.settings.syncRemoteEnabled to true, and mark organization as syncRemote
-    try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.HUBSPOT,
@@ -656,23 +690,28 @@ export default class IntegrationService {
         },
         transaction,
       )
-      await organizationService.update(payload.organizationId, {
-        attributes: organization.attributes,
-      })
+      await organizationService.update(
+        payload.organizationId,
+        {
+          attributes: organization.attributes,
+        },
+        transaction,
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
+      await integrationSyncWorkerEmitter.triggerSyncOrganization(
+        this.options.currentTenant.id,
+        integration.id,
+        payload.organizationId,
+        organizationSyncRemote.id,
+      )
     } catch (err) {
+      this.options.log.error(err, 'Error while starting Hubspot organization sync!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
-    await integrationSyncWorkerEmitter.triggerSyncOrganization(
-      this.options.currentTenant.id,
-      integration.id,
-      payload.organizationId,
-      organizationSyncRemote.id,
-    )
   }
 
   async hubspotOnboard(onboardSettings: IHubspotOnboardingSettings) {

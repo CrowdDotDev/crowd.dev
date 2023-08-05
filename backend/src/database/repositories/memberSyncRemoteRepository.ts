@@ -3,6 +3,7 @@ import { IMemberSyncRemoteData, SyncStatus } from '@crowd/types'
 import { QueryTypes } from 'sequelize'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
+import SequelizeRepository from './sequelizeRepository'
 
 class MemberSyncRemoteRepository extends RepositoryBase<
   IMemberSyncRemoteData,
@@ -30,6 +31,8 @@ class MemberSyncRemoteRepository extends RepositoryBase<
   }
 
   async findRemoteSync(integrationId: string, memberId: string, syncFrom: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const records = await this.options.database.sequelize.query(
       `SELECT *
              FROM "membersSyncRemote"
@@ -42,6 +45,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
           syncFrom,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 
@@ -53,6 +57,8 @@ class MemberSyncRemoteRepository extends RepositoryBase<
   }
 
   async startManualSync(id: string, sourceId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     await this.options.database.sequelize.query(
       `update "membersSyncRemote" set status = :status, "sourceId" = :sourceId where "id" = :id
         `,
@@ -63,6 +69,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
           sourceId: sourceId || null,
         },
         type: QueryTypes.UPDATE,
+        transaction,
       },
     )
   }
@@ -83,6 +90,8 @@ class MemberSyncRemoteRepository extends RepositoryBase<
   }
 
   async markMemberForSyncing(data: IMemberSyncRemoteData): Promise<IMemberSyncRemoteData> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const existingSyncRemote = await this.findByMemberId(data.memberId)
 
     if (existingSyncRemote) {
@@ -118,6 +127,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
           status: SyncStatus.ACTIVE,
         },
         type: QueryTypes.INSERT,
+        transaction,
       },
     )
 
@@ -126,6 +136,8 @@ class MemberSyncRemoteRepository extends RepositoryBase<
   }
 
   async findByMemberId(memberId: string): Promise<IMemberSyncRemoteData> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const records = await this.options.database.sequelize.query(
       `SELECT *
              FROM "membersSyncRemote"
@@ -138,6 +150,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
           memberId,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 
@@ -149,6 +162,8 @@ class MemberSyncRemoteRepository extends RepositoryBase<
   }
 
   async findById(id: string): Promise<IMemberSyncRemoteData> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
     const records = await this.options.database.sequelize.query(
       `SELECT *
              FROM "membersSyncRemote"
@@ -159,6 +174,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
           id,
         },
         type: QueryTypes.SELECT,
+        transaction,
       },
     )
 
