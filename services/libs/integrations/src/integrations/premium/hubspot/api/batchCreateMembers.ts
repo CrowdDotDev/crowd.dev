@@ -118,11 +118,18 @@ export const batchCreateMembers = async (
         if (member) {
           // exclude found member from batch payload
           const createMembers = members.filter(
-            (m) => !m.emails.includes((member.properties as any).email),
+            (m) =>
+              !m.emails
+                .map((email) => email.toLowerCase())
+                .includes((member.properties as any).email.toLowerCase()),
           )
 
           const updateMembers = members
-            .filter((m) => m.emails.includes((member.properties as any).email))
+            .filter((m) =>
+              m.emails
+                .map((email) => email.toLowerCase())
+                .includes((member.properties as any).email.toLowerCase()),
+            )
             .map((m) => {
               m.attributes = {
                 ...m.attributes,
