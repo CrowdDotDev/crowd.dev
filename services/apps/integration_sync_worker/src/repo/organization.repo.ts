@@ -175,7 +175,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       params,
     )
 
-    if (filterString.trim().length === 0) {
+    if (filterString.trim().length === 0 || filterString === '()') {
       filterString = '1=1'
     } else {
       filterString = OrganizationRepository.replaceParametersWithDollarSign(filterString)
