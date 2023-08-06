@@ -1,7 +1,6 @@
 import config from '@/config';
 import { Auth0Client } from '@auth0/auth0-spa-js';
 import { store } from '@/store';
-import { router } from '@/router';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
@@ -26,33 +25,36 @@ class Auth0ServiceClass {
     return this.webAuth.loginWithRedirect();
   }
 
-  async isAuthenticated() {
-    return this.webAuth.isAuthenticated();
-  }
-
   async handleAuth() {
     return this.webAuth.handleRedirectCallback();
   }
 
   async init() {
-    return this.webAuth.isAuthenticated().then((isAuthenticated) => {
+    return this.webAuth.isAuthenticated().then(async (isAuthenticated) => {
+      const currentUser = store.getters['auth/currentUser'];
       if (!isAuthenticated) {
-        return this.webAuth.getTokenSilently().then(() => {
-          store.dispatch('auth/authenticate');
+        return this.webAuth.getTokenSilently().then(async () => {
+          if (!currentUser) {
+            await store.dispatch('auth/doInit');
+          }
+
+          store.dispatch('auth/doAuthenticate');
 
           return Promise.resolve();
         }).catch(() => {
           // If getTokenSilently() fails it's because user is not authenticated
           Auth0ServiceClass.localLogout();
-          router.push({
-            name: 'signin',
-          });
+          this.loginWithRedirect();
 
           return Promise.reject();
         });
       }
 
-      store.dispatch('auth/authenticate');
+      if (!currentUser) {
+        await store.dispatch('auth/doInit');
+      }
+
+      store.dispatch('auth/doAuthenticate');
 
       return Promise.resolve();
     });

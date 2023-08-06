@@ -40,18 +40,18 @@ export default {
     }
   },
 
-  authenticate({ commit }) {
+  doAuthenticate({ commit }) {
     commit('AUTHENTICATE');
   },
 
   doWaitUntilInit({ getters }) {
-    if (!getters.loadingInit) {
+    if (getters.isAuthenticated) {
       return Promise.resolve();
     }
 
     return new Promise((resolve) => {
       const waitUntilInitInterval = setInterval(() => {
-        if (!getters.loadingInit) {
+        if (getters.isAuthenticated) {
           clearInterval(waitUntilInitInterval);
           resolve({});
         }

@@ -19,7 +19,6 @@ import { mapActions, mapGetters } from 'vuex';
 import identify from '@/shared/monitoring/identify';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
-import { Auth0Service } from '@/shared/services/auth0.service';
 
 export default {
   name: 'AppLayout',
@@ -33,7 +32,6 @@ export default {
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      isAuthenticated: 'auth/isAuthenticated',
       menu: 'layout/menuCollapsed',
     }),
   },
@@ -56,23 +54,6 @@ export default {
 
         if (this.menu !== param) {
           this.toggleMenu();
-        }
-      },
-    },
-    isAuthenticated: {
-      immediate: true,
-      async handler(value) {
-        if (value) {
-          try {
-            const user = await Auth0Service.getUser();
-            const lfxHeader = document.getElementById('lfx-header');
-
-            if (lfxHeader) {
-              lfxHeader.authuser = user;
-            }
-          } catch (e) {
-            console.error(e);
-          }
         }
       },
     },

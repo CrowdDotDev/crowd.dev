@@ -26,8 +26,11 @@ export default async function ({ to, store, router }) {
     return;
   }
 
+  if (!store.getters['auth/isAuthenticated']) {
+    await Auth0Service.init();
+  }
+
   await store.dispatch('auth/doWaitUntilInit');
-  await Auth0Service.init();
 
   const currentUser = store.getters['auth/currentUser'];
 
@@ -55,6 +58,12 @@ export default async function ({ to, store, router }) {
   ) {
     router.push({
       path: '/auth/empty-permissions',
+    });
+  }
+
+  if (to.meta.notEmptyPermissions && !permissionChecker.isEmptyPermissions) {
+    router.push({
+      path: '/',
     });
   }
 }
