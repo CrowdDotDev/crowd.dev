@@ -9,6 +9,7 @@ import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
 import { IIndexRequest, ISearchHit } from './opensearch.data'
+import { IS_DEV_ENV } from '@crowd/common'
 
 export class OpenSearchService extends LoggerBase {
   private readonly client: Client
@@ -41,7 +42,11 @@ export class OpenSearchService extends LoggerBase {
   private async doesIndexExist(indexName: OpenSearchIndex): Promise<boolean> {
     try {
       const version = IndexVersions.get(indexName)
-      const exists = await this.client.indices.exists({ index: `${indexName}_v${version}` })
+
+      // Only un dev environment, we check if the index exists with the version
+      const indexToCheck = IS_DEV_ENV ? `${indexName}_v${version}` : indexName
+
+      const exists = await this.client.indices.exists({ index: indexToCheck })
       return exists.body
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to check if index exists!')
@@ -49,11 +54,25 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  private async createIndex(indexName: OpenSearchIndex): Promise<void> {
+  public async createAlias(indexName: OpenSearchIndex, aliasName: string): Promise<void> {
+    try {
+      const version = IndexVersions.get(indexName)
+      await this.client.indices.putAlias({
+        index: `${indexName}_v${version}`,
+        name: aliasName,
+      })
+    } catch (err) {
+      this.log.error(err, { aliasName, indexName }, 'Failed to create alias!')
+      throw err
+    }
+  }
+
+  // create index with version in production
+  public async createIndexWithVersion(indexName: OpenSearchIndex, version: number): Promise<void> {
     try {
       const settings = OPENSEARCH_INDEX_SETTINGS[indexName]
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
-      const version = IndexVersions.get(indexName)
+
       await this.client.indices.create({
         index: `${indexName}_v${version}`,
         body: {
@@ -67,11 +86,58 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async reIndex(sourceIndex: string, targetIndex: string): Promise<void> {
+    try {
+      await this.client.reindex({
+        wait_for_completion: true,
+        refresh: true,
+        body: {
+          source: {
+            index: sourceIndex,
+          },
+          dest: {
+            index: targetIndex,
+          },
+        },
+      })
+    } catch (err) {
+      this.log.error(err, { sourceIndex, targetIndex }, 'Failed to reindex!')
+      throw err
+    }
+  }
+
+  public async createIndex(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      const settings = OPENSEARCH_INDEX_SETTINGS[indexName]
+      const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
+      const version = IndexVersions.get(indexName)
+
+      const indexToCreate = IS_DEV_ENV ? `${indexName}_v${version}` : indexName
+      await this.client.indices.create({
+        index: indexToCreate,
+        body: {
+          settings,
+          mappings,
+        },
+      })
+
+      if (IS_DEV_ENV) {
+        // alias name is the same as the index name in dev
+        const aliasName = indexName
+        await this.createAlias(indexName, aliasName)
+      }
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to create index!')
+      throw err
+    }
+  }
+
   public async deleteIndex(indexName: OpenSearchIndex): Promise<void> {
     try {
       const version = IndexVersions.get(indexName)
+      const indexToDelete = IS_DEV_ENV ? `${indexName}_v${version}` : indexName
       await this.client.indices.delete({
-        index: `${indexName}_v${version}`,
+        index: indexToDelete,
       })
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to delete index!')
