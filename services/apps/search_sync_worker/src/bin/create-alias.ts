@@ -1,6 +1,5 @@
 import { OpenSearchService } from '@/service/opensearch.service'
 import { getServiceLogger } from '@crowd/logging'
-import { OpenSearchIndex } from '@/types'
 
 const log = getServiceLogger()
 
@@ -17,6 +16,6 @@ const alias = processArguments[1]
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
 
-  await openSearchService.createAlias(index as OpenSearchIndex, alias)
+  await openSearchService.createAlias(index, alias)
   process.exit(0)
 })

@@ -43,7 +43,7 @@ export class OpenSearchService extends LoggerBase {
     try {
       const version = IndexVersions.get(indexName)
 
-      // Only un dev environment, we check if the index exists with the version
+      // Only in dev environment, we check if the index exists with the version
       const indexToCheck = IS_DEV_ENV ? `${indexName}_v${version}` : indexName
 
       const exists = await this.client.indices.exists({ index: indexToCheck })
@@ -54,11 +54,10 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  public async createAlias(indexName: OpenSearchIndex, aliasName: string): Promise<void> {
+  public async createAlias(indexName: string, aliasName: string): Promise<void> {
     try {
-      const version = IndexVersions.get(indexName)
       await this.client.indices.putAlias({
-        index: `${indexName}_v${version}`,
+        index: indexName,
         name: aliasName,
       })
     } catch (err) {
@@ -122,9 +121,7 @@ export class OpenSearchService extends LoggerBase {
       })
 
       if (IS_DEV_ENV) {
-        // alias name is the same as the index name in dev
-        const aliasName = indexName
-        await this.createAlias(indexName, aliasName)
+        await this.createAlias(indexToCreate, indexName)
       }
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to create index!')
@@ -134,10 +131,8 @@ export class OpenSearchService extends LoggerBase {
 
   public async deleteIndex(indexName: OpenSearchIndex): Promise<void> {
     try {
-      const version = IndexVersions.get(indexName)
-      const indexToDelete = IS_DEV_ENV ? `${indexName}_v${version}` : indexName
       await this.client.indices.delete({
-        index: indexToDelete,
+        index: indexName,
       })
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to delete index!')
