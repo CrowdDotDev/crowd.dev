@@ -40,6 +40,12 @@ const prepareWebhookMember = async (
   }
 
   const member = await getMember(login, ctx.integration.token)
+
+  if (!member) {
+    ctx.log.warn({ login }, `Member ${login} not found in webhook, skipping!`)
+    return null
+  }
+
   const preparedMember = await prepareMember(member, ctx as IProcessStreamContext)
   return preparedMember
 }
@@ -71,11 +77,13 @@ async function verifyWebhookSignature(
 const parseWebhookIssue = async (payload: any, ctx: IProcessWebhookStreamContext) => {
   const member = await prepareWebhookMember(payload.sender.login, ctx)
 
-  await ctx.publishData<GithubWebhookData>({
-    webhookType: GithubWehookEvent.ISSUES,
-    data: payload,
-    member,
-  })
+  if (member) {
+    await ctx.publishData<GithubWebhookData>({
+      webhookType: GithubWehookEvent.ISSUES,
+      data: payload,
+      member,
+    })
+  }
 }
 
 const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamContext) => {
@@ -83,12 +91,14 @@ const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamCo
   if (payload.action === 'answered') {
     member = await prepareWebhookMember(payload.sender.login, ctx)
 
-    await ctx.publishData<GithubWebhookData>({
-      webhookType: GithubWehookEvent.DISCUSSION,
-      subType: GithubWebhookSubType.DISCUSSION_COMMENT_REPLY,
-      data: payload,
-      member,
-    })
+    if (member) {
+      await ctx.publishData<GithubWebhookData>({
+        webhookType: GithubWehookEvent.DISCUSSION,
+        subType: GithubWebhookSubType.DISCUSSION_COMMENT_REPLY,
+        data: payload,
+        member,
+      })
+    }
   }
 
   if (!['edited', 'created'].includes(payload.action)) {
@@ -98,12 +108,14 @@ const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamCo
   const discussion = payload.discussion
   member = await prepareWebhookMember(discussion.user.login, ctx)
 
-  await ctx.publishData<GithubWebhookData>({
-    webhookType: GithubWehookEvent.DISCUSSION,
-    subType: GithubWebhookSubType.DISCUSSION_COMMENT_START,
-    data: payload,
-    member,
-  })
+  if (member) {
+    await ctx.publishData<GithubWebhookData>({
+      webhookType: GithubWehookEvent.DISCUSSION,
+      subType: GithubWebhookSubType.DISCUSSION_COMMENT_START,
+      data: payload,
+      member,
+    })
+  }
 }
 
 const parseWebhookPullRequestEvents = async (
@@ -122,23 +134,27 @@ const parseWebhookPullRequestEvents = async (
     case 'reopened':
     case 'closed':
     case 'merged': {
-      await ctx.publishData<GithubWebhookData>({
-        webhookType: GithubWehookEvent.PULL_REQUEST,
-        data: payload,
-        member,
-      })
+      if (member) {
+        await ctx.publishData<GithubWebhookData>({
+          webhookType: GithubWehookEvent.PULL_REQUEST,
+          data: payload,
+          member,
+        })
+      }
       break
     }
     case 'assigned':
     case 'review_requested': {
       objectMember = await prepareWebhookMember(payload.requested_reviewer.login, ctx)
 
-      await ctx.publishData<GithubWebhookData>({
-        webhookType: GithubWehookEvent.PULL_REQUEST,
-        data: payload,
-        member,
-        objectMember,
-      })
+      if (member && objectMember) {
+        await ctx.publishData<GithubWebhookData>({
+          webhookType: GithubWehookEvent.PULL_REQUEST,
+          data: payload,
+          member,
+          objectMember,
+        })
+      }
       break
     }
     case 'synchronize': {
@@ -207,11 +223,13 @@ const parseWebhookPullRequestReview = async (
 
     const member = await prepareWebhookMember(payload.sender.login, ctx)
 
-    await ctx.publishData<GithubWebhookData>({
-      webhookType: GithubWehookEvent.PULL_REQUEST_REVIEW,
-      data: payload,
-      member,
-    })
+    if (member) {
+      await ctx.publishData<GithubWebhookData>({
+        webhookType: GithubWehookEvent.PULL_REQUEST_REVIEW,
+        data: payload,
+        member,
+      })
+    }
   }
 }
 
