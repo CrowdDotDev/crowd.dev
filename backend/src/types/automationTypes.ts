@@ -1,11 +1,13 @@
 /**
  * all automation types that we are currently supporting
  */
+import { AutomationSyncTrigger } from '@crowd/types'
 import { SearchCriteria } from './common'
 
 export enum AutomationType {
   WEBHOOK = 'webhook',
   SLACK = 'slack',
+  HUBSPOT = 'hubspot',
 }
 
 /**
@@ -69,7 +71,7 @@ export interface AutomationData {
   name: string
   type: AutomationType
   tenantId: string
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   settings: AutomationSettings
   state: AutomationState
   createdAt: string
@@ -84,7 +86,7 @@ export interface AutomationData {
 export interface CreateAutomationRequest {
   name: string
   type: AutomationType
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   settings: AutomationSettings
 }
 

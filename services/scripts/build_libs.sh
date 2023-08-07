@@ -6,8 +6,8 @@ CLI_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source $CLI_HOME/utils.sh
 
 LIBRARIES=(
-  "common"
   "types"
+  "common"
   "logging"
   "database"
   "redis"
