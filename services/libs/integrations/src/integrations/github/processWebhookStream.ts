@@ -39,10 +39,18 @@ const prepareWebhookMember = async (
     }
   }
 
+  if (!login) {
+    ctx.log.warn('No login in webhook, skipping!')
+    return null
+  }
+
   const member = await getMember(login, ctx.integration.token)
 
   if (!member) {
-    ctx.log.warn({ login }, `Member ${login} not found in webhook, skipping!`)
+    ctx.log.warn(
+      { login },
+      `Member ${login} not found in GitHub while fetching it from webhook data, skipping!`,
+    )
     return null
   }
 
@@ -75,7 +83,7 @@ async function verifyWebhookSignature(
 }
 
 const parseWebhookIssue = async (payload: any, ctx: IProcessWebhookStreamContext) => {
-  const member = await prepareWebhookMember(payload.sender.login, ctx)
+  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -89,7 +97,7 @@ const parseWebhookIssue = async (payload: any, ctx: IProcessWebhookStreamContext
 const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamContext) => {
   let member: GithubPrepareMemberOutput | undefined
   if (payload.action === 'answered') {
-    member = await prepareWebhookMember(payload.sender.login, ctx)
+    member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
     if (member) {
       await ctx.publishData<GithubWebhookData>({
@@ -106,7 +114,7 @@ const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamCo
   }
 
   const discussion = payload.discussion
-  member = await prepareWebhookMember(discussion.user.login, ctx)
+  member = await prepareWebhookMember(discussion?.user?.login, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -122,7 +130,7 @@ const parseWebhookPullRequestEvents = async (
   payload: any,
   ctx: IProcessWebhookStreamContext,
 ): Promise<void> => {
-  const member = await prepareWebhookMember(payload.sender.login, ctx)
+  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
   let objectMember: GithubPrepareMemberOutput | undefined
 
   const GITHUB_CONFIG = ctx.platformSettings as GithubPlatformSettings
@@ -145,7 +153,7 @@ const parseWebhookPullRequestEvents = async (
     }
     case 'assigned':
     case 'review_requested': {
-      objectMember = await prepareWebhookMember(payload.requested_reviewer.login, ctx)
+      objectMember = await prepareWebhookMember(payload?.requested_reviewer?.login, ctx)
 
       if (member && objectMember) {
         await ctx.publishData<GithubWebhookData>({
@@ -161,10 +169,10 @@ const parseWebhookPullRequestEvents = async (
       if (IS_GITHUB_COMMIT_DATA_ENABLED) {
         const prNumber = payload.number
         const repo: Repo = {
-          name: payload.repository.name,
-          owner: payload.repository.owner.login,
-          url: payload.repository.html_url,
-          createdAt: payload.repository.created_at,
+          name: payload?.repository?.name,
+          owner: payload?.repository?.owner?.login,
+          url: payload?.repository?.html_url,
+          createdAt: payload?.repository?.created_at,
         }
 
         // this will create a CROWD_GENERATED webhook and stream for it
@@ -221,7 +229,7 @@ const parseWebhookPullRequestReview = async (
       return
     }
 
-    const member = await prepareWebhookMember(payload.sender.login, ctx)
+    const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
     if (member) {
       await ctx.publishData<GithubWebhookData>({
@@ -235,7 +243,7 @@ const parseWebhookPullRequestReview = async (
 
 const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext) => {
   if (payload.action === 'created' || payload.action === 'deleted') {
-    const member = await prepareWebhookMember(payload.sender.login, ctx)
+    const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
     if (member && payload.starred_at !== null) {
       await ctx.publishData<GithubWebhookData>({
@@ -248,7 +256,7 @@ const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext)
 }
 
 const parseWebhookFork = async (payload: any, ctx: IProcessWebhookStreamContext) => {
-  const member = await prepareWebhookMember(payload.sender.login, ctx)
+  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -305,7 +313,7 @@ const parseWebhookComment = async (
     }
   }
 
-  const member = await prepareWebhookMember(payload.sender.login, ctx)
+  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -322,7 +330,7 @@ const parseWebhookPullRequestReviewComment = async (
   ctx: IProcessWebhookStreamContext,
 ) => {
   if (payload.action === 'created') {
-    const member = await prepareWebhookMember(payload.comment.user.login, ctx)
+    const member = await prepareWebhookMember(payload?.comment?.user?.login, ctx)
 
     if (member) {
       await ctx.publishData<GithubWebhookData>({
