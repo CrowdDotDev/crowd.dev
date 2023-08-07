@@ -19,6 +19,7 @@ export class InitService extends LoggerBase {
 
   public async initialize(): Promise<void> {
     await this.openSearchService.initialize()
+
     await this.createFakeMember()
     await this.createFakeActivity()
   }

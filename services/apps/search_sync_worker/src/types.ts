@@ -1,6 +1,7 @@
 export enum OpenSearchIndex {
   MEMBERS = 'members',
   ACTIVITIES = 'activities',
+  ORGANIZATIONS = 'organizations',
 }
 
 const prefixedMapping = {

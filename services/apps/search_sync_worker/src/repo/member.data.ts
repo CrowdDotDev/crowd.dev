@@ -42,9 +42,3 @@ export interface IDbMemberSyncData {
   toMergeIds: string[]
   noMergeIds: string[]
 }
-
-export interface IDbSegmentInfo {
-  id: string
-  parentId: string
-  grandParentId: string
-}

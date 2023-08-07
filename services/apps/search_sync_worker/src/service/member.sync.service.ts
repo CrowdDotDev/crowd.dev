@@ -1,5 +1,5 @@
 import { SERVICE_CONFIG } from '@/conf'
-import { IDbMemberSyncData, IDbSegmentInfo } from '@/repo/member.data'
+import { IDbMemberSyncData } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
 import { distinct, distinctBy, groupBy, timeout } from '@crowd/common'
@@ -9,9 +9,12 @@ import { RedisClient } from '@crowd/redis'
 import { Edition, IMemberAttribute, MemberAttributeType } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
+import { SegmentRepository } from '@/repo/segment.repo'
+import { IDbSegmentInfo } from '@/repo/segment.data'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
+  private readonly segmentRepo: SegmentRepository
 
   constructor(
     redisClient: RedisClient,
@@ -22,6 +25,7 @@ export class MemberSyncService extends LoggerBase {
     super(parentLog)
 
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
+    this.segmentRepo = new SegmentRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -221,7 +225,7 @@ export class MemberSyncService extends LoggerBase {
 
             if (isMultiSegment) {
               childSegmentIds = distinct(members.map((m) => m.segmentId))
-              segmentInfos = await this.memberRepo.getParentSegmentIds(childSegmentIds)
+              segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
             }
 
             const grouped = groupBy(members, (m) => m.id)
@@ -327,7 +331,7 @@ export class MemberSyncService extends LoggerBase {
         // get all child segment ids
         const childSegmentIds = members.map((m) => m.segmentId)
         // fetch parentId and grandParentId for each of them
-        const segmentInfos = await this.memberRepo.getParentSegmentIds(childSegmentIds)
+        const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
 
         // index each of them individually
         for (const member of members) {
