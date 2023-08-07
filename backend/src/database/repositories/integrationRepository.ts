@@ -8,6 +8,10 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import AutomationRepository from './automationRepository'
+import AutomationExecutionRepository from './automationExecutionRepository'
+import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
+import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 
 const { Op } = Sequelize
 const log: boolean = false
@@ -151,6 +155,30 @@ class IntegrationRepository {
         transaction,
       },
     )
+
+    // destroy existing automations for outgoing integrations
+    const syncAutomationIds = (
+      await new AutomationRepository({ ...options, transaction }).findSyncAutomations(
+        currentTenant.id,
+        record.platform,
+      )
+    ).map((a) => a.id)
+
+    if (syncAutomationIds.length > 0) {
+      await new AutomationExecutionRepository({ ...options, transaction }).destroyAllAutomation(
+        syncAutomationIds,
+      )
+
+      // delete syncRemote rows coming from integration
+      await new MemberSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
+        record.id,
+      ])
+      await new OrganizationSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration(
+        [record.id],
+      )
+    }
+
+    await new AutomationRepository({ ...options, transaction }).destroyAll(syncAutomationIds)
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }

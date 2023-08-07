@@ -108,6 +108,25 @@ class MemberSyncRemoteRepository extends RepositoryBase<
     })
   }
 
+  async destroyAllIntegration(integrationIds: string[]): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+    delete 
+    from "membersSyncRemote"
+    where "integrationId" in (:integrationIds);`
+
+    await seq.query(query, {
+      replacements: {
+        integrationIds,
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
   async markMemberForSyncing(data: IMemberSyncRemoteData): Promise<IMemberSyncRemoteData> {
     const transaction = SequelizeRepository.getTransaction(this.options)
 
