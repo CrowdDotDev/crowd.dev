@@ -468,6 +468,23 @@ export default {
       }
     },
 
+    async doHubspotConnect(
+      { commit },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.hubspotConnect();
+
+        commit('CREATE_SUCCESS', integration);
+
+        router.push('/integrations');
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
+
     async doGitConnect(
       { commit },
       { remotes, isUpdate },

@@ -29,7 +29,7 @@ const job: CrowdJob = {
     log.info('Downgrading expired non-trial plans')
     const expiredNonTrialTenants = await dbOptions.database.sequelize.query(
       `select t.id, t.name from tenants t
-      where (t.plan = ${Plans.values.growth} or t.plan = ${Plans.values.eagleEye}) and t."planSubscriptionEndsAt" is not null and t."planSubscriptionEndsAt" + interval '3 days' < now()`,
+      where (t.plan = ${Plans.values.growth} or t.plan = ${Plans.values.eagleEye} or t.plan = ${Plans.values.scale}) and t."planSubscriptionEndsAt" is not null and t."planSubscriptionEndsAt" + interval '3 days' < now()`,
     )
 
     for (const tenant of expiredNonTrialTenants[0]) {

@@ -87,6 +87,9 @@ export const cacheDiscordChannels = async (
 }
 
 export const getDiscordToken = (ctx: IProcessStreamContext): string => {
+  if (ctx.integration.token) {
+    return `Bot ${ctx.integration.token}`
+  }
   const token = ctx.platformSettings as IDiscordPlatformSettings
   return `Bot ${token.token}`
 }

@@ -117,6 +117,7 @@ export default class SegmentService extends LoggerBase {
         grandparentSlug: data.parentSlug,
         name: data.name,
         parentName: data.name,
+        grandparentName: parent.name,
       })
 
       await SequelizeRepository.commitTransaction(transaction)

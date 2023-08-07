@@ -547,7 +547,23 @@ class MemberRepository {
                             group by "memberId", platform) mi
                       group by mi."memberId"),
         member_organizations as (
-          select "memberId", array_agg("organizationId") as orgs 
+          select
+            "memberId",
+            JSONB_AGG(
+                DISTINCT JSONB_BUILD_OBJECT(
+                  'id', "organizationId",
+                  'memberOrganizations',
+                  JSONB_BUILD_OBJECT(
+                    'memberId', "memberId",
+                    'organizationId', "organizationId",
+                    'dateStart', "dateStart",
+                    'dateEnd', "dateEnd",
+                    'createdAt', "createdAt",
+                    'updatedAt', "updatedAt",
+                    'title', title
+                  )
+                )
+            ) AS orgs
           from "memberOrganizations"
           where "memberId" = :memberId
           group by "memberId"
@@ -571,7 +587,7 @@ class MemberRepository {
               m."updatedById",
               i.username,
               si."segmentIds" as segments,
-              coalesce(mo.orgs, array []::uuid[]) as "organizations"
+              coalesce(mo.orgs, '[]'::JSONB) as "organizations"
         from members m
                 inner join identities i on i."memberId" = m.id
                 inner join segment_ids si on si."memberId" = m.id
@@ -3242,24 +3258,41 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const query = `
-      INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
-      VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-      ON CONFLICT ("memberId", "organizationId") DO UPDATE
-      SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd
-    `
-
-    await seq.query(query, {
-      replacements: {
-        memberId,
-        organizationId,
-        title: title || null,
-        dateStart: dateStart || null,
-        dateEnd: dateEnd || null,
+    await seq.query(
+      `
+        DELETE FROM "memberOrganizations"
+        WHERE "memberId" = :memberId
+        AND "organizationId" = :organizationId
+        AND "dateEnd" IS NULL
+      `,
+      {
+        replacements: {
+          memberId,
+          organizationId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
       },
-      type: QueryTypes.INSERT,
-      transaction,
-    })
+    )
+
+    await seq.query(
+      `
+        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
+        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
+        ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
+      `,
+      {
+        replacements: {
+          memberId,
+          organizationId,
+          title: title || null,
+          dateStart: dateStart || null,
+          dateEnd: dateEnd || null,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      },
+    )
   }
 
   static sortOrganizations(organizations) {

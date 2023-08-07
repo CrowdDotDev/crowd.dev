@@ -294,7 +294,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-identities :username="scope.row.username" />
+                    <app-member-identities :username="scope.row.username" :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -354,7 +354,7 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list :member="scope.row" @edit="isEditTagsDialogOpen = scope.row" />
+                    <app-tag-list :member="scope.row" @edit="handleEditTagsDialog(scope.row)" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -391,7 +391,7 @@
       </div>
     </div>
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
-    <app-tag-popover v-model="isEditTagsDialogOpen" @reload="fetchMembers({ reload: true })" />
+    <app-tag-popover v-model="isEditTagsDialogOpen" :member="editTagMember" @reload="fetchMembers({ reload: true })" />
   </div>
 </template>
 
@@ -431,7 +431,8 @@ const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
 const isMergeDialogOpen = ref(null);
-const isEditTagsDialogOpen = ref(null);
+const isEditTagsDialogOpen = ref(false);
+const editTagMember = ref(null);
 
 const props = defineProps({
   hasIntegrations: {
@@ -517,6 +518,11 @@ document.onmouseup = () => {
   isScrollbarVisible.value = isTableHovered.value;
   isCursorDown.value = false;
 };
+
+function handleEditTagsDialog(member) {
+  isEditTagsDialogOpen.value = true;
+  editTagMember.value = member;
+}
 
 function doChangeSort(sorter) {
   filters.value.order = {

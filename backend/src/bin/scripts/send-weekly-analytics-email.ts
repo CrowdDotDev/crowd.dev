@@ -11,6 +11,7 @@ import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import RecurringEmailsHistoryRepository from '../../database/repositories/recurringEmailsHistoryRepository'
 import { RecurringEmailType } from '../../types/recurringEmailsHistoryTypes'
+import TenantService from '@/services/tenantService'
 
 /* eslint-disable no-console */
 
@@ -24,6 +25,14 @@ const options = [
     alias: 't',
     type: String,
     description: 'The unique ID of tenant that you would like to send weekly emails to.',
+  },
+  {
+    name: 'sendToAllTenants',
+    alias: 'a',
+    type: Boolean,
+    defaultValue: false,
+    description:
+      'Set this flag to send the analytics e-mails to all tenants. Tenants that already got a weekly analytics e-mail for the previous week will be discarded.',
   },
   {
     name: 'help',
@@ -51,12 +60,22 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || !parameters.tenant) {
+if (parameters.help || (!parameters.tenant && !parameters.sendToAllTenants)) {
   console.log(usage)
 } else {
   setImmediate(async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-    const tenantIds = parameters.tenant.split(',')
+
+    let tenantIds
+
+    if (parameters.sendToAllTenants) {
+      tenantIds = (await TenantService._findAndCountAllForEveryUser({})).rows.map((t) => t.id)
+    } else if (parameters.tenant) {
+      tenantIds = parameters.tenant.split(',')
+    } else {
+      tenantIds = []
+    }
+
     const weekOfYear = moment().utc().startOf('isoWeek').subtract(7, 'days').isoWeek().toString()
     const rehRepository = new RecurringEmailsHistoryRepository(options)
 

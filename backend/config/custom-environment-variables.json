@@ -137,6 +137,11 @@
   "stackexchange": {
     "key": "CROWD_STACKEXCHANGE_KEY"
   },
+  "hubspot": {
+    "appId": "CROWD_HUBSPOT_APP_ID",
+    "clientId": "CROWD_HUBSPOT_CLIENT_ID",
+    "clientSecret": "CROWD_HUBSPOT_CLIENT_SECRET"
+  },
   "nango": {
     "url": "CROWD_NANGO_URL",
     "secretKey": "CROWD_NANGO_SECRET_KEY"
@@ -183,5 +188,11 @@
   "auth0": {
     "clientId": "CROWD_AUTH0_CLIENT_ID",
     "jwks": "CROWD_AUTH0_JWKS"
+  },
+  "crowdAnalytics": {
+    "isEnabled": "CROWD_ANALYTICS_IS_ENABLED",
+    "tenantId": "CROWD_ANALYTICS_TENANT_ID",
+    "baseUrl": "CROWD_ANALYTICS_BASE_URL",
+    "apiToken": "CROWD_ANALYTICS_API_TOKEN"
   }
 }
