@@ -476,22 +476,9 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      // update member.attributes.syncRemote.hubspot to false
       const memberService = new MemberService(this.options)
 
       const member = await memberService.findById(payload.memberId)
-
-      if (!member.attributes.syncRemote) {
-        member.attributes.syncRemote = {
-          default: false,
-          [PlatformType.HUBSPOT]: false,
-        }
-      } else {
-        member.attributes.syncRemote[PlatformType.HUBSPOT] = false
-        member.attributes.syncRemote.default = false
-      }
-
-      await memberService.update(payload.memberId, { attributes: member.attributes }, transaction)
 
       const memberSyncRemoteRepository = new MemberSyncRemoteRepository({
         ...this.options,
@@ -526,16 +513,6 @@ export default class IntegrationService {
 
       member = await MemberRepository.findById(payload.memberId, { ...this.options, transaction })
 
-      if (!member.attributes.syncRemote) {
-        member.attributes.syncRemote = {
-          default: true,
-          [PlatformType.HUBSPOT]: true,
-        }
-      } else {
-        member.attributes.syncRemote[PlatformType.HUBSPOT] = true
-        member.attributes.syncRemote.default = true
-      }
-
       const memberSyncRemoteRepo = new MemberSyncRemoteRepository({ ...this.options, transaction })
 
       memberSyncRemote = await memberSyncRemoteRepo.markMemberForSyncing({
@@ -545,8 +522,6 @@ export default class IntegrationService {
         syncFrom: 'manual',
         lastSyncedAt: null,
       })
-
-      const memberService = new MemberService(this.options)
 
       integration = await this.createOrUpdate(
         {
@@ -558,8 +533,6 @@ export default class IntegrationService {
         },
         transaction,
       )
-
-      await memberService.update(payload.memberId, { attributes: member.attributes }, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
@@ -591,28 +564,9 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      // update organization.attributes.syncRemote.hubspot to false
       const organizationService = new OrganizationService(this.options)
 
       const organization = await organizationService.findById(payload.organizationId)
-
-      if (!organization.attributes.syncRemote) {
-        organization.attributes.syncRemote = {
-          default: false,
-          [PlatformType.HUBSPOT]: false,
-        }
-      } else {
-        organization.attributes.syncRemote[PlatformType.HUBSPOT] = false
-        organization.attributes.syncRemote.default = false
-      }
-
-      await organizationService.update(
-        payload.organizationId,
-        {
-          attributes: organization.attributes,
-        },
-        transaction,
-      )
 
       const organizationSyncRemoteRepository = new OrganizationSyncRemoteRepository({
         ...this.options,
@@ -645,27 +599,9 @@ export default class IntegrationService {
         transaction,
       })
 
-      // update organization.attributes.syncRemote.hubspot to true
       const organizationService = new OrganizationService(this.options)
 
       organization = await organizationService.findById(payload.organizationId)
-
-      if (!organization.attributes) {
-        organization.attributes = {
-          syncRemote: {
-            default: true,
-            [PlatformType.HUBSPOT]: true,
-          },
-        }
-      } else if (!organization.attributes.syncRemote) {
-        organization.attributes.syncRemote = {
-          default: true,
-          [PlatformType.HUBSPOT]: true,
-        }
-      } else {
-        organization.attributes.syncRemote[PlatformType.HUBSPOT] = true
-        organization.attributes.syncRemote.default = true
-      }
 
       const organizationSyncRemoteRepo = new OrganizationSyncRemoteRepository({
         ...this.options,
@@ -687,13 +623,6 @@ export default class IntegrationService {
             ...integration.settings,
             syncRemoteEnabled: true,
           },
-        },
-        transaction,
-      )
-      await organizationService.update(
-        payload.organizationId,
-        {
-          attributes: organization.attributes,
         },
         transaction,
       )

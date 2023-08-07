@@ -156,6 +156,14 @@ class IntegrationRepository {
       },
     )
 
+    // delete syncRemote rows coming from integration
+    await new MemberSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
+      record.id,
+    ])
+    await new OrganizationSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
+      record.id,
+    ])
+
     // destroy existing automations for outgoing integrations
     const syncAutomationIds = (
       await new AutomationRepository({ ...options, transaction }).findSyncAutomations(
@@ -167,14 +175,6 @@ class IntegrationRepository {
     if (syncAutomationIds.length > 0) {
       await new AutomationExecutionRepository({ ...options, transaction }).destroyAllAutomation(
         syncAutomationIds,
-      )
-
-      // delete syncRemote rows coming from integration
-      await new MemberSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
-        record.id,
-      ])
-      await new OrganizationSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration(
-        [record.id],
       )
     }
 

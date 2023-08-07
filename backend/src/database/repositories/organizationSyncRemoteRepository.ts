@@ -108,7 +108,7 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
 
     if (existingManualSyncRemote) {
       await this.startManualSync(existingManualSyncRemote.id, data.sourceId)
-      return existingManualSyncRemote.id
+      return existingManualSyncRemote
     }
 
     const organizationSyncRemoteInserted = await this.options.database.sequelize.query(
@@ -173,6 +173,27 @@ class OrganizationSyncRemoteRepository extends RepositoryBase<
       type: QueryTypes.DELETE,
       transaction,
     })
+  }
+
+  async findOrganizationManualSync(organizationId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
+    const records = await this.options.database.sequelize.query(
+      `select i.platform, osr.status from "organizationsSyncRemote" osr
+      inner join integrations i on osr."integrationId" = i.id
+      where osr."syncFrom" = :syncFrom and osr."organizationId" = :organizationId;
+            `,
+      {
+        replacements: {
+          organizationId,
+          syncFrom: 'manual',
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return records
   }
 
   async findByOrganizationId(organizationId: string): Promise<IOrganizationSyncRemoteData> {

@@ -144,7 +144,7 @@ class MemberSyncRemoteRepository extends RepositoryBase<
 
     if (existingManualSyncRemote) {
       await this.startManualSync(existingManualSyncRemote.id, data.sourceId)
-      return existingManualSyncRemote.id
+      return existingManualSyncRemote
     }
 
     const memberSyncRemoteInserted = await this.options.database.sequelize.query(
@@ -171,6 +171,27 @@ class MemberSyncRemoteRepository extends RepositoryBase<
 
     const memberSyncRemote = await this.findById(memberSyncRemoteInserted[0][0].id)
     return memberSyncRemote
+  }
+
+  async findMemberManualSync(memberId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
+    const records = await this.options.database.sequelize.query(
+      `select i.platform, msr.status from "membersSyncRemote" msr
+      inner join integrations i on msr."integrationId" = i.id
+      where msr."syncFrom" = :syncFrom and msr."memberId" = :memberId;
+            `,
+      {
+        replacements: {
+          memberId,
+          syncFrom: 'manual',
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return records
   }
 
   async findByMemberId(memberId: string): Promise<IMemberSyncRemoteData> {

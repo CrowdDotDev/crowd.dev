@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import { SyncStatus } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -7,6 +8,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 
 const { Op } = Sequelize
 
@@ -220,6 +222,11 @@ class OrganizationRepository {
 
     if (!record) {
       throw new Error404()
+    }
+
+    // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
+    if (data.attributes?.syncRemote) {
+      delete data.attributes.syncRemote
     }
 
     record = await record.update(
@@ -436,7 +443,24 @@ class OrganizationRepository {
       throw new Error404()
     }
 
-    return results[0] as any
+    const result = results[0] as any
+
+    const manualSyncRemote = await new OrganizationSyncRemoteRepository({
+      ...options,
+      transaction,
+    }).findOrganizationManualSync(result.id)
+
+    for (const syncRemote of manualSyncRemote) {
+      if (result.attributes?.syncRemote) {
+        result.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
+      } else {
+        result.attributes.syncRemote = {
+          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
+        }
+      }
+    }
+
+    return result
   }
 
   static async findByName(name, options: IRepositoryOptions) {
