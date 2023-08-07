@@ -202,7 +202,6 @@ import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppSvg from '@/shared/svg/svg.vue';
-import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
