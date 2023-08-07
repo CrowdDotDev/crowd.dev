@@ -132,10 +132,9 @@ export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
 export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
   config.get<WeeklyEmailsConfiguration>('weeklyEmails')
 
+export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
+  config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
 
 export const CSV_EXPORT_BATCH_SIZE = process.env.CSV_EXPORT_BATCH_SIZE || 10
 
 export const S3_FILE_EXPIRES_IN = process.env.S3_FILE_EXPIRES_IN || 3600
-
-export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
-  config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
