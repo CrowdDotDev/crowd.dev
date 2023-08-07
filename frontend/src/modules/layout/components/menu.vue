@@ -494,7 +494,6 @@ const classFor = (path, exact = false) => {
 
 const openFeedbackWidget = () => {
   formbricks.track('openFeedback');
-  formbricks.refresh();
 };
 </script>
 
