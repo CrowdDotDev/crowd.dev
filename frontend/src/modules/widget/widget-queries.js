@@ -95,66 +95,82 @@ export const TOTAL_ACTIVE_MEMBERS_QUERY = ({
   granularity,
   selectedPlatforms,
   selectedHasTeamMembers,
-}) => ({
-  measures: ['Members.count'],
-  timeDimensions: [
-    {
-      dateRange: [
-        moment()
-          .utc()
-          .subtract(period.value, period.granularity)
-          .format('YYYY-MM-DD'),
-        moment().utc().format('YYYY-MM-DD'),
-      ],
-      dimension: 'Activities.date',
-      granularity: granularity.value,
-    },
-  ],
-  filters: getCubeFilters({
-    platforms: selectedPlatforms,
-    hasTeamMembers: selectedHasTeamMembers,
-  }),
-});
+}) => {
+  const activityTimestampFrom = moment()
+    .utc()
+    .subtract(period.value, period.granularity)
+    .startOf(granularity.value);
+
+  if (granularity.value === 'week') {
+    activityTimestampFrom.add(1, 'day');
+  }
+
+  return {
+    measures: ['Members.count'],
+    timeDimensions: [
+      {
+        dateRange: [
+          activityTimestampFrom.format('YYYY-MM-DD'),
+          moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS'),
+        ],
+        dimension: 'Activities.date',
+        granularity: granularity.value,
+      },
+    ],
+    filters: getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamMembers: selectedHasTeamMembers,
+    }),
+  };
+};
 
 export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
   period,
   granularity,
   selectedPlatforms,
   selectedHasTeamMembers,
-}) => ({
-  measures: ['Members.count'],
-  timeDimensions: [
-    {
-      dateRange: [
-        moment()
-          .utc()
-          .subtract(period.value, period.granularity)
-          .format('YYYY-MM-DD'),
-        moment().utc().format('YYYY-MM-DD'),
-      ],
-      dimension: 'Activities.date',
-      granularity: granularity.value,
-    },
-  ],
-  filters: [
-    {
-      member: 'Members.joinedAtUnixTs',
-      operator: 'lt',
-      values: [
-        moment()
-          .utc()
-          .startOf('day')
-          .subtract(period.value, period.granularity)
-          .unix()
-          .toString(),
-      ],
-    },
-    ...getCubeFilters({
-      platforms: selectedPlatforms,
-      hasTeamMembers: selectedHasTeamMembers,
-    }),
-  ],
-});
+}) => {
+  const activityTimestampFrom = moment()
+    .utc()
+    .subtract(period.value, period.granularity)
+    .startOf(granularity.value);
+
+  if (granularity.value === 'week') {
+    activityTimestampFrom.add(1, 'day');
+  }
+
+  return {
+    measures: ['Members.count'],
+    timeDimensions: [
+      {
+        dateRange: [
+          activityTimestampFrom.format('YYYY-MM-DD'),
+          moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS'),
+        ],
+        dimension: 'Activities.date',
+        granularity: granularity.value,
+      },
+    ],
+    filters: [
+      {
+        member: 'Members.joinedAtUnixTs',
+        operator: 'lt',
+        values: [
+          moment()
+            .utc()
+            .startOf('day')
+            .subtract(period.value, period.granularity)
+            .unix()
+            .toString(),
+        ],
+      },
+      ...getCubeFilters({
+        platforms: selectedPlatforms,
+        hasTeamMembers: selectedHasTeamMembers,
+      }),
+    ],
+  };
+};
 
 export const TOTAL_MEMBERS_QUERY = ({
   period,
@@ -163,7 +179,7 @@ export const TOTAL_MEMBERS_QUERY = ({
   selectedHasTeamMembers,
 }) => {
   const dateRange = (periodValue) => {
-    const end = moment().utc().format('YYYY-MM-DD');
+    const end = moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS');
     const start = moment()
       .utc()
       .subtract(periodValue.value, periodValue.granularity)
@@ -259,7 +275,7 @@ export const TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS = ({
             .startOf('month')
             .subtract(period.value, period.granularity)
             .format('YYYY-MM-DD'),
-          moment().utc().format('YYYY-MM-DD'),
+          moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS'),
         ],
       }),
       dimension: 'Activities.date',
@@ -278,82 +294,100 @@ export const ACTIVITIES_QUERY = ({
   granularity,
   selectedPlatforms,
   selectedHasTeamActivities,
-}) => ({
-  measures: ['Activities.count'],
-  timeDimensions: [
-    {
-      dateRange: [
-        moment()
-          .utc()
-          .subtract(period.value, period.granularity)
-          .format('YYYY-MM-DD'),
-        moment().utc().format('YYYY-MM-DD'),
-      ],
-      dimension: 'Activities.date',
-      granularity: granularity.value,
-    },
-  ],
-  filters: getCubeFilters({
-    platforms: selectedPlatforms,
-    hasTeamActivities: selectedHasTeamActivities,
-  }),
-});
+}) => {
+  const activityTimestampFrom = moment()
+    .utc()
+    .subtract(period.value, period.granularity)
+    .startOf(granularity.value);
+
+  if (granularity.value === 'week') {
+    activityTimestampFrom.add(1, 'day');
+  }
+
+  return {
+    measures: ['Activities.count'],
+    timeDimensions: [
+      {
+        dateRange: [
+          activityTimestampFrom.format('YYYY-MM-DD'),
+          moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS'),
+        ],
+        dimension: 'Activities.date',
+        granularity: granularity.value,
+      },
+    ],
+    filters: getCubeFilters({
+      platforms: selectedPlatforms,
+      hasTeamActivities: selectedHasTeamActivities,
+    }),
+  };
+};
 
 export const LEADERBOARD_ACTIVITIES_TYPES_QUERY = ({
   period,
   selectedPlatforms,
   selectedHasTeamActivities,
-}) => ({
-  measures: ['Activities.count'],
-  order: {
-    'Activities.count': 'desc',
-  },
-  dimensions: ['Activities.platform', 'Activities.type'],
-  timeDimensions: [
-    {
-      dateRange: [
-        moment()
-          .utc()
-          .subtract(period.value, period.granularity)
-          .format('YYYY-MM-DD'),
-        moment().utc().format('YYYY-MM-DD'),
-      ],
-      dimension: 'Activities.date',
+}) => {
+  const activityTimestampFrom = moment()
+    .utc()
+    .subtract(period.value, period.granularity)
+    .startOf('day')
+    .format('YYYY-MM-DD');
+
+  return {
+    measures: ['Activities.count'],
+    order: {
+      'Activities.count': 'desc',
     },
-  ],
-  filters:
+    dimensions: ['Activities.platform', 'Activities.type'],
+    timeDimensions: [
+      {
+        dateRange: [
+          activityTimestampFrom,
+          moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS'),
+        ],
+        dimension: 'Activities.date',
+      },
+    ],
+    filters:
     getCubeFilters({
       platforms: selectedPlatforms,
       hasTeamActivities: selectedHasTeamActivities,
     }),
 
-});
+  };
+};
 
 export const LEADERBOARD_ACTIVITIES_COUNT_QUERY = ({
   period,
   selectedPlatforms,
   selectedHasTeamActivities,
-}) => ({
-  measures: ['Activities.count'],
-  timeDimensions: [
-    {
-      dateRange: [
-        moment()
-          .utc()
-          .subtract(period.value, period.granularity)
-          .format('YYYY-MM-DD'),
-        moment().utc().format('YYYY-MM-DD'),
-      ],
-      dimension: 'Activities.date',
-    },
-  ],
-  filters:
+}) => {
+  const activityTimestampFrom = moment()
+    .utc()
+    .subtract(period.value, period.granularity)
+    .startOf('day')
+    .format('YYYY-MM-DD');
+
+  return {
+    measures: ['Activities.count'],
+    timeDimensions: [
+      {
+        dateRange: [
+          activityTimestampFrom,
+          moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS'),
+        ],
+        dimension: 'Activities.date',
+      },
+    ],
+    filters:
     getCubeFilters({
       platforms: selectedPlatforms,
       hasTeamActivities: selectedHasTeamActivities,
     }),
 
-});
+  };
+};
 
 export const TOTAL_ACTIVITIES_QUERY = ({
   period,
@@ -362,7 +396,7 @@ export const TOTAL_ACTIVITIES_QUERY = ({
   selectedHasTeamActivities,
 }) => {
   const dateRange = (periodValue) => {
-    const end = moment().utc().format('YYYY-MM-DD');
+    const end = moment().utc().format('YYYY-MM-DDTHH:mm:ss.SSS');
     const start = moment()
       .utc()
       .subtract(periodValue.value, periodValue.granularity)
