@@ -29,7 +29,7 @@
               name="members"
             >
               <app-organization-view-members
-                :organization-id="organization.id"
+                :organization-id="props.id"
               />
             </el-tab-pane>
             <el-tab-pane
@@ -37,7 +37,7 @@
               name="activities"
             >
               <app-activity-timeline
-                :entity-id="organization.id"
+                :entity-id="props.id"
                 entity-type="organization"
               />
             </el-tab-pane>
