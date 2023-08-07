@@ -208,8 +208,8 @@ const fetch = (page) => {
       offset.value = +res.offset;
       count.value = res.count;
       [membersToMerge.value] = res.rows;
-      
-      // Set member with maximum activities and identities as primary
+      const { members } = membersToMerge.value;
+      // Set member with maximum identities and activities as primary
       if ((members[0].identities.length < members[1].identities.length) || 
         (members[0].activityCount < members[1].activityCount)) {
           primary.value = 1;

@@ -56,6 +56,7 @@
             </div>
             <app-member-identities
               :username="member.username"
+              :member="member"
             />
           </div>
         </div>
