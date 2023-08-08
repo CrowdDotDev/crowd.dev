@@ -55,10 +55,17 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  url: {
+    type: String,
+    default: null,
+  },
 });
 
 const asLink = computed(() => CrowdIntegrations.getConfig(props.platform)?.showProfileLink);
-const getPlatformUrl = ({ platform, username }) => CrowdIntegrations.getConfig(platform)?.url(username);
+const getPlatformUrl = ({ platform, username }) => {
+  const url = CrowdIntegrations.getConfig(platform)?.url(username);
+  return url ?? props.url;
+};
 </script>
 
 <script>

@@ -26,10 +26,18 @@ export default {
     state.loading = false;
 
     if (state.currentUser) {
-      formbricks.setEmail(state.currentUser.email);
-      formbricks.setUserId(state.currentUser.id);
-      formbricks.setAttribute('name', state.currentUser.fullName);
-      formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
+      if (state.currentUser.email) {
+        formbricks.setEmail(state.currentUser.email);
+      }
+      if (state.currentUser.id) {
+        formbricks.setUserId(state.currentUser.id);
+      }
+      if (state.currentUser.fullName) {
+        formbricks.setAttribute('name', state.currentUser.fullName);
+      }
+      if (state.currentUser.createdAt) {
+        formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
+      }
     }
   },
 
@@ -121,13 +129,18 @@ export default {
     state.loadingInit = false;
 
     if (state.currentUser) {
-      formbricks.setEmail(state.currentUser.email);
-      formbricks.setUserId(state.currentUser.id);
-      formbricks.setAttribute('name', state.currentUser.fullName);
-      formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
-      const timestampSignup = new Date(
-        state.currentUser.createdAt,
-      ).getTime();
+      if (state.currentUser.email) {
+        formbricks.setEmail(state.currentUser.email);
+      }
+      if (state.currentUser.id) {
+        formbricks.setUserId(state.currentUser.id);
+      }
+      if (state.currentUser.fullName) {
+        formbricks.setAttribute('name', state.currentUser.fullName);
+      }
+      if (state.currentUser.createdAt) {
+        formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
+      }
     }
   },
 

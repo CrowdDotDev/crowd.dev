@@ -11,7 +11,11 @@
           <div class="flex items-center gap-4">
             <app-member-sentiment :member="member" />
             <app-member-engagement-level :member="member" />
-            <app-member-dropdown :member="member" :show-view-member="false" />
+            <app-member-dropdown
+              :member="member"
+              :show-view-member="false"
+              @merge="isMergeDialogOpen = member"
+            />
           </div>
         </div>
         <app-member-organizations
@@ -72,14 +76,15 @@
     <div class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
       <div class="text-sm">
         <app-tags :long="true" :member="member" @edit="isEditTagsDialogOpen = true" />
-        <app-tag-popover v-model="isEditTagsDialogOpen" :member="member"  />
+        <app-tag-popover v-model="isEditTagsDialogOpen" :member="member" />
       </div>
     </div>
+    <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
 <script setup>
-import { defineProps, ref } from "vue";
+import { ref } from 'vue';
 import moment from 'moment/moment';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
@@ -92,6 +97,7 @@ import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 
 defineProps({
   member: {
@@ -101,6 +107,7 @@ defineProps({
 });
 
 const isEditTagsDialogOpen = ref(false);
+const isMergeDialogOpen = ref(null);
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information

@@ -62,7 +62,6 @@ import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   id: {
