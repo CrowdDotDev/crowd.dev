@@ -204,12 +204,12 @@ export class OpenSearchService extends LoggerBase {
 
   private async ensureIndexAndAliasExists(indexName: OpenSearchIndex) {
     const indexNameWithVersion = this.indexVersionMap.get(indexName)
-    // indexName is the alias name and indexNameWithVersion is the actual index name under the hood
-    const aliasName = indexName
+    const aliasName = indexName // index name is the alias name (without version)
     const indexExists = await this.doesIndexExist(indexNameWithVersion)
     const aliasExists = await this.doesAliasExist(aliasName)
     const aliasPointsToIndex = await this.doesAliasPointToIndex(indexNameWithVersion, aliasName)
 
+    // create index and alias if they don't exist (only in dev environment)
     if (IS_DEV_ENV) {
       if (!indexExists) {
         this.log.info('Creating versioned index with settings and mappings!', {
@@ -223,11 +223,14 @@ export class OpenSearchService extends LoggerBase {
         await this.createAlias(indexNameWithVersion, aliasName)
       }
     } else {
-      if (!aliasExists || !indexExists || !aliasPointsToIndex) {
+      if (!indexExists || !aliasExists || !aliasPointsToIndex) {
         throw new Error('Index and alias are either missing or not properly configured!')
       }
+    }
 
-      this.log.info('Index and alias already exist and are properly configured in production!', {
+    // check if index and alias exist and alias points to the index
+    if (indexExists && aliasExists && aliasPointsToIndex) {
+      this.log.info('Index and alias already exist!', {
         indexNameWithVersion,
         aliasName,
       })
