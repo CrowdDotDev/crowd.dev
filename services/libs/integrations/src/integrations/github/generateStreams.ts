@@ -8,7 +8,7 @@ import {
   GithubBasicStream,
 } from './types'
 
-const toManulMap: Map<GithubStreamType, GithubManualStreamType> = new Map([
+const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = new Map([
   [GithubStreamType.STARGAZERS, GithubManualStreamType.STARGAZERS],
   [GithubStreamType.FORKS, GithubManualStreamType.FORKS],
   [GithubStreamType.PULLS, GithubManualStreamType.PULLS],
@@ -39,7 +39,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       ]) {
         if (
           manualSettings.streamType === GithubManualStreamType.ALL ||
-          manualSettings.streamType === toManulMap.get(endpoint)
+          manualSettings.streamType === streamToManualStreamMap.get(endpoint)
         ) {
           await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
             repo,
