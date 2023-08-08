@@ -96,7 +96,6 @@ export enum GithubWehookEvent {
 
 export enum GithubStreamType {
   ROOT = 'root',
-  MANUAL_ROOT = 'manual-root',
   STARGAZERS = 'stargazers',
   FORKS = 'forks',
   PULLS = 'pulls',
