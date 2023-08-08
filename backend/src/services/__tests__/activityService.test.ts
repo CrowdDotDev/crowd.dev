@@ -3151,5 +3151,30 @@ describe('ActivityService tests', () => {
         expect(activity.organization.id).toBe(org1.id)
       })
     })
+
+    it('Should filter by organization based on organizationId', async () => {
+      const member = await createMember()
+
+      const org1 = await createOrg('org1')
+      await addWorkExperience(member.id, org1.id)
+
+      const org2 = await createOrg('org2')
+      await addWorkExperience(member.id, org2.id)
+
+      let activity1 = await createActivity(member.id, {
+        organizationId: org1.id,
+      })
+      let activity2 = await createActivity(member.id, {
+        organizationId: org2.id,
+      })
+
+      const { rows } = await activityService.query({
+        filter: {
+          organizations: [org1.id],
+        },
+      })
+
+      expect(rows.length).toBe(1)
+    })
   })
 })
