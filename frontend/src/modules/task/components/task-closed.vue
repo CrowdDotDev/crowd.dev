@@ -36,24 +36,11 @@
           :key="task.id"
           :task="task"
         />
-        <div
-          v-if="tasks.length < tasksCount"
-          class="flex justify-center pt-8 pb-1"
-        >
-          <div
-            class="flex items-center cursor-pointer"
-            @click="fetchTasks(true)"
-          >
-            <div
-              class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
-            />
-            <div
-              class="pl-2 text-xs leading-5 text-brand-500 font-medium"
-            >
-              Load more
-            </div>
-          </div>
-        </div>
+        <app-load-more
+          :is-visible="tasks.length < tasksCount"
+          :is-loading="loading"
+          :fetch-fn="fetchTasks(true)"
+        />
         <div
           v-if="tasks.length === 0"
           class="pt-16 pb-14 flex justify-center items-center"
@@ -82,6 +69,7 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import AppTaskItem from '@/modules/task/components/task-item.vue';
 import AppTaskClosedDropdown from '@/modules/task/components/task-closed-dropdown.vue';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const store = useStore();
 

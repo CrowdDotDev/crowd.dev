@@ -44,23 +44,11 @@
         />
 
         <!-- Load more button -->
-        <div
-          v-if="isLoadMoreVisible"
-          class="flex grow justify-center pt-4"
-        >
-          <div
-            v-if="loading"
-            v-loading="loading"
-            class="app-page-spinner h-16 !relative !min-h-5"
-          />
-          <el-button
-            v-else
-            class="btn btn-link btn-link--primary"
-            @click="onLoadMore"
-          >
-            <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
-          </el-button>
-        </div>
+        <app-load-more
+          :is-visible="isLoadMoreVisible"
+          :is-loading="loading"
+          :fetch-fn="onLoadMore"
+        />
       </div>
     </div>
   </div>
@@ -79,6 +67,7 @@ import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useConversationStore } from '@/modules/conversation/store';
 import { storeToRefs } from 'pinia';
 import { conversationFilters, conversationSearchFilter } from '@/modules/conversation/config/filters/main';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const conversationId = ref(null);
 
@@ -118,7 +107,7 @@ const pagination = computed(
 const isLoadMoreVisible = computed(() => (
   pagination.value.page
       * pagination.value.perPage
-    < totalConversations
+    < totalConversations.value
 ));
 
 const onLoadMore = () => {

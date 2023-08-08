@@ -75,24 +75,11 @@
           </div>
         </div>
 
-        <div
-          v-if="tasks.length < taskCount"
-          class="flex justify-center pt-3 pb-1"
-        >
-          <div
-            class="flex items-center cursor-pointer"
-            @click="fetchTasks(true)"
-          >
-            <div
-              class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
-            />
-            <div
-              class="pl-2 text-xs leading-5 text-brand-500 font-medium"
-            >
-              Load more
-            </div>
-          </div>
-        </div>
+        <app-load-more
+          :is-visible="tasks.length < taskCount"
+          :is-loading="loadingTasks"
+          :fetch-fn="fetchTasks(true)"
+        />
       </div>
     </div>
   </div>
@@ -125,6 +112,7 @@ import {
 } from '@/modules/task/store/constants';
 import AppDashboardTaskSuggested from '@/modules/dashboard/components/task/dashboard-task-suggested.vue';
 import AppDashboardTaskItem from '@/modules/dashboard/components/task/dashboard-task-item.vue';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const store = useStore();
 const { currentUser, currentTenant } = mapGetters('auth');
