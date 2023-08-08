@@ -21,7 +21,7 @@
         <app-platform-list
           :username-handles="socialIdentities[platform]"
           :platform="platform"
-          :url="member.attributes.url[platform]"
+          :url="member.attributes?.url?.[platform]"
         />
       </div>
     </div>

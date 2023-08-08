@@ -369,7 +369,10 @@
                     class="block w-full"
                   >
                     <div class="h-full flex items-center justify-center w-full">
-                      <app-member-dropdown :member="scope.row" @merge="isMergeDialogOpen = scope.row" />
+                      <app-member-dropdown
+                        :member="scope.row"
+                        @merge="isMergeDialogOpen = scope.row"
+                      />
                     </div>
                   </router-link>
                 </template>

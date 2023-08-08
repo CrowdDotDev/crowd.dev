@@ -834,8 +834,9 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+  async update(id, data, passedTransaction?) {
+    const transaction =
+      passedTransaction || (await SequelizeRepository.createTransaction(this.options))
     const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
@@ -905,9 +906,10 @@ export default class MemberService extends LoggerBase {
         transaction,
       })
 
-      await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id, true)
+      if (!passedTransaction) {
+        await SequelizeRepository.commitTransaction(transaction)
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id, true)
+      }
 
       return record
     } catch (error) {

@@ -10,7 +10,7 @@ import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from './member.data'
-import { IMemberIdentity } from '@crowd/types'
+import { IMemberIdentity, SyncStatus } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
@@ -240,5 +240,24 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       this.dbInstance.helpers.insert(prepared, this.insertMemberSegmentColumnSet) +
       ' ON CONFLICT DO NOTHING'
     await this.db().none(query)
+  }
+
+  public async addToSyncRemote(memberId: string, integrationId: string, sourceId: string) {
+    await this.db().none(
+      `insert into "membersSyncRemote" ("id", "memberId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
+      values
+          ($(id), $(memberId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
+          on conflict do nothing`,
+      {
+        id: generateUUIDv1(),
+        memberId,
+        sourceId,
+        integrationId,
+        syncFrom: 'enrich',
+        metaData: null,
+        lastSyncedAt: null,
+        status: SyncStatus.NEVER,
+      },
+    )
   }
 }

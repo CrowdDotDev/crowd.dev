@@ -12,6 +12,7 @@ import {
   getUpdateOrganizationColumnSet,
 } from './organization.data'
 import { generateUUIDv1 } from '@crowd/common'
+import { SyncStatus } from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
@@ -253,5 +254,24 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     `
 
     await this.db().none(query, parameters)
+  }
+
+  public async addToSyncRemote(organizationId: string, integrationId: string, sourceId: string) {
+    await this.db().none(
+      `insert into "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
+      values
+          ($(id), $(organizationId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
+          on conflict do nothing`,
+      {
+        id: generateUUIDv1(),
+        organizationId,
+        sourceId,
+        integrationId,
+        syncFrom: 'enrich',
+        metaData: null,
+        lastSyncedAt: null,
+        status: SyncStatus.NEVER,
+      },
+    )
   }
 }

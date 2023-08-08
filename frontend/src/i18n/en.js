@@ -385,6 +385,8 @@ const en = {
         new_activity:
           'New activity happened in your community',
         new_member: 'New member joined your community',
+        member_attributes_match: 'Member attributes match condition(s)',
+        organization_attributes_match: 'Organization attributes match condition(s)',
       },
     },
 
