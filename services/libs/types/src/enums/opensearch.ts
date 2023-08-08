@@ -13,4 +13,5 @@ export enum OpensearchFieldType {
 export enum OpenSearchIndex {
   MEMBERS = 'members',
   ACTIVITIES = 'activities',
+  ORGANIZATIONS = 'organizations',
 }

@@ -1,6 +1,6 @@
 export interface IDbOrganizationSyncData {
   // organization data
-  id: string
+  organizationId: string
   segmentId: string
   tenantId: string
   address: string | null

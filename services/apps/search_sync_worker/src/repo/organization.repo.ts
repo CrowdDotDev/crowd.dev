@@ -38,7 +38,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                   where m."tenantId" = $(tenantId)
                                     and m."deletedAt" is null
                                   group by os."segmentId", os."organizationId")
-              select o.id,
+              select o.id as "organizationId",
                     md."segmentId",
                     o."tenantId",
                     o.address,
@@ -89,5 +89,60 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
 
     return results
+  }
+
+  public async checkOrganizationsExists(tenantId: string, orgIds: string[]): Promise<string[]> {
+    const results = await this.db().any(
+      `
+      select id 
+      from 
+        organizations 
+      where 
+        "tenantId" = $(tenantId) and 
+        id in ($(orgIds:csv)) and 
+        "deletedAt" is null
+      `,
+      {
+        tenantId,
+        orgIds,
+      },
+    )
+
+    return results.map((r) => r.id)
+  }
+
+  public async markSynced(orgIds: string[]): Promise<void> {
+    await this.db().none(
+      `update organizations set "searchSyncedAt" = now() where id in ($(orgIds:csv))`,
+      {
+        orgIds,
+      },
+    )
+  }
+
+  public async getTenantOrganizationsForSync(
+    tenantId: string,
+    page: number,
+    perPage: number,
+    cutoffDate: string,
+  ): Promise<string[]> {
+    const results = await this.db().any(
+      `
+        select o.id
+        from organizations o
+        where o."tenantId" = $(tenantId) and 
+              o."deletedAt" is null and
+              (
+                  o."searchSyncedAt" is null or 
+                  o."searchSyncedAt" < $(cutoffDate)
+              ) 
+        limit ${perPage} offset ${(page - 1) * perPage};`,
+      {
+        tenantId,
+        cutoffDate,
+      },
+    )
+
+    return results.map((r) => r.id)
   }
 }
