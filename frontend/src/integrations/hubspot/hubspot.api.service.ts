@@ -2,6 +2,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import authAxios from '@/shared/axios/auth-axios';
 import { MappableFields } from '@/integrations/hubspot/types/MappableFields';
 import { HubspotOnboard } from '@/integrations/hubspot/types/HubspotOnboard';
+import { HubspotLists } from '@/integrations/hubspot/types/HubspotLists';
 
 export class HubspotApiService {
   static getMappableFields(): Promise<MappableFields> {
@@ -75,6 +76,15 @@ export class HubspotApiService {
       {
         organizationId,
       },
+    )
+      .then((response) => response.data);
+  }
+
+  static getLists(): Promise<HubspotLists> {
+    const tenantId = AuthCurrentTenant.get();
+
+    return authAxios.get(
+      `/tenant/${tenantId}/hubspot-get-lists`,
     )
       .then((response) => response.data);
   }
