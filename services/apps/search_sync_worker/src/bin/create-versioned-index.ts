@@ -1,6 +1,6 @@
 import { OpenSearchService } from '@/service/opensearch.service'
-import { getServiceLogger } from '@crowd/logging'
 import { OpenSearchIndex } from '@/types'
+import { getServiceLogger } from '@crowd/logging'
 
 const log = getServiceLogger()
 
@@ -12,11 +12,10 @@ if (processArguments.length !== 1) {
 }
 
 const index = processArguments[0]
-const version = 1
 
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
 
-  await openSearchService.createIndexWithVersion(index as OpenSearchIndex, version)
+  await openSearchService.createIndexWithVersion(index as OpenSearchIndex)
   process.exit(0)
 })

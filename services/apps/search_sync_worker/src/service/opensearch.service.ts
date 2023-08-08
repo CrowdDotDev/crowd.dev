@@ -13,9 +13,16 @@ import { IS_DEV_ENV } from '@crowd/common'
 
 export class OpenSearchService extends LoggerBase {
   private readonly client: Client
+  private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
 
   constructor(parentLog: Logger) {
     super(parentLog)
+
+    const indexNames = Object.values(OpenSearchIndex)
+    indexNames.forEach((name) => {
+      const version = IndexVersions.get(name)
+      this.indexVersionMap.set(name, `${name}_v${version}`)
+    })
 
     const config = OPENSEARCH_CONFIG()
     if (config.region) {
@@ -74,13 +81,15 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  public async createIndexWithVersion(indexName: OpenSearchIndex, version: number): Promise<void> {
+  public async createIndexWithVersion(indexName: OpenSearchIndex): Promise<void> {
     try {
       const settings = OPENSEARCH_INDEX_SETTINGS[indexName]
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
 
+      const versionedIndexName = this.indexVersionMap.get(indexName)
+
       await this.client.indices.create({
-        index: `${indexName}_v${version}`,
+        index: versionedIndexName,
         body: {
           settings,
           mappings,
@@ -154,9 +163,9 @@ export class OpenSearchService extends LoggerBase {
 
   public async getIndexSettings(indexName: OpenSearchIndex): Promise<unknown> {
     try {
-      const version = IndexVersions.get(indexName)
+      const indexNameWithVersion = this.indexVersionMap.get(indexName)
       const settings = await this.client.indices.getSettings({
-        index: `${indexName}_v${version}`,
+        index: indexNameWithVersion,
       })
       return settings.body
     } catch (err) {
@@ -167,9 +176,9 @@ export class OpenSearchService extends LoggerBase {
 
   public async getIndexMappings(indexName: OpenSearchIndex): Promise<unknown> {
     try {
-      const version = IndexVersions.get(indexName)
+      const indexNameWithVersion = this.indexVersionMap.get(indexName)
       const mappings = await this.client.indices.getMapping({
-        index: `${indexName}_v${version}`,
+        index: indexNameWithVersion,
       })
       return mappings.body
     } catch (err) {
@@ -181,10 +190,10 @@ export class OpenSearchService extends LoggerBase {
   public async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
     try {
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
-      const version = IndexVersions.get(indexName)
+      const indexNameWithVersion = this.indexVersionMap.get(indexName)
 
       await this.client.indices.putMapping({
-        index: `${indexName}_v${version}`,
+        index: indexNameWithVersion,
         body: mappings,
       })
     } catch (err) {
@@ -194,12 +203,9 @@ export class OpenSearchService extends LoggerBase {
   }
 
   private async ensureIndexAndAliasExists(indexName: OpenSearchIndex) {
-    const version = IndexVersions.get(indexName)
-    const indexNameWithVersion = `${indexName}_v${version}`
-
+    const indexNameWithVersion = this.indexVersionMap.get(indexName)
     // indexName is the alias name and indexNameWithVersion is the actual index name under the hood
     const aliasName = indexName
-
     const indexExists = await this.doesIndexExist(indexNameWithVersion)
     const aliasExists = await this.doesAliasExist(aliasName)
     const aliasPointsToIndex = await this.doesAliasPointToIndex(indexNameWithVersion, aliasName)
@@ -209,7 +215,7 @@ export class OpenSearchService extends LoggerBase {
         this.log.info('Creating versioned index with settings and mappings!', {
           indexNameWithVersion,
         })
-        await this.createIndexWithVersion(indexName, version)
+        await this.createIndexWithVersion(indexName)
       }
 
       if (!aliasExists) {
@@ -220,12 +226,12 @@ export class OpenSearchService extends LoggerBase {
       if (!aliasExists || !indexExists || !aliasPointsToIndex) {
         throw new Error('Index and alias are either missing or not properly configured!')
       }
-    }
 
-    this.log.info('Index and alias already exists with proper configuration!', {
-      indexNameWithVersion,
-      aliasName,
-    })
+      this.log.info('Index and alias already exist and are properly configured in production!', {
+        indexNameWithVersion,
+        aliasName,
+      })
+    }
   }
 
   public async initialize() {
@@ -242,10 +248,10 @@ export class OpenSearchService extends LoggerBase {
 
   public async removeFromIndex(id: string, index: OpenSearchIndex): Promise<void> {
     try {
-      const version = IndexVersions.get(index)
+      const indexName = this.indexVersionMap.get(index)
       await this.client.delete({
         id,
-        index: `${index}_v${version}`,
+        index: indexName,
         refresh: true,
       })
     } catch (err) {
@@ -259,11 +265,11 @@ export class OpenSearchService extends LoggerBase {
   }
 
   public async index<T>(id: string, index: OpenSearchIndex, body: T): Promise<void> {
-    const version = IndexVersions.get(index)
+    const indexName = this.indexVersionMap.get(index)
     try {
       await this.client.index({
         id,
-        index: `${index}_v${version}`,
+        index: indexName,
         body,
         refresh: true,
       })
@@ -276,10 +282,10 @@ export class OpenSearchService extends LoggerBase {
   public async bulkIndex<T>(index: OpenSearchIndex, batch: IIndexRequest<T>[]): Promise<void> {
     try {
       const body = []
-      const version = IndexVersions.get(index)
+      const indexName = this.indexVersionMap.get(index)
       for (const doc of batch) {
         body.push({
-          index: { _index: `${index}_v${version}`, _id: doc.id },
+          index: { _index: indexName, _id: doc.id },
         })
         body.push({
           ...doc.body,
@@ -307,9 +313,9 @@ export class OpenSearchService extends LoggerBase {
     sourceExcludeFields?: string[],
   ): Promise<ISearchHit<T>[] | unknown> {
     try {
-      const version = IndexVersions.get(index)
+      const indexName = this.indexVersionMap.get(index)
       const payload = {
-        index: `${index}_v${version}`,
+        index: indexName,
         _source_excludes: sourceExcludeFields,
         _source_includes: sourceIncludeFields,
         body: {
