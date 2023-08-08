@@ -73,16 +73,19 @@
               with-link
               class="bl"
             />
-            <div class="flex items-center mt-0.5">
-              <app-activity-message :activity="activity" />
-              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{ timeAgo(activity) }}</span>
-              <span
-                v-if="activity.sentiment.sentiment"
-                class="mx-1"
-              >·</span>
-              <app-activity-sentiment
-                v-if="activity.sentiment.sentiment"
-                :sentiment="activity.sentiment.sentiment"
+            <div
+              class="flex gap-4 justify-between min-h-9 -mt-1"
+              :class="{
+                'items-center': !isMemberIdentity,
+                'items-start': isMemberIdentity,
+              }"
+            >
+              <app-activity-header
+                :activity="activity"
+                class="flex flex-wrap items-center"
+                :class="{
+                  'mt-1.5': isMemberIdentity,
+                }"
               />
             </div>
             <app-activity-content
@@ -164,17 +167,15 @@ import {
   watch,
 } from 'vue';
 import debounce from 'lodash/debounce';
-import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { onSelectMouseLeave } from '@/utils/select';
 import authAxios from '@/shared/axios/auth-axios';
-import { formatDateToTimeAgo } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
+import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -201,6 +202,8 @@ const activeIntegrations = computed(() => {
     label: CrowdIntegrations.getConfig(i).name,
   }));
 });
+
+const isMemberIdentity = computed(() => props.entityType === 'member');
 
 const loading = ref(true);
 const platform = ref(null);
@@ -303,7 +306,6 @@ const fetchActivities = async () => {
 };
 
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
-const timeAgo = (activity) => formatDateToTimeAgo(activity.timestamp);
 
 const debouncedQueryChange = debounce(async () => {
   await fetchActivities();
