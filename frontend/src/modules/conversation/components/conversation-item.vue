@@ -30,10 +30,27 @@
             />
           </el-tooltip>
           <div class="flex-grow leading-none">
-            <app-activity-header
-              :activity="conversation.conversationStarter"
+            <p
               class="text-xs leading-4 pl-2 flex flex-wrap"
-            />
+            >
+              <!-- activity message -->
+              <app-activity-message
+                :activity="conversation.conversationStarter"
+              />
+              <!-- activity timestamp -->
+              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{
+                timeAgo(
+                  conversation.conversationStarter
+                    .timestamp,
+                )
+              }}</span>
+              <span v-if="sentiment" class="mx-1">·</span>
+              <!-- conversation starter sentiment -->
+              <app-activity-sentiment
+                v-if="sentiment"
+                :sentiment="sentiment"
+              />
+            </p>
           </div>
         </div>
       </div>
@@ -83,26 +100,29 @@
 </template>
 
 <script>
+import { formatDateToTimeAgo } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
+import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
 import pluralize from 'pluralize';
-import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 
 export default {
   name: 'AppConversationItem',
   components: {
     AppMemberDisplayName,
+    AppActivityMessage,
     AppConversationReply,
     AppActivityContent,
+    AppActivitySentiment,
     AppLoading,
     AppAvatar,
     AppConversationItemFooter,
-    AppActivityHeader,
   },
   props: {
     conversation: {
@@ -126,6 +146,10 @@ export default {
     member() {
       return this.conversation.conversationStarter?.member;
     },
+    sentiment() {
+      return this.conversation.conversationStarter.sentiment
+        .sentiment;
+    },
     url() {
       return this.conversation.url;
     },
@@ -137,6 +161,9 @@ export default {
     },
   },
   methods: {
+    timeAgo(date) {
+      return formatDateToTimeAgo(date);
+    },
     openConversation() {
       this.$emit('details', this.conversation.id);
     },

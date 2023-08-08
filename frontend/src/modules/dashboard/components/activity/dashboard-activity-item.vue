@@ -63,10 +63,18 @@
                 v-else
                 class="ri-radar-line text-base text-gray-400"
               />
-              <app-activity-header
-                :activity="activity"
-                class="flex text-2xs leading-4 pl-2"
-              />
+              <p class="flex text-2xs leading-4 pl-2">
+                <app-activity-message
+                  :activity="activity"
+                />
+                <span
+                  class="whitespace-nowrap text-gray-500"
+                ><span class="mx-1">·</span>{{ timeAgo }}</span>
+                <span class="mx-1">·</span>
+                <app-activity-sentiment
+                  :sentiment="activity.sentiment.sentiment"
+                />
+              </p>
             </div>
           </div>
           <div>
@@ -122,25 +130,28 @@
 </template>
 
 <script>
+import { formatDateToTimeAgo } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
-import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 
 export default {
   name: 'AppDashboardActivityItem',
   components: {
+    AppActivitySentiment,
     AppMemberDisplayName,
+    AppActivityMessage,
     AppActivityContent,
     AppLoading,
     AppActivityDropdown,
     AppAvatar,
     AppActivityContentFooter,
-    AppActivityHeader,
   },
   props: {
     activity: {
@@ -160,6 +171,9 @@ export default {
       return CrowdIntegrations.getConfig(
         this.activity.platform,
       );
+    },
+    timeAgo() {
+      return formatDateToTimeAgo(this.activity.timestamp);
     },
   },
 };
