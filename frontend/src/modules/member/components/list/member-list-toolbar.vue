@@ -69,6 +69,13 @@
           {{ markAsTeamMemberOptions.copy }}
         </el-dropdown-item>
         <el-dropdown-item
+          :command="{ action: 'editAttribute' }"
+          :disabled="isEditLockedForSampleData"
+        >
+          <i class="ri-lg ri-file-edit-line mr-1" />
+          Edit attribute
+        </el-dropdown-item>
+        <el-dropdown-item
           :command="{ action: 'editTags' }"
           :disabled="isEditLockedForSampleData"
         >
@@ -98,6 +105,11 @@
     <app-tag-popover v-model="bulkTagsUpdateVisible"
       @reload="fetchMembers({ reload: true })" />
 
+    <app-bulk-edit-attribute-popover
+      v-model="bulkAttributesUpdateVisible"
+      @reload="fetchMembers({ reload: true })"
+    />
+
   </div>
 </template>
 
@@ -119,6 +131,7 @@ import {
   getEnrichmentMax,
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
+import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 
@@ -129,6 +142,7 @@ const { selectedMembers, filters } = storeToRefs(memberStore);
 const { fetchMembers, getMemberCustomAttributes } = memberStore;
 
 const bulkTagsUpdateVisible = ref(false);
+const bulkAttributesUpdateVisible = ref(false);
 
 const isReadOnly = computed(() => (
   new MemberPermissions(
@@ -285,6 +299,10 @@ const handleDoExport = async () => {
   }
 };
 
+const handleEditAttribute = async () => {
+  bulkAttributesUpdateVisible.value = true;
+};
+
 const handleAddTags = async () => {
   bulkTagsUpdateVisible.value = true;
 };
@@ -315,6 +333,8 @@ const handleCommand = async (command) => {
     await handleDoExport();
   } else if (command.action === 'mergeMembers') {
     await handleMergeMembers();
+  } else if (command.action === 'editAttribute') {
+    await handleEditAttribute();
   } else if (command.action === 'editTags') {
     await handleAddTags();
   } else if (command.action === 'destroyAll') {
