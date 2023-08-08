@@ -45,7 +45,7 @@ import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemote
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 import MemberRepository from '@/database/repositories/memberRepository'
 
-const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
+const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
 export default class IntegrationService {
   options: IServiceOptions
