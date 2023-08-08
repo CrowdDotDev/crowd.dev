@@ -17,7 +17,7 @@ export class StartIntegrationRunQueueMessage implements IQueueMessage {
   constructor(
     public readonly integrationId: string,
     public readonly onboarding: boolean,
-    public readonly isManulRun?: boolean,
+    public readonly isManualRun?: boolean,
     public readonly manualSettings?: unknown,
   ) {}
 }
@@ -27,7 +27,7 @@ export class GenerateRunStreamsQueueMessage implements IQueueMessage {
 
   constructor(
     public readonly runId: string,
-    public readonly isManulRun?: boolean,
+    public readonly isManualRun?: boolean,
     public readonly manualSettings?: unknown,
   ) {}
 }
