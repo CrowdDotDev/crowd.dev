@@ -214,6 +214,7 @@ export class OpenSearchService extends LoggerBase {
 
       if (!aliasExists) {
         this.log.info('Creating alias for index!', { indexNameWithVersion, aliasName })
+        await this.createAlias(indexNameWithVersion, aliasName)
       }
     } else {
       if (!aliasExists || !indexExists || !aliasPointsToIndex) {
