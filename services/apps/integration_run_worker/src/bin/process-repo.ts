@@ -4,13 +4,49 @@ import { getServiceLogger } from '@crowd/logging'
 import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import IntegrationRunRepository from '@/repo/integrationRun.repo'
 import { IntegrationState } from '@crowd/types'
+import {
+  GithubIntegrationSettings,
+  GithubManualIntegrationSettings,
+  GithubManualStreamType,
+} from '@crowd/integrations'
+
+const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
+  switch (stream) {
+    case 'stars':
+      return GithubManualStreamType.STARGAZERS
+    case 'forks':
+      return GithubManualStreamType.FORKS
+    case 'pulls':
+      return GithubManualStreamType.PULLS
+    case 'issues':
+      return GithubManualStreamType.ISSUES
+    case 'discussions':
+      return GithubManualStreamType.DISCUSSIONS
+    case 'all':
+      return GithubManualStreamType.ALL
+    default:
+      // wrong stream type
+      return null
+  }
+}
+
+// example call
+// npm run script:process-repo 5f8b1a3a-0b0a-4c0a-8b0a-4c0a8b0a4c0a  CrowdDotDev/crowd.dev stars
 
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
 const integrationId = processArguments[0]
-const repoFullName = processArguments[1]
+const repoFullName = processArguments[1] // it should be in format of owner/repo
+
+// this is optional, if not provided we will trigger all streams
+// if provided we will trigger only this stream type
+// possible values are: stars, forks, pulls, issues, discussions, all
+const streamString = processArguments.length > 2 ? processArguments[2] : null
+const streamType = streamString ? mapStreamTypeToEnum(streamString) : GithubManualStreamType.ALL
+
+const repoURL = `https://github.com/${repoFullName}`
 
 setImmediate(async () => {
   if (!integrationId) {
@@ -20,6 +56,11 @@ setImmediate(async () => {
 
   if (!repoFullName) {
     log.error(`Repo full name is required!`)
+    process.exit(1)
+  }
+
+  if (!streamType) {
+    log.error(`Unknown stream type provided!`)
     process.exit(1)
   }
 
@@ -52,17 +93,32 @@ setImmediate(async () => {
 
     log.info(`Triggering integration run for ${integrationId}!`)
 
-    // we need to overrdide generate streams function here
+    // let's get current settings from integration
+    const currentSettings = (await repo.getIntegrationSettings(
+      integrationId,
+    )) as GithubIntegrationSettings
+
+    // let's check if requested repo exists in current settings
+    const repoExists = currentSettings.repos.find((r) => r.url === repoURL)
+
+    if (!repoExists) {
+      log.error(`Repo ${repoURL} is not configured in integration settings, skiping!`)
+      process.exit(1)
+    }
+
+    const settings: GithubManualIntegrationSettings = {
+      repos: [repoExists],
+      unavailableRepos: [],
+      streamType,
+    }
 
     await emitter.triggerIntegrationRun(
       integration.tenantId,
       integration.type,
       integration.id,
-      true,
-      // this is to enable manual run
-      true,
-      // we are inject manual settings here
-      { repoFullName: repoFullName },
+      false, // disable onboarding
+      true, // this is to enable manual run
+      settings, // we are injecting manual settings here
     )
   } else {
     log.error({ integrationId }, 'Integration not found!')

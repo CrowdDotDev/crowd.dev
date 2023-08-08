@@ -96,6 +96,7 @@ export enum GithubWehookEvent {
 
 export enum GithubStreamType {
   ROOT = 'root',
+  MANUAL_ROOT = 'manual-root',
   STARGAZERS = 'stargazers',
   FORKS = 'forks',
   PULLS = 'pulls',
@@ -107,6 +108,15 @@ export enum GithubStreamType {
   ISSUE_COMMENTS = 'issue-comments',
   DISCUSSIONS = 'discussions',
   DISCUSSION_COMMENTS = 'discussion-comments',
+}
+
+export enum GithubManualStreamType {
+  ALL = 'all',
+  STARGAZERS = 'stargazers',
+  FORKS = 'forks',
+  PULLS = 'pulls',
+  ISSUES = 'issues',
+  DISCUSSIONS = 'discussions',
 }
 
 export interface GithubApiData {
@@ -157,6 +167,10 @@ export interface GithubPlatformSettings {
 export interface GithubIntegrationSettings {
   repos: Repos
   unavailableRepos: Repos
+}
+
+export interface GithubManualIntegrationSettings extends GithubIntegrationSettings {
+  streamType: GithubManualStreamType
 }
 
 export enum GithubPullRequestEvents {
