@@ -20,11 +20,4 @@ export const HUBSPOT_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
     canDelete: false,
     show: false,
   },
-  {
-    name: MemberAttributes[MemberAttributeName.SYNC_REMOTE].name,
-    label: MemberAttributes[MemberAttributeName.SYNC_REMOTE].label,
-    type: MemberAttributeType.BOOLEAN,
-    canDelete: false,
-    show: false,
-  },
 ]

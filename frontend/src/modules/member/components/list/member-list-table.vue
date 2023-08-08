@@ -294,7 +294,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-identities :username="scope.row.username" />
+                    <app-member-identities :username="scope.row.username" :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -369,7 +369,10 @@
                     class="block w-full"
                   >
                     <div class="h-full flex items-center justify-center w-full">
-                      <app-member-dropdown :member="scope.row" @merge="isMergeDialogOpen = scope.row" />
+                      <app-member-dropdown
+                        :member="scope.row"
+                        @merge="isMergeDialogOpen = scope.row"
+                      />
                     </div>
                   </router-link>
                 </template>
