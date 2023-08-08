@@ -605,8 +605,8 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(tx)
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId, true)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId, true)
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
@@ -908,7 +908,7 @@ export default class MemberService extends LoggerBase {
 
       if (!passedTransaction) {
         await SequelizeRepository.commitTransaction(transaction)
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id, true)
       }
 
       return record
@@ -954,7 +954,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id, true)
     }
   }
 
@@ -981,7 +981,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id, true)
     }
   }
 

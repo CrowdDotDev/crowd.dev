@@ -7,21 +7,29 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     super(client, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async triggerMemberSync(tenantId: string, memberId: string) {
+  public async triggerMemberSync(tenantId: string, memberId: string, force = false) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
     if (!memberId) {
       throw new Error('memberId is required!')
     }
-    await this.sendMessage(
-      `search-sync-${tenantId}`,
-      {
+
+    if (force) {
+      await this.sendMessage(new Date().getTime().toString(), {
         type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
         memberId,
-      },
-      `member-sync-${memberId}`,
-    )
+      })
+    } else {
+      await this.sendMessage(
+        `search-sync-${tenantId}`,
+        {
+          type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
+          memberId,
+        },
+        `member-sync-${memberId}`,
+      )
+    }
   }
 
   public async triggerTenantMembersSync(tenantId: string) {
@@ -34,17 +42,25 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
-  public async triggerRemoveMember(tenantId: string, memberId: string) {
+  public async triggerRemoveMember(tenantId: string, memberId: string, force = false) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
     if (!memberId) {
       throw new Error('memberId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
-      type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
-      memberId,
-    })
+
+    if (force) {
+      await this.sendMessage(new Date().getTime().toString(), {
+        type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
+        memberId,
+      })
+    } else {
+      await this.sendMessage(`search-sync-${tenantId}`, {
+        type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
+        memberId,
+      })
+    }
   }
 
   public async triggerMemberCleanup(tenantId: string) {
@@ -57,21 +73,29 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
-  public async triggerActivitySync(tenantId: string, activityId: string) {
+  public async triggerActivitySync(tenantId: string, activityId: string, force = false) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
     if (!activityId) {
       throw new Error('activityId is required!')
     }
-    await this.sendMessage(
-      `search-sync-${tenantId}`,
-      {
+
+    if (force) {
+      await this.sendMessage(new Date().getTime().toString(), {
         type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
         activityId,
-      },
-      `activity-sync-${activityId}`,
-    )
+      })
+    } else {
+      await this.sendMessage(
+        `search-sync-${tenantId}`,
+        {
+          type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
+          activityId,
+        },
+        `activity-sync-${activityId}`,
+      )
+    }
   }
 
   public async triggerTenantActivitiesSync(tenantId: string) {
@@ -84,17 +108,25 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
-  public async triggerRemoveActivity(tenantId: string, activityId: string) {
+  public async triggerRemoveActivity(tenantId: string, activityId: string, force = false) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
     if (!activityId) {
       throw new Error('activityId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
-      type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
-      activityId,
-    })
+
+    if (force) {
+      await this.sendMessage(new Date().getTime().toString(), {
+        type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
+        activityId,
+      })
+    } else {
+      await this.sendMessage(`search-sync-${tenantId}`, {
+        type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
+        activityId,
+      })
+    }
   }
 
   public async triggerActivityCleanup(tenantId: string) {
