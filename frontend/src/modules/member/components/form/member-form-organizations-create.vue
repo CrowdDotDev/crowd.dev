@@ -183,7 +183,7 @@
 
 <script setup lang="ts">
 import { Organization } from '@/modules/organization/types/Organization';
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
@@ -194,6 +194,13 @@ import useVuelidate from '@vuelidate/core';
 import moment from 'moment';
 
 type SelectOrganization = Organization & { label: string };
+
+interface MemberOrganizationForm {
+  organization: Organization | '',
+  jobTitle: string;
+  dateStart: string;
+  dateEnd: string;
+}
 
 const props = defineProps<{
   modelValue: boolean,
@@ -213,7 +220,7 @@ const isOpened = computed<boolean>({
 
 const isEdit = computed<boolean>(() => !!props.organization);
 
-const form = reactive({
+const form = reactive<MemberOrganizationForm>({
   organization: '',
   jobTitle: '',
   dateStart: '',
@@ -275,6 +282,19 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
     name: newOrganization.displayName || newOrganization.name,
   }))
   .catch(() => null);
+
+const fillForm = (organization: Organization) => {
+  form.organization = organization;
+  form.jobTitle = organization.memberOrganizations.title;
+  form.dateStart = organization.memberOrganizations.dateStart;
+  form.dateEnd = organization.memberOrganizations.dateEnd;
+};
+
+onMounted(() => {
+  if (props.organization) {
+    fillForm(props.organization);
+  }
+});
 
 </script>
 

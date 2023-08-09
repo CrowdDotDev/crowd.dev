@@ -75,6 +75,7 @@
     v-model="isOrganizationFormModalOpen"
     :organization="editOrganization !== null ? organizations[editOrganization] : null"
     @add="organizations.push($event)"
+    @edit="update($event)"
   />
 </template>
 
@@ -96,8 +97,6 @@ const props = defineProps<{
 const isOrganizationFormModalOpen = ref<boolean>(false);
 const editOrganization = ref<number | null>(null);
 
-const dateRange = reactive<string[][]>([]);
-
 const organizations = computed<Organization[]>({
   get() {
     return props.modelValue.organizations;
@@ -115,12 +114,10 @@ const edit = (organizationIndex: number) => {
   isOrganizationFormModalOpen.value = true;
 };
 
-watch(() => props.modelValue.organizations, (updatedOrganizations) => {
-  dateRange.splice(0, dateRange.length, ...updatedOrganizations.map((o) => [o.memberOrganizations?.dateStart, o.memberOrganizations?.dateEnd]));
-}, {
-  deep: true,
-  immediate: true,
-});
+const update = (organization: Organization) => {
+  organizations.value[editOrganization.value] = organization;
+  editOrganization.value = null;
+};
 
 const formatDate = (date: string) => {
   if (date) {
