@@ -328,4 +328,19 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
 
     return result.count
   }
+
+  public async getIntegrationSettings(integrationId: string): Promise<unknown> {
+    const result = await this.db().one(
+      `
+      select settings
+      from integrations
+      where id = $(integrationId)
+    `,
+      {
+        integrationId,
+      },
+    )
+
+    return result.settings
+  }
 }

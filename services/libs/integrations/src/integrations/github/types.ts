@@ -109,6 +109,15 @@ export enum GithubStreamType {
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
+export enum GithubManualStreamType {
+  ALL = 'all',
+  STARGAZERS = 'stargazers',
+  FORKS = 'forks',
+  PULLS = 'pulls',
+  ISSUES = 'issues',
+  DISCUSSIONS = 'discussions',
+}
+
 export interface GithubApiData {
   type: GithubActivityType
   subType?: string
@@ -157,6 +166,10 @@ export interface GithubPlatformSettings {
 export interface GithubIntegrationSettings {
   repos: Repos
   unavailableRepos: Repos
+}
+
+export interface GithubManualIntegrationSettings extends GithubIntegrationSettings {
+  streamType: GithubManualStreamType
 }
 
 export enum GithubPullRequestEvents {
