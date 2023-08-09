@@ -95,7 +95,7 @@ const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
 const {
-  filters, activities, totalActivities, savedFilterBody,
+  filters, activities, totalActivities, savedFilterBody, pagination,
 } = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
@@ -107,10 +107,6 @@ const emptyState = computed(() => ({
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
 
-const pagination = computed(
-  () => filters.value.pagination,
-);
-
 const isLoadMoreVisible = computed(() => (
   pagination.value.page
       * pagination.value.perPage
@@ -118,11 +114,18 @@ const isLoadMoreVisible = computed(() => (
 ));
 
 const onLoadMore = () => {
-  filters.value.pagination.page += 1;
+  pagination.value.page += 1;
+
+  fetch({
+    ...savedFilterBody.value,
+    offset: (pagination.value.page - 1) * pagination.value.perPage,
+    limit: pagination.value.perPage,
+    append: true,
+  });
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body,
+  filter, offset, limit, orderBy, body, append,
 }) => {
   loading.value = true;
   fetchActivities({
@@ -139,6 +142,7 @@ const fetch = ({
       limit,
       orderBy,
     },
+    append,
   })
     .finally(() => {
       loading.value = false;

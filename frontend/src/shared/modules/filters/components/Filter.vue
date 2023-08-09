@@ -125,6 +125,12 @@ const alignQueryUrl = () => {
     ...props.config,
     ...props.customConfig,
   }, props.savedViewsConfig);
+
+  // Remove pagination if it's not in filters store state
+  if (!props.modelValue.pagination) {
+    delete parsed.pagination;
+  }
+
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
     router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });

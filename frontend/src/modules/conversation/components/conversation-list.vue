@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { defineProps, computed, ref } from 'vue';
+import { computed, ref } from 'vue';
 import AppConversationItem from '@/modules/conversation/components/conversation-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
@@ -79,7 +79,9 @@ defineProps({
 });
 
 const conversationStore = useConversationStore();
-const { filters, conversations, totalConversations } = storeToRefs(conversationStore);
+const {
+  filters, conversations, totalConversations, savedFilterBody, pagination,
+} = storeToRefs(conversationStore);
 const { fetchConversation } = conversationStore;
 
 const loading = ref(false);
@@ -101,9 +103,6 @@ const doChangeFilter = (filter) => {
   };
 };
 
-const pagination = computed(
-  () => filters.value.pagination,
-);
 const isLoadMoreVisible = computed(() => (
   pagination.value.page
       * pagination.value.perPage
@@ -111,11 +110,18 @@ const isLoadMoreVisible = computed(() => (
 ));
 
 const onLoadMore = () => {
-  filters.value.pagination.page += 1;
+  pagination.value.page += 1;
+
+  fetch({
+    ...savedFilterBody.value,
+    offset: (pagination.value.page - 1) * pagination.value.perPage,
+    limit: pagination.value.perPage,
+    append: true,
+  });
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body,
+  filter, offset, limit, orderBy, body, append,
 }) => {
   loading.value = true;
   fetchConversation({
@@ -124,7 +130,7 @@ const fetch = ({
     offset,
     limit,
     orderBy,
-  })
+  }, false, append)
     .finally(() => {
       loading.value = false;
     });
