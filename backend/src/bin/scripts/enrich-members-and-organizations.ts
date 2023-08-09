@@ -145,7 +145,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
                 type: NodeWorkerMessageType.NODE_MICROSERVICE,
                 service: 'enrich-organizations',
                 tenantId: organization.id,
-                maxEnrichLimit: 5000,
+                maxEnrichLimit: 10000,
               } as NodeWorkerMessageBase
 
               await sendNodeWorkerMessage(tenantId, payload)
