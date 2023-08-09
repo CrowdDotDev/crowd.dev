@@ -127,10 +127,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         }
 
         if (enrichOrganizations) {
-          const organizations = await OrganizationRepository.findAndCountAll(
-            {},
-            optionsWithTenant,
-          )
+          const organizations = await OrganizationRepository.findAndCountAll({}, optionsWithTenant)
 
           const totalOrganizations = organizations.count
 
