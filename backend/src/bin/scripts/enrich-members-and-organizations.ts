@@ -140,16 +140,16 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
 
             log.info({ tenantId }, `Total organizations found in the tenant: ${totalOrganizations}`)
 
-            for (const organization of organizations.rows) {
-              const payload = {
-                type: NodeWorkerMessageType.NODE_MICROSERVICE,
-                service: 'enrich-organizations',
-                tenantId: organization.id,
-                maxEnrichLimit: 5000,
-              } as NodeWorkerMessageBase
+            const payload = {
+              type: NodeWorkerMessageType.NODE_MICROSERVICE,
+              service: 'enrich-organizations',
+              tenantId,
+              // Since there is no pagination implemented for the organizations enrichment,
+              // we set a limit of 10,000 to ensure all organizations are included when enriched in bulk.
+              maxEnrichLimit: 10000, 
+            } as NodeWorkerMessageBase
 
-              await sendNodeWorkerMessage(tenantId, payload)
-            }
+            await sendNodeWorkerMessage(tenantId, payload)
 
             offset += limit
           } while (totalOrganizations > offset)
