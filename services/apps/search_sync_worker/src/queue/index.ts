@@ -1,6 +1,7 @@
 import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
 import { OpenSearchService } from '@/service/opensearch.service'
+import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -30,6 +31,14 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
   private initActivityService(): ActivitySyncService {
     return new ActivitySyncService(
+      new DbStore(this.log, this.dbConn),
+      this.openSearchService,
+      this.log,
+    )
+  }
+
+  private initOrganizationService(): OrganizationSyncService {
+    return new OrganizationSyncService(
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
@@ -99,6 +108,35 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
           if (data.activityId) {
             await this.initActivityService().removeActivity(data.activityId)
+          }
+          break
+
+        // organizations
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
+          if (data.organizationId && data.tenantId) {
+            await this.initOrganizationService().syncOrganization(
+              data.tenantId,
+              data.organizationId,
+            )
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .syncTenantOrganizations(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .cleanupOrganizationIndex(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while cleaning up tenant organizations!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
+          if (data.organizationId) {
+            await this.initOrganizationService().removeOrganization(data.organizationId)
           }
           break
 

@@ -201,13 +201,13 @@ export class OrganizationSyncService extends LoggerBase {
 
     this.log.warn({ tenantId, cutoffDate }, 'Syncing all tenant organizations!')
     let docCount = 0
-    const organizationCount = 0
+    let organizationCount = 0
 
     const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
 
     await logExecutionTime(
       async () => {
-        const organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
           tenantId,
           1,
           batchSize,
@@ -215,91 +215,94 @@ export class OrganizationSyncService extends LoggerBase {
         )
 
         while (organizationIds.length > 0) {
-          const members = await this.orgRepo.getOrganizationData(organizationIds, tenantId)
+          const organizations = await this.orgRepo.getOrganizationData(organizationIds, tenantId)
 
-          if (members.length > 0) {
+          if (organizations.length > 0) {
             let childSegmentIds: string[] | undefined
             let segmentInfos: IDbSegmentInfo[] | undefined
 
             if (isMultiSegment) {
-              childSegmentIds = distinct(members.map((m) => m.segmentId))
+              childSegmentIds = distinct(organizations.map((m) => m.segmentId))
               segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
             }
 
-            const grouped = groupBy(members, (m) => m.id)
-            const memberIds = Array.from(grouped.keys())
+            const grouped = groupBy(organizations, (m) => m.organizationId)
+            organizationIds = Array.from(grouped.keys())
 
             const forSync: IIndexRequest<unknown>[] = []
-            for (const memberId of memberIds) {
-              const memberDocs = grouped.get(memberId)
+            for (const organizationId of organizationIds) {
+              const organizationDocs = grouped.get(organizationId)
               if (isMultiSegment) {
                 // index each of them individually
-                for (const member of memberDocs) {
-                  const prepared = MemberSyncService.prefixData(member, attributes)
+                for (const organization of organizationDocs) {
+                  const prepared = OrganizationSyncService.prefixData(organization)
                   forSync.push({
-                    id: `${memberId}-${member.segmentId}`,
+                    id: `${organizationId}-${organization.segmentId}`,
                     body: prepared,
                   })
                 }
 
                 const relevantSegmentInfos = segmentInfos.filter(
-                  (s) => s.id === memberDocs[0].segmentId,
+                  (s) => s.id === organizationDocs[0].segmentId,
                 )
 
                 // and for each parent and grandparent
                 const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
                 for (const parentId of parentIds) {
-                  const aggregated = MemberSyncService.aggregateData(
-                    memberDocs,
+                  const aggregated = OrganizationSyncService.aggregateData(
+                    organizationDocs,
                     relevantSegmentInfos,
                     parentId,
                   )
-                  const prepared = MemberSyncService.prefixData(aggregated, attributes)
+                  const prepared = OrganizationSyncService.prefixData(aggregated)
                   forSync.push({
-                    id: `${memberId}-${parentId}`,
+                    id: `${organizationId}-${parentId}`,
                     body: prepared,
                   })
                 }
 
                 const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
                 for (const grandParentId of grandParentIds) {
-                  const aggregated = MemberSyncService.aggregateData(
-                    memberDocs,
+                  const aggregated = OrganizationSyncService.aggregateData(
+                    organizationDocs,
                     relevantSegmentInfos,
                     undefined,
                     grandParentId,
                   )
-                  const prepared = MemberSyncService.prefixData(aggregated, attributes)
+                  const prepared = OrganizationSyncService.prefixData(aggregated)
                   forSync.push({
-                    id: `${memberId}-${grandParentId}`,
+                    id: `${organizationId}-${grandParentId}`,
                     body: prepared,
                   })
                 }
               } else {
-                if (memberDocs.length > 1) {
+                if (organizationDocs.length > 1) {
                   throw new Error(
-                    'More than one member found - this can not be the case in single segment edition!',
+                    'More than one organization found - this can not be the case in single segment edition!',
                   )
                 }
 
-                const member = memberDocs[0]
-                const prepared = MemberSyncService.prefixData(member, attributes)
+                const organization = organizationDocs[0]
+                const prepared = OrganizationSyncService.prefixData(organization)
                 forSync.push({
-                  id: `${memberId}-${member.segmentId}`,
+                  id: `${organizationId}-${organization.segmentId}`,
                   body: prepared,
                 })
               }
             }
 
-            await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, forSync)
+            await this.openSearchService.bulkIndex(OpenSearchIndex.ORGANIZATIONS, forSync)
             docCount += forSync.length
-            memberCount += memberIds.length
+            organizationCount += organizationIds.length
           }
 
-          await this.memberRepo.markSynced(memberIds)
+          await this.orgRepo.markSynced(organizationIds)
 
-          this.log.info({ tenantId }, `Synced ${memberCount} members with ${docCount} documents!`)
-          memberIds = await this.memberRepo.getTenantMembersForSync(
+          this.log.info(
+            { tenantId },
+            `Synced ${organizationCount} organizations with ${docCount} documents!`,
+          )
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
             tenantId,
             1,
             batchSize,
@@ -308,12 +311,12 @@ export class OrganizationSyncService extends LoggerBase {
         }
       },
       this.log,
-      'sync-tenant-members',
+      'sync-tenant-organizations',
     )
 
     this.log.info(
       { tenantId },
-      `Synced total of ${memberCount} members with ${docCount} documents!`,
+      `Synced total of ${organizationCount} organizations with ${docCount} documents!`,
     )
   }
 
@@ -510,14 +513,6 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_headline = data.headline
     p.keyword_importHash = data.importHash
     p.string_industry = data.industry
-    p.bool_isTeamOrganization = data.isTeamOrganization
-    p.date_lastEnrichedAt = data.lastEnrichedAt
-    p.string_location = data.location
-    p.string_logo = data.logo
-    p.string_naics = data.naics ? JSON.stringify(data.naics) : '[]'
-    p.string_name = data.name
-    p.keyword_name = data.name
-    p.string_parentUrl = data.parentUrl
     p.string_arr_phoneNumbers = data.phoneNumbers
     p.string_arr_profiles = data.profiles
     p.obj_revenueRange = data.revenueRange

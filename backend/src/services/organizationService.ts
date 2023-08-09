@@ -9,6 +9,7 @@ import Plans from '../security/plans'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { enrichOrganization } from './helpers/enrichment'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -120,6 +121,13 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerOrganizationSync(
+        this.options.currentTenant.id,
+        record.id,
+        true,
+      )
+
       return record
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -151,6 +159,13 @@ export default class OrganizationService extends LoggerBase {
         await SequelizeRepository.commitTransaction(transaction)
       }
 
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerOrganizationSync(
+        this.options.currentTenant.id,
+        record.id,
+        true,
+      )
+
       return record
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -177,6 +192,12 @@ export default class OrganizationService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
+      for (const id of ids) {
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id, true)
+      }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -224,6 +245,11 @@ export default class OrganizationService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      for (const id of ids) {
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id, true)
+      }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
