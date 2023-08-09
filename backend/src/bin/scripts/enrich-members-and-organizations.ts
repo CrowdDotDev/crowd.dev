@@ -145,8 +145,8 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
               service: 'enrich-organizations',
               tenantId,
               // Since there is no pagination implemented for the organizations enrichment,
-              // we set a limit of 10,000 to ensure all organizations are included when enriched in bulk.
-              maxEnrichLimit: 10000, 
+              // we set a limit of 20,000 to ensure all organizations are included when enriched in bulk.
+              maxEnrichLimit: 20000,
             } as NodeWorkerMessageBase
 
             await sendNodeWorkerMessage(tenantId, payload)
