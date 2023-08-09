@@ -3288,28 +3288,63 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    await seq.query(
-      `
-        DELETE FROM "memberOrganizations"
-        WHERE "memberId" = :memberId
-        AND "organizationId" = :organizationId
-        AND "dateEnd" IS NULL
-      `,
-      {
-        replacements: {
-          memberId,
-          organizationId,
+    let conflictClause
+    if (dateStart && dateEnd) {
+      conflictClause = `("memberId", "organizationId", "dateStart", "dateEnd")`
+    } else if (dateStart) {
+      conflictClause = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
+    } else {
+      conflictClause = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
+    }
+
+    if (dateStart) {
+      // clean up organizations without dates if we're getting ones with dates
+      await seq.query(
+        `
+          DELETE FROM "memberOrganizations"
+          WHERE "memberId" = :memberId
+          AND "organizationId" = :organizationId
+          AND "dateStart" IS NULL
+          AND "dateEnd" IS NULL
+        `,
+        {
+          replacements: {
+            memberId,
+            organizationId,
+          },
+          type: QueryTypes.DELETE,
+          transaction,
         },
-        type: QueryTypes.DELETE,
-        transaction,
-      },
-    )
+      )
+    } else {
+      const rows = await seq.query(
+        `
+          SELECT COUNT(*) AS count FROM "memberOrganizations"
+          WHERE "memberId" = :memberId
+          AND "organizationId" = :organizationId
+          AND "dateStart" IS NOT NULL
+        `,
+        {
+          replacements: {
+            memberId,
+            organizationId,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+      const row = rows[0] as any
+      if (row.count > 0) {
+        // if we're getting organization without dates, but there's already one with dates, don't insert
+        return
+      }
+    }
 
     await seq.query(
       `
         INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
         VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-        ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
+        ON CONFLICT ${conflictClause} DO NOTHING
       `,
       {
         replacements: {
