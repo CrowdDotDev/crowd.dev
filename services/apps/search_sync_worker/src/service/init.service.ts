@@ -5,6 +5,8 @@ import { Logger, LoggerBase } from '@crowd/logging'
 import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
+import { IDbOrganizationSyncData } from '@/repo/organization.data'
+import { OrganizationSyncService } from './organization.sync.service'
 
 export class InitService extends LoggerBase {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
@@ -12,6 +14,7 @@ export class InitService extends LoggerBase {
   public static FAKE_MEMBER_ID = '9c19e17c-6a07-4f4c-bc9b-ce1fdce9c126'
   public static FAKE_ACTIVITY_ID = 'fa761640-f77c-4340-b56e-bdd0936d852b'
   public static FAKE_CONVERSATION_ID = 'cba1758c-7b1f-4a3c-b6ff-e6f3bdf54c86'
+  public static FAKE_ORGANIZATION_ID = 'cba1758c-7b1f-4a3c-b6ff-e6f3bdf54c85'
 
   constructor(private readonly openSearchService: OpenSearchService, parentLog: Logger) {
     super(parentLog)
@@ -22,6 +25,58 @@ export class InitService extends LoggerBase {
 
     await this.createFakeMember()
     await this.createFakeActivity()
+  }
+
+  private async createFakeOrganization(): Promise<void> {
+    const fakeOrg: IDbOrganizationSyncData = {
+      organizationId: InitService.FAKE_ORGANIZATION_ID,
+      tenantId: InitService.FAKE_TENANT_ID,
+      segmentId: InitService.FAKE_SEGMENT_ID,
+      address: 'Unknown address 123, 321 Unknown City, Unknown Country',
+      attributes: {},
+      createdAt: new Date().toISOString(),
+      description: 'Fake organization',
+      displayName: 'Fake organization',
+      emails: ['fake@org.com'],
+      employeeCountByCountry: { US: 10 },
+      employees: 10,
+      founded: 2010,
+      geoLocation: '123,321',
+      headline: 'Fake organization',
+      importHash: 'fakehash',
+      industry: 'Fake industry',
+      isTeamOrganization: false,
+      lastEnrichedAt: new Date().toISOString(),
+      location: 'Unknown City, Unknown Country',
+      logo: 'https://placehold.co/400',
+      naics: [],
+      name: 'Fake organization',
+      parentUrl: 'https://placehold.co/400',
+      phoneNumbers: ['123456789'],
+      profiles: ['https://placehold.co/400'],
+      revenueRange: {},
+      size: '10-50',
+      type: 'Fake type',
+      url: 'https://placehold.co/400',
+      website: 'https://placehold.co/400',
+      linkedin: {},
+      github: {},
+      crunchbase: {},
+      twitter: {},
+      joinedAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      activeOn: ['devto'],
+      activityCount: 10,
+      memberCount: 10,
+      identities: ['devto:fakeorg'],
+    }
+
+    const prepared = OrganizationSyncService.prefixData(fakeOrg, [])
+    await this.openSearchService.index(
+      `${InitService.FAKE_ORGANIZATION_ID}-${InitService.FAKE_SEGMENT_ID}`,
+      OpenSearchIndex.ORGANIZATIONS,
+      prepared,
+    )
   }
 
   private async createFakeMember(): Promise<void> {
