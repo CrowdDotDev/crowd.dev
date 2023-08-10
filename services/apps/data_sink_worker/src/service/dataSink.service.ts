@@ -180,7 +180,7 @@ export default class DataSinkService extends LoggerBase {
       const keys = Array.from(this.countMap.keys())
 
       for (const key of keys) {
-        const count = this.countMap.get(key)
+        const count = this.countMap.get(key) || 0
         if (count === 100 || count > 100) {
           this.log.info(`Processed ${count} ${key} results!`)
           this.countMap.set(key, 0)

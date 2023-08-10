@@ -103,6 +103,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     queueConf: ISqsQueueConfig,
     private readonly maxConcurrentMessageProcessing: number,
     parentLog: Logger,
+    private readonly deleteMessageImmediately = false,
   ) {
     super(sqsClient, queueConf, parentLog)
   }
@@ -142,11 +143,17 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
             // when the message is processed, delete it from the queue
             .then(async () => {
               this.log.trace({ messageReceiptHandle: message.ReceiptHandle }, 'Deleting message')
-              await this.deleteMessage(message.ReceiptHandle)
+              if (!this.deleteMessageImmediately) {
+                await this.deleteMessage(message.ReceiptHandle)
+              }
               this.removeJob()
             })
             // if error is detected don't delete the message from the queue
             .catch(() => this.removeJob())
+
+          if (this.deleteMessageImmediately) {
+            await this.deleteMessage(message.ReceiptHandle)
+          }
         }
       } else {
         this.log.trace('Queue is busy, waiting...')
