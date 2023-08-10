@@ -177,7 +177,9 @@ export default class DataSinkService extends LoggerBase {
         await this.repo.touchRun(resultInfo.runId)
       }
 
-      for (const key of this.countMap.keys()) {
+      const keys = Array.from(this.countMap.keys())
+
+      for (const key of keys) {
         const count = this.countMap.get(key)
         if (count === 100 || count > 100) {
           this.log.info(`Processed ${count} ${key} results!`)
