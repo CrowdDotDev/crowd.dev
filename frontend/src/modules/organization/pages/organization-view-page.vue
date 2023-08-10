@@ -42,6 +42,7 @@
               <app-activity-timeline
                 :entity="organization"
                 entity-type="organization"
+                :show-affiliations="true"
               />
             </el-tab-pane>
           </el-tabs>

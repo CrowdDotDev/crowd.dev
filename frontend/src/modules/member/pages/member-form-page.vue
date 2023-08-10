@@ -460,6 +460,8 @@ async function onSubmit() {
       memberId: affiliation.memberId,
       segmentId: affiliation.segmentId,
       organizationId: affiliation.organizationId,
+      dateStart: affiliation.dateStart,
+      dateEnd: affiliation.dateEnd,
     })),
   };
 

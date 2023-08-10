@@ -110,7 +110,7 @@
                   v-if="showAffiliations"
                   :show-affiliations="true"
                   :activity="activity"
-                  :organizations="entity.organizations"
+                  :organizations="entity.organizations ?? activity.member.organizations ?? []"
                   @on-update="fetchActivities({ reset: true })"
                 />
               </div>
