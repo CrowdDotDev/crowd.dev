@@ -21,7 +21,7 @@
     <app-load-more
       :is-visible="notesCount > notes.length"
       :is-loading="loadingNotes"
-      :fetch-fn="fetchNotes(notesPage + 1)"
+      :fetch-fn="() => fetchNotes(notesPage + 1)"
     />
   </div>
 </template>

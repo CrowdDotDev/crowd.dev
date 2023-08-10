@@ -78,7 +78,7 @@
         <app-load-more
           :is-visible="tasks.length < taskCount"
           :is-loading="loadingTasks"
-          :fetch-fn="fetchTasks(true)"
+          :fetch-fn="() => fetchTasks(true)"
         />
       </div>
     </div>

@@ -60,7 +60,7 @@
         <app-load-more
           :is-visible="tasks.length < tasksCount"
           :is-loading="loading"
-          :fetch-fn="fetchTasks(true)"
+          :fetch-fn="() => fetchTasks(true)"
         />
         <div
           v-if="tasks.length === 0"
