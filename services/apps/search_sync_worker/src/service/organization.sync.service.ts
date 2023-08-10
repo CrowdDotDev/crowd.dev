@@ -501,7 +501,7 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_address = data.address
     p.keyword_address = data.address
     p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
-    p.date_createdAt = data.createdAt
+    p.date_createdAt = data.createdAt ? new Date(data.createdAt).toISOString() : null
     p.string_description = data.description
     p.string_displayName = data.displayName
     p.keyword_displayName = data.displayName
@@ -526,8 +526,8 @@ export class OrganizationSyncService extends LoggerBase {
     p.obj_twitter = data.twitter
 
     // aggregate data
-    p.date_joinedAt = data.joinedAt
-    p.date_lastActive = data.lastActive
+    p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
+    p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
