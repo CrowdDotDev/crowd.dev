@@ -521,6 +521,8 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_url = data.url
     p.string_website = data.website
     p.date_lastEnrichedAt = data.lastEnrichedAt ? new Date(data.lastEnrichedAt).toISOString() : null
+    p.bool_isTeamOrganization = data.isTeamOrganization ? data.isTeamOrganization : false
+    p.string_logo = data.logo || null
     p.obj_linkedin = data.linkedin
     p.obj_github = data.github
     p.obj_crunchbase = data.crunchbase

@@ -225,8 +225,8 @@ export default class OrganizationService extends LoggerBase {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return OrganizationRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+    return OrganizationRepository.findAndCountAllOpensearch(
+      { filter: advancedFilter, orderBy, limit, offset },
       this.options,
     )
   }

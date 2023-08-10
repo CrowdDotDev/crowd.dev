@@ -8,6 +8,7 @@ export enum OpensearchFieldType {
   OBJECT = 'obj',
   OBJECT_ARR = 'obj_arr',
   FLOAT = 'float',
+  BOOL = 'bool',
 }
 
 export enum OpenSearchIndex {
