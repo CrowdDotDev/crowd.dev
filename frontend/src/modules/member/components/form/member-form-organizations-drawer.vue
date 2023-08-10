@@ -34,7 +34,7 @@
             <div class="cursor-pointer h-8 w-8 mr-2 group" @click="edit(oi)">
               <span class="ri-pencil-line text-lg text-gray-400 group-hover:text-gray-500" />
             </div>
-            <div class="cursor-pointer h-8 w-8 group" @click="organizations.splice(oi, 1)">
+            <div class="cursor-pointer h-8 w-8 group" @click="remove(oi)">
               <span class="ri-delete-bin-line text-lg text-gray-400 group-hover:text-gray-500" />
             </div>
           </div>
@@ -51,7 +51,7 @@
     v-if="isOrganizationFormModalOpen"
     v-model="isOrganizationFormModalOpen"
     :organization="editOrganization !== null ? organizations[editOrganization] : null"
-    @add="organizations.push($event)"
+    @add="add($event)"
     @edit="update($event)"
   />
 </template>
@@ -90,28 +90,7 @@ const isDrawerOpen = computed({
 const isOrganizationFormModalOpen = ref<boolean>(false);
 const editOrganization = ref<number | null>(null);
 
-const edit = (organizationIndex: number) => {
-  editOrganization.value = organizationIndex;
-  isOrganizationFormModalOpen.value = true;
-};
-
-const update = (organization: Organization) => {
-  organizations.value[editOrganization.value] = organization;
-  editOrganization.value = null;
-};
-
-const formatDate = (date: string) => {
-  if (date) {
-    return moment(date).format('MMM YYYY');
-  }
-  return 'Present';
-};
-
-onMounted(() => {
-  organizations.value = props.member.organizations;
-});
-
-onBeforeUnmount(() => {
+const save = () => {
   doUpdate({
     id: props.member.id,
     values: {
@@ -132,6 +111,38 @@ onBeforeUnmount(() => {
       ),
     },
   });
+};
+
+const edit = (organizationIndex: number) => {
+  editOrganization.value = organizationIndex;
+  isOrganizationFormModalOpen.value = true;
+};
+
+const update = (organization: Organization) => {
+  organizations.value[editOrganization.value] = organization;
+  editOrganization.value = null;
+  save();
+};
+
+const add = (organization: Organization) => {
+  organizations.value.push(organization);
+  save();
+};
+
+const remove = (index: number) => {
+  organizations.value.splice(index, 1);
+  save();
+};
+
+const formatDate = (date: string) => {
+  if (date) {
+    return moment(date).format('MMM YYYY');
+  }
+  return 'Present';
+};
+
+onMounted(() => {
+  organizations.value = props.member.organizations;
 });
 </script>
 

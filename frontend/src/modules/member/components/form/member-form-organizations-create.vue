@@ -73,10 +73,8 @@
           <div class="w-5/12 px-2.5">
             <app-form-item
               label="Period"
-              :required="true"
               :validation="$v.dateStart"
               :error-messages="{
-                required: 'This field is required',
                 minDate: 'Invalid date range',
               }"
             >
@@ -98,6 +96,8 @@
                   class="!w-auto custom-date-range-picker date-to"
                   popper-class="date-picker-popper"
                   format="MMM YYYY"
+                  @blur="$v.dateStart.$touch"
+                  @change="$v.dateStart.$touch"
                 />
               </div>
             </app-form-item>
@@ -105,60 +105,6 @@
         </div>
       </div>
 
-      <!--      <div-->
-      <!--      v-if="!!organizations.length"-->
-      <!--      class="flex mt-4 mb-2 flex-col gap-3"-->
-      <!--    >-->
-      <!--      <div-->
-      <!--        v-for="(organization, index) in organizations"-->
-      <!--        :key="organization.id"-->
-      <!--        class="flex gap-3"-->
-      <!--      >-->
-      <!--        <div class="w-2/5">-->
-
-      <!--        </div>-->
-
-      <!--        <div class="w-1/3">-->
-
-      <!--        </div>-->
-
-      <!--        <div class="w-1/3 flex">-->
-      <!--          <el-date-picker-->
-      <!--            v-model="dateRange[index][0]"-->
-      <!--            type="month"-->
-      <!--            format="MMMM YYYY"-->
-      <!--            placeholder="From"-->
-      <!--            class="custom-date-picker organization left"-->
-      <!--            popper-class="date-picker-popper"-->
-      <!--            :prefix-icon="DateRangePickerPrefix"-->
-      <!--            clearable-->
-      <!--            @change="(val: Date) => onDatePickerChange('dateStart', val, index)"-->
-      <!--          />-->
-      <!--          <el-divider direction="vertical" class="m-0 h-full" />-->
-      <!--          <el-date-picker-->
-      <!--            v-model="dateRange[index][1]"-->
-      <!--            type="month"-->
-      <!--            format="MMMM YYYY"-->
-      <!--            placeholder="To"-->
-      <!--            class="custom-date-picker organization right"-->
-      <!--            popper-class="date-picker-popper"-->
-      <!--            :prefix-icon="DateRangePickerPrefix"-->
-      <!--            clearable-->
-      <!--            @change="(val: Date) => onDatePickerChange('dateEnd', val, index)"-->
-      <!--          />-->
-      <!--        </div>-->
-
-      <!--        <button-->
-      <!--          type="button"-->
-      <!--          class="btn btn&#45;&#45;md btn&#45;&#45;transparent w-10 h-10"-->
-      <!--          @click="removeOrganization(index)"-->
-      <!--        >-->
-      <!--          <i-->
-      <!--            class="ri-delete-bin-line text-lg text-gray-600"-->
-      <!--          />-->
-      <!--        </button>-->
-      <!--      </div>-->
-      <!--    </div>-->
       <footer
         class="bg-gray-50 py-4 px-6 flex justify-end rounded-b-md"
       >
@@ -235,8 +181,7 @@ const rules = {
     required,
   },
   dateStart: {
-    required,
-    minDate: (value, rest) => !form.dateEnd || moment(value).isBefore(moment(rest.dateEnd)),
+    minDate: (value, rest) => !form.dateEnd || (!!form.dateStart && moment(value).isBefore(moment(rest.dateEnd))),
   },
 };
 
