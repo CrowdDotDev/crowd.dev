@@ -260,7 +260,7 @@ export default class MemberService extends LoggerBase {
             false,
           )
         } else {
-          this.log.info('No member found for enriching. This member enrich process had no affect.')
+          this.log.debug('No member found for enriching. This member enrich process had no affect.')
         }
       })
     } catch (err) {

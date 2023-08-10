@@ -19,12 +19,6 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
     message: IQueueMessage,
     deduplicationId: string,
   ): Promise<void> {
-    this.log.info(
-      {
-        messageType: message.type,
-      },
-      'Sending nodejs-worker sqs message!',
-    )
     return super.sendMessage(groupId, message, deduplicationId)
   }
 

@@ -93,6 +93,8 @@ export abstract class SqsQueueBase extends LoggerBase {
 }
 
 export abstract class SqsQueueReceiver extends SqsQueueBase {
+  private static COUNT_LIMIT = 100
+  private count = 0
   private processingMessages = 0
   private started = false
 
@@ -111,10 +113,15 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
 
   private addJob() {
     this.processingMessages++
+    this.count++
   }
 
   private removeJob() {
     this.processingMessages--
+    if (this.count === SqsQueueReceiver.COUNT_LIMIT) {
+      this.log.info('100 messages processed!')
+      this.count = 0
+    }
   }
 
   public async start(): Promise<void> {
