@@ -25,6 +25,7 @@ export class InitService extends LoggerBase {
 
     await this.createFakeMember()
     await this.createFakeActivity()
+    await this.createFakeOrganization()
   }
 
   private async createFakeOrganization(): Promise<void> {
