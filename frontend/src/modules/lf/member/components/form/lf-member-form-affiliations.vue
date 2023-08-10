@@ -22,7 +22,7 @@
       </div>
       <div class="flex mb-2 flex-col">
         <div
-          v-for="(affiliation, index) in uniqueProjects"
+          v-for="(affiliation) in uniqueProjects"
           :key="affiliation.segmentId"
           class="py-6 border-b border-gray-200 last:border-none"
         >
@@ -100,7 +100,7 @@
                   </div>
                   <el-button
                     class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
-                    @click="deleteOrganization(index, oi)"
+                    @click="deleteOrganization(oi)"
                   >
                     <i
                       class="ri-delete-bin-line text-lg text-gray-600"
@@ -112,7 +112,7 @@
               <div>
                 <el-button
                   class="btn btn-link btn-link--primary"
-                  @click="addOrganization(index)"
+                  @click="addOrganization(affiliation)"
                 >
                   + Add organization
                 </el-button>
@@ -168,8 +168,7 @@ const availableOrganizations = computed(() => [
 
 const getOrganization = (id) => availableOrganizations.value.find((organization) => organization.id === id);
 
-const addOrganization = (index) => {
-  const affiliation = affiliationsList.value[index];
+const addOrganization = (affilation) => {
   affiliationsList.value.push({
     segmentId: affiliation.segmentId,
     segmentName: affiliation.segmentName,
@@ -180,8 +179,8 @@ const addOrganization = (index) => {
   });
 };
 
-const deleteOrganization = (index, organizationIndex) => {
-  affiliationsList.value[index].organizations.splice(organizationIndex, 1);
+const deleteOrganization = (index) => {
+  affiliationsList.value.splice(index, 1);
 };
 
 </script>
