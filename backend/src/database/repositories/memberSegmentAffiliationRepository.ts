@@ -60,6 +60,57 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     return this.findById(affiliationInsertResult[0][0].id)
   }
 
+  async setForMember(memberId: string, data: MemberSegmentAffiliationCreate[]): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(this.options)
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
+    await seq.query(
+      `
+        DELETE FROM "memberSegmentAffiliations"
+        WHERE "memberId" = :memberId
+      `,
+      {
+        replacements: {
+          memberId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      },
+    )
+
+    if (data.length === 0) {
+      return
+    }
+
+    const valuePlaceholders = data
+      .map(
+        (_, i) =>
+          `(:id_${i}, :memberId_${i}, :segmentId_${i}, :organizationId_${i}, :dateStart_${i}, :dateEnd_${i})`,
+      )
+      .join(', ')
+
+    await seq.query(
+      `
+        INSERT INTO "memberSegmentAffiliations" ("id", "memberId", "segmentId", "organizationId", "dateStart", "dateEnd")
+        VALUES ${valuePlaceholders}
+      `,
+      {
+        replacements: data.reduce((acc, item, i) => {
+          acc[`id_${i}`] = uuid()
+          acc[`memberId_${i}`] = memberId
+          acc[`segmentId_${i}`] = item.segmentId
+          acc[`organizationId_${i}`] = item.organizationId
+          acc[`dateStart_${i}`] = item.dateStart || null
+          acc[`dateEnd_${i}`] = item.dateEnd || null
+
+          return acc
+        }, {}),
+        type: QueryTypes.INSERT,
+        transaction,
+      },
+    )
+  }
+
   override async findById(id: string): Promise<MemberSegmentAffiliation> {
     const transaction = this.transaction
 
@@ -156,7 +207,7 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     return records
   }
 
-  async findForMember(memberId: string): Promise<MemberSegmentAffiliation> {
+  async findForMember(memberId: string, timestamp: string): Promise<MemberSegmentAffiliation> {
     const transaction = SequelizeRepository.getTransaction(this.options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
@@ -168,12 +219,18 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
         SELECT * FROM "memberSegmentAffiliations"
         WHERE "memberId" = :memberId
           AND "segmentId" = :segmentId
+          AND (
+            ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
+            OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
+          )
+        ORDER BY "dateStart" DESC
         LIMIT 1
       `,
       {
         replacements: {
           memberId,
           segmentId: segment.id,
+          timestamp,
         },
         type: QueryTypes.SELECT,
         transaction,

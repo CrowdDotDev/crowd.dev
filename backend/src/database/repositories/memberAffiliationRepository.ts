@@ -20,7 +20,10 @@ class MemberAffiliationRepository {
                || ARRAY_REMOVE(ARRAY_AGG(mo."organizationId" ORDER BY mo."dateStart" DESC), NULL)
                || ARRAY[a."organizationId"])[1] AS new_org
           FROM activities a
-          LEFT JOIN "memberSegmentAffiliations" msa ON msa."memberId" = a."memberId" AND a."segmentId" = msa."segmentId"
+          LEFT JOIN "memberSegmentAffiliations" msa ON msa."memberId" = a."memberId" AND a."segmentId" = msa."segmentId" AND (
+                 a.timestamp BETWEEN msa."dateStart" AND msa."dateEnd"
+                 OR (a.timestamp >= msa."dateStart" AND msa."dateEnd" IS NULL)
+             )
           LEFT JOIN "memberOrganizations" mo ON mo."memberId" = a."memberId" AND (
                   a.timestamp BETWEEN mo."dateStart" AND mo."dateEnd"
                   OR (a.timestamp >= mo."dateStart" AND mo."dateEnd" IS NULL)

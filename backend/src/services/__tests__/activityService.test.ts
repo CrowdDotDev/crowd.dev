@@ -1439,10 +1439,12 @@ describe('ActivityService tests', () => {
           {
             segmentId: segment1.id,
             organizationId: org2.id,
+            dateStart: '2021-09-01',
           },
           {
             segmentId: segment2.id,
             organizationId: null,
+            dateStart: '2021-09-01',
           },
         ],
       }
@@ -3081,6 +3083,7 @@ describe('ActivityService tests', () => {
           memberId: member.id,
           segmentId: options.currentSegments[0].id,
           organizationId: org2.id,
+          dateStart: '2020-01-01',
         })
 
         await memberAffiliationService.updateAffiliation(member.id)
@@ -3106,6 +3109,7 @@ describe('ActivityService tests', () => {
           memberId: member.id,
           segmentId: options.currentSegments[0].id,
           organizationId: null,
+          dateStart: '2020-01-01',
         })
 
         await memberAffiliationService.updateAffiliation(member.id)

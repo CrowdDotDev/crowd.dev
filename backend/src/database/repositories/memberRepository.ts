@@ -862,28 +862,8 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
-
-    const toDeleteAffiliations: string[] = []
-
-    const existingAffiliations = await this.getAffiliations(memberId, options)
-
-    for (const existingAffiliation of existingAffiliations) {
-      if (
-        !data.find(
-          (incomingAffiliation) => incomingAffiliation.segmentId === existingAffiliation.segmentId,
-        )
-      ) {
-        toDeleteAffiliations.push(existingAffiliation.id)
-      }
-    }
-
-    if (toDeleteAffiliations.length > 0) {
-      await affiliationRepository.destroyAll(toDeleteAffiliations)
-    }
-
-    for (const incomingAffiliation of data) {
-      await affiliationRepository.createOrUpdate({ memberId, ...incomingAffiliation })
-    }
+    await affiliationRepository.setForMember(memberId, data)
+    await MemberAffiliationRepository.update(memberId, options)
   }
 
   static async getAffiliations(
@@ -902,7 +882,9 @@ class MemberRepository {
         s."parentName" as "segmentParentName", 
         o.id as "organizationId", 
         o.name as "organizationName",
-        o.logo as "organizationLogo"
+        o.logo as "organizationLogo",
+        msa."dateStart" as "dateStart",
+        msa."dateEnd" as "dateEnd"
       from "memberSegmentAffiliations" msa 
       left join organizations o on o.id = msa."organizationId"
       join segments s on s.id = msa."segmentId"

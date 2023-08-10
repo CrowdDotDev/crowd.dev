@@ -15,7 +15,10 @@ export default class MemberAffiliationService extends LoggerBase {
   async findAffiliation(memberId: string, timestamp: string): Promise<string> {
     const memberSegmentAffiliationRepository = new MemberSegmentAffiliationRepository(this.options)
 
-    const manualAffiliation = await memberSegmentAffiliationRepository.findForMember(memberId)
+    const manualAffiliation = await memberSegmentAffiliationRepository.findForMember(
+      memberId,
+      timestamp,
+    )
     if (manualAffiliation) {
       return manualAffiliation.organizationId
     }
