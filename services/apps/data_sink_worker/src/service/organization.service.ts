@@ -242,7 +242,7 @@ export class OrganizationService extends LoggerBase {
             name: dbOrganization.name,
           })
         } else {
-          this.log.info(
+          this.log.debug(
             'No organization found for enriching. This organization enrich process had no affect.',
           )
         }

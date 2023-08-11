@@ -27,7 +27,7 @@ export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
     manualSettings?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      `${tenantId}-${platform}`,
+      integrationId,
       new StartIntegrationRunQueueMessage(integrationId, onboarding, isManualRun, manualSettings),
     )
   }
@@ -40,13 +40,13 @@ export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
     manualSettings?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      `${tenantId}-${platform}`,
+      runId,
       new GenerateRunStreamsQueueMessage(runId, isManualRun, manualSettings),
       runId,
     )
   }
 
   public async streamProcessed(tenantId: string, platform: string, runId: string): Promise<void> {
-    await this.sendMessage(`runs-${tenantId}-${platform}`, new StreamProcessedQueueMessage(runId))
+    await this.sendMessage(runId, new StreamProcessedQueueMessage(runId))
   }
 }

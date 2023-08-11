@@ -12,6 +12,11 @@ export interface IDbMemberOrganization {
   id: string
   logo: string | null
   displayName: string | null
+  memberOrganizations: {
+    title: string
+    dateStart: string
+    dateEnd: string
+  }
 }
 
 export interface IDbMemberSyncData {
@@ -41,10 +46,4 @@ export interface IDbMemberSyncData {
   tags: IDbMemberTagData[]
   toMergeIds: string[]
   noMergeIds: string[]
-}
-
-export interface IDbSegmentInfo {
-  id: string
-  parentId: string
-  grandParentId: string
 }

@@ -105,6 +105,7 @@ export class OpenSearchService extends LoggerBase {
     })
     await this.ensureIndexExists(OpenSearchIndex.MEMBERS)
     await this.ensureIndexExists(OpenSearchIndex.ACTIVITIES)
+    await this.ensureIndexExists(OpenSearchIndex.ORGANIZATIONS)
   }
 
   public async removeFromIndex(id: string, index: OpenSearchIndex): Promise<void> {
