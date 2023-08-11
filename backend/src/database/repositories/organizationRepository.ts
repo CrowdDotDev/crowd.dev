@@ -615,6 +615,15 @@ class OrganizationRepository {
       })
     }
 
+    // exclude empty filters if any
+    parsed.query.bool.must = parsed.query.bool.must.filter((obj) => {
+      // Check if the object has a non-empty 'term' property
+      if (obj.term) {
+        return Object.keys(obj.term).length !== 0
+      }
+      return true
+    })
+
     if (customSortFunction) {
       parsed.sort = customSortFunction
     }
