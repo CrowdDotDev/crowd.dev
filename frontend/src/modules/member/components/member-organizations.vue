@@ -26,18 +26,20 @@
       <div
         v-if="
           props.showTitle
-            && props.member.attributes.jobTitle?.default
+            && (props.member.attributes.jobTitle?.default
+              || activeOrganization?.memberOrganizations?.title)
         "
         class="text-gray-500 text-2xs truncate pr-4"
       >
         {{
-          props.member.attributes.jobTitle?.default
+          props.member.attributes?.jobTitle?.default
+            || activeOrganization?.memberOrganizations?.title
             || '-'
         }}
       </div>
     </div>
     <div
-      v-else-if="props.member.attributes.jobTitle?.default"
+      v-else-if="props.member.attributes.jobTitle?.default || activeOrganization?.memberOrganizations?.title"
     >
       <p class="text-gray-900 text-ellipsis truncate">
         -
@@ -47,7 +49,9 @@
         class="text-gray-500 text-2xs"
       >
         {{
-          props.member.attributes.jobTitle?.default || '-'
+          props.member.attributes.jobTitle?.default
+            || activeOrganization?.memberOrganizations?.title
+            || '-'
         }}
       </div>
     </div>
@@ -63,9 +67,9 @@
     class="flex items-start grow mt-2"
   >
     <span
-      v-if="member.attributes?.jobTitle?.default"
+      v-if="member.attributes?.jobTitle?.default || activeOrganization?.memberOrganizations?.title"
       class="text-gray-600 text-2xs mr-2 truncate block mt-0.5"
-    >{{ member.attributes.jobTitle.default }}
+    >{{ member.attributes?.jobTitle?.default || activeOrganization?.memberOrganizations?.title }}
       {{ member.organizations.length ? 'at' : '' }}</span>
     <div
       v-if="activeOrganization"
