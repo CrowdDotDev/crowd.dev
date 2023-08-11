@@ -9,6 +9,7 @@ import { IDbOrganizationSyncData } from '@/repo/organization.data'
 import { IDbSegmentInfo } from '@/repo/segment.data'
 import { distinct, groupBy, timeout } from '@crowd/common'
 import { SERVICE_CONFIG } from '@/conf'
+import { IOrganizationSyncResult } from './organization.sync.data'
 
 export class OrganizationSyncService extends LoggerBase {
   private readonly orgRepo: OrganizationRepository
@@ -203,8 +204,6 @@ export class OrganizationSyncService extends LoggerBase {
     let docCount = 0
     let organizationCount = 0
 
-    const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
-
     await logExecutionTime(
       async () => {
         let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
@@ -215,88 +214,13 @@ export class OrganizationSyncService extends LoggerBase {
         )
 
         while (organizationIds.length > 0) {
-          const organizations = await this.orgRepo.getOrganizationData(organizationIds, tenantId)
+          const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
+            tenantId,
+            organizationIds,
+          )
 
-          if (organizations.length > 0) {
-            let childSegmentIds: string[] | undefined
-            let segmentInfos: IDbSegmentInfo[] | undefined
-
-            if (isMultiSegment) {
-              childSegmentIds = distinct(organizations.map((m) => m.segmentId))
-              segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
-            }
-
-            const grouped = groupBy(organizations, (m) => m.organizationId)
-            organizationIds = Array.from(grouped.keys())
-
-            const forSync: IIndexRequest<unknown>[] = []
-            for (const organizationId of organizationIds) {
-              const organizationDocs = grouped.get(organizationId)
-              if (isMultiSegment) {
-                // index each of them individually
-                for (const organization of organizationDocs) {
-                  const prepared = OrganizationSyncService.prefixData(organization)
-                  forSync.push({
-                    id: `${organizationId}-${organization.segmentId}`,
-                    body: prepared,
-                  })
-                }
-
-                const relevantSegmentInfos = segmentInfos.filter(
-                  (s) => s.id === organizationDocs[0].segmentId,
-                )
-
-                // and for each parent and grandparent
-                const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
-                for (const parentId of parentIds) {
-                  const aggregated = OrganizationSyncService.aggregateData(
-                    organizationDocs,
-                    relevantSegmentInfos,
-                    parentId,
-                  )
-                  const prepared = OrganizationSyncService.prefixData(aggregated)
-                  forSync.push({
-                    id: `${organizationId}-${parentId}`,
-                    body: prepared,
-                  })
-                }
-
-                const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
-                for (const grandParentId of grandParentIds) {
-                  const aggregated = OrganizationSyncService.aggregateData(
-                    organizationDocs,
-                    relevantSegmentInfos,
-                    undefined,
-                    grandParentId,
-                  )
-                  const prepared = OrganizationSyncService.prefixData(aggregated)
-                  forSync.push({
-                    id: `${organizationId}-${grandParentId}`,
-                    body: prepared,
-                  })
-                }
-              } else {
-                if (organizationDocs.length > 1) {
-                  throw new Error(
-                    'More than one organization found - this can not be the case in single segment edition!',
-                  )
-                }
-
-                const organization = organizationDocs[0]
-                const prepared = OrganizationSyncService.prefixData(organization)
-                forSync.push({
-                  id: `${organizationId}-${organization.segmentId}`,
-                  body: prepared,
-                })
-              }
-            }
-
-            await this.openSearchService.bulkIndex(OpenSearchIndex.ORGANIZATIONS, forSync)
-            docCount += forSync.length
-            organizationCount += organizationIds.length
-          }
-
-          await this.orgRepo.markSynced(organizationIds)
+          organizationCount += organizationsSynced
+          docCount += documentsIndexed
 
           this.log.info(
             { tenantId },
@@ -320,93 +244,103 @@ export class OrganizationSyncService extends LoggerBase {
     )
   }
 
-  public async syncOrganization(
+  public async syncOrganizations(
     tenantId: string,
-    organizationId: string,
-    retries = 0,
-  ): Promise<void> {
-    this.log.debug({ tenantId, organizationId }, 'Syncing organization!')
+    organizationIds: string[],
+  ): Promise<IOrganizationSyncResult> {
+    this.log.debug({ organizationIds }, 'Syncing organizations!')
 
-    const organizations = await this.orgRepo.getOrganizationData([organizationId], tenantId)
+    const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
+
+    let docCount = 0
+    let organizationCount = 0
+
+    const organizations = await this.orgRepo.getOrganizationData(organizationIds, tenantId)
 
     if (organizations.length > 0) {
-      if (SERVICE_CONFIG().edition === Edition.LFX) {
-        // get all child segment ids
-        const childSegmentIds = organizations.map((m) => m.segmentId)
-        // fetch parentId and grandParentId for each of them
-        const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+      let childSegmentIds: string[] | undefined
+      let segmentInfos: IDbSegmentInfo[] | undefined
 
-        // index each of them individually
-        for (const organization of organizations) {
+      if (isMultiSegment) {
+        childSegmentIds = distinct(organizations.map((m) => m.segmentId))
+        segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+      }
+
+      const grouped = groupBy(organizations, (m) => m.organizationId)
+      const organizationIds = Array.from(grouped.keys())
+
+      const forSync: IIndexRequest<unknown>[] = []
+      for (const organizationId of organizationIds) {
+        const organizationDocs = grouped.get(organizationId)
+        if (isMultiSegment) {
+          // index each of them individually
+          for (const organization of organizationDocs) {
+            const prepared = OrganizationSyncService.prefixData(organization)
+            forSync.push({
+              id: `${organizationId}-${organization.segmentId}`,
+              body: prepared,
+            })
+          }
+
+          const relevantSegmentInfos = segmentInfos.filter(
+            (s) => s.id === organizationDocs[0].segmentId,
+          )
+
+          // and for each parent and grandparent
+          const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
+          for (const parentId of parentIds) {
+            const aggregated = OrganizationSyncService.aggregateData(
+              organizationDocs,
+              relevantSegmentInfos,
+              parentId,
+            )
+            const prepared = OrganizationSyncService.prefixData(aggregated)
+            forSync.push({
+              id: `${organizationId}-${parentId}`,
+              body: prepared,
+            })
+          }
+
+          const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
+          for (const grandParentId of grandParentIds) {
+            const aggregated = OrganizationSyncService.aggregateData(
+              organizationDocs,
+              relevantSegmentInfos,
+              undefined,
+              grandParentId,
+            )
+            const prepared = OrganizationSyncService.prefixData(aggregated)
+            forSync.push({
+              id: `${organizationId}-${grandParentId}`,
+              body: prepared,
+            })
+          }
+        } else {
+          if (organizationDocs.length > 1) {
+            throw new Error(
+              'More than one organization found - this can not be the case in single segment edition!',
+            )
+          }
+
+          const organization = organizationDocs[0]
           const prepared = OrganizationSyncService.prefixData(organization)
-          await this.openSearchService.index(
-            `${organizationId}-${organization.segmentId}`,
-            OpenSearchIndex.ORGANIZATIONS,
-            prepared,
-          )
+          forSync.push({
+            id: `${organizationId}-${organization.segmentId}`,
+            body: prepared,
+          })
         }
-
-        // and for each parent and grandparent
-        const parentIds = distinct(segmentInfos.map((s) => s.parentId))
-        for (const parentId of parentIds) {
-          const aggregated = OrganizationSyncService.aggregateData(
-            organizations,
-            segmentInfos,
-            parentId,
-          )
-          const prepared = OrganizationSyncService.prefixData(aggregated)
-          await this.openSearchService.index(
-            `${organizationId}-${parentId}`,
-            OpenSearchIndex.ORGANIZATIONS,
-            prepared,
-          )
-        }
-
-        const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
-        for (const grandParentId of grandParentIds) {
-          const aggregated = OrganizationSyncService.aggregateData(
-            organizations,
-            segmentInfos,
-            undefined,
-            grandParentId,
-          )
-          const prepared = OrganizationSyncService.prefixData(aggregated)
-          await this.openSearchService.index(
-            `${organizationId}-${grandParentId}`,
-            OpenSearchIndex.ORGANIZATIONS,
-            prepared,
-          )
-        }
-      } else {
-        if (organizations.length > 1) {
-          throw new Error(
-            'More than one organization found - this can not be the case in single segment edition!',
-          )
-        }
-
-        const organization = organizations[0]
-
-        const prepared = OrganizationSyncService.prefixData(organization)
-        await this.openSearchService.index(
-          `${organizationId}-${organization.segmentId}`,
-          OpenSearchIndex.ORGANIZATIONS,
-          prepared,
-        )
       }
 
-      await this.orgRepo.markSynced([organizationId])
-    } else {
-      // we should retry - sometimes database is slow
-      if (retries < 5) {
-        await timeout(200)
-        await this.syncOrganization(tenantId, organizationId, ++retries)
-      } else {
-        this.log.error(
-          { organizationId },
-          'Organization not found after 5 retries! Removing from index!',
-        )
-        await this.removeOrganization(organizationId)
-      }
+      await this.openSearchService.bulkIndex(OpenSearchIndex.ORGANIZATIONS, forSync)
+      docCount += forSync.length
+      organizationCount += organizationIds.length
+    }
+
+    await this.orgRepo.markSynced(organizationIds)
+
+    return {
+      organizationsSynced: organizationCount,
+      documentsIndexed: docCount,
     }
   }
 
