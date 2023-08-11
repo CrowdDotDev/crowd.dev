@@ -588,6 +588,10 @@ class OrganizationRepository {
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
+    if (orderBy.length === 0) {
+      orderBy = 'joinedAt_DESC'
+    }
+
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
