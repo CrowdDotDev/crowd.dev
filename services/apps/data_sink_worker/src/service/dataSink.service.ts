@@ -17,7 +17,6 @@ import { OrganizationService } from './organization.service'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
-  private readonly countMap: Map<string, number> = new Map()
 
   constructor(
     private readonly store: DbStore,
@@ -86,7 +85,6 @@ export default class DataSinkService extends LoggerBase {
 
     try {
       const data = resultInfo.data
-      this.countMap.set(data.type, (this.countMap.get(data.type) || 0) + 1)
       switch (data.type) {
         case IntegrationResultType.ACTIVITY: {
           const service = new ActivityService(
@@ -175,16 +173,6 @@ export default class DataSinkService extends LoggerBase {
     } finally {
       if (resultInfo.runId) {
         await this.repo.touchRun(resultInfo.runId)
-      }
-
-      const keys = Array.from(this.countMap.keys())
-
-      for (const key of keys) {
-        const count = this.countMap.get(key) || 0
-        if (count === 100 || count > 100) {
-          this.log.info(`Processed ${count} ${key} results!`)
-          this.countMap.set(key, 0)
-        }
       }
     }
   }
