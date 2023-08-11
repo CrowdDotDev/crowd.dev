@@ -62,7 +62,7 @@ const props = defineProps({
 
 const entity = computed(() => ({
   avatar: props.organization.logo,
-  displayName: props.organization.name.replace('@', ''),
+  displayName: props.organization.displayName.replace('@', ''),
 }));
 </script>
 
