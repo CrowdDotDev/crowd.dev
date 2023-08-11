@@ -97,14 +97,25 @@
               class="flex items-center justify-center grow text-sm"
             >
               {{ integrationsNeedReconnectToString }} integration
-                need{{ integrationsInProgress.length > 1 ? '' : 's' }} to be reconnected due to a change in their API.
-                Please reconnect {{ integrationsInProgress.length > 1 ? 'them' : 'it' }} to continue receiving data.
+              need{{ integrationsInProgress.length > 1 ? '' : 's' }} to be reconnected due to a change in their API.
+              Please reconnect {{ integrationsInProgress.length > 1 ? 'them' : 'it' }} to continue receiving data.
               <router-link
                 :to="{ name: 'integration' }"
                 class="btn btn--sm btn--primary ml-4"
               >
                 Go to Integrations
               </router-link>
+            </div>
+          </banner>
+          <banner
+            v-if="showOrganizationsAlertBanner"
+            variant="alert"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              We're currently experiencing several issues with Organizations and are sorry for the inconvenience.
+              You can expect major improvements by Tuesday, Aug 15th. 🚧
             </div>
           </banner>
         </div>
@@ -154,6 +165,7 @@ export default {
         'tenant/showIntegrationsInProgressAlert',
       showIntegrationsNeedReconnectAlert:
         'tenant/showIntegrationsNeedReconnectAlert',
+      showOrganizationsAlertBanner: 'tenant/showOrganizationsAlertBanner',
       showBanner: 'tenant/showBanner',
     }),
     integrationsInProgressToString() {

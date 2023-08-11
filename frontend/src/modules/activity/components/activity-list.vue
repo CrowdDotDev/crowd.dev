@@ -49,23 +49,11 @@
         />
 
         <!-- Load more button -->
-        <div
-          v-if="isLoadMoreVisible"
-          class="flex grow justify-center pt-4"
-        >
-          <div
-            v-if="loading"
-            v-loading="loading"
-            class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-          />
-          <el-button
-            v-else
-            class="btn btn-link btn-link--primary"
-            @click="onLoadMore"
-          >
-            <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
-          </el-button>
-        </div>
+        <app-load-more
+          :is-visible="isLoadMoreVisible"
+          :is-loading="loading"
+          :fetch-fn="onLoadMore"
+        />
       </div>
     </div>
     <app-conversation-drawer
@@ -90,6 +78,7 @@ import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const sorterFilter = ref('trending');
 const conversationId = ref(null);
@@ -106,7 +95,7 @@ const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
 const {
-  filters, activities, totalActivities, savedFilterBody,
+  filters, activities, totalActivities, savedFilterBody, pagination,
 } = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
@@ -118,22 +107,25 @@ const emptyState = computed(() => ({
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
 
-const pagination = computed(
-  () => filters.value.pagination,
-);
-
 const isLoadMoreVisible = computed(() => (
   pagination.value.page
       * pagination.value.perPage
-    < totalActivities
+    < totalActivities.value
 ));
 
 const onLoadMore = () => {
-  filters.value.pagination.page += 1;
+  pagination.value.page += 1;
+
+  fetch({
+    ...savedFilterBody.value,
+    offset: (pagination.value.page - 1) * pagination.value.perPage,
+    limit: pagination.value.perPage,
+    append: true,
+  });
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body,
+  filter, offset, limit, orderBy, body, append,
 }) => {
   loading.value = true;
   fetchActivities({
@@ -150,6 +142,7 @@ const fetch = ({
       limit,
       orderBy,
     },
+    append,
   })
     .finally(() => {
       loading.value = false;

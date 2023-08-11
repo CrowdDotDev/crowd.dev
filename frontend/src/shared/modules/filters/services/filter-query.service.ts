@@ -55,10 +55,12 @@ export const filterQueryService = () => {
     if (filter) {
       const mappedFilter = {
         ...filter,
-        pagination: {
-          page: filter.pagination?.page || 1,
-          perPage: filter.pagination?.perPage || 20,
-        },
+        ...(filter.pagination && {
+          pagination: {
+            page: filter.pagination?.page || 1,
+            perPage: filter.pagination?.perPage || 20,
+          },
+        }),
       };
       Object.entries(mappedFilter).forEach(([key, filterValue]) => {
         if (typeof filterValue === 'object') {
