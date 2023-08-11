@@ -7,7 +7,7 @@ import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { IDbOrganizationSyncData } from '@/repo/organization.data'
 import { IDbSegmentInfo } from '@/repo/segment.data'
-import { distinct, groupBy, timeout } from '@crowd/common'
+import { distinct, groupBy } from '@crowd/common'
 import { SERVICE_CONFIG } from '@/conf'
 import { IOrganizationSyncResult } from './organization.sync.data'
 

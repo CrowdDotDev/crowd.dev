@@ -151,5 +151,4 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     return results.map((r) => r.tenantId)
   }
-
 }
