@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@crowd/logging": "file:../logging",
+    "@crowd/types": "file:../types",
     "uuid": "^9.0.0"
   }
 }

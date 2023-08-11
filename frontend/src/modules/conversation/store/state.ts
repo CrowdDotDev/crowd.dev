@@ -6,16 +6,16 @@ export interface ConversationState {
   savedFilterBody: any,
   conversations: [],
   totalConversations: number
+  pagination: {
+    page: number,
+    perPage: number
+  }
 }
 
 export default () => ({
   filters: {
     search: '',
     relation: 'and',
-    pagination: {
-      page: 1,
-      perPage: 20,
-    },
     order: {
       prop: 'activityCount',
       order: 'descending',
@@ -26,6 +26,10 @@ export default () => ({
       include: true,
     },
   } as Filter,
+  pagination: {
+    page: 1,
+    perPage: 20,
+  },
   savedFilterBody: {},
   conversations: [],
   totalConversations: 0,
