@@ -23,7 +23,7 @@
         >
           <template #dropdownItems>
             <el-dropdown-item
-              v-if="activity.platform === 'other'"
+              v-if="activity.platform === 'other' && !disableEdit"
               :command="editActivity"
             >
               <i class="ri-pencil-line text-gray-400 mr-1" />
@@ -76,6 +76,10 @@ const props = defineProps({
   organizations: {
     type: Array,
     default: () => [],
+  },
+  disableEdit: {
+    type: Boolean,
+    default: false,
   },
 });
 

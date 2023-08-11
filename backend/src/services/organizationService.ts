@@ -130,8 +130,9 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+  async update(id, data, passedTransaction?) {
+    const transaction =
+      passedTransaction || (await SequelizeRepository.createTransaction(this.options))
 
     try {
       if (data.members) {
@@ -146,7 +147,9 @@ export default class OrganizationService extends LoggerBase {
         transaction,
       })
 
-      await SequelizeRepository.commitTransaction(transaction)
+      if (!passedTransaction) {
+        await SequelizeRepository.commitTransaction(transaction)
+      }
 
       return record
     } catch (error) {

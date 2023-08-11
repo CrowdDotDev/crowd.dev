@@ -53,3 +53,13 @@ export interface IMember {
   username: any
   lastActivity: unknown
 }
+
+export interface IMemberSyncRemoteData {
+  id?: string
+  memberId: string
+  sourceId?: string
+  integrationId: string
+  syncFrom: string
+  metaData: string
+  lastSyncedAt?: string
+}

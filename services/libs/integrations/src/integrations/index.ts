@@ -32,6 +32,7 @@ export * from './premium/hubspot/api/types'
 export * from './premium/hubspot/field-mapper/mapperFactory'
 export { getProperties as getHubspotProperties } from './premium/hubspot/api/properties'
 export { getTokenInfo as getHubspotTokenInfo } from './premium/hubspot/api/tokenInfo'
+export { getLists as getHubspotLists } from './premium/hubspot/api/lists'
 
 export * from './reddit/grid'
 export * from './reddit/types'

@@ -67,7 +67,7 @@
           v-for="activity in activities"
           :key="activity.id"
         >
-          <div>
+          <div class="-mt-1.5">
             <app-member-display-name
               v-if="entityType === 'organization'"
               :member="activity.member"
@@ -111,6 +111,7 @@
                   :show-affiliations="true"
                   :activity="activity"
                   :organizations="entity.organizations"
+                  :disable-edit="true"
                   @on-update="fetchActivities({ reset: true })"
                 />
               </div>
@@ -215,9 +216,9 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -254,7 +255,7 @@ const activeIntegrations = computed(() => {
 const loading = ref(true);
 const platform = ref(null);
 const query = ref('');
-const activities = reactive([]);
+const activities = ref([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);

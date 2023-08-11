@@ -102,7 +102,7 @@ const slackConnectUrl = computed(() => {
 
   return `${config.backendUrl}/tenant/${
     currentTenant.value.id
-  }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
+  }/automation/config?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
 });
 
 const authenticateSlack = () => {

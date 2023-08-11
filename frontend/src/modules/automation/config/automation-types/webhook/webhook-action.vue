@@ -7,6 +7,7 @@
       :validation="$v.url"
       :error-messages="{
         required: 'This field is required',
+        url: 'This is not a valid url',
       }"
     >
       <el-input
@@ -25,7 +26,7 @@ import {
   computed, defineEmits, defineProps, onMounted,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
-import { required } from '@vuelidate/validators';
+import { required, url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const emit = defineEmits(['update:modelValue']);
@@ -53,6 +54,7 @@ const form = computed({
 const rules = {
   url: {
     required,
+    url,
   },
 };
 

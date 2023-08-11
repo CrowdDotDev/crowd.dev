@@ -4,6 +4,7 @@ import {
   MemberAttributeType,
   OpenSearchIndex,
   PlatformType,
+  SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
@@ -45,6 +46,7 @@ import {
 } from './types/memberTypes'
 import Error400 from '../../errors/Error400'
 import OrganizationRepository from './organizationRepository'
+import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 
 const { Op } = Sequelize
 
@@ -626,6 +628,11 @@ class MemberRepository {
 
     if (!record) {
       throw new Error404()
+    }
+
+    // exclude syncRemote attributes, since these are populated from memberSyncRemote table
+    if (data.attributes?.syncRemote) {
+      delete data.attributes.syncRemote
     }
 
     record = await record.update(
@@ -3214,6 +3221,21 @@ class MemberRepository {
     output.identities = Object.keys(output.username)
 
     output.affiliations = await this.getAffiliations(record.id, options)
+
+    const manualSyncRemote = await new MemberSyncRemoteRepository({
+      ...options,
+      transaction,
+    }).findMemberManualSync(record.id)
+
+    for (const syncRemote of manualSyncRemote) {
+      if (output.attributes?.syncRemote) {
+        output.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
+      } else {
+        output.attributes.syncRemote = {
+          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
+        }
+      }
+    }
 
     return output
   }
