@@ -16,7 +16,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="activity.platform === 'other'"
+          v-if="activity.platform === 'other' && !disableEdit"
           :command="editActivity"
         >
           <i class="ri-pencil-line text-gray-400 mr-1" />
@@ -58,6 +58,10 @@ export default {
     activity: {
       type: Object,
       default: () => {},
+    },
+    disableEdit: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['activity-destroyed', 'edit'],

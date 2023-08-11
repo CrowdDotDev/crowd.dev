@@ -1,28 +1,16 @@
 <template>
-  <div>
+  <div class="mt-10">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
         Organizations
       </div>
-      <router-link
-        :to="{
-          name: 'memberEdit',
-          params: {
-            id: member.id,
-          },
-        }"
-        :class="{
-          'pointer-events-none cursor-not-allowed':
-            isEditLockedForSampleData,
-        }"
+      <el-button
+        class="btn btn-link btn-link--primary"
+        :disabled="isEditLockedForSampleData"
+        @click="isOrganizationDrawerOpen = true"
       >
-        <el-button
-          class="btn btn-link btn-link--primary"
-          :disabled="isEditLockedForSampleData"
-        >
-          <i class="ri-pencil-line" /><span>Edit</span>
-        </el-button>
-      </router-link>
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
 
     <div
@@ -100,20 +88,20 @@
       No organizations
     </div>
   </div>
+  <app-member-form-organizations-drawer v-if="member && isOrganizationDrawerOpen" v-model="isOrganizationDrawerOpen" :member="member" />
 </template>
 
 <script setup lang="ts">
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import moment from 'moment';
+import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/member-form-organizations-drawer.vue';
+import { Member } from '@/modules/member/types/Member';
 
-defineProps({
-  member: {
-    type: Object,
-    default: () => {},
-  },
-});
+defineProps<{
+  member: Member
+}>();
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
@@ -121,6 +109,8 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
   currentUser.value,
 ).editLockedForSampleData);
+
+const isOrganizationDrawerOpen = ref<boolean>(false);
 
 const hasValues = (organizations) => Object.values(organizations || {}).some((v) => !!v);
 </script>
