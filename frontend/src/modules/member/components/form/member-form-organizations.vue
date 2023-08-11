@@ -74,6 +74,7 @@
     v-if="isOrganizationFormModalOpen"
     v-model="isOrganizationFormModalOpen"
     :organization="editOrganization !== null ? organizations[editOrganization] : null"
+    @update:model-value="!$event ? editOrganization = null : null"
     @add="organizations.push($event)"
     @edit="update($event)"
   />
@@ -81,7 +82,7 @@
 
 <script setup lang="ts">
 import {
-  computed, reactive, ref, watch,
+  computed, ref,
 } from 'vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { Member } from '@/modules/member/types/Member';
