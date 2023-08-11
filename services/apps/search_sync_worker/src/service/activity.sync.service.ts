@@ -3,7 +3,6 @@ import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { OpenSearchService } from './opensearch.service'
 import { ActivityRepository } from '@/repo/activity.repo'
 import { OpenSearchIndex } from '@/types'
-import { timeout } from '@crowd/common'
 import { IDbActivitySyncData } from '@/repo/activity.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 

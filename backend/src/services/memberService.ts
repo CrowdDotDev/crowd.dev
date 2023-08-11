@@ -954,7 +954,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id, true)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 
@@ -981,7 +981,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id, true)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 
