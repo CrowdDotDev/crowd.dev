@@ -23,7 +23,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog, true)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

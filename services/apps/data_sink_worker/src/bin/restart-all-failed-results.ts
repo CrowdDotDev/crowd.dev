@@ -1,20 +1,14 @@
 import { DB_CONFIG, SQS_CONFIG } from '@/conf'
 import DataSinkRepository from '@/repo/dataSink.repo'
+import { partition } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { DataSinkWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
 
+const batchSize = 500
+
 const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: runId')
-  process.exit(1)
-}
-
-const runId = processArguments[0]
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
@@ -25,18 +19,28 @@ setImmediate(async () => {
   const store = new DbStore(log, dbConnection)
 
   const repo = new DataSinkRepository(store, log)
+  let count = 0
 
-  let results = await repo.getFailedResultsForRun(runId, 1, 20)
+  let results = await repo.getFailedResults(1, batchSize)
   while (results.length > 0) {
     await repo.resetResults(results.map((r) => r.id))
 
-    for (const result of results) {
-      await emitter.sendMessage(
-        `results-${result.tenantId}-${result.platform}`,
-        new ProcessIntegrationResultQueueMessage(result.id),
-      )
+    const messages = results.map((r) => {
+      return {
+        payload: new ProcessIntegrationResultQueueMessage(r.id),
+        groupId: r.id,
+        deduplicationId: r.id,
+      }
+    })
+
+    const batches = partition(messages, 10)
+    for (const batch of batches) {
+      await emitter.sendMessages(batch)
     }
 
-    results = await repo.getFailedResultsForRun(runId, 1, 20)
+    count += results.length
+    log.info(`Restarted total of ${count} failed results.`)
+
+    results = await repo.getFailedResults(1, batchSize)
   }
 })

@@ -10,10 +10,6 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
   }
 
   public async triggerResultProcessing(tenantId: string, platform: string, resultId: string) {
-    await this.sendMessage(
-      `results-${tenantId}-${platform}`,
-      new ProcessIntegrationResultQueueMessage(resultId),
-      resultId,
-    )
+    await this.sendMessage(resultId, new ProcessIntegrationResultQueueMessage(resultId), resultId)
   }
 }
