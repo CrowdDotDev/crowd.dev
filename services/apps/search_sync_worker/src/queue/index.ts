@@ -2,7 +2,7 @@ import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
 import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
-import { BatchProcessor } from '@crowd/common'
+import { BatchProcessor, groupBy } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -13,7 +13,10 @@ import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
-  private readonly organizationBatchProcessor: BatchProcessor<string>
+  private readonly organizationBatchProcessor: BatchProcessor<{
+    tenantId: string
+    organizationId: string
+  }>
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -60,9 +63,15 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     this.organizationBatchProcessor = new BatchProcessor(
       5,
       30,
-      async (organizationIds) => {
-        this.log.info({ batchSize: organizationIds.length }, 'Processing batch of organizations!')
-        await this.initOrganizationService().syncOrganizations(organizationIds)
+      async (data) => {
+        this.log.info({ batchSize: data.length }, 'Processing batch of organizations!')
+        const grouped = groupBy(data, (x) => x.tenantId)
+        for (const tenantId of Array.from(grouped.keys())) {
+          await this.initOrganizationService().syncOrganizations(
+            tenantId,
+            grouped.get(tenantId).map((x) => x.organizationId),
+          )
+        }
       },
       async (organizationIds, err) => {
         this.log.error(err, { organizationIds }, 'Error while processing batch of organizations!')

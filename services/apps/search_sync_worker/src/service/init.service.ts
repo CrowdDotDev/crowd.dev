@@ -72,7 +72,7 @@ export class InitService extends LoggerBase {
       identities: ['devto:fakeorg'],
     }
 
-    const prepared = OrganizationSyncService.prefixData(fakeOrg, [])
+    const prepared = OrganizationSyncService.prefixData(fakeOrg)
     await this.openSearchService.index(
       `${InitService.FAKE_ORGANIZATION_ID}-${InitService.FAKE_SEGMENT_ID}`,
       OpenSearchIndex.ORGANIZATIONS,
@@ -116,6 +116,11 @@ export class InitService extends LoggerBase {
           id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',
           logo: 'https://placehold.co/400',
           displayName: 'Test Organization',
+          memberOrganizations: {
+            title: 'blabla',
+            dateStart: new Date().toISOString(),
+            dateEnd: new Date().toISOString(),
+          },
         },
       ],
       tags: [
