@@ -64,7 +64,7 @@ export default abstract class FieldTranslator {
       const crowdKey = this.opensearchToCrowd(key)
       if (crowdKey) {
         const modelField = this.model.getField(crowdKey)
-        if (!modelField.preventNestedFieldTranslation) {
+        if (!modelField || !modelField.preventNestedFieldTranslation) {
           translated[crowdKey] = this.translateObjectToCrowd(object[key])
         } else {
           translated[crowdKey] = object[key]

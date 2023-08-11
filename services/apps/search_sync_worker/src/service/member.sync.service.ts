@@ -552,9 +552,9 @@ export class MemberSyncService extends LoggerBase {
         string_logo: organization.logo,
         string_displayName: organization.displayName,
         obj_memberOrganizations: {
-          string_title: organization.memberOrganizations.title,
-          date_dateStart: organization.memberOrganizations.dateStart,
-          date_dateEnd: organization.memberOrganizations.dateEnd,
+          string_title: organization.memberOrganizations?.title || null,
+          date_dateStart: organization.memberOrganizations?.dateStart || null,
+          date_dateEnd: organization.memberOrganizations?.dateEnd || null,
         },
       })
     }
