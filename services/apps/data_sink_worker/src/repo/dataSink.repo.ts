@@ -132,8 +132,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return results
   }
 
-  public async get
-
   public async resetResults(resultIds: string[]): Promise<void> {
     const result = await this.db().result(
       `update integration.results
