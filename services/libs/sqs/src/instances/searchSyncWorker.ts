@@ -7,7 +7,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     super(client, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
-  public async triggerMemberSync(tenantId: string, memberId: string, force = false) {
+  public async triggerMemberSync(tenantId: string, memberId: string) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -15,21 +15,14 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('memberId is required!')
     }
 
-    if (force) {
-      await this.sendMessage(new Date().getTime().toString(), {
+    await this.sendMessage(
+      memberId,
+      {
         type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
         memberId,
-      })
-    } else {
-      await this.sendMessage(
-        `search-sync-${tenantId}`,
-        {
-          type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
-          memberId,
-        },
-        `member-sync-${memberId}`,
-      )
-    }
+      },
+      memberId,
+    )
   }
 
   public async triggerTenantMembersSync(tenantId: string) {
@@ -42,7 +35,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
-  public async triggerRemoveMember(tenantId: string, memberId: string, force = false) {
+  public async triggerRemoveMember(tenantId: string, memberId: string) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -50,17 +43,10 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('memberId is required!')
     }
 
-    if (force) {
-      await this.sendMessage(new Date().getTime().toString(), {
-        type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
-        memberId,
-      })
-    } else {
-      await this.sendMessage(`search-sync-${tenantId}`, {
-        type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
-        memberId,
-      })
-    }
+    await this.sendMessage(memberId, {
+      type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
+      memberId,
+    })
   }
 
   public async triggerMemberCleanup(tenantId: string) {
@@ -73,7 +59,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
-  public async triggerActivitySync(tenantId: string, activityId: string, force = false) {
+  public async triggerActivitySync(tenantId: string, activityId: string) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -81,21 +67,14 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('activityId is required!')
     }
 
-    if (force) {
-      await this.sendMessage(new Date().getTime().toString(), {
+    await this.sendMessage(
+      activityId,
+      {
         type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
         activityId,
-      })
-    } else {
-      await this.sendMessage(
-        `search-sync-${tenantId}`,
-        {
-          type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
-          activityId,
-        },
-        `activity-sync-${activityId}`,
-      )
-    }
+      },
+      activityId,
+    )
   }
 
   public async triggerTenantActivitiesSync(tenantId: string) {
@@ -108,7 +87,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
-  public async triggerRemoveActivity(tenantId: string, activityId: string, force = false) {
+  public async triggerRemoveActivity(tenantId: string, activityId: string) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -116,17 +95,10 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('activityId is required!')
     }
 
-    if (force) {
-      await this.sendMessage(new Date().getTime().toString(), {
-        type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
-        activityId,
-      })
-    } else {
-      await this.sendMessage(`search-sync-${tenantId}`, {
-        type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
-        activityId,
-      })
-    }
+    await this.sendMessage(activityId, {
+      type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
+      activityId,
+    })
   }
 
   public async triggerActivityCleanup(tenantId: string) {

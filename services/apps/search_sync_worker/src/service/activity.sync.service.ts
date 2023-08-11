@@ -152,22 +152,7 @@ export class ActivitySyncService extends LoggerBase {
         )
 
         while (activityIds.length > 0) {
-          const activities = await this.activityRepo.getActivityData(activityIds)
-
-          if (activities.length > 0) {
-            await this.openSearchService.bulkIndex(
-              OpenSearchIndex.ACTIVITIES,
-              activities.map((m) => {
-                return {
-                  id: m.id,
-                  body: ActivitySyncService.prefixData(m),
-                }
-              }),
-            )
-            count += activities.length
-          }
-
-          await this.activityRepo.markSynced(activities.map((m) => m.id))
+          count += await this.syncActivities(activityIds)
 
           this.log.info({ tenantId }, `Synced ${count} activities!`)
           activityIds = await this.activityRepo.getTenantActivitiesForSync(
@@ -190,31 +175,26 @@ export class ActivitySyncService extends LoggerBase {
     await this.openSearchService.removeFromIndex(activityId, OpenSearchIndex.ACTIVITIES)
   }
 
-  public async syncActivity(activityId: string, retries = 0): Promise<void> {
-    this.log.debug({ activityId }, 'Syncing activity!')
+  public async syncActivities(activityIds: string[]): Promise<number> {
+    this.log.debug({ activityIds }, 'Syncing activities!')
 
-    const activities = await this.activityRepo.getActivityData([activityId])
+    const activities = await this.activityRepo.getActivityData(activityIds)
 
     if (activities.length > 0) {
-      if (activities.length > 1) {
-        this.log.error({ activityId }, 'More than one activity found!')
-        throw new Error(`More than one activity found for id ${activityId}!`)
-      }
+      await this.openSearchService.bulkIndex(
+        OpenSearchIndex.ACTIVITIES,
+        activities.map((m) => {
+          return {
+            id: m.id,
+            body: ActivitySyncService.prefixData(m),
+          }
+        }),
+      )
 
-      const activity = activities[0]
-
-      const prepared = ActivitySyncService.prefixData(activity)
-      await this.openSearchService.index(activityId, OpenSearchIndex.ACTIVITIES, prepared)
-    } else {
-      // we should retry - sometimes database is slow
-      if (retries < 5) {
-        await timeout(100)
-        await this.syncActivity(activityId, ++retries)
-      } else {
-        this.log.error({ activityId }, 'Activity not found after 5 retries! Removing from index!')
-        await this.openSearchService.removeFromIndex(activityId, OpenSearchIndex.ACTIVITIES)
-      }
+      await this.activityRepo.markSynced(activities.map((m) => m.id))
     }
+
+    return activities.length
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
