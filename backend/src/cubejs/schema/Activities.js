@@ -60,7 +60,9 @@ cube(`Activities`, {
       granularity: `day`,
       partition_granularity: `month`,
       refreshKey: {
-        sql: `SELECT MAX("updatedAt") FROM public.activities WHERE ${FILTER_PARAMS.Activities.date.filter("timestamp")}`,
+        sql: `SELECT MAX("updatedAt") FROM public.activities WHERE ${FILTER_PARAMS.Activities.date.filter(
+          'timestamp',
+        )}`,
         every: `30 minute`,
       },
     },
@@ -82,7 +84,9 @@ cube(`Activities`, {
       granularity: `day`,
       partition_granularity: `month`,
       refreshKey: {
-        sql: `SELECT MAX("updatedAt") FROM public.activities WHERE ${FILTER_PARAMS.Activities.date.filter("timestamp")}`,
+        sql: `SELECT MAX("updatedAt") FROM public.activities WHERE ${FILTER_PARAMS.Activities.date.filter(
+          'timestamp',
+        )}`,
         every: `30 minute`,
       },
     },
