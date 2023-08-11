@@ -464,6 +464,9 @@ class OrganizationRepository {
       }
     }
 
+    // compatibility issue
+    delete result.searchSyncedAt
+
     return result
   }
 
