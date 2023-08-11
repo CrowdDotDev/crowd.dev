@@ -43,6 +43,7 @@ export default {
         sm: '2.5rem',
         xs: '2rem',
         xxs: '1.25rem',
+        xxxs: '1rem',
       },
     };
   },

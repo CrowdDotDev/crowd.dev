@@ -65,7 +65,7 @@
           v-for="activity in activities"
           :key="activity.id"
         >
-          <div>
+          <div class="-mt-1.5">
             <app-member-display-name
               v-if="entityType === 'organization'"
               :member="activity.member"
@@ -83,6 +83,12 @@
               <app-activity-sentiment
                 v-if="activity.sentiment.sentiment"
                 :sentiment="activity.sentiment.sentiment"
+              />
+              <div class="flex-grow" />
+              <app-activity-dropdown
+                :activity="activity"
+                :disable-edit="true"
+                @activity-destroyed="fetchActivities(true)"
               />
             </div>
             <app-activity-content
@@ -175,6 +181,7 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -205,14 +212,18 @@ const activeIntegrations = computed(() => {
 const loading = ref(true);
 const platform = ref(null);
 const query = ref('');
-const activities = reactive([]);
+const activities = ref([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
 
 let filter = {};
 
-const fetchActivities = async () => {
+const fetchActivities = async (reload = false) => {
+  if (reload) {
+    offset.value = 0;
+  }
+
   const filterToApply = {
     platform: platform.value ?? undefined,
   };
@@ -261,7 +272,7 @@ const fetchActivities = async () => {
   }
 
   if (!isEqual(filter, filterToApply)) {
-    activities.length = 0;
+    activities.value.length = 0;
     offset.value = 0;
     noMore.value = false;
   }
@@ -295,10 +306,13 @@ const fetchActivities = async () => {
   loading.value = false;
   if (data.rows.length < limit.value) {
     noMore.value = true;
-    activities.push(...data.rows);
   } else {
     offset.value += limit.value;
-    activities.push(...data.rows);
+  }
+  if (reload) {
+    activities.value = data.rows;
+  } else {
+    activities.value.push(...data.rows);
   }
 };
 
