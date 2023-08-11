@@ -591,9 +591,7 @@ class OrganizationRepository {
 
     const segment = segments[0]
 
-    const translator = FieldTranslatorFactory.getTranslator(
-      OpenSearchIndex.ORGANIZATIONS,
-    )
+    const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
 
     const parsed = OpensearchQueryParser.parse(
       { filter, limit, offset, orderBy },

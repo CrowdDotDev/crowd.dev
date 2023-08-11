@@ -551,6 +551,11 @@ export class MemberSyncService extends LoggerBase {
         uuid_id: organization.id,
         string_logo: organization.logo,
         string_displayName: organization.displayName,
+        obj_memberOrganizations: {
+          string_title: organization.memberOrganizations.title,
+          date_dateStart: organization.memberOrganizations.dateStart,
+          date_dateEnd: organization.memberOrganizations.dateEnd,
+        },
       })
     }
     p.obj_arr_organizations = p_organizations

@@ -12,6 +12,11 @@ export interface IDbMemberOrganization {
   id: string
   logo: string | null
   displayName: string | null
+  memberOrganizations: {
+    title: string
+    dateStart: string
+    dateEnd: string
+  }
 }
 
 export interface IDbMemberSyncData {

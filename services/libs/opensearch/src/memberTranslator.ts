@@ -51,6 +51,10 @@ export default class MemberTranslator extends FieldTranslator {
 
     // organizations
     this.translations.logo = 'string_logo'
+    this.translations.memberOrganizations = 'obj_memberOrganizations'
+    this.translations.title = 'string_title'
+    this.translations.dateStart = 'date_dateStart'
+    this.translations.dateEnd = 'date_dateEnd'
 
     // identities
     this.translations.platform = 'string_platform'
