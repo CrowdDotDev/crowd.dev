@@ -1,5 +1,6 @@
 import sharedGetters from '@/shared/store/getters';
 import { router } from '@/router';
+import moment from 'moment';
 
 export default {
   ...sharedGetters(),
@@ -67,11 +68,19 @@ export default {
     );
   },
 
+  showOrganizationsAlertBanner: () => {
+    const today = moment();
+    const limit = moment('2023-08-15').endOf('day');
+
+    return today.isSameOrBefore(limit, 'day');
+  },
+
   showBanner: (_state, getters) => (
     getters.showSampleDataAlert
       || getters.showIntegrationsErrorAlert
       || getters.showIntegrationsNoDataAlert
       || getters.showIntegrationsInProgressAlert
       || getters.showIntegrationsNeedReconnectAlert
+      || getters.showOrganizationsAlertBanner
   ),
 };

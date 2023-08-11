@@ -114,6 +114,32 @@
       }
     }
   }
+
+  .el-month-table{
+    .cell:hover{
+      @apply bg-brand-100 #{!important};
+    }
+
+    .in-range {
+      &>div{
+        @apply bg-brand-50 #{!important};
+      }
+
+      .el-date-table-cell, .cell{
+        @apply bg-brand-50 text-gray-900 rounded;
+      }
+
+      &.start-date, &.end-date{
+        &>div{
+          @apply bg-brand-500 #{!important};
+        }
+
+        .el-date-table-cell, .cell{
+          @apply bg-brand-500 text-white rounded #{!important};
+        }
+      }
+    }
+  }
 }
 
 // Input
@@ -124,6 +150,20 @@
     & .el-icon {
       @apply m-0;
     }
+  }
+}
+// Input
+.custom-date-range-picker {
+  @apply h-10 #{!important};
+
+  &.is-active{
+    box-shadow: none;
+    @apply border-gray-900;
+  }
+
+
+  .el-icon{
+    @apply hidden;
   }
 }
 
