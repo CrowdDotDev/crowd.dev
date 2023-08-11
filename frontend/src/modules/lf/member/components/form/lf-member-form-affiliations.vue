@@ -120,16 +120,32 @@
             </div>
           </div>
         </div>
+        <div class="mt-5">
+          <el-button
+            class="btn btn-link btn-link--primary"
+            :disabled="!availableSubprojects.length"
+            @click="isSubProjectsModalOpen = true"
+          >
+            + Add sub-project
+          </el-button>
+        </div>
       </div>
     </div>
   </div>
+  <app-lf-member-form-subprojects-modal
+    v-if="isSubProjectsModalOpen"
+    v-model="isSubProjectsModalOpen"
+    :subprojects="availableSubprojects"
+    @on-submit="onSubProjectSelection"
+  />
 </template>
 
 <script setup>
 import {
-  computed,
+  computed, ref,
 } from 'vue';
 import moment from 'moment';
+import AppLfMemberFormSubprojectsModal from '@/modules/lf/member/components/form/lf-member-form-subprojects-modal.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -142,6 +158,12 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const isSubProjectsModalOpen = ref(false);
+
+const availableSubprojects = computed(() => props.record.segments.filter(
+  (segment) => !affiliationsList.value.some((affiliation) => affiliation.segmentId === segment.id),
+));
 
 const affiliationsList = computed({
   get() {
@@ -168,11 +190,23 @@ const availableOrganizations = computed(() => [
 
 const getOrganization = (id) => availableOrganizations.value.find((organization) => organization.id === id);
 
-const addOrganization = (affilation) => {
+const addOrganization = (affiliation) => {
   affiliationsList.value.push({
     segmentId: affiliation.segmentId,
     segmentName: affiliation.segmentName,
     segmentParentName: affiliation.segmentParentName,
+    organizationId: null,
+    dateStart: '',
+    dateEnd: '',
+  });
+};
+
+const onSubProjectSelection = (subproject) => {
+  isSubProjectsModalOpen.value = false;
+  affiliationsList.value.push({
+    segmentId: subproject.id,
+    segmentName: subproject.name,
+    segmentParentName: subproject.parentName,
     organizationId: null,
     dateStart: '',
     dateEnd: '',
