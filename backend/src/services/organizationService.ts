@@ -122,11 +122,7 @@ export default class OrganizationService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerOrganizationSync(
-        this.options.currentTenant.id,
-        record.id,
-        true,
-      )
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
 
       return record
     } catch (error) {
@@ -160,11 +156,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerOrganizationSync(
-        this.options.currentTenant.id,
-        record.id,
-        true,
-      )
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
 
       return record
     } catch (error) {
@@ -196,7 +188,7 @@ export default class OrganizationService extends LoggerBase {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
       for (const id of ids) {
-        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id, true)
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -248,7 +240,7 @@ export default class OrganizationService extends LoggerBase {
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
       for (const id of ids) {
-        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id, true)
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
