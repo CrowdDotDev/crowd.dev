@@ -1,5 +1,7 @@
 import lodash from 'lodash'
-import { SyncStatus } from '@crowd/types'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { PageData } from '@crowd/common'
+import { OpenSearchIndex, SyncStatus } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -9,6 +11,8 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { FeatureFlag } from '@/types/common'
 
 const { Op } = Sequelize
 
@@ -460,6 +464,9 @@ class OrganizationRepository {
       }
     }
 
+    // compatibility issue
+    delete result.searchSyncedAt
+
     return result
   }
 
@@ -567,6 +574,87 @@ class OrganizationRepository {
       },
       transaction,
     })
+  }
+
+  static async findAndCountAllOpensearch(
+    {
+      filter = {} as any,
+      limit = 20,
+      offset = 0,
+      orderBy = 'joinedAt_DESC',
+      countOnly = false,
+      segments = [] as string[],
+      customSortFunction = undefined,
+    },
+    options: IRepositoryOptions,
+  ): Promise<PageData<any>> {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+
+    const segment = segments[0]
+
+    const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
+
+    const parsed = OpensearchQueryParser.parse(
+      { filter, limit, offset, orderBy },
+      OpenSearchIndex.ORGANIZATIONS,
+      translator,
+    )
+
+    // add tenant filter to parsed query
+    parsed.query.bool.must.push({
+      term: {
+        uuid_tenantId: tenant.id,
+      },
+    })
+
+    if (segmentsEnabled) {
+      // add segment filter
+      parsed.query.bool.must.push({
+        term: {
+          uuid_segmentId: segment,
+        },
+      })
+    }
+
+    // exclude empty filters if any
+    parsed.query.bool.must = parsed.query.bool.must.filter((obj) => {
+      // Check if the object has a non-empty 'term' property
+      if (obj.term) {
+        return Object.keys(obj.term).length !== 0
+      }
+      return true
+    })
+
+    if (customSortFunction) {
+      parsed.sort = customSortFunction
+    }
+
+    const countResponse = await options.opensearch.count({
+      index: OpenSearchIndex.ORGANIZATIONS,
+      body: { query: parsed.query },
+    })
+
+    if (countOnly) {
+      return {
+        rows: [],
+        count: countResponse.body.count,
+        limit,
+        offset,
+      }
+    }
+
+    const response = await options.opensearch.search({
+      index: OpenSearchIndex.ORGANIZATIONS,
+      body: parsed,
+    })
+
+    const translatedRows = response.body.hits.hits.map((o) =>
+      translator.translateObjectToCrowd(o._source),
+    )
+
+    return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 
   static async findAndCountAll(

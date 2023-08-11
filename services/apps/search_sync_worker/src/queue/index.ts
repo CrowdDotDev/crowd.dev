@@ -1,7 +1,8 @@
 import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
 import { OpenSearchService } from '@/service/opensearch.service'
-import { BatchProcessor } from '@crowd/common'
+import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { BatchProcessor, groupBy } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -12,6 +13,10 @@ import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
+  private readonly organizationBatchProcessor: BatchProcessor<{
+    tenantId: string
+    organizationId: string
+  }>
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -54,6 +59,24 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         this.log.error(err, { activityIds }, 'Error while processing batch of activities!')
       },
     )
+
+    this.organizationBatchProcessor = new BatchProcessor(
+      5,
+      30,
+      async (data) => {
+        this.log.info({ batchSize: data.length }, 'Processing batch of organizations!')
+        const grouped = groupBy(data, (x) => x.tenantId)
+        for (const tenantId of Array.from(grouped.keys())) {
+          await this.initOrganizationService().syncOrganizations(
+            tenantId,
+            grouped.get(tenantId).map((x) => x.organizationId),
+          )
+        }
+      },
+      async (organizationIds, err) => {
+        this.log.error(err, { organizationIds }, 'Error while processing batch of organizations!')
+      },
+    )
   }
 
   private initMemberService(): MemberSyncService {
@@ -67,6 +90,14 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
   private initActivityService(): ActivitySyncService {
     return new ActivitySyncService(
+      new DbStore(this.log, this.dbConn),
+      this.openSearchService,
+      this.log,
+    )
+  }
+
+  private initOrganizationService(): OrganizationSyncService {
+    return new OrganizationSyncService(
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
@@ -135,6 +166,32 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
           if (data.activityId) {
             await this.initActivityService().removeActivity(data.activityId)
+          }
+          break
+
+        // organizations
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
+          if (data.organizationId && data.tenantId) {
+            await this.organizationBatchProcessor.addToBatch(data.organizationId)
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .syncTenantOrganizations(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .cleanupOrganizationIndex(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while cleaning up tenant organizations!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
+          if (data.organizationId) {
+            await this.initOrganizationService().removeOrganization(data.organizationId)
           }
           break
 
