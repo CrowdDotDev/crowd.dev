@@ -37,10 +37,9 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const affiliationInsertResult = await this.options.database.sequelize.query(
-      `INSERT INTO "memberSegmentAffiliations" ("id", "memberId", "segmentId", "organizationId")
+      `INSERT INTO "memberSegmentAffiliations" ("id", "memberId", "segmentId", "organizationId", "dateStart", "dateEnd")
           VALUES
-              (:id, :memberId, :segmentId, :organizationId)
-          ON CONFLICT ("memberId", "segmentId" ) DO UPDATE SET "organizationId" = :organizationId
+              (:id, :memberId, :segmentId, :organizationId, :dateStart, :dateEnd)
           RETURNING "id"
         `,
       {
@@ -49,6 +48,8 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
           memberId: data.memberId,
           segmentId: data.segmentId,
           organizationId: data.organizationId,
+          dateStart: data.dateStart || null,
+          dateEnd: data.dateEnd || null,
         },
         type: QueryTypes.INSERT,
         transaction,

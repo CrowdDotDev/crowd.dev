@@ -2905,6 +2905,7 @@ describe('ActivityService tests', () => {
           memberId: member.id,
           segmentId: options.currentSegments[0].id,
           organizationId: org2.id,
+          dateStart: '2020-02-01',
         })
 
         const activity = await createActivity(member.id)
@@ -2924,6 +2925,7 @@ describe('ActivityService tests', () => {
           memberId: member.id,
           segmentId: options.currentSegments[0].id,
           organizationId: null,
+          dateStart: '2020-02-01',
         })
 
         const activity = await createActivity(member.id)
@@ -2949,7 +2951,7 @@ describe('ActivityService tests', () => {
     })
 
     describe('existing activities', () => {
-      it('Should not change affiliation if there are no relevant manual affiliations', async () => {
+      it('Should clear affiliation if there is a manual individual affiliation', async () => {
         const member = await createMember()
         const org1 = await createOrg('org1')
         const segment1 = await createSegment('segment1')
@@ -2968,7 +2970,7 @@ describe('ActivityService tests', () => {
 
         activity = await findActivity(activity.id)
 
-        expect(activity.organization.id).toBe(org1.id)
+        expect(activity.organization).toBeNull()
       })
 
       it('Should affiliate activities', async () => {
