@@ -200,7 +200,6 @@ import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
   computed,
-  reactive,
   ref,
   h,
   onMounted,
@@ -251,6 +250,8 @@ const activeIntegrations = computed(() => {
     label: CrowdIntegrations.getConfig(i).name,
   }));
 });
+
+const isMemberIdentity = computed(() => props.entityType === 'member');
 
 const loading = ref(true);
 const platform = ref(null);
@@ -321,7 +322,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   }
 
   if (!isEqual(filter, filterToApply) || reset) {
-    activities.length = 0;
+    activities.value.length = 0;
     offset.value = 0;
     noMore.value = false;
   }
@@ -356,10 +357,10 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   loading.value = false;
   if (data.rows.length < limit.value) {
     noMore.value = true;
-    activities.push(...data.rows);
+    activities.value.push(...data.rows);
   } else {
     offset.value += limit.value;
-    activities.push(...data.rows);
+    activities.value.push(...data.rows);
   }
 };
 

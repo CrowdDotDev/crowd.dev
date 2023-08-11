@@ -1,13 +1,18 @@
 import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
 import { OpenSearchService } from '@/service/opensearch.service'
+import { BatchProcessor } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class WorkerQueueReceiver extends SqsQueueReceiver {
+  private readonly memberBatchProcessor: BatchProcessor<string>
+  private readonly activityBatchProcessor: BatchProcessor<string>
+
   constructor(
     private readonly redisClient: RedisClient,
     client: SqsClient,
@@ -16,7 +21,39 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(
+      client,
+      SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
+      maxConcurrentProcessing,
+      parentLog,
+      true,
+      5 * 60,
+      10,
+    )
+
+    this.memberBatchProcessor = new BatchProcessor(
+      20,
+      30,
+      async (memberIds) => {
+        this.log.info({ batchSize: memberIds.length }, 'Processing batch of members!')
+        await this.initMemberService().syncMembers(memberIds)
+      },
+      async (memberIds, err) => {
+        this.log.error(err, { memberIds }, 'Error while processing batch of members!')
+      },
+    )
+
+    this.activityBatchProcessor = new BatchProcessor(
+      50,
+      30,
+      async (activityIds) => {
+        this.log.info({ batchSize: activityIds.length }, 'Processing batch of activities!')
+        await this.initActivityService().syncActivities(activityIds)
+      },
+      async (activityIds, err) => {
+        this.log.error(err, { activityIds }, 'Error while processing batch of activities!')
+      },
+    )
   }
 
   private initMemberService(): MemberSyncService {
@@ -41,14 +78,13 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
       const type = message.type as SearchSyncWorkerQueueMessageType
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = message as any
 
       switch (type) {
         // members
         case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
           if (data.memberId) {
-            await this.initMemberService().syncMember(data.memberId)
+            await this.memberBatchProcessor.addToBatch(data.memberId)
           }
 
           break
@@ -79,7 +115,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         // activities
         case SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY:
           if (data.activityId) {
-            await this.initActivityService().syncActivity(data.activityId)
+            await this.activityBatchProcessor.addToBatch(data.activityId)
           }
           break
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES:
