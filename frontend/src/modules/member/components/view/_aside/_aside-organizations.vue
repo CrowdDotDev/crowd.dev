@@ -77,19 +77,17 @@
             </div>
             <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
               <span v-if="memberOrganizations.title">{{ memberOrganizations.title }}</span>
-              <span v-if="memberOrganizations.dateStart || memberOrganizations.dateEnd">
-                <span v-if="memberOrganizations.title" class="mx-1">•</span>
-                <span>
-                  {{ memberOrganizations.dateStart
-                    ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
-                    : 'Unkown' }}
-                </span>
-                <span class="mx-1 whitespace-nowrap">-></span>
-                <span>
-                  {{ memberOrganizations.dateEnd
-                    ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
-                    : 'Present' }}
-                </span>
+              <span v-if="memberOrganizations.title" class="mx-1">•</span>
+              <span>
+                {{ memberOrganizations.dateStart
+                  ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
+                  : 'Unkown' }}
+              </span>
+              <span class="mx-1 whitespace-nowrap">-></span>
+              <span>
+                {{ memberOrganizations.dateEnd
+                  ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+                  : memberOrganizations.dateStart ? 'Present' : 'Unkown' }}
               </span>
             </div>
           </div>
@@ -122,5 +120,9 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentUser.value,
 ).editLockedForSampleData);
 
-const hasValues = (organizations) => Object.values(organizations || {}).some((v) => !!v);
+const hasValues = (organizations: {
+  title: string,
+  dateEnd: string,
+  dateStart: string
+}) => Object.values(organizations || {});
 </script>

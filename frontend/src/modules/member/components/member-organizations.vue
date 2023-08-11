@@ -57,7 +57,7 @@
   <div
     v-else-if="
       member.attributes.jobTitle?.default
-        || props.member.organizations?.length
+        || activeOrganization
     "
     class="flex items-start grow mt-2"
   >
@@ -114,24 +114,36 @@ const props = defineProps({
 });
 
 const activeOrganization = computed(() => {
-  if (!props.member.organizations?.length) {
+  const { organizations } = props.member;
+
+  // No active organization
+  if (!organizations?.length) {
     return null;
   }
 
-  return props.member.organizations.reduce((mostRecent, organization) => {
-    const mostRecentEndDate = new Date(mostRecent.memberOrganizations?.dateEnd);
-    const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
-    const organizationEndDate = new Date(organization.memberOrganizations?.dateEnd);
-    const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
-    const isEndDateNull = !mostRecent.memberOrganizations?.dateEnd;
+  // Only one organization that doesn't have either start or end date
+  // We assume it's the active organization
+  if (organizations.length === 1
+    && !organizations[0].memberOrganizations?.dateStart
+    && !organizations[0].memberOrganizations?.dateEnd) {
+    return organizations[0];
+  }
 
-    if ((organizationEndDate > mostRecentEndDate && !isEndDateNull)
-    || (organizationStartDate > mostRecentStartDate && isEndDateNull)) {
+  // Get all organizations that have a start date but not an end date (present)
+  const completeOrganizations = organizations
+    .filter((organization) => !!organization.memberOrganizations?.dateStart && !organization.memberOrganizations?.dateEnd);
+
+  // Return the most recent organization, comparing the startDate
+  return completeOrganizations.reduce((mostRecent, organization) => {
+    const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
+    const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
+
+    if (organizationStartDate > mostRecentStartDate) {
       return organization;
     }
 
     return mostRecent;
-  }, props.member.organizations[0]);
+  }, completeOrganizations.length ? completeOrganizations[0] : null);
 });
 </script>
 
