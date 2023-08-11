@@ -103,7 +103,12 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                                     json_build_object(
                                                             'id', o.id,
                                                             'logo', o.logo,
-                                                            'displayName', o."displayName"
+                                                            'displayName', o."displayName",
+                                                            'memberOrganizations', json_build_object(
+                                                                          'dateStart', mo."dateStart",
+                                                                          'dateEnd', mo."dateEnd",
+                                                                          'title', mo.title
+                                                            )
                                                         )
                                                 )           as all_organizations,
                                             jsonb_agg(o.id) as all_ids
