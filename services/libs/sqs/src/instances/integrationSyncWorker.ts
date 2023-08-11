@@ -15,13 +15,13 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      `integration-sync-marked-members-${tenantId}`,
+      integrationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_MEMBERS,
         tenantId,
         integrationId,
       },
-      `integration-sync-marked-members-${integrationId}`,
+      integrationId,
     )
   }
 
@@ -47,7 +47,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     }
 
     await this.sendMessage(
-      `integration-sync-member-${tenantId}`,
+      memberId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_MEMBER,
         tenantId,
@@ -55,7 +55,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
         memberId,
         syncRemoteId,
       },
-      `integration-sync-member-${memberId}`,
+      memberId,
     )
   }
 
@@ -75,7 +75,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      `integration-onboard-automation-${integrationId}-${tenantId}`,
+      automationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION,
         tenantId,
@@ -83,7 +83,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
         automationId,
         automationTrigger,
       },
-      `integration-onboard-automation-${automationId}`,
+      automationId,
     )
   }
 
@@ -98,13 +98,13 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      `integration-sync-marked-organizations-${tenantId}`,
+      integrationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS,
         tenantId,
         integrationId,
       },
-      `integration-sync-marked-organizations-${integrationId}`,
+      integrationId,
     )
   }
 
@@ -126,7 +126,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     }
 
     await this.sendMessage(
-      `integration-sync-organization-${tenantId}`,
+      organizationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
         tenantId,
@@ -134,7 +134,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
         organizationId,
         syncRemoteId,
       },
-      `integration-sync-organization-${organizationId}`,
+      organizationId,
     )
   }
 }

@@ -54,13 +54,21 @@ export const receiveMessage = async (
         : 10 * 60 // 10 minutes for production environment
   }
 
-  const result = await client.send(new ReceiveMessageCommand(params))
+  try {
+    const result = await client.send(new ReceiveMessageCommand(params))
 
-  if (result.Messages && result.Messages.length > 0) {
-    return result.Messages
+    if (result.Messages && result.Messages.length > 0) {
+      return result.Messages
+    }
+
+    return []
+  } catch (err) {
+    if (err.message === 'We encountered an internal error. Please try again.') {
+      return []
+    }
+
+    throw err
   }
-
-  return []
 }
 
 export const deleteMessage = async (

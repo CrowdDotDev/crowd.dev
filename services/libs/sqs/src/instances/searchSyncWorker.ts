@@ -29,7 +29,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS,
       tenantId,
     })
@@ -53,7 +53,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS,
       tenantId,
     })
@@ -81,7 +81,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES,
       tenantId,
     })
@@ -105,7 +105,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES,
       tenantId,
     })
