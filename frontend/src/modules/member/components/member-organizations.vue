@@ -65,7 +65,7 @@
       v-if="member.attributes?.jobTitle?.default"
       class="text-gray-600 text-2xs mr-2 truncate block mt-0.5"
     >{{ member.attributes.jobTitle.default }}
-      {{ member.organizations.length ? 'at' : '' }}</span>
+      {{ activeOrganization ? 'at' : '' }}</span>
     <div
       v-if="activeOrganization"
       class="flex gap-2 flex-wrap max-w-[70%]"
