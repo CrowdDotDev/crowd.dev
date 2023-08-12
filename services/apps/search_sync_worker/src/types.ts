@@ -9,6 +9,7 @@ export enum OpenSearchIndex {
 export const IndexVersions = new Map<OpenSearchIndex, number>()
 IndexVersions.set(OpenSearchIndex.MEMBERS, 1)
 IndexVersions.set(OpenSearchIndex.ACTIVITIES, 1)
+IndexVersions.set(OpenSearchIndex.ORGANIZATIONS, 1)
 
 const prefixedMapping = {
   dynamic_templates: [
@@ -590,6 +591,7 @@ const prefixedSettings = {
 export const OPENSEARCH_INDEX_SETTINGS: Record<OpenSearchIndex, unknown> = {
   [OpenSearchIndex.MEMBERS]: prefixedSettings,
   [OpenSearchIndex.ACTIVITIES]: prefixedSettings,
+  [OpenSearchIndex.ORGANIZATIONS]: prefixedSettings,
 }
 
 export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
