@@ -1,6 +1,7 @@
 export enum OpenSearchIndex {
   MEMBERS = 'members',
   ACTIVITIES = 'activities',
+  ORGANIZATIONS = 'organizations',
 }
 
 // Keeps track of version numbers for all OpenSearch indexes, aiding in managing documents.
@@ -594,4 +595,5 @@ export const OPENSEARCH_INDEX_SETTINGS: Record<OpenSearchIndex, unknown> = {
 export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
   [OpenSearchIndex.MEMBERS]: prefixedMapping,
   [OpenSearchIndex.ACTIVITIES]: prefixedMapping,
+  [OpenSearchIndex.ORGANIZATIONS]: prefixedMapping,
 }

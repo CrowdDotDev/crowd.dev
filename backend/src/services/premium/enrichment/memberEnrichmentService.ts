@@ -325,7 +325,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      await searchSyncEmitter.triggerMemberSync(options.currentTenant.id, result.id, true)
+      await searchSyncEmitter.triggerMemberSync(options.currentTenant.id, result.id)
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)
@@ -587,7 +587,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
 
-      if (response.error || response.profile === undefined) {
+      if (response.error || response.profile === undefined || !response.profile) {
         this.log.error(githubHandle, `Member not found using github handle.`)
         throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
       }
@@ -623,7 +623,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
-      if (response.error) {
+      if (response.error || !response.profile) {
         this.log.error(email, `Member not found using email.`)
         throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
       }

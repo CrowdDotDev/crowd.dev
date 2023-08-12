@@ -243,7 +243,12 @@ export default class IntegrationRunService extends LoggerBase {
     }
   }
 
-  public async startIntegrationRun(integrationId: string, onboarding: boolean): Promise<void> {
+  public async startIntegrationRun(
+    integrationId: string,
+    onboarding: boolean,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void> {
     this.log = getChildLogger('start-integration-run', this.log, {
       integrationId,
       onboarding,
@@ -288,10 +293,16 @@ export default class IntegrationRunService extends LoggerBase {
       integrationInfo.tenantId,
       integrationInfo.type,
       runId,
+      isManualRun,
+      manualSettings,
     )
   }
 
-  public async generateStreams(runId: string): Promise<void> {
+  public async generateStreams(
+    runId: string,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void> {
     this.log.info({ runId }, 'Trying to generate root streams for integration run!')
 
     const runInfo = await this.repo.getGenerateStreamData(runId)
@@ -419,6 +430,10 @@ export default class IntegrationRunService extends LoggerBase {
         settings: runInfo.integrationSettings,
         token: runInfo.integrationToken,
       },
+
+      // this is for controling manual one off runs
+      isManualRun,
+      manualSettings,
 
       log: this.log,
       cache,
