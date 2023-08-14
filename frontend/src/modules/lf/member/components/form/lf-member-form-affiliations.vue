@@ -45,6 +45,7 @@
                       v-model="org.organizationId"
                       filterable
                       class="w-full grow"
+                      @change="rerender()"
                     >
                       <template
                         v-if="org.organizationId
@@ -142,10 +143,11 @@
 
 <script setup>
 import {
-  computed, ref,
+  computed, ref, getCurrentInstance
 } from 'vue';
 import moment from 'moment';
 import AppLfMemberFormSubprojectsModal from '@/modules/lf/member/components/form/lf-member-form-subprojects-modal.vue';
+
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -217,6 +219,10 @@ const deleteOrganization = (index) => {
   affiliationsList.value.splice(index, 1);
 };
 
+const rerender = () => {
+  const instance = getCurrentInstance();
+  instance.proxy.forceUpdate();
+};
 </script>
 
 <script>
