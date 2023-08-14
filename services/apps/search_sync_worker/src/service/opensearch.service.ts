@@ -145,6 +145,9 @@ export class OpenSearchService extends LoggerBase {
         },
       })
     } catch (err) {
+      err.meta?.body?.failures?.forEach((failure) =>
+        this.log.error(failure, 'Reindex failure details!'),
+      )
       this.log.error(err, { sourceIndex, targetIndex }, 'Failed to reindex!')
       throw err
     }
