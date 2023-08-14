@@ -36,7 +36,7 @@ export const organizationSearchFilter: SearchFilterConfig = {
     return [
       {
         or: [
-          { name: { textContains: value } },
+          { displayName: { textContains: value } },
         ],
       },
     ];

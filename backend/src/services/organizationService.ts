@@ -9,6 +9,7 @@ import Plans from '../security/plans'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { enrichOrganization } from './helpers/enrichment'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -120,6 +121,9 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+
       return record
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -151,6 +155,9 @@ export default class OrganizationService extends LoggerBase {
         await SequelizeRepository.commitTransaction(transaction)
       }
 
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+
       return record
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -177,6 +184,12 @@ export default class OrganizationService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
+      for (const id of ids) {
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
+      }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -204,8 +217,8 @@ export default class OrganizationService extends LoggerBase {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return OrganizationRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+    return OrganizationRepository.findAndCountAllOpensearch(
+      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
       this.options,
     )
   }
@@ -224,6 +237,11 @@ export default class OrganizationService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      for (const id of ids) {
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
+      }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error

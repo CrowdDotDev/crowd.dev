@@ -8,6 +8,7 @@ import {
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 import Error404 from '../../errors/Error404'
+import SequelizeRepository from './sequelizeRepository'
 
 class MemberSegmentAffiliationRepository extends RepositoryBase<
   MemberSegmentAffiliation,
@@ -36,10 +37,9 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const affiliationInsertResult = await this.options.database.sequelize.query(
-      `INSERT INTO "memberSegmentAffiliations" ("id", "memberId", "segmentId", "organizationId")
+      `INSERT INTO "memberSegmentAffiliations" ("id", "memberId", "segmentId", "organizationId", "dateStart", "dateEnd")
           VALUES
-              (:id, :memberId, :segmentId, :organizationId)
-          ON CONFLICT ("memberId", "segmentId" ) DO UPDATE SET "organizationId" = :organizationId
+              (:id, :memberId, :segmentId, :organizationId, :dateStart, :dateEnd)
           RETURNING "id"
         `,
       {
@@ -48,6 +48,8 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
           memberId: data.memberId,
           segmentId: data.segmentId,
           organizationId: data.organizationId,
+          dateStart: data.dateStart || null,
+          dateEnd: data.dateEnd || null,
         },
         type: QueryTypes.INSERT,
         transaction,
@@ -57,6 +59,57 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     await this.updateAffiliation(data.memberId, data.segmentId, data.organizationId)
 
     return this.findById(affiliationInsertResult[0][0].id)
+  }
+
+  async setForMember(memberId: string, data: MemberSegmentAffiliationCreate[]): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(this.options)
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
+    await seq.query(
+      `
+        DELETE FROM "memberSegmentAffiliations"
+        WHERE "memberId" = :memberId
+      `,
+      {
+        replacements: {
+          memberId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      },
+    )
+
+    if (data.length === 0) {
+      return
+    }
+
+    const valuePlaceholders = data
+      .map(
+        (_, i) =>
+          `(:id_${i}, :memberId_${i}, :segmentId_${i}, :organizationId_${i}, :dateStart_${i}, :dateEnd_${i})`,
+      )
+      .join(', ')
+
+    await seq.query(
+      `
+        INSERT INTO "memberSegmentAffiliations" ("id", "memberId", "segmentId", "organizationId", "dateStart", "dateEnd")
+        VALUES ${valuePlaceholders}
+      `,
+      {
+        replacements: data.reduce((acc, item, i) => {
+          acc[`id_${i}`] = uuid()
+          acc[`memberId_${i}`] = memberId
+          acc[`segmentId_${i}`] = item.segmentId
+          acc[`organizationId_${i}`] = item.organizationId
+          acc[`dateStart_${i}`] = item.dateStart || null
+          acc[`dateEnd_${i}`] = item.dateEnd || null
+
+          return acc
+        }, {}),
+        type: QueryTypes.INSERT,
+        transaction,
+      },
+    )
   }
 
   override async findById(id: string): Promise<MemberSegmentAffiliation> {
@@ -153,6 +206,43 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     )
 
     return records
+  }
+
+  async findForMember(memberId: string, timestamp: string): Promise<MemberSegmentAffiliation> {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+
+    const seq = SequelizeRepository.getSequelize(this.options)
+
+    const records = await seq.query(
+      `
+        SELECT * FROM "memberSegmentAffiliations"
+        WHERE "memberId" = :memberId
+          AND "segmentId" = :segmentId
+          AND (
+            ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
+            OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
+          )
+        ORDER BY "dateStart" DESC
+        LIMIT 1
+      `,
+      {
+        replacements: {
+          memberId,
+          segmentId: segment.id,
+          timestamp,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0] as MemberSegmentAffiliation
   }
 
   private async updateAffiliation(memberId, segmentId, organizationId) {

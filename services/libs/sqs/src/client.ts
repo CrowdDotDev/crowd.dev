@@ -39,22 +39,36 @@ export const getSqsClient = (config: ISqsClientConfig): SqsClient => {
 export const receiveMessage = async (
   client: SqsClient,
   params: ReceiveMessageRequest,
-): Promise<SqsMessage | undefined> => {
-  params.MaxNumberOfMessages = 1
+  visibilityTimeoutSeconds?: number,
+  maxMessages?: number,
+): Promise<SqsMessage[]> => {
+  params.MaxNumberOfMessages = maxMessages || 1
   params.WaitTimeSeconds = 15
 
-  params.VisibilityTimeout =
-    IS_DEV_ENV || IS_STAGING_ENV
-      ? 2 * 60 // 2 minutes for dev environments
-      : 10 * 60 // 10 minutes for production environment
-
-  const result = await client.send(new ReceiveMessageCommand(params))
-
-  if (result.Messages && result.Messages.length === 1) {
-    return result.Messages[0]
+  if (visibilityTimeoutSeconds) {
+    params.VisibilityTimeout = visibilityTimeoutSeconds
+  } else {
+    params.VisibilityTimeout =
+      IS_DEV_ENV || IS_STAGING_ENV
+        ? 2 * 60 // 2 minutes for dev environments
+        : 10 * 60 // 10 minutes for production environment
   }
 
-  return undefined
+  try {
+    const result = await client.send(new ReceiveMessageCommand(params))
+
+    if (result.Messages && result.Messages.length > 0) {
+      return result.Messages
+    }
+
+    return []
+  } catch (err) {
+    if (err.message === 'We encountered an internal error. Please try again.') {
+      return []
+    }
+
+    throw err
+  }
 }
 
 export const deleteMessage = async (
