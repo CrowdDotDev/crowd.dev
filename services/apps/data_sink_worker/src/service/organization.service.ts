@@ -189,6 +189,10 @@ export class OrganizationService extends LoggerBase {
     await this.repo.addToMember(memberId, orgIds)
   }
 
+  public async findByUrl(tenantId: string, segmentId: string, url: string): Promise<IOrganization> {
+    return this.repo.findByUrl(tenantId, segmentId, url)
+  }
+
   public async processOrganizationEnrich(
     tenantId: string,
     integrationId: string,

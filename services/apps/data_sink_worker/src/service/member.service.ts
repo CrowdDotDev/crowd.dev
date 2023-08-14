@@ -22,6 +22,32 @@ export default class MemberService extends LoggerBase {
     super(parentLog)
   }
 
+  public async assignOrganizationByEmailDomain(
+    tenantId: string,
+    segmentId: string,
+    emails: string[],
+  ): Promise<string[]> {
+    const orgService = new OrganizationService(this.store, this.log)
+    const organizationIds: string[] = []
+    const emailDomains = new Set<string>()
+
+    // Collect unique domains
+    for (const email of emails) {
+      const domain = email.split('@')[1]
+      emailDomains.add(domain)
+    }
+
+    // Assign member to organization based on email domain
+    for (const domain of emailDomains) {
+      const org = await orgService.findByUrl(tenantId, segmentId, domain as string)
+      if (org) {
+        organizationIds.push(org.id)
+      }
+    }
+
+    return organizationIds
+  }
+
   public async create(
     tenantId: string,
     segmentId: string,
@@ -76,6 +102,17 @@ export default class MemberService extends LoggerBase {
 
           if (organizationIds.length > 0) {
             await orgService.addToMember(tenantId, segmentId, id, organizationIds)
+          }
+
+          if (data.emails) {
+            const orgIds = await this.assignOrganizationByEmailDomain(
+              tenantId,
+              segmentId,
+              data.emails,
+            )
+            if (orgIds.length > 0) {
+              organizationIds.push(...orgIds)
+            }
           }
         }
 
@@ -176,6 +213,17 @@ export default class MemberService extends LoggerBase {
           if (organizationIds.length > 0) {
             await orgService.addToMember(tenantId, segmentId, id, organizationIds)
             updated = true
+          }
+
+          if (data.emails) {
+            const orgIds = await this.assignOrganizationByEmailDomain(
+              tenantId,
+              segmentId,
+              data.emails,
+            )
+            if (orgIds.length > 0) {
+              organizationIds.push(...orgIds)
+            }
           }
         }
 
