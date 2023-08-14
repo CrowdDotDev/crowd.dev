@@ -3,4 +3,5 @@ export enum IntegrationSyncWorkerQueueMessageType {
   SYNC_MEMBER = 'sync_member',
   SYNC_ALL_MARKED_ORGANIZATIONS = 'sync_all_marked_organizations',
   SYNC_ORGANIZATION = 'sync_organization',
+  ONBOARD_AUTOMATION = 'onboard_automation',
 }

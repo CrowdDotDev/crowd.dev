@@ -17,6 +17,7 @@
           :tooltip-label="platformContent(platform).tooltipLabel"
           :as-link="platformContent(platform).asLink"
           :show-handles-badge="true"
+          :backup-url="props.member.attributes.url[platform]"
         />
       </div>
     </div>
@@ -32,6 +33,10 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   username: {
+    type: Object,
+    default: () => {},
+  },
+  member: {
     type: Object,
     default: () => {},
   },

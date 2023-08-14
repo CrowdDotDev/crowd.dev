@@ -14,13 +14,14 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
+
     await this.sendMessage(
-      `search-sync-${tenantId}`,
+      memberId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
         memberId,
       },
-      `member-sync-${memberId}`,
+      memberId,
     )
   }
 
@@ -28,7 +29,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS,
       tenantId,
     })
@@ -41,7 +42,8 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+
+    await this.sendMessage(memberId, {
       type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
       memberId,
     })
@@ -51,7 +53,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS,
       tenantId,
     })
@@ -64,13 +66,14 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!activityId) {
       throw new Error('activityId is required!')
     }
+
     await this.sendMessage(
-      `search-sync-${tenantId}`,
+      activityId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
         activityId,
       },
-      `activity-sync-${activityId}`,
+      activityId,
     )
   }
 
@@ -78,7 +81,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES,
       tenantId,
     })
@@ -91,7 +94,8 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!activityId) {
       throw new Error('activityId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+
+    await this.sendMessage(activityId, {
       type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
       activityId,
     })
@@ -101,9 +105,66 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(`search-sync-${tenantId}`, {
+    await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES,
       tenantId,
     })
+  }
+
+  public async triggerOrganizationSync(tenantId: string, organizationId: string) {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+    if (!organizationId) {
+      throw new Error('organizationId is required!')
+    }
+
+    await this.sendMessage(organizationId, {
+      type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
+      tenantId,
+      organizationId,
+    })
+  }
+
+  public async triggerTenantOrganizationSync(tenantId: string) {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+    await this.sendMessage(
+      tenantId,
+      {
+        type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS,
+        tenantId,
+      },
+      tenantId,
+    )
+  }
+
+  public async triggerRemoveOrganization(tenantId: string, organizationId: string) {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+    if (!organizationId) {
+      throw new Error('organizationId is required!')
+    }
+
+    await this.sendMessage(organizationId, {
+      type: SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION,
+      organizationId,
+    })
+  }
+
+  public async triggerOrganizationCleanup(tenantId: string) {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+    await this.sendMessage(
+      tenantId,
+      {
+        type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS,
+        tenantId,
+      },
+      tenantId,
+    )
   }
 }

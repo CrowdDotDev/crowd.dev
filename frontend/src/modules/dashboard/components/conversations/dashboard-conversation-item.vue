@@ -72,9 +72,7 @@
                     @click.stop
                   >
                     <app-activity-message
-                      :activity="
-                        conversation.conversationStarter
-                      "
+                      :activity="conversatoin.conversationStarter"
                       type="channel"
                     />
                   </p>

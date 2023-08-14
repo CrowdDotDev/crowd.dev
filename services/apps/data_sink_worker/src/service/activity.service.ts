@@ -14,6 +14,7 @@ import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
 import IntegrationRepository from '@/repo/integration.repo'
+import MemberAffiliationService from './memberAffiliation.service'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -76,6 +77,7 @@ export default class ActivityService extends LoggerBase {
           title: activity.title,
           channel: activity.channel,
           url: activity.url,
+          organizationId: activity.organizationId,
         })
 
         return id
@@ -149,6 +151,7 @@ export default class ActivityService extends LoggerBase {
             title: toUpdate.title || original.title,
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
+            organizationId: toUpdate.organizationId || original.organizationId,
           })
 
           return true
@@ -261,6 +264,11 @@ export default class ActivityService extends LoggerBase {
       url = data.url
     }
 
+    let organizationId: string | undefined
+    if (!arePrimitivesDbEqual(original.organizationId, data.organizationId)) {
+      organizationId = data.organizationId
+    }
+
     return {
       type,
       isContribution,
@@ -277,6 +285,7 @@ export default class ActivityService extends LoggerBase {
       title,
       channel,
       url,
+      organizationId,
     }
   }
 
@@ -372,6 +381,7 @@ export default class ActivityService extends LoggerBase {
           this.log,
         )
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
 
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
@@ -423,6 +433,7 @@ export default class ActivityService extends LoggerBase {
                   : new Date(activity.timestamp),
                 weakIdentities: member.weakIdentities,
                 identities: member.identities,
+                organizations: member.organizations,
               },
               dbMember,
               false,
@@ -459,6 +470,7 @@ export default class ActivityService extends LoggerBase {
                   : new Date(activity.timestamp),
                 weakIdentities: member.weakIdentities,
                 identities: member.identities,
+                organizations: member.organizations,
               },
               dbMember,
               false,
@@ -526,6 +538,7 @@ export default class ActivityService extends LoggerBase {
                       : new Date(activity.timestamp),
                     weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
+                    organizations: objectMember.organizations,
                   },
                   dbObjectMember,
                   false,
@@ -562,6 +575,7 @@ export default class ActivityService extends LoggerBase {
                       : new Date(activity.timestamp),
                     weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
+                    organizations: objectMember.organizations,
                   },
                   dbObjectMember,
                   false,
@@ -573,6 +587,12 @@ export default class ActivityService extends LoggerBase {
           }
 
           if (!createActivity) {
+            const organizationId = await txMemberAffiliationService.findAffiliation(
+              dbActivity.memberId,
+              segmentId,
+              dbActivity.timestamp,
+            )
+
             // just update the activity now
             await txActivityService.update(
               dbActivity.id,
@@ -593,6 +613,7 @@ export default class ActivityService extends LoggerBase {
                 title: activity.title,
                 channel: activity.channel,
                 url: activity.url,
+                organizationId,
               },
               dbActivity,
               false,
@@ -622,6 +643,7 @@ export default class ActivityService extends LoggerBase {
                   : new Date(activity.timestamp),
                 weakIdentities: member.weakIdentities,
                 identities: member.identities,
+                organizations: member.organizations,
               },
               dbMember,
               false,
@@ -644,6 +666,7 @@ export default class ActivityService extends LoggerBase {
                   : new Date(activity.timestamp),
                 weakIdentities: member.weakIdentities,
                 identities: member.identities,
+                organizations: member.organizations,
               },
               false,
             )
@@ -673,6 +696,7 @@ export default class ActivityService extends LoggerBase {
                     : new Date(activity.timestamp),
                   weakIdentities: objectMember.weakIdentities,
                   identities: objectMember.identities,
+                  organizations: objectMember.organizations,
                 },
                 dbObjectMember,
                 false,
@@ -695,6 +719,7 @@ export default class ActivityService extends LoggerBase {
                     : new Date(activity.timestamp),
                   weakIdentities: objectMember.weakIdentities,
                   identities: objectMember.identities,
+                  organizations: objectMember.organizations,
                 },
                 false,
               )
@@ -703,6 +728,12 @@ export default class ActivityService extends LoggerBase {
         }
 
         if (createActivity) {
+          const organizationId = await txMemberAffiliationService.findAffiliation(
+            memberId,
+            segmentId,
+            activity.timestamp,
+          )
+
           activityId = await txActivityService.create(
             tenantId,
             segmentId,
@@ -723,6 +754,7 @@ export default class ActivityService extends LoggerBase {
               title: activity.title,
               channel: activity.channel,
               url: activity.url,
+              organizationId,
             },
             false,
           )

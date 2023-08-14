@@ -53,5 +53,8 @@
   "weeklyEmails": {
     "enabled": "true"
   },
-  "auth0": {}
+  "auth0": {},
+  "crowdAnalytics": {
+    "isEnabled": "false"
+  }
 }

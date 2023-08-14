@@ -53,13 +53,8 @@ export default class AuthCurrentTenant {
   }
 
   static get() {
-    const tenantASString = localStorage.getItem('tenant') || null;
-
-    if (tenantASString) {
-      return JSON.parse(tenantASString).id;
-    }
-
-    return null;
+    const tenantASString = localStorage.getItem('currentTenant');
+    return tenantASString ?? null;
   }
 
   static getSampleTenantData() {
@@ -105,6 +100,7 @@ export default class AuthCurrentTenant {
     // Refresh feature flags each time tenant is set
     FeatureFlag.updateContext(tenant);
 
+    localStorage.setItem('currentTenant', tenant.id);
     localStorage.setItem('tenant', JSON.stringify(tenant));
 
     return null;

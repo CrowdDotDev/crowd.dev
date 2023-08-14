@@ -19,10 +19,12 @@ import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
+import { AutomationRepository } from '@/repo/automation.repo'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
   private readonly sampleDataRepo: SampleDataRepository
+  private readonly automationRepo: AutomationRepository
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -38,6 +40,7 @@ export default class IntegrationRunService extends LoggerBase {
 
     this.repo = new IntegrationRunRepository(store, this.log)
     this.sampleDataRepo = new SampleDataRepository(store, this.log)
+    this.automationRepo = new AutomationRepository(store, this.log)
   }
 
   public async handleStreamProcessed(runId: string): Promise<void> {
@@ -169,6 +172,11 @@ export default class IntegrationRunService extends LoggerBase {
             settings.syncRemoteEnabled &&
             settings.blockSyncRemote !== true
           ) {
+            const syncAutomations = await this.automationRepo.findSyncAutomations(
+              runInfo.tenantId,
+              runInfo.integrationType,
+            )
+
             const syncRemoteContext: IIntegrationStartRemoteSyncContext = {
               integrationSyncWorkerEmitter: this.integrationSyncWorkerEmitter,
               integration: {
@@ -179,6 +187,7 @@ export default class IntegrationRunService extends LoggerBase {
                 settings: runInfo.integrationSettings,
                 token: runInfo.integrationToken,
               },
+              automations: syncAutomations,
               tenantId: runInfo.tenantId,
               log: this.log,
             }
@@ -234,7 +243,12 @@ export default class IntegrationRunService extends LoggerBase {
     }
   }
 
-  public async startIntegrationRun(integrationId: string, onboarding: boolean): Promise<void> {
+  public async startIntegrationRun(
+    integrationId: string,
+    onboarding: boolean,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void> {
     this.log = getChildLogger('start-integration-run', this.log, {
       integrationId,
       onboarding,
@@ -279,10 +293,16 @@ export default class IntegrationRunService extends LoggerBase {
       integrationInfo.tenantId,
       integrationInfo.type,
       runId,
+      isManualRun,
+      manualSettings,
     )
   }
 
-  public async generateStreams(runId: string): Promise<void> {
+  public async generateStreams(
+    runId: string,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void> {
     this.log.info({ runId }, 'Trying to generate root streams for integration run!')
 
     const runInfo = await this.repo.getGenerateStreamData(runId)
@@ -410,6 +430,10 @@ export default class IntegrationRunService extends LoggerBase {
         settings: runInfo.integrationSettings,
         token: runInfo.integrationToken,
       },
+
+      // this is for controling manual one off runs
+      isManualRun,
+      manualSettings,
 
       log: this.log,
       cache,

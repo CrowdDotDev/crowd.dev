@@ -1,4 +1,5 @@
 import Sequelize, { QueryTypes } from 'sequelize'
+import { AutomationSyncTrigger, IAutomation } from '@crowd/types'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import Error404 from '../../errors/Error404'
@@ -245,5 +246,47 @@ export default class AutomationRepository extends RepositoryBase<
     })
 
     return automationCount
+  }
+
+  public async findSyncAutomations(
+    tenantId: string,
+    platform: string,
+  ): Promise<IAutomation[] | null> {
+    const seq = this.seq
+
+    const transaction = this.transaction
+
+    const pageSize = 10
+    const syncAutomations: IAutomation[] = []
+
+    let results
+    let offset
+
+    do {
+      offset = results ? pageSize + offset : 0
+
+      results = await seq.query(
+        `select * from automations 
+      where type = :platform and "tenantId" = :tenantId and trigger in (:syncAutomationTriggers)
+      limit :limit offset :offset`,
+        {
+          replacements: {
+            tenantId,
+            platform,
+            syncAutomationTriggers: [
+              AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH,
+              AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH,
+            ],
+            limit: pageSize,
+            offset,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+      syncAutomations.push(...results)
+    } while (results.length > 0)
+
+    return syncAutomations
   }
 }

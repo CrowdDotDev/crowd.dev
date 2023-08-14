@@ -32,7 +32,7 @@
               name="members"
             >
               <app-organization-view-members
-                :organization="organization"
+                :organization-id="props.id"
               />
             </el-tab-pane>
             <el-tab-pane
@@ -40,8 +40,12 @@
               name="activities"
             >
               <app-activity-timeline
-                :entity="organization"
+                :entity="{
+                  ...organization,
+                  organizations: [organization],
+                }"
                 entity-type="organization"
+                :show-affiliations="true"
               />
             </el-tab-pane>
           </el-tabs>
@@ -62,7 +66,6 @@ import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   id: {

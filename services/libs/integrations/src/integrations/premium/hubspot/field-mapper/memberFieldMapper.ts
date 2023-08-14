@@ -162,6 +162,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
         {
           platform: PlatformType.HUBSPOT,
           username: contactProperties.email,
+          sourceId: hubspotContact.id,
         },
       ],
       attributes: {

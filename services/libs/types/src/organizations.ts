@@ -8,10 +8,10 @@ export interface IOrganization {
   emails?: string[]
   logo?: string
   tags?: string[]
-  github?: IOrganizationSocial | string
-  twitter?: IOrganizationSocial | string
-  linkedin?: IOrganizationSocial | string
-  crunchbase?: IOrganizationSocial | string
+  github?: IOrganizationSocial
+  twitter?: IOrganizationSocial
+  linkedin?: IOrganizationSocial
+  crunchbase?: IOrganizationSocial
   employees?: number
   location?: string
   website?: string
@@ -32,4 +32,14 @@ export interface IOrganizationOpensearch {
   id: string
   logo: string
   displayName: string
+}
+
+export interface IOrganizationSyncRemoteData {
+  id?: string
+  organizationId: string
+  sourceId?: string
+  integrationId: string
+  syncFrom: string
+  metaData: string
+  lastSyncedAt?: string
 }

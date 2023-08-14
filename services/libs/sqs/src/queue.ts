@@ -101,6 +101,9 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     queueConf: ISqsQueueConfig,
     private readonly maxConcurrentMessageProcessing: number,
     parentLog: Logger,
+    private readonly deleteMessageImmediately = false,
+    private readonly visibilityTimeoutSeconds?: number,
+    private readonly receiveMessageCount?: number,
   ) {
     super(sqsClient, queueConf, parentLog)
   }
@@ -125,21 +128,35 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     while (this.started) {
       if (this.isAvailable()) {
         // first receive the message
-        const message = await this.receiveMessage()
-        if (message) {
-          // process it and then delete it otherwise MessageGroupId does not work properly with FIFO queues
-          // we also have 15 minuts to process the message otherwise it will be visible again and taken by a consumer again
-          this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
-          this.addJob()
-          this.processMessage(JSON.parse(message.Body))
-            // when the message is processed, delete it from the queue
-            .then(async () => {
-              this.log.trace({ messageReceiptHandle: message.ReceiptHandle }, 'Deleting message')
-              await this.deleteMessage(message.ReceiptHandle)
-              this.removeJob()
-            })
-            // if error is detected don't delete the message from the queue
-            .catch(() => this.removeJob())
+        const messages = await this.receiveMessage()
+        if (messages.length > 0) {
+          for (const message of messages) {
+            if (this.isAvailable()) {
+              this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
+              this.addJob()
+              this.processMessage(JSON.parse(message.Body))
+                // when the message is processed, delete it from the queue
+                .then(async () => {
+                  this.log.trace(
+                    { messageReceiptHandle: message.ReceiptHandle },
+                    'Deleting message',
+                  )
+                  if (!this.deleteMessageImmediately) {
+                    await this.deleteMessage(message.ReceiptHandle)
+                  }
+                  this.removeJob()
+                })
+                // if error is detected don't delete the message from the queue
+                .catch(() => this.removeJob())
+
+              if (this.deleteMessageImmediately) {
+                await this.deleteMessage(message.ReceiptHandle)
+              }
+            } else {
+              this.log.trace('Queue is busy, waiting...')
+              await timeout(100)
+            }
+          }
         }
       } else {
         this.log.trace('Queue is busy, waiting...')
@@ -154,12 +171,17 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
 
   protected abstract processMessage(data: IQueueMessage): Promise<void>
 
-  private async receiveMessage(): Promise<SqsMessage | undefined> {
+  private async receiveMessage(): Promise<SqsMessage[]> {
     const params: ReceiveMessageRequest = {
       QueueUrl: this.getQueueUrl(),
     }
 
-    return receiveMessage(this.sqsClient, params)
+    return receiveMessage(
+      this.sqsClient,
+      params,
+      this.visibilityTimeoutSeconds,
+      this.receiveMessageCount,
+    )
   }
 
   private async deleteMessage(receiptHandle: string): Promise<void> {

@@ -7,7 +7,7 @@ import { initializeSentimentAnalysis } from '@crowd/sentiment'
 
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 2
+const MAX_CONCURRENT_PROCESSING = 3
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')

@@ -26,18 +26,20 @@
       <div
         v-if="
           props.showTitle
-            && props.member.attributes.jobTitle?.default
+            && (props.member.attributes.jobTitle?.default
+              || activeOrganization?.memberOrganizations?.title)
         "
         class="text-gray-500 text-2xs truncate pr-4"
       >
         {{
-          props.member.attributes.jobTitle?.default
+          props.member.attributes?.jobTitle?.default
+            || activeOrganization?.memberOrganizations?.title
             || '-'
         }}
       </div>
     </div>
     <div
-      v-else-if="props.member.attributes.jobTitle?.default"
+      v-else-if="props.member.attributes.jobTitle?.default || activeOrganization?.memberOrganizations?.title"
     >
       <p class="text-gray-900 text-ellipsis truncate">
         -
@@ -47,7 +49,9 @@
         class="text-gray-500 text-2xs"
       >
         {{
-          props.member.attributes.jobTitle?.default || '-'
+          props.member.attributes.jobTitle?.default
+            || activeOrganization?.memberOrganizations?.title
+            || '-'
         }}
       </div>
     </div>
@@ -58,15 +62,15 @@
   <div
     v-else-if="
       member.attributes.jobTitle?.default
-        || props.member.organizations?.length
+        || activeOrganization
     "
     class="flex items-start grow mt-2"
   >
     <span
-      v-if="member.attributes?.jobTitle?.default"
+      v-if="member.attributes?.jobTitle?.default || activeOrganization?.memberOrganizations?.title"
       class="text-gray-600 text-2xs mr-2 truncate block mt-0.5"
-    >{{ member.attributes.jobTitle.default }}
-      {{ member.organizations.length ? 'at' : '' }}</span>
+    >{{ member.attributes?.jobTitle?.default || activeOrganization?.memberOrganizations?.title }}
+      {{ activeOrganization ? 'at' : '' }}</span>
     <div
       v-if="activeOrganization"
       class="flex gap-2 flex-wrap max-w-[70%]"
@@ -121,24 +125,36 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const activeOrganization = computed(() => {
-  if (!props.member.organizations?.length) {
+  const { organizations } = props.member;
+
+  // No active organization
+  if (!organizations?.length) {
     return null;
   }
 
-  return props.member.organizations.reduce((mostRecent, organization) => {
-    const mostRecentEndDate = new Date(mostRecent.memberOrganizations?.dateEnd);
-    const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
-    const organizationEndDate = new Date(organization.memberOrganizations?.dateEnd);
-    const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
-    const isEndDateNull = !mostRecent.memberOrganizations?.dateEnd;
+  // Only one organization that doesn't have either start or end date
+  // We assume it's the active organization
+  if (organizations.length === 1
+    && !organizations[0].memberOrganizations?.dateStart
+    && !organizations[0].memberOrganizations?.dateEnd) {
+    return organizations[0];
+  }
 
-    if ((organizationEndDate > mostRecentEndDate && !isEndDateNull)
-    || (organizationStartDate > mostRecentStartDate && isEndDateNull)) {
+  // Get all organizations that have a start date but not an end date (present)
+  const completeOrganizations = organizations
+    .filter((organization) => !!organization.memberOrganizations?.dateStart && !organization.memberOrganizations?.dateEnd);
+
+  // Return the most recent organization, comparing the startDate
+  return completeOrganizations.reduce((mostRecent, organization) => {
+    const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
+    const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
+
+    if (organizationStartDate > mostRecentStartDate) {
       return organization;
     }
 
     return mostRecent;
-  }, props.member.organizations[0]);
+  }, completeOrganizations.length ? completeOrganizations[0] : null);
 });
 </script>
 

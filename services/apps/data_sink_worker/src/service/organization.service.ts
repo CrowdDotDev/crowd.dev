@@ -83,12 +83,12 @@ export class OrganizationService extends LoggerBase {
     // now check if exists in this tenant
     const existing = await this.repo.findByName(tenantId, segmentId, data.name)
 
-    const displayName = existing.displayName ? existing.displayName : data.name
+    const displayName = existing?.displayName ? existing?.displayName : data?.name
 
-    let attributes = existing.attributes
+    let attributes = existing?.attributes
 
     if (data.attributes) {
-      const temp = mergeWith({}, existing.attributes, data.attributes)
+      const temp = mergeWith({}, existing?.attributes, data?.attributes)
       if (!isEqual(temp, existing.attributes)) {
         attributes = temp
       }
@@ -230,13 +230,19 @@ export class OrganizationService extends LoggerBase {
         if (dbOrganization) {
           this.log.trace({ organizationId: dbOrganization.id }, 'Found existing organization.')
 
+          // set a record in organizationsSyncRemote to save the sourceId
+          // we can't use organization.attributes because of segments
+          if (sourceId) {
+            await txRepo.addToSyncRemote(dbOrganization.id, dbIntegration.id, sourceId)
+          }
+
           // send to findOrCreate with found organization's name, since we use the name field as the primary key
           await this.findOrCreate(tenantId, segmentId, {
             ...organization,
             name: dbOrganization.name,
           })
         } else {
-          this.log.info(
+          this.log.debug(
             'No organization found for enriching. This organization enrich process had no affect.',
           )
         }
