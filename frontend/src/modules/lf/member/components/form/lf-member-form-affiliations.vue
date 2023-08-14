@@ -45,16 +45,15 @@
                       v-model="org.organizationId"
                       filterable
                       class="w-full grow"
-                      @change="rerender()"
                     >
                       <template
                         v-if="org.organizationId
-                          && (org.organizationLogo || getOrganization(org.organizationId).logo)"
+                          && getOrganization(org.organizationId)?.logo"
                         #prefix
                       >
                         <img
-                          :src="org.organizationLogo || getOrganization(org.organizationId).logo"
-                          :alt="`${org.organizationName || getOrganization(org.organizationId).name} Logo`"
+                          :src="getOrganization(org.organizationId)?.logo"
+                          :alt="`${getOrganization(org.organizationId)?.name} Logo`"
                           class="w-5 h-5"
                         />
                       </template>
@@ -217,11 +216,6 @@ const onSubProjectSelection = (subproject) => {
 
 const deleteOrganization = (index) => {
   affiliationsList.value.splice(index, 1);
-};
-
-const rerender = () => {
-  const instance = getCurrentInstance();
-  instance.proxy.forceUpdate();
 };
 </script>
 
