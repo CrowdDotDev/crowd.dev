@@ -30,7 +30,10 @@
     "script:cleanup-all-members": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-members.ts",
     "script:cleanup-all-activities": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-activities.ts",
     "script:cleanup-all-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-activities.ts",
-    "script:delete-index": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/delete-index.ts"
+    "script:delete-index": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/delete-index.ts",
+    "script:create-versioned-index": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/create-versioned-index.ts",
+    "script:reindex": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/reindex.ts",
+    "script:create-alias": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/create-alias.ts"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
