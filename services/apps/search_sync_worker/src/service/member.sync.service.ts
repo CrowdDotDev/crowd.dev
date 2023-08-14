@@ -1,5 +1,5 @@
 import { SERVICE_CONFIG } from '@/conf'
-import { IDbMemberSyncData, IDbSegmentInfo } from '@/repo/member.data'
+import { IDbMemberSyncData } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
 import { distinct, distinctBy, groupBy } from '@crowd/common'
@@ -9,10 +9,13 @@ import { RedisClient } from '@crowd/redis'
 import { Edition, IMemberAttribute, MemberAttributeType } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
+import { SegmentRepository } from '@/repo/segment.repo'
+import { IDbSegmentInfo } from '@/repo/segment.data'
 import { IMemberSyncResult } from './member.sync.data'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
+  private readonly segmentRepo: SegmentRepository
 
   constructor(
     redisClient: RedisClient,
@@ -23,6 +26,7 @@ export class MemberSyncService extends LoggerBase {
     super(parentLog)
 
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
+    this.segmentRepo = new SegmentRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -252,7 +256,7 @@ export class MemberSyncService extends LoggerBase {
 
       if (isMultiSegment) {
         childSegmentIds = distinct(members.map((m) => m.segmentId))
-        segmentInfos = await this.memberRepo.getParentSegmentIds(childSegmentIds)
+        segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
       }
 
       const grouped = groupBy(members, (m) => m.id)
@@ -481,6 +485,11 @@ export class MemberSyncService extends LoggerBase {
         uuid_id: organization.id,
         string_logo: organization.logo,
         string_displayName: organization.displayName,
+        obj_memberOrganizations: {
+          string_title: organization.memberOrganizations?.title || null,
+          date_dateStart: organization.memberOrganizations?.dateStart || null,
+          date_dateEnd: organization.memberOrganizations?.dateEnd || null,
+        },
       })
     }
     p.obj_arr_organizations = p_organizations

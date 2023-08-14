@@ -68,7 +68,7 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const entity = computed(() => ({
   avatar: props.organization.logo,
-  displayName: props.organization.name.replace('@', ''),
+  displayName: props.organization.displayName.replace('@', ''),
 }));
 </script>
 

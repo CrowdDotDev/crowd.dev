@@ -93,6 +93,9 @@ export default class MemberService extends LoggerBase {
 
       if (organizationIds.length > 0) {
         await this.nodejsWorkerEmitter.enrichMemberOrganizations(tenantId, id, organizationIds)
+        for (const orgId of organizationIds) {
+          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, orgId)
+        }
       }
 
       return id
@@ -112,7 +115,7 @@ export default class MemberService extends LoggerBase {
     fireSync = true,
   ): Promise<void> {
     try {
-      const updated = await this.store.transactionally(async (txStore) => {
+      const { updated, organizationIds } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
         const dbIdentities = await txRepo.getIdentities(id, tenantId)
@@ -176,11 +179,18 @@ export default class MemberService extends LoggerBase {
           }
         }
 
-        return updated
+        return { updated, organizationIds }
       })
 
       if (updated && fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+      }
+
+      if (organizationIds.length > 0) {
+        await this.nodejsWorkerEmitter.enrichMemberOrganizations(tenantId, id, organizationIds)
+        for (const orgId of organizationIds) {
+          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, orgId)
+        }
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')

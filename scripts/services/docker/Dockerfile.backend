@@ -10,7 +10,7 @@ COPY ./services/libs ./services/libs
 RUN cd services/scripts && ./install_lib_packages.sh && ./build_libs.sh && ./clear_lib_packages.sh
 
 # install backend dependencies
-COPY ./backend ./backend
+COPY ./backend/package.json ./backend/package-lock.json ./backend/
 RUN cd backend && npm ci
 
 FROM node:16-alpine as release
@@ -22,6 +22,7 @@ WORKDIR /usr/crowd/app
 ARG INSTALL_DEV_DEPENDENCIES="false"
 
 COPY ./services/scripts ./services/scripts
+COPY ./backend ./backend
 COPY --from=builder /usr/crowd/app/backend ./backend
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
 RUN if [ "$INSTALL_DEV_DEPENDENCIES" = "false" ]; then export NPM_I_ENV_OPTS="--omit=dev"; fi && cd services/scripts && ./install_lib_packages.sh ${NPM_I_ENV_OPTS}

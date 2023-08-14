@@ -21,6 +21,7 @@ export interface IDbActivity {
   channel?: string
   url?: string
   sentiment: ISentimentAnalysisResult
+  organizationId?: string
 }
 
 export interface IDbActivityCreateData {
@@ -41,6 +42,7 @@ export interface IDbActivityCreateData {
   title?: string
   channel?: string
   url?: string
+  organizationId?: string
 }
 
 let insertActivityColumnSet: DbColumnSet
@@ -73,6 +75,7 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
       'url',
       'createdAt',
       'updatedAt',
+      'organizationId',
     ],
     {
       table: {
@@ -100,6 +103,7 @@ export interface IDbActivityUpdateData {
   title?: string
   channel?: string
   url?: string
+  organizationId?: string
 }
 
 let updateActivityColumnSet: DbColumnSet
@@ -126,6 +130,7 @@ export const getUpdateActivityColumnSet = (instance: DbInstance): DbColumnSet =>
       'channel',
       'url',
       'updatedAt',
+      'organizationId',
     ],
     {
       table: {
