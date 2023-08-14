@@ -2,6 +2,8 @@ export interface MemberSegmentAffiliationBase {
   memberId: string
   segmentId: string
   organizationId: string
+  dateStart?: string
+  dateEnd?: string
 }
 
 export interface MemberSegmentAffiliationCreate extends MemberSegmentAffiliationBase {}
