@@ -229,7 +229,10 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
   .catch(() => null);
 
 const fillForm = (organization: Organization) => {
-  form.organization = organization;
+  form.organization = {
+    ...organization,
+    label: organization.displayName || organization.name,
+  } as Organization;
   form.jobTitle = organization.memberOrganizations.title;
   form.dateStart = organization.memberOrganizations.dateStart;
   form.dateEnd = organization.memberOrganizations.dateEnd;

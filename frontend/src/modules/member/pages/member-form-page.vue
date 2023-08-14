@@ -313,7 +313,6 @@ const hasFormChanged = computed(() => {
     ? getInitialModel(record.value)
     : getInitialModel();
 
-  console.log(formModel.value);
   return !isEqual(initialModel, formModel.value);
 });
 
@@ -323,13 +322,17 @@ const isSubmitBtnDisabled = computed(
     || (isEditPage.value && !hasFormChanged.value),
 );
 
+const isLeaving = ref(false);
+
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
   if (
-    hasFormChanged.value
+    !isLeaving.value
+    && hasFormChanged.value
     && !wasFormSubmittedSuccessfuly.value
     && to.fullPath !== '/500'
   ) {
+    isLeaving.value = true;
     return ConfirmDialog({})
       .then(() => true)
       .catch(() => false);
@@ -460,6 +463,8 @@ async function onSubmit() {
       memberId: affiliation.memberId,
       segmentId: affiliation.segmentId,
       organizationId: affiliation.organizationId,
+      dateStart: affiliation.dateStart,
+      dateEnd: affiliation.dateEnd,
     })),
   };
 

@@ -40,8 +40,12 @@
               name="activities"
             >
               <app-activity-timeline
-                :entity-id="props.id"
+                :entity="{
+                  ...organization,
+                  organizations: [organization],
+                }"
                 entity-type="organization"
+                :show-affiliations="true"
               />
             </el-tab-pane>
           </el-tabs>
