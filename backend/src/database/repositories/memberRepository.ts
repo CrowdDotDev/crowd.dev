@@ -3385,20 +3385,41 @@ class MemberRepository {
     organizations.sort((a, b) => {
       a = a.dataValues ? a.get({ plain: true }) : a
       b = b.dataValues ? b.get({ plain: true }) : b
+      const aStart = a.memberOrganizations?.dateStart
+      const bStart = b.memberOrganizations?.dateStart
+      const aEnd = a.memberOrganizations?.dateEnd
+      const bEnd = b.memberOrganizations?.dateEnd
 
-      const aDate = a.memberOrganizations?.dateStart
-      const bDate = b.memberOrganizations?.dateStart
+      // Sorting:
+      // 1. Those without dateEnd, but with dateStart should be at the top, orderd by dateStart
+      // 2. Those with dateEnd and dateStart should be in the middle, ordered by dateEnd
+      // 3. Those without dateEnd and dateStart should be at the bottom, ordered by name
+      if (!aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return aStart > bStart ? -1 : 1
+        }
+        if (bEnd && bStart) {
+          return -1
+        }
+        return -1
+      }
+      if (aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return 1
+        }
+        if (bEnd && bStart) {
+          return aEnd > bEnd ? -1 : 1
+        }
+        return -1
+      }
 
-      if (aDate && bDate) {
-        return bDate.getTime() - aDate.getTime()
-      }
-      if (!aDate && !bDate) {
-        return a.name.localeCompare(b.name)
-      }
-      if (!bDate) {
+      if (!bEnd && bStart) {
         return 1
       }
-      return -1
+      if (bEnd && bStart) {
+        return 1
+      }
+      return a.name > b.name ? 1 : -1
     })
   }
 }
