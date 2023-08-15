@@ -1,5 +1,5 @@
 import OpensearchModelBase from './models/base'
-import { OpenSearchIndex } from '@crowd/types'
+import { OpenSearchIndex, OpensearchField, OpensearchFieldType } from '@crowd/types'
 
 export default abstract class FieldTranslator {
   index: OpenSearchIndex
@@ -44,6 +44,13 @@ export default abstract class FieldTranslator {
     return this.model.fieldExists(key)
   }
 
+  convertIfInt(modelField: OpensearchField, value: unknown): unknown {
+    if (modelField.type === OpensearchFieldType.INT) {
+      return parseInt(value as string, 10)
+    }
+    return value
+  }
+
   translateObjectToCrowd(object: unknown): unknown {
     const translated = {}
 
@@ -65,7 +72,10 @@ export default abstract class FieldTranslator {
       if (crowdKey) {
         const modelField = this.model.getField(crowdKey)
         if (!modelField || !modelField.preventNestedFieldTranslation) {
-          translated[crowdKey] = this.translateObjectToCrowd(object[key])
+          translated[crowdKey] = this.convertIfInt(
+            modelField,
+            this.translateObjectToCrowd(object[key]),
+          )
         } else {
           translated[crowdKey] = object[key]
         }
