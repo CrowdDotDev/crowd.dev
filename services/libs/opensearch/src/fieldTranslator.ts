@@ -45,7 +45,7 @@ export default abstract class FieldTranslator {
   }
 
   convertIfInt(modelField: OpensearchField, value: unknown): unknown {
-    if (modelField.type === OpensearchFieldType.INT) {
+    if (modelField?.type === OpensearchFieldType.INT) {
       return parseInt(value as string, 10)
     }
     return value
