@@ -3410,7 +3410,7 @@ class MemberRepository {
           ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
           OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
         )
-      ORDER BY "dateStart" DESC
+      ORDER BY "dateStart" DESC, id
       LIMIT 1
     `
 
@@ -3442,7 +3442,7 @@ class MemberRepository {
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
         AND "createdAt" <= :timestamp
-      ORDER BY "createdAt" DESC
+      ORDER BY "createdAt" DESC, id
       LIMIT 1
     `
     const records = await seq.query(query, {
