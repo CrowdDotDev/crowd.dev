@@ -135,7 +135,7 @@
                         v-if="scope.row.headline"
                         class="text-sm h-full flex items-center text-gray-900"
                       >
-                        {{ scope.row.headline }}
+                        {{ scope.row.headline || scope.row.description }}
                       </span>
                       <span
                         v-else
