@@ -20,5 +20,8 @@
   },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
+  },
+  "organizationEnrichment": {
+    "apiKey": "CROWD_ORGANIZATION_ENRICHMENT_API_KEY"
   }
 }

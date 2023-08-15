@@ -3,6 +3,9 @@ import { ISqsClientConfig } from '@crowd/sqs'
 import { ISentimentClientConfig } from '@crowd/sentiment'
 import config from 'config'
 
+export interface OrganizationEnrichmentConfiguration {
+  apiKey: string
+}
 export interface ISlackAlertingConfig {
   url: string
 }
@@ -43,3 +46,6 @@ export const SENTIMENT_CONFIG = (): ISentimentClientConfig | undefined => {
 
   return sentimentConfig
 }
+
+export const ORGANIZATION_ENRICHMENT_CONFIG: OrganizationEnrichmentConfiguration =
+  config.get<OrganizationEnrichmentConfiguration>('organizationEnrichment')

@@ -134,7 +134,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return result
   }
 
-  public async findByUrl(
+  public async findByDomain(
     tenantId: string,
     segmentId: string,
     url: string,

@@ -1,11 +1,13 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
+import PDLJS from 'peopledatalabs'
 import IntegrationRepository from '@/repo/integration.repo'
 import { IDbInsertOrganizationData } from '@/repo/organization.data'
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
+import { ORGANIZATION_ENRICHMENT_CONFIG } from '../conf'
 
 export class OrganizationService extends LoggerBase {
   private readonly repo: OrganizationRepository
@@ -189,8 +191,40 @@ export class OrganizationService extends LoggerBase {
     await this.repo.addToMember(memberId, orgIds)
   }
 
-  public async findByUrl(tenantId: string, segmentId: string, url: string): Promise<IOrganization> {
-    return this.repo.findByUrl(tenantId, segmentId, url)
+  public async findOrCreateByDomain(
+    tenantId: string,
+    segmentId: string,
+    url: string,
+  ): Promise<string> {
+    // check if exists
+    const organization = await this.repo.findByDomain(tenantId, segmentId, url)
+
+    if (organization) return organization.id
+
+    const PDLJSClient = new PDLJS({ apiKey: ORGANIZATION_ENRICHMENT_CONFIG.apiKey })
+
+    const esQuery = {
+      query: {
+        bool: {
+          must: [{ term: { website: url } }],
+        },
+      },
+    }
+    const params = { searchQuery: esQuery, size: 1, pretty: true }
+
+    try {
+      const res = await PDLJSClient.company.search.elastic(params)
+
+      if (res.data && res.data.length > 0) {
+        const data = this.normalizeSocialFields(res.data[0])
+        const orgId = await this.findOrCreate(tenantId, segmentId, data)
+
+        return orgId
+      }
+    } catch (err) {
+      this.log.error('Error searching for organization by url', { err })
+      throw err
+    }
   }
 
   public async processOrganizationEnrich(
