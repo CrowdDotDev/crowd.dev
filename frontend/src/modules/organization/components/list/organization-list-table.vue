@@ -120,7 +120,6 @@
                 label="Headline"
                 prop="headline"
                 width="300"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -348,7 +347,6 @@
                 label="Location"
                 width="150"
                 prop="location"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -377,7 +375,6 @@
                 label="Industry"
                 width="150"
                 prop="industry"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -406,7 +403,6 @@
                 label="Headcount"
                 width="150"
                 prop="size"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -435,7 +431,6 @@
                 label="Type"
                 width="150"
                 prop="type"
-                sortable
               >
                 <template #default="scope">
                   <router-link
