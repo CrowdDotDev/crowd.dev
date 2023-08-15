@@ -12,10 +12,6 @@ const allOrganizations: SavedView = {
     },
     settings: {
       teamOrganization: 'exclude',
-      noOfActivities: {
-        operator: 'gt',
-        value: 0,
-      },
     },
   },
 };
