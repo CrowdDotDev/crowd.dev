@@ -134,7 +134,7 @@
                         v-if="scope.row.headline"
                         class="text-sm h-full flex items-center text-gray-900"
                       >
-                        {{ scope.row.headline || scope.row.description }}
+                        {{ headlineOrDescription(scope.row) }}
                       </span>
                       <span
                         v-else
@@ -591,6 +591,12 @@ document.onmouseup = () => {
   isScrollbarVisible.value = isTableHovered.value;
   isCursorDown.value = false;
 };
+
+function headlineOrDescription(row) {
+  console.log('headline', row.headline)
+  console.log('description', row.description)
+  return row.headline
+}
 
 function doChangeSort(sorter) {
   filters.value.order = {
