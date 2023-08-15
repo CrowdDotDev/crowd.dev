@@ -3270,15 +3270,6 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    let conflictClause
-    if (dateStart && dateEnd) {
-      conflictClause = `("memberId", "organizationId", "dateStart", "dateEnd")`
-    } else if (dateStart) {
-      conflictClause = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
-    } else {
-      conflictClause = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
-    }
-
     if (dateStart) {
       // clean up organizations without dates if we're getting ones with dates
       await seq.query(
@@ -3326,7 +3317,7 @@ class MemberRepository {
       `
         INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
         VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-        ON CONFLICT ${conflictClause} DO NOTHING
+        ON CONFLICT DO NOTHING
       `,
       {
         replacements: {
