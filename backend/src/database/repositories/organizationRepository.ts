@@ -601,8 +601,8 @@ class OrganizationRepository {
     if (filter.and) {
       filter.and.push({
         activityCount: {
-          gt: 0
-        }
+          gt: 0,
+        },
       })
     }
 
