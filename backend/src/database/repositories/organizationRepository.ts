@@ -375,11 +375,10 @@ class OrganizationRepository {
       `
           WITH
               activity_counts AS (
-                  SELECT mo."organizationId", COUNT(a.id) AS "activityCount"
-                  FROM "memberOrganizations" mo
-                  LEFT JOIN activities a ON a."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY mo."organizationId"
+                SELECT "organizationId", COUNT(id) AS "activityCount"
+                FROM activities
+                WHERE "organizationId" = :id
+                GROUP BY "organizationId"
               ),
               member_counts AS (
                   SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
@@ -388,12 +387,11 @@ class OrganizationRepository {
                   GROUP BY "organizationId"
               ),
               active_on AS (
-                  SELECT mo."organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-                  FROM "memberOrganizations" mo
-                  JOIN activities a ON a."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY mo."organizationId"
-              ),
+                SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+                FROM activities
+                WHERE "organizationId" = :id
+                GROUP BY "organizationId"
+            ),
               identities AS (
                   SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
                   FROM "memberOrganizations" mo
@@ -599,6 +597,14 @@ class OrganizationRepository {
     const segment = segments[0]
 
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
+
+    if (filter.and) {
+      filter.and.push({
+        activityCount: {
+          gt: 0,
+        },
+      })
+    }
 
     const parsed = OpensearchQueryParser.parse(
       { filter, limit, offset, orderBy },
