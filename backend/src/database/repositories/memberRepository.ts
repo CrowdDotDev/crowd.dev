@@ -3233,7 +3233,26 @@ class MemberRepository {
       return
     }
 
-    await record.setOrganizations([], { transaction })
+    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+
+    const toDelete = originalOrgs.filter(
+      (originalOrg: any) =>
+        !organizations.find(
+          (newOrg) =>
+            originalOrg.organizationId === newOrg.id &&
+            originalOrg.title === (newOrg.title || null) &&
+            originalOrg.dateStart === (newOrg.startDate || null) &&
+            originalOrg.dateEnd === (newOrg.endDate || null),
+        ),
+    )
+
+    for (const item of toDelete) {
+      await MemberRepository.deleteWorkExperience((item as any).id, {
+        transaction,
+        ...options,
+      })
+    }
+
     for (const item of organizations) {
       const org = typeof item === 'string' ? { id: item } : item
       await MemberRepository.createOrUpdateWorkExperience(
@@ -3335,6 +3354,45 @@ class MemberRepository {
     if (updateAffiliation) {
       await MemberAffiliationRepository.update(memberId, options)
     }
+  }
+
+  static async deleteWorkExperience(id, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    await seq.query(
+      `
+        DELETE FROM "memberOrganizations"
+        WHERE "id" = :id
+      `,
+      {
+        replacements: {
+          id,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      },
+    )
+  }
+
+  static async fetchWorkExperiences(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+    `
+
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return records
   }
 
   static async findWorkExperience(
