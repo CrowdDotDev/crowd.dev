@@ -47,6 +47,7 @@ import {
 import Error400 from '../../errors/Error400'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
+import MemberAffiliationRepository from './memberAffiliationRepository'
 
 const { Op } = Sequelize
 
@@ -861,28 +862,8 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
-
-    const toDeleteAffiliations: string[] = []
-
-    const existingAffiliations = await this.getAffiliations(memberId, options)
-
-    for (const existingAffiliation of existingAffiliations) {
-      if (
-        !data.find(
-          (incomingAffiliation) => incomingAffiliation.segmentId === existingAffiliation.segmentId,
-        )
-      ) {
-        toDeleteAffiliations.push(existingAffiliation.id)
-      }
-    }
-
-    if (toDeleteAffiliations.length > 0) {
-      await affiliationRepository.destroyAll(toDeleteAffiliations)
-    }
-
-    for (const incomingAffiliation of data) {
-      await affiliationRepository.createOrUpdate({ memberId, ...incomingAffiliation })
-    }
+    await affiliationRepository.setForMember(memberId, data)
+    await MemberAffiliationRepository.update(memberId, options)
   }
 
   static async getAffiliations(
@@ -901,7 +882,9 @@ class MemberRepository {
         s."parentName" as "segmentParentName", 
         o.id as "organizationId", 
         o.name as "organizationName",
-        o.logo as "organizationLogo"
+        o.logo as "organizationLogo",
+        msa."dateStart" as "dateStart",
+        msa."dateEnd" as "dateEnd"
       from "memberSegmentAffiliations" msa 
       left join organizations o on o.id = msa."organizationId"
       join segments s on s.id = msa."segmentId"
@@ -3274,34 +3257,76 @@ class MemberRepository {
   }
 
   static async createOrUpdateWorkExperience(
-    { memberId, organizationId, title, dateStart, dateEnd },
+    {
+      memberId,
+      organizationId,
+      title = null,
+      dateStart = null,
+      dateEnd = null,
+      updateAffiliation = true,
+    },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    await seq.query(
-      `
-        DELETE FROM "memberOrganizations"
-        WHERE "memberId" = :memberId
-        AND "organizationId" = :organizationId
-        AND "dateEnd" IS NULL
-      `,
-      {
-        replacements: {
-          memberId,
-          organizationId,
+    let conflictClause
+    if (dateStart && dateEnd) {
+      conflictClause = `("memberId", "organizationId", "dateStart", "dateEnd")`
+    } else if (dateStart) {
+      conflictClause = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
+    } else {
+      conflictClause = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
+    }
+
+    if (dateStart) {
+      // clean up organizations without dates if we're getting ones with dates
+      await seq.query(
+        `
+          DELETE FROM "memberOrganizations"
+          WHERE "memberId" = :memberId
+          AND "organizationId" = :organizationId
+          AND "dateStart" IS NULL
+          AND "dateEnd" IS NULL
+        `,
+        {
+          replacements: {
+            memberId,
+            organizationId,
+          },
+          type: QueryTypes.DELETE,
+          transaction,
         },
-        type: QueryTypes.DELETE,
-        transaction,
-      },
-    )
+      )
+    } else {
+      const rows = await seq.query(
+        `
+          SELECT COUNT(*) AS count FROM "memberOrganizations"
+          WHERE "memberId" = :memberId
+          AND "organizationId" = :organizationId
+          AND "dateStart" IS NOT NULL
+        `,
+        {
+          replacements: {
+            memberId,
+            organizationId,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+      const row = rows[0] as any
+      if (row.count > 0) {
+        // if we're getting organization without dates, but there's already one with dates, don't insert
+        return
+      }
+    }
 
     await seq.query(
       `
         INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
         VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-        ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
+        ON CONFLICT ${conflictClause} DO NOTHING
       `,
       {
         replacements: {
@@ -3315,26 +3340,86 @@ class MemberRepository {
         transaction,
       },
     )
+
+    if (updateAffiliation) {
+      await MemberAffiliationRepository.update(memberId, options)
+    }
+  }
+
+  static async findWorkExperience(
+    memberId: string,
+    timestamp: string,
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND (
+          ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
+          OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
+        )
+      ORDER BY "dateStart" DESC
+      LIMIT 1
+    `
+
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+        timestamp,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
   }
 
   static sortOrganizations(organizations) {
     organizations.sort((a, b) => {
       a = a.dataValues ? a.get({ plain: true }) : a
       b = b.dataValues ? b.get({ plain: true }) : b
+      const aStart = a.memberOrganizations?.dateStart
+      const bStart = b.memberOrganizations?.dateStart
+      const aEnd = a.memberOrganizations?.dateEnd
+      const bEnd = b.memberOrganizations?.dateEnd
 
-      const aDate = a.memberOrganizations?.dateStart
-      const bDate = b.memberOrganizations?.dateStart
+      // Sorting:
+      // 1. Those without dateEnd, but with dateStart should be at the top, orderd by dateStart
+      // 2. Those with dateEnd and dateStart should be in the middle, ordered by dateEnd
+      // 3. Those without dateEnd and dateStart should be at the bottom, ordered by name
+      if (!aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return aStart > bStart ? -1 : 1
+        }
+        if (bEnd && bStart) {
+          return -1
+        }
+        return -1
+      }
+      if (aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return 1
+        }
+        if (bEnd && bStart) {
+          return aEnd > bEnd ? -1 : 1
+        }
+        return -1
+      }
 
-      if (aDate && bDate) {
-        return bDate.getTime() - aDate.getTime()
-      }
-      if (!aDate && !bDate) {
-        return a.name.localeCompare(b.name)
-      }
-      if (!bDate) {
+      if (!bEnd && bStart) {
         return 1
       }
-      return -1
+      if (bEnd && bStart) {
+        return 1
+      }
+      return a.name > b.name ? 1 : -1
     })
   }
 }
