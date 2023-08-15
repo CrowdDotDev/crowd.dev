@@ -3430,6 +3430,37 @@ class MemberRepository {
     return records[0]
   }
 
+  static async findMostRecentOrganization(
+    memberId: string,
+    timestamp: string,
+    options: IRepositoryOptions,
+  ): Promise<any> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND "createdAt" <= :timestamp
+      ORDER BY "createdAt" DESC
+      LIMIT 1
+    `
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+        timestamp,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
+
   static sortOrganizations(organizations) {
     organizations.sort((a, b) => {
       a = a.dataValues ? a.get({ plain: true }) : a

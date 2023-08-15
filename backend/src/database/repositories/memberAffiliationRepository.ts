@@ -17,7 +17,9 @@ class MemberAffiliationRepository {
               -- but if there is no manual affiliation, we know this by 'msa.id' being NULL, and then using 000000 as a marker,
               -- which we remove afterwards
               (ARRAY_REMOVE(ARRAY_AGG(CASE WHEN msa.id IS NULL THEN '00000000-0000-0000-0000-000000000000' ELSE msa."organizationId" END), '00000000-0000-0000-0000-000000000000')
-               || ARRAY_REMOVE(ARRAY_AGG(mo."organizationId" ORDER BY mo."dateStart" DESC), NULL))[1] AS new_org
+               || ARRAY_REMOVE(ARRAY_AGG(mo."organizationId" ORDER BY mo."dateStart" DESC), NULL)
+               || ARRAY_REMOVE(ARRAY_AGG(mo1."organizationId" ORDER BY mo1."createdAt" DESC), NULL)
+              )[1] AS new_org
           FROM activities a
           LEFT JOIN "memberSegmentAffiliations" msa ON msa."memberId" = a."memberId" AND a."segmentId" = msa."segmentId" AND (
                  a.timestamp BETWEEN msa."dateStart" AND msa."dateEnd"
@@ -27,6 +29,7 @@ class MemberAffiliationRepository {
                   a.timestamp BETWEEN mo."dateStart" AND mo."dateEnd"
                   OR (a.timestamp >= mo."dateStart" AND mo."dateEnd" IS NULL)
               )
+          LEFT JOIN "memberOrganizations" mo1 ON mo1."memberId" = a."memberId" AND mo1."createdAt" <= a.timestamp
           WHERE a."memberId" = :memberId
           GROUP BY a.id
       )
