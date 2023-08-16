@@ -43,7 +43,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o.attributes,
             o."createdAt",
             o.description,
-            o."displayName",
+            COALESCE(o."displayName", o.name) as "displayName",
             o.emails,
             o."employeeCountByCountry",
             o.employees,
