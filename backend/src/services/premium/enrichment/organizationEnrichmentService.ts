@@ -76,20 +76,22 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       this.maxOrganizationsLimit,
       this.options,
     )) {
-      const data = await this.getEnrichment(instance)
-      if (data) {
-        const org = this.convertEnrichedDataToOrg(data, instance)
-        enrichedOrganizations.push({ ...org, id: instance.id, tenantId: this.tenantId })
-        enrichedCacheOrganizations.push({ ...org, id: instance.cachId })
-      } else {
-        const lastEnrichedAt = new Date()
-        enrichedOrganizations.push({
-          ...instance,
-          id: instance.id,
-          tenantId: this.tenantId,
-          lastEnrichedAt,
-        })
-        enrichedCacheOrganizations.push({ ...instance, id: instance.cachId, lastEnrichedAt })
+      if (instance.activityCount > 0) {
+        const data = await this.getEnrichment(instance)
+        if (data) {
+          const org = this.convertEnrichedDataToOrg(data, instance)
+          enrichedOrganizations.push({ ...org, id: instance.id, tenantId: this.tenantId })
+          enrichedCacheOrganizations.push({ ...org, id: instance.cachId })
+        } else {
+          const lastEnrichedAt = new Date()
+          enrichedOrganizations.push({
+            ...instance,
+            id: instance.id,
+            tenantId: this.tenantId,
+            lastEnrichedAt,
+          })
+          enrichedCacheOrganizations.push({ ...instance, id: instance.cachId, lastEnrichedAt })
+        }
       }
     }
     const orgs = await this.update(enrichedOrganizations, enrichedCacheOrganizations)
