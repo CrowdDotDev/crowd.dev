@@ -21,7 +21,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
             ("dateStart" <= $(timestamp) AND "dateEnd" >= $(timestamp))
             OR ("dateStart" <= $(timestamp) AND "dateEnd" IS NULL)
           )
-        ORDER BY "dateStart" DESC
+        ORDER BY "dateStart" DESC, id
         LIMIT 1
       `,
       {
@@ -45,7 +45,28 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
             ("dateStart" <= $(timestamp) AND "dateEnd" >= $(timestamp))
             OR ("dateStart" <= $(timestamp) AND "dateEnd" IS NULL)
           )
-        ORDER BY "dateStart" DESC
+        ORDER BY "dateStart" DESC, id
+        LIMIT 1
+      `,
+      {
+        memberId,
+        timestamp,
+      },
+    )
+
+    return result
+  }
+
+  public async findMostRecentOrganization(
+    memberId: string,
+    timestamp: string,
+  ): Promise<IWorkExperienceData | null> {
+    const result = await this.db().oneOrNone(
+      `
+        SELECT * FROM "memberOrganizations"
+        WHERE "memberId" = $(memberId)
+          AND "createdAt" <= $(timestamp)
+        ORDER BY "createdAt" DESC, id
         LIMIT 1
       `,
       {
