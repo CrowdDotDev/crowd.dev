@@ -94,9 +94,9 @@
               <!-- Organization logo and name -->
               <el-table-column
                 label="Organization"
-                prop="name"
+                prop="displayName"
                 width="260"
-                sortable
+                sortable="custom"
                 fixed
               >
                 <template #default="scope">
