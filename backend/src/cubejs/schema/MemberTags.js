@@ -1,5 +1,5 @@
 cube(`MemberTags`, {
-  sql: `SELECT * FROM public."memberTags"`,
+  sql_table: '"memberTags"',
 
   joins: {
     Tags: {

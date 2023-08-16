@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-globals */
 cube(`Organizations`, {
-  sql: `SELECT *
-        FROM public.organizations`,
+  sql_table: 'organizations',
   preAggregations: {
     newOrganizations: {
       measures: [Organizations.count],

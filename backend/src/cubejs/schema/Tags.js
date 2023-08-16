@@ -1,5 +1,5 @@
 cube(`Tags`, {
-  sql: `SELECT * FROM public.tags`,
+  sql_table: 'tags',
 
   preAggregations: {},
 

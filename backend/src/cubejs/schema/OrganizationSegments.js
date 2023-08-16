@@ -1,6 +1,5 @@
 cube(`OrganizationSegments`, {
-  sql: `SELECT *
-        FROM public."organizationSegments"`,
+  sql_table: '"organizationSegments"',
 
   preAggregations: {},
 

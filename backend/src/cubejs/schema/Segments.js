@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-globals */
 cube(`Segments`, {
-  sql: `SELECT *
-        FROM public.segments`,
+  sql_table: 'segments',
 
   preAggregations: {},
 

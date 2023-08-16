@@ -1,5 +1,5 @@
 cube(`Activities`, {
-  sql: `SELECT * FROM public.activities`,
+  sql_table: 'activities',
 
   preAggregations: {
     Activities: {
