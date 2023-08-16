@@ -22,6 +22,7 @@ const defaultChartOptions = (config) => ({
         time: config.xType === 'time' && {
           displayFormats: {
             day: 'MMM DD, YYYY',
+            month: 'YYYY',
           },
         },
         ticks: {
