@@ -96,7 +96,7 @@ import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
-import { getTimeGranularityFromPeriod } from '@/utils/reports';
+import { getTimeGranularityFromPeriod, parseAxisLabel } from '@/utils/reports';
 import {
   TOTAL_MEMBERS_QUERY,
   TOTAL_MEMBERS_FILTER,
@@ -122,11 +122,14 @@ const drawerExpanded = ref();
 const drawerDate = ref();
 const drawerTitle = ref();
 
+const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const widgetChartOptions = chartOptions('area', {
   legendPlugin: false,
+  xTicksCallback: (
+    value,
+  ) => parseAxisLabel(value, granularity.value),
 });
 
-const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const datasets = computed(() => [
   {
     name: 'Total members',
