@@ -103,16 +103,16 @@ export default class MemberService extends LoggerBase {
           if (organizationIds.length > 0) {
             await orgService.addToMember(tenantId, segmentId, id, organizationIds)
           }
+        }
 
-          if (data.emails) {
-            const orgIds = await this.assignOrganizationByEmailDomain(
-              tenantId,
-              segmentId,
-              data.emails,
-            )
-            if (orgIds.length > 0) {
-              organizationIds.push(...orgIds)
-            }
+        if (data.emails) {
+          const orgIds = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            data.emails,
+          )
+          if (orgIds.length > 0) {
+            organizationIds.push(...orgIds)
           }
         }
 
@@ -214,16 +214,16 @@ export default class MemberService extends LoggerBase {
             await orgService.addToMember(tenantId, segmentId, id, organizationIds)
             updated = true
           }
+        }
 
-          if (data.emails) {
-            const orgIds = await this.assignOrganizationByEmailDomain(
-              tenantId,
-              segmentId,
-              data.emails,
-            )
-            if (orgIds.length > 0) {
-              organizationIds.push(...orgIds)
-            }
+        if (data.emails) {
+          const orgIds = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            data.emails,
+          )
+          if (orgIds.length > 0) {
+            organizationIds.push(...orgIds)
           }
         }
 
