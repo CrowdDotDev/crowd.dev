@@ -428,8 +428,8 @@ export class OrganizationSyncService extends LoggerBase {
     p.uuid_organizationId = data.organizationId
     p.uuid_segmentId = data.segmentId
     p.uuid_tenantId = data.tenantId
-    p.string_address = data.address
-    p.keyword_address = data.address
+    p.obj_address = data.address
+    p.string_address = data.address ? JSON.stringify(data.address) : null
     p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
     p.date_createdAt = data.createdAt ? new Date(data.createdAt).toISOString() : null
     p.string_description = data.description
