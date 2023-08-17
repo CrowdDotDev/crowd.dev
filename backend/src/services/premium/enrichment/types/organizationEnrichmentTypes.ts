@@ -11,6 +11,7 @@ export interface IOrganization {
   tenantId?: string
   website?: string
   location?: string
+  activityCount?: number
   description?: IEnrichmentResponse['summary']
   employeeCountByCountry?: IEnrichmentResponse['employee_count_by_country']
   type?: IEnrichmentResponse['type']

@@ -78,7 +78,7 @@ import ACTIVITIES_REPORT, { TOTAL_ACTIVITIES_WIDGET } from '@/modules/report/tem
 import {
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
-import { getTimeGranularityFromPeriod } from '@/utils/reports';
+import { getTimeGranularityFromPeriod, parseAxisLabel } from '@/utils/reports';
 import {
   TOTAL_ACTIVITIES_QUERY,
 } from '@/modules/widget/widget-queries';
@@ -95,12 +95,15 @@ const props = defineProps({
 });
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER);
+const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 
 const widgetChartOptions = chartOptions('area', {
   legendPlugin: false,
+  xTicksCallback: (
+    value,
+  ) => parseAxisLabel(value, granularity.value),
 });
 
-const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const datasets = computed(() => [
   {
     name: TOTAL_ACTIVITIES_WIDGET.name,

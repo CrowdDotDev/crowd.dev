@@ -5,7 +5,7 @@ import MemberAffiliationRepository from '../repo/memberAffiliation.repo'
 export default class MemberAffiliationService extends LoggerBase {
   private readonly repo: MemberAffiliationRepository
 
-  constructor(private readonly store: DbStore, parentLog: Logger) {
+  constructor(store: DbStore, parentLog: Logger) {
     super(parentLog)
 
     this.repo = new MemberAffiliationRepository(store, this.log)
