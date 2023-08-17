@@ -68,9 +68,11 @@
         @fetch="fetch($event)"
       />
       <app-member-list-table
+        v-model:pagination="pagination"
         :has-integrations="hasIntegrations"
         :has-members="membersCount > 0"
         :is-page-loading="loading"
+        @update:pagination="onPaginationChange"
       />
     </div>
   </app-page-wrapper>
@@ -109,6 +111,11 @@ const hasPermissionToCreate = computed(() => new MemberPermissions(
   currentTenant.value,
   currentUser.value,
 )?.create);
+
+const pagination = ref({
+  page: 1,
+  perPage: 20,
+});
 
 const isCreateLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
@@ -152,23 +159,35 @@ const showLoading = (filter: any, body: any): boolean => {
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body,
+  filter, orderBy, body,
 }: FilterQuery) => {
   if (!loading.value) {
     loading.value = showLoading(filter, body);
   }
+  pagination.value.page = 1;
   fetchMembers({
     body: {
       ...body,
       filter,
-      offset,
-      limit,
+      offset: 0,
+      limit: pagination.value.perPage,
       orderBy,
     },
   })
     .finally(() => {
       loading.value = false;
     });
+};
+const onPaginationChange = ({
+  page, perPage,
+}: FilterQuery) => {
+  fetchMembers({
+    reload: true,
+    body: {
+      offset: (page - 1) * perPage || 0,
+      limit: perPage || 20,
+    },
+  });
 };
 
 onMounted(() => {

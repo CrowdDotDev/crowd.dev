@@ -93,7 +93,7 @@ const switchOperator = () => {
 
 const alignFilterList = (value: Filter) => {
   const {
-    settings, search, relation, order, pagination, ...filterValues
+    settings, search, relation, order, ...filterValues
   } = value;
   filterList.value = Object.keys(filterValues);
 };
@@ -125,11 +125,6 @@ const alignQueryUrl = () => {
     ...props.config,
     ...props.customConfig,
   }, props.savedViewsConfig);
-
-  // Remove pagination if it's not in filters store state
-  if (!props.modelValue.pagination) {
-    delete parsed.pagination;
-  }
 
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
