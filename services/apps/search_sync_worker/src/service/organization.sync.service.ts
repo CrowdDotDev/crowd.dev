@@ -7,7 +7,7 @@ import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { IDbOrganizationSyncData } from '@/repo/organization.data'
 import { IDbSegmentInfo } from '@/repo/segment.data'
-import { distinct, groupBy } from '@crowd/common'
+import { EPOCH_DATE, distinct, groupBy } from '@crowd/common'
 import { SERVICE_CONFIG } from '@/conf'
 import { IOrganizationSyncResult } from './organization.sync.data'
 
@@ -215,7 +215,6 @@ export class OrganizationSyncService extends LoggerBase {
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
-            tenantId,
             organizationIds,
           )
 
@@ -244,10 +243,7 @@ export class OrganizationSyncService extends LoggerBase {
     )
   }
 
-  public async syncOrganizations(
-    tenantId: string,
-    organizationIds: string[],
-  ): Promise<IOrganizationSyncResult> {
+  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     this.log.debug({ organizationIds }, 'Syncing organizations!')
 
     const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
@@ -255,7 +251,7 @@ export class OrganizationSyncService extends LoggerBase {
     let docCount = 0
     let organizationCount = 0
 
-    const organizations = await this.orgRepo.getOrganizationData(organizationIds, tenantId)
+    const organizations = await this.orgRepo.getOrganizationData(organizationIds)
 
     if (organizations.length > 0) {
       let childSegmentIds: string[] | undefined
@@ -463,8 +459,12 @@ export class OrganizationSyncService extends LoggerBase {
     p.obj_twitter = data.twitter
 
     // aggregate data
-    p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
-    p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
+    p.date_joinedAt = data.joinedAt
+      ? new Date(data.joinedAt).toISOString()
+      : EPOCH_DATE.toISOString()
+    p.date_lastActive = data.lastActive
+      ? new Date(data.lastActive).toISOString()
+      : EPOCH_DATE.toISOString()
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
