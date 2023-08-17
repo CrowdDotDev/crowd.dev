@@ -3042,7 +3042,7 @@ describe('ActivityService tests', () => {
         expect(activity.organization.id).toBe(org3.id)
       })
 
-      it('Should affiliate nothing if there is no matching work experience', async () => {
+      it('Should affiliate first created org to past activities', async () => {
         const member = await createMember()
 
         let activity = await createActivity(member.id, {
@@ -3065,7 +3065,7 @@ describe('ActivityService tests', () => {
 
         activity = await findActivity(activity.id)
 
-        expect(activity.organization).toBeNull()
+        expect(activity.organization.id).toBe(org1.id)
       })
 
       it('Should prefer manual affiliation over work experience', async () => {
