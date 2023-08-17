@@ -8,7 +8,7 @@ cube(`Tags`, {
   measures: {
     count: {
       type: `count`,
-      drillMembers: [name, id, updatedbyid, tenantid, createdbyid, createdat, updatedat], // eslint-disable-line no-restricted-globals
+      drillMembers: [name, id, updatedbyid, tenantId, createdbyid, createdat, updatedat], // eslint-disable-line no-restricted-globals
       shown: false,
     },
   },
@@ -37,7 +37,7 @@ cube(`Tags`, {
       shown: false,
     },
 
-    tenantid: {
+    tenantId: {
       sql: `${CUBE}."tenantId"`,
       type: `string`,
       shown: false,
