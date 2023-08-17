@@ -121,7 +121,6 @@
                 label="Headline"
                 prop="headline"
                 width="300"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -134,10 +133,10 @@
                   >
                     <div class="mr-4">
                       <span
-                        v-if="scope.row.headline"
+                        v-if="scope.row.headline || scope.row.description"
                         class="text-sm h-full flex items-center text-gray-900"
                       >
-                        {{ scope.row.headline }}
+                        {{ scope.row.headline || scope.row.description }}
                       </span>
                       <span
                         v-else
@@ -356,7 +355,6 @@
                 label="Location"
                 width="150"
                 prop="location"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -386,7 +384,6 @@
                 label="Industry"
                 width="150"
                 prop="industry"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -416,7 +413,6 @@
                 label="Headcount"
                 width="150"
                 prop="size"
-                sortable
               >
                 <template #default="scope">
                   <router-link
@@ -446,7 +442,6 @@
                 label="Type"
                 width="150"
                 prop="type"
-                sortable
               >
                 <template #default="scope">
                   <router-link
