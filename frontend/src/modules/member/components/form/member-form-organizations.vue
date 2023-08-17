@@ -83,7 +83,6 @@
     v-if="isOrganizationFormModalOpen"
     v-model="isOrganizationFormModalOpen"
     :organization="editOrganization !== null ? organizations[editOrganization] : null"
-    @update:model-value="!$event ? editOrganization = null : null"
     @add="organizations.push($event)"
     @edit="update($event)"
     @update:model-value="!$event ? editOrganization = null : null"
