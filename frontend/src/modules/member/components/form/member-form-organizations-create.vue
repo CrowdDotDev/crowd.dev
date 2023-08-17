@@ -187,7 +187,7 @@ const submit = () => {
     ...form.organization,
     memberOrganizations: {
       title: form.jobTitle,
-      dateStart: moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
+      dateStart: form.dateStart ? moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
       dateEnd: form.dateEnd ? moment(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
     },
   } as Organization;
@@ -219,7 +219,10 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
   .catch(() => null);
 
 const fillForm = (organization: Organization) => {
-  form.organization = organization;
+  form.organization = {
+    ...organization,
+    label: organization.displayName || organization.name,
+  } as Organization;
   form.jobTitle = organization.memberOrganizations.title;
   form.dateStart = organization.memberOrganizations.dateStart;
   form.dateEnd = organization.memberOrganizations.dateEnd;

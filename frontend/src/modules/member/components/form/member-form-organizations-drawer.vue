@@ -22,14 +22,19 @@
                 {{ organization.displayName || organization.name }}
               </h6>
               <p class="text-2xs leading-5 text-gray-500">
-                {{ organization.memberOrganizations.title }}
-                <span
-                  v-if="(organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd)
-                    && organization.memberOrganizations.title"
-                > ・ </span>
-                <span v-if="(organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd)">
-                  {{ formatDate(organization.memberOrganizations.dateStart) }} →
-                  {{ formatDate(organization.memberOrganizations.dateEnd) }}</span>
+                <span v-if="organization.memberOrganizations.title">{{ organization.memberOrganizations.title }}</span>
+                <span v-if="organization.memberOrganizations.title" class="mx-1">•</span>
+                <span>
+                  {{ organization.memberOrganizations.dateStart
+                    ? moment(organization.memberOrganizations.dateStart).utc().format('MMMM YYYY')
+                    : 'Unkown' }}
+                </span>
+                <span class="mx-1 whitespace-nowrap">-></span>
+                <span>
+                  {{ organization.memberOrganizations.dateEnd
+                    ? moment(organization.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+                    : organization.memberOrganizations.dateStart ? 'Present' : 'Unkown' }}
+                </span>
               </p>
             </div>
           </div>
@@ -57,12 +62,13 @@
     :organization="editOrganization !== null ? organizations[editOrganization] : null"
     @add="add($event)"
     @edit="update($event)"
+    @update:model-value="!$event ? editOrganization = null : null"
   />
 </template>
 
 <script setup lang="ts">
 import {
-  computed, onBeforeUnmount, onMounted, ref, watch,
+  computed, onMounted, ref,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { Member } from '@/modules/member/types/Member';
@@ -136,13 +142,6 @@ const add = (organization: Organization) => {
 const remove = (index: number) => {
   organizations.value.splice(index, 1);
   save();
-};
-
-const formatDate = (date: string) => {
-  if (date) {
-    return moment(date).utc().format('MMMM YYYY');
-  }
-  return 'Present';
 };
 
 onMounted(() => {
