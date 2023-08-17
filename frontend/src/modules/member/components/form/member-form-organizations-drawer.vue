@@ -139,7 +139,6 @@ const remove = (index: number) => {
 };
 
 const formatDate = (date: string) => {
-  console.log(date);
   if (date) {
     return moment(date).utc().format('MMMM YYYY');
   }

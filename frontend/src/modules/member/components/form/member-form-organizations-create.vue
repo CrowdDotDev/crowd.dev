@@ -188,7 +188,7 @@ const submit = () => {
     memberOrganizations: {
       title: form.jobTitle,
       dateStart: moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
-      dateEnd: form.dateEnd ? moment(form.dateEnd).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
+      dateEnd: form.dateEnd ? moment(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
     },
   } as Organization;
   if (isEdit.value) {
