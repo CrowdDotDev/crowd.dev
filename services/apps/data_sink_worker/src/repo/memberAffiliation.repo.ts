@@ -77,4 +77,22 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
 
     return result
   }
+
+  public async findMostRecentOrganizationEver(
+    memberId: string,
+  ): Promise<IWorkExperienceData | null> {
+    const result = await this.db().oneOrNone(
+      `
+        SELECT * FROM "memberOrganizations"
+        WHERE "memberId" = $(memberId)
+        ORDER BY "createdAt", id
+        LIMIT 1
+      `,
+      {
+        memberId,
+      },
+    )
+
+    return result
+  }
 }

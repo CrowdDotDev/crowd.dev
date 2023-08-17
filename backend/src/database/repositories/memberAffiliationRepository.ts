@@ -19,6 +19,7 @@ class MemberAffiliationRepository {
               (ARRAY_REMOVE(ARRAY_AGG(CASE WHEN msa.id IS NULL THEN '00000000-0000-0000-0000-000000000000' ELSE msa."organizationId" END), '00000000-0000-0000-0000-000000000000')
                || ARRAY_REMOVE(ARRAY_AGG(mo."organizationId" ORDER BY mo."dateStart" DESC, mo.id), NULL)
                || ARRAY_REMOVE(ARRAY_AGG(mo1."organizationId" ORDER BY mo1."createdAt" DESC, mo1.id), NULL)
+               || ARRAY_REMOVE(ARRAY_AGG(mo2."organizationId" ORDER BY mo2."createdAt", mo2.id), NULL)
               )[1] AS new_org
           FROM activities a
           LEFT JOIN "memberSegmentAffiliations" msa ON msa."memberId" = a."memberId" AND a."segmentId" = msa."segmentId" AND (
@@ -30,6 +31,7 @@ class MemberAffiliationRepository {
                   OR (a.timestamp >= mo."dateStart" AND mo."dateEnd" IS NULL)
               )
           LEFT JOIN "memberOrganizations" mo1 ON mo1."memberId" = a."memberId" AND mo1."createdAt" <= a.timestamp
+          LEFT JOIN "memberOrganizations" mo2 ON mo2."memberId" = a."memberId"
           WHERE a."memberId" = :memberId
           GROUP BY a.id
       )
