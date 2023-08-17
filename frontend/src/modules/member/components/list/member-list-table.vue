@@ -98,7 +98,6 @@
                 label="Contributor"
                 prop="displayName"
                 width="250"
-                sortable
                 fixed
                 class="-my-2"
               >

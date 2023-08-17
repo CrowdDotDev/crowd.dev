@@ -1,6 +1,9 @@
-import { SQS_CONFIG } from '@/conf'
+import { DB_CONFIG } from '@/conf'
+import { OrganizationRepository } from '@/repo/organization.repo'
+import { OpenSearchService } from '@/service/opensearch.service'
+import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
-import { SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
 const log = getServiceLogger()
 
@@ -14,11 +17,24 @@ if (processArguments.length !== 1) {
 const organizationId = processArguments[0]
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new SearchSyncWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  const openSearchService = new OpenSearchService(log)
+  await openSearchService.initialize()
 
-  await emitter.triggerOrganizationSync('blabla', organizationId)
+  const dbConnection = getDbConnection(DB_CONFIG())
+  const store = new DbStore(log, dbConnection)
 
-  process.exit(0)
+  const repo = new OrganizationRepository(store, log)
+
+  const service = new OrganizationSyncService(store, openSearchService, log)
+
+  const results = await repo.getOrganizationData([organizationId])
+
+  if (results.length === 0) {
+    log.error(`Organization ${organizationId} not found!`)
+    process.exit(1)
+  } else {
+    log.info(`Organization ${organizationId} found! Triggering sync!`)
+    await service.syncOrganizations([organizationId])
+    process.exit(0)
+  }
 })
