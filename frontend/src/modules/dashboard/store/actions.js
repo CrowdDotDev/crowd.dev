@@ -404,7 +404,6 @@ export default {
               : []),
           ],
         }),
-      orderBy: '',
       limit: 1,
       offset: 0,
     })

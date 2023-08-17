@@ -102,6 +102,12 @@ export default (app) => {
     safeWrap(require('./helpers/hubspotGetMappableFields').default),
   )
 
+  app.get(
+    '/tenant/:tenantId/hubspot-get-lists',
+    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+    safeWrap(require('./helpers/hubspotGetLists').default),
+  )
+
   app.post(
     '/tenant/:tenantId/hubspot-sync-member',
     featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),

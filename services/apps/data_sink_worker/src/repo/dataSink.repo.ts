@@ -87,7 +87,27 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async getFailedResults(
+  public async getFailedResults(page: number, perPage: number): Promise<IFailedResultData[]> {
+    const results = await this.db().any(
+      `select r.id,
+              r."tenantId",
+              i.platform
+        from integration.results r
+         inner join integrations i on i.id = r."integrationId"
+        where r.state = $(state)
+       order by r."createdAt" asc
+       limit $(perPage) offset $(offset)`,
+      {
+        state: IntegrationResultState.ERROR,
+        perPage,
+        offset: (page - 1) * perPage,
+      },
+    )
+
+    return results
+  }
+
+  public async getFailedResultsForRun(
     runId: string,
     page: number,
     perPage: number,

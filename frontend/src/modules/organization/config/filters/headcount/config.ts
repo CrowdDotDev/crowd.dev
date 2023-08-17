@@ -19,7 +19,7 @@ const headcount: SelectFilterConfig = {
   },
   apiFilterRenderer({ value, include }: SelectFilterValue): any[] {
     const filter = {
-      size: value,
+      size: { eq: value },
     };
     return [
       (include ? filter : { not: filter }),

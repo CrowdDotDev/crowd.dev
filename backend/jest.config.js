@@ -6,6 +6,7 @@ module.exports = {
       'ts-jest',
       {
         babelConfig: true,
+        isolatedModules: true,
       },
     ],
   },

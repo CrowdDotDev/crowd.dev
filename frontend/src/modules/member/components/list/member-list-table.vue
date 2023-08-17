@@ -100,7 +100,6 @@
                 label="Member"
                 prop="displayName"
                 width="250"
-                sortable
                 fixed
                 class="-my-2"
               >
@@ -369,7 +368,10 @@
                     class="block w-full"
                   >
                     <div class="h-full flex items-center justify-center w-full">
-                      <app-member-dropdown :member="scope.row" @merge="isMergeDialogOpen = scope.row" />
+                      <app-member-dropdown
+                        :member="scope.row"
+                        @merge="isMergeDialogOpen = scope.row"
+                      />
                     </div>
                   </router-link>
                 </template>

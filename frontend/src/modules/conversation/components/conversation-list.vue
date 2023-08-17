@@ -44,23 +44,11 @@
         />
 
         <!-- Load more button -->
-        <div
-          v-if="isLoadMoreVisible"
-          class="flex grow justify-center pt-4"
-        >
-          <div
-            v-if="loading"
-            v-loading="loading"
-            class="app-page-spinner h-16 !relative !min-h-5"
-          />
-          <el-button
-            v-else
-            class="btn btn-link btn-link--primary"
-            @click="onLoadMore"
-          >
-            <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
-          </el-button>
-        </div>
+        <app-load-more
+          :is-visible="isLoadMoreVisible"
+          :is-loading="loading"
+          :fetch-fn="onLoadMore"
+        />
       </div>
     </div>
   </div>
@@ -72,13 +60,14 @@
 </template>
 
 <script setup>
-import { defineProps, computed, ref } from 'vue';
+import { computed, ref } from 'vue';
 import AppConversationItem from '@/modules/conversation/components/conversation-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useConversationStore } from '@/modules/conversation/store';
 import { storeToRefs } from 'pinia';
 import { conversationFilters, conversationSearchFilter } from '@/modules/conversation/config/filters/main';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const conversationId = ref(null);
 
@@ -90,7 +79,9 @@ defineProps({
 });
 
 const conversationStore = useConversationStore();
-const { filters, conversations, totalConversations } = storeToRefs(conversationStore);
+const {
+  filters, conversations, totalConversations, savedFilterBody, pagination,
+} = storeToRefs(conversationStore);
 const { fetchConversation } = conversationStore;
 
 const loading = ref(false);
@@ -112,21 +103,25 @@ const doChangeFilter = (filter) => {
   };
 };
 
-const pagination = computed(
-  () => filters.value.pagination,
-);
 const isLoadMoreVisible = computed(() => (
   pagination.value.page
       * pagination.value.perPage
-    < totalConversations
+    < totalConversations.value
 ));
 
 const onLoadMore = () => {
-  filters.value.pagination.page += 1;
+  pagination.value.page += 1;
+
+  fetch({
+    ...savedFilterBody.value,
+    offset: (pagination.value.page - 1) * pagination.value.perPage,
+    limit: pagination.value.perPage,
+    append: true,
+  });
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body,
+  filter, offset, limit, orderBy, body, append,
 }) => {
   loading.value = true;
   fetchConversation({
@@ -135,7 +130,7 @@ const fetch = ({
     offset,
     limit,
     orderBy,
-  })
+  }, false, append)
     .finally(() => {
       loading.value = false;
     });
