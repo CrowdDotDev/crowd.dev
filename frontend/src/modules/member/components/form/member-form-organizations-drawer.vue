@@ -23,8 +23,12 @@
               </h6>
               <p class="text-2xs leading-5 text-gray-500">
                 {{ organization.memberOrganizations.title }}
-                <span v-if="organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd">
-                  ・ {{ formatDate(organization.memberOrganizations.dateStart) }} →
+                <span
+                  v-if="(organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd)
+                    && organization.memberOrganizations.title"
+                > ・ </span>
+                <span v-if="(organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd)">
+                  {{ formatDate(organization.memberOrganizations.dateStart) }} →
                   {{ formatDate(organization.memberOrganizations.dateEnd) }}</span>
               </p>
             </div>
@@ -135,8 +139,9 @@ const remove = (index: number) => {
 };
 
 const formatDate = (date: string) => {
+  console.log(date);
   if (date) {
-    return moment(date).format('MMM YYYY');
+    return moment(date).utc().format('MMMM YYYY');
   }
   return 'Present';
 };

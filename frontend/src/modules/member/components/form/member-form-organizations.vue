@@ -121,7 +121,7 @@ const update = (organization: Organization) => {
 
 const formatDate = (date: string) => {
   if (date) {
-    return moment(date).format('MMM YYYY');
+    return moment(date).utc().format('MMMM YYYY');
   }
   return 'Present';
 };

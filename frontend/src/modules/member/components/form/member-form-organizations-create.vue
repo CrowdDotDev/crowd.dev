@@ -56,17 +56,10 @@
           <div class="w-7/12 px-2.5">
             <app-form-item
               label="Job title"
-              :required="true"
-              :validation="$v.jobTitle"
-              :error-messages="{
-                required: 'This field is required',
-              }"
             >
               <el-input
                 v-model="form.jobTitle"
                 clearable
-                @blur="$v.jobTitle.$touch"
-                @change="$v.jobTitle.$touch"
               />
             </app-form-item>
           </div>
@@ -177,9 +170,6 @@ const rules = {
   organization: {
     required,
   },
-  jobTitle: {
-    required,
-  },
   dateStart: {
     minDate: (value, rest) => !form.dateEnd || (!!form.dateStart && moment(value).isBefore(moment(rest.dateEnd))),
   },
@@ -197,8 +187,8 @@ const submit = () => {
     ...form.organization,
     memberOrganizations: {
       title: form.jobTitle,
-      dateStart: moment(form.dateStart).toISOString(),
-      dateEnd: form.dateEnd ? moment(form.dateEnd).toISOString() : undefined,
+      dateStart: moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
+      dateEnd: form.dateEnd ? moment(form.dateEnd).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
     },
   } as Organization;
   if (isEdit.value) {
