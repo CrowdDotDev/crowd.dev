@@ -1,14 +1,14 @@
+import { SERVICE_CONFIG } from '@/conf'
+import { IDbOrganizationSyncData } from '@/repo/organization.data'
+import { OrganizationRepository } from '@/repo/organization.repo'
+import { IDbSegmentInfo } from '@/repo/segment.data'
+import { SegmentRepository } from '@/repo/segment.repo'
+import { distinct, groupBy } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
-import { OpenSearchService } from './opensearch.service'
-import { OrganizationRepository } from '@/repo/organization.repo'
-import { SegmentRepository } from '@/repo/segment.repo'
 import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
-import { IDbOrganizationSyncData } from '@/repo/organization.data'
-import { IDbSegmentInfo } from '@/repo/segment.data'
-import { EPOCH_DATE, distinct, groupBy } from '@crowd/common'
-import { SERVICE_CONFIG } from '@/conf'
+import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
 
 export class OrganizationSyncService extends LoggerBase {
@@ -459,12 +459,8 @@ export class OrganizationSyncService extends LoggerBase {
     p.obj_twitter = data.twitter
 
     // aggregate data
-    p.date_joinedAt = data.joinedAt
-      ? new Date(data.joinedAt).toISOString()
-      : EPOCH_DATE.toISOString()
-    p.date_lastActive = data.lastActive
-      ? new Date(data.lastActive).toISOString()
-      : EPOCH_DATE.toISOString()
+    p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
+    p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
