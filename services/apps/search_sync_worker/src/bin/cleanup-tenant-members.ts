@@ -1,6 +1,9 @@
-import { SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, REDIS_CONFIG } from '@/conf'
+import { MemberSyncService } from '@/service/member.sync.service'
+import { OpenSearchService } from '@/service/opensearch.service'
+import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
-import { SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { getRedisClient } from '@crowd/redis'
 
 const log = getServiceLogger()
 
@@ -14,10 +17,17 @@ if (processArguments.length !== 1) {
 const tenantId = processArguments[0]
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new SearchSyncWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  const openSearchService = new OpenSearchService(log)
+  await openSearchService.initialize()
 
-  await emitter.triggerMemberCleanup(tenantId)
+  const redis = await getRedisClient(REDIS_CONFIG(), true)
+
+  const dbConnection = getDbConnection(DB_CONFIG())
+  const store = new DbStore(log, dbConnection)
+
+  const service = new MemberSyncService(redis, store, openSearchService, log)
+
+  await service.cleanupMemberIndex(tenantId)
+
   process.exit(0)
 })
