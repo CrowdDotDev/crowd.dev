@@ -7,16 +7,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     super(dbStore, parentLog)
   }
 
-  public async getOrganizationData(
-    ids: string[],
-    tenantId: string,
-  ): Promise<IDbOrganizationSyncData[]> {
+  public async getOrganizationData(ids: string[]): Promise<IDbOrganizationSyncData[]> {
     const results = await this.db().any(
       `
       with organization_segments as (select "segmentId", "organizationId"
                                     from "organizationSegments"
-                                    where "organizationId" in ($(ids:csv))
-                                      and "tenantId" = $(tenantId)),
+                                    where "organizationId" in ($(ids:csv))),
           member_data as (select os."segmentId",
                                   os."organizationId",
                                   count(distinct m.id)                                                        as "memberCount",
@@ -79,12 +75,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       from member_data md
               inner join organizations o on o.id = md."organizationId"
       where o.id in ($(ids:csv))
-        and o."tenantId" = $(tenantId)
         and o."deletedAt" is null;
       `,
       {
         ids,
-        tenantId,
       },
     )
 

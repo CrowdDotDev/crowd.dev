@@ -119,11 +119,14 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('organizationId is required!')
     }
 
-    await this.sendMessage(organizationId, {
-      type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
-      tenantId,
+    await this.sendMessage(
       organizationId,
-    })
+      {
+        type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
+        organizationId,
+      },
+      organizationId,
+    )
   }
 
   public async triggerTenantOrganizationSync(tenantId: string) {
