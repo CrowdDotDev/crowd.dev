@@ -96,7 +96,6 @@
                 label="Organization"
                 prop="displayName"
                 width="260"
-                sortable="custom"
                 fixed
               >
                 <template #default="scope">

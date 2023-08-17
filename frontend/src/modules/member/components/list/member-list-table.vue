@@ -100,7 +100,6 @@
                 label="Member"
                 prop="displayName"
                 width="250"
-                sortable="custom"
                 fixed
                 class="-my-2"
               >
