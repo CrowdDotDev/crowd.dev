@@ -1125,6 +1125,17 @@ class Permissions {
           plans.scale,
         ],
       },
+      projectGroupCreate: {
+        id: 'projectGroupCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.eagleEye,
+          plans.enterprise,
+          plans.scale,
+        ],
+      },
       segmentEdit: {
         id: 'segmentEdit',
         allowedRoles: [roles.admin, roles.projectAdmin],
