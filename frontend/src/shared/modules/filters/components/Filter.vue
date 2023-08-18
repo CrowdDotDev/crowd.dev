@@ -132,11 +132,10 @@ const alignQueryUrl = () => {
     fetch(props.modelValue);
     return;
   }
-  filters.value = parsed as Filter;
   if (!!parsed && Object.keys(parsed).length > 0) {
     alignFilterList(parsed as Filter);
-    fetch(parsed as Filter);
   }
+  filters.value = parsed as Filter;
 };
 
 onMounted(() => {
