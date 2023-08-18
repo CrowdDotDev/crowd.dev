@@ -1,8 +1,9 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import { DB_CONFIG } from '@/conf'
 import { ActivityRepository } from '@/repo/activity.repo'
+import { ActivitySyncService } from '@/service/activity.sync.service'
+import { OpenSearchService } from '@/service/opensearch.service'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
-import { SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
 const log = getServiceLogger()
 
@@ -16,12 +17,13 @@ if (processArguments.length !== 1) {
 const activityId = processArguments[0]
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new SearchSyncWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  const openSearchService = new OpenSearchService(log)
+  await openSearchService.initialize()
 
   const dbConnection = getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+
+  const service = new ActivitySyncService(store, openSearchService, log)
 
   const repo = new ActivityRepository(store, log)
 
@@ -32,7 +34,7 @@ setImmediate(async () => {
     process.exit(1)
   } else {
     log.info(`Activity ${activityId} found! Triggering sync!`)
-    await emitter.triggerActivitySync(results[0].tenantId, activityId)
+    await service.syncActivities([activityId])
     process.exit(0)
   }
 })
