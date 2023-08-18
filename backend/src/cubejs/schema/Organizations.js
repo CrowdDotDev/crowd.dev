@@ -1,7 +1,17 @@
 /* eslint-disable no-restricted-globals */
 cube(`Organizations`, {
-  sql: `SELECT *
-        FROM public.organizations`,
+  sql: `
+  WITH activity_counts AS (
+    SELECT "organizationId", COUNT(1) AS "activityCount"
+    FROM public.activities
+    WHERE "organizationId" IS NOT NULL
+    GROUP BY "organizationId"
+    HAVING COUNT(1) > 0
+  )
+    SELECT org.*
+      FROM public.organizations org
+      INNER JOIN activity_counts ac
+      ON org.id = ac."organizationId"`,
   preAggregations: {
     newOrganizations: {
       measures: [Organizations.count],
