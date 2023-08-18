@@ -121,7 +121,7 @@
 
 <script setup>
 import {
-  ref, onMounted, computed,
+  ref, onMounted,
 } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { storeToRefs } from 'pinia';

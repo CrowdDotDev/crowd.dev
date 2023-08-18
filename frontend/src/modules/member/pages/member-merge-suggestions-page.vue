@@ -202,9 +202,9 @@ const fetch = (page) => {
       [membersToMerge.value] = res.rows;
       const { members } = membersToMerge.value;
       // Set member with maximum identities and activities as primary
-      if ((members[0].identities.length < members[1].identities.length) || 
-        (members[0].activityCount < members[1].activityCount)) {
-          primary.value = 1;
+      if ((members[0].identities.length < members[1].identities.length)
+        || (members[0].activityCount < members[1].activityCount)) {
+        primary.value = 1;
       }
     })
     .catch(() => {

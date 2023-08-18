@@ -27,7 +27,7 @@ import {
   computed,
   defineProps, ref, watch,
 } from 'vue';
-import { Filter, FilterObject } from '@/shared/modules/filters/types/FilterConfig';
+import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { isEqual } from 'lodash';
 
@@ -62,15 +62,13 @@ const getView = (id: string): SavedView => {
 
 const currentView = computed<SavedView>(() => getView(selectedTab.value));
 
-const compareFilterToCurrentValues = (filter: FilterObject): boolean => {
+const compareFilterToCurrentValues = (filter: Filter): boolean => {
   const compareFilter = {
     ...filter,
   };
   const currentFilter = {
     ...props.modelValue,
   };
-  delete currentFilter.pagination;
-  delete compareFilter.pagination;
 
   return isEqual(compareFilter, currentFilter);
 };
@@ -85,10 +83,6 @@ const onTabChange = (id: string) => {
   if (filter) {
     filters.value = {
       ...filter,
-      pagination: {
-        page: 1,
-        perPage: filters.value.pagination.perPage,
-      },
     };
   }
 };
@@ -97,10 +91,6 @@ const onTabChange = (id: string) => {
 const reset = () => {
   filters.value = {
     ...currentView.value.filter,
-    pagination: {
-      page: 1,
-      perPage: filters.value.pagination.perPage,
-    },
   };
 };
 

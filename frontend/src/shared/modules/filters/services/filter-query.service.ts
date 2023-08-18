@@ -26,10 +26,6 @@ export const filterQueryService = () => {
         Object.keys(object[key]).forEach((setting) => {
           object[key][setting] = savedViewsConfig.settings[setting].queryUrlParser(object[key][setting]);
         });
-      } else if (key === 'pagination') {
-        Object.keys(object[key]).forEach((paginationProperty) => {
-          object[key][paginationProperty] = +object[key][paginationProperty];
-        });
       } else if (key in config) {
         const { type } = config[key];
         const queryUrlParser = type === FilterConfigType.CUSTOM ? (config[key] as CustomFilterConfig).queryUrlParser : queryUrlParserByType[type];
@@ -55,12 +51,6 @@ export const filterQueryService = () => {
     if (filter) {
       const mappedFilter = {
         ...filter,
-        ...(filter.pagination && {
-          pagination: {
-            page: filter.pagination?.page || 1,
-            perPage: filter.pagination?.perPage || 20,
-          },
-        }),
       };
       Object.entries(mappedFilter).forEach(([key, filterValue]) => {
         if (typeof filterValue === 'object') {
