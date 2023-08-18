@@ -107,7 +107,12 @@ const removeFilter = (key) => {
 const { setQuery, parseQuery } = filterQueryService();
 const { buildApiFilter } = filterApiService();
 
+const savedFilter = ref({});
 const fetch = (value: Filter) => {
+  if (JSON.stringify(value) === JSON.stringify(savedFilter.value)) {
+    return;
+  }
+  savedFilter.value = { ...value };
   const data = buildApiFilter(value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
   emit('fetch', data);
 };
@@ -132,10 +137,11 @@ const alignQueryUrl = () => {
     fetch(props.modelValue);
     return;
   }
+  filters.value = parsed as Filter;
   if (!!parsed && Object.keys(parsed).length > 0) {
     alignFilterList(parsed as Filter);
+    fetch(parsed as Filter);
   }
-  filters.value = parsed as Filter;
 };
 
 onMounted(() => {
