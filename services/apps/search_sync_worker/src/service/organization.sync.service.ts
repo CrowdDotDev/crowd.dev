@@ -440,6 +440,7 @@ export class OrganizationSyncService extends LoggerBase {
     p.int_employees = data.employees
     p.int_founded = data.founded
     p.string_geoLocation = data.geoLocation
+    p.string_location = data.location
     p.string_headline = data.headline
     p.keyword_importHash = data.importHash
     p.string_industry = data.industry
