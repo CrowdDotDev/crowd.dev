@@ -83,7 +83,9 @@ import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
-import { ref, onMounted, computed } from 'vue';
+import {
+  ref, onMounted, computed,
+} from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';

@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import {
-  computed, reactive, ref, watch,
+  computed, ref,
 } from 'vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { Member } from '@/modules/member/types/Member';

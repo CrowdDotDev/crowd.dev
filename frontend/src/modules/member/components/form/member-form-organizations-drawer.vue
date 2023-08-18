@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import {
-  computed, onBeforeUnmount, onMounted, ref, watch,
+  computed, onMounted, ref,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { Member } from '@/modules/member/types/Member';

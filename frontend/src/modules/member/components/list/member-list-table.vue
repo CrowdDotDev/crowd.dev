@@ -560,7 +560,7 @@ function doChangePaginationCurrentPage(currentPage) {
 
 function doChangePaginationPageSize(pageSize) {
   emit('update:pagination', {
-    ...pagination.value,
+    page: 1,
     perPage: pageSize,
   });
 }
