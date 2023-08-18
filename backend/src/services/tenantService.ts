@@ -67,13 +67,7 @@ export default class TenantService {
       })
     }
 
-    const record = await TenantRepository.create(
-      { name: 'default', url: 'default' },
-      {
-        ...this.options,
-        transaction,
-      },
-    )
+    const record = await this.create({ name: 'default', url: 'default', integrationsRequired: [] })
 
     await SettingsService.findOrCreateDefault({
       ...this.options,
