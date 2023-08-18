@@ -452,7 +452,9 @@ export class MemberSyncService extends LoggerBase {
 
           for (const key of Object.keys(attData[attribute.name])) {
             let value = attData[attribute.name][key]
-            value = trimUtf8ToMaxByteLength(value, maxByteLength)
+            if (attribute.type === MemberAttributeType.STRING) {
+              value = trimUtf8ToMaxByteLength(value, maxByteLength)
+            }
             p_data[`${prefix}_${key}`] = value
           }
 
