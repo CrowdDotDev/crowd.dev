@@ -16,10 +16,6 @@ export interface MemberState {
 const state: MemberState = {
   filters: {
     ...allMembers.filter,
-    pagination: {
-      page: 1,
-      perPage: 20,
-    },
   },
   savedFilterBody: {},
   customAttributes: [],

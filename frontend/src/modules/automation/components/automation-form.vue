@@ -97,17 +97,16 @@
 
 <script setup>
 import {
-  computed, defineProps, defineEmits, reactive, ref, watch, onMounted,
+  computed, defineProps, defineEmits, reactive, ref, onMounted,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
-import { email, required } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import formChangeDetector from '@/shared/form/form-change';
-import { useStore } from 'vuex';
 import { automationTypes } from '../config/automation-types';
 
 const props = defineProps({

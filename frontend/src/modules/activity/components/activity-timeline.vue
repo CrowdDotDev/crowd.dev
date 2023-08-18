@@ -251,8 +251,6 @@ const activeIntegrations = computed(() => {
   }));
 });
 
-const isMemberIdentity = computed(() => props.entityType === 'member');
-
 const loading = ref(true);
 const platform = ref(null);
 const query = ref('');

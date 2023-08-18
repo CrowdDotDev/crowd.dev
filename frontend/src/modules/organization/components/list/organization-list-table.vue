@@ -557,7 +557,6 @@ import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdown from '../organization-dropdown.vue';
 
-const emit = defineEmits(['onAddOrganization']);
 const props = defineProps({
   hasOrganizations: {
     type: Boolean,
@@ -567,7 +566,16 @@ const props = defineProps({
     type: Boolean,
     default: () => true,
   },
+  pagination: {
+    type: Object,
+    default: () => ({
+      page: 1,
+      perPage: 20,
+    }),
+  },
 });
+
+const emit = defineEmits(['onAddOrganization', 'update:pagination']);
 
 const organizationStore = useOrganizationStore();
 const {
@@ -585,7 +593,14 @@ const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
-const pagination = computed(() => filters.value.pagination);
+const pagination = computed({
+  get() {
+    return props.pagination;
+  },
+  set(value) {
+    emit('update:pagination', value);
+  },
+});
 
 const defaultSort = computed(() => ({
   field: filters.value.order.prop,
@@ -595,7 +610,7 @@ const defaultSort = computed(() => ({
 const showBottomPagination = computed(() => (
   !!totalOrganizations.value
     && Math.ceil(
-      totalOrganizations.value / Number(filters.value.pagination.perPage),
+      totalOrganizations.value / Number(pagination.value.perPage),
     ) > 1
 ));
 const isLoading = computed(() => props.isPageLoading);
@@ -615,11 +630,17 @@ function doChangeSort(sorter) {
 }
 
 function doChangePaginationCurrentPage(currentPage) {
-  filters.value.pagination.page = currentPage;
+  emit('update:pagination', {
+    ...pagination.value,
+    page: currentPage,
+  });
 }
 
 function doChangePaginationPageSize(pageSize) {
-  filters.value.pagination.perPage = pageSize;
+  emit('update:pagination', {
+    page: 1,
+    perPage: pageSize,
+  });
 }
 
 const onCtaClick = () => {

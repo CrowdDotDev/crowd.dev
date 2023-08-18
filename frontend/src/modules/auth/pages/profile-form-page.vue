@@ -161,7 +161,6 @@ import {
 } from 'vue';
 import isEqual from 'lodash/isEqual';
 import { useRouter } from 'vue-router';
-import { i18n } from '@/i18n';
 import { FormSchema } from '@/shared/form/form-schema';
 import { UserModel } from '@/modules/user/user-model';
 import useVuelidate from '@vuelidate/core';
@@ -222,36 +221,6 @@ const passwordModel = ref(null);
 
 // Form rules
 const profileRules = ref(profileFormSchema.value.rules());
-const passwordRules = computed(() => {
-  const rules = passwordFormSchema.value.rules();
-
-  const passwordConfirmationValidator = (
-    _rule,
-    value,
-    callback,
-  ) => {
-    if (
-      value !== passwordModel.value[fields.newPassword.name]
-    ) {
-      callback(
-        new Error(i18n('auth.passwordChange.mustMatch')),
-      );
-    } else {
-      callback();
-    }
-  };
-
-  return {
-    ...rules,
-    [fields.newPasswordConfirmation.name]: [
-      ...rules[fields.newPasswordConfirmation.name],
-      {
-        validator: passwordConfirmationValidator,
-        trigger: 'blur',
-      },
-    ],
-  };
-});
 
 // Form validations
 const hasProfileModelChanged = computed(() => !isEqual(

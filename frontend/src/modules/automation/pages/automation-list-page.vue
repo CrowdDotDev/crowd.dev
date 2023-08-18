@@ -180,7 +180,7 @@ const canAddAutomation = () => {
       currentTenant.value.plan,
     );
 
-    if(planWorkflowCountMax === 'unlimited'){
+    if (planWorkflowCountMax === 'unlimited') {
       return true;
     }
 

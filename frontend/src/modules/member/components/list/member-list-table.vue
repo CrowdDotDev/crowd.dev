@@ -425,6 +425,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -441,8 +442,6 @@ const tableHeaderRef = ref();
 const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
-
-const emit = defineEmits(['onAddMember']);
 
 const isMergeDialogOpen = ref(null);
 const isEditTagsDialogOpen = ref(false);
@@ -461,7 +460,16 @@ const props = defineProps({
     type: Boolean,
     default: () => true,
   },
+  pagination: {
+    type: Object,
+    default: () => ({
+      page: 1,
+      perPage: 20,
+    }),
+  },
 });
+
+const emit = defineEmits(['onAddMember', 'update:pagination']);
 
 const memberStore = useMemberStore();
 const {
@@ -524,7 +532,14 @@ const emailsColumnWidth = computed(() => {
 });
 
 const selectedRows = computed(() => selectedMembers.value);
-const pagination = computed(() => filters.value.pagination);
+const pagination = computed({
+  get() {
+    return props.pagination;
+  },
+  set(value) {
+    emit('update:pagination', value);
+  },
+});
 
 const tableWidth = ref(0);
 
@@ -548,11 +563,17 @@ function doChangeSort(sorter) {
 }
 
 function doChangePaginationCurrentPage(currentPage) {
-  filters.value.pagination.page = currentPage;
+  emit('update:pagination', {
+    ...pagination.value,
+    page: currentPage,
+  });
 }
 
 function doChangePaginationPageSize(pageSize) {
-  filters.value.pagination.perPage = pageSize;
+  emit('update:pagination', {
+    page: 1,
+    perPage: pageSize,
+  });
 }
 
 function translate(key) {
