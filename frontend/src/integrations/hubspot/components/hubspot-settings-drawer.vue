@@ -205,8 +205,8 @@
   <app-hubspot-read-only-attr-popover
     v-model="isReadOnlyConfirmModalVisible"
     :attributes="readOnlyAttributes"
-    @update:modelValue="isReadOnlyConfirmModalVisible = $event"
-    @doNotShowModal="handleDoNotShowModal"
+    @update:model-value="isReadOnlyConfirmModalVisible = $event"
+    @do-not-show-modal="handleDoNotShowModal"
     @continue="handleContinue"
   />
 </template>
@@ -393,7 +393,6 @@ const update = () => {
 };
 
 const executeUpdate = (data: HubspotOnboard) => {
-
   loading.value = true;
   HubspotApiService.finishOnboard(data)
     .then(() => {

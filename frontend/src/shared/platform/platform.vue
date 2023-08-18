@@ -109,7 +109,8 @@ const href = computed(() => {
     return props.href;
   }
 
-  return (props.usernameHandles.length === 1 ? (CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) ?? props.backupUrl) : null);
+  return (props.usernameHandles.length === 1
+    ? (CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) ?? props.backupUrl) : null);
 });
 
 const trackClick = () => {

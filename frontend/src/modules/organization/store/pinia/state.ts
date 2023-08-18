@@ -14,10 +14,6 @@ export interface OrganizationState {
 const state: OrganizationState = {
   filters: {
     ...allOrganizations.filter,
-    pagination: {
-      page: 1,
-      perPage: 20,
-    },
   },
   savedFilterBody: {},
   organizations: [],

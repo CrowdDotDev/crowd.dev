@@ -47,8 +47,10 @@
         @fetch="fetch($event)"
       />
       <app-organization-list-table
+        v-model:pagination="pagination"
         :has-organizations="totalOrganizations > 0"
         :is-page-loading="loading"
+        @update:pagination="onPaginationChange"
       />
     </div>
   </app-page-wrapper>
@@ -95,6 +97,11 @@ const isCreateLockedForSampleData = computed(
   ).createLockedForSampleData,
 );
 
+const pagination = ref({
+  page: 1,
+  perPage: 20,
+});
+
 const doGetOrganizationCount = () => {
   (OrganizationService.query({
     limit: 1,
@@ -118,7 +125,7 @@ const showLoading = (filter: any, body: any): boolean => {
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body,
+  filter, orderBy, body,
 }: FilterQuery) => {
   if (!loading.value) {
     loading.value = showLoading(filter, body);
@@ -127,14 +134,26 @@ const fetch = ({
     body: {
       ...body,
       filter,
-      offset,
-      limit,
+      offset: 0,
+      limit: pagination.value.perPage,
       orderBy,
     },
   })
     .finally(() => {
       loading.value = false;
     });
+};
+
+const onPaginationChange = ({
+  page, perPage,
+}: FilterQuery) => {
+  fetchOrganizations({
+    reload: true,
+    body: {
+      offset: (page - 1) * perPage || 0,
+      limit: perPage || 20,
+    },
+  });
 };
 
 onMounted(async () => {
