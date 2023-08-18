@@ -596,7 +596,7 @@ const defaultSort = computed(() => ({
 const showBottomPagination = computed(() => (
   !!totalOrganizations.value
     && Math.ceil(
-      totalOrganizations.value / Number(filters.value.pagination.perPage),
+      totalOrganizations.value / Number(pagination.value.perPage),
     ) > 1
 ));
 const isLoading = computed(() => props.isPageLoading);
