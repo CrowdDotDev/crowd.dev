@@ -18,7 +18,7 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.UUID,
     },
     address: {
-      type: OpensearchFieldType.STRING,
+      type: OpensearchFieldType.OBJECT,
     },
     logo: {
       type: OpensearchFieldType.STRING,
