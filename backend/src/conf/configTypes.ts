@@ -83,6 +83,11 @@ export interface Auth0Configuration {
   jwks: string
 }
 
+export interface SSOConfiguration {
+  crowdTenantId: string
+  lfTenantId: string
+}
+
 export interface PlansConfiguration {
   stripePricePremium: string
   stripePriceEnterprise: string
