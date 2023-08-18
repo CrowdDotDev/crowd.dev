@@ -50,6 +50,9 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     geoLocation: {
       type: OpensearchFieldType.STRING,
     },
+    location: {
+      type: OpensearchFieldType.STRING,
+    },
     headline: {
       type: OpensearchFieldType.STRING,
     },
