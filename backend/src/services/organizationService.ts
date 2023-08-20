@@ -208,8 +208,8 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findAndCountAll(args, this.options)
   }
 
-  async findByUrl(url) {
-    return OrganizationRepository.findByUrl(url, this.options)
+  async findOrCreateByDomain(domain) {
+    return OrganizationRepository.findOrCreateByDomain(domain, this.options)
   }
 
   async query(data) {

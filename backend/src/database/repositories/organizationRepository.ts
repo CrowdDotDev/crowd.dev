@@ -3,6 +3,7 @@ import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch
 import { PageData } from '@crowd/common'
 import { OpenSearchIndex, SyncStatus } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
+import PDLJS from 'peopledatalabs'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -13,6 +14,7 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '@/types/common'
+import { ORGANIZATION_ENRICHMENT_CONFIG } from '../../conf'
 
 const { Op } = Sequelize
 
@@ -512,6 +514,49 @@ class OrganizationRepository {
     }
 
     return record.get({ plain: true })
+  }
+
+  static async findOrCreateByDomain(domain, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    // check if org exist
+    const orgExist = await options.database.organization.findOne({
+        where: {
+            website: {
+                [Sequelize.Op.iLike]: `%${domain}%`,
+            },
+            tenantId: currentTenant.id,
+        },
+        transaction,
+    })
+
+    if (orgExist) return orgExist.id
+    
+    // init PDL client
+    const PDLJSClient = new PDLJS({ apiKey: ORGANIZATION_ENRICHMENT_CONFIG.apiKey })
+
+    const searchQuery = {
+        query: {
+            bool: {
+                must: [{ term: { website: domain } }],
+            },
+        },
+    }
+
+    const params = { searchQuery, size: 1, pretty: true }
+
+    const res = await PDLJSClient.company.search.elastic(params)
+
+    // check response
+    if (res?.data?.length === 0) {
+      throw new Error404()
+    }
+
+    // create org if response is valid
+    const orgId = await this.create(res.data[0], options)
+
+    return orgId
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {

@@ -303,10 +303,10 @@ export default class MemberService extends LoggerBase {
         }
       }
 
+      // Collect IDs for relation
+      const organizations = []
       // If organizations are sent
       if (data.organizations) {
-        // Collect IDs for relation
-        const organizations = []
         for (const organization of data.organizations) {
           if (typeof organization === 'string' && validator.isUUID(organization)) {
             // If an ID was already sent, we simply push it to the list
@@ -329,33 +329,38 @@ export default class MemberService extends LoggerBase {
             organizations.push({ id: organizationRecord.id })
           }
         }
+      }
 
-        // Auto assign member to organization if email domain matches
-        if (data.emails) {
-          const emailDomains = new Set()
+      // log data.emails
+      this.log.info({ emails: data.emails }, 'emails')
 
-          // Collect unique domains
-          for (const email of data.emails) {
-            if (!email) {
-              continue
-            }
-            const domain = email.split('@')[1]
-            emailDomains.add(domain)
+      // Auto assign member to organization if email domain matches
+      if (data.emails) {
+        const emailDomains = new Set()
+
+        // Collect unique domains
+        for (const email of data.emails) {
+          if (!email) {
+            continue
           }
+          const domain = email.split('@')[1]
+          emailDomains.add(domain)
+        }
 
-          // Fetch organization ids for these domains
-          const organizationService = new OrganizationService(this.options)
-          for (const domain of emailDomains) {
-            if (domain) {
-              const organizationRecord = await organizationService.findByUrl(domain)
-              if (organizationRecord) {
-                organizations.push({ id: organizationRecord.id })
-              }
+        // Find or create organization for these domains
+        const organizationService = new OrganizationService(this.options)
+        for (const domain of emailDomains) {
+          if (domain) {
+            const orgId = await organizationService.findOrCreateByDomain(domain)
+            if (orgId) {
+              organizations.push({ id: orgId })
             }
           }
         }
+      }
 
-        // Remove dups
+      // Remove dups
+      if (organizations.length > 0) {
         data.organizations = lodash.uniqBy(organizations, 'id')
       }
 

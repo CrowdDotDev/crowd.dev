@@ -194,10 +194,10 @@ export class OrganizationService extends LoggerBase {
   public async findOrCreateByDomain(
     tenantId: string,
     segmentId: string,
-    url: string,
+    domain: string,
   ): Promise<string> {
     // check if exists
-    const organization = await this.repo.findByDomain(tenantId, segmentId, url)
+    const organization = await this.repo.findByDomain(tenantId, segmentId, domain)
 
     if (organization) return organization.id
 
@@ -206,23 +206,25 @@ export class OrganizationService extends LoggerBase {
     const esQuery = {
       query: {
         bool: {
-          must: [{ term: { website: url } }],
+          must: [{ term: { website: domain } }],
         },
       },
     }
     const params = { searchQuery: esQuery, size: 1, pretty: true }
 
     try {
+      this.log.debug('Fetching organization data from PDL', { domain })
+
       const res = await PDLJSClient.company.search.elastic(params)
 
-      if (res.data && res.data.length > 0) {
+      if (res?.data?.length) {
         const data = this.normalizeSocialFields(res.data[0])
         const orgId = await this.findOrCreate(tenantId, segmentId, data)
 
         return orgId
       }
     } catch (err) {
-      this.log.error('Error searching for organization by url', { err })
+      this.log.error('Error fetching organization data from PDL', { err })
       throw err
     }
   }

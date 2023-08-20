@@ -137,36 +137,43 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async findByDomain(
     tenantId: string,
     segmentId: string,
-    url: string,
+    domain: string,
   ): Promise<IDbOrganization> {
     const result = await this.db().oneOrNone(
       `
-      select  o.id,
-              o.name,
-              o.url,
-              o.description,
-              o.emails,
-              o.logo,
-              o.tags,
-              o.github,
-              o.twitter,
-              o.linkedin,
-              o.crunchbase,
-              o.employees,
-              o.location,
-              o.website,
-              o.type,
-              o.size,
-              o.headline,
-              o.industry,
-              o.founded,
-              o.attributes
-      from organizations o
-      where o."tenantId" = $(tenantId) and o.url = $(url)
-      and o.id in (select os."organizationId"
-                    from "organizationSegments" os
-                      where os."segmentId" = $(segmentId))`,
-      { tenantId, url, segmentId },
+      SELECT
+        o.id,
+        o.name,
+        o.url,
+        o.description,
+        o.emails,
+        o.logo,
+        o.tags,
+        o.github,
+        o.twitter,
+        o.linkedin,
+        o.crunchbase,
+        o.employees,
+        o.location,
+        o.website,
+        o.type,
+        o.size,
+        o.headline,
+        o.industry,
+        o.founded,
+        o.attributes
+      FROM
+        organizations o
+      WHERE
+        o."tenantId" = $(tenantId) AND 
+        o.website ILIKE $(domain) AND
+        o.id IN (
+          SELECT os."organizationId"
+          FROM "organizationSegments" os
+          WHERE os."segmentId" = $(segmentId)
+        )
+      `,
+      { tenantId, domain, segmentId },
     )
 
     return result
