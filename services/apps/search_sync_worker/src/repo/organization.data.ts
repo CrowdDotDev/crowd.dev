@@ -3,7 +3,7 @@ export interface IDbOrganizationSyncData {
   organizationId: string
   segmentId: string
   tenantId: string
-  address: string | null
+  address: unknown | null
   attributes: unknown
   createdAt: string
   description: string | null

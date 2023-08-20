@@ -151,10 +151,24 @@ export class OpenSearchService extends LoggerBase {
         })
       }
 
-      await this.client.bulk({
+      const result = await this.client.bulk({
         body,
         refresh: true,
       })
+
+      if (result.body.errors === true) {
+        const errorItems = result.body.items
+          .filter((i) => i.index !== undefined && i.index.error !== undefined)
+          .map((i) => {
+            return {
+              error: i.index.error,
+              itemId: i.index._id,
+            }
+          })
+
+        this.log.error({ errorItems }, 'Failed to bulk index documents!')
+        throw new Error(`Failed to bulk index documents in index ${index}!`)
+      }
     } catch (err) {
       this.log.error(err, { index }, 'Failed to bulk index documents!')
       throw new Error(`Failed to bulk index documents in index ${index}!`)

@@ -91,7 +91,7 @@ export class OrganizationService extends LoggerBase {
 
     if (data.attributes) {
       const temp = mergeWith({}, existing?.attributes, data?.attributes)
-      if (!isEqual(temp, existing.attributes)) {
+      if (!isEqual(temp, existing?.attributes)) {
         attributes = temp
       }
     }

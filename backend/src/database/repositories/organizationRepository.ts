@@ -59,6 +59,7 @@ class OrganizationRepository {
       ,org."crunchbase"
       ,org."github"
       ,org."description"
+      ,activity."orgActivityCount"
       FROM "organizations" as org
       JOIN "organizationCaches" cach ON org."name" = cach."name"
       JOIN orgActivities activity ON activity."organizationId" = org."id"

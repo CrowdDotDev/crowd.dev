@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters } from 'vuex';
 import { UserModel } from '@/modules/user/user-model';
 import { AuthService } from '@/modules/auth/auth-service';
 

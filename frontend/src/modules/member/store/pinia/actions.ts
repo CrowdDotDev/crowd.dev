@@ -10,7 +10,7 @@ const { buildFilterFromAttributes } = customAttributesService();
 
 export default {
   fetchMembers(this: MemberState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Member>> {
-    const mappedBody = reload ? this.savedFilterBody : body;
+    const mappedBody = reload ? { ...this.savedFilterBody, ...body } : body;
     this.selectedMembers = [];
     return MemberService.listMembers(mappedBody)
       .then((data: Pagination<Member>) => {

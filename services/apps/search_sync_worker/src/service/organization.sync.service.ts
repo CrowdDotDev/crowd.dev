@@ -1,14 +1,14 @@
+import { SERVICE_CONFIG } from '@/conf'
+import { IDbOrganizationSyncData } from '@/repo/organization.data'
+import { OrganizationRepository } from '@/repo/organization.repo'
+import { IDbSegmentInfo } from '@/repo/segment.data'
+import { SegmentRepository } from '@/repo/segment.repo'
+import { distinct, groupBy } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
-import { OpenSearchService } from './opensearch.service'
-import { OrganizationRepository } from '@/repo/organization.repo'
-import { SegmentRepository } from '@/repo/segment.repo'
 import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
-import { IDbOrganizationSyncData } from '@/repo/organization.data'
-import { IDbSegmentInfo } from '@/repo/segment.data'
-import { distinct, groupBy } from '@crowd/common'
-import { SERVICE_CONFIG } from '@/conf'
+import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
 
 export class OrganizationSyncService extends LoggerBase {
@@ -215,7 +215,6 @@ export class OrganizationSyncService extends LoggerBase {
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
-            tenantId,
             organizationIds,
           )
 
@@ -244,10 +243,7 @@ export class OrganizationSyncService extends LoggerBase {
     )
   }
 
-  public async syncOrganizations(
-    tenantId: string,
-    organizationIds: string[],
-  ): Promise<IOrganizationSyncResult> {
+  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     this.log.debug({ organizationIds }, 'Syncing organizations!')
 
     const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
@@ -255,7 +251,7 @@ export class OrganizationSyncService extends LoggerBase {
     let docCount = 0
     let organizationCount = 0
 
-    const organizations = await this.orgRepo.getOrganizationData(organizationIds, tenantId)
+    const organizations = await this.orgRepo.getOrganizationData(organizationIds)
 
     if (organizations.length > 0) {
       let childSegmentIds: string[] | undefined
@@ -432,8 +428,8 @@ export class OrganizationSyncService extends LoggerBase {
     p.uuid_organizationId = data.organizationId
     p.uuid_segmentId = data.segmentId
     p.uuid_tenantId = data.tenantId
-    p.string_address = data.address
-    p.keyword_address = data.address
+    p.obj_address = data.address
+    p.string_address = data.address ? JSON.stringify(data.address) : null
     p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
     p.date_createdAt = data.createdAt ? new Date(data.createdAt).toISOString() : null
     p.string_description = data.description
@@ -444,6 +440,7 @@ export class OrganizationSyncService extends LoggerBase {
     p.int_employees = data.employees
     p.int_founded = data.founded
     p.string_geoLocation = data.geoLocation
+    p.string_location = data.location
     p.string_headline = data.headline
     p.keyword_importHash = data.importHash
     p.string_industry = data.industry

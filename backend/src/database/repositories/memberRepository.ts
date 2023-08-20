@@ -3233,7 +3233,26 @@ class MemberRepository {
       return
     }
 
-    await record.setOrganizations([], { transaction })
+    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+
+    const toDelete = originalOrgs.filter(
+      (originalOrg: any) =>
+        !organizations.find(
+          (newOrg) =>
+            originalOrg.organizationId === newOrg.id &&
+            originalOrg.title === (newOrg.title || null) &&
+            originalOrg.dateStart === (newOrg.startDate || null) &&
+            originalOrg.dateEnd === (newOrg.endDate || null),
+        ),
+    )
+
+    for (const item of toDelete) {
+      await MemberRepository.deleteWorkExperience((item as any).id, {
+        transaction,
+        ...options,
+      })
+    }
+
     for (const item of organizations) {
       const org = typeof item === 'string' ? { id: item } : item
       await MemberRepository.createOrUpdateWorkExperience(
@@ -3269,15 +3288,6 @@ class MemberRepository {
   ) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
-
-    let conflictClause
-    if (dateStart && dateEnd) {
-      conflictClause = `("memberId", "organizationId", "dateStart", "dateEnd")`
-    } else if (dateStart) {
-      conflictClause = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
-    } else {
-      conflictClause = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
-    }
 
     if (dateStart) {
       // clean up organizations without dates if we're getting ones with dates
@@ -3326,7 +3336,7 @@ class MemberRepository {
       `
         INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
         VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-        ON CONFLICT ${conflictClause} DO NOTHING
+        ON CONFLICT DO NOTHING
       `,
       {
         replacements: {
@@ -3346,6 +3356,45 @@ class MemberRepository {
     }
   }
 
+  static async deleteWorkExperience(id, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    await seq.query(
+      `
+        DELETE FROM "memberOrganizations"
+        WHERE "id" = :id
+      `,
+      {
+        replacements: {
+          id,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      },
+    )
+  }
+
+  static async fetchWorkExperiences(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+    `
+
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return records
+  }
+
   static async findWorkExperience(
     memberId: string,
     timestamp: string,
@@ -3361,7 +3410,7 @@ class MemberRepository {
           ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
           OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
         )
-      ORDER BY "dateStart" DESC
+      ORDER BY "dateStart" DESC, id
       LIMIT 1
     `
 
@@ -3381,24 +3430,104 @@ class MemberRepository {
     return records[0]
   }
 
+  static async findMostRecentOrganization(
+    memberId: string,
+    timestamp: string,
+    options: IRepositoryOptions,
+  ): Promise<any> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND "createdAt" <= :timestamp
+      ORDER BY "createdAt" DESC, id
+      LIMIT 1
+    `
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+        timestamp,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
+
+  static async findMostRecentOrganizationEver(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<any> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+      ORDER BY "createdAt", id
+      LIMIT 1
+    `
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
+
   static sortOrganizations(organizations) {
     organizations.sort((a, b) => {
       a = a.dataValues ? a.get({ plain: true }) : a
       b = b.dataValues ? b.get({ plain: true }) : b
+      const aStart = a.memberOrganizations?.dateStart
+      const bStart = b.memberOrganizations?.dateStart
+      const aEnd = a.memberOrganizations?.dateEnd
+      const bEnd = b.memberOrganizations?.dateEnd
 
-      const aDate = a.memberOrganizations?.dateStart
-      const bDate = b.memberOrganizations?.dateStart
+      // Sorting:
+      // 1. Those without dateEnd, but with dateStart should be at the top, orderd by dateStart
+      // 2. Those with dateEnd and dateStart should be in the middle, ordered by dateEnd
+      // 3. Those without dateEnd and dateStart should be at the bottom, ordered by name
+      if (!aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return aStart > bStart ? -1 : 1
+        }
+        if (bEnd && bStart) {
+          return -1
+        }
+        return -1
+      }
+      if (aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return 1
+        }
+        if (bEnd && bStart) {
+          return aEnd > bEnd ? -1 : 1
+        }
+        return -1
+      }
 
-      if (aDate && bDate) {
-        return bDate.getTime() - aDate.getTime()
-      }
-      if (!aDate && !bDate) {
-        return a.name.localeCompare(b.name)
-      }
-      if (!bDate) {
+      if (!bEnd && bStart) {
         return 1
       }
-      return -1
+      if (bEnd && bStart) {
+        return 1
+      }
+      return a.name > b.name ? 1 : -1
     })
   }
 }
