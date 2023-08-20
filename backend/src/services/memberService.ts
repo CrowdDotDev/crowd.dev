@@ -331,9 +331,6 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      // log data.emails
-      this.log.info({ emails: data.emails }, 'emails')
-
       // Auto assign member to organization if email domain matches
       if (data.emails) {
         const emailDomains = new Set()

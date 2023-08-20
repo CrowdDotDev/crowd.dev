@@ -196,11 +196,12 @@ export class OrganizationService extends LoggerBase {
     segmentId: string,
     domain: string,
   ): Promise<string> {
-    // check if exists
+    // check if org exists
     const organization = await this.repo.findByDomain(tenantId, segmentId, domain)
 
     if (organization) return organization.id
 
+    // init PDL client
     const PDLJSClient = new PDLJS({ apiKey: ORGANIZATION_ENRICHMENT_CONFIG.apiKey })
 
     const esQuery = {
@@ -215,10 +216,10 @@ export class OrganizationService extends LoggerBase {
     try {
       this.log.debug('Fetching organization data from PDL', { domain })
 
-      const res = await PDLJSClient.company.search.elastic(params)
+      const result = await PDLJSClient.company.search.elastic(params)
 
-      if (res?.data?.length) {
-        const data = this.normalizeSocialFields(res.data[0])
+      if (result.total !== 0) {
+        const data = this.normalizeSocialFields(result.data[0])
         const orgId = await this.findOrCreate(tenantId, segmentId, data)
 
         return orgId

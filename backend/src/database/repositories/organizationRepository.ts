@@ -521,43 +521,41 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    // check if org exist
-    const orgExist = await options.database.organization.findOne({
-        where: {
-            website: {
-                [Sequelize.Op.iLike]: `%${domain}%`,
-            },
-            tenantId: currentTenant.id,
+    // Check if organization exists
+    const organization = await options.database.organization.findOne({
+      where: {
+        website: {
+          [Sequelize.Op.iLike]: `%${domain}%`,
         },
-        transaction,
+        tenantId: currentTenant.id,
+      },
+      attributes: ['id'],
+      transaction,
     })
 
-    if (orgExist) return orgExist.id
-    
-    // init PDL client
+    if (organization) return organization.id
+
+    // Initialize PDL client
     const PDLJSClient = new PDLJS({ apiKey: ORGANIZATION_ENRICHMENT_CONFIG.apiKey })
 
-    const searchQuery = {
-        query: {
-            bool: {
-                must: [{ term: { website: domain } }],
-            },
+    const esQuery = {
+      query: {
+        bool: {
+          must: [{ term: { website: domain } }],
         },
+      },
     }
+    const params = { esQuery, size: 1, pretty: true }
 
-    const params = { searchQuery, size: 1, pretty: true }
+    const result = await PDLJSClient.company.search.elastic(params)
 
-    const res = await PDLJSClient.company.search.elastic(params)
+    // If PDL returns a valid organization, create a new organization
+    if (result.total !== 0) {
+      const orgId = await this.create(result.data[0], options)
+      return orgId
+    } 
 
-    // check response
-    if (res?.data?.length === 0) {
-      throw new Error404()
-    }
-
-    // create org if response is valid
-    const orgId = await this.create(res.data[0], options)
-
-    return orgId
+    return null
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
