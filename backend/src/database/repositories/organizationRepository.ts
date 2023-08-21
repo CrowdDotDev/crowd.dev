@@ -534,7 +534,6 @@ class OrganizationRepository {
         },
         tenantId: currentTenant.id,
       },
-      attributes: ['id'],
       transaction,
     })
 
