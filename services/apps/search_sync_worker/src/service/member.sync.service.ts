@@ -434,7 +434,7 @@ export class MemberSyncService extends LoggerBase {
     const p_attributes = {}
 
     // max byte length that can be indexed in OpenSearch
-    const maxByteLength = 32766
+    const maxByteLength = 25000
 
     for (const attribute of attributes) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
