@@ -1,7 +1,10 @@
 import crypto from 'crypto'
+import lodash from 'lodash'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import Roles from '../../security/roles'
+import SegmentRepository from './segmentRepository'
 
 export default class TenantUserRepository {
   static async findByTenant(tenantId: string, options: IRepositoryOptions): Promise<any[]> {
@@ -45,9 +48,35 @@ export default class TenantUserRepository {
     return record
   }
 
-  static async create(tenant, user, roles, options: IRepositoryOptions) {
-    roles = roles || []
+  static async convertRoles(roles: string[], options: IRepositoryOptions) {
+    const segmentRepository = new SegmentRepository(options)
+
+    const adminSegments = []
+    roles = lodash.uniq(
+      roles.map((role) => {
+        if (role.startsWith(`${Roles.values.admin}:`)) {
+          adminSegments.push(role.split(':')[1])
+          return Roles.values.projectAdmin
+        }
+        return role
+      }),
+    )
+    const adminSegmentIds = await segmentRepository.findBySourceIds(adminSegments)
+
+    return {
+      roles,
+      adminSegments: adminSegmentIds,
+    }
+  }
+
+  static async create(tenant, user, rawRoles, options: IRepositoryOptions) {
+    rawRoles = rawRoles || []
     const transaction = SequelizeRepository.getTransaction(options)
+
+    const { roles, adminSegments } = await this.convertRoles(rawRoles, {
+      currentTenant: tenant,
+      ...options,
+    })
 
     const status = selectStatus('active', roles)
 
@@ -57,6 +86,7 @@ export default class TenantUserRepository {
         userId: user.id,
         status,
         roles,
+        adminSegments,
       },
       { transaction },
     )
@@ -270,6 +300,22 @@ export default class TenantUserRepository {
         },
       },
       options,
+    )
+  }
+
+  static async replaceRoles(tenantUserId, rawRoles, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const { roles, adminSegments } = await TenantUserRepository.convertRoles(rawRoles, options)
+
+    await options.database.tenantUser.update(
+      { roles, adminSegments },
+      {
+        where: {
+          id: tenantUserId,
+        },
+        transaction,
+      },
     )
   }
 }

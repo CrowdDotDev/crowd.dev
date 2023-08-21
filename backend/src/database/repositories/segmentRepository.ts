@@ -21,6 +21,7 @@ import { PageData, QueryData } from '../../types/common'
 import Error404 from '../../errors/Error404'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 class SegmentRepository extends RepositoryBase<
   SegmentData,
@@ -803,6 +804,34 @@ class SegmentRepository extends RepositoryBase<
     }
 
     return false
+  }
+
+  async findBySourceIds(sourceIds: string[]) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const seq = SequelizeRepository.getSequelize(this.options)
+
+    if (!sourceIds || !sourceIds.length) {
+      return []
+    }
+
+    const segments = await seq.query(
+      `
+        SELECT
+          id
+        FROM segments
+        WHERE "tenantId" = :tenantId
+          AND "sourceId" IN (:sourceIds)
+          AND "parentSlug" IS NOT NULL
+          AND "grandparentSlug" IS NOT NULL
+      `,
+      {
+        replacements: { sourceIds, tenantId: this.options.currentTenant.id },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return segments.map((i: any) => i.id)
   }
 }
 

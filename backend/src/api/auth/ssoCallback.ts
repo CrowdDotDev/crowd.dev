@@ -50,6 +50,7 @@ export default async (req, res) => {
       data.name,
       invitationToken,
       tenantId,
+      data['http://lfx.dev/claims/roles'],
       req,
     )
     return res.send(token)
