@@ -1,5 +1,6 @@
 import { OpenSearchService } from '@/service/opensearch.service'
 import { getServiceLogger } from '@crowd/logging'
+import { OpenSearchIndex } from '@/types'
 
 const log = getServiceLogger()
 
@@ -15,6 +16,6 @@ const index = processArguments[0]
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
 
-  await openSearchService.deleteIndex(index)
+  await openSearchService.deleteIndex(index as OpenSearchIndex)
   process.exit(0)
 })
