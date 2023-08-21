@@ -151,7 +151,7 @@
         <el-button
           class="btn btn-brand btn-brand--transparent"
           :disabled="loading"
-          @click="fetchActivities"
+          @click="fetchActivities()"
         >
           <i class="ri-arrow-down-line mr-2" />Load
           more
