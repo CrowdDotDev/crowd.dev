@@ -1,21 +1,5 @@
 cube(`Members`, {
-  sql: `
-    with identities as (
-      select string_agg(platform, '|') as platforms, "memberId" from "memberIdentities" group by "memberId"
-    )
-    SELECT M.*, 
-		  CASE 
-		 	    WHEN DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP) < 0 THEN 0
-		 	    WHEN MIN(M."joinedAt") < '1980-01-01' THEN 0
-		 	    WHEN MIN(a.timestamp) IS NULL THEN DATE_PART('day', NOW()::timestamp - M."joinedAt"::TIMESTAMP)
-		 	ELSE
-		 	    DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP)
-		 	END AS time_to_first_interaction,
-      i.platforms AS identities
-      FROM "members" m
-      INNER JOIN identities i ON i."memberId" = m.id
-      LEFT JOIN activities a ON (a."memberId" = m.id AND a."isContribution"=TRUE)
-      GROUP BY m.id, i.platforms`,
+  sql_table: `members`,
 
   preAggregations: {
     MembersCumulative: {
@@ -211,12 +195,6 @@ cube(`Members`, {
       shown: false,
     },
 
-    averageTimeToFirstInteraction: {
-      type: 'avg',
-      sql: `time_to_first_interaction`,
-      shown: false,
-    },
-
     cumulativeCount: {
       type: `count`,
       rollingWindow: {
@@ -324,11 +302,6 @@ cube(`Members`, {
     score: {
       sql: `${CUBE}."score"`,
       type: `number`,
-    },
-
-    identities: {
-      sql: `${CUBE}."identities"`,
-      type: `string`,
     },
   },
 })
