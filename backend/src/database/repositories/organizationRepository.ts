@@ -515,6 +515,36 @@ class OrganizationRepository {
     return record.get({ plain: true })
   }
 
+  static async findByDomain(domain, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    // Check if organization exists
+    const organization = await options.database.organization.findOne({
+      where: {
+        website: {
+          [Sequelize.Op.or]: [
+            // Matches URLs having 'http://' or 'https://'
+            { [Sequelize.Op.iLike]: `%://${domain}` },
+            // Matches URLs having 'www'
+            { [Sequelize.Op.iLike]: `%://www.${domain}` },
+            // Matches URLs that doesn't have 'http://' or 'https://' and 'www'
+            { [Sequelize.Op.iLike]: `${domain}` },
+          ],
+        },
+        tenantId: currentTenant.id,
+      },
+      attributes: ['id'],
+      transaction,
+    })
+
+    if (!organization) {
+      return null
+    }
+
+    return organization.get({ plain: true })
+  }
+
   static async filterIdInTenant(id, options: IRepositoryOptions) {
     return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
   }
