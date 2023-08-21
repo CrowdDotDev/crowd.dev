@@ -1,15 +1,28 @@
 import { OPENSEARCH_CONFIG } from '@/conf'
-import { OPENSEARCH_INDEX_MAPPINGS, OpenSearchIndex } from '@/types'
+import {
+  IndexVersions,
+  OPENSEARCH_INDEX_MAPPINGS,
+  OPENSEARCH_INDEX_SETTINGS,
+  OpenSearchIndex,
+} from '@/types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
 import { IIndexRequest, ISearchHit } from './opensearch.data'
+import { IS_DEV_ENV } from '@crowd/common'
 
 export class OpenSearchService extends LoggerBase {
   private readonly client: Client
+  private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
 
   constructor(parentLog: Logger) {
     super(parentLog)
+
+    const indexNames = Object.values(OpenSearchIndex)
+    indexNames.forEach((name) => {
+      const version = IndexVersions.get(name)
+      this.indexVersionMap.set(name, `${name}_v${version}`)
+    })
 
     const config = OPENSEARCH_CONFIG()
     if (config.region) {
@@ -33,7 +46,7 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  private async doesIndexExist(indexName: OpenSearchIndex): Promise<boolean> {
+  private async doesIndexExist(indexName: string): Promise<boolean> {
     try {
       const exists = await this.client.indices.exists({ index: indexName })
       return exists.body
@@ -43,22 +56,104 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  private async createIndex(indexName: OpenSearchIndex): Promise<void> {
+  private async doesAliasExist(aliasName: string): Promise<boolean> {
     try {
-      const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
-      await this.client.indices.create({
-        index: indexName,
-        body: {
-          mappings,
-        },
+      const exists = await this.client.indices.existsAlias({
+        name: aliasName,
       })
+      return exists.body
     } catch (err) {
-      this.log.error(err, { indexName }, 'Failed to create index!')
+      this.log.error(err, { aliasName }, 'Failed to check if alias exists!')
       throw err
     }
   }
 
-  public async deleteIndex(indexName: OpenSearchIndex): Promise<void> {
+  private async doesAliasPointToIndex(indexName: string, aliasName: string): Promise<boolean> {
+    try {
+      const exists = await this.client.indices.existsAlias({
+        name: aliasName,
+        index: indexName,
+      })
+      return exists.body
+    } catch (err) {
+      this.log.error(err, { aliasName, indexName }, 'Failed to check if alias points to the index!')
+      throw err
+    }
+  }
+
+  public async createIndexWithVersion(indexName: OpenSearchIndex): Promise<void> {
+    try {
+      const settings = OPENSEARCH_INDEX_SETTINGS[indexName]
+      const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
+
+      const versionedIndexName = this.indexVersionMap.get(indexName)
+
+      await this.client.indices.create({
+        index: versionedIndexName,
+        body: {
+          settings,
+          mappings,
+        },
+      })
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to create versioned index!')
+      throw err
+    }
+  }
+
+  public async createAlias(indexName: string, aliasName: string): Promise<void> {
+    try {
+      await this.client.indices.putAlias({
+        index: indexName,
+        name: aliasName,
+      })
+    } catch (err) {
+      this.log.error(err, { aliasName, indexName }, 'Failed to create alias!')
+      throw err
+    }
+  }
+
+  private async pointAliasToCorrectIndex(indexName: string, aliasName: string): Promise<void> {
+    try {
+      // Updates alias by removing existing references and points it to the new index
+      await this.client.indices.updateAliases({
+        body: {
+          actions: [
+            { remove: { index: '*', alias: aliasName } },
+            { add: { index: indexName, alias: aliasName } },
+          ],
+        },
+      })
+      this.log.info('Alias successfully updated', { aliasName, indexName })
+    } catch (err) {
+      this.log.error(err, { aliasName, indexName }, 'Failed to update alias!')
+    }
+  }
+
+  public async reIndex(sourceIndex: string, targetIndex: string): Promise<void> {
+    try {
+      await this.client.reindex({
+        wait_for_completion: true,
+        refresh: true,
+        body: {
+          source: {
+            index: sourceIndex,
+          },
+          dest: {
+            index: targetIndex,
+          },
+        },
+      })
+    } catch (err) {
+      err.meta?.body?.failures?.forEach((failure) =>
+        this.log.error(failure, 'Reindex failure details!'),
+      )
+      this.log.error(err, { sourceIndex, targetIndex }, 'Failed to reindex!')
+      throw err
+    }
+  }
+
+  public async deleteIndex(indexName: string): Promise<void> {
     try {
       await this.client.indices.delete({
         index: indexName,
@@ -69,12 +164,39 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async getIndexSettings(indexName: OpenSearchIndex): Promise<unknown> {
+    try {
+      const indexNameWithVersion = this.indexVersionMap.get(indexName)
+      const settings = await this.client.indices.getSettings({
+        index: indexNameWithVersion,
+      })
+      return settings.body
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to get index settings!')
+      throw err
+    }
+  }
+
+  public async getIndexMappings(indexName: OpenSearchIndex): Promise<unknown> {
+    try {
+      const indexNameWithVersion = this.indexVersionMap.get(indexName)
+      const mappings = await this.client.indices.getMapping({
+        index: indexNameWithVersion,
+      })
+      return mappings.body
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to get index mappings!')
+      throw err
+    }
+  }
+
   public async setIndexMappings(indexName: OpenSearchIndex): Promise<void> {
     try {
       const mappings = OPENSEARCH_INDEX_MAPPINGS[indexName]
+      const indexNameWithVersion = this.indexVersionMap.get(indexName)
 
       await this.client.indices.putMapping({
-        index: indexName,
+        index: indexNameWithVersion,
         body: mappings,
       })
     } catch (err) {
@@ -83,15 +205,38 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  private async ensureIndexExists(indexName: OpenSearchIndex) {
-    const exists = await this.doesIndexExist(indexName)
+  private async ensureIndexAndAliasExists(indexName: OpenSearchIndex) {
+    const indexNameWithVersion = this.indexVersionMap.get(indexName)
+    const aliasName = indexName // index name is the alias name (without version)
+    const indexExists = await this.doesIndexExist(indexNameWithVersion)
+    const aliasExists = await this.doesAliasExist(aliasName)
+    const aliasPointsToIndex = await this.doesAliasPointToIndex(indexNameWithVersion, aliasName)
 
-    if (!exists) {
-      // create index
-      this.log.info({ indexName }, 'Creating index with mappings!')
-      await this.createIndex(indexName)
+    // create index and alias if they don't exist (only in dev environment)
+    if (IS_DEV_ENV) {
+      if (!indexExists) {
+        this.log.info('Creating versioned index with settings and mappings!', {
+          indexNameWithVersion,
+        })
+        await this.createIndexWithVersion(indexName)
+      }
+
+      if (!aliasExists) {
+        this.log.info('Creating alias for index!', { indexNameWithVersion, aliasName })
+        await this.createAlias(indexNameWithVersion, aliasName)
+      }
     } else {
-      this.log.info({ indexName }, 'Index already exists!')
+      if (!indexExists || !aliasExists || !aliasPointsToIndex) {
+        throw new Error('Index and alias are either missing or not properly configured!')
+      }
+    }
+
+    // check if index and alias exist and alias points to the index
+    if (indexExists && aliasExists && aliasPointsToIndex) {
+      this.log.info('Index and alias already exist!', {
+        indexNameWithVersion,
+        aliasName,
+      })
     }
   }
 
@@ -103,16 +248,17 @@ export class OpenSearchService extends LoggerBase {
         },
       },
     })
-    await this.ensureIndexExists(OpenSearchIndex.MEMBERS)
-    await this.ensureIndexExists(OpenSearchIndex.ACTIVITIES)
-    await this.ensureIndexExists(OpenSearchIndex.ORGANIZATIONS)
+    await this.ensureIndexAndAliasExists(OpenSearchIndex.MEMBERS)
+    await this.ensureIndexAndAliasExists(OpenSearchIndex.ACTIVITIES)
+    await this.ensureIndexAndAliasExists(OpenSearchIndex.ORGANIZATIONS)
   }
 
   public async removeFromIndex(id: string, index: OpenSearchIndex): Promise<void> {
     try {
+      const indexName = this.indexVersionMap.get(index)
       await this.client.delete({
         id,
-        index,
+        index: indexName,
         refresh: true,
       })
     } catch (err) {
@@ -126,10 +272,11 @@ export class OpenSearchService extends LoggerBase {
   }
 
   public async index<T>(id: string, index: OpenSearchIndex, body: T): Promise<void> {
+    const indexName = this.indexVersionMap.get(index)
     try {
       await this.client.index({
         id,
-        index,
+        index: indexName,
         body,
         refresh: true,
       })
@@ -142,9 +289,10 @@ export class OpenSearchService extends LoggerBase {
   public async bulkIndex<T>(index: OpenSearchIndex, batch: IIndexRequest<T>[]): Promise<void> {
     try {
       const body = []
+      const indexName = this.indexVersionMap.get(index)
       for (const doc of batch) {
         body.push({
-          index: { _index: index, _id: doc.id },
+          index: { _index: indexName, _id: doc.id },
         })
         body.push({
           ...doc.body,
@@ -186,8 +334,9 @@ export class OpenSearchService extends LoggerBase {
     sourceExcludeFields?: string[],
   ): Promise<ISearchHit<T>[] | unknown> {
     try {
+      const indexName = this.indexVersionMap.get(index)
       const payload = {
-        index,
+        index: indexName,
         _source_excludes: sourceExcludeFields,
         _source_includes: sourceIncludeFields,
         body: {
