@@ -14,7 +14,6 @@ export const filterApiService = () => {
       search,
       relation,
       order,
-      pagination,
       settings,
       ...filterValues
     } = values;
@@ -89,13 +88,8 @@ export const filterApiService = () => {
 
     const orderBy = `${order.prop}_${order.order === 'descending' ? 'DESC' : 'ASC'}`;
 
-    const limit = pagination?.perPage || 20;
-    const offset = ((pagination?.page || 1) - 1) * limit;
-
     return {
       filter,
-      limit,
-      offset,
       orderBy,
       body,
     };
