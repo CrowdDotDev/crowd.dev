@@ -79,6 +79,17 @@ export default class MemberService extends LoggerBase {
           }
         }
 
+        if (data.emails) {
+          const orgIds = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            data.emails,
+          )
+          if (orgIds.length > 0) {
+            organizationIds.push(...orgIds)
+          }
+        }
+
         return {
           id,
           organizationIds,
@@ -179,6 +190,17 @@ export default class MemberService extends LoggerBase {
           }
         }
 
+        if (data.emails) {
+          const orgIds = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            data.emails,
+          )
+          if (orgIds.length > 0) {
+            organizationIds.push(...orgIds)
+          }
+        }
+
         return { updated, organizationIds }
       })
 
@@ -196,6 +218,32 @@ export default class MemberService extends LoggerBase {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
       throw err
     }
+  }
+
+  public async assignOrganizationByEmailDomain(
+    tenantId: string,
+    segmentId: string,
+    emails: string[],
+  ): Promise<string[]> {
+    const orgService = new OrganizationService(this.store, this.log)
+    const organizationIds: string[] = []
+    const emailDomains = new Set<string>()
+
+    // Collect unique domains
+    for (const email of emails) {
+      const domain = email.split('@')[1]
+      emailDomains.add(domain)
+    }
+
+    // Assign member to organization based on email domain
+    for (const domain of emailDomains) {
+      const org = await orgService.findByDomain(tenantId, segmentId, domain as string)
+      if (org) {
+        organizationIds.push(org.id)
+      }
+    }
+
+    return organizationIds
   }
 
   public async processMemberEnrich(
