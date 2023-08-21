@@ -93,7 +93,7 @@ const switchOperator = () => {
 
 const alignFilterList = (value: Filter) => {
   const {
-    settings, search, relation, order, pagination, ...filterValues
+    settings, search, relation, order, ...filterValues
   } = value;
   filterList.value = Object.keys(filterValues);
 };
@@ -107,7 +107,12 @@ const removeFilter = (key) => {
 const { setQuery, parseQuery } = filterQueryService();
 const { buildApiFilter } = filterApiService();
 
+const savedFilter = ref({});
 const fetch = (value: Filter) => {
+  if (JSON.stringify(value) === JSON.stringify(savedFilter.value)) {
+    return;
+  }
+  savedFilter.value = { ...value };
   const data = buildApiFilter(value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
   emit('fetch', data);
 };
@@ -127,17 +132,14 @@ const alignQueryUrl = () => {
     ...props.customConfig,
   }, props.savedViewsConfig);
 
-  // Remove pagination if it's not in filters store state
-  if (!props.modelValue.pagination) {
-    delete parsed.pagination;
-  }
-
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
     router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
+    alignFilterList(props.modelValue);
     fetch(props.modelValue);
     return;
   }
+
   filters.value = parsed as Filter;
   if (!!parsed && Object.keys(parsed).length > 0) {
     alignFilterList(parsed as Filter);

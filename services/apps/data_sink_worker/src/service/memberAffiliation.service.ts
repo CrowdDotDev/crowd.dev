@@ -5,7 +5,7 @@ import MemberAffiliationRepository from '../repo/memberAffiliation.repo'
 export default class MemberAffiliationService extends LoggerBase {
   private readonly repo: MemberAffiliationRepository
 
-  constructor(private readonly store: DbStore, parentLog: Logger) {
+  constructor(store: DbStore, parentLog: Logger) {
     super(parentLog)
 
     this.repo = new MemberAffiliationRepository(store, this.log)
@@ -24,6 +24,16 @@ export default class MemberAffiliationService extends LoggerBase {
     const currentEmployment = await this.repo.findWorkExperience(memberId, timestamp)
     if (currentEmployment) {
       return currentEmployment.organizationId
+    }
+
+    const mostRecentOrg = await this.repo.findMostRecentOrganization(memberId, timestamp)
+    if (mostRecentOrg) {
+      return mostRecentOrg.organizationId
+    }
+
+    const mostRecentOrgEver = await this.repo.findMostRecentOrganizationEver(memberId)
+    if (mostRecentOrgEver) {
+      return mostRecentOrgEver.organizationId
     }
 
     return null

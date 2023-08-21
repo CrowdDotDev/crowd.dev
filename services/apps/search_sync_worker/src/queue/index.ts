@@ -2,7 +2,7 @@ import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
 import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
-import { BatchProcessor, groupBy } from '@crowd/common'
+import { BatchProcessor } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -13,10 +13,7 @@ import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
-  private readonly organizationBatchProcessor: BatchProcessor<{
-    tenantId: string
-    organizationId: string
-  }>
+  private readonly organizationBatchProcessor: BatchProcessor<string>
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -38,10 +35,13 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
     this.memberBatchProcessor = new BatchProcessor(
       20,
-      30,
+      10,
       async (memberIds) => {
-        this.log.info({ batchSize: memberIds.length }, 'Processing batch of members!')
-        await this.initMemberService().syncMembers(memberIds)
+        const distinct = Array.from(new Set(memberIds))
+        if (distinct.length > 0) {
+          this.log.info({ batchSize: distinct.length }, 'Processing batch of members!')
+          await this.initMemberService().syncMembers(distinct)
+        }
       },
       async (memberIds, err) => {
         this.log.error(err, { memberIds }, 'Error while processing batch of members!')
@@ -50,10 +50,13 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
     this.activityBatchProcessor = new BatchProcessor(
       50,
-      30,
+      10,
       async (activityIds) => {
-        this.log.info({ batchSize: activityIds.length }, 'Processing batch of activities!')
-        await this.initActivityService().syncActivities(activityIds)
+        const distinct = Array.from(new Set(activityIds))
+        if (distinct.length > 0) {
+          this.log.info({ batchSize: distinct.length }, 'Processing batch of activities!')
+          await this.initActivityService().syncActivities(distinct)
+        }
       },
       async (activityIds, err) => {
         this.log.error(err, { activityIds }, 'Error while processing batch of activities!')
@@ -62,15 +65,12 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
     this.organizationBatchProcessor = new BatchProcessor(
       5,
-      30,
-      async (data) => {
-        this.log.info({ batchSize: data.length }, 'Processing batch of organizations!')
-        const grouped = groupBy(data, (x) => x.tenantId)
-        for (const tenantId of Array.from(grouped.keys())) {
-          await this.initOrganizationService().syncOrganizations(
-            tenantId,
-            grouped.get(tenantId).map((x) => x.organizationId),
-          )
+      10,
+      async (organizationIds) => {
+        const distinct = Array.from(new Set(organizationIds))
+        if (distinct.length > 0) {
+          this.log.info({ batchSize: distinct.length }, 'Processing batch of organizations!')
+          await this.initOrganizationService().syncOrganizations(distinct)
         }
       },
       async (organizationIds, err) => {
@@ -171,7 +171,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
         // organizations
         case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
-          if (data.organizationId && data.tenantId) {
+          if (data.organizationId) {
             await this.organizationBatchProcessor.addToBatch(data.organizationId)
           }
           break

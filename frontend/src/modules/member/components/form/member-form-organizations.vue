@@ -47,9 +47,18 @@
             </p>
           </div>
           <div class="w-1/3">
-            <p v-if="organization.memberOrganizations.dateStart || organization.memberOrganizations.dateEnd" class="text-xs leading-5 pl-2">
-              {{ formatDate(organization.memberOrganizations.dateStart) }} →
-              {{ formatDate(organization.memberOrganizations.dateEnd) }}
+            <p class="text-xs leading-5 pl-2">
+              <span>
+                {{ organization.memberOrganizations.dateStart
+                  ? moment(organization.memberOrganizations.dateStart).utc().format('MMMM YYYY')
+                  : 'Unknown' }}
+              </span>
+              <span class="mx-1 whitespace-nowrap">-></span>
+              <span>
+                {{ organization.memberOrganizations.dateEnd
+                  ? moment(organization.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+                  : organization.memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
+              </span>
             </p>
           </div>
         </div>
@@ -74,9 +83,9 @@
     v-if="isOrganizationFormModalOpen"
     v-model="isOrganizationFormModalOpen"
     :organization="editOrganization !== null ? organizations[editOrganization] : null"
-    @update:model-value="!$event ? editOrganization = null : null"
     @add="organizations.push($event)"
     @edit="update($event)"
+    @update:model-value="!$event ? editOrganization = null : null"
   />
 </template>
 
@@ -118,13 +127,6 @@ const edit = (organizationIndex: number) => {
 const update = (organization: Organization) => {
   organizations.value[editOrganization.value] = organization;
   editOrganization.value = null;
-};
-
-const formatDate = (date: string) => {
-  if (date) {
-    return moment(date).format('MMM YYYY');
-  }
-  return 'Present';
 };
 </script>
 

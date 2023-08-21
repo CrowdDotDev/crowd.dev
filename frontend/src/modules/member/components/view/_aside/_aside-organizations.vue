@@ -70,13 +70,13 @@
               <span>
                 {{ memberOrganizations.dateStart
                   ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
-                  : 'Unkown' }}
+                  : 'Unknown' }}
               </span>
               <span class="mx-1 whitespace-nowrap">-></span>
               <span>
                 {{ memberOrganizations.dateEnd
                   ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
-                  : memberOrganizations.dateStart ? 'Present' : 'Unkown' }}
+                  : memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
               </span>
             </div>
           </div>

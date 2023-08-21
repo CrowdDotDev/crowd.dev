@@ -32,6 +32,23 @@ export default class MemberAffiliationService extends LoggerBase {
       return currentEmployment.organizationId
     }
 
+    const mostRecentOrg: any = await MemberRepository.findMostRecentOrganization(
+      memberId,
+      timestamp,
+      this.options,
+    )
+    if (mostRecentOrg) {
+      return mostRecentOrg.organizationId
+    }
+
+    const mostRecentOrgEver: any = await MemberRepository.findMostRecentOrganizationEver(
+      memberId,
+      this.options,
+    )
+    if (mostRecentOrgEver) {
+      return mostRecentOrgEver.organizationId
+    }
+
     return null
   }
 

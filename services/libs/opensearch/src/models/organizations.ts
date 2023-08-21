@@ -18,7 +18,7 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.UUID,
     },
     address: {
-      type: OpensearchFieldType.STRING,
+      type: OpensearchFieldType.OBJECT,
     },
     logo: {
       type: OpensearchFieldType.STRING,
@@ -48,6 +48,9 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.INT,
     },
     geoLocation: {
+      type: OpensearchFieldType.STRING,
+    },
+    location: {
       type: OpensearchFieldType.STRING,
     },
     headline: {

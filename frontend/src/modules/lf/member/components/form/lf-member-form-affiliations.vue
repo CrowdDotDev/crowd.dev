@@ -142,11 +142,10 @@
 
 <script setup>
 import {
-  computed, ref, getCurrentInstance
+  computed, ref,
 } from 'vue';
 import moment from 'moment';
 import AppLfMemberFormSubprojectsModal from '@/modules/lf/member/components/form/lf-member-form-subprojects-modal.vue';
-
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

@@ -29,7 +29,7 @@
     "script:cleanup-tenant-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-tenant-organizations.ts",
     "script:cleanup-all-members": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-members.ts",
     "script:cleanup-all-activities": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-activities.ts",
-    "script:cleanup-all-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-activities.ts",
+    "script:cleanup-all-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/cleanup-all-organizations.ts",
     "script:delete-index": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/delete-index.ts"
   },
   "dependencies": {
