@@ -487,7 +487,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           'commented on <a href="{attributes.videoUrl}" class="truncate max-w-2xs">{attributes.videoTitle}</a>',
         short: 'commented',
         channel:
-          '<a href="{attributes.videoUrl}" class="truncate max-w-2xs">{attributes.videoTitle</a>',
+          '<a href="{attributes.videoUrl}" class="truncate max-w-2xs">{attributes.videoTitle}</a>',
       },
       isContribution: Youtube_GRID[YoutubeActivityType.COMMENT].isContribution,
     },
