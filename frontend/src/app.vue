@@ -21,6 +21,7 @@
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
+import { FeatureFlag } from '@/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 
@@ -42,13 +43,17 @@ export default {
     loading() {
       return (
         (this.loadingInit && !!AuthToken.get())
-        || (!config.isCommunityVersion)
+        || (!this.featureFlag.isReady
+          && !this.featureFlag.hasError
+          && !config.isCommunityVersion)
       );
     },
   },
 
   async created() {
     await this.doInit();
+
+    FeatureFlag.init(this.currentTenant);
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
