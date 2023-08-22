@@ -45,12 +45,6 @@
     <div>
       <div class="flex mb-2">
         <span class="block font-semibold">{{ integration.name }}</span>
-        <span v-if="integration.premium" class="text-2xs text-brand-500 ml-1">{{
-          FeatureFlag.premiumFeatureCopy()
-        }}</span>
-        <span v-if="integration.scale" class="text-2xs text-brand-500 ml-1">{{
-          FeatureFlag.scaleFeatureCopy()
-        }}</span>
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
@@ -102,7 +96,6 @@
 <script setup>
 import { useStore } from 'vuex';
 import { defineProps, computed, ref } from 'vue';
-import { FeatureFlag } from '@/featureFlag';
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
