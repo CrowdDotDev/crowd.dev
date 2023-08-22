@@ -55,7 +55,7 @@ export default class TenantUserRepository {
     roles = lodash.uniq(
       roles.map((role) => {
         if (role.startsWith(`${Roles.values.admin}:`)) {
-          adminSegments.push(role.split(':')[1])
+          adminSegments.push(role.split(':')[1].trim())
           return Roles.values.projectAdmin
         }
         return role
