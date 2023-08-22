@@ -253,7 +253,12 @@ export default class IntegrationDataService extends LoggerBase {
         type,
         data: entity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        resultId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -278,7 +283,12 @@ export default class IntegrationDataService extends LoggerBase {
         type: IntegrationResultType.ACTIVITY,
         data: activity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        activity.sourceId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,

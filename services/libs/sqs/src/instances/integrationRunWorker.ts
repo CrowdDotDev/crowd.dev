@@ -47,6 +47,6 @@ export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
   }
 
   public async streamProcessed(tenantId: string, platform: string, runId: string): Promise<void> {
-    await this.sendMessage(runId, new StreamProcessedQueueMessage(runId))
+    await this.sendMessage(runId, new StreamProcessedQueueMessage(runId), runId)
   }
 }
