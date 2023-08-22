@@ -56,11 +56,7 @@ class FeatureFlagService {
   }
 
   isFlagEnabled(flag) {
-    if (config.isCommunityVersion) {
-      return true;
-    }
-
-    return this.unleash.isEnabled(flag);
+    return true;
   }
 
   updateContext(tenant) {
