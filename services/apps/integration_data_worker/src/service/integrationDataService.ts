@@ -181,7 +181,7 @@ export default class IntegrationDataService extends LoggerBase {
     try {
       await integrationService.processData(context)
       this.log.debug('Finished processing data!')
-      await this.repo.markDataProcessed(dataId)
+      await this.repo.deleteData(dataId)
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
       await this.triggerDataError(
