@@ -37,6 +37,7 @@
         :to="{
           name: 'activity',
           hash: '#conversation',
+          query: filterQueryService().setQuery(allConversationsFilter),
         }"
         class="text-red font-medium text-center text-xs leading-5"
       >
@@ -57,6 +58,8 @@ import { mapGetters } from 'vuex';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardConversationItem from '@/modules/dashboard/components/conversations/dashboard-conversation-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import moment from 'moment';
 
 export default {
   name: 'AppDashboardConversationList',
@@ -68,6 +71,7 @@ export default {
   data() {
     return {
       conversationId: null,
+      filterQueryService,
     };
   },
   computed: {
@@ -75,6 +79,21 @@ export default {
       'trendingConversations',
       'conversations',
     ]),
+    allConversationsFilter() {
+      return {
+        search: '',
+        relation: 'and',
+        order: {
+          prop: 'activityCount',
+          order: 'descending',
+        },
+        lastActivityDate: {
+          operator: 'gt',
+          value: moment().utc().subtract(7, 'day').format('YYYY-MM-DD'),
+          include: true,
+        },
+      };
+    },
   },
   methods: {
     refreshConversations() {
