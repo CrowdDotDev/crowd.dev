@@ -1,4 +1,4 @@
-import StackOverflowConnect from './components/youtube-connect.vue';
+import YoutubeConnect from './components/youtube-connect.vue';
 
 export default {
   enabled: true,
@@ -9,7 +9,7 @@ export default {
     'Connect Youtube to sync comments based on channels or selected keywords.',
   image:
     'https://cdn-icons-png.flaticon.com/512/174/174883.png',
-  connectComponent: StackOverflowConnect,
+  connectComponent: YoutubeConnect,
   url: (username) => `https://www.youtube.com/channel/${username}`,
   chartColor: '#FF9845',
   showProfileLink: true,
