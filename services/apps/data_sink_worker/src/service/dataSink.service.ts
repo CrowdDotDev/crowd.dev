@@ -79,9 +79,6 @@ export default class DataSinkService extends LoggerBase {
 
     this.log.debug('Marking result as in progress.')
     await this.repo.markResultInProgress(resultId)
-    if (resultInfo.runId) {
-      await this.repo.touchRun(resultInfo.runId)
-    }
 
     try {
       const data = resultInfo.data
@@ -170,10 +167,6 @@ export default class DataSinkService extends LoggerBase {
         log: this.log,
         frameworkVersion: 'new',
       })
-    } finally {
-      if (resultInfo.runId) {
-        await this.repo.touchRun(resultInfo.runId)
-      }
     }
   }
 }
