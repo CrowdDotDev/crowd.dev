@@ -154,15 +154,16 @@ export default class MemberService extends LoggerBase {
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ memberId: id }, 'Updating a member!')
-          await txRepo.update(id, tenantId, {
-            emails: toUpdate.emails || original.emails,
-            joinedAt: toUpdate.joinedAt || original.joinedAt,
-            attributes: toUpdate.attributes || original.attributes,
-            weakIdentities: toUpdate.weakIdentities || original.weakIdentities,
-            // leave this one empty if nothing changed - we are only adding up new identities not removing them
-            identities: toUpdate.identities,
-            displayName: toUpdate.displayName || original.displayName,
-          })
+
+          const dateToUpdate = Object.entries(toUpdate).reduce((acc, [key, value]) => {
+            if (value) {
+              acc[key] = value
+            }
+            return acc
+          }, {} as IDbMemberUpdateData)
+
+
+          await txRepo.update(id, tenantId, dateToUpdate)
           await txRepo.addToSegment(id, tenantId, segmentId)
 
           updated = true
