@@ -1,5 +1,5 @@
 import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import {
   IActivityData,
   IMemberData,
@@ -49,7 +49,12 @@ export default class DataSinkService extends LoggerBase {
   public async processResult(resultId: string): Promise<void> {
     this.log.debug({ resultId }, 'Processing result.')
 
-    const resultInfo = await this.repo.getResultInfo(resultId)
+    const resultInfo = await logExecutionTimeV2(
+      () => this.repo.getResultInfo(resultId),
+      'DataSinkRepo.getResultInfo',
+      this.log,
+    )
+
 
     if (!resultInfo) {
       this.log.error({ resultId }, 'Result not found.')
@@ -95,11 +100,15 @@ export default class DataSinkService extends LoggerBase {
           )
           const activityData = data.data as IActivityData
 
-          await service.processActivity(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            activityData,
+          await logExecutionTimeV2(
+            () => service.processActivity(
+              resultInfo.tenantId,
+              resultInfo.integrationId,
+              resultInfo.platform,
+              activityData,
+            ),
+            'ActivityService.processActivity',
+            this.log,
           )
           break
         }
@@ -113,11 +122,15 @@ export default class DataSinkService extends LoggerBase {
           )
           const memberData = data.data as IMemberData
 
-          await service.processMemberEnrich(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            memberData,
+          await logExecutionTimeV2(
+            () => service.processMemberEnrich(
+              resultInfo.tenantId,
+              resultInfo.integrationId,
+              resultInfo.platform,
+              memberData,
+            ),
+            'MemberService.processMemberEnrich',
+            this.log,
           )
           break
         }
@@ -126,11 +139,15 @@ export default class DataSinkService extends LoggerBase {
           const service = new OrganizationService(this.store, this.log)
           const organizationData = data.data as IOrganization
 
-          await service.processOrganizationEnrich(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            organizationData,
+          await logExecutionTimeV2(
+            () => service.processOrganizationEnrich(
+              resultInfo.tenantId,
+              resultInfo.integrationId,
+              resultInfo.platform,
+              organizationData,
+            ),
+            'OrganizationService.processOrganizationEnrich',
+            this.log,
           )
           break
         }
@@ -139,40 +156,56 @@ export default class DataSinkService extends LoggerBase {
           throw new Error(`Unknown result type: ${data.type}`)
         }
       }
-      await this.repo.deleteResult(resultId)
+      await logExecutionTimeV2(
+        () => this.repo.deleteResult(resultId),
+        'DataSinkRepo.deleteResult',
+        this.log,
+      )
     } catch (err) {
       this.log.error(err, 'Error processing result.')
-      await this.triggerResultError(
-        resultId,
-        'process-result',
-        'Error processing result.',
-        undefined,
-        err,
+      await logExecutionTimeV2(
+        () => this.triggerResultError(
+          resultId,
+          'process-result',
+          'Error processing result.',
+          undefined,
+          err,
+        ),
+        'DataSinkService.triggerResultError',
+        this.log,
       )
 
-      await sendSlackAlert({
-        slackURL: SLACK_ALERTING_CONFIG().url,
-        alertType: SlackAlertTypes.SINK_WORKER_ERROR,
-        integration: {
-          id: resultInfo.integrationId,
-          platform: resultInfo.platform,
-          tenantId: resultInfo.tenantId,
-          resultId: resultInfo.id,
-          apiDataId: resultInfo.apiDataId,
-        },
-        userContext: {
-          currentTenant: {
-            name: resultInfo.name,
-            plan: resultInfo.plan,
-            isTrial: resultInfo.isTrialPlan,
+      await logExecutionTimeV2(
+        () => sendSlackAlert({
+          slackURL: SLACK_ALERTING_CONFIG().url,
+          alertType: SlackAlertTypes.SINK_WORKER_ERROR,
+          integration: {
+            id: resultInfo.integrationId,
+            platform: resultInfo.platform,
+            tenantId: resultInfo.tenantId,
+            resultId: resultInfo.id,
+            apiDataId: resultInfo.apiDataId,
           },
-        },
-        log: this.log,
-        frameworkVersion: 'new',
-      })
+          userContext: {
+            currentTenant: {
+              name: resultInfo.name,
+              plan: resultInfo.plan,
+              isTrial: resultInfo.isTrialPlan,
+            },
+          },
+          log: this.log,
+          frameworkVersion: 'new',
+        }),
+        'DataSinkService -> sendSlackAlert',
+        this.log,
+      )
     } finally {
       if (resultInfo.runId) {
-        await this.repo.touchRun(resultInfo.runId)
+        await logExecutionTimeV2(
+          () => this.repo.touchRun(resultInfo.runId),
+          'DataSinkRepo.touchRun',
+          this.log,
+        )
       }
     }
   }
