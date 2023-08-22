@@ -17,3 +17,25 @@ export const logExecutionTime = async <T>(
     log.info(`Process ${name} took ${durationInSeconds.toFixed(2)} seconds!`)
   }
 }
+
+export const logExecutionTimeV2 = async <T>(
+  process: () => Promise<T>,
+  log: Logger,
+  name: string,
+): Promise<T> => {
+  const start = performance.now()
+
+  const end = () => {
+    const end = performance.now()
+    const duration = end - start
+    const durationInSeconds = duration / 1000
+    return durationInSeconds.toFixed(2)
+  }
+  try {
+    const result = await process()
+    log.info(`Process ${name} took ${end()} seconds!`)
+    return result
+  } finally {
+    log.info(`Process ${name} failed after ${end()} seconds!`)
+  }
+}
