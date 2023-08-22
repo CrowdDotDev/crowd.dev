@@ -132,6 +132,11 @@ export default (app) => {
     safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
   )
 
+  app.post(
+    '/tenant/:tenantId/youtube-connect',
+    safeWrap(require('./helpers/youtubeConnect').default),
+  )
+
   // if (TWITTER_CONFIG.clientId) {
   //   /**
   //    * Using the passport.authenticate this endpoint forces a

@@ -348,4 +348,17 @@ export class IntegrationService {
 
     return response.data.isWebhooksReceived;
   }
+
+  static async youtubeConnect(reqBody) {
+    // Getting the tenant_id
+    const tenantId = AuthCurrentTenant.get();
+
+    // Calling connect devto function in the backend.
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/youtube-connect`, 
+      reqBody,
+    );
+
+    return response.data;
+  }
 }

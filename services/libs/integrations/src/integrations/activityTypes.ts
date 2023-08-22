@@ -1,5 +1,6 @@
 import { ActivityTypeDisplayProperties, DefaultActivityTypes, PlatformType } from '@crowd/types'
 import { DevToActivityType } from './devto/types'
+import { YoutubeActivityType } from './youtube/types'
 import { GithubActivityType } from './github/types'
 import { LinkedinActivityType } from './premium/linkedin/types'
 import { StackOverflowActivityType } from './stackoverflow/types'
@@ -12,6 +13,7 @@ import { isUrl } from '@crowd/common'
 import { DiscordActivityType } from './discord/types'
 import { GITHUB_GRID } from './github/grid'
 import { DEVTO_GRID } from './devto/grid'
+import { Youtube_GRID } from './youtube/grid'
 import { DISCORD_GRID } from './discord/grid'
 import { HACKERNEWS_GRID } from './hackernews/grid'
 import { LINKEDIN_GRID } from './premium/linkedin/grid'
@@ -476,6 +478,18 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '{channel}',
       },
       isContribution: true,
+    },
+  },
+  [PlatformType.YOUTUBE]: {
+    [YoutubeActivityType.COMMENT]: {
+      display: {
+        default:
+          'commented on <a href="{attributes.videoUrl}" class="truncate max-w-2xs">{attributes.videoTitle}</a>',
+        short: 'commented',
+        channel:
+          '<a href="{attributes.videoUrl}" class="truncate max-w-2xs">{attributes.videoTitle</a>',
+      },
+      isContribution: Youtube_GRID[YoutubeActivityType.COMMENT].isContribution,
     },
   },
   [PlatformType.DEVTO]: {

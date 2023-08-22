@@ -1,7 +1,7 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '@crowd/types'
 import {
   HubspotFieldMapperFactory,
@@ -1399,6 +1399,79 @@ export default class IntegrationService {
     await sendNodeWorkerMessage(
       integration.tenantId,
       new NodeWorkerIntegrationProcessMessage(run.id),
+    )
+
+    return integration
+  }
+
+  async connectYoutube(integrationData) {
+    this.options.log.info('Creating youtube integration!!')
+    let playlistId = null
+    let channelId = null 
+    let keywords = null
+    let shouldVerifyChannelId = true
+
+    const isValidKeyword = integrationData.keywords && Array.isArray(integrationData.keywords)
+    if (isValidKeyword && integrationData.keywords.length > 0) {
+      keywords = integrationData.keywords
+      shouldVerifyChannelId = false
+    }
+
+    if (shouldVerifyChannelId) {
+      try {
+        const channelDetailsConfig: AxiosRequestConfig = {
+          method: 'get',
+          url: `https://www.googleapis.com/youtube/v3/channels`,
+          params: {
+            key: integrationData.apiKey,
+            id: integrationData.channelId,
+            part: 'contentDetails',
+          }
+        }
+
+        const response = (await axios(channelDetailsConfig)).data
+        const channelDetails = response.items[0] 
+        channelId = channelDetails.id
+        playlistId = channelDetails.contentDetails.relatedPlaylists.uploads;
+      } catch (err) {
+        throw new Error400(`The channel id your provided channel : ${integrationData.channelId} or the api key : ${integrationData.apiKey} provided is not valid`)
+      }
+    }
+
+    let integration
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.YOUTUBE,
+          settings: {
+            apiKey: integrationData.apiKey,
+            uploadPlaylistId: playlistId,
+            channelId: channelId,
+            keywords
+          },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Youtube message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration
