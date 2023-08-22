@@ -84,9 +84,6 @@ export default class DataSinkService extends LoggerBase {
 
     this.log.debug('Marking result as in progress.')
     await this.repo.markResultInProgress(resultId)
-    if (resultInfo.runId) {
-      await this.repo.touchRun(resultInfo.runId)
-    }
 
     try {
       const data = resultInfo.data
@@ -199,14 +196,6 @@ export default class DataSinkService extends LoggerBase {
         this.log,
         'DataSinkService -> sendSlackAlert',
       )
-    } finally {
-      if (resultInfo.runId) {
-        await logExecutionTimeV2(
-          () => this.repo.touchRun(resultInfo.runId),
-          this.log,
-          'DataSinkRepo.touchRun',
-        )
-      }
     }
   }
 }
