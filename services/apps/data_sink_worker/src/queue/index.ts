@@ -1,5 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/database'
-import { Logger } from '@crowd/logging'
+import { Logger, logExecutionTime } from '@crowd/logging'
 import {
   DATA_SINK_WORKER_QUEUE_SETTINGS,
   NodejsWorkerEmitter,
@@ -39,7 +39,11 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
       switch (message.type) {
         case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
-          await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
+          await logExecutionTime(
+            () => service.processResult((message as ProcessIntegrationResultQueueMessage).resultId),
+            this.log,
+            'dataSinkService.processResult',
+          )
           break
         default:
           throw new Error(`Unknown message type: ${message.type}`)
