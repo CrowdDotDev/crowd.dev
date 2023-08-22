@@ -17,7 +17,7 @@
           :tooltip-label="platformContent(platform).tooltipLabel"
           :as-link="platformContent(platform).asLink"
           :show-handles-badge="true"
-          :backup-url="props.member.attributes.url[platform]"
+          :backup-url="props.member.attributes.url?.[platform]"
         />
       </div>
     </div>
@@ -54,7 +54,9 @@ const platformContent = (platform) => {
 };
 
 const hasSocialIdentities = computed(
-  () => Object.keys(props.username).some((k) => !!props.username[k].length),
+  () => Object.values(props.username).some((k) => {
+    return k.length > 0;
+  }),
 );
 </script>
 
