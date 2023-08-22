@@ -35,7 +35,8 @@ export const logExecutionTimeV2 = async <T>(
     const result = await process()
     log.info(`Process ${name} took ${end()} seconds!`)
     return result
-  } finally {
+  } catch (e) {
     log.info(`Process ${name} failed after ${end()} seconds!`)
+    throw e
   }
 }
