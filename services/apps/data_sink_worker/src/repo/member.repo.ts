@@ -153,7 +153,17 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       },
       this.updateMemberColumnSet,
     )
+    const cleanPrepared = Object.entries(prepared).reduce((acc, [key, value]) => {
+      if (value) {
+        acc[key] = value
+      }
+      return acc
+    }, {} as Record<string, unknown>)
     const query = this.dbInstance.helpers.update(prepared, this.updateMemberColumnSet)
+
+    const query1 = this.dbInstance.helpers.update(cleanPrepared, this.updateMemberColumnSet)
+
+    this.log.info('update member', { prepared, cleanPrepared, query, query1 })
 
     const condition = this.format('where id = $(id) and "tenantId" = $(tenantId)', {
       id,
