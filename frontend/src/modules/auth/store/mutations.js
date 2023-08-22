@@ -1,11 +1,9 @@
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import formbricks from '@/plugins/formbricks';
-import identify from "@/shared/monitoring/identify";
 
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
-    identify(state.currentUser);
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
@@ -17,7 +15,6 @@ export default {
 
   AUTH_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
-    identify(state.currentUser);
 
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
@@ -121,7 +118,6 @@ export default {
 
   AUTH_INIT_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
-    identify(state.currentUser);
 
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,

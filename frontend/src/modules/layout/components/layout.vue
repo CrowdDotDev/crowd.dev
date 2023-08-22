@@ -17,6 +17,7 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
+import identify from '@/shared/monitoring/identify';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
 import AppLfHeader from '@/modules/lf/layout/components/lf-header.vue';
@@ -62,6 +63,7 @@ export default {
   },
 
   async mounted() {
+    identify(this.currentUser);
     this.initPendo();
   },
 
