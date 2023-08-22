@@ -51,8 +51,8 @@ export default class DataSinkService extends LoggerBase {
 
     const resultInfo = await logExecutionTimeV2(
       () => this.repo.getResultInfo(resultId),
-      'DataSinkRepo.getResultInfo',
       this.log,
+      'DataSinkRepo.getResultInfo',
     )
 
 
@@ -107,8 +107,8 @@ export default class DataSinkService extends LoggerBase {
               resultInfo.platform,
               activityData,
             ),
-            'ActivityService.processActivity',
             this.log,
+            'ActivityService.processActivity',
           )
           break
         }
@@ -129,8 +129,8 @@ export default class DataSinkService extends LoggerBase {
               resultInfo.platform,
               memberData,
             ),
-            'MemberService.processMemberEnrich',
             this.log,
+            'MemberService.processMemberEnrich',
           )
           break
         }
@@ -146,8 +146,8 @@ export default class DataSinkService extends LoggerBase {
               resultInfo.platform,
               organizationData,
             ),
-            'OrganizationService.processOrganizationEnrich',
             this.log,
+            'OrganizationService.processOrganizationEnrich',
           )
           break
         }
@@ -158,8 +158,8 @@ export default class DataSinkService extends LoggerBase {
       }
       await logExecutionTimeV2(
         () => this.repo.deleteResult(resultId),
-        'DataSinkRepo.deleteResult',
         this.log,
+        'DataSinkRepo.deleteResult',
       )
     } catch (err) {
       this.log.error(err, 'Error processing result.')
@@ -171,8 +171,8 @@ export default class DataSinkService extends LoggerBase {
           undefined,
           err,
         ),
-        'DataSinkService.triggerResultError',
         this.log,
+        'DataSinkService.triggerResultError',
       )
 
       await logExecutionTimeV2(
@@ -196,15 +196,15 @@ export default class DataSinkService extends LoggerBase {
           log: this.log,
           frameworkVersion: 'new',
         }),
-        'DataSinkService -> sendSlackAlert',
         this.log,
+        'DataSinkService -> sendSlackAlert',
       )
     } finally {
       if (resultInfo.runId) {
         await logExecutionTimeV2(
           () => this.repo.touchRun(resultInfo.runId),
-          'DataSinkRepo.touchRun',
           this.log,
+          'DataSinkRepo.touchRun',
         )
       }
     }
