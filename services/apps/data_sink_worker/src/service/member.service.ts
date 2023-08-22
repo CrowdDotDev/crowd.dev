@@ -437,7 +437,9 @@ export default class MemberService extends LoggerBase {
       attributes,
       weakIdentities,
       identities,
-      displayName: member.displayName || dbMember.displayName,
+      // we don't want to update the display name if it's already set
+      // returned value should be undefined here otherwise it will cause an update!
+      displayName: dbMember.displayName ? undefined : member.displayName,
     }
   }
 }
