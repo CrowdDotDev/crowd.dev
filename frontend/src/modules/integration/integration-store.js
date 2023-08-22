@@ -551,9 +551,6 @@ export default {
       { commit },
       reqBody
     ) {
-      // Function to connect to Dev.to. We just need to store the
-      // users and organizations we want to track
-
       try {
         commit('CREATE_STARTED');
 
