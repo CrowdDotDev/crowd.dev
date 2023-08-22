@@ -79,6 +79,7 @@ export default (sequelize) => {
       employees: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        comment: 'total employee count of the company',
       },
       revenueRange: {
         type: DataTypes.JSONB,
@@ -131,7 +132,7 @@ export default (sequelize) => {
       type: {
         type: DataTypes.TEXT,
         allowNull: true,
-        comment: "The comnapny's type. For example NGO",
+        comment: "The company's type. For example NGO",
       },
       employeeCountByCountry: {
         type: DataTypes.JSONB,
@@ -153,6 +154,82 @@ export default (sequelize) => {
       attributes: {
         type: DataTypes.JSONB,
         defaultValue: {},
+      },
+      affiliatedProfiles: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+      },
+      allSubsidiaries: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+      },
+      alternativeDomains: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+      },
+      alternativeNames: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+      },
+      averageEmployeeTenure: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      averageTenureByLevel: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      averageTenureByRole: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      directSubsidiaries: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+      },
+      employeeChurnRate: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      employeeCountByMonth: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      employeeGrowthRate: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      employeeCountByMonthByLevel: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      employeeCountByMonthByRole: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      gicsSector: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      grossAdditionsByMonth: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      grossDeparturesByMonth: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      inferredRevenue: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      recentExecutiveDepartures: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      recentExecutiveHires: {
+        type: DataTypes.JSONB,
+        allowNull: true,
       },
     },
     {
