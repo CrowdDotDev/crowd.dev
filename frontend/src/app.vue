@@ -42,7 +42,7 @@ export default {
     }),
     loading() {
       return (
-        (this.loadingInit && !!AuthToken.get() && !!this.currentUser)
+        (this.loadingInit && !!AuthToken.get() && !this.currentUser)
         || (!config.isCommunityVersion)
       );
     },
