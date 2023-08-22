@@ -145,15 +145,23 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async update(id: string, tenantId: string, data: IDbMemberUpdateData): Promise<void> {
+    const keys = Object.keys(data)
+    keys.push('updatedAt')
+    // construct custom column set
+    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
+      table: {
+        table: 'members',
+      },
+    })
+
     const prepared = RepositoryBase.prepare(
       {
         ...data,
-        weakIdentities: JSON.stringify(data.weakIdentities || []),
         updatedAt: new Date(),
       },
-      this.updateMemberColumnSet,
+      dynamicColumnSet,
     )
-    const query = this.dbInstance.helpers.update(prepared, this.updateMemberColumnSet)
+    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
 
     const condition = this.format('where id = $(id) and "tenantId" = $(tenantId)', {
       id,
