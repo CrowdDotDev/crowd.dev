@@ -89,7 +89,7 @@ export default {
         },
         lastActivityDate: {
           operator: 'gt',
-          value: moment().utc().subtract(7, 'day').format('YYYY-MM-DD'),
+          value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
           include: true,
         },
       };
