@@ -35,13 +35,14 @@ export default {
     ...mapGetters({
       loadingInit: 'auth/loadingInit',
       currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser',
     }),
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
     }),
     loading() {
       return (
-        (this.loadingInit && !!AuthToken.get())
+        (this.loadingInit && !!AuthToken.get() && !!this.currentUser)
         || (!config.isCommunityVersion)
       );
     },

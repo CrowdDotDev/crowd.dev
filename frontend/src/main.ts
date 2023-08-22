@@ -67,6 +67,7 @@ i18nInit();
     } else if (config.env === 'local') {
       console.error(err);
     }
+    console.log(err);
   };
 
   const exists = (el: any) => Boolean(el);
