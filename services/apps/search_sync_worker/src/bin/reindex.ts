@@ -16,6 +16,8 @@ const targetIndex = processArguments[1]
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
 
-  await openSearchService.reIndex(sourceIndex, targetIndex)
+  const result = await openSearchService.reIndex(sourceIndex, targetIndex)
+  console.log('ReIndex has been started...')
+  console.log('ReIndex Task ID:', result) // This will log the return Task ID
   process.exit(0)
 })

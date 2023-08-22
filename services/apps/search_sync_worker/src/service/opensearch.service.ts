@@ -132,8 +132,8 @@ export class OpenSearchService extends LoggerBase {
 
   public async reIndex(sourceIndex: string, targetIndex: string): Promise<void> {
     try {
-      await this.client.reindex({
-        wait_for_completion: true,
+      const response = await this.client.reindex({
+        wait_for_completion: false, // should be false else it will return timeout error
         refresh: true,
         body: {
           source: {
@@ -144,11 +144,25 @@ export class OpenSearchService extends LoggerBase {
           },
         },
       })
+      return response?.body?.task
     } catch (err) {
       err.meta?.body?.failures?.forEach((failure) =>
         this.log.error(failure, 'Reindex failure details!'),
       )
       this.log.error(err, { sourceIndex, targetIndex }, 'Failed to reindex!')
+      throw err
+    }
+  }
+
+  // Count of documents in the index
+  public async getDocumentCount(indexName: string): Promise<number> {
+    try {
+      const { body } = await this.client.count({
+        index: indexName,
+      })
+      return body.count
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to get document count!')
       throw err
     }
   }
