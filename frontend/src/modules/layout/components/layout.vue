@@ -70,6 +70,9 @@ export default {
       toggleMenu: 'layout/toggleMenu',
     }),
     initPendo() {
+      if (!this.currentUser) {
+        return;
+      }
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values
       // Call this function in your authentication promise handler or callback when your visitor and account id values are available
