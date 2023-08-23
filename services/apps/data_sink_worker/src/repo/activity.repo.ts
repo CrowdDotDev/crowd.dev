@@ -87,7 +87,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       promises.push(
         this.db().none(
           `
-          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) limit 1)
+          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and "deletedAt" IS NULL limit 1)
           where "id" = $(id) and "tenantId" = $(tenantId)
           `,
           {
