@@ -173,9 +173,11 @@ export default class IntegrationDataService extends LoggerBase {
 
     this.log.debug('Marking data as in progress!')
     await this.repo.markDataInProgress(dataId)
-    if (dataInfo.runId) {
-      await this.repo.touchRun(dataInfo.runId)
-    }
+
+    // TODO we might need that later to check for stuck runs
+    // if (dataInfo.runId) {
+    //   await this.repo.touchRun(dataInfo.runId)
+    // }
 
     this.log.debug('Processing data!')
     try {
@@ -232,11 +234,14 @@ export default class IntegrationDataService extends LoggerBase {
           frameworkVersion: 'new',
         })
       }
-    } finally {
-      if (dataInfo.runId) {
-        await this.repo.touchRun(dataInfo.runId)
-      }
     }
+
+    // TODO we might need that later to check for stuck runs
+    // finally {
+    //   if (dataInfo.runId) {
+    //     await this.repo.touchRun(dataInfo.runId)
+    //   }
+    // }
   }
 
   private async publishCustom(
