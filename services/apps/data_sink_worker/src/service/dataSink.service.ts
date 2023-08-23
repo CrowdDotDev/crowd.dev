@@ -77,8 +77,8 @@ export default class DataSinkService extends LoggerBase {
       return
     }
 
-    this.log.debug('Marking result as in progress.')
-    await this.repo.markResultInProgress(resultId)
+    // this.log.debug('Marking result as in progress.')
+    // await this.repo.markResultInProgress(resultId)
 
     try {
       const data = resultInfo.data

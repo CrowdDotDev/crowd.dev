@@ -171,8 +171,8 @@ export default class IntegrationDataService extends LoggerBase {
         : undefined,
     }
 
-    this.log.debug('Marking data as in progress!')
-    await this.repo.markDataInProgress(dataId)
+    // this.log.debug('Marking data as in progress!')
+    // await this.repo.markDataInProgress(dataId)
 
     // TODO we might need that later to check for stuck runs
     // if (dataInfo.runId) {
