@@ -21,10 +21,6 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      parentUrl: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
       emails: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,

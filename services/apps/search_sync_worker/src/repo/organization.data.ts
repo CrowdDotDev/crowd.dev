@@ -22,7 +22,6 @@ export interface IDbOrganizationSyncData {
   logo: string | null
   naics: unknown[] | null
   name: string
-  parentUrl: string | null
   phoneNumbers: string[] | null
   profiles: string[] | null
   revenueRange: unknown | null

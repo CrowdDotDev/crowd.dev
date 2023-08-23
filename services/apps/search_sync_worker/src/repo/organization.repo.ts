@@ -54,7 +54,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o.logo,
             o.naics,
             o.name,
-            o."parentUrl",
             o."phoneNumbers",
             o.profiles,
             o."revenueRange",

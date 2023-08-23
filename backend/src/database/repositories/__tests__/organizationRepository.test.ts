@@ -18,7 +18,6 @@ const toCreate = {
   phoneNumbers: ['+42 424242424'],
   logo: 'https://logo.clearbit.com/crowd.dev',
   tags: ['community', 'growth', 'developer-first'],
-  parentUrl: null,
   twitter: {
     handle: 'CrowdDotDev',
     id: '1362101830923259908',
@@ -557,7 +556,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 424242424'],
       logo: 'https://logo.clearbit.com/crowd.dev',
       tags: ['community', 'growth', 'developer-first'],
-      parentUrl: null,
       twitter: {
         handle: 'CrowdDotDev',
         id: '1362101830923259908',
@@ -589,7 +587,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 54545454'],
       logo: 'https://logo.clearbit.com/piedpiper',
       tags: ['new-internet', 'compression'],
-      parentUrl: null,
       twitter: {
         handle: 'piedPiper',
         id: '1362101830923259908',
@@ -621,7 +618,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 12121212'],
       logo: 'https://logo.clearbit.com/hooli',
       tags: ['not-google', 'elephant'],
-      parentUrl: null,
       twitter: {
         handle: 'hooli',
         id: '1362101830923259908',

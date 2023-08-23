@@ -110,10 +110,6 @@ cube(`Organizations`, {
       sql: `${CUBE}."tenantId"`,
       type: `string`,
     },
-    parenturl: {
-      sql: `${CUBE}."parentUrl"`,
-      type: `string`,
-    },
     createdat: {
       sql: `${CUBE}."createdAt"`,
       type: `time`,

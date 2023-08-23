@@ -62,7 +62,6 @@ export class InitService extends LoggerBase {
       logo: 'https://placehold.co/400',
       naics: [],
       name: 'Fake organization',
-      parentUrl: 'https://placehold.co/400',
       phoneNumbers: ['123456789'],
       profiles: ['https://placehold.co/400'],
       revenueRange: {},
