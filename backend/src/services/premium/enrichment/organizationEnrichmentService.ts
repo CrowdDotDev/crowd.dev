@@ -166,6 +166,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       employee_count_by_country: 'employeeCountByCountry',
       employee_count: 'employees',
       location: 'address',
+      ultimate_parent: 'ultimateParent',
       affiliated_profiles: 'affiliatedProfiles',
       all_subsidiaries: 'allSubsidiaries',
       alternative_domains: 'alternativeDomains',

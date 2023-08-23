@@ -1,0 +1,22 @@
+ALTER TABLE public."organizations" DROP COLUMN "affiliatedProfiles";
+ALTER TABLE public."organizations" DROP COLUMN "allSubsidiaries";
+ALTER TABLE public."organizations" DROP COLUMN "alternativeDomains";
+ALTER TABLE public."organizations" DROP COLUMN "alternativeNames";
+ALTER TABLE public."organizations" DROP COLUMN "averageEmployeeTenure";
+ALTER TABLE public."organizations" DROP COLUMN "averageTenureByLevel";
+ALTER TABLE public."organizations" DROP COLUMN "averageTenureByRole";
+ALTER TABLE public."organizations" DROP COLUMN "directSubsidiaries";
+ALTER TABLE public."organizations" DROP COLUMN "employeeChurnRate";
+ALTER TABLE public."organizations" DROP COLUMN "employeeCountByMonth";
+ALTER TABLE public."organizations" DROP COLUMN "employeeGrowthRate";
+ALTER TABLE public."organizations" DROP COLUMN "employeeCountByMonthByLevel";
+ALTER TABLE public."organizations" DROP COLUMN "employeeCountByMonthByRole";
+ALTER TABLE public."organizations" DROP COLUMN "gicsSector";
+ALTER TABLE public."organizations" DROP COLUMN "grossAdditionsByMonth";
+ALTER TABLE public."organizations" DROP COLUMN "grossDeparturesByMonth";
+ALTER TABLE public."organizations" DROP COLUMN "inferredRevenue";
+ALTER TABLE public."organizations" DROP COLUMN "recentExecutiveDepartures";
+ALTER TABLE public."organizations" DROP COLUMN "recentExecutiveHires";
+ALTER TABLE public."organizations" DROP COLUMN "ultimateParent";
+
+-- TODO: immediateParent is still pending

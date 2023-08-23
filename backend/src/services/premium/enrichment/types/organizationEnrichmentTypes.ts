@@ -29,6 +29,7 @@ export interface IOrganization {
   lastEnrichedAt?: Date
   geoLocation?: String
   address?: IEnrichmentResponse['location']
+  ultimateParent: IEnrichmentResponse['ultimate_parent']
   affiliatedProfiles?: IEnrichmentResponse['affiliated_profiles']
   allSubsidiaries?: IEnrichmentResponse['all_subsidiaries']
   alternativeDomains?: IEnrichmentResponse['alternative_domains']
