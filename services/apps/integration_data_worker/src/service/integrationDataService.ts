@@ -183,7 +183,7 @@ export default class IntegrationDataService extends LoggerBase {
     try {
       await integrationService.processData(context)
       this.log.debug('Finished processing data!')
-      await this.repo.markDataProcessed(dataId)
+      await this.repo.deleteData(dataId)
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
       await this.triggerDataError(
@@ -258,7 +258,12 @@ export default class IntegrationDataService extends LoggerBase {
         type,
         data: entity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        resultId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -283,7 +288,12 @@ export default class IntegrationDataService extends LoggerBase {
         type: IntegrationResultType.ACTIVITY,
         data: activity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        activity.sourceId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,
