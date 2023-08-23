@@ -5,8 +5,10 @@ import { ActivityRepository } from '@/repo/activity.repo'
 import { OpenSearchIndex } from '@/types'
 import { IDbActivitySyncData } from '@/repo/activity.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
+import { trimUtf8ToMaxByteLength } from '@crowd/common'
 
 export class ActivitySyncService extends LoggerBase {
+  private static MAX_BYTE_LENGTH = 25000
   private readonly activityRepo: ActivityRepository
 
   constructor(
@@ -212,7 +214,7 @@ export class ActivitySyncService extends LoggerBase {
     p.keyword_sourceParentId = data.sourceParentId
     p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
     p.keyword_channel = data.channel
-    p.string_body = data.body
+    p.string_body = trimUtf8ToMaxByteLength(data.body, ActivitySyncService.MAX_BYTE_LENGTH)
     p.string_title = data.title
     p.string_url = data.url
     p.int_sentiment = data.sentiment

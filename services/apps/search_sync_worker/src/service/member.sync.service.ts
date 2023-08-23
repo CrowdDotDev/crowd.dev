@@ -14,6 +14,7 @@ import { IDbSegmentInfo } from '@/repo/segment.data'
 import { IMemberSyncResult } from './member.sync.data'
 
 export class MemberSyncService extends LoggerBase {
+  private static MAX_BYTE_LENGTH = 25000
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
 
@@ -433,9 +434,6 @@ export class MemberSyncService extends LoggerBase {
     p.keyword_displayName = data.displayName
     const p_attributes = {}
 
-    // max byte length that can be indexed in OpenSearch
-    const maxByteLength = 25000
-
     for (const attribute of attributes) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const attData = data.attributes as any
@@ -443,7 +441,7 @@ export class MemberSyncService extends LoggerBase {
       if (attribute.name in attData) {
         if (attribute.type === MemberAttributeType.SPECIAL) {
           let data = JSON.stringify(attData[attribute.name])
-          data = trimUtf8ToMaxByteLength(data, maxByteLength)
+          data = trimUtf8ToMaxByteLength(data, MemberSyncService.MAX_BYTE_LENGTH)
           p_attributes[`string_${attribute.name}`] = data
         } else {
           const p_data = {}
@@ -453,7 +451,7 @@ export class MemberSyncService extends LoggerBase {
           for (const key of Object.keys(attData[attribute.name])) {
             let value = attData[attribute.name][key]
             if (attribute.type === MemberAttributeType.STRING) {
-              value = trimUtf8ToMaxByteLength(value, maxByteLength)
+              value = trimUtf8ToMaxByteLength(value, MemberSyncService.MAX_BYTE_LENGTH)
             }
             p_data[`${prefix}_${key}`] = value
           }
