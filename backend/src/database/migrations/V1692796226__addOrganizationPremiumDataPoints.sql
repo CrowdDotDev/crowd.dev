@@ -18,5 +18,5 @@ ALTER TABLE public."organizations" ADD COLUMN "inferredRevenue" INTEGER NULL;
 ALTER TABLE public."organizations" ADD COLUMN "recentExecutiveDepartures" JSONB NULL;
 ALTER TABLE public."organizations" ADD COLUMN "recentExecutiveHires" JSONB NULL;
 ALTER TABLE public."organizations" ADD COLUMN "ultimateParent" TEXT NULL;
-
--- TODO: immediateParent is still pending
+ALTER TABLE public."organizations" DROP COLUMN "parentUrl";
+ALTER TABLE public."organizations" ADD COLUMN "immediateParent" TEXT NULL;

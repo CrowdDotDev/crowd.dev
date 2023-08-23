@@ -30,6 +30,7 @@ export interface IOrganization {
   geoLocation?: String
   address?: IEnrichmentResponse['location']
   ultimateParent: IEnrichmentResponse['ultimate_parent']
+  immediateParent: IEnrichmentResponse['immediate_parent']
   affiliatedProfiles?: IEnrichmentResponse['affiliated_profiles']
   allSubsidiaries?: IEnrichmentResponse['all_subsidiaries']
   alternativeDomains?: IEnrichmentResponse['alternative_domains']

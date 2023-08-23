@@ -37,15 +37,10 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      parentUrl: {
+      immediateParent: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      // TODO: ask joan about this
-      // immediateParent: {
-      //   type: DataTypes.TEXT,
-      //   allowNull: true,
-      // },
       ultimateParent: {
         type: DataTypes.TEXT,
         allowNull: true,

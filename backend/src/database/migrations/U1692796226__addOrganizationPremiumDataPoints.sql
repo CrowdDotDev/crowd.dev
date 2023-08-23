@@ -18,5 +18,5 @@ ALTER TABLE public."organizations" DROP COLUMN "inferredRevenue";
 ALTER TABLE public."organizations" DROP COLUMN "recentExecutiveDepartures";
 ALTER TABLE public."organizations" DROP COLUMN "recentExecutiveHires";
 ALTER TABLE public."organizations" DROP COLUMN "ultimateParent";
-
--- TODO: immediateParent is still pending
+ALTER TABLE public."organizations" DROP COLUMN "immediateParent";
+ALTER TABLE public."organizations" ADD COLUMN "parentUrl" TEXT NULL;
