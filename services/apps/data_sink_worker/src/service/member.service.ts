@@ -378,9 +378,12 @@ export default class MemberService extends LoggerBase {
       const newDate = member.joinedAt
       const oldDate = new Date(dbMember.joinedAt)
 
-      if (newDate.getTime() !== oldDate.getTime()) {
-        // pick the oldest
-        joinedAt = newDate < oldDate ? newDate.toISOString() : oldDate.toISOString()
+      if (oldDate <= newDate) {
+        // we already have the oldest date in the db, so we don't need to update it
+        joinedAt = undefined
+      } else {
+        // we have a new date and it's older, so we need to update it
+        joinedAt = newDate.toISOString()
       }
     }
 
