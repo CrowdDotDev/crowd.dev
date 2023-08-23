@@ -8,7 +8,7 @@ import { PlatformType } from '@crowd/types'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.STACKOVERFLOW,
   memberAttributes: STACKOVERFLOW_MEMBER_ATTRIBUTES,
-  checkEvery: 60,
+  checkEvery: 3 * 60,
   generateStreams,
   processStream,
   processData,
