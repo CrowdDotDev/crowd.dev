@@ -33,6 +33,27 @@ export interface IDbOrganizationSyncData {
   github: unknown | null
   crunchbase: unknown | null
   twitter: unknown | null
+  immediateParent: string | null
+  ultimateParent: string | null
+  affiliatedProfiles: string[] | null
+  allSubsidiaries: string[] | null
+  alternativeDomains: string[] | null
+  alternativeNames: string[] | null
+  averageEmployeeTenure: number | null
+  averageTenureByLevel: unknown | null
+  averageTenureByRole: unknown | null
+  directSubsidiaries: string[] | null
+  employeeChurnRate: unknown | null
+  employeeCountByMonth: unknown | null
+  employeeGrowthRate: unknown | null
+  employeeCountByMonthByLevel: unknown | null
+  employeeCountByMonthByRole: unknown | null
+  gicsSector: string | null
+  grossAdditionsByMonth: unknown | null
+  grossDeparturesByMonth: unknown | null
+  inferredRevenue: number | null
+  recentExecutiveDepartures: unknown | null
+  recentExecutiveHires: unknown | null
 
   // aggregate data
   joinedAt: string
