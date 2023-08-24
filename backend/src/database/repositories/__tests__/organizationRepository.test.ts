@@ -51,6 +51,27 @@ const toCreate = {
   employeeCountByCountry: null,
   address: null,
   profiles: null,
+  affiliatedProfiles: null,
+  allSubsidiaries: null,
+  alternativeDomains: null,
+  alternativeNames: null,
+  averageEmployeeTenure: null,
+  averageTenureByLevel: null,
+  averageTenureByRole: null,
+  directSubsidiaries: null,
+  employeeChurnRate: null,
+  employeeCountByMonth: null,
+  employeeGrowthRate: null,
+  employeeCountByMonthByLevel: null,
+  employeeCountByMonthByRole: null,
+  gicsSector: null,
+  grossAdditionsByMonth: null,
+  grossDeparturesByMonth: null,
+  inferredRevenue: null,
+  recentExecutiveDepartures: null,
+  recentExecutiveHires: null,
+  ultimateParent: null,
+  immediateParent: null
 }
 
 async function createMembers(options) {
