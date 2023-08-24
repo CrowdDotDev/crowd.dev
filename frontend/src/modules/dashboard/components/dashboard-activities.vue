@@ -5,7 +5,11 @@
       title="Activities"
       :total-loading="activities.loading"
       :total="activities.total"
-      :route="{ name: 'activity', hash: '#activity' }"
+      :route="{
+        name: 'activity',
+        hash: '#activity',
+        query: filterQueryService().setQuery(allActivitiesFilter),
+      }"
       button-title="All activities"
       report-name="Activities report"
     />
@@ -87,6 +91,7 @@ import AppDashboardConversationList from '@/modules/dashboard/components/convers
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
+import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 
 export default {
   name: 'AppDashboardActivities',
@@ -104,6 +109,7 @@ export default {
       tab: 'trending',
       activitiesChart,
       activitiesCount,
+      filterQueryService,
     };
   },
   computed: {
@@ -117,6 +123,16 @@ export default {
           granularity: DAILY_GRANULARITY_FILTER.value,
         },
       ];
+    },
+    allActivitiesFilter() {
+      return {
+        search: '',
+        relation: 'and',
+        order: {
+          prop: 'timestamp',
+          order: 'descending',
+        },
+      };
     },
   },
 };

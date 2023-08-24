@@ -21,8 +21,8 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filter = {
       [property]: {
         between: [
-          moment(value).startOf('day').toISOString(),
-          moment(value).endOf('day').toISOString(),
+          moment.utc(value).startOf('day').toISOString(),
+          moment.utc(value).endOf('day').toISOString(),
         ],
       },
     };

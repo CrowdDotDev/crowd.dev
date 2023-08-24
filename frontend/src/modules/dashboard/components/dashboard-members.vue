@@ -5,7 +5,10 @@
       title="Contributors"
       :total-loading="members.loadingRecent"
       :total="members.total"
-      :route="{ name: 'member' }"
+      :route="{
+        name: 'member',
+        query: filterQueryService().setQuery(allMembers.filter),
+      }"
       button-title="All contributors"
       report-name="Members report"
     />
@@ -93,7 +96,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...newAndActive.filter,
+                    ...allMembers.filter,
                     joinedDate: {
                       value: periodStartDate,
                       operator: 'gt',
@@ -254,6 +257,7 @@ export default {
     ]),
     periodStartDate() {
       return moment()
+        .utc()
         .subtract(this.period.value, 'day')
         .format('YYYY-MM-DD');
     },

@@ -50,6 +50,7 @@
                 :chart-options="widgetChartOptions"
                 :granularity="granularity"
                 :is-grid-min-max="true"
+                :pivot-modifier="(pivot) => pivot.splice(0, 1)"
                 :show-min-as-value="true"
               />
             </div>
