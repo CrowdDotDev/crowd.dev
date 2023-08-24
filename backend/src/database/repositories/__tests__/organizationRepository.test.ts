@@ -71,7 +71,7 @@ const toCreate = {
   recentExecutiveDepartures: null,
   recentExecutiveHires: null,
   ultimateParent: null,
-  immediateParent: null
+  immediateParent: null,
 }
 
 async function createMembers(options) {

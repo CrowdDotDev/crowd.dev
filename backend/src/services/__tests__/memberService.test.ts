@@ -527,7 +527,7 @@ describe('MemberService tests', () => {
         recentExecutiveDepartures: null,
         recentExecutiveHires: null,
         ultimateParent: null,
-        immediateParent: null
+        immediateParent: null,
       })
     })
 
@@ -623,7 +623,7 @@ describe('MemberService tests', () => {
         recentExecutiveDepartures: null,
         recentExecutiveHires: null,
         ultimateParent: null,
-        immediateParent: null
+        immediateParent: null,
       })
     })
 
@@ -723,7 +723,7 @@ describe('MemberService tests', () => {
         recentExecutiveDepartures: null,
         recentExecutiveHires: null,
         ultimateParent: null,
-        immediateParent: null
+        immediateParent: null,
       })
     })
 
@@ -839,7 +839,7 @@ describe('MemberService tests', () => {
         recentExecutiveDepartures: null,
         recentExecutiveHires: null,
         ultimateParent: null,
-        immediateParent: null
+        immediateParent: null,
       })
     })
 
