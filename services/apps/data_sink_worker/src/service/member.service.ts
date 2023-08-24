@@ -276,6 +276,12 @@ export default class MemberService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        const txService = new MemberService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.log,
+        )
 
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
@@ -304,7 +310,7 @@ export default class MemberService extends LoggerBase {
             )
           }
 
-          await this.update(
+          await txService.update(
             dbMember.id,
             tenantId,
             segmentId,
