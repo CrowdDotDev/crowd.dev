@@ -2,7 +2,7 @@ import { SERVICE_CONFIG } from '@/conf'
 import { IDbMemberSyncData } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
-import { distinct, distinctBy, groupBy } from '@crowd/common'
+import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -14,6 +14,7 @@ import { IDbSegmentInfo } from '@/repo/segment.data'
 import { IMemberSyncResult } from './member.sync.data'
 
 export class MemberSyncService extends LoggerBase {
+  private static MAX_BYTE_LENGTH = 25000
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
 
@@ -439,7 +440,8 @@ export class MemberSyncService extends LoggerBase {
 
       if (attribute.name in attData) {
         if (attribute.type === MemberAttributeType.SPECIAL) {
-          const data = JSON.stringify(attData[attribute.name])
+          let data = JSON.stringify(attData[attribute.name])
+          data = trimUtf8ToMaxByteLength(data, MemberSyncService.MAX_BYTE_LENGTH)
           p_attributes[`string_${attribute.name}`] = data
         } else {
           const p_data = {}
@@ -447,7 +449,11 @@ export class MemberSyncService extends LoggerBase {
           const prefix = this.attributeTypeToOpenSearchPrefix(defValue, attribute.type)
 
           for (const key of Object.keys(attData[attribute.name])) {
-            p_data[`${prefix}_${key}`] = attData[attribute.name][key]
+            let value = attData[attribute.name][key]
+            if (attribute.type === MemberAttributeType.STRING) {
+              value = trimUtf8ToMaxByteLength(value, MemberSyncService.MAX_BYTE_LENGTH)
+            }
+            p_data[`${prefix}_${key}`] = value
           }
 
           p_attributes[`obj_${attribute.name}`] = p_data

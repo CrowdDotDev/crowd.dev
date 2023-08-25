@@ -5,7 +5,10 @@
       title="Organizations"
       :total-loading="organizations.loadingRecent"
       :total="organizations.total"
-      :route="{ name: 'organization' }"
+      :route="{
+        name: 'organization',
+        query: filterQueryService().setQuery(allOrganizations.filter),
+      }"
       button-title="All organizations"
       report-name="Organizations report"
     />
@@ -76,7 +79,7 @@
                 :to="{
                   name: 'organization',
                   query: filterQueryService().setQuery({
-                    ...newAndActive.filter,
+                    ...allOrganizations.filter,
                     joinedDate: {
                       value: periodStartDate,
                       operator: 'gt',
