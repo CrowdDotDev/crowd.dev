@@ -172,16 +172,24 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   protected abstract processMessage(data: IQueueMessage): Promise<void>
 
   private async receiveMessage(): Promise<SqsMessage[]> {
-    const params: ReceiveMessageRequest = {
-      QueueUrl: this.getQueueUrl(),
-    }
+    try {
+      const params: ReceiveMessageRequest = {
+        QueueUrl: this.getQueueUrl(),
+      }
 
-    return receiveMessage(
-      this.sqsClient,
-      params,
-      this.visibilityTimeoutSeconds,
-      this.receiveMessageCount,
-    )
+      return receiveMessage(
+        this.sqsClient,
+        params,
+        this.visibilityTimeoutSeconds,
+        this.receiveMessageCount,
+      )
+    } catch (err) {
+      if (err.message === 'Request is throttled.') {
+        return []
+      }
+
+      throw err
+    }
   }
 
   private async deleteMessage(receiptHandle: string): Promise<void> {

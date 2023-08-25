@@ -71,8 +71,6 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
       {
         tenantId,
         segmentId,
-        platform,
-        channel,
       },
     )
   }
