@@ -71,7 +71,7 @@ export const sendNodeWorkerMessage = async (
     DelaySeconds: delay,
   }
 
-  log.info(
+  log.debug(
     {
       messageType: body.type,
       body,
