@@ -31,7 +31,6 @@ export default {
   type: attributesTypes.jsonArray,
   showInForm: true,
   showInAttributes: true,
-  component: null,
   component: OrganizationAttributesArrayJsonRendered,
   keyParser: (key) => RecentExecutiveHires[key] || snakeToSentenceCase(key),
   valueParser: (key, value) => RecentExecutiveHiresParser[key](value),
