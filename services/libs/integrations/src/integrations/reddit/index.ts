@@ -8,7 +8,7 @@ import { PlatformType } from '@crowd/types'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.REDDIT,
   memberAttributes: REDDIT_MEMBER_ATTRIBUTES,
-  checkEvery: 3 * 60,
+  checkEvery: 60,
   generateStreams,
   processStream,
   processData,

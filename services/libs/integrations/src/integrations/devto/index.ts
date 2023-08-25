@@ -8,7 +8,7 @@ import { PlatformType } from '@crowd/types'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.DEVTO,
   memberAttributes: DEVTO_MEMBER_ATTRIBUTES,
-  checkEvery: 3 * 60,
+  checkEvery: 30,
 
   generateStreams,
   processStream,

@@ -7,7 +7,7 @@ import processData from './processData'
 const descriptor: IIntegrationDescriptor = {
   type: 'linkedin',
   memberAttributes: LINKEDIN_MEMBER_ATTRIBUTES,
-  checkEvery: 3 * 60,
+  checkEvery: 60,
   generateStreams,
   processStream,
   processData,
