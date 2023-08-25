@@ -5,16 +5,17 @@ const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: index')
+if (processArguments.length !== 2) {
+  log.error('Expected 2 arguments: index and alias')
   process.exit(1)
 }
 
 const index = processArguments[0]
+const alias = processArguments[1]
 
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
 
-  await openSearchService.deleteIndex(index)
+  await openSearchService.createAlias(index, alias)
   process.exit(0)
 })

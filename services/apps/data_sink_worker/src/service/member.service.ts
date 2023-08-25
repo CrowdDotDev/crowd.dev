@@ -154,15 +154,19 @@ export default class MemberService extends LoggerBase {
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ memberId: id }, 'Updating a member!')
-          await txRepo.update(id, tenantId, {
-            emails: toUpdate.emails || original.emails,
-            joinedAt: toUpdate.joinedAt || original.joinedAt,
-            attributes: toUpdate.attributes || original.attributes,
-            weakIdentities: toUpdate.weakIdentities || original.weakIdentities,
-            // leave this one empty if nothing changed - we are only adding up new identities not removing them
-            identities: toUpdate.identities,
-            displayName: toUpdate.displayName || original.displayName,
-          })
+
+          const dateToUpdate = Object.entries(toUpdate).reduce((acc, [key, value]) => {
+            if (key === 'identities') {
+              return acc
+            }
+
+            if (value) {
+              acc[key] = value
+            }
+            return acc
+          }, {} as IDbMemberUpdateData)
+
+          await txRepo.update(id, tenantId, dateToUpdate)
           await txRepo.addToSegment(id, tenantId, segmentId)
 
           updated = true
@@ -272,6 +276,12 @@ export default class MemberService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        const txService = new MemberService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.log,
+        )
 
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
@@ -300,7 +310,7 @@ export default class MemberService extends LoggerBase {
             )
           }
 
-          await this.update(
+          await txService.update(
             dbMember.id,
             tenantId,
             segmentId,
@@ -374,9 +384,12 @@ export default class MemberService extends LoggerBase {
       const newDate = member.joinedAt
       const oldDate = new Date(dbMember.joinedAt)
 
-      if (newDate.getTime() !== oldDate.getTime()) {
-        // pick the oldest
-        joinedAt = newDate < oldDate ? newDate.toISOString() : oldDate.toISOString()
+      if (oldDate <= newDate) {
+        // we already have the oldest date in the db, so we don't need to update it
+        joinedAt = undefined
+      } else {
+        // we have a new date and it's older, so we need to update it
+        joinedAt = newDate.toISOString()
       }
     }
 
