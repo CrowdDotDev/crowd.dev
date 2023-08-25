@@ -260,13 +260,13 @@ export class OpensearchQueryParser {
     if (operator === Operator.CONTAINS) {
       if (!Array.isArray(value)) {
         return {
-          match_phrase: {
+          match_phrase_prefix: {
             [searchKey]: value,
           },
         }
       }
 
-      const subQueries = value.map((v) => ({ match_phrase: { [searchKey]: v } }))
+      const subQueries = value.map((v) => ({ match_phrase_prefix: { [searchKey]: v } }))
 
       return {
         bool: {
