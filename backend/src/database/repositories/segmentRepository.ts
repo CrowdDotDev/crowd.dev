@@ -182,7 +182,7 @@ class SegmentRepository extends RepositoryBase<
         'sourceId',
         'sourceParentId',
         'customActivityTypes',
-        'activityChannels',
+        // 'activityChannels',
       ].includes(key),
     )
 
@@ -206,15 +206,32 @@ class SegmentRepository extends RepositoryBase<
       replacements.customActivityTypes = JSON.stringify(replacements.customActivityTypes)
     }
 
-    if (replacements.activityChannels) {
-      replacements.activityChannels = JSON.stringify(replacements.activityChannels)
-    }
-
     await this.options.database.sequelize.query(segmentUpdateQuery, {
       replacements,
       type: QueryTypes.UPDATE,
       transaction,
     })
+
+    if (Object.keys(data.activityChannels).length > 0) {
+      let activityChannelsUpsertQuery = `INSERT INTO segmentActivityChannels ("tenantId", "segmentId", "platform", "channel") VALUES `
+      for (let platform in data.activityChannels) {
+        data.activityChannels[platform].forEach(channel => {
+          activityChannelsUpsertQuery += `(:tenantId, :segmentId, "${platform}", "${channel}),`
+        })
+      }
+
+      activityChannelsUpsertQuery = activityChannelsUpsertQuery.replace(/\,$/, ' ');
+      activityChannelsUpsertQuery += `ON CONFLICT DO NOTHING;`
+
+      await this.options.database.sequelize.query(activityChannelsUpsertQuery, {
+        replacements: {
+          tenantId: this.options.currentTenant.id,
+          segmentId: id,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
 
     return this.findById(id)
   }
@@ -569,17 +586,19 @@ class SegmentRepository extends RepositoryBase<
 
     const subprojects = await this.options.database.sequelize.query(
       `
-            select s.*,
-            count(*) over () as "totalCount"
-            from segments s
-            where s."grandparentSlug" is not null
-            and s."parentSlug" is not null
-            and s."tenantId" = :tenantId
-            ${searchQuery}
-            GROUP BY s."id"
-            ORDER BY s."name"
-            ${this.getPaginationString(criteria)};
-            `,
+        SELECT
+          COUNT(DISTINCT s.id),
+          s.*,
+          sac."platform" AS "platform",
+          sac."channel" AS "channel"
+        FROM segments s
+        INNER JOIN "segmentActivityChannels" sac ON s."id" = sac."segmentId"
+        WHERE s."grandparentSlug" IS NOT NULL
+          AND s."parentSlug" IS NOT NULL
+          AND s."tenantId" = :tenantId
+          ${searchQuery}
+        GROUP BY s."id", sac."platform", sac."channel";
+      `,
       {
         replacements: {
           tenantId: this.currentTenant.id,
@@ -592,15 +611,28 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].totalCount, 10) : 0
+    const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].count, 10) : 0
 
-    const integrationsBySegments = await this.queryIntegrationsForSubprojects(subprojects)
+    let segments = {}
+    subprojects.forEach(entry => {
+      if (segments[entry.id] == undefined) {
+        
+        segments[entry.id] = {...entry}
+        segments[entry.id].activityChannels = {}
+        delete segments[entry.id].channel
+        delete segments[entry.id].platform
+        delete segments[entry.id].count
+      }
 
-    const rows = subprojects.map((i) => {
-      let subproject = removeFieldsFromObject(i, 'totalCount')
-      subproject = SegmentRepository.populateRelations(subproject)
-      subproject.integrations = integrationsBySegments[subproject.id] || []
-      return subproject
+      if (!segments[entry.id].activityChannels[entry.platform]) {
+        segments[entry.id].activityChannels[entry.platform] = []
+      }
+
+      segments[entry.id].activityChannels[entry.platform].push(entry.channel)
+    })
+
+    const rows = Object.keys(segments).map(key => {
+      return segments[key];
     })
 
     // TODO: Add member count to segments after implementing member relations
