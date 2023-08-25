@@ -51,15 +51,14 @@ export default class ActivityService extends LoggerBase {
           activity.type,
         )
 
-        // TODO - temp remove this until we figure out how to handle channels
-        // if (activity.channel) {
-        //   await txSettingsRepo.createActivityChannel(
-        //     tenantId,
-        //     segmentId,
-        //     activity.platform,
-        //     activity.channel,
-        //   )
-        // }
+        if (activity.channel) {
+          await txSettingsRepo.createActivityChannel(
+            tenantId,
+            segmentId,
+            activity.platform,
+            activity.channel,
+          )
+        }
 
         const id = await txRepo.create(tenantId, segmentId, {
           type: activity.type,
@@ -127,15 +126,14 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        // TODO - temp remove this until we figure out how to handle channels
-        // if (toUpdate.channel) {
-        //   await txSettingsRepo.createActivityChannel(
-        //     tenantId,
-        //     segmentId,
-        //     original.platform,
-        //     toUpdate.channel,
-        //   )
-        // }
+        if (toUpdate.channel) {
+          await txSettingsRepo.createActivityChannel(
+            tenantId,
+            segmentId,
+            original.platform,
+            toUpdate.channel,
+          )
+        }
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ activityId: id }, 'Updating activity.')
