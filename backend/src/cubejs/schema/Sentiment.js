@@ -1,19 +1,20 @@
 cube(`Sentiment`, {
   sql: `select
-  a."tenantId" ,
-  a."platform" ,
-  a."timestamp" ,
-  a."memberId" ,
-  (a.sentiment->>'sentiment')::integer as sentiment,
-  case
-      when (a.sentiment->>'sentiment')::integer < 34 then 'negative'
-      when (a.sentiment->>'sentiment')::integer > 66 then 'positive'
-      else 'neutral'
-  end as mood
-from
-  activities a
-where
-  a.sentiment->>'sentiment' is not null`,
+      a.id,
+      a."tenantId" ,
+      a."platform" ,
+      a."timestamp" ,
+      a."memberId" ,
+      (a.sentiment->>'sentiment')::integer as sentiment,
+      case
+          when (a.sentiment->>'sentiment')::integer < 34 then 'negative'
+          when (a.sentiment->>'sentiment')::integer > 66 then 'positive'
+          else 'neutral'
+      end as mood
+    from
+      activities a
+    where
+      a.sentiment->>'sentiment' is not null`,
 
   preAggregations: {
     Sentiment: {
