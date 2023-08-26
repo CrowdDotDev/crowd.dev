@@ -1,161 +1,5 @@
 cube(`Members`, {
-  sql_table: `members`,
-
-  preAggregations: {
-    MembersCumulative: {
-      measures: [Members.cumulativeCount],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Segments.id,
-        Activities.platform,
-      ],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-
-    MembersByJoinedAtPure: {
-      measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Segments.id,
-      ],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-
-    MembersByJoinedAtTags: {
-      measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Segments.id,
-        Tags.name,
-      ],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-
-    MembersByJoinedAtPlatform: {
-      measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Segments.id,
-        Activities.platform,
-      ],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-
-    MembersByActivityPure: {
-      measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.joinedAtUnixTs,
-        Members.location,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Segments.id,
-      ],
-      timeDimension: Activities.date,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-
-    MembersByActivityPlatform: {
-      measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.joinedAtUnixTs,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Segments.id,
-        Activities.platform,
-      ],
-      timeDimension: Activities.date,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-
-    MembersByActivityActivityType: {
-      measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Members.joinedAtUnixTs,
-        Segments.id,
-        Activities.type,
-      ],
-      timeDimension: Activities.date,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-
-    MembersByActivityIsContribution: {
-      measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Members.isOrganization,
-        Members.joinedAtUnixTs,
-        Segments.id,
-        Activities.iscontribution,
-      ],
-      timeDimension: Activities.date,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-  },
+  sql_table: 'mv_members_cube',
 
   joins: {
     Activities: {
@@ -184,12 +28,6 @@ cube(`Members`, {
       type: `count`,
     },
 
-    earliestJoinedAt: {
-      type: `min`,
-      sql: `${Members}."joinedAt"`,
-      shown: false,
-    },
-
     cumulativeCount: {
       type: `count`,
       rollingWindow: {
@@ -212,20 +50,20 @@ cube(`Members`, {
     },
 
     location: {
-      sql: `COALESCE(${CUBE}.attributes->'location'->>'default', '')`,
+      sql: `${CUBE}.location`,
       type: `string`,
     },
 
     isTeamMember: {
-      sql: `COALESCE((${CUBE}.attributes->'isTeamMember'->'default')::boolean, false)`,
+      sql: `${CUBE}."isTeamMember"`,
       type: `boolean`,
     },
     isBot: {
-      sql: `COALESCE((${CUBE}.attributes->'isBot'->'default')::boolean, false)`,
+      sql: `${CUBE}."isBot"`,
       type: `boolean`,
     },
     isOrganization: {
-      sql: `COALESCE((${CUBE}.attributes->'isOrganization'->'default')::boolean, false)`,
+      sql: `${CUBE}."isOrganization"`,
       type: `boolean`,
     },
 
@@ -235,7 +73,7 @@ cube(`Members`, {
     },
 
     joinedAtUnixTs: {
-      sql: `EXTRACT(EPOCH FROM ${CUBE}."joinedAt")`,
+      sql: `${CUBE}."joinedAtUnixTs"`,
       type: `number`,
     },
 

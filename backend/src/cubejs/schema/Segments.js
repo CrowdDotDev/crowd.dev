@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 cube(`Segments`, {
-  sql_table: 'segments',
+  sql_table: 'mv_segments_cube',
 
   preAggregations: {},
 

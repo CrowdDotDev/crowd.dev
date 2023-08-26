@@ -1,32 +1,6 @@
 /* eslint-disable no-restricted-globals */
 cube(`Organizations`, {
-  sql_table: 'organizations',
-  preAggregations: {
-    newOrganizations: {
-      measures: [Organizations.count],
-      dimensions: [
-        Organizations.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Segments.id,
-        Activities.platform,
-      ],
-      timeDimension: Organizations.joinedAt,
-      granularity: `day`,
-    },
-    activeOrganizations: {
-      measures: [Organizations.count],
-      dimensions: [
-        Organizations.tenantId,
-        Members.isTeamMember,
-        Members.isBot,
-        Segments.id,
-        Activities.platform,
-      ],
-      timeDimension: Activities.date,
-      granularity: `day`,
-    },
-  },
+  sql_table: 'mv_organizations_cube',
   joins: {
     MemberOrganizations: {
       sql: `${CUBE}.id = ${MemberOrganizations}."organizationId"`,
@@ -59,9 +33,8 @@ cube(`Organizations`, {
       type: `time`,
     },
     joinedAt: {
-      sql: `${Members.earliestJoinedAt}`,
+      sql: `${CUBE}."earliestJoinedAt"`,
       type: `time`,
-      subQuery: true,
     },
   },
 })
