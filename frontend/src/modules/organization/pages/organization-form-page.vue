@@ -126,11 +126,12 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
 import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
 import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
-import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
+import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
+import { attributesTypes } from '@/modules/organization/types/Attributes';
 
 const LoaderIcon = h(
   'i',
@@ -164,6 +165,7 @@ const formSchema = new FormSchema([
   fields.location,
   fields.employees,
   fields.revenueRange,
+  fields.inferredRevenue,
   fields.github,
   fields.twitter,
   fields.linkedin,
@@ -209,6 +211,7 @@ function getInitialModel(record) {
             ? record.crunchbase.handle
             : '',
         revenueRange: record ? record.revenueRange : {},
+        inferredRevenue: record ? record.inferredRevenue : {},
         emails:
           record && record.emails?.length > 0
             ? record.emails
@@ -260,7 +263,7 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
     return false;
   }
 
-  if (a.type === attributesTypes.multiSelect) {
+  if (a.type === attributesTypes.array) {
     return !!record.value?.[a.name]?.length;
   }
 

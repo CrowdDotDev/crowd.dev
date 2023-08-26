@@ -66,6 +66,10 @@ const fields = {
     'revenueRange',
     label('revenueRange'),
   ),
+  inferredRevenue: new StringField(
+    'inferredRevenue',
+    'Annual Revenue',
+  ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date', {
     filterable: true,
   }),
