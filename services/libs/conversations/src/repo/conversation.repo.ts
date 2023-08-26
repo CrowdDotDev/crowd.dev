@@ -82,7 +82,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     slug: string,
   ): Promise<boolean> {
     const results = await this.db().any(
-      `select id from conversations where "tenantId" = $(tenantId) and slug = $(slug) and "segmentId" = $(segmentId)`,
+      `select id from conversations where "tenantId" = $(tenantId) and MD5(slug) = MD5($(slug)) and "segmentId" = $(segmentId)`,
       {
         tenantId,
         slug,

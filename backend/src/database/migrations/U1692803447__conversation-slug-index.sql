@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS conversations_tenant_segment_slug;

@@ -62,39 +62,64 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     platform: string,
     channel: string,
   ): Promise<void> {
-    const result = await this.db().result(
-      `
-      update segments
-        set "activityChannels" =
-                case
-                    -- If platform exists, and channel does not exist, add it
-                    when "activityChannels" ? $(platform)
-                        and not ($(channel) = any (select jsonb_array_elements_text("activityChannels" -> $(platform)))) then
-                        jsonb_set(
-                                "activityChannels",
-                                array [$(platform)::text],
-                                "activityChannels" -> $(platform) || jsonb_build_array($(channel))
-                            )
-                    -- If platform does not exist, create it
-                    when not ("activityChannels" ? $(platform)) or "activityChannels" is null then
-                            coalesce("activityChannels", '{}'::jsonb) ||
-                            jsonb_build_object($(platform), jsonb_build_array($(channel)))
-                    -- Else, do nothing
-                    else
-                        "activityChannels"
-                    end
-      where "tenantId" = $(tenantId)
-        and id = $(segmentId)
-
-      `,
+    const existingData = await this.db().oneOrNone(
+      `select "activityChannels" from "segments" where "tenantId" = $(tenantId) and id = $(segmentId)`,
       {
         tenantId,
         segmentId,
-        platform,
-        channel,
       },
     )
 
-    this.checkUpdateRowCount(result.rowCount, 1)
+    if (existingData) {
+      const channels = existingData.activityChannels
+
+      if (channels && channels[platform] && channels[platform].includes(channel)) {
+        return
+      } else {
+        await this.db().result(
+          `
+          update segments
+            set "activityChannels" =
+                    case
+                        -- If platform exists, and channel does not exist, add it
+                        when "activityChannels" ? $(platform)
+                            and not ($(channel) = any (select jsonb_array_elements_text("activityChannels" -> $(platform)))) then
+                            jsonb_set(
+                                    "activityChannels",
+                                    array [$(platform)::text],
+                                    "activityChannels" -> $(platform) || jsonb_build_array($(channel))
+                                )
+                        -- If platform does not exist, create it
+                        when not ("activityChannels" ? $(platform)) or "activityChannels" is null then
+                                coalesce("activityChannels", '{}'::jsonb) ||
+                                jsonb_build_object($(platform), jsonb_build_array($(channel)))
+                        -- Else, do nothing
+                        else
+                            "activityChannels"
+                        end
+          where "tenantId" = $(tenantId)
+            and id = $(segmentId)
+            and case
+                  -- If platform exists, and channel does not exist, add it
+                  when "activityChannels" ? $(platform)
+                      and not ($(channel) = any (select jsonb_array_elements_text("activityChannels" -> $(platform)))) then
+                      1
+                  -- If platform does not exist, create it
+                  when not ("activityChannels" ? $(platform)) or "activityChannels" is null then
+                      1
+                  -- Else, do nothing
+                  else
+                      0
+                end = 1
+          `,
+          {
+            tenantId,
+            segmentId,
+            platform,
+            channel,
+          },
+        )
+      }
+    }
   }
 }

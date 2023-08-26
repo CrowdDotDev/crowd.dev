@@ -488,7 +488,8 @@ export default class IntegrationStreamService extends LoggerBase {
 
     this.log.debug('Marking stream as in progress!')
     await this.repo.markStreamInProgress(streamId)
-    await this.repo.touchRun(streamInfo.runId)
+    // TODO we might need that later to check for stuck runs
+    // await this.repo.touchRun(streamInfo.runId)
 
     this.log.debug('Processing stream!')
     try {
@@ -505,7 +506,8 @@ export default class IntegrationStreamService extends LoggerBase {
         err,
       )
     } finally {
-      await this.repo.touchRun(streamInfo.runId)
+      // TODO we might need that later to check for stuck runs
+      // await this.repo.touchRun(streamInfo.runId)
       await this.runWorkerEmitter.streamProcessed(
         streamInfo.tenantId,
         streamInfo.integrationType,

@@ -59,6 +59,7 @@ export const getDbConnection = (config: IDatabaseConfig, maxPoolSize?: number): 
   dbConnection = dbInstance({
     ...config,
     max: maxPoolSize || 5,
+    query_timeout: 10000,
   })
 
   return dbConnection
