@@ -16,17 +16,7 @@ cube(`Sentiment`, {
     where
       a.sentiment->>'sentiment' is not null`,
 
-  preAggregations: {
-    Sentiment: {
-      measures: [Sentiment.averageSentiment],
-      dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId, Segments.id],
-      timeDimension: Sentiment.date,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-  },
+  preAggregations: {},
 
   joins: {
     Members: {
