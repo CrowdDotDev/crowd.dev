@@ -2020,8 +2020,6 @@ class MemberRepository {
       }
     }
 
-    console.log('QUERY', JSON.stringify(parsed, null, 2))
-
     const countResponse = await options.opensearch.count({
       index: OpenSearchIndex.MEMBERS,
       body: { query: parsed.query },
