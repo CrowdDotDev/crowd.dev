@@ -131,10 +131,10 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     }
     if (data.inferredRevenue) {
       const revenueList = data.inferredRevenue
-      .replaceAll('$', '')
-      .replaceAll('M', '')
-      .split('-')
-      .map((x) => parseInt(x, 10))
+        .replaceAll('$', '')
+        .replaceAll('M', '')
+        .split('-')
+        .map((x) => parseInt(x, 10))
       data.revenueRange = {
         min: revenueList[0],
         max: revenueList[1],
