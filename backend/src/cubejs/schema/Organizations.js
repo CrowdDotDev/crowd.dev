@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 cube(`Organizations`, {
   sql_table: 'mv_organizations_cube',
   joins: {

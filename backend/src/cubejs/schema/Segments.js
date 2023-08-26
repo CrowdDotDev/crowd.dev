@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 cube(`Segments`, {
   sql_table: 'mv_segments_cube',
 
