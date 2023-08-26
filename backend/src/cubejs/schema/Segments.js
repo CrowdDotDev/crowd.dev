@@ -8,6 +8,10 @@ cube(`Segments`, {
       sql: `${CUBE}.id = ${Activities}."segmentId"`,
       relationship: `hasMany`,
     },
+    OrganizationSegments: {
+      sql: `${CUBE}.id = ${OrganizationSegments}."segmentId"`,
+      relationship: `belongsTo`,
+    },
   },
 
   dimensions: {
