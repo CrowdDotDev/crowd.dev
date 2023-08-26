@@ -12,7 +12,8 @@ cube(`Organizations`, {
   },
   measures: {
     count: {
-      type: `count`,
+      sql: `${CUBE}.id`,
+      type: 'count_distinct',
       drillMembers: [tenantId],
     },
   },

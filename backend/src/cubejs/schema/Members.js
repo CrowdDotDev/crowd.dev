@@ -25,7 +25,8 @@ cube(`Members`, {
 
   measures: {
     count: {
-      type: `count`,
+      sql: `${CUBE}.id`,
+      type: 'count_distinct',
     },
 
     cumulativeCount: {
