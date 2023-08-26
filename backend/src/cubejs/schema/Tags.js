@@ -7,7 +7,7 @@ cube(`Tags`, {
 
   dimensions: {
     name: {
-      sql: `name`,
+      sql: `${CUBE}.name`,
       type: `string`,
     },
   },

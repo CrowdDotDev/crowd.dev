@@ -19,7 +19,7 @@ cube(`Organizations`, {
   },
   dimensions: {
     id: {
-      sql: `id`,
+      sql: `${CUBE}.id`,
       type: `string`,
       primaryKey: true,
     },

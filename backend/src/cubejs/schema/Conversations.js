@@ -27,7 +27,7 @@ cube(`Conversations`, {
 
   dimensions: {
     id: {
-      sql: `id`,
+      sql: `${CUBE}.id`,
       type: `string`,
       primaryKey: true,
     },
@@ -39,7 +39,7 @@ cube(`Conversations`, {
     },
 
     published: {
-      sql: `published`,
+      sql: `${CUBE}.published`,
       type: `string`,
     },
 

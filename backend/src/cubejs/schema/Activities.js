@@ -17,7 +17,7 @@ cube(`Activities`, {
 
   dimensions: {
     id: {
-      sql: `id`,
+      sql: `${CUBE}.id`,
       type: `string`,
       primaryKey: true,
     },
@@ -33,12 +33,12 @@ cube(`Activities`, {
     },
 
     platform: {
-      sql: `platform`,
+      sql: `${CUBE}.platform`,
       type: `string`,
     },
 
     channel: {
-      sql: `channel`,
+      sql: `${CUBE}.channel`,
       type: `string`,
     },
 
@@ -49,12 +49,12 @@ cube(`Activities`, {
     },
 
     type: {
-      sql: `type`,
+      sql: `${CUBE}.type`,
       type: `string`,
     },
 
     date: {
-      sql: `timestamp`,
+      sql: `${CUBE}.timestamp`,
       type: `time`,
     },
   },
