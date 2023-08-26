@@ -95,18 +95,7 @@ cube(`Activities`, {
   measures: {
     count: {
       type: `count`,
-      drillMembers: [
-        memberId,
-        sourceid,
-        tenantId,
-        id,
-        updatedbyid,
-        parentid,
-        createdbyid,
-        createdat,
-        updatedat,
-        date,
-      ],
+      drillMembers: [tenantId, date],
     },
     cumulativeCount: {
       type: `count`,
@@ -117,10 +106,15 @@ cube(`Activities`, {
   },
 
   dimensions: {
-    memberId: {
-      sql: `${CUBE}."memberId"`,
+    id: {
+      sql: `id`,
       type: `string`,
-      shown: false,
+      primaryKey: true,
+    },
+
+    iscontribution: {
+      sql: `${CUBE}."isContribution"`,
+      type: `string`,
     },
 
     sentimentMood: {
@@ -133,12 +127,6 @@ cube(`Activities`, {
         else: { label: `neutral` },
       },
       type: `string`,
-    },
-
-    sourceid: {
-      sql: `${CUBE}."sourceId"`,
-      type: `string`,
-      shown: false,
     },
 
     platform: {
@@ -157,62 +145,14 @@ cube(`Activities`, {
       shown: false,
     },
 
-    id: {
-      sql: `id`,
-      type: `string`,
-      primaryKey: true,
-    },
-
     type: {
       sql: `type`,
       type: `string`,
     },
 
-    updatedbyid: {
-      sql: `${CUBE}."updatedById"`,
-      type: `string`,
-      shown: false,
-    },
-
-    iscontribution: {
-      sql: `${CUBE}."isContribution"`,
-      type: `string`,
-      shown: true,
-    },
-
-    parentid: {
-      sql: `${CUBE}."parentId"`,
-      type: `string`,
-      shown: false,
-    },
-
-    createdbyid: {
-      sql: `${CUBE}."createdById"`,
-      type: `string`,
-      shown: false,
-    },
-
-    createdat: {
-      sql: `${CUBE}."createdAt"`,
-      type: `time`,
-      shown: false,
-    },
-
-    updatedat: {
-      sql: `${CUBE}."updatedAt"`,
-      type: `time`,
-      shown: false,
-    },
-
     date: {
       sql: `timestamp`,
       type: `time`,
-    },
-
-    deletedat: {
-      sql: `${CUBE}."deletedAt"`,
-      type: `time`,
-      shown: false,
     },
   },
 })

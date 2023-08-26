@@ -173,11 +173,6 @@ cube(`Members`, {
       relationship: `belongsTo`,
     },
 
-    MemberIdentities: {
-      sql: `${CUBE}.id = ${MemberIdentities}."memberId"`,
-      relationship: `belongsTo`,
-    },
-
     MemberSegments: {
       sql: `${CUBE}.id = ${MemberSegments}."memberId"`,
       relationship: `belongsTo`,
@@ -204,10 +199,10 @@ cube(`Members`, {
   },
 
   dimensions: {
-    email: {
-      sql: `email`,
+    id: {
+      sql: `id`,
       type: `string`,
-      shown: false,
+      primaryKey: true,
     },
 
     tenantId: {
@@ -221,72 +216,17 @@ cube(`Members`, {
       type: `string`,
     },
 
-    bio: {
-      sql: `COALESCE(${CUBE}.attributes->'bio'->>'default', '')`,
-      type: `string`,
-    },
-
-    info: {
-      sql: `info`,
-      type: `string`,
-      shown: false,
-    },
-
     isTeamMember: {
       sql: `COALESCE((${CUBE}.attributes->'isTeamMember'->'default')::boolean, false)`,
       type: `boolean`,
     },
-
     isBot: {
       sql: `COALESCE((${CUBE}.attributes->'isBot'->'default')::boolean, false)`,
       type: `boolean`,
     },
-
     isOrganization: {
       sql: `COALESCE((${CUBE}.attributes->'isOrganization'->'default')::boolean, false)`,
       type: `boolean`,
-    },
-
-    id: {
-      sql: `id`,
-      type: `string`,
-      primaryKey: true,
-    },
-
-    updatedbyid: {
-      sql: `${CUBE}."updatedById"`,
-      type: `string`,
-      shown: false,
-    },
-
-    username: {
-      sql: `${CUBE}."displayName"`,
-      type: `string`,
-      shown: false,
-    },
-
-    createdbyid: {
-      sql: `${CUBE}."createdById"`,
-      type: `string`,
-      shown: false,
-    },
-
-    createdat: {
-      sql: `${CUBE}."createdAt"`,
-      type: `time`,
-      shown: false,
-    },
-
-    updatedat: {
-      sql: `${CUBE}."updatedAt"`,
-      type: `time`,
-      shown: false,
-    },
-
-    deletedat: {
-      sql: `${CUBE}."deletedAt"`,
-      type: `time`,
-      shown: false,
     },
 
     joinedAt: {

@@ -17,16 +17,5 @@ cube(`MemberSegments`, {
 
   measures: {},
 
-  dimensions: {
-    id: {
-      sql: `${CUBE}."segmentId" || '-' || ${CUBE}."memberId"`,
-      type: `string`,
-      primaryKey: true,
-    },
-    tenantId: {
-      sql: `${CUBE}."tenantId"`,
-      type: `string`,
-      shown: false,
-    },
-  },
+  dimensions: {},
 })

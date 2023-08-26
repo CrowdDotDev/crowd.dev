@@ -42,25 +42,20 @@ where
   },
 
   dimensions: {
-    tenantId: {
-      sql: `${CUBE}."tenantId"`,
-      type: `string`,
-      shown: false,
-    },
-
     id: {
       sql: `id`,
       type: `string`,
       primaryKey: true,
     },
 
-    platform: {
-      sql: `platform`,
+    tenantId: {
+      sql: `${CUBE}."tenantId"`,
       type: `string`,
+      shown: false,
     },
 
-    mood: {
-      sql: `mood`,
+    platform: {
+      sql: `platform`,
       type: `string`,
     },
 

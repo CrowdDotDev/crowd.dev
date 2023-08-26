@@ -1,8 +1,6 @@
 cube(`Conversations`, {
   sql: `SELECT 
     con.*, 
-    MAX(a.timestamp) AS "lastActive", 
-    MIN(a.timestamp) AS "firstActivityTime",
     a.platform AS platform, 
     a.channel AS category 
   FROM 
@@ -23,30 +21,21 @@ cube(`Conversations`, {
   measures: {
     count: {
       type: `count`,
-      drillMembers: [tenantId, createdbyid, updatedbyid, id, title, createdat, updatedat],
+      drillMembers: [tenantId, createdat],
     },
   },
 
   dimensions: {
+    id: {
+      sql: `id`,
+      type: `string`,
+      primaryKey: true,
+    },
+
     tenantId: {
       sql: `${CUBE}."tenantId"`,
       type: `string`,
       shown: false,
-    },
-
-    createdbyid: {
-      sql: `${CUBE}."createdById"`,
-      type: `string`,
-    },
-
-    slug: {
-      sql: `slug`,
-      type: `string`,
-    },
-
-    updatedbyid: {
-      sql: `${CUBE}."updatedById"`,
-      type: `string`,
     },
 
     published: {
@@ -54,24 +43,8 @@ cube(`Conversations`, {
       type: `string`,
     },
 
-    id: {
-      sql: `id`,
-      type: `string`,
-      primaryKey: true,
-    },
-
-    title: {
-      sql: `title`,
-      type: `string`,
-    },
-
     createdat: {
       sql: `${CUBE}."createdAt"`,
-      type: `time`,
-    },
-
-    updatedat: {
-      sql: `${CUBE}."updatedAt"`,
       type: `time`,
     },
 
@@ -83,16 +56,6 @@ cube(`Conversations`, {
     category: {
       sql: `${CUBE}."category"`,
       type: `string`,
-    },
-
-    lastActive: {
-      sql: `${CUBE}."lastActive"`,
-      type: `time`,
-    },
-
-    firstActivityTime: {
-      sql: `${CUBE}."firstActivityTime"`,
-      type: `time`,
     },
   },
 })
