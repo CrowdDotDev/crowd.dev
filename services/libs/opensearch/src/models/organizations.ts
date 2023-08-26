@@ -172,9 +172,6 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     grossDeparturesByMonth: {
       type: OpensearchFieldType.OBJECT,
     },
-    inferredRevenue: {
-      type: OpensearchFieldType.INT,
-    },
     recentExecutiveDepartures: {
       type: OpensearchFieldType.OBJECT,
     },

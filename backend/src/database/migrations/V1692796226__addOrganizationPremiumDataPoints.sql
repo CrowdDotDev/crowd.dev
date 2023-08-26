@@ -14,7 +14,6 @@ ALTER TABLE public."organizations" ADD COLUMN "employeeCountByMonthByRole" JSONB
 ALTER TABLE public."organizations" ADD COLUMN "gicsSector" TEXT NULL;
 ALTER TABLE public."organizations" ADD COLUMN "grossAdditionsByMonth" JSONB NULL;
 ALTER TABLE public."organizations" ADD COLUMN "grossDeparturesByMonth" JSONB NULL;
-ALTER TABLE public."organizations" ADD COLUMN "inferredRevenue" INTEGER NULL;
 ALTER TABLE public."organizations" ADD COLUMN "recentExecutiveDepartures" JSONB NULL;
 ALTER TABLE public."organizations" ADD COLUMN "recentExecutiveHires" JSONB NULL;
 ALTER TABLE public."organizations" ADD COLUMN "ultimateParent" TEXT NULL;

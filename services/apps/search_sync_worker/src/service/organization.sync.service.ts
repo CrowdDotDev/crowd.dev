@@ -476,7 +476,6 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_gicsSector = data.gicsSector
     p.obj_grossAdditionsByMonth = data.grossAdditionsByMonth
     p.obj_grossDeparturesByMonth = data.grossDeparturesByMonth
-    p.int_inferredRevenue = data.inferredRevenue
     p.obj_recentExecutiveDepartures = data.recentExecutiveDepartures
     p.obj_recentExecutiveHires = data.recentExecutiveHires
 

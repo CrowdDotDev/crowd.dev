@@ -81,7 +81,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o."gicsSector",
             o."grossAdditionsByMonth",
             o."grossDeparturesByMonth",
-            o."inferredRevenue",
             o."recentExecutiveDepartures",
             o."recentExecutiveHires",
             o."ultimateParent",

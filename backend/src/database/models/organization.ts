@@ -88,6 +88,7 @@ export default (sequelize) => {
       revenueRange: {
         type: DataTypes.JSONB,
         allowNull: true,
+        comment: 'inferred revenue range of the company',
       },
       importHash: {
         type: DataTypes.STRING(255),
@@ -221,10 +222,6 @@ export default (sequelize) => {
       },
       grossDeparturesByMonth: {
         type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      inferredRevenue: {
-        type: DataTypes.INTEGER,
         allowNull: true,
       },
       recentExecutiveDepartures: {

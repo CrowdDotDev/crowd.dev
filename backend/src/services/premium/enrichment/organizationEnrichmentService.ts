@@ -129,7 +129,19 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       }
       data.description = description
     }
-
+    if (data.inferredRevenue) {
+      const revenueList = data.inferredRevenue
+      .replaceAll('$', '')
+      .replaceAll('M', '')
+      .split('-')
+      .map((x) => parseInt(x, 10))
+      data.revenueRange = {
+        min: revenueList[0],
+        max: revenueList[1],
+      }
+      // inferredRevenue is not a field in the database
+      delete data.inferredRevenue
+    }
     return data
   }
 

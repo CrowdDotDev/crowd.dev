@@ -120,7 +120,6 @@ export class InitService extends LoggerBase {
       gicsSector: 'Fake GICS sector',
       grossAdditionsByMonth: { '2022-05': 7, '2022-06': 6, '2022-07': 1, '2022-08': 1 },
       grossDeparturesByMonth: { '2022-06': 2, '2022-07': 1, '2022-08': 2, '2022-09': 2 },
-      inferredRevenue: 100000,
       recentExecutiveDepartures: [
         {
           departed_date: '2022-11',
