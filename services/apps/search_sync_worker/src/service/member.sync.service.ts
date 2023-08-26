@@ -483,7 +483,7 @@ export class MemberSyncService extends LoggerBase {
         string_username: identity.username,
       })
     }
-    p.obj_arr_identities = p_identities
+    p.nested_identities = p_identities
 
     const p_organizations = []
     for (const organization of data.organizations) {
@@ -498,7 +498,7 @@ export class MemberSyncService extends LoggerBase {
         },
       })
     }
-    p.obj_arr_organizations = p_organizations
+    p.nested_organizations = p_organizations
 
     const p_tags = []
     for (const tag of data.tags) {
@@ -508,7 +508,7 @@ export class MemberSyncService extends LoggerBase {
       })
     }
 
-    p.obj_arr_tags = p_tags
+    p.nested_tags = p_tags
 
     p.uuid_arr_toMergeIds = data.toMergeIds
     p.uuid_arr_noMergeIds = data.noMergeIds

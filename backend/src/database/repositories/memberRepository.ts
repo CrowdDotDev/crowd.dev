@@ -1984,6 +1984,42 @@ class MemberRepository {
       parsed.sort = customSortFunction
     }
 
+    if (filter.organizations && filter.organizations.length > 0) {
+      parsed.query.bool.must = parsed.query.bool.must.filter(
+        (d) => d.term['nested_organizations.uuid_id'] === undefined,
+      )
+
+      // add organizations filter manually for now
+
+      for (const organizationId of filter.organizations) {
+        parsed.query.bool.must.push({
+          nested: {
+            path: 'nested_organizations',
+            query: {
+              bool: {
+                must: [
+                  {
+                    term: {
+                      'nested_organizations.uuid_id': organizationId,
+                    },
+                  },
+                  {
+                    bool: {
+                      must_not: {
+                        exists: {
+                          field: 'nested_organizations.obj_memberOrganizations.date_dateEnd',
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      }
+    }
+
     const countResponse = await options.opensearch.count({
       index: OpenSearchIndex.MEMBERS,
       body: { query: parsed.query },
