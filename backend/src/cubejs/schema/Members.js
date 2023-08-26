@@ -1,25 +1,25 @@
-cube(`Members`, {
+cube('Members', {
   sql_table: 'mv_members_cube',
 
   joins: {
     Activities: {
       sql: `${CUBE}.id = ${Activities}."memberId"`,
-      relationship: `hasMany`,
+      relationship: 'hasMany',
     },
 
     MemberTags: {
       sql: `${CUBE}.id = ${MemberTags}."memberId"`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
 
     MemberOrganizations: {
       sql: `${CUBE}.id = ${MemberOrganizations}."memberId"`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
 
     MemberSegments: {
       sql: `${CUBE}.id = ${MemberSegments}."memberId"`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
   },
 
@@ -30,9 +30,9 @@ cube(`Members`, {
     },
 
     cumulativeCount: {
-      type: `count`,
+      type: 'count',
       rollingWindow: {
-        trailing: `unbounded`,
+        trailing: 'unbounded',
       },
     },
   },
@@ -40,47 +40,47 @@ cube(`Members`, {
   dimensions: {
     id: {
       sql: `${CUBE}.id`,
-      type: `string`,
+      type: 'string',
       primaryKey: true,
     },
 
     tenantId: {
       sql: `${CUBE}."tenantId"`,
-      type: `string`,
+      type: 'string',
       shown: false,
     },
 
     location: {
       sql: `${CUBE}.location`,
-      type: `string`,
+      type: 'string',
     },
 
     isTeamMember: {
       sql: `${CUBE}."isTeamMember"`,
-      type: `boolean`,
+      type: 'boolean',
     },
     isBot: {
       sql: `${CUBE}."isBot"`,
-      type: `boolean`,
+      type: 'boolean',
     },
     isOrganization: {
       sql: `${CUBE}."isOrganization"`,
-      type: `boolean`,
+      type: 'boolean',
     },
 
     joinedAt: {
       sql: `${CUBE}."joinedAt"`,
-      type: `time`,
+      type: 'time',
     },
 
     joinedAtUnixTs: {
       sql: `${CUBE}."joinedAtUnixTs"`,
-      type: `number`,
+      type: 'number',
     },
 
     score: {
       sql: `${CUBE}."score"`,
-      type: `number`,
+      type: 'number',
     },
   },
 })

@@ -1,4 +1,4 @@
-cube(`Activities`, {
+cube('Activities', {
   sql_table: 'mv_activities_cube',
 
   measures: {
@@ -8,9 +8,9 @@ cube(`Activities`, {
       drillMembers: [tenantId, date],
     },
     cumulativeCount: {
-      type: `count`,
+      type: 'count',
       rollingWindow: {
-        trailing: `unbounded`,
+        trailing: 'unbounded',
       },
     },
   },
@@ -18,44 +18,44 @@ cube(`Activities`, {
   dimensions: {
     id: {
       sql: `${CUBE}.id`,
-      type: `string`,
+      type: 'string',
       primaryKey: true,
     },
 
     iscontribution: {
       sql: `${CUBE}."isContribution"`,
-      type: `string`,
+      type: 'string',
     },
 
     sentimentMood: {
       sql: `${CUBE}."sentimentMood"`,
-      type: `string`,
+      type: 'string',
     },
 
     platform: {
       sql: `${CUBE}.platform`,
-      type: `string`,
+      type: 'string',
     },
 
     channel: {
       sql: `${CUBE}.channel`,
-      type: `string`,
+      type: 'string',
     },
 
     tenantId: {
       sql: `${CUBE}."tenantId"`,
-      type: `string`,
+      type: 'string',
       shown: false,
     },
 
     type: {
       sql: `${CUBE}.type`,
-      type: `string`,
+      type: 'string',
     },
 
     date: {
       sql: `${CUBE}.timestamp`,
-      type: `time`,
+      type: 'time',
     },
   },
 })

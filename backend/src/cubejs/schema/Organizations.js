@@ -1,13 +1,13 @@
-cube(`Organizations`, {
+cube('Organizations', {
   sql_table: 'mv_organizations_cube',
   joins: {
     MemberOrganizations: {
       sql: `${CUBE}.id = ${MemberOrganizations}."organizationId"`,
-      relationship: `hasMany`,
+      relationship: 'hasMany',
     },
     OrganizationSegments: {
       sql: `${CUBE}.id = ${OrganizationSegments}."organizationId"`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
   },
   measures: {
@@ -20,21 +20,21 @@ cube(`Organizations`, {
   dimensions: {
     id: {
       sql: `${CUBE}.id`,
-      type: `string`,
+      type: 'string',
       primaryKey: true,
     },
 
     tenantId: {
       sql: `${CUBE}."tenantId"`,
-      type: `string`,
+      type: 'string',
     },
     createdat: {
       sql: `${CUBE}."createdAt"`,
-      type: `time`,
+      type: 'time',
     },
     joinedAt: {
       sql: `${CUBE}."earliestJoinedAt"`,
-      type: `time`,
+      type: 'time',
     },
   },
 })

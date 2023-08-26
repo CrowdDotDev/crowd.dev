@@ -1,4 +1,4 @@
-cube(`Sentiment`, {
+cube('Sentiment', {
   sql: `select
       a.id,
       a."tenantId" ,
@@ -21,38 +21,38 @@ cube(`Sentiment`, {
   joins: {
     Members: {
       sql: `${CUBE}."memberId" = ${Members}."id"`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
   },
 
   measures: {
     averageSentiment: {
       type: 'avg',
-      sql: `sentiment`,
+      sql: 'sentiment',
     },
   },
 
   dimensions: {
     id: {
       sql: `${CUBE}.id`,
-      type: `string`,
+      type: 'string',
       primaryKey: true,
     },
 
     tenantId: {
       sql: `${CUBE}."tenantId"`,
-      type: `string`,
+      type: 'string',
       shown: false,
     },
 
     platform: {
       sql: `${CUBE}.platform`,
-      type: `string`,
+      type: 'string',
     },
 
     date: {
       sql: `${CUBE}.timestamp`,
-      type: `time`,
+      type: 'time',
     },
   },
 })

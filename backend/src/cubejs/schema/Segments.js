@@ -1,4 +1,4 @@
-cube(`Segments`, {
+cube('Segments', {
   sql_table: 'mv_segments_cube',
 
   preAggregations: {},
@@ -6,23 +6,23 @@ cube(`Segments`, {
   joins: {
     Activities: {
       sql: `${CUBE}.id = ${Activities}."segmentId"`,
-      relationship: `hasMany`,
+      relationship: 'hasMany',
     },
     OrganizationSegments: {
       sql: `${CUBE}.id = ${OrganizationSegments}."segmentId"`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
   },
 
   dimensions: {
     name: {
       sql: `${CUBE}."name"`,
-      type: `string`,
+      type: 'string',
     },
 
     id: {
       sql: `${CUBE}.id`,
-      type: `string`,
+      type: 'string',
       primaryKey: true,
     },
   },

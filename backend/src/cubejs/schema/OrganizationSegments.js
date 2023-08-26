@@ -1,4 +1,4 @@
-cube(`OrganizationSegments`, {
+cube('OrganizationSegments', {
   sql_table: '"organizationSegments"',
 
   preAggregations: {},
@@ -6,12 +6,12 @@ cube(`OrganizationSegments`, {
   joins: {
     Organizations: {
       sql: `${CUBE}."organizationId" = ${Organizations}.id`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
 
     Segments: {
       sql: `${CUBE}."segmentId" = ${Segments}."id"`,
-      relationship: `belongsTo`,
+      relationship: 'belongsTo',
     },
   },
 

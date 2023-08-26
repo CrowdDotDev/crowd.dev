@@ -1,9 +1,9 @@
-cube(`MemberTags`, {
+cube('MemberTags', {
   sql_table: '"memberTags"',
 
   joins: {
     Tags: {
-      relationship: `hasMany`,
+      relationship: 'hasMany',
       sql: `${CUBE}."tagId" = ${Tags}."id"`,
     },
   },

@@ -1,4 +1,4 @@
-cube(`Conversations`, {
+cube('Conversations', {
   sql: `SELECT 
     con.*, 
     a.platform AS platform, 
@@ -14,13 +14,13 @@ cube(`Conversations`, {
   joins: {
     Activities: {
       sql: `${CUBE}.id = ${Activities}."conversationId"`,
-      relationship: `hasMany`,
+      relationship: 'hasMany',
     },
   },
 
   measures: {
     count: {
-      type: `count`,
+      type: 'count',
       drillMembers: [tenantId, createdat],
     },
   },
@@ -28,34 +28,34 @@ cube(`Conversations`, {
   dimensions: {
     id: {
       sql: `${CUBE}.id`,
-      type: `string`,
+      type: 'string',
       primaryKey: true,
     },
 
     tenantId: {
       sql: `${CUBE}."tenantId"`,
-      type: `string`,
+      type: 'string',
       shown: false,
     },
 
     published: {
       sql: `${CUBE}.published`,
-      type: `string`,
+      type: 'string',
     },
 
     createdat: {
       sql: `${CUBE}."createdAt"`,
-      type: `time`,
+      type: 'time',
     },
 
     platform: {
       sql: `${CUBE}."platform"`,
-      type: `string`,
+      type: 'string',
     },
 
     category: {
       sql: `${CUBE}."category"`,
-      type: `string`,
+      type: 'string',
     },
   },
 })
