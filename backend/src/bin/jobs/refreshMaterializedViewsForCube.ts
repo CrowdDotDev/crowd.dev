@@ -1,4 +1,3 @@
-import cronGenerator from 'cron-time-generator'
 import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
@@ -7,7 +6,7 @@ let processing = false
 
 const job: CrowdJob = {
   name: 'Refresh Materialized View For Cube',
-  cronTime: cronGenerator.every(10).minutes(),
+  cronTime: '1,31 * * * *',
   onTrigger: async (log: Logger) => {
     if (!processing) {
       processing = true
