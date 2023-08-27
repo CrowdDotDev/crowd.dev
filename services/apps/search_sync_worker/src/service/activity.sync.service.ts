@@ -140,7 +140,7 @@ export class ActivitySyncService extends LoggerBase {
   ): Promise<void> {
     const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
 
-    this.log.warn({ tenantId }, 'Syncing all tenant activities!')
+    this.log.debug({ tenantId }, 'Syncing all tenant activities!')
     let count = 0
 
     await logExecutionTime(

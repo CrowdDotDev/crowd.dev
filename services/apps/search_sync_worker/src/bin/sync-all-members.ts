@@ -10,7 +10,6 @@ const log = getServiceLogger()
 
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
-  await openSearchService.initialize()
 
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 

@@ -92,7 +92,11 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
   }
 
   public async getTenantIds(): Promise<string[]> {
-    const results = await this.db().any(`select distinct "tenantId" from activities;`)
+    const results = await this.db().any(
+      `select "tenantId" from activities
+       group by "tenantId"
+       order by count(id) asc`,
+    )
 
     return results.map((r) => r.tenantId)
   }

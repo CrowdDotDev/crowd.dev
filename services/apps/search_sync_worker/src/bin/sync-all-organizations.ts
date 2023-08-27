@@ -9,7 +9,6 @@ const log = getServiceLogger()
 
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
-  await openSearchService.initialize()
 
   const dbConnection = getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
