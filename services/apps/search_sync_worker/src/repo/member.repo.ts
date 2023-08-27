@@ -117,6 +117,11 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                               inner join "organizationSegments" os on o.id = os."organizationId"
                                       where mo."memberId" in ($(ids:csv))
                                         and o."deletedAt" is null
+                                        and exists (select 1
+                                          from activities a
+                                          where a."memberId" = mo."memberId"
+                                            and a."organizationId" = mo."organizationId"
+                                            and a."segmentId" = os."segmentId")
                                       group by mo."memberId", os."segmentId"),
             identities as (select mi."memberId",
                                   json_agg(
