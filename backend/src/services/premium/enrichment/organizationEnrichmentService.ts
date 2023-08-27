@@ -132,16 +132,23 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     if (data.inferredRevenue) {
       const revenueList = data.inferredRevenue
         .replaceAll('$', '')
-        .replaceAll('M', '')
         .split('-')
-        .map((x) => parseInt(x, 10))
+        .map((x) => {
+          // billions --> millions conversion, if needed
+          const multiple = x.endsWith('B') ? 1000 : 1
+          const value = parseInt(x, 10) * multiple
+          return value
+        })
+
       data.revenueRange = {
         min: revenueList[0],
         max: revenueList[1],
       }
-      // inferredRevenue is not a field in the database
-      delete data.inferredRevenue
     }
+
+    // inferredRevenue is not a field in the database
+    delete data.inferredRevenue
+
     return data
   }
 

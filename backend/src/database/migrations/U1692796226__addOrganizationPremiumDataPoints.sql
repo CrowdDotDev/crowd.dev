@@ -19,3 +19,4 @@ ALTER TABLE public."organizations" DROP COLUMN "recentExecutiveHires";
 ALTER TABLE public."organizations" DROP COLUMN "ultimateParent";
 ALTER TABLE public."organizations" DROP COLUMN "immediateParent";
 ALTER TABLE public."organizations" ADD COLUMN "parentUrl" TEXT NULL;
+ALTER TABLE public."organizationCaches" ADD COLUMN "parentUrl" TEXT NULL;
