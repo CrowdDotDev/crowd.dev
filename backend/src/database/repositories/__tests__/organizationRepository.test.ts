@@ -52,6 +52,7 @@ const toCreate = {
   employeeCountByCountry: null,
   address: null,
   profiles: null,
+  manuallyCreated: false,
 }
 
 async function createMembers(options) {
@@ -579,6 +580,7 @@ describe('OrganizationRepository tests', () => {
         min: 10,
         max: 50,
       },
+      manuallyCreated: false,
     }
 
     const piedpiper = {
@@ -611,6 +613,7 @@ describe('OrganizationRepository tests', () => {
         min: 0,
         max: 1,
       },
+      manuallyCreated: false,
     }
 
     const hooli = {
@@ -643,6 +646,7 @@ describe('OrganizationRepository tests', () => {
         min: 200,
         max: 500,
       },
+      manuallyCreated: false,
     }
 
     it('Should filter by name', async () => {

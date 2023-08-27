@@ -6,6 +6,7 @@ export interface IDbOrganizationSyncData {
   address: unknown | null
   attributes: unknown
   createdAt: string
+  manuallyCreated: boolean
   description: string | null
   displayName: string
   emails: string[]

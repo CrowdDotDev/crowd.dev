@@ -508,6 +508,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -584,6 +585,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -664,6 +666,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -760,6 +763,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -1888,6 +1892,7 @@ describe('MemberService tests', () => {
         lastActivity: activityCreated,
         numberOfOpenSourceContributions: 0,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(

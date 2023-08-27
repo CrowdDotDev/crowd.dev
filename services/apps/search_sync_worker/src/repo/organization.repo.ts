@@ -40,6 +40,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o.address,
             o.attributes,
             o."createdAt",
+            o."manuallyCreated",
             o.description,
             coalesce(o."displayName", o.name) as "displayName",
             o.emails,
