@@ -141,6 +141,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -210,6 +211,7 @@ describe('MemberRepository tests', () => {
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -272,6 +274,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -506,6 +509,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -556,6 +560,7 @@ describe('MemberRepository tests', () => {
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       const memberById = await MemberRepository.findById(
@@ -726,6 +731,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activeDaysCount
       delete member1Returned.numberOfOpenSourceContributions
       delete member1Returned.affiliations
+      delete member1Returned.manuallyCreated
       member1Returned.segments = member1Returned.segments.map((s) => s.id)
 
       const found = await MemberRepository.memberExists(
@@ -2985,6 +2991,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3083,6 +3090,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         joinedAt: new Date(updateFields.joinedAt),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3167,6 +3175,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3283,6 +3292,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
