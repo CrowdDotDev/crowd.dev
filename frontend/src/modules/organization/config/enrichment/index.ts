@@ -7,9 +7,8 @@ import averageTenureByLevel from './averageTenureByLevel';
 import averageTenureByRole from './averageTenureByRole';
 import directSubsidiaries from './directSubsidiaries';
 import employeeChurnRate from './employeeChurnRate';
+import employeeCountByCountry from './employeeCountByCountry';
 import employeeCountByMonth from './employeeCountByMonth';
-import employeeCountByMonthByLevel from './employeeCountByMonthByLevel';
-import employeeCountByMonthByRole from './employeeCountByMonthByRole';
 import employeeGrowthRate from './employeeGrowthRate';
 import founded from './founded';
 import gicsSector from './gicsSector';
@@ -17,11 +16,12 @@ import grossAdditionsByMonth from './grossAdditionsByMonth';
 import grossDeparturesByMonth from './grossDeparturesByMonth';
 import headcount from './headcount';
 import industry from './industry';
-import inferredRevenue from './inferredRevenue';
+import revenueRange from './revenueRange';
 import lastEnrichedAt from './lastEnrichedAt';
-import recentExecutiveDepartures from './recentExecutiveDepartures';
-import recentExecutiveHires from './recentExecutiveHires';
+import tags from './tags';
 import typeAttribute from './type';
+import immediateParent from './immediateParent';
+import ultimateParent from './ultimateParent';
 
 export default [
   lastEnrichedAt,
@@ -38,14 +38,14 @@ export default [
   averageTenureByRole,
   directSubsidiaries,
   employeeChurnRate,
+  employeeCountByCountry,
   employeeCountByMonth,
-  employeeCountByMonthByLevel,
-  employeeCountByMonthByRole,
   employeeGrowthRate,
   gicsSector,
   grossAdditionsByMonth,
   grossDeparturesByMonth,
-  inferredRevenue,
-  recentExecutiveDepartures,
-  recentExecutiveHires,
+  immediateParent,
+  revenueRange,
+  tags,
+  ultimateParent,
 ];

@@ -64,10 +64,6 @@ const fields = {
   ),
   revenueRange: new JsonField(
     'revenueRange',
-    label('revenueRange'),
-  ),
-  inferredRevenue: new StringField(
-    'inferredRevenue',
     'Annual Revenue',
   ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date', {
@@ -103,6 +99,24 @@ const fields = {
   lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
     filterable: true,
   }),
+  affiliatedProfiles: new StringArrayField('affiliatedProfiles', 'Affiliated Profiles'),
+  allSubsidiaries: new StringArrayField('allSubsidiaries', 'All Subsidiaries'),
+  alternativeDomains: new StringArrayField('alternativeDomains', 'Alternative Domains'),
+  alternativeNames: new StringArrayField('alternativeNames', 'Alternative Names'),
+  averageEmployeeTenure: new IntegerField('averageEmployeeTenure', 'Average Employee Tenure'),
+  averageTenureByLevel: new JsonField('averageTenureByLevel', 'Average Tenure by Level'),
+  averageTenureByRole: new JsonField('averageTenureByRole', 'Average Tenure by Role'),
+  directSubsidiaries: new StringArrayField('directSubsidiaries', 'Direct Subsidiaries'),
+  employeeChurnRate: new JsonField('employeeChurnRate', 'Employee Churn Rate'),
+  employeeCountByCountry: new JsonField('employeeCountByCountry', 'Employee Count by Country'),
+  employeeCountByMonth: new JsonField('employeeCountByMonth', 'Employee Count by Month'),
+  employeeGrowthRate: new JsonField('employeeGrowthRate', 'Employee Growth Rate'),
+  gicsSector: new StringField('gicsSector', 'GICS Sector'),
+  grossAdditionsByMonth: new JsonField('grossAdditionsByMonth', 'Gross Additions by Month'),
+  grossDeparturesByMonth: new JsonField('grossDeparturesByMonth', 'Gross Departures by Month'),
+  immediateParent: new StringField('immediateParent', 'Immediate Parent'),
+  tags: new StringArrayField('tags', 'Tags'),
+  ultimateParent: new StringField('ultimateParent', 'Ultimate Parent'),
 };
 
 export class OrganizationModel extends GenericModel {

@@ -1,18 +1,7 @@
 <template>
-  <div v-if="type === attributesTypes.jsonArray" class="w-full">
-    <el-input
-      v-for="(_v, index) in model"
-      :key="index"
-      v-model="model[index]"
-      :rows="Object.keys(modelValue[index]).length + 2"
-      type="textarea"
-      disabled
-    />
-  </div>
   <el-input
-    v-else
     v-model="model"
-    :rows="Object.keys(modelValue).length + 2"
+    :rows="filteredValue ? Object.keys(filteredValue).length + 2 : 0"
     type="textarea"
     disabled
   />
@@ -20,7 +9,6 @@
 
 <script setup>
 import { computed } from 'vue';
-import { attributesTypes } from '@/modules/organization/types/Attributes';
 
 const props = defineProps({
   modelValue: {
@@ -31,13 +19,20 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  filterValue: {
+    type: Function,
+    default: null,
+  },
 });
 
-const model = computed(() => {
-  if (props.type === attributesTypes.jsonArray) {
-    return props.modelValue.map((value) => JSON.stringify(value, null, ' '));
+const filteredValue = computed(() => {
+  if (props.filterValue && props.modelValue) {
+    return props.filterValue(props.modelValue);
   }
 
-  return JSON.stringify(props.modelValue, null, ' ');
+  return props.modelValue;
 });
+
+const model = computed(() => JSON.stringify(filteredValue.value, null, ' '));
+
 </script>
