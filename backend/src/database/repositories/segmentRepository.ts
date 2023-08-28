@@ -214,7 +214,7 @@ class SegmentRepository extends RepositoryBase<
     if (Object.keys(data.activityChannels).length > 0) {
       let activityChannelsUpsertQuery = `INSERT INTO segmentActivityChannels ("tenantId", "segmentId", "platform", "channel") VALUES `
       for (const platform in data.activityChannels) {
-        if (data.activityChannels.hasOwnProperty(platform)) {
+        if (Object.prototype.hasOwnProperty.call(data.activityChannels, platform)) {
           for (let i = 0; i < data.activityChannels[platform].length; i++) {
             const channel = data.activityChannels[platform][i]
             activityChannelsUpsertQuery += `(:tenantId, :segmentId, "${platform}", "${channel}),`
