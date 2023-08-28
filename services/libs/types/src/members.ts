@@ -38,6 +38,7 @@ export interface IMember {
   lastEnriched: string
   joinedAt: string
   createdAt: string
+  manuallyCreated: boolean
   reach: number
   numberOfOpenSourceContributions: number
   activeOn: string[]
