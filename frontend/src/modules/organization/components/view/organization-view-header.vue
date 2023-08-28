@@ -136,8 +136,8 @@
         </p>
         <p class="mt-1 text-gray-900 text-xs">
           {{
-            inferredRevenue.displayValue(
-              organization.inferredRevenue,
+            revenueRange.displayValue(
+              organization.revenueRange,
             )
           }}
         </p>
@@ -174,7 +174,7 @@ import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
-import inferredRevenue from '../../config/enrichment/inferredRevenue';
+import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({
   organization: {

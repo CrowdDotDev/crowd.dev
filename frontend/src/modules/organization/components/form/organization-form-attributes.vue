@@ -34,9 +34,10 @@
             :collapse-tags="true"
           />
           <app-organization-form-json
-            v-else-if="attribute.type === attributesTypes.json || attribute.type === attributesTypes.jsonArray"
+            v-else-if="attribute.type === attributesTypes.json"
             v-model="model[attribute.name]"
             :type="attribute.type"
+            :filter-value="attribute.filterValue"
           />
           <el-input
             v-else

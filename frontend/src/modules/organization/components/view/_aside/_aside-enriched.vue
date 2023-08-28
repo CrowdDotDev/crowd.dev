@@ -29,11 +29,12 @@
         />
         <component
           :is="attribute.component"
-          v-else-if="attribute.component && (attribute.type === attributesTypes.json || attribute.type === attributesTypes.jsonArray)"
+          v-else-if="attribute.component && attribute.type === attributesTypes.json"
           :attribute-value="organization[attribute.name]"
           :key-parser="attribute.keyParser"
           :nested-key-parser="attribute.nestedKeyParser"
           :value-parser="attribute.valueParser"
+          :filter-value="attribute.filterValue"
         />
         <div v-else class="mt-1 text-gray-900 text-xs">
           {{ attribute.displayValue(organization[attribute.name]) }}

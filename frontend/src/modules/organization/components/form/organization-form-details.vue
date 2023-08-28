@@ -49,19 +49,30 @@
       >
         <el-input v-model="model[fields.location.name]" />
       </el-form-item>
-      <el-form-item
-        label="Number of employees"
-        class="w-1/2"
-      >
+      <el-form-item class="w-1/2">
+        <template #label>
+          <div class="flex gap-2">
+            {{ fields.employees.label }}
+            <el-tooltip
+              content="Organization enrichment"
+              placement="top"
+            >
+              <div class="form-enrichment-badge">
+                <app-svg name="enrichment" />
+              </div>
+            </el-tooltip>
+          </div>
+        </template>
         <el-input
           v-model="model[fields.employees.name]"
           type="number"
+          disabled
         />
       </el-form-item>
       <el-form-item class="w-1/2">
         <template #label>
           <div class="flex gap-2">
-            {{ fields.inferredRevenue.label }}
+            {{ fields.revenueRange.label }}
             <el-tooltip
               content="Organization enrichment"
               placement="top"
@@ -73,7 +84,8 @@
           </div>
         </template>
         <el-select
-          v-model="model[fields.inferredRevenue.name]"
+          v-model="model[fields.revenueRange.name]"
+          value-key="max"
           disabled
           placeholder=" "
         >
@@ -92,7 +104,7 @@
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import { revenueRangesOptions } from '@/modules/organization/config/enrichment/inferredRevenue';
+import { revenueRangesOptions } from '@/modules/organization/config/enrichment/revenueRange';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

@@ -1,7 +1,7 @@
 <template>
   <div class="mt-1">
     <div
-      v-for="[key, value] of Object.entries(attributeValue)"
+      v-for="[key, value] of Object.entries(parsedAttributeValue)"
       :key="key"
       class="text-xs"
     >
@@ -27,6 +27,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+
 const props = defineProps({
   attributeValue: {
     type: Object,
@@ -45,6 +47,18 @@ const props = defineProps({
     type: Function,
     default: null,
   },
+  filterValue: {
+    type: Function,
+    default: null,
+  },
+});
+
+const parsedAttributeValue = computed(() => {
+  if (props.filterValue && props.attributeValue) {
+    return props.filterValue(props.attributeValue);
+  }
+
+  return props.attributeValue;
 });
 
 const parsedValue = (value) => {

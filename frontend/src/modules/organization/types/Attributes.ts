@@ -7,5 +7,4 @@ export const attributesTypes = {
   boolean: 'Boolean',
   array: 'Array',
   json: 'JSON',
-  jsonArray: 'JSON array',
 };
