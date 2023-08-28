@@ -55,7 +55,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                   m."searchSyncedAt" < $(cutoffDate)
               ) 
               and
-              exists (select 1 from activities where "memberId" = m.id) and
+              (
+                exists (select 1 from activities where "memberId" = m.id) or
+                m."manuallyCreated"
+              ) and
               exists (select 1 from "memberIdentities" where "memberId" = m.id)
         limit ${perPage} offset ${(page - 1) * perPage};`,
       {
@@ -211,7 +214,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       from members m
       where m."tenantId" = $(tenantId ) and 
             m.id in ($(memberIds:csv)) and
-            exists(select 1 from activities a where a."memberId" = m.id) and
+            (
+              exists (select 1 from activities where "memberId" = m.id) or
+              m."manuallyCreated"
+            ) and
             exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
       `,
       {

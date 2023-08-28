@@ -75,10 +75,11 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             md."activityCount",
             md."memberCount",
             md.identities
-      from member_data md
-              inner join organizations o on o.id = md."organizationId"
+      from organizations o
+            left join member_data md on o.id = md."organizationId"
       where o.id in ($(ids:csv))
-        and o."deletedAt" is null;
+        and o."deletedAt" is null
+        and (md."organizationId" is not null or o."manuallyCreated");
       `,
       {
         ids,
