@@ -30,6 +30,7 @@ export interface IDbMemberSyncData {
   lastEnriched: string | null
   joinedAt: string
   createdAt: string
+  manuallyCreated: boolean
   totalReach: number
   numberOfOpenSourceContributions: number
 
