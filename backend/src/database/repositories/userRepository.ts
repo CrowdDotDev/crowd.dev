@@ -377,7 +377,7 @@ export default class UserRepository {
       email: {
         [Op.ne]: 'help@crowd.dev',
       },
-    });
+    })
 
     if (filter) {
       if (filter.id) {
@@ -481,7 +481,7 @@ export default class UserRepository {
       email: {
         [Op.ne]: 'help@crowd.dev',
       },
-    });
+    })
 
     if (query) {
       whereAnd.push({
