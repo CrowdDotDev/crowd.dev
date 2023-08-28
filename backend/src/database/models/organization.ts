@@ -177,7 +177,7 @@ export default (sequelize) => {
         allowNull: true,
       },
       averageEmployeeTenure: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.FLOAT,
         allowNull: true,
       },
       averageTenureByLevel: {
@@ -221,14 +221,6 @@ export default (sequelize) => {
         allowNull: true,
       },
       grossDeparturesByMonth: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      recentExecutiveDepartures: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      recentExecutiveHires: {
         type: DataTypes.JSONB,
         allowNull: true,
       },

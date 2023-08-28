@@ -100,17 +100,20 @@ export default class OrganizationEnrichmentService extends LoggerBase {
   }
 
   private async update(orgs: IOrganizations, cacheOrgs: IOrganizations): Promise<IOrganizations> {
-    await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options)
-    return OrganizationRepository.bulkUpdate(orgs, [...this.fields], this.options)
+    await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
+    return OrganizationRepository.bulkUpdate(orgs, [...this.fields], this.options, true)
   }
 
   private static sanitize(data: IEnrichableOrganization): IEnrichableOrganization {
     if (data.address) {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
-      data.location = `${data.address.street_address ?? ''} ${data.address.address_line_2 ?? ''} ${
-        data.address.name ?? ''
-      }`
+      data.location = `${data.address.street_address ?? ''}${data.address.address_line_2 ? `, ${  data.address.address_line_2}` : ''}\n` +
+      `${data.address.locality ?? ''}, ${data.address.region ?? ''}, ${data.address.postal_code ?? ''}\n` +
+      `${data.address.country ?? ''}\n` +
+      `${data.address.metro ?? ''}\n` +
+      `${data.address.name ?? ''}\n` +
+      `${data.address.continent ?? ''}`
     }
     if (data.employeeCountByCountry && !data.employees) {
       const employees = Object.values(data.employeeCountByCountry).reduce(
@@ -185,6 +188,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       employee_count_by_country: 'employeeCountByCountry',
       employee_count: 'employees',
       location: 'address',
+      tags: 'tags',
       ultimate_parent: 'ultimateParent',
       immediate_parent: 'immediateParent',
       affiliated_profiles: 'affiliatedProfiles',
@@ -204,8 +208,6 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       gross_additions_by_month: 'grossAdditionsByMonth',
       gross_departures_by_month: 'grossDeparturesByMonth',
       inferred_revenue: 'inferredRevenue',
-      recent_exec_departures: 'recentExecDepartures',
-      recent_exec_hires: 'recentExecHires',
     })
     data = OrganizationEnrichmentService.sanitize(data)
 

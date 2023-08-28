@@ -67,8 +67,6 @@ const toCreate = {
   gicsSector: null,
   grossAdditionsByMonth: null,
   grossDeparturesByMonth: null,
-  recentExecutiveDepartures: null,
-  recentExecutiveHires: null,
   ultimateParent: null,
   immediateParent: null,
 }

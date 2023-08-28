@@ -14,8 +14,6 @@ ALTER TABLE public."organizations" DROP COLUMN "employeeCountByMonthByRole";
 ALTER TABLE public."organizations" DROP COLUMN "gicsSector";
 ALTER TABLE public."organizations" DROP COLUMN "grossAdditionsByMonth";
 ALTER TABLE public."organizations" DROP COLUMN "grossDeparturesByMonth";
-ALTER TABLE public."organizations" DROP COLUMN "recentExecutiveDepartures";
-ALTER TABLE public."organizations" DROP COLUMN "recentExecutiveHires";
 ALTER TABLE public."organizations" DROP COLUMN "ultimateParent";
 ALTER TABLE public."organizations" DROP COLUMN "immediateParent";
 ALTER TABLE public."organizations" ADD COLUMN "parentUrl" TEXT NULL;

@@ -135,8 +135,6 @@ class OrganizationRepository {
           'gicsSector',
           'grossAdditionsByMonth',
           'grossDeparturesByMonth',
-          'recentExecutiveDepartures',
-          'recentExecutiveHires',
           'ultimateParent',
           'immediateParent',
         ]),
@@ -165,11 +163,35 @@ class OrganizationRepository {
     data: T,
     fields: string[],
     options: IRepositoryOptions,
+    isEnrichment: boolean = false,
   ): Promise<T> {
     // Ensure every organization has a non-undefine primary ID
     const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
     if (isValid) return [] as T
+  
+    if (isEnrichment) {
+      // Fetch existing organizations
+      const existingOrgs = await options.database.organization.findAll({
+        where: {
+          id: {
+            [options.database.Sequelize.Op.in]: data.map((org) => org.id),
+          },
+        },
+      })
 
+      // Append new tags to existing tags instead of overwriting
+      if (fields.includes('tags')) {
+        // @ts-ignore
+        data = data.map((org) => {
+          const existingOrg = existingOrgs.find((o) => o.id === org.id)
+          if (existingOrg && existingOrg.tags) {
+            // Merge existing and new tags without duplicates
+            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+          }
+          return org
+        })
+      }
+    }
     // Using bulk insert to update on duplicate primary ID
     const orgs = await options.database.organization.bulkCreate(data, {
       fields: ['id', 'tenantId', ...fields],
@@ -302,8 +324,6 @@ class OrganizationRepository {
           'gicsSector',
           'grossAdditionsByMonth',
           'grossDeparturesByMonth',
-          'recentExecutiveDepartures',
-          'recentExecutiveHires',
           'ultimateParent',
           'immediateParent',
           'attributes',
@@ -1137,8 +1157,6 @@ class OrganizationRepository {
             'gicsSector',
             'grossAdditionsByMonth',
             'grossDeparturesByMonth',
-            'recentExecutiveDepartures',
-            'recentExecutiveHires',
             'ultimateParent',
             'immediateParent',
           ],

@@ -116,7 +116,31 @@ class OrganizationCacheRepository {
     return this.findById(record.id, options)
   }
 
-  static async bulkUpdate(data: any[], options: IRepositoryOptions): Promise<void> {
+  static async bulkUpdate(data: any[], options: IRepositoryOptions, isEnrichment: boolean = false): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    if (isEnrichment) {
+      // Fetch existing organizations
+      const existingRecords = await options.database.organizationCache.findAll({
+        where: {
+          id: {
+            [options.database.Sequelize.Op.in]: data.map((x) => x.id),
+          },
+        },
+        transaction,
+      })
+
+      // Merge existing tags with new tags instead of overwriting
+      data = data.map(org => {
+        const existingOrg = existingRecords.find(record => record.id === org.id)
+        if (existingOrg && existingOrg.tags) {
+          // Merge existing and new tags without duplicates
+          org.tags = lodash.uniq([...org.tags, ...existingOrg.tags])
+        }
+        return org
+      })
+    }
+
     for (const org of data) {
       this.update(org.id, org, options)
     }

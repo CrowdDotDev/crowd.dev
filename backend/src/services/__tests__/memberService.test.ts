@@ -523,8 +523,6 @@ describe('MemberService tests', () => {
         gicsSector: null,
         grossAdditionsByMonth: null,
         grossDeparturesByMonth: null,
-        recentExecutiveDepartures: null,
-        recentExecutiveHires: null,
         ultimateParent: null,
         immediateParent: null,
       })
@@ -618,8 +616,6 @@ describe('MemberService tests', () => {
         gicsSector: null,
         grossAdditionsByMonth: null,
         grossDeparturesByMonth: null,
-        recentExecutiveDepartures: null,
-        recentExecutiveHires: null,
         ultimateParent: null,
         immediateParent: null,
       })
@@ -717,8 +713,6 @@ describe('MemberService tests', () => {
         gicsSector: null,
         grossAdditionsByMonth: null,
         grossDeparturesByMonth: null,
-        recentExecutiveDepartures: null,
-        recentExecutiveHires: null,
         ultimateParent: null,
         immediateParent: null,
       })
@@ -832,8 +826,6 @@ describe('MemberService tests', () => {
         gicsSector: null,
         grossAdditionsByMonth: null,
         grossDeparturesByMonth: null,
-        recentExecutiveDepartures: null,
-        recentExecutiveHires: null,
         ultimateParent: null,
         immediateParent: null,
       })

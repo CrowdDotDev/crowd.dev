@@ -13,6 +13,7 @@ export interface IOrganization {
   location?: string
   activityCount?: number
   revenueRange?: { max: number; min: number }
+  tags?: IEnrichmentResponse['tags']
   description?: IEnrichmentResponse['summary']
   employeeCountByCountry?: IEnrichmentResponse['employee_count_by_country']
   type?: IEnrichmentResponse['type']
@@ -49,8 +50,6 @@ export interface IOrganization {
   grossAdditionsByMonth?: IEnrichmentResponse['gross_additions_by_month']
   grossDeparturesByMonth?: IEnrichmentResponse['gross_departures_by_month']
   inferredRevenue?: IEnrichmentResponse['inferred_revenue']
-  recentExecutiveDepartures?: IEnrichmentResponse['recent_exec_departures']
-  recentExecutiveHires?: IEnrichmentResponse['recent_exec_hires']
 }
 
 interface ISocialNetwork {

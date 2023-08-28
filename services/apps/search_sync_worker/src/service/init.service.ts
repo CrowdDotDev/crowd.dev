@@ -120,36 +120,6 @@ export class InitService extends LoggerBase {
       gicsSector: 'Fake GICS sector',
       grossAdditionsByMonth: { '2022-05': 7, '2022-06': 6, '2022-07': 1, '2022-08': 1 },
       grossDeparturesByMonth: { '2022-06': 2, '2022-07': 1, '2022-08': 2, '2022-09': 2 },
-      recentExecutiveDepartures: [
-        {
-          departed_date: '2022-11',
-          pdl_id: 'CDyZmCMZfVBnQgmn-peGYw_0000',
-          job_title: 'vice president of sales',
-          job_title_role: 'sales',
-          job_title_sub_role: 'accounts',
-          job_title_levels: ['vp'],
-          new_company_id: null,
-          new_company_job_title: null,
-          new_company_job_title_role: null,
-          new_company_job_title_sub_role: null,
-          new_company_job_title_levels: [],
-        },
-      ],
-      recentExecutiveHires: [
-        {
-          joined_date: '2022-11',
-          pdl_id: 'CDyZmCMZfVBnQgmn-peGYw_0000',
-          job_title: 'vice president of revenue',
-          job_title_role: 'sales',
-          job_title_sub_role: 'business_development',
-          job_title_levels: ['vp'],
-          previous_company_id: 'veraset',
-          previous_company_job_title: 'director of partnerships, data strategist',
-          previous_company_job_title_role: 'operations',
-          previous_company_job_title_sub_role: null,
-          previous_company_job_title_levels: ['director'],
-        },
-      ],
       directSubsidiaries: ['Fake direct subsidiary 1', 'Fake direct subsidiary 2'],
     }
 

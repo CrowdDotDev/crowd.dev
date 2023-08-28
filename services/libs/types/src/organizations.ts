@@ -39,8 +39,6 @@ export interface IOrganization {
   gicsSector?: string
   grossAdditionsByMonth?: Record<string, number>
   grossDeparturesByMonth?: Record<string, number>
-  recentExecutiveDepartures?: IExecutiveChange[]
-  recentExecutiveHires?: IExecutiveChange[]
 }
 
 export interface IExecutiveChange {

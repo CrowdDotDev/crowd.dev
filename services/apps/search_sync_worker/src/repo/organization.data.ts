@@ -51,8 +51,6 @@ export interface IDbOrganizationSyncData {
   gicsSector: string | null
   grossAdditionsByMonth: unknown | null
   grossDeparturesByMonth: unknown | null
-  recentExecutiveDepartures: unknown | null
-  recentExecutiveHires: unknown | null
 
   // aggregate data
   joinedAt: string
