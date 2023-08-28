@@ -15,7 +15,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                     where "organizationId" in ($(ids:csv))),
           member_data as (select os."segmentId",
                                   os."organizationId",
-                                  count(distinct m.id)                                                        as "memberCount",
+                                  count(distinct m.id) filter ( where mo."dateEnd" is null )                  as "memberCount",
                                   count(distinct a.id)                                                        as "activityCount",
                                   case
                                       when array_agg(distinct a.platform) = array [null] then array []::text[]
@@ -30,16 +30,19 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                               on a."organizationId" = os."organizationId" and
                                                 a."segmentId" = os."segmentId" and a."deletedAt" is null
                                     left join members m on a."memberId" = m.id and m."deletedAt" is null
+                                    left join "memberOrganizations" mo
+                                              on m.id = mo."memberId" and a."organizationId" = mo."organizationId"
                                     left join "memberIdentities" mi on m.id = mi."memberId"
                           group by os."segmentId", os."organizationId")
-      select o.id as "organizationId",
+      select o.id                              as "organizationId",
             md."segmentId",
             o."tenantId",
             o.address,
             o.attributes,
             o."createdAt",
+            o."manuallyCreated",
             o.description,
-            COALESCE(o."displayName", o.name) as "displayName",
+            coalesce(o."displayName", o.name) as "displayName",
             o.emails,
             o."employeeCountByCountry",
             o.employees,
@@ -72,10 +75,11 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             md."activityCount",
             md."memberCount",
             md.identities
-      from member_data md
-              inner join organizations o on o.id = md."organizationId"
+      from organizations o
+            left join member_data md on o.id = md."organizationId"
       where o.id in ($(ids:csv))
-        and o."deletedAt" is null;
+        and o."deletedAt" is null
+        and (md."organizationId" is not null or o."manuallyCreated");
       `,
       {
         ids,

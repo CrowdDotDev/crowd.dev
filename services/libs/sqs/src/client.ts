@@ -11,7 +11,7 @@ import {
   SendMessageRequest,
   SendMessageResult,
 } from '@aws-sdk/client-sqs'
-import { IS_DEV_ENV, IS_STAGING_ENV } from '@crowd/common'
+import { IS_DEV_ENV, IS_STAGING_ENV, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { ISqsClientConfig, SqsClient, SqsMessage } from './types'
 
@@ -63,7 +63,11 @@ export const receiveMessage = async (
 
     return []
   } catch (err) {
-    if (err.message === 'We encountered an internal error. Please try again.') {
+    if (
+      err.message === 'We encountered an internal error. Please try again.' ||
+      err.message === 'Request is throttled.' ||
+      err.message === 'Queue Throttled'
+    ) {
       return []
     }
 
@@ -74,20 +78,59 @@ export const receiveMessage = async (
 export const deleteMessage = async (
   client: SqsClient,
   params: DeleteMessageRequest,
+  retry = 0,
 ): Promise<void> => {
-  await client.send(new DeleteMessageCommand(params))
+  try {
+    await client.send(new DeleteMessageCommand(params))
+  } catch (err) {
+    if (
+      (err.message === 'Request is throttled.' || err.message === 'Queue Throttled') &&
+      retry < 5
+    ) {
+      await timeout(1000)
+      return await deleteMessage(client, params, retry + 1)
+    }
+
+    throw err
+  }
 }
 
 export const sendMessage = async (
   client: SqsClient,
   params: SendMessageRequest,
+  retry = 0,
 ): Promise<SendMessageResult> => {
-  return client.send(new SendMessageCommand(params))
+  try {
+    return client.send(new SendMessageCommand(params))
+  } catch (err) {
+    if (
+      (err.message === 'Request is throttled.' || err.message === 'Queue Throttled') &&
+      retry < 5
+    ) {
+      await timeout(1000)
+      return await sendMessage(client, params, retry + 1)
+    }
+
+    throw err
+  }
 }
 
 export const sendMessagesBulk = async (
   client: SqsClient,
   params: SendMessageBatchRequest,
+  retry = 0,
 ): Promise<SendMessageBatchCommandOutput> => {
-  return client.send(new SendMessageBatchCommand(params))
+  try {
+    return client.send(new SendMessageBatchCommand(params))
+  } catch (err) {
+    if (
+      (err.message === 'Request is throttled.' || err.message === 'Queue Throttled') &&
+      retry < 5
+    ) {
+      await timeout(1000)
+      return await sendMessagesBulk(client, params, retry + 1)
+    }
+
+    throw err
+  }
 }

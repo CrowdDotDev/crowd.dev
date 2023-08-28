@@ -47,6 +47,7 @@ setImmediate(async () => {
       integration.id,
       true,
     )
+    process.exit(0)
   } else {
     log.error({ integrationId }, 'Integration not found!')
     process.exit(1)
