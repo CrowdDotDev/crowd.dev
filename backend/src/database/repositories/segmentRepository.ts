@@ -616,10 +616,9 @@ class SegmentRepository extends RepositoryBase<
     const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].count, 10) : 0
 
     const segments = {}
-    subprojects.forEach(entry => {
+    subprojects.forEach((entry) => {
       if (segments[entry.id] === undefined) {
-        
-        segments[entry.id] = {...entry}
+        segments[entry.id] = { ...entry }
         segments[entry.id].activityChannels = {}
         delete segments[entry.id].channel
         delete segments[entry.id].platform
@@ -633,7 +632,7 @@ class SegmentRepository extends RepositoryBase<
       segments[entry.id].activityChannels[entry.platform].push(entry.channel)
     })
 
-    const rows = Object.keys(segments).map(key => segments[key])
+    const rows = Object.keys(segments).map((key) => segments[key])
 
     // TODO: Add member count to segments after implementing member relations
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
