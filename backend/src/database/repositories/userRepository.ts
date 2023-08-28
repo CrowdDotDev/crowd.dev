@@ -477,6 +477,12 @@ export default class UserRepository {
       },
     ]
 
+    whereAnd.push({
+      email: {
+        [Op.ne]: 'help@crowd.dev',
+      },
+    });
+
     if (query) {
       whereAnd.push({
         [Op.or]: [
