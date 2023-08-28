@@ -7,6 +7,7 @@ import averageTenureByLevel from './averageTenureByLevel';
 import averageTenureByRole from './averageTenureByRole';
 import directSubsidiaries from './directSubsidiaries';
 import employeeChurnRate from './employeeChurnRate';
+import employeeCount from './employeeCount';
 import employeeCountByCountry from './employeeCountByCountry';
 import employeeCountByMonth from './employeeCountByMonth';
 import employeeGrowthRate from './employeeGrowthRate';
@@ -38,6 +39,7 @@ export default [
   averageTenureByRole,
   directSubsidiaries,
   employeeChurnRate,
+  employeeCount,
   employeeCountByCountry,
   employeeCountByMonth,
   employeeGrowthRate,

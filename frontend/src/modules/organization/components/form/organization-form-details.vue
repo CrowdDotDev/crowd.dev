@@ -49,13 +49,24 @@
       >
         <el-input v-model="model[fields.location.name]" />
       </el-form-item>
-      <el-form-item
-        label="Number of employees"
-        class="w-1/2"
-      >
+      <el-form-item class="w-1/2">
+        <template #label>
+          <div class="flex gap-2">
+            {{ fields.employees.label }}
+            <el-tooltip
+              content="Organization enrichment"
+              placement="top"
+            >
+              <div class="form-enrichment-badge">
+                <app-svg name="enrichment" />
+              </div>
+            </el-tooltip>
+          </div>
+        </template>
         <el-input
           v-model="model[fields.employees.name]"
           type="number"
+          disabled
         />
       </el-form-item>
       <el-form-item class="w-1/2">
