@@ -385,7 +385,7 @@ class OrganizationRepository {
               member_counts AS (
                   SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
                   FROM "memberOrganizations"
-                  WHERE "organizationId" = :id
+                  WHERE "organizationId" = :id and "dateEnd" is null
                   GROUP BY "organizationId"
               ),
               active_on AS (
