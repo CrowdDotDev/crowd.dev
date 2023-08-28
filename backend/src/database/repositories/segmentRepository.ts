@@ -182,7 +182,6 @@ class SegmentRepository extends RepositoryBase<
         'sourceId',
         'sourceParentId',
         'customActivityTypes',
-        // 'activityChannels',
       ].includes(key),
     )
 
@@ -214,13 +213,13 @@ class SegmentRepository extends RepositoryBase<
 
     if (Object.keys(data.activityChannels).length > 0) {
       let activityChannelsUpsertQuery = `INSERT INTO segmentActivityChannels ("tenantId", "segmentId", "platform", "channel") VALUES `
-      for (let platform in data.activityChannels) {
+      for (const platform in data.activityChannels) {
         data.activityChannels[platform].forEach(channel => {
           activityChannelsUpsertQuery += `(:tenantId, :segmentId, "${platform}", "${channel}),`
         })
       }
 
-      activityChannelsUpsertQuery = activityChannelsUpsertQuery.replace(/\,$/, ' ');
+      activityChannelsUpsertQuery = activityChannelsUpsertQuery.replace(/,$/, ' ')
       activityChannelsUpsertQuery += `ON CONFLICT DO NOTHING;`
 
       await this.options.database.sequelize.query(activityChannelsUpsertQuery, {
@@ -613,9 +612,9 @@ class SegmentRepository extends RepositoryBase<
 
     const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].count, 10) : 0
 
-    let segments = {}
+    const segments = {}
     subprojects.forEach(entry => {
-      if (segments[entry.id] == undefined) {
+      if (segments[entry.id] === undefined) {
         
         segments[entry.id] = {...entry}
         segments[entry.id].activityChannels = {}
@@ -631,9 +630,7 @@ class SegmentRepository extends RepositoryBase<
       segments[entry.id].activityChannels[entry.platform].push(entry.channel)
     })
 
-    const rows = Object.keys(segments).map(key => {
-      return segments[key];
-    })
+    const rows = Object.keys(segments).map(key => segments[key])
 
     // TODO: Add member count to segments after implementing member relations
     return { count, rows, limit: criteria.limit, offset: criteria.offset }

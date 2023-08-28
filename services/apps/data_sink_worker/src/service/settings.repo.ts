@@ -62,7 +62,7 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     platform: string,
     channel: string,
   ): Promise<void> {
-    const result = await this.db().result(
+    await this.db().result(
       `
       INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel") VALUES
         ($(tenantId), $(segmentId), $(platform), $(channel))
@@ -71,6 +71,8 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
       {
         tenantId,
         segmentId,
+        platform,
+        channel,
       },
     )
   }
