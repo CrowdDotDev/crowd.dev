@@ -371,7 +371,7 @@ export default class UserRepository {
         },
       })
     }
-    
+
     // Exclude help@crowd.dev
     whereAnd.push({
       email: {
