@@ -33,7 +33,7 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
             username,
             "objectMemberId",
             "objectMemberUsername"
-      from activities where id in ($(activityIds:csv))
+      from activities where id in ($(activityIds:csv)) and "deletedAt" is null
     `,
       {
         activityIds,
@@ -46,7 +46,7 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
   public async checkActivitiesExist(tenantId: string, activityIds: string[]): Promise<string[]> {
     const results = await this.db().any(
       `
-      select id from activities where "tenantId" = $(tenantId) and id in ($(activityIds:csv))
+      select id from activities where "tenantId" = $(tenantId) and id in ($(activityIds:csv)) and "deletedAt" is null
     `,
       {
         tenantId,
@@ -68,6 +68,44 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
 
   public async getTenantActivitiesForSync(
     tenantId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+      select id from activities 
+      where "tenantId" = $(tenantId) and "deletedAt" is null and id > $(lastId)
+      order by id
+      limit ${perPage};
+      `,
+        {
+          tenantId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+      select id from activities 
+      where "tenantId" = $(tenantId) and "deletedAt" is null
+      order by id
+      limit ${perPage};
+      `,
+        {
+          tenantId,
+        },
+      )
+    }
+
+    return results.map((r) => r.id)
+  }
+
+  public async getRemainingTenantActivitiesForSync(
+    tenantId: string,
     page: number,
     perPage: number,
     cutoffDate: string,
@@ -75,11 +113,11 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
     const results = await this.db().any(
       `
       select id from activities 
-      where "tenantId" = $(tenantId) and 
-            (
-              "searchSyncedAt" is null or
-              "searchSyncedAt" < $(cutoffDate)
-            )
+      where "tenantId" = $(tenantId) and "deletedAt" is null
+       and (
+        "searchSyncedAt" is null or
+        "searchSyncedAt" < $(cutoffDate)
+       )
       limit ${perPage} offset ${(page - 1) * perPage};
       `,
       {
@@ -93,7 +131,9 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
 
   public async getTenantIds(): Promise<string[]> {
     const results = await this.db().any(
-      `select "tenantId" from activities
+      `select "tenantId" 
+       from activities
+        where "deletedAt" is null
        group by "tenantId"
        order by count(id) asc`,
     )

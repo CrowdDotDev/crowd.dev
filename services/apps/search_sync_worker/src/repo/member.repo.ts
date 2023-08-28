@@ -40,24 +40,65 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async getTenantMembersForSync(
     tenantId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+          select m.id
+          from members m
+          where m."tenantId" = $(tenantId) and 
+                m."deletedAt" is null and
+                m.id > $(lastId) and
+                exists (select 1 from activities where "memberId" = m.id) and
+                exists (select 1 from "memberIdentities" where "memberId" = m.id)
+          order by m.id
+          limit ${perPage};`,
+        {
+          tenantId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+          select m.id
+          from members m
+          where m."tenantId" = $(tenantId) and 
+                m."deletedAt" is null and
+                exists (select 1 from activities where "memberId" = m.id) and
+                exists (select 1 from "memberIdentities" where "memberId" = m.id)
+          order by m.id
+          limit ${perPage};`,
+        {
+          tenantId,
+        },
+      )
+    }
+
+    return results.map((r) => r.id)
+  }
+
+  public async getRemainingTenantMembersForSync(
+    tenantId: string,
     page: number,
     perPage: number,
     cutoffDate: string,
   ): Promise<string[]> {
     const results = await this.db().any(
       `
-        select m.id
-        from members m
-        where m."tenantId" = $(tenantId) and 
-              m."deletedAt" is null and
-              (
-                  m."searchSyncedAt" is null or 
-                  m."searchSyncedAt" < $(cutoffDate)
-              ) 
-              and
-              exists (select 1 from activities where "memberId" = m.id) and
-              exists (select 1 from "memberIdentities" where "memberId" = m.id)
-        limit ${perPage} offset ${(page - 1) * perPage};`,
+      select id from members 
+      where "tenantId" = $(tenantId) and "deletedAt" is null
+       and (
+        "searchSyncedAt" is null or
+        "searchSyncedAt" < $(cutoffDate)
+       )
+      limit ${perPage} offset ${(page - 1) * perPage};
+      `,
       {
         tenantId,
         cutoffDate,
