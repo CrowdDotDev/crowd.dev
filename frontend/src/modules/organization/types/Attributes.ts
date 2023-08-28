@@ -5,6 +5,6 @@ export const attributesTypes = {
   url: 'URL',
   date: 'Date',
   boolean: 'Boolean',
-  array: 'Array',
-  json: 'JSON',
+  array: 'List',
+  json: 'Data',
 };

@@ -1,10 +1,19 @@
 <template>
-  <el-input
-    v-model="model"
-    :rows="filteredValue ? Object.keys(filteredValue).length + 2 : 0"
-    type="textarea"
-    disabled
-  />
+  <div v-if="!!filteredValue" class="flex flex-col w-full gap-2">
+    <el-input
+      v-for="[key] in Object.entries(filteredValue)"
+      :key="key"
+      v-model="filteredValue[key]"
+      disabled
+    >
+      <template #prefix>
+        <span class="font-medium">
+          {{ key }}:
+        </span>
+      </template>
+    </el-input>
+  </div>
+  <el-input v-else disabled />
 </template>
 
 <script setup>
@@ -13,7 +22,7 @@ import { computed } from 'vue';
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => {},
+    default: null,
   },
   type: {
     type: String,
@@ -32,7 +41,5 @@ const filteredValue = computed(() => {
 
   return props.modelValue;
 });
-
-const model = computed(() => JSON.stringify(filteredValue.value, null, ' '));
 
 </script>
