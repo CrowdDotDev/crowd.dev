@@ -55,7 +55,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                   m."searchSyncedAt" < $(cutoffDate)
               ) 
               and
-              exists (select 1 from activities where "memberId" = m.id) and
+              (
+                exists (select 1 from activities where "memberId" = m.id) or
+                m."manuallyCreated"
+              ) and
               exists (select 1 from "memberIdentities" where "memberId" = m.id)
         limit ${perPage} offset ${(page - 1) * perPage};`,
       {
@@ -159,6 +162,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m.score,
               m."lastEnriched",
               m."joinedAt",
+              m."manuallyCreated",
               m."createdAt",
               (m.reach -> 'total')::integer                      as "totalReach",
               coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
@@ -178,13 +182,14 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         from "memberSegments" ms
                 inner join members m on ms."memberId" = m.id
                 inner join identities i on m.id = i."memberId"
-                inner join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
+                left join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
                 left join to_merge_data tmd on m.id = tmd."memberId"
                 left join no_merge_data nmd on m.id = nmd."memberId"
                 left join member_tags mt on ms."memberId" = mt."memberId"
                 left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
         where ms."memberId" in ($(ids:csv))
-          and m."deletedAt" is null;`,
+          and m."deletedAt" is null
+          and (ad."memberId" is not null or m."manuallyCreated");`,
       {
         ids,
       },
@@ -209,7 +214,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       from members m
       where m."tenantId" = $(tenantId ) and 
             m.id in ($(memberIds:csv)) and
-            exists(select 1 from activities a where a."memberId" = m.id) and
+            (
+              exists (select 1 from activities where "memberId" = m.id) or
+              m."manuallyCreated"
+            ) and
             exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
       `,
       {

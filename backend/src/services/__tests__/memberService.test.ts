@@ -183,6 +183,7 @@ describe('MemberService tests', () => {
         enrichedBy: [],
         contributions: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -276,6 +277,7 @@ describe('MemberService tests', () => {
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -328,6 +330,7 @@ describe('MemberService tests', () => {
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -379,6 +382,7 @@ describe('MemberService tests', () => {
         reach: { total: 20, [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -430,6 +434,7 @@ describe('MemberService tests', () => {
         reach: { total: 20, [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -508,6 +513,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -584,6 +590,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -664,6 +671,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -760,6 +768,7 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
       })
     })
 
@@ -860,6 +869,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -971,6 +981,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1077,6 +1088,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1255,6 +1267,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1311,6 +1324,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1368,6 +1382,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1426,6 +1441,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1484,6 +1500,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1888,6 +1905,7 @@ describe('MemberService tests', () => {
         lastActivity: activityCreated,
         numberOfOpenSourceContributions: 0,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(
@@ -2128,6 +2146,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
       delete returnedMember1.affiliations
+      delete returnedMember1.manuallyCreated
 
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
@@ -2228,6 +2247,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
       delete returnedMember1.affiliations
+      delete returnedMember1.manuallyCreated
 
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 

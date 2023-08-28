@@ -410,7 +410,7 @@ function platformPayload(platform, value) {
 async function onSubmit() {
   isFormSubmitting.value = true;
   const data = {
-
+    manuallyCreated: true,
     ...formModel.value,
     name: isEditPage.value === false ? formModel.value.displayName : undefined,
     displayName: isEditPage.value === true ? formModel.value.displayName : undefined,

@@ -118,5 +118,8 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     isTeamOrganization: {
       type: OpensearchFieldType.BOOL,
     },
+    manuallyCreated: {
+      type: OpensearchFieldType.BOOL,
+    },
   }
 }

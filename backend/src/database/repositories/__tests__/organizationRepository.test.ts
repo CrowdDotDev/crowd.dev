@@ -52,6 +52,7 @@ const toCreate = {
   employeeCountByCountry: null,
   address: null,
   profiles: null,
+  manuallyCreated: false,
 }
 
 async function createMembers(options) {
