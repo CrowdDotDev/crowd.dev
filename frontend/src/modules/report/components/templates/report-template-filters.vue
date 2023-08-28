@@ -1,71 +1,78 @@
 <template>
   <div class="border-t border-gray-200">
     <div
-      class="flex items-center gap-6 py-4 max-w-5xl mx-auto px-8"
+      class="flex items-center py-4 max-w-5xl mx-auto px-8 justify-between"
     >
-      <app-filter-list-item
-        v-if="showPlatform"
-        :filter="platform"
-        filter-class="custom"
-        @change="onPlatformChange"
-        @reset="onPlatformReset"
-      >
-        <template #button>
-          <div class="relative">
-            <el-button
-              class="custom-btn"
-              @click="handleOpenPlatform"
-            >
-              <div class="flex items-center gap-2">
-                <i class="ri-apps-2-line" /><span
-                  class="font-medium"
-                >Platforms:
-                  <span class="font-normal text-gray-600">{{
-                    platformLabel
-                  }}</span></span>
-              </div>
-            </el-button>
-            <div
-              v-if="hasSelectedPlatform"
-              class="w-2 h-2 rounded-full bg-brand-500 outline outline-4 outline-gray-50 absolute top-[-4px] right-[-4px]"
+      <div class="flex items-center gap-6">
+        <app-filter-list-item
+          v-if="showPlatform"
+          :filter="platform"
+          filter-class="custom"
+          @change="onPlatformChange"
+          @reset="onPlatformReset"
+        >
+          <template #button>
+            <div class="relative">
+              <el-button
+                class="custom-btn"
+                @click="handleOpenPlatform"
+              >
+                <div class="flex items-center gap-2">
+                  <i class="ri-apps-2-line" /><span
+                    class="font-medium"
+                  >Platforms:
+                    <span class="font-normal text-gray-600">{{
+                      platformLabel
+                    }}</span></span>
+                </div>
+              </el-button>
+              <div
+                v-if="hasSelectedPlatform"
+                class="w-2 h-2 rounded-full bg-brand-500 outline outline-4 outline-gray-50 absolute top-[-4px] right-[-4px]"
+              />
+            </div>
+          </template>
+          <template #optionPrefix="{ item }">
+            <img
+              v-if="item.value && platformOptions(item.value) && platformOptions(item.value).image"
+              :src="platformOptions(item.value).image"
+              :alt="platformOptions(item.value).name"
+              class="w-4 h-4 mr-2"
             />
-          </div>
-        </template>
-        <template #optionPrefix="{ item }">
-          <img
-            v-if="item.value && platformOptions(item.value) && platformOptions(item.value).image"
-            :src="platformOptions(item.value).image"
-            :alt="platformOptions(item.value).name"
-            class="w-4 h-4 mr-2"
-          />
-          <i v-else class="ri-radar-line text-base !text-gray-400 !mr-2" />
-        </template>
-      </app-filter-list-item>
+            <i v-else class="ri-radar-line text-base !text-gray-400 !mr-2" />
+          </template>
+        </app-filter-list-item>
 
-      <div
-        v-if="showTeamMembers"
-        class="flex gap-2 items-center"
-      >
-        <el-switch
-          class="switch-filter !ml-0"
-          :model-value="teamMembers"
-          size="small"
-          active-text="Include team members"
-          @change="onTeamMembersChange"
-        />
+        <div
+          v-if="showTeamMembers"
+          class="flex gap-2 items-center"
+        >
+          <el-switch
+            class="switch-filter !ml-0"
+            :model-value="teamMembers"
+            size="small"
+            active-text="Include team members"
+            @change="onTeamMembersChange"
+          />
+        </div>
+
+        <div
+          v-if="showTeamActivities"
+          class="flex gap-2 items-center"
+        >
+          <el-switch
+            class="switch-filter !ml-0"
+            :model-value="teamActivities"
+            size="small"
+            active-text="Include team activities"
+            @change="onTeamActivitiesChange"
+          />
+        </div>
       </div>
 
-      <div
-        v-if="showTeamActivities"
-        class="flex gap-2 items-center"
-      >
-        <el-switch
-          class="switch-filter !ml-0"
-          :model-value="teamActivities"
-          size="small"
-          active-text="Include team activities"
-          @change="onTeamActivitiesChange"
-        />
+      <div class="text-gray-600 text-xs flex items-center gap-1">
+        <i class="ri-information-line text-xs" />
+        <span>Data on this report is not real-time</span>
       </div>
     </div>
   </div>

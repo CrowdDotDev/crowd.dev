@@ -1,67 +1,73 @@
 <template>
   <div
-    class="flex items-center py-4 border-y border-gray-200"
+    class="flex items-center py-4 border-y border-gray-200 justify-between"
   >
-    <!-- period filters -->
-    <app-widget-period
-      :period="period"
-      class="uppercase"
-      @on-update="setPeriod"
-    />
+    <div class="flex items-center">
+      <!-- period filters -->
+      <app-widget-period
+        :period="period"
+        class="uppercase"
+        @on-update="setPeriod"
+      />
 
-    <!-- platform filter -->
-    <el-dropdown
-      v-if="Object.keys(activeIntegrations).length > 1"
-      class="ml-4"
-      placement="bottom-start"
-      trigger="click"
-      size="large"
-    >
-      <el-button
-        class="btn btn--bordered bg-white !py-1.5 !px-3 outline-none"
+      <!-- platform filter -->
+      <el-dropdown
+        v-if="Object.keys(activeIntegrations).length > 1"
+        class="ml-4"
+        placement="bottom-start"
+        trigger="click"
+        size="large"
       >
-        <div class="flex items-center text-xs">
-          <i
-            class="ri-apps-2-line text-base text-gray-900 mr-2"
-          />
-          <span class="font-medium text-gray-900">Platform:</span>
-          <span class="text-gray-600 pl-1">{{
-            getPlatformName
-          }}</span>
-        </div>
-      </el-button>
-
-      <template #dropdown>
-        <el-dropdown-menu class="w-42">
-          <!-- all platforms -->
-          <el-dropdown-item
-            :class="{ 'bg-brand-50': platform === 'all' }"
-            @click="setPlatform('all')"
-          >
-            All platforms
-          </el-dropdown-item>
-          <!-- dynamic active platforms -->
-          <el-dropdown-item
-            v-for="(integration, ii) of Object.keys(
-              activeIntegrations,
-            )"
-            :key="integration"
-            :divided="ii === 0"
-            :class="{
-              'bg-brand-50': platform === integration,
-            }"
-            @click="setPlatform(integration)"
-          >
-            <img
-              :alt="platformDetails(integration).name"
-              :src="platformDetails(integration).image"
-              class="w-4 h-4 mr-2"
+        <el-button
+          class="btn btn--bordered bg-white !py-1.5 !px-3 outline-none"
+        >
+          <div class="flex items-center text-xs">
+            <i
+              class="ri-apps-2-line text-base text-gray-900 mr-2"
             />
-            {{ platformDetails(integration).name }}
-          </el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
+            <span class="font-medium text-gray-900">Platform:</span>
+            <span class="text-gray-600 pl-1">{{
+              getPlatformName
+            }}</span>
+          </div>
+        </el-button>
+
+        <template #dropdown>
+          <el-dropdown-menu class="w-42">
+            <!-- all platforms -->
+            <el-dropdown-item
+              :class="{ 'bg-brand-50': platform === 'all' }"
+              @click="setPlatform('all')"
+            >
+              All platforms
+            </el-dropdown-item>
+            <!-- dynamic active platforms -->
+            <el-dropdown-item
+              v-for="(integration, ii) of Object.keys(
+                activeIntegrations,
+              )"
+              :key="integration"
+              :divided="ii === 0"
+              :class="{
+                'bg-brand-50': platform === integration,
+              }"
+              @click="setPlatform(integration)"
+            >
+              <img
+                :alt="platformDetails(integration).name"
+                :src="platformDetails(integration).image"
+                class="w-4 h-4 mr-2"
+              />
+              {{ platformDetails(integration).name }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
+    <div class="text-gray-600 text-xs flex items-center gap-1">
+      <i class="ri-information-line text-xs" />
+      <span>Data on this dashboard is not real-time</span>
+    </div>
   </div>
 </template>
 
