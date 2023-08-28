@@ -11,6 +11,6 @@ export default {
   showInAttributes: true,
   component: OrganizationAttributesJSONRenderer,
   valueParser: formatFloatToPercentage,
-  keyParser: (key) => snakeToSentenceCase(key),
+  keyParser: (key) => `${snakeToSentenceCase(key)}s`,
   filterValue: (value) => ({ '12_month': value['12_month'] }),
 };
