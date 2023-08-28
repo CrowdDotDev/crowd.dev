@@ -12,7 +12,7 @@
       <div class="flex justify-center">
         <div class="home-content px-8">
           <div
-            class="py-8 -mx-4 px-4 sticky -top-6 bg-gray-50 z-20"
+            class="py-8 -mx-4 px-4 sticky -top-6 bg-gray-50 z-20 flex items-center justify-between"
           >
             <h4
               class="leading-8 font-semibold transition-all duration-100"
@@ -20,6 +20,10 @@
             >
               {{ currentTenant?.name }} team overview
             </h4>
+            <div class=" text-sm flex items-center gap-2">
+              <i class="text-gray-400 ri-time-line text-base" />
+              <span class="text-gray-400">Data on this dashboard is not real-time</span>
+            </div>
           </div>
 
           <div

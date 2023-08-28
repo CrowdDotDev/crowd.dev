@@ -17,20 +17,26 @@
         <div
           class="max-w-5xl flex flex-grow mx-auto items-center justify-between px-6 lg:px-8"
         >
-          <div class="mb-6 mt-4">
+          <div class="mb-6 mt-4 w-full">
             <div
               v-if="currentTenant.name"
               class="font-medium text-brand-500 text-sm mb-2"
             >
               {{ currentTenant.name }}
             </div>
-            <h1 class="text-lg font-semibold">
-              {{
-                report.isTemplate
-                  ? currentTemplate.name
-                  : report.name
-              }}
-            </h1>
+            <div class="flex items-center justify-between">
+              <h1 class="text-lg font-semibold">
+                {{
+                  report.isTemplate
+                    ? currentTemplate.name
+                    : report.name
+                }}
+              </h1>
+              <div class=" text-sm flex items-center gap-2">
+                <i class="text-gray-400 ri-time-line text-base" />
+                <span class="text-gray-400">Data on this report is not real-time</span>
+              </div>
+            </div>
           </div>
 
           <div
