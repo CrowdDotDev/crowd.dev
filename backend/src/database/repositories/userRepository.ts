@@ -372,6 +372,13 @@ export default class UserRepository {
       })
     }
 
+    // Exclude help@crowd.dev
+    whereAnd.push({
+      email: {
+        [Op.ne]: 'help@crowd.dev',
+      },
+    })
+
     if (filter) {
       if (filter.id) {
         whereAnd.push({
@@ -469,6 +476,12 @@ export default class UserRepository {
         },
       },
     ]
+
+    whereAnd.push({
+      email: {
+        [Op.ne]: 'help@crowd.dev',
+      },
+    })
 
     if (query) {
       whereAnd.push({

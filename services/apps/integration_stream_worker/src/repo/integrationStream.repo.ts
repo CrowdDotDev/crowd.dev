@@ -147,16 +147,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async markStreamProcessed(streamId: string): Promise<void> {
+  public async deleteStream(streamId: string): Promise<void> {
     const result = await this.db().result(
-      `update integration.streams
-       set  state = $(state),
-            "processedAt" = now(),
-            "updatedAt" = now()
-       where id = $(streamId)`,
+      `delete from integration.streams where id = $(streamId)`,
       {
         streamId,
-        state: IntegrationStreamState.PROCESSED,
       },
     )
 
