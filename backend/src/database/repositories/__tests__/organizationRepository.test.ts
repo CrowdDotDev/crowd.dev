@@ -51,6 +51,7 @@ const toCreate = {
   employeeCountByCountry: null,
   address: null,
   profiles: null,
+  manuallyCreated: false,
   affiliatedProfiles: null,
   allSubsidiaries: null,
   alternativeDomains: null,

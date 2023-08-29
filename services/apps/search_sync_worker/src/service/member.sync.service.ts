@@ -14,6 +14,7 @@ import { IDbSegmentInfo } from '@/repo/segment.data'
 import { IMemberSyncResult } from './member.sync.data'
 
 export class MemberSyncService extends LoggerBase {
+  private static MAX_BYTE_LENGTH = 25000
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
 
@@ -433,9 +434,6 @@ export class MemberSyncService extends LoggerBase {
     p.keyword_displayName = data.displayName
     const p_attributes = {}
 
-    // max byte length that can be indexed in OpenSearch
-    const maxByteLength = 25000
-
     for (const attribute of attributes) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const attData = data.attributes as any
@@ -443,7 +441,7 @@ export class MemberSyncService extends LoggerBase {
       if (attribute.name in attData) {
         if (attribute.type === MemberAttributeType.SPECIAL) {
           let data = JSON.stringify(attData[attribute.name])
-          data = trimUtf8ToMaxByteLength(data, maxByteLength)
+          data = trimUtf8ToMaxByteLength(data, MemberSyncService.MAX_BYTE_LENGTH)
           p_attributes[`string_${attribute.name}`] = data
         } else {
           const p_data = {}
@@ -453,7 +451,7 @@ export class MemberSyncService extends LoggerBase {
           for (const key of Object.keys(attData[attribute.name])) {
             let value = attData[attribute.name][key]
             if (attribute.type === MemberAttributeType.STRING) {
-              value = trimUtf8ToMaxByteLength(value, maxByteLength)
+              value = trimUtf8ToMaxByteLength(value, MemberSyncService.MAX_BYTE_LENGTH)
             }
             p_data[`${prefix}_${key}`] = value
           }
@@ -469,6 +467,7 @@ export class MemberSyncService extends LoggerBase {
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
     p.date_createdAt = new Date(data.createdAt).toISOString()
+    p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
     p.int_totalReach = data.totalReach
     p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
     p.string_arr_activeOn = data.activeOn
@@ -485,7 +484,7 @@ export class MemberSyncService extends LoggerBase {
         string_username: identity.username,
       })
     }
-    p.obj_arr_identities = p_identities
+    p.nested_identities = p_identities
 
     const p_organizations = []
     for (const organization of data.organizations) {
@@ -500,7 +499,7 @@ export class MemberSyncService extends LoggerBase {
         },
       })
     }
-    p.obj_arr_organizations = p_organizations
+    p.nested_organizations = p_organizations
 
     const p_tags = []
     for (const tag of data.tags) {
@@ -510,7 +509,7 @@ export class MemberSyncService extends LoggerBase {
       })
     }
 
-    p.obj_arr_tags = p_tags
+    p.nested_tags = p_tags
 
     p.uuid_arr_toMergeIds = data.toMergeIds
     p.uuid_arr_noMergeIds = data.noMergeIds

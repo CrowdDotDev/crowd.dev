@@ -79,6 +79,7 @@ export class InitService extends LoggerBase {
       activityCount: 10,
       memberCount: 10,
       identities: ['devto:fakeorg'],
+      manuallyCreated: false,
       immediateParent: 'Fake parent',
       ultimateParent: 'Fake ultimate parent',
       affiliatedProfiles: ['https://placehold.co/400'],
@@ -184,6 +185,7 @@ export class InitService extends LoggerBase {
       noMergeIds: ['b176d053-c53e-42d2-88d2-6fbc3e34184c'],
 
       attributes: {},
+      manuallyCreated: false,
     }
 
     const prepared = MemberSyncService.prefixData(fakeMember, [])

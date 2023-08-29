@@ -453,6 +453,7 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_website = data.website
     p.date_lastEnrichedAt = data.lastEnrichedAt ? new Date(data.lastEnrichedAt).toISOString() : null
     p.bool_isTeamOrganization = data.isTeamOrganization ? data.isTeamOrganization : false
+    p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
     p.string_logo = data.logo || null
     p.obj_linkedin = data.linkedin
     p.obj_github = data.github

@@ -129,6 +129,11 @@ export default (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      manuallyCreated: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       indexes: [

@@ -39,6 +39,7 @@ class OrganizationCacheRepository {
           'address',
           'size',
           'lastEnrichedAt',
+          'manuallyCreated',
         ]),
       },
       {

@@ -4,6 +4,13 @@ export enum OpenSearchIndex {
   ORGANIZATIONS = 'organizations',
 }
 
+// Keeps track of version numbers for all OpenSearch indexes, aiding in managing documents.
+// for eg: members_v1, activities_v1, etc.
+export const IndexVersions = new Map<OpenSearchIndex, number>()
+IndexVersions.set(OpenSearchIndex.MEMBERS, 2)
+IndexVersions.set(OpenSearchIndex.ACTIVITIES, 2)
+IndexVersions.set(OpenSearchIndex.ORGANIZATIONS, 2)
+
 const prefixedMapping = {
   dynamic_templates: [
     // https://opensearch.org/docs/latest/field-types/supported-field-types/string/
@@ -14,6 +21,7 @@ const prefixedMapping = {
         path_match: '.*',
         mapping: {
           type: 'text',
+          analyzer: 'lowercase_keyword_analyzer',
         },
       },
     },
@@ -291,7 +299,7 @@ const prefixedMapping = {
     {
       nested_objects: {
         match_pattern: 'regex',
-        match: '^obj_arr_.*',
+        match: '^nested_.*',
         path_match: '.*',
         mapping: {
           type: 'nested',
@@ -301,7 +309,7 @@ const prefixedMapping = {
     {
       nox_nested_objects: {
         match_pattern: 'regex',
-        match: '^nox_obj_arr_.*',
+        match: '^nox_nested_.*',
         path_match: '.*',
         mapping: {
           type: 'nested',
@@ -566,6 +574,24 @@ const prefixedMapping = {
       },
     },
   ],
+}
+
+const prefixedSettings = {
+  analysis: {
+    analyzer: {
+      lowercase_keyword_analyzer: {
+        type: 'custom',
+        tokenizer: 'keyword',
+        filter: ['lowercase'],
+      },
+    },
+  },
+}
+
+export const OPENSEARCH_INDEX_SETTINGS: Record<OpenSearchIndex, unknown> = {
+  [OpenSearchIndex.MEMBERS]: prefixedSettings,
+  [OpenSearchIndex.ACTIVITIES]: prefixedSettings,
+  [OpenSearchIndex.ORGANIZATIONS]: prefixedSettings,
 }
 
 export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
