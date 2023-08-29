@@ -120,6 +120,7 @@ class OrganizationRepository {
           'founded',
           'size',
           'lastEnrichedAt',
+          'manuallyCreated',
         ]),
 
         tenantId: tenant.id,
@@ -630,9 +631,18 @@ class OrganizationRepository {
 
     if (filter.and) {
       filter.and.push({
-        activityCount: {
-          gt: 0,
-        },
+        or: [
+          {
+            manuallyCreated: {
+              eq: true,
+            },
+          },
+          {
+            activityCount: {
+              gt: 0,
+            },
+          },
+        ],
       })
     }
 
@@ -684,6 +694,8 @@ class OrganizationRepository {
         offset,
       }
     }
+
+    console.log('parsed organization query', JSON.stringify(parsed))
 
     const response = await options.opensearch.search({
       index: OpenSearchIndex.ORGANIZATIONS,
@@ -995,6 +1007,7 @@ class OrganizationRepository {
               'isTeamOrganization',
               'type',
               'attributes',
+              'manuallyCreated',
             ],
             'organization',
           ),
@@ -1093,6 +1106,7 @@ class OrganizationRepository {
             'address',
             'profiles',
             'attributes',
+            'manuallyCreated',
           ],
           'organization',
         ),

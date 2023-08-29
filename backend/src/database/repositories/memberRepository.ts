@@ -85,6 +85,7 @@ class MemberRepository {
           'score',
           'reach',
           'joinedAt',
+          'manuallyCreated',
           'importHash',
         ]),
         tenantId: tenant.id,
