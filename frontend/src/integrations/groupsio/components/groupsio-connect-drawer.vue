@@ -164,7 +164,7 @@
 
 <script setup>
 import {
-  ref, reactive, onMounted, computed, watch,
+  ref, reactive, onMounted, computed,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import {

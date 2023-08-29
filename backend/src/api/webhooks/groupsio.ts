@@ -25,7 +25,6 @@ export default async (req, res) => {
     options,
   )
 
-
   if (integration) {
     req.log.info({ integrationId: integration.id }, 'Incoming Groups.io Webhook!')
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()

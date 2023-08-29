@@ -1,7 +1,7 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
-import axios, {AxiosRequestConfig, AxiosResponse}  from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
 import {
   HubspotFieldMapperFactory,
@@ -44,7 +44,11 @@ import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 import MemberRepository from '@/database/repositories/memberRepository'
-import { GroupsioIntegrationData, GroupsioGetToken, GroupsioVerifyGroup } from '@/serverless/integrations/usecases/groupsio/types'
+import {
+  GroupsioIntegrationData,
+  GroupsioGetToken,
+  GroupsioVerifyGroup,
+} from '@/serverless/integrations/usecases/groupsio/types'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1449,7 +1453,6 @@ export default class IntegrationService {
     )
 
     return integration
-
   }
 
   async groupsioGetToken(data: GroupsioGetToken) {
@@ -1478,14 +1481,12 @@ export default class IntegrationService {
       return {
         groupsioCookie: cookie,
       }
-
     } catch (err) {
-      if ("two_factor_required" in response.data) {
+      if ('two_factor_required' in response.data) {
         throw new Error400(this.options.language, 'errors.groupsio.twoFactorRequired')
       }
       throw new Error400(this.options.language, 'errors.groupsio.invalidCredentials')
     }
-
   }
 
   async groupsioVerifyGroup(data: GroupsioVerifyGroup) {
@@ -1496,7 +1497,7 @@ export default class IntegrationService {
       url: `https://groups.io/api/v1/gettopics?group_name=${encodeURIComponent(groupName)}`,
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': data.cookie,
+        Cookie: data.cookie,
       },
     }
 
@@ -1508,7 +1509,6 @@ export default class IntegrationService {
       return {
         group: response?.data?.data?.group_id,
       }
-
     } catch (err) {
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
     }
