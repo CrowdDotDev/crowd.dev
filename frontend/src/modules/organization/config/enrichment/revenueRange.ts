@@ -83,6 +83,6 @@ export default {
       return '-';
     }
 
-    return revenueRangesOptions.find((range) => range.value.min === value.min && range.value.min === value.max)?.label || value;
+    return revenueRangesOptions.find((range) => range.value.min === value.min && range.value.max === value.max)?.label || value;
   },
 };
