@@ -11,6 +11,9 @@ export default async (req, res) => {
   const event = req.headers['x-groupsio-action']
   const data = req.body
 
+  // TODO: Validate signature
+  // TODO: tied to webhook to integration by group name / group id
+
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
   const tenant = await TenantRepository.findById(req.params.tenantId, options)
   const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(null, tenant)
