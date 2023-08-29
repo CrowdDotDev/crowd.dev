@@ -161,7 +161,11 @@ class SegmentRepository extends RepositoryBase<
   }
 
   override async update(id: string, data: SegmentUpdateData): Promise<SegmentData> {
-    if (!data || typeof data !== 'object' || (typeof data === 'object' && Object.keys(data).length > 0)) {
+    if (
+      !data ||
+      typeof data !== 'object' ||
+      (typeof data === 'object' && Object.keys(data).length > 0)
+    ) {
       return this.findById(id)
     }
 
@@ -631,7 +635,7 @@ class SegmentRepository extends RepositoryBase<
 
     const rows = subprojects
     rows.forEach((row) => {
-      row.activityChannels = row.activityChannels.filter((val) => val !== null )
+      row.activityChannels = row.activityChannels.filter((val) => val !== null)
     })
 
     // TODO: Add member count to segments after implementing member relations
@@ -692,12 +696,16 @@ class SegmentRepository extends RepositoryBase<
     for (const segment of options.currentSegments) {
       if (segment.activityChannels) {
         for (const platform of Object.keys(segment.activityChannels)) {
-          if (!platform || typeof platform !== 'object' || (typeof platform === 'object' && Object.keys(platform).length > 0)) {
+          if (
+            !platform ||
+            typeof platform !== 'object' ||
+            (typeof platform === 'object' && Object.keys(platform).length > 0)
+          ) {
             if (!channels[platform]) {
               channels[platform] = new Set<string>(segment.activityChannels[platform])
             } else {
               segment.activityChannels[platform].forEach((ch) =>
-              (channels[platform] as Set<string>).add(ch),
+                (channels[platform] as Set<string>).add(ch),
               )
             }
           }
