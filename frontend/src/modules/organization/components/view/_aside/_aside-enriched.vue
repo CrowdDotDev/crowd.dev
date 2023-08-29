@@ -5,16 +5,11 @@
       :key="attribute.name"
       class="last:border-0"
       :class="{
-        'py-3 border-b border-gray-200':
-          (organization[attribute.name] && attribute.type !== attributesTypes.array && attribute.type !== attributesTypes.json)
-          || (attribute.type === attributesTypes.array && organization[attribute.name]?.length)
-          || (attribute.type === attributesTypes.json && organization[attribute.name] && Object.keys(organization[attribute.name])),
+        'py-3 border-b border-gray-200': organization[attribute.name],
       }"
     >
       <div
-        v-if="(organization[attribute.name] && attribute.type !== attributesTypes.array && attribute.type !== attributesTypes.json)
-          || (attribute.type === attributesTypes.array && organization[attribute.name]?.length)
-          || (attribute.type === attributesTypes.json && organization[attribute.name] && Object.keys(organization[attribute.name]))"
+        v-if="organization[attribute.name]"
       >
         <div
           class="text-gray-400 font-medium text-2xs"
@@ -63,5 +58,8 @@ const props = defineProps({
   },
 });
 
-const visibleAttributes = computed(() => enrichmentAttributes.filter((a) => props.organization[a.name] && a.showInAttributes));
+const visibleAttributes = computed(() => enrichmentAttributes
+  .filter((a) => ((props.organization[a.name] && a.type !== attributesTypes.array && a.type !== attributesTypes.json)
+    || (a.type === attributesTypes.array && props.organization[a.name]?.length)
+    || (a.type === attributesTypes.json && props.organization[a.name] && Object.keys(props.organization[a.name]))) && a.showInAttributes));
 </script>
