@@ -108,12 +108,17 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     if (data.address) {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
-      data.location = `${data.address.street_address ?? ''}${data.address.address_line_2 ? `, ${  data.address.address_line_2}` : ''}\n` +
-      `${data.address.locality ?? ''}, ${data.address.region ?? ''}, ${data.address.postal_code ?? ''}\n` +
-      `${data.address.country ?? ''}\n` +
-      `${data.address.metro ?? ''}\n` +
-      `${data.address.name ?? ''}\n` +
-      `${data.address.continent ?? ''}`
+      data.location =
+        `${data.address.street_address ?? ''}${
+          data.address.address_line_2 ? `, ${data.address.address_line_2}` : ''
+        }\n` +
+        `${data.address.locality ?? ''}, ${data.address.region ?? ''}, ${
+          data.address.postal_code ?? ''
+        }\n` +
+        `${data.address.country ?? ''}\n` +
+        `${data.address.metro ?? ''}\n` +
+        `${data.address.name ?? ''}\n` +
+        `${data.address.continent ?? ''}`
     }
     if (data.employeeCountByCountry && !data.employees) {
       const employees = Object.values(data.employeeCountByCountry).reduce(

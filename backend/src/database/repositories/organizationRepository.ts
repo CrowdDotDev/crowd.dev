@@ -169,7 +169,7 @@ class OrganizationRepository {
     // Ensure every organization has a non-undefine primary ID
     const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
     if (isValid) return [] as T
-  
+
     if (isEnrichment) {
       // Fetch existing organizations
       const existingOrgs = await options.database.organization.findAll({
