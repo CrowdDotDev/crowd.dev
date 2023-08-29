@@ -48,7 +48,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
 } else {
   setImmediate(async () => {
     const tenantIds = parameters.tenant.split(',')
-    const limit = 1000
+    const limit = 3
 
     for (const tenantId of tenantIds) {
       await BulkorganizationEnrichmentWorker(tenantId, limit, true)
