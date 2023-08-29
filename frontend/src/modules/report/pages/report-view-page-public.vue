@@ -34,7 +34,7 @@
               </h1>
               <div class=" text-sm flex items-center gap-2">
                 <i class="text-gray-400 ri-time-line text-base" />
-                <span class="text-gray-400">Data on this report is not real-time</span>
+                <span class="text-gray-400">Data on this page refreshed every hour</span>
               </div>
             </div>
           </div>
