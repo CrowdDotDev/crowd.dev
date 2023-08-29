@@ -9,7 +9,7 @@ import { FeatureFlag, FeatureFlagRedisKey } from '../../../../types/common'
 export async function BulkorganizationEnrichmentWorker(
   tenantId: string,
   maxEnrichLimit: number = 0,
-  verbose: boolean = false
+  verbose: boolean = false,
 ) {
   const userContext = await getUserContext(tenantId)
   const redis = await getRedisClient(REDIS_CONFIG, true)

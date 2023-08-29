@@ -23,7 +23,7 @@ const options = [
     alias: 'h',
     type: Boolean,
     description: 'Print this usage guide.',
-  }
+  },
 ]
 const sections = [
   {

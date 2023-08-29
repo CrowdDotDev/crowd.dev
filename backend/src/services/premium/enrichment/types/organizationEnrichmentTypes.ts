@@ -11,7 +11,7 @@ export interface IOrganization {
   tenantId?: string
   website?: string
   location?: string
-  activityCount?: number
+  orgActivityCount?: number
   revenueRange?: { max: number; min: number }
   tags?: IEnrichmentResponse['tags']
   description?: IEnrichmentResponse['summary']

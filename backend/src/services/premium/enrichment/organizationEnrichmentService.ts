@@ -5,7 +5,6 @@ import moment from 'moment'
 import PDLJS from 'peopledatalabs'
 import { ApiWebsocketMessage, PlatformType } from '@crowd/types'
 import { REDIS_CONFIG } from '../../../conf'
-import OrganizationCacheRepository from '../../../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
@@ -77,11 +76,11 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       this.maxOrganizationsLimit,
       this.options,
     )) {
-      if (verbose) {
-        count += 1
-        this.log.info(`(${ count }/${ this.maxOrganizationsLimit }). Enriching ${instance.name}`)
-      }
-      if (instance.activityCount > 0) {
+      if (instance.orgActivityCount > 0) {
+        if (verbose) {
+          count += 1
+          this.log.info(`(${count}/${this.maxOrganizationsLimit}). Enriching ${instance.name}`)
+        }
         const data = await this.getEnrichment(instance)
         if (data) {
           const org = this.convertEnrichedDataToOrg(data, instance)
@@ -99,13 +98,15 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         }
       }
     }
-    const orgs = await this.update(enrichedOrganizations, enrichedCacheOrganizations)
+    const orgs = await this.update(enrichedOrganizations)
     await this.sendDoneSignal(orgs)
     return orgs
   }
 
-  private async update(orgs: IOrganizations, cacheOrgs: IOrganizations): Promise<IOrganizations> {
-    await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async update(orgs: IOrganizations): Promise<IOrganizations> {
+    // TODO: Update cache
+    // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
     return OrganizationRepository.bulkUpdate(orgs, [...this.fields], this.options, true)
   }
 
