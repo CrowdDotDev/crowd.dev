@@ -66,11 +66,6 @@ export default class IntegrationRunService extends LoggerBase {
       }
     }
 
-    if (count === 0) {
-      this.log.error('This run has no streams!')
-      return
-    }
-
     if (count === finishedCount) {
       const runInfo = await this.repo.getGenerateStreamData(runId)
 
