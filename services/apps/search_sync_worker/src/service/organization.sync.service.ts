@@ -465,7 +465,7 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_arr_allSubsidiaries = data.allSubsidiaries
     p.string_arr_alternativeDomains = data.alternativeDomains
     p.string_arr_alternativeNames = data.alternativeNames
-    p.int_averageEmployeeTenure = data.averageEmployeeTenure
+    p.float_averageEmployeeTenure = data.averageEmployeeTenure
     p.obj_averageTenureByLevel = data.averageTenureByLevel
     p.obj_averageTenureByRole = data.averageTenureByRole
     p.string_arr_directSubsidiaries = data.directSubsidiaries

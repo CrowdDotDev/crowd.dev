@@ -2,7 +2,7 @@ ALTER TABLE public."organizations" ADD COLUMN "affiliatedProfiles" TEXT[];
 ALTER TABLE public."organizations" ADD COLUMN "allSubsidiaries" TEXT[];
 ALTER TABLE public."organizations" ADD COLUMN "alternativeDomains" TEXT[];
 ALTER TABLE public."organizations" ADD COLUMN "alternativeNames" TEXT[];
-ALTER TABLE public."organizations" ADD COLUMN "averageEmployeeTenure" INTEGER NULL;
+ALTER TABLE public."organizations" ADD COLUMN "averageEmployeeTenure" FLOAT NULL;
 ALTER TABLE public."organizations" ADD COLUMN "averageTenureByLevel" JSONB NULL;
 ALTER TABLE public."organizations" ADD COLUMN "averageTenureByRole" JSONB NULL;
 ALTER TABLE public."organizations" ADD COLUMN "directSubsidiaries" TEXT[];

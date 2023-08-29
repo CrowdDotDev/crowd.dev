@@ -86,7 +86,7 @@ export class InitService extends LoggerBase {
       allSubsidiaries: ['Fake subsidiary 1', 'Fake subsidiary 2'],
       alternativeDomains: ['www.fake1.org', 'www.fake2.org'],
       alternativeNames: ['Fake name 1', 'Fake name 2'],
-      averageEmployeeTenure: 2,
+      averageEmployeeTenure: 2.8,
       averageTenureByLevel: { cxo: 2, manager: 1.5 },
       averageTenureByRole: {
         customer_service: 1.141,

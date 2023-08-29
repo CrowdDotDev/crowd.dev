@@ -140,7 +140,7 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.STRING_ARR,
     },
     averageEmployeeTenure: {
-      type: OpensearchFieldType.INT,
+      type: OpensearchFieldType.FLOAT,
     },
     averageTenureByLevel: {
       type: OpensearchFieldType.OBJECT,
