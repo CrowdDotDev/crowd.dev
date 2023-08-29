@@ -34,7 +34,7 @@
               </h1>
               <div class=" text-sm flex items-center gap-2">
                 <i class="text-gray-500 ri-time-line text-base" />
-                <span class="text-gray-500">Data on this page refreshed every hour</span>
+                <span class="text-gray-500">Data on this page is refreshed every 15 min.</span>
               </div>
             </div>
           </div>
