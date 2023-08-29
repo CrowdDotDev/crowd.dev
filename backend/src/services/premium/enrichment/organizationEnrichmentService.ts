@@ -68,14 +68,19 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     return org.lastEnrichedAt && moment(org.lastEnrichedAt).diff(moment(), 'months') >= lastEnriched
   }
 
-  public async enrichOrganizationsAndSignalDone(): Promise<IOrganizations> {
+  public async enrichOrganizationsAndSignalDone(verbose: boolean = false): Promise<IOrganizations> {
     const enrichedOrganizations: IOrganizations = []
     const enrichedCacheOrganizations: IOrganizations = []
+    let count = 0
     for (const instance of await OrganizationRepository.filterByPayingTenant<IEnrichableOrganization>(
       this.tenantId,
       this.maxOrganizationsLimit,
       this.options,
     )) {
+      if (verbose) {
+        count += 1
+        this.log.info(`(${ count }/${ this.maxOrganizationsLimit }). Enriching ${instance.name}`)
+      }
       if (instance.activityCount > 0) {
         const data = await this.getEnrichment(instance)
         if (data) {
