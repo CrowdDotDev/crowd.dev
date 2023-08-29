@@ -3567,6 +3567,83 @@ class MemberRepository {
       return a.name > b.name ? 1 : -1
     })
   }
+
+  static async getMemberIdsandCount(
+    { limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
+    options: IRepositoryOptions,
+  ) {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      tenantId: tenant.id,
+      segmentIds,
+      limit,
+      offset,
+    }
+
+    let orderByString = ''
+    const orderByParts = orderBy.split('_')
+    const direction = orderByParts[1].toLowerCase()
+    switch (orderByParts[0]) {
+      case 'joinedAt':
+        orderByString = 'm."joinedAt"'
+        break
+      case 'displayName':
+        orderByString = 'm."displayName"'
+        break
+      case 'reach':
+        orderByString = "(m.reach ->> 'total')::int"
+        break
+      case 'score':
+        orderByString = 'm.score'
+        break
+
+      default:
+        throw new Error(`Invalid order by: ${orderBy}!`)
+    }
+    orderByString = `${orderByString} ${direction}`
+
+    const countQuery = `
+    SELECT count(*) FROM (
+      SELECT m.id
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
+    ) as count
+    `
+
+    const memberCount = await seq.query(countQuery, {
+      replacements: params,
+      type: QueryTypes.SELECT,
+    })
+
+    if (countOnly) {
+      return {
+        count: (memberCount[0] as any).count,
+        ids: [],
+      }
+    }
+
+    const members = await seq.query(
+      `SELECT m.id FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds) 
+      ORDER BY ${orderByString} 
+      LIMIT :limit OFFSET :offset`,
+      {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return {
+      count: (memberCount[0] as any).count,
+      ids: members.map((i: any) => i.id),
+    }
+  }
 }
 
 export default MemberRepository
