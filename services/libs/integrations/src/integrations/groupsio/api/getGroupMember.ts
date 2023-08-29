@@ -10,7 +10,9 @@ export const getGroupMember = async (
 ) => {
   const config: AxiosRequestConfig = {
     method: 'get',
-    url: `https://groups.io/api/v1/getmember?member_info_id=${memberInfoId}&group_name=${groupName}`,
+    url: `https://groups.io/api/v1/getmember?member_info_id=${encodeURI(
+      memberInfoId,
+    )}&group_name=${encodeURI(groupName)}`,
     headers: {
       Cookie: cookie,
     },

@@ -11,7 +11,8 @@ export const getTopicsFromGroup = async (
   const config: AxiosRequestConfig = {
     method: 'get',
     url:
-      `https://groups.io/api/v1/gettopics?group=${groupName}` + (page ? `&page_token=${page}` : ''),
+      `https://groups.io/api/v1/gettopics?group_name=${encodeURIComponent(groupName)}` +
+      (page ? `&page_token=${page}` : ''),
     headers: {
       Cookie: cookie,
     },
