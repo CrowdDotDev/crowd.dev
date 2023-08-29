@@ -29,6 +29,10 @@
             {{ currentTemplate.name }}
           </h1>
           <div class="flex items-center gap-9">
+            <div class=" text-sm flex items-center gap-2">
+              <i class="text-gray-500 ri-time-line text-base" />
+              <span class="text-gray-500">Data on this page is refreshed every 15 min.</span>
+            </div>
             <div
               v-if="report.public"
               class="flex items-center gap-2"
