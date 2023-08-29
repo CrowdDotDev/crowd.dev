@@ -133,19 +133,35 @@ export class ActivitySyncService extends LoggerBase {
     this.log.warn({ tenantId }, `Processed total of ${processed} members while cleaning up tenant!`)
   }
 
-  public async syncTenantActivities(
-    tenantId: string,
-    batchSize = 200,
-    syncCutoffTime?: string,
-  ): Promise<void> {
-    const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
-
-    this.log.warn({ tenantId }, 'Syncing all tenant activities!')
+  public async syncTenantActivities(tenantId: string, batchSize = 200): Promise<void> {
+    this.log.debug({ tenantId }, 'Syncing all tenant activities!')
     let count = 0
+    const now = new Date()
+    const cutoffDate = now.toISOString()
 
     await logExecutionTime(
       async () => {
-        let activityIds = await this.activityRepo.getTenantActivitiesForSync(
+        let activityIds = await this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize)
+
+        while (activityIds.length > 0) {
+          count += await this.syncActivities(activityIds)
+
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { tenantId },
+            `Synced ${count} activities! Speed: ${Math.round(
+              count / diffInSeconds,
+            )} activities/second!`,
+          )
+
+          activityIds = await this.activityRepo.getTenantActivitiesForSync(
+            tenantId,
+            batchSize,
+            activityIds[activityIds.length - 1],
+          )
+        }
+
+        activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
           tenantId,
           1,
           batchSize,
@@ -155,8 +171,15 @@ export class ActivitySyncService extends LoggerBase {
         while (activityIds.length > 0) {
           count += await this.syncActivities(activityIds)
 
-          this.log.info({ tenantId }, `Synced ${count} activities!`)
-          activityIds = await this.activityRepo.getTenantActivitiesForSync(
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { tenantId },
+            `Synced ${count} activities! Speed: ${Math.round(
+              count / diffInSeconds,
+            )} activities/second!`,
+          )
+
+          activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
             tenantId,
             1,
             batchSize,
