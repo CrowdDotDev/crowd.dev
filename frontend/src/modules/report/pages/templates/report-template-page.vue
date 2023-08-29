@@ -30,8 +30,8 @@
           </h1>
           <div class="flex items-center gap-9">
             <div class=" text-sm flex items-center gap-2">
-              <i class="text-gray-400 ri-time-line text-base" />
-              <span class="text-gray-400">Data on this page refreshed every hour</span>
+              <i class="text-gray-500 ri-time-line text-base" />
+              <span class="text-gray-500">Data on this page refreshed every hour</span>
             </div>
             <div
               v-if="report.public"
