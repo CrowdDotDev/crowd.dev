@@ -3,7 +3,7 @@ import OrganizationAttributesArrayRenderer from '@/modules/organization/componen
 
 export default {
   name: 'affiliatedProfiles',
-  label: 'Afilliated Profiles',
+  label: 'Affilliated Profiles',
   type: attributesTypes.array,
   showInForm: true,
   showInAttributes: true,

@@ -5,10 +5,17 @@
       :key="attribute.name"
       class="last:border-0"
       :class="{
-        'py-3 border-b border-gray-200': organization[attribute.name],
+        'py-3 border-b border-gray-200':
+          (organization[attribute.name] && attribute.type !== attributesTypes.array && attribute.type !== attributesTypes.json)
+          || (attribute.type === attributesTypes.array && organization[attribute.name]?.length)
+          || (attribute.type === attributesTypes.json && organization[attribute.name] && Object.keys(organization[attribute.name])),
       }"
     >
-      <div v-if="organization[attribute.name]">
+      <div
+        v-if="(organization[attribute.name] && attribute.type !== attributesTypes.array && attribute.type !== attributesTypes.json)
+          || (attribute.type === attributesTypes.array && organization[attribute.name]?.length)
+          || (attribute.type === attributesTypes.json && organization[attribute.name] && Object.keys(organization[attribute.name]))"
+      >
         <div
           class="text-gray-400 font-medium text-2xs"
         >

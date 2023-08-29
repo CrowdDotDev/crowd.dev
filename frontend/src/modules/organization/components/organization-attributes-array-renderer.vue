@@ -61,8 +61,8 @@ import { withHttp } from '@/utils/string';
 
 const props = defineProps({
   value: {
-    type: Object,
-    default: () => {},
+    type: Array,
+    default: () => [],
   },
   title: {
     type: String,
