@@ -178,7 +178,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     segmentId: string,
     domain: string,
   ): Promise<IDbOrganization> {
-    const result = await this.db().oneOrNone(
+    const results = await this.db().any(
       `
       SELECT
         o.id,
@@ -215,29 +215,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           FROM "organizationSegments" os
           WHERE os."segmentId" = $(segmentId)
         )
-      ORDER BY
-        (
-            CASE WHEN o.name IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.url IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.description IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.emails IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.logo IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.tags IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.github IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.twitter IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.linkedin IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.crunchbase IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.employees IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.location IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.website IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.type IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.size IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.headline IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.industry IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.founded IS NOT NULL THEN 1 ELSE 0 END +
-            CASE WHEN o.attributes IS NOT NULL THEN 1 ELSE 0 END
-        ) DESC
-    LIMIT 1
       `,
       {
         tenantId,
@@ -248,7 +225,17 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       },
     )
 
-    return result
+    if (results.length === 0) {
+      return null
+    }
+
+    results.sort((a, b) => {
+      const scoreA = Object.values(a).filter((value) => value !== null).length
+      const scoreB = Object.values(b).filter((value) => value !== null).length
+      return scoreB - scoreA
+    })
+
+    return results[0]
   }
 
   public async insert(tenantId: string, data: IDbInsertOrganizationData): Promise<string> {
