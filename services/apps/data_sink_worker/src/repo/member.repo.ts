@@ -157,6 +157,10 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     const prepared = RepositoryBase.prepare(
       {
         ...data,
+        ...(data?.weakIdentities &&
+          data?.weakIdentities?.length > 0 && {
+            weakIdentities: JSON.stringify(data.weakIdentities),
+          }),
         updatedAt: new Date(),
       },
       dynamicColumnSet,
