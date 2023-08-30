@@ -15,6 +15,7 @@ import {
   IOrganization,
   IOrganizations,
 } from './types/organizationEnrichmentTypes'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
@@ -105,9 +106,23 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async update(orgs: IOrganizations): Promise<IOrganizations> {
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
     // TODO: Update cache
     // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
-    return OrganizationRepository.bulkUpdate(orgs, [...this.fields], this.options, true)
+    const records = await OrganizationRepository.bulkUpdate(
+      orgs,
+      [...this.fields],
+      this.options,
+      true,
+    )
+
+    for (const org of records) {
+      // trigger open search sync
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, org.id)
+    }
+
+    return records
   }
 
   private static sanitize(data: IEnrichableOrganization): IEnrichableOrganization {
