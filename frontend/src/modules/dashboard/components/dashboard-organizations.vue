@@ -72,7 +72,7 @@
               No new organizations during this period
             </app-dashboard-empty-state>
             <div
-              v-if="organizations.length >= 5"
+              v-if="recentOrganizations.length >= 5"
               class="pt-3"
             >
               <router-link
