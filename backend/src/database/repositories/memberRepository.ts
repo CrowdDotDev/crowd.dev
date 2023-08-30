@@ -3330,7 +3330,8 @@ class MemberRepository {
       // clean up organizations without dates if we're getting ones with dates
       await seq.query(
         `
-          DELETE FROM "memberOrganizations"
+          UPDATE "memberOrganizations"
+          SET "deletedAt" = NOW()
           WHERE "memberId" = :memberId
           AND "organizationId" = :organizationId
           AND "dateStart" IS NULL
@@ -3341,7 +3342,7 @@ class MemberRepository {
             memberId,
             organizationId,
           },
-          type: QueryTypes.DELETE,
+          type: QueryTypes.UPDATE,
           transaction,
         },
       )
@@ -3399,14 +3400,15 @@ class MemberRepository {
 
     await seq.query(
       `
-        DELETE FROM "memberOrganizations"
+        UPDATE "memberOrganizations"
+        SET "deletedAt" = NOW()
         WHERE "id" = :id
       `,
       {
         replacements: {
           id,
         },
-        type: QueryTypes.DELETE,
+        type: QueryTypes.UPDATE,
         transaction,
       },
     )
