@@ -167,6 +167,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                               inner join organizations o on mo."organizationId" = o.id
                                               inner join "organizationSegments" os on o.id = os."organizationId"
                                       where mo."memberId" in ($(ids:csv))
+                                        and mo."deletedAt" is null
                                         and o."deletedAt" is null
                                         and exists (select 1
                                           from activities a

@@ -570,6 +570,7 @@ class MemberRepository {
             ) AS orgs
           from "memberOrganizations"
           where "memberId" = :memberId
+            and "deletedAt" is null
           group by "memberId"
         )
         select m."id",
@@ -961,15 +962,10 @@ class MemberRepository {
         as: 'organizations',
         order: [['createdAt', 'ASC']],
         through: {
-          attributes: [
-            'memberId',
-            'organizationId',
-            'createdAt',
-            'updatedAt',
-            'dateStart',
-            'dateEnd',
-            'title',
-          ],
+          attributes: ['memberId', 'organizationId', 'dateStart', 'dateEnd', 'title'],
+          where: {
+            deletedAt: null,
+          },
         },
       },
       {
@@ -1424,6 +1420,7 @@ class MemberRepository {
                 SELECT mo."memberId", JSON_AGG(ROW_TO_JSON(o.*)) AS organizations
                 FROM "memberOrganizations" mo
                 INNER JOIN organizations o ON mo."organizationId" = o.id
+                WHERE mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             ),
             activity_data AS (
@@ -1599,6 +1596,7 @@ class MemberRepository {
                   AND o."tenantId" = :tenantId
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
+                  AND mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             )
         SELECT
@@ -1790,6 +1788,7 @@ class MemberRepository {
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
                   AND ms."segmentId" = os."segmentId"
+                  AND mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             ),
             aggs AS (
@@ -3200,6 +3199,11 @@ class MemberRepository {
       transaction,
       order: [['createdAt', 'ASC']],
       joinTableAttributes: ['dateStart', 'dateEnd', 'title'],
+      through: {
+        where: {
+          deletedAt: null,
+        },
+      },
     })
     MemberRepository.sortOrganizations(output.organizations)
 
@@ -3353,6 +3357,7 @@ class MemberRepository {
           WHERE "memberId" = :memberId
           AND "organizationId" = :organizationId
           AND "dateStart" IS NOT NULL
+          AND "deletedAt" IS NULL
         `,
         {
           replacements: {
@@ -3421,6 +3426,7 @@ class MemberRepository {
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        AND "deletedAt" IS NULL
     `
 
     const records = await seq.query(query, {
@@ -3449,6 +3455,7 @@ class MemberRepository {
           ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
           OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
         )
+        AND "deletedAt" IS NULL
       ORDER BY "dateStart" DESC, id
       LIMIT 1
     `
@@ -3481,6 +3488,7 @@ class MemberRepository {
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
         AND "createdAt" <= :timestamp
+        AND "deletedAt" IS NULL
       ORDER BY "createdAt" DESC, id
       LIMIT 1
     `
@@ -3510,6 +3518,7 @@ class MemberRepository {
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        AND "deletedAt" IS NULL
       ORDER BY "createdAt", id
       LIMIT 1
     `

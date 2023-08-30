@@ -89,12 +89,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           FROM "memberOrganizations" mo
           LEFT JOIN activities a ON a."memberId" = mo."memberId"
           WHERE mo."organizationId" = $(organizationId)
+            AND mo."deletedAt" IS NULL
           GROUP BY mo."organizationId"
       ),
       member_counts AS (
           SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
           FROM "memberOrganizations"
           WHERE "organizationId" = $(organizationId)
+            AND "deletedAt" IS NULL
           GROUP BY "organizationId"
       ),
       active_on AS (
@@ -102,6 +104,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           FROM "memberOrganizations" mo
           JOIN activities a ON a."memberId" = mo."memberId"
           WHERE mo."organizationId" = $(organizationId)
+            AND mo."deletedAt" IS NULL
           GROUP BY mo."organizationId"
       ),
       identities AS (
@@ -109,6 +112,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           FROM "memberOrganizations" mo
           JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
           WHERE mo."organizationId" = $(organizationId)
+            AND mo."deletedAt" IS NULL
           GROUP BY "organizationId"
       ),
       last_active AS (
@@ -116,6 +120,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           FROM "memberOrganizations" mo
           JOIN activities a ON a."memberId" = mo."memberId"
           WHERE mo."organizationId" = $(organizationId)
+            AND mo."deletedAt" IS NULL
           GROUP BY mo."organizationId"
       ),
       segments AS (
@@ -186,7 +191,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             count(actAgg.id)            as "memberCount",
             SUM(actAgg."activityCount") as "activityCount"
         from "memberActivityAggregatesMVs" actAgg
-              inner join "memberOrganizations" memOrgs on actAgg."id" = memOrgs."memberId"
+              inner join "memberOrganizations" memOrgs
+                 on actAgg."id" = memOrgs."memberId"
+                 and memOrgs."deletedAt" is null
         group by memOrgs."organizationId")
         select org.*,
         oa."activityCount",
