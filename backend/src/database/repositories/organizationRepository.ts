@@ -26,10 +26,11 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const query = `
       with orgActivities as (
-        SELECT memOrgs."organizationId", SUM(actAgg."activityCount") "orgActivityCount"
-        FROM "memberActivityAggregatesMVs" actAgg
-        INNER JOIN "memberOrganizations" memOrgs ON actAgg."id"=memOrgs."memberId"
-        GROUP BY memOrgs."organizationId"
+        SELECT activities."organizationId", COUNT(*) "orgActivityCount"
+        FROM "activities"
+        WHERE activities."organizationId" IS NOT NULL
+        GROUP BY activities."organizationId"
+        HAVING COUNT(*) > 0
       ) 
       SELECT org.id "id"
       ,cach.id "cachId"
@@ -84,8 +85,8 @@ class OrganizationRepository {
       WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
       ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
       LIMIT :limit
-    ;
-    `
+      ;
+      `
     const orgs: T[] = await database.query(query, {
       type: QueryTypes.SELECT,
       transaction,
