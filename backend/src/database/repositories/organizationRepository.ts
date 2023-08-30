@@ -85,8 +85,8 @@ class OrganizationRepository {
       WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
       ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
       LIMIT :limit
-      ;
-      `
+    ;
+    `
     const orgs: T[] = await database.query(query, {
       type: QueryTypes.SELECT,
       transaction,
@@ -773,8 +773,6 @@ class OrganizationRepository {
         offset,
       }
     }
-
-    console.log('parsed organization query', JSON.stringify(parsed))
 
     const response = await options.opensearch.search({
       index: OpenSearchIndex.ORGANIZATIONS,
