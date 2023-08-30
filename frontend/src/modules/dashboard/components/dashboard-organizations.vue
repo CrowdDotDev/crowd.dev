@@ -81,8 +81,8 @@
                   query: filterQueryService().setQuery({
                     ...allOrganizations.filter,
                     joinedDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                   }),
                 }"
@@ -161,8 +161,8 @@
                   query: filterQueryService().setQuery({
                     ...allOrganizations.filter,
                     lastActivityDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                   }),
                 }"
@@ -224,10 +224,16 @@ export default {
       'organizations',
       'period',
     ]),
-    periodStartDate() {
-      return moment()
-        .subtract(this.period.value, 'day')
-        .format('YYYY-MM-DD');
+    periodRange() {
+      return [
+        moment()
+          .utc()
+          .subtract(this.period.value - 1, 'day')
+          .format('YYYY-MM-DD'),
+        moment()
+          .utc()
+          .format('YYYY-MM-DD'),
+      ];
     },
   },
   methods: {
