@@ -210,8 +210,13 @@ const accountVerificationFailed = ref(false);
 const cookie = ref('');
 const loading = ref(false);
 
-const cantConnect = computed(() => $v.value.$invalid
-    || !hasFormChanged.value || loading.value || !isAPIConnectionValid.value);
+const cantConnect = computed(() => {
+  if (props.integration?.settings?.email) {
+    return !hasFormChanged.value || loading.value || !isAPIConnectionValid.value;
+  }
+  return $v.value.$invalid
+      || !hasFormChanged.value || loading.value || !isAPIConnectionValid.value;
+});
 
 const rules = {
   email: {
@@ -314,13 +319,11 @@ const handleCancel = () => {
     accountVerificationFailed.value = false;
     $v.value.$reset();
   } else {
-    console.log('props.integration?.settings?.email', props.integration?.settings?.email);
     form.email = props.integration?.settings?.email;
     form.password = '';
     form.twoFactorCode = '';
-    console.log('props.integration?.settings?.groups', props.integration?.settings?.groups);
-    form.groups = props?.integration?.settings?.groups;
-    console.log('form.groups', form.groups);
+    // eslint-disable-next-line no-unsafe-optional-chaining
+    form.groups = props?.integration?.settings?.groups ? [...props.integration?.settings?.groups] : [''];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = props.integration?.settings?.token;
     isAPIConnectionValid.value = true;
