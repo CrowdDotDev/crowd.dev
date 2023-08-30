@@ -19,6 +19,12 @@ const options = [
     description: 'The unique ID of tenant that you would like to enrich.',
   },
   {
+    name: 'limit',
+    alias: 'l',
+    type: Number,
+    description: 'The maximum number of organizations to enrich.',
+  },
+  {
     name: 'help',
     alias: 'h',
     type: Boolean,
@@ -31,8 +37,8 @@ const sections = [
     raw: true,
   },
   {
-    header: 'Enrich members, organizations or both of the tenant',
-    content: 'Enrich all enrichable members, organizations or both of the tenant',
+    header: 'Enrich organizations of the tenant synchronously',
+    content: 'Enrich all enrichable organizations of the tenant',
   },
   {
     header: 'Options',
@@ -43,12 +49,12 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || (!parameters.tenant && (!parameters.organization || !parameters.member))) {
+if (parameters.help || !parameters.tenant || !parameters.limit) {
   console.log(usage)
 } else {
   setImmediate(async () => {
     const tenantIds = parameters.tenant.split(',')
-    const limit = 3
+    const limit = parameters.limit
 
     for (const tenantId of tenantIds) {
       await BulkorganizationEnrichmentWorker(tenantId, limit, true)
