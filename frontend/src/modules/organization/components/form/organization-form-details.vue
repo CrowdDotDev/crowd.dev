@@ -90,10 +90,8 @@
           placeholder=" "
         >
           <el-option
-            v-for="option in revenueRangesOptions"
-            :key="option.id"
-            :value="option.value"
-            :label="option.label"
+            :value="model[fields.revenueRange.name]"
+            :label="revenueRange.displayValue(model[fields.revenueRange.name])"
           />
         </el-select>
       </el-form-item>
@@ -104,7 +102,7 @@
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import { revenueRangesOptions } from '@/modules/organization/config/enrichment/revenueRange';
+import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
