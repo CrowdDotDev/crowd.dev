@@ -5,7 +5,6 @@ import moment from 'moment'
 import PDLJS from 'peopledatalabs'
 import { ApiWebsocketMessage, PlatformType } from '@crowd/types'
 import { REDIS_CONFIG } from '../../../conf'
-import OrganizationCacheRepository from '../../../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
@@ -68,15 +67,20 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     return org.lastEnrichedAt && moment(org.lastEnrichedAt).diff(moment(), 'months') >= lastEnriched
   }
 
-  public async enrichOrganizationsAndSignalDone(): Promise<IOrganizations> {
+  public async enrichOrganizationsAndSignalDone(verbose: boolean = false): Promise<IOrganizations> {
     const enrichedOrganizations: IOrganizations = []
     const enrichedCacheOrganizations: IOrganizations = []
+    let count = 0
     for (const instance of await OrganizationRepository.filterByPayingTenant<IEnrichableOrganization>(
       this.tenantId,
       this.maxOrganizationsLimit,
       this.options,
     )) {
-      if (instance.activityCount > 0) {
+      if (instance.orgActivityCount > 0) {
+        if (verbose) {
+          count += 1
+          this.log.info(`(${count}/${this.maxOrganizationsLimit}). Enriching ${instance.name}`)
+        }
         const data = await this.getEnrichment(instance)
         if (data) {
           const org = this.convertEnrichedDataToOrg(data, instance)
@@ -94,14 +98,16 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         }
       }
     }
-    const orgs = await this.update(enrichedOrganizations, enrichedCacheOrganizations)
+    const orgs = await this.update(enrichedOrganizations)
     await this.sendDoneSignal(orgs)
     return orgs
   }
 
-  private async update(orgs: IOrganizations, cacheOrgs: IOrganizations): Promise<IOrganizations> {
-    await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options)
-    return OrganizationRepository.bulkUpdate(orgs, [...this.fields], this.options)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async update(orgs: IOrganizations): Promise<IOrganizations> {
+    // TODO: Update cache
+    // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
+    return OrganizationRepository.bulkUpdate(orgs, [...this.fields], this.options, true)
   }
 
   private static sanitize(data: IEnrichableOrganization): IEnrichableOrganization {
@@ -128,6 +134,22 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         description += char
       }
       data.description = description
+    }
+    if (data.inferredRevenue) {
+      const revenueList = data.inferredRevenue
+        .replaceAll('$', '')
+        .split('-')
+        .map((x) => {
+          // billions --> millions conversion, if needed
+          const multiple = x.endsWith('B') ? 1000 : 1
+          const value = parseInt(x, 10) * multiple
+          return value
+        })
+
+      data.revenueRange = {
+        min: revenueList[0],
+        max: revenueList[1],
+      }
     }
 
     return data
@@ -166,6 +188,26 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       employee_count_by_country: 'employeeCountByCountry',
       employee_count: 'employees',
       location: 'address',
+      tags: 'tags',
+      ultimate_parent: 'ultimateParent',
+      immediate_parent: 'immediateParent',
+      affiliated_profiles: 'affiliatedProfiles',
+      all_subsidiaries: 'allSubsidiaries',
+      alternative_domains: 'alternativeDomains',
+      alternative_names: 'alternativeNames',
+      average_employee_tenure: 'averageEmployeeTenure',
+      average_tenure_by_level: 'averageTenureByLevel',
+      average_tenure_by_role: 'averageTenureByRole',
+      direct_subsidiaries: 'directSubsidiaries',
+      employee_churn_rate: 'employeeChurnRate',
+      employee_count_by_month: 'employeeCountByMonth',
+      employee_growth_rate: 'employeeGrowthRate',
+      employee_count_by_month_by_level: 'employeeCountByMonthByLevel',
+      employee_count_by_month_by_role: 'employeeCountByMonthByRole',
+      gics_sector: 'gicsSector',
+      gross_additions_by_month: 'grossAdditionsByMonth',
+      gross_departures_by_month: 'grossDeparturesByMonth',
+      inferred_revenue: 'inferredRevenue',
     })
     data = OrganizationEnrichmentService.sanitize(data)
 

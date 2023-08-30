@@ -10,7 +10,7 @@ for (const job of jobs) {
     async () => {
       log.info({ job: job.name }, 'Triggering job.')
       try {
-        await job.onTrigger()
+        await job.onTrigger(log)
       } catch (err) {
         log.error(err, { job: job.name }, 'Error while executing a job!')
       }
