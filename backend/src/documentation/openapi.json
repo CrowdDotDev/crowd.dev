@@ -2991,10 +2991,6 @@
             "type": "array",
             "items": { "type": "string" }
           },
-          "parentUrl": {
-            "description": "The URL of the parent organization if it has one (for example if it has been acquired).",
-            "type": "string"
-          },
           "tags": {
             "description": "Tags associated with the organization.",
             "type": "array",
@@ -4649,7 +4645,6 @@
               "name": "Pied Piper",
               "url": "https://piedpiper.io",
               "description": "The new internet",
-              "parentUrl": null,
               "emails": ["richard@piedpiper.io", "hello@piedpiper.io"],
               "phoneNumbers": null,
               "logo": null,
@@ -4762,7 +4757,6 @@
                   "name": "Pied Piper",
                   "url": "https://piedpiper.io",
                   "description": "The new internet",
-                  "parentUrl": null,
                   "emails": ["richard@piedpiper.io", "hello@piedpiper.io"],
                   "phoneNumbers": null,
                   "logo": null,
@@ -4878,7 +4872,6 @@
                   "name": "Pied Piper",
                   "url": "https://piedpiper.io",
                   "description": "The new internet",
-                  "parentUrl": null,
                   "emails": ["richard@piedpiper.io", "hello@piedpiper.io"],
                   "phoneNumbers": null,
                   "logo": null,
@@ -5047,7 +5040,6 @@
           "name": "Pied Piper",
           "url": "https://piedpiper.io",
           "description": "The new internet",
-          "parentUrl": null,
           "emails": ["richard@piedpiper.io", "hello@piedpiper.io"],
           "phoneNumbers": null,
           "logo": null,
@@ -5080,7 +5072,6 @@
           "name": "Pied Piper",
           "url": "https://piedpiper.io",
           "description": "The new internet",
-          "parentUrl": null,
           "emails": ["richard@piedpiper.io", "hello@piedpiper.io"],
           "phoneNumbers": null,
           "logo": null,
@@ -5117,7 +5108,6 @@
           "name": "Hooli",
           "url": "https://hooli.xyz",
           "description": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
-          "parentUrl": null,
           "emails": ["gavin@hooli.xyz"],
           "phoneNumbers": null,
           "logo": null,

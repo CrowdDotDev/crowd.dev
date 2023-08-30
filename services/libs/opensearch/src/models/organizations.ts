@@ -121,5 +121,59 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     manuallyCreated: {
       type: OpensearchFieldType.BOOL,
     },
+    immediateParent: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    ultimateParent: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    affiliatedProfiles: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    allSubsidiaries: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    alternativeDomains: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    alternativeNames: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    averageEmployeeTenure: {
+      type: OpensearchFieldType.FLOAT,
+    },
+    averageTenureByLevel: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    averageTenureByRole: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    directSubsidiaries: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    employeeChurnRate: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    employeeCountByMonth: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    employeeGrowthRate: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    employeeCountByMonthByLevel: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    employeeCountByMonthByRole: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    gicsSector: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    grossAdditionsByMonth: {
+      type: OpensearchFieldType.OBJECT,
+    },
+    grossDeparturesByMonth: {
+      type: OpensearchFieldType.OBJECT,
+    },
   }
 }
