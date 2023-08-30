@@ -215,24 +215,30 @@ class SegmentRepository extends RepositoryBase<
 
     if (data.activityChannels && typeof data.activityChannels === 'object') {
       if (Object.keys(data.activityChannels).length > 0) {
-        let activityChannelsUpsertQuery = `INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel") VALUES `
-        for (const platform in data.activityChannels) {
-          if (Object.prototype.hasOwnProperty.call(data.activityChannels, platform)) {
-            for (let i = 0; i < data.activityChannels[platform].length; i++) {
-              const channel = data.activityChannels[platform][i]
-              activityChannelsUpsertQuery += `(:tenantId, :segmentId, '${platform}', '${channel}'),`
-            }
-          }
-        }
+        const replacements = {}
+        let valuePlaceholders = ''
+        Object.keys(data.activityChannels).forEach((platform) => {
+          data.activityChannels[platform].forEach((channel, i) => {
+            valuePlaceholders += data.activityChannels[platform]
+            .map(
+              () =>
+                `(:tenantId_${platform}_${i}, :segmentId_${platform}_${i}, :platform_${platform}_${i}, :channel_${platform}_${i})`,
+            )
+            .join(', ')
 
-        activityChannelsUpsertQuery = activityChannelsUpsertQuery.replace(/,$/, ' ')
-        activityChannelsUpsertQuery += `ON CONFLICT DO NOTHING;`
+            replacements[`tenantId_${platform}_${i}`] = this.options.currentTenant.id
+            replacements[`segmentId_${platform}_${i}`] = id
+            replacements[`platform_${platform}_${i}`] = platform
+            replacements[`channel_${platform}_${i}`] = channel
+          })
+        })
 
-        await this.options.database.sequelize.query(activityChannelsUpsertQuery, {
-          replacements: {
-            tenantId: this.options.currentTenant.id,
-            segmentId: id,
-          },
+        await this.options.database.sequelize.query(`
+          INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel")
+          VALUES ${valuePlaceholders}
+          ON CONFLICT DO NOTHING;
+        `, {
+          replacements,
           type: QueryTypes.INSERT,
           transaction,
         })
@@ -348,7 +354,7 @@ class SegmentRepository extends RepositoryBase<
     )
 
     records.forEach((row) => {
-      row.activityChannels = row.activityChannels[0]
+      row.activityChannels = Object.assign({}, ...row.activityChannels)
     })
 
     return records.map((sr) => SegmentRepository.populateRelations(sr))
@@ -402,7 +408,7 @@ class SegmentRepository extends RepositoryBase<
     }
 
     const record = records[0]
-    record.activityChannels = record.activityChannels[0]
+    record.activityChannels = Object.assign({}, ...record.activityChannels)
 
     if (SegmentRepository.isProjectGroup(record)) {
       // find projects
