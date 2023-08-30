@@ -3320,6 +3320,7 @@ class MemberRepository {
     {
       memberId,
       organizationId,
+      source,
       title = null,
       dateStart = null,
       dateEnd = null,
@@ -3377,8 +3378,8 @@ class MemberRepository {
 
     await seq.query(
       `
-        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
-        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
+        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
+        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
         ON CONFLICT DO NOTHING
       `,
       {
@@ -3388,6 +3389,7 @@ class MemberRepository {
           title: title || null,
           dateStart: dateStart || null,
           dateEnd: dateEnd || null,
+          source: source || null,
         },
         type: QueryTypes.INSERT,
         transaction,

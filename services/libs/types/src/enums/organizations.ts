@@ -4,3 +4,10 @@ export enum OrganizationAttributeName {
   SYNC_REMOTE = 'syncRemote',
   DOMAIN = 'domain',
 }
+
+export enum OrganizationSource {
+  EMAIL_DOMAIN = 'email-domain',
+  ENRICHMENT = 'enrichment',
+  HUBSPOT = 'hubspot',
+  GITHUB = 'github',
+}
