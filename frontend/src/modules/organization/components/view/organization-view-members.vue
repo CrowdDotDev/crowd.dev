@@ -87,7 +87,6 @@
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
-  defineProps,
   reactive,
   ref,
   h,
@@ -101,6 +100,7 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppMemberIdentities from '@/modules/member/components/member-identities.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useRouter } from 'vue-router';
 
 const SearchIcon = h(
   'i', // type
@@ -109,12 +109,6 @@ const SearchIcon = h(
 );
 
 const store = useStore();
-const props = defineProps({
-  organization: {
-    type: Object,
-    default: () => {},
-  },
-});
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -125,12 +119,17 @@ const members = reactive([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
+const router = useRouter();
 
 let filter = {};
 
 const fetchMembers = async () => {
+  if (!router.currentRoute.value.params.id) {
+    return;
+  }
+
   const filterToApply = {
-    organizations: [props.organization.id],
+    organizations: [router.currentRoute.value.params.id],
   };
 
   if (query.value && query.value !== '') {
@@ -171,7 +170,7 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: props.organization.segments,
+      segments: [selectedProjectGroup.value.id],
     },
     {
       headers: {
