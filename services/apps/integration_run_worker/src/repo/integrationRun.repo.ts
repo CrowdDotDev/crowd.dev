@@ -228,6 +228,27 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     return result !== null
   }
 
+  public async isIntegrationBeingOnboarded(integrationId: string): Promise<boolean> {
+    const result = await this.db().oneOrNone(
+      `
+      select id from integration.runs
+      where "integrationId" = $(integrationId) and state in ($(states:csv)) and onboarding = true
+      order by "createdAt" desc
+      limit 1
+      `,
+      {
+        integrationId,
+        states: [
+          IntegrationRunState.DELAYED,
+          IntegrationRunState.PROCESSING,
+          IntegrationRunState.PENDING,
+        ],
+      },
+    )
+
+    return result !== null
+  }
+
   public async getLastRuns(runId: string, limit: number): Promise<IntegrationRunState[]> {
     const results = await this.db().any(
       `
