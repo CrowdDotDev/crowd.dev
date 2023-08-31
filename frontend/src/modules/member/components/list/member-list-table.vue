@@ -102,6 +102,7 @@
                 width="250"
                 fixed
                 class="-my-2"
+                sortable="custom"
               >
                 <template #default="scope">
                   <router-link
