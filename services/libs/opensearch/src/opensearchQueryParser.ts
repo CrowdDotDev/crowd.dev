@@ -18,9 +18,15 @@ export class OpensearchQueryParser {
     // sorting comes with the form `joinedAt_DESC`
     const sorterSplit = criteria.orderBy.split('_')
 
+    let sortField = translator.crowdToOpensearch(sorterSplit[0])
+
+    if (sortField === 'string_displayName') {
+      sortField = 'keyword_displayName'
+    }
+
     const sort = [
       {
-        [translator.crowdToOpensearch(sorterSplit[0])]: sorterSplit[1].toLowerCase(),
+        [sortField]: sorterSplit[1].toLowerCase(),
       },
     ]
 
