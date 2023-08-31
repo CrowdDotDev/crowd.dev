@@ -25,67 +25,67 @@ class OrganizationRepository {
     const database = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
     const query = `
-      with orgActivities as (
-        SELECT activities."organizationId", COUNT(*) "orgActivityCount"
-        FROM "activities"
-        WHERE activities."organizationId" IS NOT NULL
-        GROUP BY activities."organizationId"
-        HAVING COUNT(*) > 0
-      ) 
-      SELECT org.id "id"
-      ,cach.id "cachId"
-      ,org."name"
-      ,org."displayName"
-      ,org."location"
-      ,org."website"
-      ,org."lastEnrichedAt"
-      ,org."twitter"
-      ,org."employees"
-      ,org."size"
-      ,org."founded"
-      ,org."industry"
-      ,org."naics"
-      ,org."profiles"
-      ,org."headline"
-      ,org."ticker"
-      ,org."type"
-      ,org."address"
-      ,org."geoLocation"
-      ,org."employeeCountByCountry"
-      ,org."twitter"
-      ,org."linkedin"
-      ,org."linkedin"
-      ,org."crunchbase"
-      ,org."github"
-      ,org."description"
-      ,org."revenueRange"
-      ,org."tags"
-      ,org."affiliatedProfiles"
-      ,org."allSubsidiaries"
-      ,org."alternativeDomains"
-      ,org."alternativeNames"
-      ,org."averageEmployeeTenure"
-      ,org."averageTenureByLevel"
-      ,org."averageTenureByRole"
-      ,org."directSubsidiaries"
-      ,org."employeeChurnRate"
-      ,org."employeeCountByMonth"
-      ,org."employeeGrowthRate"
-      ,org."employeeCountByMonthByLevel"
-      ,org."employeeCountByMonthByRole"
-      ,org."gicsSector"
-      ,org."grossAdditionsByMonth"
-      ,org."grossDeparturesByMonth"
-      ,org."ultimateParent"
-      ,org."immediateParent"
-      ,activity."orgActivityCount"
-      FROM "organizations" as org
-      JOIN "organizationCaches" cach ON org."name" = cach."name"
-      JOIN orgActivities activity ON activity."organizationId" = org."id"
-      WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
-      ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
-      LIMIT :limit
-    ;
+    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
+                            from activities a
+                            where a."tenantId" = :tenantId and
+                                  a."deletedAt" is null and
+                                  a."isContribution" = true
+                            group by a."organizationId"
+                            having count(id) > 0)
+    select org.id
+        , cach.id "cachId"
+        , org."name"
+        , org."displayName"
+        , org."location"
+        , org."website"
+        , org."lastEnrichedAt"
+        , org."twitter"
+        , org."employees"
+        , org."size"
+        , org."founded"
+        , org."industry"
+        , org."naics"
+        , org."profiles"
+        , org."headline"
+        , org."ticker"
+        , org."type"
+        , org."address"
+        , org."geoLocation"
+        , org."employeeCountByCountry"
+        , org."twitter"
+        , org."linkedin"
+        , org."linkedin"
+        , org."crunchbase"
+        , org."github"
+        , org."description"
+        , org."revenueRange"
+        , org."tags"
+        , org."affiliatedProfiles"
+        , org."allSubsidiaries"
+        , org."alternativeDomains"
+        , org."alternativeNames"
+        , org."averageEmployeeTenure"
+        , org."averageTenureByLevel"
+        , org."averageTenureByRole"
+        , org."directSubsidiaries"
+        , org."employeeChurnRate"
+        , org."employeeCountByMonth"
+        , org."employeeGrowthRate"
+        , org."employeeCountByMonthByLevel"
+        , org."employeeCountByMonthByRole"
+        , org."gicsSector"
+        , org."grossAdditionsByMonth"
+        , org."grossDeparturesByMonth"
+        , org."ultimateParent"
+        , org."immediateParent"
+        , activity."orgActivityCount"
+    from "organizations" as org
+            join "organizationCaches" cach on org."name" = cach."name"
+            join org_activities activity on activity."organizationId" = org."id"
+    where :tenantId = org."tenantId"
+      and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
+    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    limit :limit;
     `
     const orgs: T[] = await database.query(query, {
       type: QueryTypes.SELECT,
