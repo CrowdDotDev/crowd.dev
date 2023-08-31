@@ -235,7 +235,6 @@ class IntegrationRepository {
       where: {
         platform,
         tenantId,
-        deletedAt: null,
       },
     })
 
