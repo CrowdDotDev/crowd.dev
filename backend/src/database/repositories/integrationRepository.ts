@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { IntegrationRunState } from '@crowd/types'
+import { IntegrationRunState, PlatformType } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -219,6 +219,23 @@ class IntegrationRepository {
       },
       include,
       transaction,
+    })
+
+    if (!record) {
+      throw new Error404()
+    }
+
+    return this._populateRelations(record)
+  }
+
+  static async findActiveIntegrationByPlatform(platform: PlatformType, tenantId: string) {
+    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+
+    const record = await options.database.integration.findOne({
+      where: {
+        platform,
+        tenantId,
+      },
     })
 
     if (!record) {
