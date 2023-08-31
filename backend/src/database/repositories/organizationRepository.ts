@@ -26,10 +26,11 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const query = `
       with orgActivities as (
-        SELECT memOrgs."organizationId", SUM(actAgg."activityCount") "orgActivityCount"
-        FROM "memberActivityAggregatesMVs" actAgg
-        INNER JOIN "memberOrganizations" memOrgs ON actAgg."id"=memOrgs."memberId"
-        GROUP BY memOrgs."organizationId"
+        SELECT activities."organizationId", COUNT(*) "orgActivityCount"
+        FROM "activities"
+        WHERE activities."organizationId" IS NOT NULL
+        GROUP BY activities."organizationId"
+        HAVING COUNT(*) > 0
       ) 
       SELECT org.id "id"
       ,cach.id "cachId"
@@ -772,8 +773,6 @@ class OrganizationRepository {
         offset,
       }
     }
-
-    console.log('parsed organization query', JSON.stringify(parsed))
 
     const response = await options.opensearch.search({
       index: OpenSearchIndex.ORGANIZATIONS,

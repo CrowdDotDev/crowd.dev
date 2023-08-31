@@ -98,8 +98,8 @@
                   query: filterQueryService().setQuery({
                     ...allMembers.filter,
                     joinedDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                     projectGroup: selectedProjectGroup?.id,
                   }),
@@ -187,8 +187,8 @@
                   query: filterQueryService().setQuery({
                     ...allMembers.filter,
                     lastActivityDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                   }),
                 }"
@@ -255,11 +255,16 @@ export default {
       'members',
       'period',
     ]),
-    periodStartDate() {
-      return moment()
-        .utc()
-        .subtract(this.period.value, 'day')
-        .format('YYYY-MM-DD');
+    periodRange() {
+      return [
+        moment()
+          .utc()
+          .subtract(this.period.value - 1, 'day')
+          .format('YYYY-MM-DD'),
+        moment()
+          .utc()
+          .format('YYYY-MM-DD'),
+      ];
     },
     selectedProjectGroup() {
       const lsSegmentsStore = useLfSegmentsStore();

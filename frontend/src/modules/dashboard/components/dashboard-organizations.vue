@@ -72,7 +72,7 @@
               No new organizations during this period
             </app-dashboard-empty-state>
             <div
-              v-if="organizations.length >= 5"
+              v-if="recentOrganizations.length >= 5"
               class="pt-3"
             >
               <router-link
@@ -81,8 +81,8 @@
                   query: filterQueryService().setQuery({
                     ...allOrganizations.filter,
                     joinedDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                     projectGroup: selectedProjectGroup?.id,
                   }),
@@ -162,8 +162,8 @@
                   query: filterQueryService().setQuery({
                     ...allOrganizations.filter,
                     lastActivityDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                     projectGroup: selectedProjectGroup?.id,
                   }),
@@ -228,10 +228,16 @@ export default {
       'organizations',
       'period',
     ]),
-    periodStartDate() {
-      return moment()
-        .subtract(this.period.value, 'day')
-        .format('YYYY-MM-DD');
+    periodRange() {
+      return [
+        moment()
+          .utc()
+          .subtract(this.period.value - 1, 'day')
+          .format('YYYY-MM-DD'),
+        moment()
+          .utc()
+          .format('YYYY-MM-DD'),
+      ];
     },
     selectedProjectGroup() {
       const lsSegmentsStore = useLfSegmentsStore();
