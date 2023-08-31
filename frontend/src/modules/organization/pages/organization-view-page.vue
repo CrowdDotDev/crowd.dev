@@ -32,7 +32,7 @@
               name="members"
             >
               <app-organization-view-members
-                :organization-id="props.id"
+                :organization="organization"
               />
             </el-tab-pane>
             <el-tab-pane
