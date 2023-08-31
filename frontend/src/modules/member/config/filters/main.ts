@@ -37,7 +37,7 @@ export const memberSearchFilter: SearchFilterConfig = {
       {
         or: [
           { displayName: { textContains: value } },
-          { emails: { contains: value } },
+          { emails: { textContains: value } },
         ],
       },
     ];
