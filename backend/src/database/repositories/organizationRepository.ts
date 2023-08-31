@@ -774,8 +774,6 @@ class OrganizationRepository {
       }
     }
 
-    console.log('parsed organization query', JSON.stringify(parsed))
-
     const response = await options.opensearch.search({
       index: OpenSearchIndex.ORGANIZATIONS,
       body: parsed,
