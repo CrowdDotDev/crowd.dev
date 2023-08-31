@@ -12,18 +12,36 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filterOperator = FilterDateOperator.BETWEEN;
   }
 
-  let filter = {
-    [property]: {
-      [filterOperator]: value,
-    },
-  };
-  if ([FilterDateOperator.EQ, FilterDateOperator.NE].includes(operator)) {
+  let filter;
+
+  if ([FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator)) {
+    filter = {
+      [property]: {
+        [filterOperator]: [
+          moment.utc(value[0]).startOf('day').toISOString(),
+          moment.utc(value[1]).endOf('day').toISOString(),
+        ],
+      },
+    };
+  } else if ([FilterDateOperator.EQ, FilterDateOperator.NE].includes(operator)) {
     filter = {
       [property]: {
         between: [
           moment.utc(value).startOf('day').toISOString(),
           moment.utc(value).endOf('day').toISOString(),
         ],
+      },
+    };
+  } else {
+    let parsedValue = moment.utc(value).startOf('day').toISOString();
+
+    if ([FilterDateOperator.GT].includes(operator)) {
+      parsedValue = moment.utc(value).endOf('day').toISOString();
+    }
+
+    filter = {
+      [property]: {
+        [filterOperator]: parsedValue,
       },
     };
   }
