@@ -9,8 +9,7 @@ export default async (req, res) => {
   const event = req.headers['x-groupsio-action']
   const data = req.body
 
-  // TODO: Validate signature
-  // TODO: tied to webhook to integration by group name / group id
+  // TODO: Validate signature - need to get secret from groups io for Linux
 
   if (!data?.group?.name) {
     await req.responseHandler.error(req, res, {
