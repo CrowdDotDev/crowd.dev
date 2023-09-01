@@ -14,7 +14,7 @@ setImmediate(async () => {
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)

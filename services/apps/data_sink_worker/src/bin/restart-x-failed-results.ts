@@ -26,7 +26,7 @@ setImmediate(async () => {
   const emitter = new DataSinkWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = getDbConnection(DB_CONFIG())
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const repo = new DataSinkRepository(store, log)
