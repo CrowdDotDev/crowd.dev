@@ -5,7 +5,6 @@ export const websiteNormalizer = (website: string): string => {
   const cleanURL = website.replace(/(^\w+:|^)\/\//, '')
   const parsed = parse(cleanURL)
 
-  // If not valid website, return null
   if (!isValid(cleanURL)) {
     return null
   }
