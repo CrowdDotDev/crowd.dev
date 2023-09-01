@@ -1,0 +1,37 @@
+{
+  "name": "@crowd/tracing",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "rm -rf dist && ./node_modules/.bin/tsc",
+    "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
+    "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
+    "format-check": "./node_modules/.bin/prettier --check .",
+    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@crowd/common": "file:../common",
+    "@opentelemetry/api": "~1.4.1",
+    "@opentelemetry/exporter-trace-otlp-grpc": "~0.41.2",
+    "@opentelemetry/resources": "~1.15.2",
+    "@opentelemetry/sdk-node": "~0.41.2",
+    "@opentelemetry/semantic-conventions": "~1.15.2"
+  }
+}
