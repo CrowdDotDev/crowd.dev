@@ -51,6 +51,10 @@ export default abstract class FieldTranslator {
     return value
   }
 
+  isNestedField(field: string): boolean {
+    return field.startsWith('nested_')
+  }
+
   translateObjectToCrowd(object: unknown): unknown {
     const translated = {}
 
