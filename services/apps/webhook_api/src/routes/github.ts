@@ -9,6 +9,7 @@ const SIGNATURE_HEADER = 'x-hub-signature'
 const EVENT_HEADER = 'x-github-event'
 
 export const installGithubRoutes = async (app: express.Express) => {
+  let emitter: IntegrationStreamWorkerEmitter
   app.post(
     '/github',
     asyncWrap(async (req, res) => {
@@ -45,7 +46,11 @@ export const installGithubRoutes = async (app: express.Express) => {
           },
         )
 
-        const emitter = new IntegrationStreamWorkerEmitter(req.sqs, req.log)
+        if (!emitter) {
+          emitter = new IntegrationStreamWorkerEmitter(req.sqs, req.log)
+          await emitter.init()
+        }
+
         await emitter.triggerWebhookProcessing(integration.tenantId, integration.platform, id)
 
         res.sendStatus(204)
