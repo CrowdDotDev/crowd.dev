@@ -19,7 +19,7 @@ const activityId = processArguments[0]
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
 
-  const dbConnection = getDbConnection(DB_CONFIG())
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const service = new ActivitySyncService(store, openSearchService, log)
