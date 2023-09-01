@@ -44,7 +44,10 @@ export const getDbInstance = (): DbInstance => {
 
 let dbConnection: DbConnection | undefined
 
-export const getDbConnection = (config: IDatabaseConfig, maxPoolSize?: number): DbConnection => {
+export const getDbConnection = async (
+  config: IDatabaseConfig,
+  maxPoolSize?: number,
+): Promise<DbConnection> => {
   if (dbConnection) {
     return dbConnection
   }
@@ -61,6 +64,8 @@ export const getDbConnection = (config: IDatabaseConfig, maxPoolSize?: number): 
     max: maxPoolSize || 5,
     query_timeout: 10000,
   })
+
+  await dbConnection.connect()
 
   return dbConnection
 }
