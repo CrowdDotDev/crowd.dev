@@ -212,21 +212,26 @@ const loading = ref(false);
 
 const cantConnect = computed(() => {
   if (props.integration?.settings?.email) {
-    return !hasFormChanged.value || loading.value || !isAPIConnectionValid.value;
+    return $v.value.$invalid || !hasFormChanged.value || loading.value || form.groups.includes('');
   }
   return $v.value.$invalid
-      || !hasFormChanged.value || loading.value || !isAPIConnectionValid.value;
+      || !hasFormChanged.value || loading.value || !isAPIConnectionValid.value || form.groups.length === 0;
 });
 
-const rules = {
-  email: {
-    required,
-    email,
-  },
-  password: {
-    required,
-  },
-};
+const rules = computed(() => {
+  if (!props.integration?.settings?.email) {
+    return {
+      email: {
+        required,
+        email,
+      },
+      password: {
+        required,
+      },
+    };
+  }
+  return {};
+});
 
 const addGroup = () => {
   form.groups.push('');
@@ -306,6 +311,7 @@ const isVisible = computed({
 });
 
 const handleCancel = () => {
+  formSnapshot();
   emit('update:modelValue', false);
   if (!props.integration?.settings?.email) {
     form.email = '';
@@ -331,13 +337,13 @@ const handleCancel = () => {
     accountVerificationFailed.value = false;
     $v.value.$reset();
   }
-  formSnapshot();
 };
 
 onMounted(() => {
   if (props.integration?.settings?.email) {
     form.email = props?.integration?.settings?.email;
-    form.groups = props?.integration?.settings?.groups;
+    // eslint-disable-next-line no-unsafe-optional-chaining
+    form.groups = [...props.integration?.settings?.groups];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = props?.integration?.settings?.token;
     isAPIConnectionValid.value = true;

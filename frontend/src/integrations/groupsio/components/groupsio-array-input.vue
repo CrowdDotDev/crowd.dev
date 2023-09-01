@@ -9,7 +9,7 @@
         }"
         class="mb-0 mr-2 no-margin flex-grow is-error-relative"
       >
-        <el-input v-model="model" :placeholder="placeholder" @blur="$v.$touch" @change="$v.$touch" />
+        <el-input v-model="model" :placeholder="placeholder" @blur="$v.$touch" />
       </app-form-item>
     </div>
     <slot name="after" />
@@ -43,6 +43,7 @@ const props = defineProps({
     default: false,
   },
 });
+
 const notEmail = (value) => !value.includes('@');
 const rules = {
   required,
