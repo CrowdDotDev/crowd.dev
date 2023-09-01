@@ -130,7 +130,7 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
     }
 
     const newStreams: IPendingStream[] = []
-    const nextPageStream: IPendingStream | undefined = undefined
+    let nextPageStream: IPendingStream | undefined
     const activities: AddActivitiesSingle[] = []
 
     // another switch statement to handle the different types of results, helps with type safety
@@ -150,20 +150,32 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
         break
       case DiscourseStreamType.TOPICS_FROM_CATEGORY:
         const data2 = result.data as DiscourseTopicResponse
-        data2.topic_list.topics.forEach((topic) => {
-          newStreams.push({
-            value: DiscourseStreamType.POSTS_FROM_TOPIC,
-            metadata: {
-              topicId: topic.id,
-              topic_slug: topic.slug,
-              page: 0,
-            },
+        if (data2.topic_list.topics.length > 0) {
+          data2.topic_list.topics.forEach((topic) => {
+            newStreams.push({
+              value: DiscourseStreamType.POSTS_FROM_TOPIC,
+              metadata: {
+                topicId: topic.id,
+                topic_slug: topic.slug,
+                page: 0,
+              },
+            })
           })
-        })
+
+          // we aslo need to trigger nextPageStream
+          nextPageStream = {
+            value: DiscourseStreamType.TOPICS_FROM_CATEGORY,
+            metadata: {
+              category_id: stream.metadata.category_id,
+              category_slug: stream.metadata.category_slug,
+              page: stream.metadata.page + 1,
+            },
+          }
+        }
         break
       case DiscourseStreamType.POSTS_FROM_TOPIC:
         const data3 = result.data as DiscoursePostsFromTopicResponse
-        const batchSize = 100
+        const batchSize = 30
         const postBatches: number[][] = []
 
         data3.post_stream.stream.forEach((postId, index) => {
