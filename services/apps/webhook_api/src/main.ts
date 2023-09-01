@@ -8,6 +8,7 @@ import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { sqsMiddleware } from './middleware/sqs'
 import { installGithubRoutes } from './routes/github'
+import cors from 'cors'
 
 const log = getServiceLogger()
 const config = WEBHOOK_API_CONFIG()
@@ -19,7 +20,9 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG(), 3)
 
-  app.use(express.json())
+  app.use(cors({ origin: true }))
+  app.use(express.json({ limit: '5mb' }))
+  app.use(express.urlencoded({ extended: true, limit: '5mb' }))
   app.use(loggingMiddleware(log))
   app.use(databaseMiddleware(dbConnection))
   app.use(sqsMiddleware(sqsClient))

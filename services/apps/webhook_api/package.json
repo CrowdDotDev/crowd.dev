@@ -26,6 +26,7 @@
     "@types/node": "^18.16.3",
     "bunyan-middleware": "^1.0.2",
     "config": "^3.3.9",
+    "cors": "^2.8.5",
     "express": "^4.18.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
