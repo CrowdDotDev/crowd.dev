@@ -1,15 +1,14 @@
+import { parse, isValid } from 'psl'
+
 export const websiteNormalizer = (website: string): string => {
-  // Prepends https:// to make valid URL
-  const completeUrl = website.includes('://') ? website : 'https://' + website
+  // remove http:// or https://
+  const cleanURL = website.replace(/(^\w+:|^)\/\//, '')
+  const parsed = parse(cleanURL)
 
-  const url = new URL(completeUrl)
-  const hostname = url.hostname
-
-  const parts = hostname.split('.')
-  // Ignore subdomains, return only domain and TLD
-  if (parts.length > 2) {
-    return parts.slice(-2).join('.')
+  // If not valid website, return null
+  if (!isValid(cleanURL)) {
+    return null
   }
 
-  return hostname
+  return parsed.domain
 }
