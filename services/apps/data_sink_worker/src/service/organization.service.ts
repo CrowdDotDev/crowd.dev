@@ -6,6 +6,7 @@ import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
+import { websiteNormalizer } from '@crowd/common'
 
 export class OrganizationService extends LoggerBase {
   private readonly repo: OrganizationRepository
@@ -22,6 +23,11 @@ export class OrganizationService extends LoggerBase {
     data: IOrganization,
   ): Promise<string> {
     data = this.normalizeSocialFields(data)
+
+    // Normalize the website URL if it exists
+    if (data.website) {
+      data.website = websiteNormalizer(data.website)
+    }
 
     // find from cache by name
     let cached = await this.repo.findCacheByName(data.name)
