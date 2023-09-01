@@ -18,9 +18,15 @@ export class OpensearchQueryParser {
     // sorting comes with the form `joinedAt_DESC`
     const sorterSplit = criteria.orderBy.split('_')
 
+    let sortField = translator.crowdToOpensearch(sorterSplit[0])
+
+    if (sortField === 'string_displayName') {
+      sortField = 'keyword_displayName'
+    }
+
     const sort = [
       {
-        [translator.crowdToOpensearch(sorterSplit[0])]: sorterSplit[1].toLowerCase(),
+        [sortField]: sorterSplit[1].toLowerCase(),
       },
     ]
 
@@ -59,7 +65,18 @@ export class OpensearchQueryParser {
       } else if (translator.fieldExists(key)) {
         const searchKey: string = translator.crowdToOpensearch(key)
 
-        query.bool.must.push(this.parseColumnCondition(filters[key], searchKey))
+        if (translator.isNestedField(searchKey)) {
+          // Extract the path to the nested object
+          const nestedPath = searchKey.split('.')[0]
+          query.bool.must.push({
+            nested: {
+              path: nestedPath,
+              query: this.parseColumnCondition(filters[key], searchKey),
+            },
+          })
+        } else {
+          query.bool.must.push(this.parseColumnCondition(filters[key], searchKey))
+        }
       } else {
         throw new Error(`Unknown field or operator: ${key}!`)
       }
