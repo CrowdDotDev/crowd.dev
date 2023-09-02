@@ -14,7 +14,7 @@ export interface YoutubeIntegrationSettings {
   uploadPlaylistId: string
   channelId: string
   nextPageToken?: string
-  keywords?: string[]
+  keywords: string[]
 } 
 
 export interface YoutubeVideoStreamConfig {

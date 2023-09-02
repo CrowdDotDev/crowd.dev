@@ -1406,15 +1406,19 @@ export default class IntegrationService {
 
   async connectYoutube(integrationData) {
     this.options.log.info('Creating youtube integration!!')
-    let playlistId = null
+    let uploadPlaylistId = null
     let channelId = null 
-    let keywords = null
+    let keywords = []
     let shouldVerifyChannelId = true
 
     const isValidKeyword = integrationData.keywords && Array.isArray(integrationData.keywords)
     if (isValidKeyword && integrationData.keywords.length > 0) {
       keywords = integrationData.keywords
       shouldVerifyChannelId = false
+
+      if (integrationData.keywords.length > 5) {
+        throw new Error400('The maximum number of keywords is 5')
+      }
     }
 
     if (shouldVerifyChannelId) {
@@ -1432,9 +1436,9 @@ export default class IntegrationService {
         const response = (await axios(channelDetailsConfig)).data
         const channelDetails = response.items[0] 
         channelId = channelDetails.id
-        playlistId = channelDetails.contentDetails.relatedPlaylists.uploads;
+        uploadPlaylistId = channelDetails.contentDetails.relatedPlaylists.uploads
       } catch (err) {
-        throw new Error400(`The channel id your provided channel : ${integrationData.channelId} or the api key : ${integrationData.apiKey} provided is not valid`)
+        throw new Error400(`The channel: ${integrationData.channelId} with the api key: ${integrationData.apiKey} is not valid`)
       }
     }
 
@@ -1447,8 +1451,8 @@ export default class IntegrationService {
           platform: PlatformType.YOUTUBE,
           settings: {
             apiKey: integrationData.apiKey,
-            uploadPlaylistId: playlistId,
-            channelId: channelId,
+            uploadPlaylistId,
+            channelId,
             keywords
           },
           status: 'in-progress',

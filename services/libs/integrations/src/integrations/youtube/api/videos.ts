@@ -15,8 +15,8 @@ export const getVideos = async (ctx: IProcessStreamContext): Promise<YoutubeVide
         type: 'video',
         order: 'date',
         maxResults: 50,
-        part: 'snippet'
-      }
+        part: 'snippet',
+      },
     }
 
     const shouldLoadNextPage = channelSettings.nextPageToken && channelSettings.nextPageToken != ''
@@ -27,7 +27,6 @@ export const getVideos = async (ctx: IProcessStreamContext): Promise<YoutubeVide
     const response = (await axios(getChannelVideosConfig)).data
     return response
   } catch (err) {
-    // we've hit the limits for gettings data or there's an error, anyway just log it 
     ctx.log.error(
       { err, channelSettings },
       'Error while using the youtube search api to get videos',

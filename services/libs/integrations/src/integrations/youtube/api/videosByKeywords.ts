@@ -2,11 +2,13 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { YoutubeIntegrationSettings, YoutubeVideoSearch } from '../types'
 import { IProcessStreamContext } from '@/types'
 
-export const getVideosByKeywords = async (ctx: IProcessStreamContext): Promise<YoutubeVideoSearch> => {
+export const getVideosByKeywords = async (
+  ctx: IProcessStreamContext
+): Promise<YoutubeVideoSearch> => {
   const channelSettings = ctx.stream.data as YoutubeIntegrationSettings
 
   const now = new Date()
-  const publishedAfter = new Date(now.getTime() - (1000 * 60 * 60 * 24 * 30)) // 30 days
+  const publishedAfter = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 30) // 30 days
 
   try {
     const getVideosByKeywordsRequestConfig: AxiosRequestConfig = {
@@ -18,8 +20,8 @@ export const getVideosByKeywords = async (ctx: IProcessStreamContext): Promise<Y
         order: 'date',
         maxResults: 50,
         publishedAfter: publishedAfter.toISOString(),
-        part: 'snippet'
-      }
+        part: 'snippet',
+      },
     }
 
     const includesKeywords = channelSettings.keywords && channelSettings.keywords.length > 0

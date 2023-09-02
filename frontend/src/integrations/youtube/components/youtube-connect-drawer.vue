@@ -125,7 +125,7 @@ export default {
       handler(newValue) {
         if (!newValue && !this.isKeywordsEnabled) {
           this.isKeywordsEnabled = true
-        } else if (newValue != '') {
+        } else if (newValue !== '') {
           this.isKeywordsEnabled = false
         }
       }
@@ -144,11 +144,11 @@ export default {
       return this.keywords.length > 0
     },
     connectDisabled() {
-      if (!this.apiKey || this.apiKey == "") {
+      if (!this.apiKey || this.apiKey === "") {
         return true;
       }
 
-      if (this.channelId && this.channelId != '') {
+      if (this.channelId && this.channelId !== '') {
         return false;
       }
 

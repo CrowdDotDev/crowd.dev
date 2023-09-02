@@ -15,7 +15,7 @@ export const getComments = async (ctx: IProcessStreamContext): Promise<YoutubeCo
         order: 'time',
         maxResults: 100,
         part: 'snippet',
-      }
+      },
     }
 
     const shouldLoadNextPage = videoConfig.nextPageToken && videoConfig.nextPageToken != ''
@@ -26,7 +26,6 @@ export const getComments = async (ctx: IProcessStreamContext): Promise<YoutubeCo
     const response = (await axios(getThreadedCommentsConfig)).data
     return response
   } catch (err) {
-    // we've hit the limits for gettings data or there's an error, anyway just log it 
     ctx.log.error(
       { err, videoConfig },
       'Error while using the youtube comments api to get a video comments',
