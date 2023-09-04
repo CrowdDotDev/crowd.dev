@@ -167,6 +167,15 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
     const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
 
+    // Lock the row to be updated
+    await this.db().oneOrNone(
+      `SELECT * FROM "members" WHERE id = $(id) AND "tenantId" = $(tenantId) FOR UPDATE`,
+      {
+        id,
+        tenantId,
+      },
+    )
+
     const condition = this.format('where id = $(id) and "tenantId" = $(tenantId)', {
       id,
       tenantId,
