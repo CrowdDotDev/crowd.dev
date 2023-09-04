@@ -586,34 +586,6 @@ class IntegrationRepository {
 
     return output
   }
-
-  static async findGroupsioIntegrationByGrounName(groupName: string, options: IRepositoryOptions) {
-    // I need a a query to find integration of type PlatformType.GROUPSIO by groupName
-    // integration table has settings column which is a jsonb column
-    // inside it where is a groupNames fiels which is an array of strings
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const record = await options.database.integration.findOne({
-      where: {
-        platform: PlatformType.GROUPSIO,
-        tenantId: currentTenant.id,
-        settings: {
-          groups: {
-            [Op.contains]: [groupName],
-          },
-        },
-      },
-      transaction,
-    })
-
-    if (!record) {
-      return null
-    }
-
-    return this._populateRelations(record)
-  }
 }
 
 export default IntegrationRepository
