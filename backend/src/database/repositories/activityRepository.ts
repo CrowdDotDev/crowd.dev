@@ -49,29 +49,27 @@ class ActivityRepository {
       data.platform = data.platform.toLowerCase()
     }
 
+    const member = await options.database.member.findByPk(data.member)
+
     const record = await options.database.activity.create(
       {
-        ...lodash.pick(
-          data,
-          [
-            'type',
-            'timestamp',
-            'platform',
-            'isContribution',
-            'score',
-            'attributes',
-            'channel',
-            'body',
-            'title',
-            'url',
-            'sentiment',
-            'sourceId',
-            'importHash',
-            'username',
-            'objectMemberUsername',
-            data?.isBotActivity ? 'isBotActivity' : null,
-          ].filter(Boolean),
-        ),
+        ...lodash.pick(data, [
+          'type',
+          'timestamp',
+          'platform',
+          'isContribution',
+          'score',
+          'attributes',
+          'channel',
+          'body',
+          'title',
+          'url',
+          'sentiment',
+          'sourceId',
+          'importHash',
+          'username',
+          'objectMemberUsername',
+        ]),
         memberId: data.member || null,
         objectMemberId: data.objectMember || undefined,
         organizationId: data.organizationId || undefined,
@@ -82,6 +80,7 @@ class ActivityRepository {
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
+        isBotActivity: member.attributes?.isBot?.default || false,
       },
       {
         transaction,
