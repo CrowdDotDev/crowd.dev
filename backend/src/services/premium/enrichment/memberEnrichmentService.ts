@@ -11,6 +11,7 @@ import {
   MemberEnrichmentAttributes,
   PlatformType,
   IOrganization,
+  OrganizationSource,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
@@ -321,6 +322,7 @@ export default class MemberEnrichmentService extends LoggerBase {
             title: workExperience.title,
             dateStart: workExperience.startDate,
             dateEnd,
+            source: OrganizationSource.ENRICHMENT,
           }
           await MemberRepository.createOrUpdateWorkExperience(data, options)
           await OrganizationRepository.includeOrganizationToSegments(org.id, options)
