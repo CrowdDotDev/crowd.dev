@@ -1,4 +1,7 @@
 import { Op } from 'sequelize'
+import { v4 as uuid } from 'uuid'
+import moment from 'moment'
+
 import Error404 from '../../../errors/Error404'
 import { PlatformType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
@@ -11,6 +14,9 @@ import TaskRepository from '../taskRepository'
 import lodash from 'lodash'
 import SegmentRepository from '../segmentRepository'
 import { SegmentStatus } from '../../../types/segmentTypes'
+import { populateSegments } from '../../utils/segmentTestUtils'
+import MemberService from '../../../services/memberService'
+import OrganizationService from '../../../services/organizationService'
 
 const db = null
 
@@ -135,6 +141,7 @@ describe('MemberRepository tests', () => {
         numberOfOpenSourceContributions: 0,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -204,6 +211,7 @@ describe('MemberRepository tests', () => {
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -266,6 +274,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -500,6 +509,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -550,6 +560,7 @@ describe('MemberRepository tests', () => {
         organizations: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       const memberById = await MemberRepository.findById(
@@ -720,6 +731,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activeDaysCount
       delete member1Returned.numberOfOpenSourceContributions
       delete member1Returned.affiliations
+      delete member1Returned.manuallyCreated
       member1Returned.segments = member1Returned.segments.map((s) => s.id)
 
       const found = await MemberRepository.memberExists(
@@ -2979,6 +2991,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3077,6 +3090,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         joinedAt: new Date(updateFields.joinedAt),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -3161,6 +3175,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3277,6 +3292,7 @@ describe('MemberRepository tests', () => {
         lastActive: null,
         lastActivity: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -3622,6 +3638,22 @@ describe('MemberRepository tests', () => {
   })
 
   describe('removeNoMerge method', () => {
+    let options
+    let memberService
+
+    let defaultMember
+
+    beforeEach(async () => {
+      options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(options)
+
+      memberService = new MemberService(options)
+
+      defaultMember = {
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+    })
     it('Should remove a member from other members noMerge list', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
@@ -3672,6 +3704,211 @@ describe('MemberRepository tests', () => {
 
       // Member1 is still in member2.noMerge list
       expect(memberUpdated2.noMerge[0]).toBe(memberUpdated1.id)
+    })
+  })
+
+  describe('work experiences', () => {
+    let options
+    let memberService
+    let organizationService
+
+    let defaultMember
+
+    beforeEach(async () => {
+      options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await populateSegments(options)
+
+      memberService = new MemberService(options)
+      organizationService = new OrganizationService(options)
+
+      defaultMember = {
+        platform: PlatformType.GITHUB,
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+    })
+
+    async function createMember(data = {}) {
+      return await memberService.upsert({
+        ...defaultMember,
+        username: {
+          [PlatformType.GITHUB]: uuid(),
+        },
+        ...data,
+      })
+    }
+
+    async function createOrg(name, data = {}) {
+      return await organizationService.findOrCreate({
+        name,
+        ...data,
+      })
+    }
+
+    async function addWorkExperience(memberId, orgId, data = {}) {
+      return await MemberRepository.createOrUpdateWorkExperience(
+        {
+          memberId,
+          organizationId: orgId,
+          ...data,
+        },
+        options,
+      )
+    }
+
+    async function findMember(id) {
+      return await memberService.findById(id)
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return null
+      }
+      return moment(value).format('YYYY-MM-DD')
+    }
+
+    it('Should not create multiple work experiences for same org without dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id)
+      await addWorkExperience(member.id, org.id)
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(1)
+    })
+
+    it('Should not create multiple work experiences for same org with same start dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+      })
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+      })
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(1)
+    })
+
+    it('Should not create multiple work experiences for same org with same dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+        dateEnd: '2020-01-05',
+      })
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+        dateEnd: '2020-01-05',
+      })
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(1)
+    })
+
+    it('Should create multiple work experiences for same org with different dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+      })
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-08',
+      })
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+        dateEnd: '2020-01-05',
+      })
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-06',
+        dateEnd: '2020-01-07',
+      })
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(4)
+    })
+
+    it('Should clean up work experiences without dates once we get start dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id)
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+      })
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(1)
+      const dates = member.organizations[0].memberOrganizations.dataValues
+      expect(formatDate(dates.dateStart)).toBe('2020-01-01')
+      expect(formatDate(dates.dateEnd)).toBeNull()
+    })
+    it('Should clean up work experiences without dates once we get both dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id)
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+        dateEnd: '2020-07-01',
+      })
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(1)
+      const dates = member.organizations[0].memberOrganizations.dataValues
+      expect(formatDate(dates.dateStart)).toBe('2020-01-01')
+      expect(formatDate(dates.dateEnd)).toBe('2020-07-01')
+    })
+    it('Should not add new work experiences without dates if we have start dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+      })
+      await addWorkExperience(member.id, org.id)
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(1)
+      const dates = member.organizations[0].memberOrganizations.dataValues
+      expect(formatDate(dates.dateStart)).toBe('2020-01-01')
+      expect(formatDate(dates.dateEnd)).toBeNull()
+    })
+    it('Should not add new work experiences without dates if we have both dates', async () => {
+      let member = await createMember()
+
+      const org = await createOrg('org')
+
+      await addWorkExperience(member.id, org.id, {
+        dateStart: '2020-01-01',
+        dateEnd: '2020-07-01',
+      })
+      await addWorkExperience(member.id, org.id)
+
+      member = await findMember(member.id)
+
+      expect(member.organizations.length).toBe(1)
+      const dates = member.organizations[0].memberOrganizations.dataValues
+      expect(formatDate(dates.dateStart)).toBe('2020-01-01')
+      expect(formatDate(dates.dateEnd)).toBe('2020-07-01')
     })
   })
 })

@@ -31,52 +31,58 @@
               <span class="ri-arrow-down-s-line text-base ml-2 flex items-center h-4" />
             </el-button>
           </template>
-          <div class="popover-item h-auto mb-1 py-2 px-2.5" @click="createAutomation('webhook')">
-            <div class="flex">
-              <div class="mt-0.5">
-                <img alt="Webhook" src="/images/automation/webhook.png" class="w-4 max-w-4">
-              </div>
-              <div class="pl-2">
-                <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
-                  Webhook
-                </h6>
-                <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
-                  Send webhook payloads to automate workflows
-                </p>
-              </div>
-            </div>
-          </div>
-          <div
-            class="popover-item  h-auto py-2 px-2.5"
-            :class="{ 'hover:bg-white !cursor-default': !slackConnected }"
-            @click="createSlackAutomation"
+
+          <el-tooltip
+            v-for="(automationType, key) of automationTypes"
+            :key="key"
+            :content="automationType.tooltip && automationType.tooltip(store)"
+            :disabled="!(automationType.tooltip && automationType.tooltip(store))"
+            placement="top"
           >
-            <div class="flex">
-              <div class="mt-0.5">
-                <img alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-4 max-w-4">
-              </div>
-              <div class="pl-2">
-                <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
-                  Slack notification
-                </h6>
-                <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
-                  Send notifications to your Slack workspace
-                </p>
-                <el-button
-                  v-if="!slackConnected"
-                  class="btn btn--primary btn--sm !h-8 mt-3"
-                  @click="authenticateSlack"
-                >
-                  Install app
-                </el-button>
+            <div
+
+              class="popover-item h-auto mb-1 py-2 px-2.5"
+              :class="{
+                'hover:bg-white !cursor-default': !automationType.canCreate(store),
+                'opacity-50': automationType.disabled && automationType.disabled(store),
+              }"
+              @click="createAutomation(key)"
+            >
+              <div class="flex">
+                <div class="mt-0.5">
+                  <img :alt="automationType.name" :src="automationType.icon" class="w-4 max-w-4">
+                </div>
+                <div class="pl-2">
+                  <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
+                    {{ automationType.name }}
+                    <sup v-if="plan(automationType)" class="text-brand-500">
+                      {{ plan(automationType) }}
+                    </sup>
+                  </h6>
+                  <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
+                    {{ automationType.description }}
+                  </p>
+                  <el-button
+                    v-if="automationType.actionButton && automationType.actionButton(store)"
+                    class="btn btn--bordered btn--sm !h-8 mt-3"
+                    @click="automationType.actionButton(store).action()"
+                  >
+                    {{ automationType.actionButton(store).label }}
+                  </el-button>
+                </div>
               </div>
             </div>
-          </div>
+          </el-tooltip>
         </el-popover>
       </div>
     </div>
+    <component
+      :is="automationTypes[filter.type].paywallComponent(store)"
+      v-if="filter.type && filter.type !== 'all' && automationTypes[filter.type]?.paywallComponent
+        && automationTypes[filter.type]?.paywallComponent(store)"
+    />
     <div
-      v-if="loadingAutomations"
+      v-else-if="loadingAutomations"
       v-loading="loadingAutomations"
       class="app-page-spinner"
     />
@@ -89,22 +95,16 @@
 
     <!-- Empty state for no automations configured -->
     <app-empty-state-cta
-      v-else-if="filter.type === 'slack'"
+      v-else-if="automationTypes[filter.type]?.emptyScreen"
       icon="ri-flow-chart"
-      title="No Slack notifications yet"
-      description="Send Slack notifications when a new activity happens, or a new member joins your community"
-    />
-    <app-empty-state-cta
-      v-else-if="filter.type === 'webhook'"
-      icon="ri-flow-chart"
-      title="No Webhooks yet"
-      description="Create webhook actions when a new activity happens, or a new member joins your community"
+      :title="automationTypes[filter.type]?.emptyScreen.title"
+      :description="automationTypes[filter.type]?.emptyScreen.body"
     />
     <app-empty-state-cta
       v-else
       icon="ri-flow-chart"
       title="Start to automate manual tasks"
-      description="Create webhook actions or send Slack notifications when a new activity happens, or a new member joins your community "
+      description="Create config actions or send Slack notifications when a new activity happens, or a new member joins your community "
     />
 
     <!-- Add/Edit Webhook form drawer -->
@@ -121,33 +121,31 @@
 
 <script setup>
 import {
-  ref, onMounted, computed,
+  ref, onMounted,
 } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
 import AppAutomationForm from '@/modules/automation/components/automation-form.vue';
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
-import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
 import { FeatureFlag } from '@/featureFlag';
 import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
+
+import { useStore } from 'vuex';
+import config from '@/config';
+import { automationTypes } from '../config/automation-types';
 
 const options = ref([
   {
     label: 'All',
     value: 'all',
   },
-  {
-    label: 'Slack notifications',
-    value: 'slack',
-  },
-  {
-    label: 'Webhooks',
-    value: 'webhook',
-  },
+  ...(Object.entries(automationTypes).map(([key, config]) => ({
+    label: config.name,
+    value: key,
+  }))),
 ]);
 const openAutomationForm = ref(false);
 const automationFormType = ref(null);
@@ -161,6 +159,9 @@ const {
 const { getAutomations, changeAutomationFilter } = automationStore;
 
 const { currentTenant } = mapGetters('auth');
+
+const store = useStore();
+const fetchIntegrations = () => store.dispatch('integration/doFetch');
 
 /**
  * Check if tenant has feature flag enabled
@@ -183,6 +184,10 @@ const canAddAutomation = () => {
 
 // Executions drawer
 const createAutomation = (type) => {
+  if (!automationTypes[type].canCreate(store)) {
+    return;
+  }
+
   if (!canAddAutomation()) {
     return;
   }
@@ -198,32 +203,18 @@ const updateAutomation = (automation) => {
   editAutomation.value = automation;
 };
 
-// Slack connect
-const slackConnected = computed(() => currentTenant.value?.settings[0].slackWebHook);
-
-const slackConnectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?activeTab=automations&success=true`;
-
-  return `${config.backendUrl}/tenant/${
-    currentTenant.value.id
-  }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
-});
-
-const authenticateSlack = () => {
-  window.open(slackConnectUrl.value, '_self');
-};
-
-const createSlackAutomation = () => {
-  if (slackConnected.value) {
-    if (!canAddAutomation()) {
-      return;
+const plan = (type) => {
+  if (type.plan && type.featureFlag && !FeatureFlag.isFlagEnabled(type.featureFlag)) {
+    if (config.isCommunityVersion) {
+      return 'Premium';
     }
-
-    createAutomation('slack');
+    return type.plan;
   }
+  return null;
 };
 
 onMounted(() => {
+  fetchIntegrations();
   getAutomations();
 });
 

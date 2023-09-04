@@ -21,10 +21,6 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      parentUrl: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
       emails: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
@@ -132,6 +128,11 @@ export default (sequelize) => {
       lastEnrichedAt: {
         type: DataTypes.DATE,
         allowNull: true,
+      },
+      manuallyCreated: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
     },
     {

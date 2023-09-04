@@ -7,14 +7,14 @@ import { initializeSentimentAnalysis } from '@crowd/sentiment'
 
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 2
+const MAX_CONCURRENT_PROCESSING = 3
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
 
   if (SENTIMENT_CONFIG()) {
     initializeSentimentAnalysis(SENTIMENT_CONFIG())

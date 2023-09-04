@@ -79,6 +79,17 @@ export default class MemberService extends LoggerBase {
           }
         }
 
+        if (data.emails) {
+          const orgIds = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            data.emails,
+          )
+          if (orgIds.length > 0) {
+            organizationIds.push(...orgIds)
+          }
+        }
+
         return {
           id,
           organizationIds,
@@ -93,6 +104,9 @@ export default class MemberService extends LoggerBase {
 
       if (organizationIds.length > 0) {
         await this.nodejsWorkerEmitter.enrichMemberOrganizations(tenantId, id, organizationIds)
+        for (const orgId of organizationIds) {
+          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, orgId)
+        }
       }
 
       return id
@@ -112,7 +126,7 @@ export default class MemberService extends LoggerBase {
     fireSync = true,
   ): Promise<void> {
     try {
-      const updated = await this.store.transactionally(async (txStore) => {
+      const { updated, organizationIds } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
         const dbIdentities = await txRepo.getIdentities(id, tenantId)
@@ -140,15 +154,19 @@ export default class MemberService extends LoggerBase {
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ memberId: id }, 'Updating a member!')
-          await txRepo.update(id, tenantId, {
-            emails: toUpdate.emails || original.emails,
-            joinedAt: toUpdate.joinedAt || original.joinedAt,
-            attributes: toUpdate.attributes || original.attributes,
-            weakIdentities: toUpdate.weakIdentities || original.weakIdentities,
-            // leave this one empty if nothing changed - we are only adding up new identities not removing them
-            identities: toUpdate.identities,
-            displayName: toUpdate.displayName || original.displayName,
-          })
+
+          const dateToUpdate = Object.entries(toUpdate).reduce((acc, [key, value]) => {
+            if (key === 'identities') {
+              return acc
+            }
+
+            if (value) {
+              acc[key] = value
+            }
+            return acc
+          }, {} as IDbMemberUpdateData)
+
+          await txRepo.update(id, tenantId, dateToUpdate)
           await txRepo.addToSegment(id, tenantId, segmentId)
 
           updated = true
@@ -176,16 +194,60 @@ export default class MemberService extends LoggerBase {
           }
         }
 
-        return updated
+        if (data.emails) {
+          const orgIds = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            data.emails,
+          )
+          if (orgIds.length > 0) {
+            organizationIds.push(...orgIds)
+          }
+        }
+
+        return { updated, organizationIds }
       })
 
       if (updated && fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
+
+      if (organizationIds.length > 0) {
+        await this.nodejsWorkerEmitter.enrichMemberOrganizations(tenantId, id, organizationIds)
+        for (const orgId of organizationIds) {
+          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, orgId)
+        }
+      }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
       throw err
     }
+  }
+
+  public async assignOrganizationByEmailDomain(
+    tenantId: string,
+    segmentId: string,
+    emails: string[],
+  ): Promise<string[]> {
+    const orgService = new OrganizationService(this.store, this.log)
+    const organizationIds: string[] = []
+    const emailDomains = new Set<string>()
+
+    // Collect unique domains
+    for (const email of emails) {
+      const domain = email.split('@')[1]
+      emailDomains.add(domain)
+    }
+
+    // Assign member to organization based on email domain
+    for (const domain of emailDomains) {
+      const org = await orgService.findByDomain(tenantId, segmentId, domain as string)
+      if (org) {
+        organizationIds.push(org.id)
+      }
+    }
+
+    return organizationIds
   }
 
   public async processMemberEnrich(
@@ -214,6 +276,12 @@ export default class MemberService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        const txService = new MemberService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.log,
+        )
 
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
@@ -232,7 +300,17 @@ export default class MemberService extends LoggerBase {
         if (dbMember) {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
 
-          await this.update(
+          // set a record in membersSyncRemote to save the sourceId
+          // we can't use member.attributes because of segments
+          if (member.attributes?.sourceId?.[platform]) {
+            await txRepo.addToSyncRemote(
+              dbMember.id,
+              dbIntegration.id,
+              member.attributes?.sourceId?.[platform],
+            )
+          }
+
+          await txService.update(
             dbMember.id,
             tenantId,
             segmentId,
@@ -250,7 +328,7 @@ export default class MemberService extends LoggerBase {
             false,
           )
         } else {
-          this.log.info('No member found for enriching. This member enrich process had no affect.')
+          this.log.debug('No member found for enriching. This member enrich process had no affect.')
         }
       })
     } catch (err) {
@@ -306,9 +384,12 @@ export default class MemberService extends LoggerBase {
       const newDate = member.joinedAt
       const oldDate = new Date(dbMember.joinedAt)
 
-      if (newDate.getTime() !== oldDate.getTime()) {
-        // pick the oldest
-        joinedAt = newDate < oldDate ? newDate.toISOString() : oldDate.toISOString()
+      if (oldDate <= newDate) {
+        // we already have the oldest date in the db, so we don't need to update it
+        joinedAt = undefined
+      } else {
+        // we have a new date and it's older, so we need to update it
+        joinedAt = newDate.toISOString()
       }
     }
 
@@ -369,7 +450,9 @@ export default class MemberService extends LoggerBase {
       attributes,
       weakIdentities,
       identities,
-      displayName: member.displayName || dbMember.displayName,
+      // we don't want to update the display name if it's already set
+      // returned value should be undefined here otherwise it will cause an update!
+      displayName: dbMember.displayName ? undefined : member.displayName,
     }
   }
 }

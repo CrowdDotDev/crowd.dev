@@ -87,6 +87,10 @@ export default (sequelize) => {
           len: [0, 255],
         },
       },
+      organizationId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+      },
     },
     {
       indexes: [

@@ -49,28 +49,49 @@
       >
         <el-input v-model="model[fields.location.name]" />
       </el-form-item>
-      <el-form-item
-        label="Number of employees"
-        class="w-1/2"
-      >
+      <el-form-item class="w-1/2">
+        <template #label>
+          <div class="flex gap-2">
+            {{ fields.employees.label }}
+            <el-tooltip
+              content="Organization enrichment"
+              placement="top"
+            >
+              <div class="form-enrichment-badge">
+                <app-svg name="enrichment" />
+              </div>
+            </el-tooltip>
+          </div>
+        </template>
         <el-input
           v-model="model[fields.employees.name]"
           type="number"
+          disabled
         />
       </el-form-item>
-      <el-form-item
-        :label="fields.revenueRange.label"
-        class="w-1/2"
-      >
+      <el-form-item class="w-1/2">
+        <template #label>
+          <div class="flex gap-2">
+            {{ fields.revenueRange.label }}
+            <el-tooltip
+              content="Organization enrichment"
+              placement="top"
+            >
+              <div class="form-enrichment-badge">
+                <app-svg name="enrichment" />
+              </div>
+            </el-tooltip>
+          </div>
+        </template>
         <el-select
           v-model="model[fields.revenueRange.name]"
           value-key="max"
+          disabled
+          placeholder=" "
         >
           <el-option
-            v-for="option in revenueOptions"
-            :key="option.id"
-            :value="option.value"
-            :label="option.label"
+            :value="model[fields.revenueRange.name]"
+            :label="revenueRange.displayValue(model[fields.revenueRange.name])"
           />
         </el-select>
       </el-form-item>
@@ -81,6 +102,7 @@
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
 import AppSvg from '@/shared/svg/svg.vue';
+import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -102,69 +124,4 @@ const model = computed({
     emit('update:modelValue', newModel);
   },
 });
-
-const revenueOptions = [
-  {
-    label: '$0-1M',
-    value: {
-      min: 0,
-      max: 1,
-    },
-  },
-  {
-    label: '$1M-$10M',
-    value: {
-      min: 1,
-      max: 10,
-    },
-  },
-  {
-    label: '$11M-$50M',
-    value: {
-      min: 11,
-      max: 50,
-    },
-  },
-  {
-    label: '$51M-$100M',
-    value: {
-      min: 51,
-      max: 100,
-    },
-  },
-  {
-    label: '$101M-$250M',
-    value: {
-      min: 101,
-      max: 250,
-    },
-  },
-  {
-    label: '$251M-$500M',
-    value: {
-      min: 251,
-      max: 500,
-    },
-  },
-  {
-    label: '$501M-$1B',
-    value: {
-      min: 501,
-      max: 1000,
-    },
-  },
-  {
-    label: '$1B-$10B',
-    value: {
-      min: 1001,
-      max: 10000,
-    },
-  },
-  {
-    label: '$10B+',
-    value: {
-      min: 10001,
-    },
-  },
-];
 </script>

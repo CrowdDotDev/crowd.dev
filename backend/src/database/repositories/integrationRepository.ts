@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { IntegrationRunState } from '@crowd/types'
+import { IntegrationRunState, PlatformType } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -8,6 +8,10 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import AutomationRepository from './automationRepository'
+import AutomationExecutionRepository from './automationExecutionRepository'
+import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
+import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 
 const { Op } = Sequelize
 const log: boolean = false
@@ -152,6 +156,30 @@ class IntegrationRepository {
       },
     )
 
+    // delete syncRemote rows coming from integration
+    await new MemberSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
+      record.id,
+    ])
+    await new OrganizationSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
+      record.id,
+    ])
+
+    // destroy existing automations for outgoing integrations
+    const syncAutomationIds = (
+      await new AutomationRepository({ ...options, transaction }).findSyncAutomations(
+        currentTenant.id,
+        record.platform,
+      )
+    ).map((a) => a.id)
+
+    if (syncAutomationIds.length > 0) {
+      await new AutomationExecutionRepository({ ...options, transaction }).destroyAllAutomation(
+        syncAutomationIds,
+      )
+    }
+
+    await new AutomationRepository({ ...options, transaction }).destroyAll(syncAutomationIds)
+
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
@@ -191,6 +219,23 @@ class IntegrationRepository {
       },
       include,
       transaction,
+    })
+
+    if (!record) {
+      throw new Error404()
+    }
+
+    return this._populateRelations(record)
+  }
+
+  static async findActiveIntegrationByPlatform(platform: PlatformType, tenantId: string) {
+    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+
+    const record = await options.database.integration.findOne({
+      where: {
+        platform,
+        tenantId,
+      },
     })
 
     if (!record) {

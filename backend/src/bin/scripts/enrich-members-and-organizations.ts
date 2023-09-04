@@ -97,7 +97,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         const segmentIds = segments.map((segment) => segment.id)
 
         const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(
-          null,
+          userContext,
           tenant,
           segments,
         )
@@ -107,16 +107,14 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           let totalMembers = 0
 
           do {
-            const { rows: members, count: membersCount } = await MemberRepository.findAndCountAllv2(
-              { filter: {}, limit, offset, countOnly: false },
-              optionsWithTenant,
-            )
+            const { ids: memberIds, count: membersCount } =
+              await MemberRepository.getMemberIdsandCount(
+                { limit, offset, countOnly: false },
+                optionsWithTenant,
+              )
 
             totalMembers = membersCount
             log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
-
-            // get all member ids for the tenant
-            const memberIds = members.map((member) => member.id)
 
             await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
 
@@ -127,33 +125,22 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         }
 
         if (enrichOrganizations) {
-          let offset = 0
-          let totalOrganizations = 0
+          const organizations = await OrganizationRepository.findAndCountAll({}, optionsWithTenant)
 
-          do {
-            const organizations = await OrganizationRepository.findAndCountAll(
-              { limit, offset },
-              optionsWithTenant,
-            )
+          const totalOrganizations = organizations.count
 
-            totalOrganizations = organizations.count
+          log.info({ tenantId }, `Total organizations found in the tenant: ${totalOrganizations}`)
 
-            log.info({ tenantId }, `Total organizations found in the tenant: ${totalOrganizations}`)
+          const payload = {
+            type: NodeWorkerMessageType.NODE_MICROSERVICE,
+            service: 'enrich-organizations',
+            tenantId,
+            // Since there is no pagination implemented for the organizations enrichment,
+            // we set a limit of 10,000 to ensure all organizations are included when enriched in bulk.
+            maxEnrichLimit: 10000,
+          } as NodeWorkerMessageBase
 
-            for (const organization of organizations.rows) {
-              const payload = {
-                type: NodeWorkerMessageType.NODE_MICROSERVICE,
-                service: 'enrich-organizations',
-                tenantId: organization.id,
-                maxEnrichLimit: 5000,
-              } as NodeWorkerMessageBase
-
-              await sendNodeWorkerMessage(tenantId, payload)
-            }
-
-            offset += limit
-          } while (totalOrganizations > offset)
-
+          await sendNodeWorkerMessage(tenantId, payload)
           log.info(
             { tenantId },
             `Organizations enrichment operation finished for tenant ${tenantId}`,

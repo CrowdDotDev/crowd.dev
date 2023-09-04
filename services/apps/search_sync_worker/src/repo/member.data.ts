@@ -12,6 +12,11 @@ export interface IDbMemberOrganization {
   id: string
   logo: string | null
   displayName: string | null
+  memberOrganizations: {
+    title: string
+    dateStart: string
+    dateEnd: string
+  }
 }
 
 export interface IDbMemberSyncData {
@@ -25,6 +30,7 @@ export interface IDbMemberSyncData {
   lastEnriched: string | null
   joinedAt: string
   createdAt: string
+  manuallyCreated: boolean
   totalReach: number
   numberOfOpenSourceContributions: number
 
@@ -41,10 +47,4 @@ export interface IDbMemberSyncData {
   tags: IDbMemberTagData[]
   toMergeIds: string[]
   noMergeIds: string[]
-}
-
-export interface IDbSegmentInfo {
-  id: string
-  parentId: string
-  grandParentId: string
 }

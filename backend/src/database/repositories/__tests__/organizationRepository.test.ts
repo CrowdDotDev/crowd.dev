@@ -18,7 +18,6 @@ const toCreate = {
   phoneNumbers: ['+42 424242424'],
   logo: 'https://logo.clearbit.com/crowd.dev',
   tags: ['community', 'growth', 'developer-first'],
-  parentUrl: null,
   twitter: {
     handle: 'CrowdDotDev',
     id: '1362101830923259908',
@@ -52,6 +51,25 @@ const toCreate = {
   employeeCountByCountry: null,
   address: null,
   profiles: null,
+  manuallyCreated: false,
+  affiliatedProfiles: null,
+  allSubsidiaries: null,
+  alternativeDomains: null,
+  alternativeNames: null,
+  averageEmployeeTenure: null,
+  averageTenureByLevel: null,
+  averageTenureByRole: null,
+  directSubsidiaries: null,
+  employeeChurnRate: null,
+  employeeCountByMonth: null,
+  employeeGrowthRate: null,
+  employeeCountByMonthByLevel: null,
+  employeeCountByMonthByRole: null,
+  gicsSector: null,
+  grossAdditionsByMonth: null,
+  grossDeparturesByMonth: null,
+  ultimateParent: null,
+  immediateParent: null,
 }
 
 async function createMembers(options) {
@@ -557,7 +575,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 424242424'],
       logo: 'https://logo.clearbit.com/crowd.dev',
       tags: ['community', 'growth', 'developer-first'],
-      parentUrl: null,
       twitter: {
         handle: 'CrowdDotDev',
         id: '1362101830923259908',
@@ -589,7 +606,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 54545454'],
       logo: 'https://logo.clearbit.com/piedpiper',
       tags: ['new-internet', 'compression'],
-      parentUrl: null,
       twitter: {
         handle: 'piedPiper',
         id: '1362101830923259908',
@@ -621,7 +637,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 12121212'],
       logo: 'https://logo.clearbit.com/hooli',
       tags: ['not-google', 'elephant'],
-      parentUrl: null,
       twitter: {
         handle: 'hooli',
         id: '1362101830923259908',
@@ -905,68 +920,6 @@ describe('OrganizationRepository tests', () => {
       expect(found.rows[0].name).toBe('crowd.dev')
     })
 
-    it('Should filter by activityCount', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'joan',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'Joan',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'joan',
-              timestamp: '2020-05-27T15:13:30Z',
-              platform: PlatformType.GITHUB,
-              sourceId: '#sourceId1',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'anil',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'anil',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'anil',
-              timestamp: '2020-06-27T15:13:30Z',
-              platform: PlatformType.TWITTER,
-              sourceId: '#sourceId2',
-            },
-          ],
-        },
-      ])
-      await createOrganization(piedpiper, mockIRepositoryOptions)
-      await createOrganization(hooli, mockIRepositoryOptions)
-
-      const found = await OrganizationRepository.findAndCountAll(
-        {
-          advancedFilter: {
-            activityCount: {
-              gte: 2,
-            },
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      delete org1.members
-
-      expect(found.count).toBe(1)
-      expect(found.rows).toStrictEqual([org1])
-    })
-
     it('Should filter by memberCount', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
@@ -1044,126 +997,6 @@ describe('OrganizationRepository tests', () => {
         org1,
         org2,
       ])
-    })
-
-    it('Should filter by joinedAt', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      await createOrganization(crowddev, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'joan',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'Joan',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'joan',
-              timestamp: '2020-05-27T15:13:30Z',
-              platform: PlatformType.GITHUB,
-              sourceId: '#sourceId1',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'anil',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'anil',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              username: 'anil',
-              type: 'activity',
-              timestamp: '2020-04-27T15:13:30Z',
-              platform: PlatformType.SLACK,
-              sourceId: '#sourceId2',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'uros',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'uros',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'uros',
-              timestamp: '2020-03-27T15:13:30Z',
-              platform: PlatformType.TWITTER,
-              sourceId: '#sourceId3',
-            },
-          ],
-        },
-      ])
-      const org2 = await createOrganization(piedpiper, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'mario',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'mario',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'mario',
-              timestamp: '2022-03-27T15:13:30Z',
-              platform: PlatformType.DEVTO,
-              sourceId: '#sourceId4',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'igor',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'igor',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'igor',
-              timestamp: '2022-02-27T15:13:30Z',
-              platform: PlatformType.DEVTO,
-              sourceId: '#sourceId5',
-            },
-          ],
-        },
-      ])
-      await createOrganization(hooli, mockIRepositoryOptions)
-
-      const found = await OrganizationRepository.findAndCountAll(
-        {
-          advancedFilter: {
-            joinedAt: {
-              gte: '2022-02-27',
-            },
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      delete org2.members
-
-      expect(found.count).toBe(1)
-      expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([org2])
     })
 
     it('Should work with advanced filters', async () => {

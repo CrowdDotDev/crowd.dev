@@ -6,6 +6,7 @@ import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
+import { websiteNormalizer } from '@crowd/common'
 
 export class OrganizationService extends LoggerBase {
   private readonly repo: OrganizationRepository
@@ -22,6 +23,11 @@ export class OrganizationService extends LoggerBase {
     data: IOrganization,
   ): Promise<string> {
     data = this.normalizeSocialFields(data)
+
+    // Normalize the website URL if it exists
+    if (data.website) {
+      data.website = websiteNormalizer(data.website)
+    }
 
     // find from cache by name
     let cached = await this.repo.findCacheByName(data.name)
@@ -89,7 +95,7 @@ export class OrganizationService extends LoggerBase {
 
     if (data.attributes) {
       const temp = mergeWith({}, existing?.attributes, data?.attributes)
-      if (!isEqual(temp, existing.attributes)) {
+      if (!isEqual(temp, existing?.attributes)) {
         attributes = temp
       }
     }
@@ -189,6 +195,14 @@ export class OrganizationService extends LoggerBase {
     await this.repo.addToMember(memberId, orgIds)
   }
 
+  public async findByDomain(
+    tenantId: string,
+    segmentId: string,
+    domain: string,
+  ): Promise<IOrganization> {
+    return await this.repo.findByDomain(tenantId, segmentId, domain)
+  }
+
   public async processOrganizationEnrich(
     tenantId: string,
     integrationId: string,
@@ -230,13 +244,19 @@ export class OrganizationService extends LoggerBase {
         if (dbOrganization) {
           this.log.trace({ organizationId: dbOrganization.id }, 'Found existing organization.')
 
+          // set a record in organizationsSyncRemote to save the sourceId
+          // we can't use organization.attributes because of segments
+          if (sourceId) {
+            await txRepo.addToSyncRemote(dbOrganization.id, dbIntegration.id, sourceId)
+          }
+
           // send to findOrCreate with found organization's name, since we use the name field as the primary key
           await this.findOrCreate(tenantId, segmentId, {
             ...organization,
             name: dbOrganization.name,
           })
         } else {
-          this.log.info(
+          this.log.debug(
             'No organization found for enriching. This organization enrich process had no affect.',
           )
         }

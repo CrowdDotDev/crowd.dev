@@ -1,4 +1,10 @@
-import { IMemberAttribute, IActivityData, IntegrationResultType, Entity } from '@crowd/types'
+import {
+  IMemberAttribute,
+  IActivityData,
+  IntegrationResultType,
+  Entity,
+  IAutomation,
+} from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
 
@@ -23,6 +29,7 @@ export interface IIntegrationContext {
 export interface IIntegrationStartRemoteSyncContext {
   integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
   integration: IIntegration
+  automations: IAutomation[]
   tenantId: string
   log: Logger
 }
@@ -32,11 +39,14 @@ export interface IIntegrationProcessRemoteSyncContext {
   integration: IIntegration
   log: Logger
   serviceSettings: IIntegrationServiceSettings
+  automation?: IAutomation
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
   serviceSettings: IIntegrationServiceSettings
   platformSettings?: unknown
+  isManualRun?: boolean
+  manualSettings?: unknown
 }
 
 export interface IProcessStreamContext extends IIntegrationContext {
@@ -180,7 +190,6 @@ export interface IIntegrationDescriptor {
    * Function that will be called if defined, after an integration goes into done state.
    * Mainly responsible for sending queue messages to integration-sync-worker
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   startSyncRemote?: StartIntegrationSyncHandler
 
   /**

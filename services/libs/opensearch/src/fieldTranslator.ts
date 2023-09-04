@@ -1,5 +1,5 @@
 import OpensearchModelBase from './models/base'
-import { OpenSearchIndex } from '@crowd/types'
+import { OpenSearchIndex, OpensearchField, OpensearchFieldType } from '@crowd/types'
 
 export default abstract class FieldTranslator {
   index: OpenSearchIndex
@@ -44,6 +44,17 @@ export default abstract class FieldTranslator {
     return this.model.fieldExists(key)
   }
 
+  convertIfInt(modelField: OpensearchField, value: unknown): unknown {
+    if (modelField?.type === OpensearchFieldType.INT) {
+      return parseInt(value as string, 10)
+    }
+    return value
+  }
+
+  isNestedField(field: string): boolean {
+    return field.startsWith('nested_')
+  }
+
   translateObjectToCrowd(object: unknown): unknown {
     const translated = {}
 
@@ -62,7 +73,17 @@ export default abstract class FieldTranslator {
 
     for (const key of Object.keys(object)) {
       const crowdKey = this.opensearchToCrowd(key)
-      translated[crowdKey] = this.translateObjectToCrowd(object[key])
+      if (crowdKey) {
+        const modelField = this.model.getField(crowdKey)
+        if (!modelField || !modelField.preventNestedFieldTranslation) {
+          translated[crowdKey] = this.convertIfInt(
+            modelField,
+            this.translateObjectToCrowd(object[key]),
+          )
+        } else {
+          translated[crowdKey] = object[key]
+        }
+      }
     }
 
     return translated

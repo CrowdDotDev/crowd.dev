@@ -335,14 +335,11 @@ export default class IntegrationStreamService extends LoggerBase {
       },
     }
 
-    this.log.debug('Marking webhook stream as in progress!')
-    await this.repo.markStreamInProgress(streamId)
-
     this.log.debug('Processing webhook stream!')
     try {
       await integrationService.processWebhookStream(context)
       this.log.debug('Finished processing webhook stream!')
-      await this.repo.markStreamProcessed(streamId)
+      await this.repo.deleteStream(streamId)
       await this.webhookRepo.markWebhookProcessed(webhookId)
     } catch (err) {
       this.log.error(err, 'Error while processing webhook stream!')
@@ -486,15 +483,11 @@ export default class IntegrationStreamService extends LoggerBase {
       },
     }
 
-    this.log.debug('Marking stream as in progress!')
-    await this.repo.markStreamInProgress(streamId)
-    await this.repo.touchRun(streamInfo.runId)
-
     this.log.debug('Processing stream!')
     try {
       await integrationService.processStream(context)
       this.log.debug('Finished processing stream!')
-      await this.repo.markStreamProcessed(streamId)
+      await this.repo.deleteStream(streamId)
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
       await this.triggerStreamError(
@@ -505,7 +498,6 @@ export default class IntegrationStreamService extends LoggerBase {
         err,
       )
     } finally {
-      await this.repo.touchRun(streamInfo.runId)
       await this.runWorkerEmitter.streamProcessed(
         streamInfo.tenantId,
         streamInfo.integrationType,

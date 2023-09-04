@@ -10,10 +10,6 @@ export class IntegrationDataWorkerEmitter extends SqsQueueEmitter {
   }
 
   public async triggerDataProcessing(tenantId: string, platform: string, dataId: string) {
-    await this.sendMessage(
-      `data-${tenantId}-${platform}`,
-      new ProcessStreamDataQueueMessage(dataId),
-      dataId,
-    )
+    await this.sendMessage(dataId, new ProcessStreamDataQueueMessage(dataId), dataId)
   }
 }

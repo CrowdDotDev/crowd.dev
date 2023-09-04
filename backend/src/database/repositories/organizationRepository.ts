@@ -1,4 +1,7 @@
 import lodash from 'lodash'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { PageData } from '@crowd/common'
+import { OpenSearchIndex, SyncStatus } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -7,6 +10,9 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { FeatureFlag } from '@/types/common'
 
 const { Op } = Sequelize
 
@@ -19,45 +25,67 @@ class OrganizationRepository {
     const database = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
     const query = `
-      with orgActivities as (
-        SELECT memOrgs."organizationId", SUM(actAgg."activityCount") "orgActivityCount"
-        FROM "memberActivityAggregatesMVs" actAgg
-        INNER JOIN "memberOrganizations" memOrgs ON actAgg."id"=memOrgs."memberId"
-        GROUP BY memOrgs."organizationId"
-      ) 
-      SELECT org.id "id"
-      ,cach.id "cachId"
-      ,org."name"
-      ,org."displayName"
-      ,org."location"
-      ,org."website"
-      ,org."lastEnrichedAt"
-      ,org."twitter"
-      ,org."employees"
-      ,org."size"
-      ,org."founded"
-      ,org."industry"
-      ,org."naics"
-      ,org."profiles"
-      ,org."headline"
-      ,org."ticker"
-      ,org."type"
-      ,org."address"
-      ,org."geoLocation"
-      ,org."employeeCountByCountry"
-      ,org."twitter"
-      ,org."linkedin"
-      ,org."linkedin"
-      ,org."crunchbase"
-      ,org."github"
-      ,org."description"
-      FROM "organizations" as org
-      JOIN "organizationCaches" cach ON org."name" = cach."name"
-      JOIN orgActivities activity ON activity."organizationId" = org."id"
-      WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
-      ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
-      LIMIT :limit
-    ;
+    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
+                            from activities a
+                            where a."tenantId" = :tenantId and
+                                  a."deletedAt" is null and
+                                  a."isContribution" = true
+                            group by a."organizationId"
+                            having count(id) > 0)
+    select org.id
+        , cach.id "cachId"
+        , org."name"
+        , org."displayName"
+        , org."location"
+        , org."website"
+        , org."lastEnrichedAt"
+        , org."twitter"
+        , org."employees"
+        , org."size"
+        , org."founded"
+        , org."industry"
+        , org."naics"
+        , org."profiles"
+        , org."headline"
+        , org."ticker"
+        , org."type"
+        , org."address"
+        , org."geoLocation"
+        , org."employeeCountByCountry"
+        , org."twitter"
+        , org."linkedin"
+        , org."linkedin"
+        , org."crunchbase"
+        , org."github"
+        , org."description"
+        , org."revenueRange"
+        , org."tags"
+        , org."affiliatedProfiles"
+        , org."allSubsidiaries"
+        , org."alternativeDomains"
+        , org."alternativeNames"
+        , org."averageEmployeeTenure"
+        , org."averageTenureByLevel"
+        , org."averageTenureByRole"
+        , org."directSubsidiaries"
+        , org."employeeChurnRate"
+        , org."employeeCountByMonth"
+        , org."employeeGrowthRate"
+        , org."employeeCountByMonthByLevel"
+        , org."employeeCountByMonthByRole"
+        , org."gicsSector"
+        , org."grossAdditionsByMonth"
+        , org."grossDeparturesByMonth"
+        , org."ultimateParent"
+        , org."immediateParent"
+        , activity."orgActivityCount"
+    from "organizations" as org
+            join "organizationCaches" cach on org."name" = cach."name"
+            join org_activities activity on activity."organizationId" = org."id"
+    where :tenantId = org."tenantId"
+      and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
+    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    limit :limit;
     `
     const orgs: T[] = await database.query(query, {
       type: QueryTypes.SELECT,
@@ -88,7 +116,6 @@ class OrganizationRepository {
           'displayName',
           'url',
           'description',
-          'parentUrl',
           'emails',
           'phoneNumbers',
           'logo',
@@ -113,6 +140,25 @@ class OrganizationRepository {
           'founded',
           'size',
           'lastEnrichedAt',
+          'manuallyCreated',
+          'affiliatedProfiles',
+          'allSubsidiaries',
+          'alternativeDomains',
+          'alternativeNames',
+          'averageEmployeeTenure',
+          'averageTenureByLevel',
+          'averageTenureByRole',
+          'directSubsidiaries',
+          'employeeChurnRate',
+          'employeeCountByMonth',
+          'employeeGrowthRate',
+          'employeeCountByMonthByLevel',
+          'employeeCountByMonthByRole',
+          'gicsSector',
+          'grossAdditionsByMonth',
+          'grossDeparturesByMonth',
+          'ultimateParent',
+          'immediateParent',
         ]),
 
         tenantId: tenant.id,
@@ -139,11 +185,35 @@ class OrganizationRepository {
     data: T,
     fields: string[],
     options: IRepositoryOptions,
+    isEnrichment: boolean = false,
   ): Promise<T> {
     // Ensure every organization has a non-undefine primary ID
     const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
     if (isValid) return [] as T
 
+    if (isEnrichment) {
+      // Fetch existing organizations
+      const existingOrgs = await options.database.organization.findAll({
+        where: {
+          id: {
+            [options.database.Sequelize.Op.in]: data.map((org) => org.id),
+          },
+        },
+      })
+
+      // Append new tags to existing tags instead of overwriting
+      if (fields.includes('tags')) {
+        // @ts-ignore
+        data = data.map((org) => {
+          const existingOrg = existingOrgs.find((o) => o.id === org.id)
+          if (existingOrg && existingOrg.tags) {
+            // Merge existing and new tags without duplicates
+            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+          }
+          return org
+        })
+      }
+    }
     // Using bulk insert to update on duplicate primary ID
     const orgs = await options.database.organization.bulkCreate(data, {
       fields: ['id', 'tenantId', ...fields],
@@ -222,6 +292,11 @@ class OrganizationRepository {
       throw new Error404()
     }
 
+    // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
+    if (data.attributes?.syncRemote) {
+      delete data.attributes.syncRemote
+    }
+
     record = await record.update(
       {
         ...lodash.pick(data, [
@@ -229,7 +304,6 @@ class OrganizationRepository {
           'displayName',
           'url',
           'description',
-          'parentUrl',
           'emails',
           'phoneNumbers',
           'logo',
@@ -256,6 +330,24 @@ class OrganizationRepository {
           'employees',
           'twitter',
           'lastEnrichedAt',
+          'affiliatedProfiles',
+          'allSubsidiaries',
+          'alternativeDomains',
+          'alternativeNames',
+          'averageEmployeeTenure',
+          'averageTenureByLevel',
+          'averageTenureByRole',
+          'directSubsidiaries',
+          'employeeChurnRate',
+          'employeeCountByMonth',
+          'employeeGrowthRate',
+          'employeeCountByMonthByLevel',
+          'employeeCountByMonthByRole',
+          'gicsSector',
+          'grossAdditionsByMonth',
+          'grossDeparturesByMonth',
+          'ultimateParent',
+          'immediateParent',
           'attributes',
         ]),
         updatedById: currentUser.id,
@@ -364,25 +456,23 @@ class OrganizationRepository {
       `
           WITH
               activity_counts AS (
-                  SELECT mo."organizationId", COUNT(a.id) AS "activityCount"
-                  FROM "memberOrganizations" mo
-                  LEFT JOIN activities a ON a."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY mo."organizationId"
+                SELECT "organizationId", COUNT(id) AS "activityCount"
+                FROM activities
+                WHERE "organizationId" = :id
+                GROUP BY "organizationId"
               ),
               member_counts AS (
                   SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
                   FROM "memberOrganizations"
-                  WHERE "organizationId" = :id
+                  WHERE "organizationId" = :id and "dateEnd" is null
                   GROUP BY "organizationId"
               ),
               active_on AS (
-                  SELECT mo."organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-                  FROM "memberOrganizations" mo
-                  JOIN activities a ON a."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY mo."organizationId"
-              ),
+                SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+                FROM activities
+                WHERE "organizationId" = :id
+                GROUP BY "organizationId"
+            ),
               identities AS (
                   SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
                   FROM "memberOrganizations" mo
@@ -436,7 +526,27 @@ class OrganizationRepository {
       throw new Error404()
     }
 
-    return results[0] as any
+    const result = results[0] as any
+
+    const manualSyncRemote = await new OrganizationSyncRemoteRepository({
+      ...options,
+      transaction,
+    }).findOrganizationManualSync(result.id)
+
+    for (const syncRemote of manualSyncRemote) {
+      if (result.attributes?.syncRemote) {
+        result.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
+      } else {
+        result.attributes.syncRemote = {
+          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
+        }
+      }
+    }
+
+    // compatibility issue
+    delete result.searchSyncedAt
+
+    return result
   }
 
   static async findByName(name, options: IRepositoryOptions) {
@@ -483,6 +593,35 @@ class OrganizationRepository {
     }
 
     return record.get({ plain: true })
+  }
+
+  static async findByDomain(domain, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    // Check if organization exists
+    const organization = await options.database.organization.findOne({
+      where: {
+        website: {
+          [Sequelize.Op.or]: [
+            // Matches URLs having 'http://' or 'https://'
+            { [Sequelize.Op.iLike]: `%://${domain}` },
+            // Matches URLs having 'www'
+            { [Sequelize.Op.iLike]: `%://www.${domain}` },
+            // Matches URLs that doesn't have 'http://' or 'https://' and 'www'
+            { [Sequelize.Op.iLike]: `${domain}` },
+          ],
+        },
+        tenantId: currentTenant.id,
+      },
+      transaction,
+    })
+
+    if (!organization) {
+      return null
+    }
+
+    return organization.get({ plain: true })
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -543,6 +682,108 @@ class OrganizationRepository {
       },
       transaction,
     })
+  }
+
+  static async findAndCountAllOpensearch(
+    {
+      filter = {} as any,
+      limit = 20,
+      offset = 0,
+      orderBy = 'joinedAt_DESC',
+      countOnly = false,
+      segments = [] as string[],
+      customSortFunction = undefined,
+    },
+    options: IRepositoryOptions,
+  ): Promise<PageData<any>> {
+    if (orderBy.length === 0) {
+      orderBy = 'joinedAt_DESC'
+    }
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+
+    const segment = segments[0]
+
+    const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
+
+    if (filter.and) {
+      filter.and.push({
+        or: [
+          {
+            manuallyCreated: {
+              eq: true,
+            },
+          },
+          {
+            activityCount: {
+              gt: 0,
+            },
+          },
+        ],
+      })
+    }
+
+    const parsed = OpensearchQueryParser.parse(
+      { filter, limit, offset, orderBy },
+      OpenSearchIndex.ORGANIZATIONS,
+      translator,
+    )
+
+    // add tenant filter to parsed query
+    parsed.query.bool.must.push({
+      term: {
+        uuid_tenantId: tenant.id,
+      },
+    })
+
+    if (segmentsEnabled) {
+      // add segment filter
+      parsed.query.bool.must.push({
+        term: {
+          uuid_segmentId: segment,
+        },
+      })
+    }
+
+    // exclude empty filters if any
+    parsed.query.bool.must = parsed.query.bool.must.filter((obj) => {
+      // Check if the object has a non-empty 'term' property
+      if (obj.term) {
+        return Object.keys(obj.term).length !== 0
+      }
+      return true
+    })
+
+    if (customSortFunction) {
+      parsed.sort = customSortFunction
+    }
+
+    const countResponse = await options.opensearch.count({
+      index: OpenSearchIndex.ORGANIZATIONS,
+      body: { query: parsed.query },
+    })
+
+    if (countOnly) {
+      return {
+        rows: [],
+        count: countResponse.body.count,
+        limit,
+        offset,
+      }
+    }
+
+    const response = await options.opensearch.search({
+      index: OpenSearchIndex.ORGANIZATIONS,
+      body: parsed,
+    })
+
+    const translatedRows = response.body.hits.hits.map((o) =>
+      translator.translateObjectToCrowd(o._source),
+    )
+
+    return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 
   static async findAndCountAll(
@@ -753,14 +994,6 @@ class OrganizationRepository {
         })
       }
 
-      if (filter.parentUrl) {
-        advancedFilter.and.push({
-          parentUrl: {
-            textContains: filter.parentUrl,
-          },
-        })
-      }
-
       if (filter.members) {
         advancedFilter.and.push({
           members: filter.members,
@@ -820,7 +1053,6 @@ class OrganizationRepository {
               'displayName',
               'url',
               'description',
-              'parentUrl',
               'emails',
               'phoneNumbers',
               'logo',
@@ -843,6 +1075,7 @@ class OrganizationRepository {
               'isTeamOrganization',
               'type',
               'attributes',
+              'manuallyCreated',
             ],
             'organization',
           ),
@@ -907,7 +1140,6 @@ class OrganizationRepository {
             'displayName',
             'url',
             'description',
-            'parentUrl',
             'emails',
             'phoneNumbers',
             'logo',
@@ -941,6 +1173,25 @@ class OrganizationRepository {
             'address',
             'profiles',
             'attributes',
+            'manuallyCreated',
+            'affiliatedProfiles',
+            'allSubsidiaries',
+            'alternativeDomains',
+            'alternativeNames',
+            'averageEmployeeTenure',
+            'averageTenureByLevel',
+            'averageTenureByRole',
+            'directSubsidiaries',
+            'employeeChurnRate',
+            'employeeCountByMonth',
+            'employeeGrowthRate',
+            'employeeCountByMonthByLevel',
+            'employeeCountByMonthByRole',
+            'gicsSector',
+            'grossAdditionsByMonth',
+            'grossDeparturesByMonth',
+            'ultimateParent',
+            'immediateParent',
           ],
           'organization',
         ),

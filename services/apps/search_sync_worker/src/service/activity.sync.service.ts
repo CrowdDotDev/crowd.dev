@@ -3,11 +3,12 @@ import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { OpenSearchService } from './opensearch.service'
 import { ActivityRepository } from '@/repo/activity.repo'
 import { OpenSearchIndex } from '@/types'
-import { timeout } from '@crowd/common'
 import { IDbActivitySyncData } from '@/repo/activity.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
+import { trimUtf8ToMaxByteLength } from '@crowd/common'
 
 export class ActivitySyncService extends LoggerBase {
+  private static MAX_BYTE_LENGTH = 25000
   private readonly activityRepo: ActivityRepository
 
   constructor(
@@ -132,19 +133,35 @@ export class ActivitySyncService extends LoggerBase {
     this.log.warn({ tenantId }, `Processed total of ${processed} members while cleaning up tenant!`)
   }
 
-  public async syncTenantActivities(
-    tenantId: string,
-    batchSize = 200,
-    syncCutoffTime?: string,
-  ): Promise<void> {
-    const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
-
-    this.log.warn({ tenantId }, 'Syncing all tenant activities!')
+  public async syncTenantActivities(tenantId: string, batchSize = 200): Promise<void> {
+    this.log.debug({ tenantId }, 'Syncing all tenant activities!')
     let count = 0
+    const now = new Date()
+    const cutoffDate = now.toISOString()
 
     await logExecutionTime(
       async () => {
-        let activityIds = await this.activityRepo.getTenantActivitiesForSync(
+        let activityIds = await this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize)
+
+        while (activityIds.length > 0) {
+          count += await this.syncActivities(activityIds)
+
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { tenantId },
+            `Synced ${count} activities! Speed: ${Math.round(
+              count / diffInSeconds,
+            )} activities/second!`,
+          )
+
+          activityIds = await this.activityRepo.getTenantActivitiesForSync(
+            tenantId,
+            batchSize,
+            activityIds[activityIds.length - 1],
+          )
+        }
+
+        activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
           tenantId,
           1,
           batchSize,
@@ -152,25 +169,17 @@ export class ActivitySyncService extends LoggerBase {
         )
 
         while (activityIds.length > 0) {
-          const activities = await this.activityRepo.getActivityData(activityIds)
+          count += await this.syncActivities(activityIds)
 
-          if (activities.length > 0) {
-            await this.openSearchService.bulkIndex(
-              OpenSearchIndex.ACTIVITIES,
-              activities.map((m) => {
-                return {
-                  id: m.id,
-                  body: ActivitySyncService.prefixData(m),
-                }
-              }),
-            )
-            count += activities.length
-          }
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { tenantId },
+            `Synced ${count} activities! Speed: ${Math.round(
+              count / diffInSeconds,
+            )} activities/second!`,
+          )
 
-          await this.activityRepo.markSynced(activities.map((m) => m.id))
-
-          this.log.info({ tenantId }, `Synced ${count} activities!`)
-          activityIds = await this.activityRepo.getTenantActivitiesForSync(
+          activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
             tenantId,
             1,
             batchSize,
@@ -190,31 +199,26 @@ export class ActivitySyncService extends LoggerBase {
     await this.openSearchService.removeFromIndex(activityId, OpenSearchIndex.ACTIVITIES)
   }
 
-  public async syncActivity(activityId: string, retries = 0): Promise<void> {
-    this.log.debug({ activityId }, 'Syncing activity!')
+  public async syncActivities(activityIds: string[]): Promise<number> {
+    this.log.debug({ activityIds }, 'Syncing activities!')
 
-    const activities = await this.activityRepo.getActivityData([activityId])
+    const activities = await this.activityRepo.getActivityData(activityIds)
 
     if (activities.length > 0) {
-      if (activities.length > 1) {
-        this.log.error({ activityId }, 'More than one activity found!')
-        throw new Error(`More than one activity found for id ${activityId}!`)
-      }
+      await this.openSearchService.bulkIndex(
+        OpenSearchIndex.ACTIVITIES,
+        activities.map((m) => {
+          return {
+            id: m.id,
+            body: ActivitySyncService.prefixData(m),
+          }
+        }),
+      )
 
-      const activity = activities[0]
-
-      const prepared = ActivitySyncService.prefixData(activity)
-      await this.openSearchService.index(activityId, OpenSearchIndex.ACTIVITIES, prepared)
-    } else {
-      // we should retry - sometimes database is slow
-      if (retries < 5) {
-        await timeout(100)
-        await this.syncActivity(activityId, ++retries)
-      } else {
-        this.log.error({ activityId }, 'Activity not found after 5 retries! Removing from index!')
-        await this.openSearchService.removeFromIndex(activityId, OpenSearchIndex.ACTIVITIES)
-      }
+      await this.activityRepo.markSynced(activities.map((m) => m.id))
     }
+
+    return activities.length
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -233,7 +237,7 @@ export class ActivitySyncService extends LoggerBase {
     p.keyword_sourceParentId = data.sourceParentId
     p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
     p.keyword_channel = data.channel
-    p.string_body = data.body
+    p.string_body = trimUtf8ToMaxByteLength(data.body, ActivitySyncService.MAX_BYTE_LENGTH)
     p.string_title = data.title
     p.string_url = data.url
     p.int_sentiment = data.sentiment

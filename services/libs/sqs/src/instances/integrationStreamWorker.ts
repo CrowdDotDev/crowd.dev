@@ -23,10 +23,7 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     runId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      `streams-${tenantId}-${platform}`,
-      new ContinueProcessingRunStreamsQueueMessage(runId),
-    )
+    await this.sendMessage(runId, new ContinueProcessingRunStreamsQueueMessage(runId))
   }
 
   public async triggerStreamProcessing(
@@ -34,11 +31,7 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     streamId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      `streams-${tenantId}-${platform}`,
-      new ProcessStreamQueueMessage(streamId),
-      streamId,
-    )
+    await this.sendMessage(streamId, new ProcessStreamQueueMessage(streamId), streamId)
   }
 
   public async triggerWebhookProcessing(
@@ -46,9 +39,6 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     webhookId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      `ws-streams-${tenantId}-${platform}`,
-      new ProcessWebhookStreamQueueMessage(webhookId),
-    )
+    await this.sendMessage(webhookId, new ProcessWebhookStreamQueueMessage(webhookId), webhookId)
   }
 }

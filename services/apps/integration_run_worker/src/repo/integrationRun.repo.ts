@@ -72,6 +72,34 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     return result.id
   }
 
+  public async getTenantsWithIntegrations(): Promise<string[]> {
+    const results = await this.db().any(
+      `
+      select distinct "tenantId" from integrations where "deletedAt" is null;
+      `,
+    )
+
+    return results.map((r) => r.tenantId)
+  }
+
+  public async getTenantIntegrations(tenantId: string): Promise<IStartIntegrationRunData[]> {
+    const results = await this.db().any(
+      `
+      select id,
+             platform as type,
+             status as state,
+             "integrationIdentifier" as identifier,
+             "tenantId"
+      from integrations where "tenantId" = $(tenantId) and "deletedAt" is null
+    `,
+      {
+        tenantId,
+      },
+    )
+
+    return results
+  }
+
   public async getIntegrationData(integrationId: string): Promise<IStartIntegrationRunData | null> {
     const results = await this.db().oneOrNone(
       `
@@ -327,5 +355,20 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     )
 
     return result.count
+  }
+
+  public async getIntegrationSettings(integrationId: string): Promise<unknown> {
+    const result = await this.db().one(
+      `
+      select settings
+      from integrations
+      where id = $(integrationId)
+    `,
+      {
+        integrationId,
+      },
+    )
+
+    return result.settings
   }
 }

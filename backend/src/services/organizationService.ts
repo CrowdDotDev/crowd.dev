@@ -1,4 +1,5 @@
 import { LoggerBase } from '@crowd/logging'
+import { websiteNormalizer } from '@crowd/common'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
 import MemberRepository from '../database/repositories/memberRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
@@ -9,6 +10,7 @@ import Plans from '../security/plans'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { enrichOrganization } from './helpers/enrichment'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -41,6 +43,11 @@ export default class OrganizationService extends LoggerBase {
         ...this.options,
         transaction,
       })
+
+      // Normalize the website URL if it exists
+      if (data.website) {
+        data.website = websiteNormalizer(data.website)
+      }
 
       // if cache exists, merge current data with cache data
       // if it doesn't exist, create it from incoming data
@@ -120,6 +127,9 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+
       return record
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -130,8 +140,9 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+  async update(id, data, passedTransaction?) {
+    const transaction =
+      passedTransaction || (await SequelizeRepository.createTransaction(this.options))
 
     try {
       if (data.members) {
@@ -141,12 +152,22 @@ export default class OrganizationService extends LoggerBase {
         })
       }
 
+      // Normalize the website URL if it exists
+      if (data.website) {
+        data.website = websiteNormalizer(data.website)
+      }
+
       const record = await OrganizationRepository.update(id, data, {
         ...this.options,
         transaction,
       })
 
-      await SequelizeRepository.commitTransaction(transaction)
+      if (!passedTransaction) {
+        await SequelizeRepository.commitTransaction(transaction)
+      }
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
 
       return record
     } catch (error) {
@@ -174,6 +195,12 @@ export default class OrganizationService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
+      for (const id of ids) {
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
+      }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -196,13 +223,17 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findByUrl(url, this.options)
   }
 
+  async findByDomain(domain) {
+    return OrganizationRepository.findByDomain(domain, this.options)
+  }
+
   async query(data) {
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return OrganizationRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+    return OrganizationRepository.findAndCountAllOpensearch(
+      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
       this.options,
     )
   }
@@ -221,6 +252,11 @@ export default class OrganizationService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      for (const id of ids) {
+        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
+      }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error

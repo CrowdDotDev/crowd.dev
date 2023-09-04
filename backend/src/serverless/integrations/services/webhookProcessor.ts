@@ -44,7 +44,7 @@ export class WebhookProcessor extends LoggerBase {
       integrationId: webhook.integrationId,
     })
 
-    logger.info('Webhook found!')
+    logger.debug('Webhook found!')
 
     if (!(force === true) && webhook.state !== WebhookState.PENDING) {
       logger.error({ state: webhook.state }, 'Webhook is not in pending state!')
@@ -55,6 +55,9 @@ export class WebhookProcessor extends LoggerBase {
     userContext.log = logger
 
     const integration = await IntegrationRepository.findById(webhook.integrationId, userContext)
+    if (integration.platform === 'github' || integration.platform === 'discord') {
+      return
+    }
     const segment = await new SegmentRepository(userContext).findById(integration.segmentId)
     userContext.currentSegments = [segment]
 

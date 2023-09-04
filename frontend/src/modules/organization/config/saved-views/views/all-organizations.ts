@@ -7,7 +7,7 @@ const allOrganizations: SavedView = {
     search: '',
     relation: 'and',
     order: {
-      prop: 'activityCount',
+      prop: 'lastActive',
       order: 'descending',
     },
     settings: {

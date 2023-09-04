@@ -5,21 +5,25 @@ export interface ActivityState {
   savedFilterBody: any,
   activities: [],
   totalActivities: number
+  pagination: {
+    page: number,
+    perPage: number
+  }
 }
 
 export default () => ({
   filters: {
     search: '',
     relation: 'and',
-    pagination: {
-      page: 1,
-      perPage: 20,
-    },
     order: {
       prop: 'timestamp',
       order: 'descending',
     },
   } as Filter,
+  pagination: {
+    page: 1,
+    perPage: 20,
+  },
   savedFilterBody: {},
   activities: [],
   totalActivities: 0,

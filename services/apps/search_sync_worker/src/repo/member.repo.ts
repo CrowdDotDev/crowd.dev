@@ -1,8 +1,8 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IDbMemberSyncData, IDbSegmentInfo } from './member.data'
-import { IMemberAttribute } from '@crowd/types'
 import { RedisCache, RedisClient } from '@crowd/redis'
+import { IMemberAttribute } from '@crowd/types'
+import { IDbMemberSyncData } from './member.data'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly cache: RedisCache
@@ -11,25 +11,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     super(dbStore, parentLog)
 
     this.cache = new RedisCache('memberAttributes', redisClient, this.log)
-  }
-
-  public async getParentSegmentIds(childSegmentIds: string[]): Promise<IDbSegmentInfo[]> {
-    const results = await this.db().any(
-      `
-      select s.id, pd.id as "parentId", gpd.id as "grandParentId"
-      from segments s
-              inner join segments pd
-                          on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
-                            pd."parentSlug" is not null
-              inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
-                                          gpd."grandparentSlug" is null and gpd."parentSlug" is null
-      where s.id in ($(childSegmentIds:csv));
-      `,
-      {
-        childSegmentIds,
-      },
-    )
-    return results
   }
 
   public async getTenantIds(): Promise<string[]> {
@@ -59,24 +40,75 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async getTenantMembersForSync(
     tenantId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+          select m.id
+          from members m
+          where m."tenantId" = $(tenantId) and 
+                m."deletedAt" is null and
+                m.id > $(lastId) and
+                (
+                  exists (select 1 from activities where "memberId" = m.id) or
+                  m."manuallyCreated"
+                ) and
+                exists (select 1 from "memberIdentities" where "memberId" = m.id)
+          order by m.id
+          limit ${perPage};`,
+        {
+          tenantId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+          select m.id
+          from members m
+          where m."tenantId" = $(tenantId) and 
+                m."deletedAt" is null and
+                (
+                  exists (select 1 from activities where "memberId" = m.id) or
+                  m."manuallyCreated"
+                ) and
+                exists (select 1 from "memberIdentities" where "memberId" = m.id)
+          order by m.id
+          limit ${perPage};`,
+        {
+          tenantId,
+        },
+      )
+    }
+
+    return results.map((r) => r.id)
+  }
+
+  public async getRemainingTenantMembersForSync(
+    tenantId: string,
     page: number,
     perPage: number,
     cutoffDate: string,
   ): Promise<string[]> {
     const results = await this.db().any(
       `
-        select m.id
-        from members m
-        where m."tenantId" = $(tenantId) and 
-              m."deletedAt" is null and
-              (
-                  m."searchSyncedAt" is null or 
-                  m."searchSyncedAt" < $(cutoffDate)
-              ) 
-              and
-              exists (select 1 from activities where "memberId" = m.id) and
-              exists (select 1 from "memberIdentities" where "memberId" = m.id)
-        limit ${perPage} offset ${(page - 1) * perPage};`,
+      select id from members m
+      where m"tenantId" = $(tenantId) and m"deletedAt" is null
+       and (
+        m."searchSyncedAt" is null or
+        m."searchSyncedAt" < $(cutoffDate)
+       ) and
+       (
+        exists (select 1 from activities where "memberId" = m.id) or
+          m."manuallyCreated"
+       )
+      limit ${perPage} offset ${(page - 1) * perPage};
+      `,
       {
         tenantId,
         cutoffDate,
@@ -122,7 +154,12 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                                     json_build_object(
                                                             'id', o.id,
                                                             'logo', o.logo,
-                                                            'displayName', o."displayName"
+                                                            'displayName', o."displayName",
+                                                            'memberOrganizations', json_build_object(
+                                                                          'dateStart', mo."dateStart",
+                                                                          'dateEnd', mo."dateEnd",
+                                                                          'title', mo.title
+                                                            )
                                                         )
                                                 )           as all_organizations,
                                             jsonb_agg(o.id) as all_ids
@@ -131,6 +168,11 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                               inner join "organizationSegments" os on o.id = os."organizationId"
                                       where mo."memberId" in ($(ids:csv))
                                         and o."deletedAt" is null
+                                        and exists (select 1
+                                          from activities a
+                                          where a."memberId" = mo."memberId"
+                                            and a."organizationId" = mo."organizationId"
+                                            and a."segmentId" = os."segmentId")
                                       group by mo."memberId", os."segmentId"),
             identities as (select mi."memberId",
                                   json_agg(
@@ -168,6 +210,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m.score,
               m."lastEnriched",
               m."joinedAt",
+              m."manuallyCreated",
               m."createdAt",
               (m.reach -> 'total')::integer                      as "totalReach",
               coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
@@ -187,13 +230,14 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         from "memberSegments" ms
                 inner join members m on ms."memberId" = m.id
                 inner join identities i on m.id = i."memberId"
-                inner join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
+                left join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
                 left join to_merge_data tmd on m.id = tmd."memberId"
                 left join no_merge_data nmd on m.id = nmd."memberId"
                 left join member_tags mt on ms."memberId" = mt."memberId"
                 left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
         where ms."memberId" in ($(ids:csv))
-          and m."deletedAt" is null;`,
+          and m."deletedAt" is null
+          and (ad."memberId" is not null or m."manuallyCreated");`,
       {
         ids,
       },
@@ -218,7 +262,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       from members m
       where m."tenantId" = $(tenantId ) and 
             m.id in ($(memberIds:csv)) and
-            exists(select 1 from activities a where a."memberId" = m.id) and
+            (
+              exists (select 1 from activities where "memberId" = m.id) or
+              m."manuallyCreated"
+            ) and
             exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
       `,
       {

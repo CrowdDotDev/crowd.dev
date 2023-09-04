@@ -104,6 +104,110 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
     },
+    affiliatedProfiles: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
+    allSubsidiaries: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
+    alternativeDomains: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
+    alternativeNames: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
+    averageEmployeeTenure: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    averageTenureByLevel: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (averageTenureByLevel: any) => {
+        return JSON.stringify(averageTenureByLevel)
+      },
+    },
+    averageTenureByRole: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (averageTenureByRole: any) => {
+        return JSON.stringify(averageTenureByRole)
+      },
+    },
+    directSubsidiaries: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
+    employeeChurnRate: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (employeeChurnRate: any) => {
+        return JSON.stringify(employeeChurnRate)
+      },
+    },
+    employeeCountByMonth: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (employeeCountByMonth: any) => {
+        return JSON.stringify(employeeCountByMonth)
+      },
+    },
+    employeeGrowthRate: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (employeeGrowthRate: any) => {
+        return JSON.stringify(employeeGrowthRate)
+      },
+    },
+    employeeCountByMonthByLevel: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (employeeCountByMonthByLevel: any) => {
+        return JSON.stringify(employeeCountByMonthByLevel)
+      },
+    },
+    employeeCountByMonthByRole: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (employeeCountByMonthByRole: any) => {
+        return JSON.stringify(employeeCountByMonthByRole)
+      },
+    },
+    gicsSector: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+    },
+    grossAdditionsByMonth: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (grossAdditionsByMonth: any) => {
+        return JSON.stringify(grossAdditionsByMonth)
+      },
+    },
+    grossDeparturesByMonth: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: (grossDeparturesByMonth: any) => {
+        return JSON.stringify(grossDeparturesByMonth)
+      },
+    },
+    immediateParent: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+    },
+    ultimateParent: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+    },
   }
 
   override getFieldProperties(): Record<string, IFieldProperty> {

@@ -526,6 +526,12 @@ class ActivityRepository {
         })
       }
 
+      if (filter.organizations) {
+        advancedFilter.and.push({
+          organizationId: filter.organizations,
+        })
+      }
+
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 
@@ -616,6 +622,11 @@ class ActivityRepository {
 
       memberSequelizeInclude.where = parsedMemberQuery.where ?? {}
       delete advancedFilter.member
+    }
+
+    if (advancedFilter.organizations) {
+      advancedFilter.organizationId = advancedFilter.organizations
+      delete advancedFilter.organizations
     }
 
     const include = [

@@ -38,6 +38,7 @@ export interface IMember {
   lastEnriched: string
   joinedAt: string
   createdAt: string
+  manuallyCreated: boolean
   reach: number
   numberOfOpenSourceContributions: number
   activeOn: string[]
@@ -52,4 +53,14 @@ export interface IMember {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   username: any
   lastActivity: unknown
+}
+
+export interface IMemberSyncRemoteData {
+  id?: string
+  memberId: string
+  sourceId?: string
+  integrationId: string
+  syncFrom: string
+  metaData: string
+  lastSyncedAt?: string
 }

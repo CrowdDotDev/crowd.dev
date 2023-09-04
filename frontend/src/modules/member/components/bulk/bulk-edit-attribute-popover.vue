@@ -8,15 +8,14 @@
           class="attributes-form mt-1 mb-5"
           label-position="top"
         >
-          
-            <el-form-item
-              label="Choose attribute"
-              class="mb-6"
-              required="true"
-            >
-              <app-bulk-edit-attribute-dropdown v-model="attributesData" @change="handleDropdownChange" @clear="handleDropdownClear" />
-            </el-form-item>
-          
+          <el-form-item
+            label="Choose attribute"
+            class="mb-6"
+            required="true"
+          >
+            <app-bulk-edit-attribute-dropdown v-model="attributesData" @change="handleDropdownChange" @clear="handleDropdownClear" />
+          </el-form-item>
+
           <!-- Show value field only if attribute is selected -->
           <div v-if="Object.keys(selectedAttribute).length > 0">
             <el-form-item
@@ -74,7 +73,9 @@
 
             <div v-if="selectedAttribute.type === 'multiSelect'" class="flex items-center gap-2 -mt-2">
               <i class="ri-information-line text-gray-400 text-lg " />
-              <span class="text-xs leading-5 text-gray-500">Values will be added to each selected member and the existing ones won’t be overwritten.</span>
+              <span class="text-xs leading-5 text-gray-500">
+                Values will be added to each selected member and the existing ones won’t be overwritten.
+              </span>
             </div>
 
             <div v-else class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-2 px-4 mt-6">
@@ -89,7 +90,7 @@
         <el-button class="btn btn--bordered btn--md mr-3" @click="handleCancel">
           Cancel
         </el-button>
-        <el-button class="btn btn--primary btn--md" @click="handleSubmit" :disabled="!hasFormChanged">
+        <el-button class="btn btn--primary btn--md" :disabled="!hasFormChanged" @click="handleSubmit">
           Submit
         </el-button>
       </div>
@@ -192,7 +193,7 @@ watch(
   },
 );
 
-// since we have multi-select input for both the organizations and custom attributes, 
+// since we have multi-select input for both the organizations and custom attributes,
 // need to dynamically set the appropriate methods based on the context.
 const multiSelectFetchFn = computed(() => {
   if (selectedAttribute.value.name === 'organizations') {
@@ -341,7 +342,7 @@ const handleSubmit = async () => {
       || formModel.value.attributes) && {
       attributes: {
         ...(Object.keys(formattedAttributes).length
-          && formattedAttributes)
+          && formattedAttributes),
       },
     },
   };

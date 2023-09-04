@@ -9,6 +9,7 @@ import { FeatureFlag, FeatureFlagRedisKey } from '../../../../types/common'
 export async function BulkorganizationEnrichmentWorker(
   tenantId: string,
   maxEnrichLimit: number = 0,
+  verbose: boolean = false,
 ) {
   const userContext = await getUserContext(tenantId)
   const redis = await getRedisClient(REDIS_CONFIG, true)
@@ -38,7 +39,7 @@ export async function BulkorganizationEnrichmentWorker(
       tenantId,
       limit: remainderEnrichmentLimit,
     })
-    enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone()
+    enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone(verbose)
   }
 
   if (!skipCredits) {

@@ -8,7 +8,7 @@ import { PlatformType } from '@crowd/types'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.SLACK,
   memberAttributes: SLACK_MEMBER_ATTRIBUTES,
-  checkEvery: 20,
+  checkEvery: 30,
   generateStreams,
   processStream,
   processData,

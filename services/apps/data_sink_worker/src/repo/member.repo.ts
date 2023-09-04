@@ -10,7 +10,7 @@ import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from './member.data'
-import { IMemberIdentity } from '@crowd/types'
+import { IMemberIdentity, SyncStatus } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
@@ -145,15 +145,27 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async update(id: string, tenantId: string, data: IDbMemberUpdateData): Promise<void> {
+    const keys = Object.keys(data)
+    keys.push('updatedAt')
+    // construct custom column set
+    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
+      table: {
+        table: 'members',
+      },
+    })
+
     const prepared = RepositoryBase.prepare(
       {
         ...data,
-        weakIdentities: JSON.stringify(data.weakIdentities || []),
+        ...(data?.weakIdentities &&
+          data?.weakIdentities?.length > 0 && {
+            weakIdentities: JSON.stringify(data.weakIdentities),
+          }),
         updatedAt: new Date(),
       },
-      this.updateMemberColumnSet,
+      dynamicColumnSet,
     )
-    const query = this.dbInstance.helpers.update(prepared, this.updateMemberColumnSet)
+    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
 
     const condition = this.format('where id = $(id) and "tenantId" = $(tenantId)', {
       id,
@@ -240,5 +252,24 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       this.dbInstance.helpers.insert(prepared, this.insertMemberSegmentColumnSet) +
       ' ON CONFLICT DO NOTHING'
     await this.db().none(query)
+  }
+
+  public async addToSyncRemote(memberId: string, integrationId: string, sourceId: string) {
+    await this.db().none(
+      `insert into "membersSyncRemote" ("id", "memberId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
+      values
+          ($(id), $(memberId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
+          on conflict do nothing`,
+      {
+        id: generateUUIDv1(),
+        memberId,
+        sourceId,
+        integrationId,
+        syncFrom: 'enrich',
+        metaData: null,
+        lastSyncedAt: null,
+        status: SyncStatus.NEVER,
+      },
+    )
   }
 }
