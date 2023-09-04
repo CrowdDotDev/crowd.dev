@@ -5,6 +5,7 @@ import {
   OpenSearchIndex,
   PlatformType,
   SyncStatus,
+  OrganizationSource,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
@@ -3274,7 +3275,9 @@ class MemberRepository {
       return
     }
 
-    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+    const sourceUi = !!organizations.find((org) => org.source === OrganizationSource.UI)
+
+    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, sourceUi, options)
 
     const toDelete = originalOrgs.filter(
       (originalOrg: any) =>
@@ -3303,6 +3306,7 @@ class MemberRepository {
           title: org.title,
           dateStart: org.startDate,
           dateEnd: org.endDate,
+          source: org.source,
         },
         {
           transaction,
@@ -3376,11 +3380,24 @@ class MemberRepository {
       }
     }
 
+    let conflictCondition = `("memberId", "organizationId", "dateStart", "dateEnd")`
+    if (!dateEnd) {
+      conflictCondition = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
+    }
+    if (!dateStart) {
+      conflictCondition = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
+    }
+
+    const onConflict =
+      source === OrganizationSource.UI
+        ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd, "deletedAt" = NULL, "source" = :source`
+        : 'ON CONFLICT DO NOTHING'
+
     await seq.query(
       `
         INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
         VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
-        ON CONFLICT DO NOTHING
+        ${onConflict}
       `,
       {
         replacements: {
@@ -3421,13 +3438,18 @@ class MemberRepository {
     )
   }
 
-  static async fetchWorkExperiences(memberId: string, options: IRepositoryOptions) {
+  static async fetchWorkExperiences(
+    memberId: string,
+    sourceUi: boolean,
+    options: IRepositoryOptions,
+  ) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        ${sourceUi ? '' : "AND (source IS NULL OR source != 'ui')"}
         AND "deletedAt" IS NULL
     `
 

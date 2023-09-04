@@ -10,4 +10,5 @@ export enum OrganizationSource {
   ENRICHMENT = 'enrichment',
   HUBSPOT = 'hubspot',
   GITHUB = 'github',
+  UI = 'ui',
 }
