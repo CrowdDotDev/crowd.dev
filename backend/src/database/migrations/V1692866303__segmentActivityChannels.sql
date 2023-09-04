@@ -1,18 +1,18 @@
-CREATE TABLE IF NOT EXISTS "public"."segmentActivityChannels" (
-    "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    "tenantId" UUID NOT NULL REFERENCES public.tenants(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    "segmentId" UUID NOT NULL REFERENCES public.segments(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    "platform" TEXT NOT NULL,
-    "channel" TEXT NOT NULL
+create table if not exists "public"."segmentActivityChannels" (
+    "id"        uuid primary key default uuid_generate_v4(),
+    "tenantId"  uuid not null references public.tenants (id) on update cascade on delete cascade,
+    "segmentId" uuid not null references public.segments (id) on update cascade on delete cascade,
+    "platform"  text not null,
+    "channel"   text not null
 );
 
-CREATE UNIQUE INDEX unique_segment_activity_channel
-    ON "public"."segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel");
+create unique index unique_segment_activity_channel
+    on "public"."segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel");
 
-INSERT INTO "public"."segmentActivityChannels" ("segmentId", "tenantId", "platform", "channel")
-	SELECT
-        "id",
-        "tenantId",
-	    jsonb_object_keys("activityChannels"),
-	    TRIM('"' FROM jsonb_array_elements("activityChannels"->jsonb_object_keys("activityChannels"))::TEXT)
-	FROM "public"."segments";
+insert into "public"."segmentActivityChannels" ("segmentId", "tenantId", "platform", "channel")
+select "id",
+       "tenantId",
+       jsonb_object_keys("activityChannels"),
+       trim('"' from jsonb_array_elements("activityChannels" -> jsonb_object_keys("activityChannels"))::text)
+from "public"."segments"
+on conflict do nothing;

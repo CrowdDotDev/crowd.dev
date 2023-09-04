@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS "public"."segmentActivityChannels" CASCADE;
+drop table if exists "public"."segmentActivityChannels" cascade;
