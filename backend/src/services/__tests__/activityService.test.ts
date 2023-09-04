@@ -864,9 +864,7 @@ describe('ActivityService tests', () => {
       }
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-
       const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
-
       expect(activityChannels[activity.platform].includes(activity.channel)).toBe(true)
     })
 
@@ -932,6 +930,7 @@ describe('ActivityService tests', () => {
         member: memberCreated.id,
         score: 1,
       }
+
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
       const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
       expect(activityChannels[activity1.platform].length).toBe(1)
