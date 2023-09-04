@@ -2,46 +2,60 @@
   <div class="s panel" :class="computedClass">
     <div class="flex items-center justify-between">
       <img :alt="integration.name" :src="integration.image" class="h-6 mb-4" />
-      <span v-if="isDone" class="badge badge--green">Connected</span>
-      <div v-else-if="isError" class="text-red-500 flex items-center text-sm">
-        <i class="ri-error-warning-line mr-1" /> Failed to connect
-      </div>
-      <div v-else-if="isNoData" class="text-red-500 flex items-center text-sm">
-        <i class="ri-error-warning-line mr-1" /> Not receiving activities
-      </div>
-      <div
-        v-else-if="isWaitingForAction"
-        class="text-yellow-600 flex items-center text-sm"
-      >
-        <i class="ri-alert-line mr-1" /> Action required
-      </div>
-      <div
-        v-else-if="isWaitingApproval"
-        class="text-gray-500 flex items-center text-sm"
-      >
-        <i class="ri-time-line mr-1" /> Waiting for approval
-      </div>
-      <div
-        v-else-if="isNeedsToBeReconnected"
-        class="text-yellow-600 flex items-center text-sm"
-      >
-        <i class="ri-alert-line mr-1" /> Needs to be reconnected
-      </div>
-      <div v-else-if="isConnected" class="flex items-center">
-        <div
-          v-loading="true"
-          class="app-page-spinner !relative h-4 !w-4 mr-2 !min-h-fit"
-        />
+      <div>
+        <div class="mb-1 flex justify-end">
+          <span v-if="isDone" class="badge badge--green">Connected</span>
+          <div v-else-if="isError" class="text-red-500 flex items-center text-sm">
+            <i class="ri-error-warning-line mr-1" /> Failed to connect
+          </div>
+          <div v-else-if="isNoData" class="text-red-500 flex items-center text-sm">
+            <i class="ri-error-warning-line mr-1" /> Not receiving activities
+          </div>
+          <div
+            v-else-if="isWaitingForAction"
+            class="text-yellow-600 flex items-center text-sm"
+          >
+            <i class="ri-alert-line mr-1" /> Action required
+          </div>
+          <div
+            v-else-if="isWaitingApproval"
+            class="text-gray-500 flex items-center text-sm"
+          >
+            <i class="ri-time-line mr-1" /> Waiting for approval
+          </div>
+          <div
+            v-else-if="isNeedsToBeReconnected"
+            class="text-yellow-600 flex items-center text-sm"
+          >
+            <i class="ri-alert-line mr-1" /> Needs to be reconnected
+          </div>
+          <div v-else-if="isConnected" class="flex items-center">
+            <div
+              v-loading="true"
+              class="app-page-spinner !relative h-4 !w-4 mr-2 !min-h-fit"
+            />
 
-        <span class="text-xs text-gray-900 mr-2">In progress</span>
-        <el-tooltip
-          content="Fetching first activities from an integration might take a few minutes"
-          placement="top"
-        >
-          <i class="ri-question-line text-gray-400" />
-        </el-tooltip>
+            <span class="text-xs text-gray-900 mr-2">In progress</span>
+            <el-tooltip
+              content="Fetching first activities from an integration might take a few minutes"
+              placement="top"
+            >
+              <i class="ri-question-line text-gray-400" />
+            </el-tooltip>
+          </div>
+        </div>
+        <div class="h-5 leading-5 text-end">
+          <el-tooltip
+            v-if="includeTimestamp"
+            :content="lastSynced.absolute"
+            placement="top"
+          >
+            <span class="text-3xs italic text-gray-500">{{ lastSynced.relative }}</span>
+          </el-tooltip>
+        </div>
       </div>
     </div>
+
     <div>
       <div class="flex mb-2">
         <span class="block font-semibold">{{ integration.name }}</span>
@@ -101,11 +115,12 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { defineProps, computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { FeatureFlag } from '@/featureFlag';
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
+import moment from 'moment';
 
 const store = useStore();
 const props = defineProps({
@@ -113,6 +128,21 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+});
+
+onMounted(() => {
+  moment.updateLocale('en', {
+    relativeTime: {
+      s: '1s',
+      ss: '%ds',
+      m: '1min',
+      mm: '%dmin',
+      h: '1h',
+      hh: '%dh',
+      d: '1d',
+      dd: '%dd',
+    },
+  });
 });
 
 const computedClass = computed(() => ({
@@ -145,6 +175,16 @@ const isWaitingApproval = computed(
 const isNeedsToBeReconnected = computed(
   () => props.integration.status === 'needs-reconnect',
 );
+
+const includeTimestamp = computed(() => isConnected.value
+|| isDone.value || isError.value
+|| isNoData.value || isWaitingForAction.value
+|| isWaitingApproval.value || isNeedsToBeReconnected.value);
+
+const lastSynced = computed(() => ({
+  absolute: moment.utc(props.integration.updatedAt).format('MMM DD, YYYY HH:mm'),
+  relative: `last synced ${moment.utc(props.integration.updatedAt).fromNow()}`,
+}));
 
 const loadingDisconnect = ref(false);
 
