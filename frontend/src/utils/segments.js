@@ -7,7 +7,10 @@ export const getSegmentsFromProjectGroup = (projectGroup, options) => {
     return [];
   }
 
-  if (options?.url?.includes('/member/query') || options?.url?.includes('/member/active')) {
+  if (
+    options?.url?.includes('/member/query')
+    || options?.url?.includes('/member/active')
+  ) {
     return [projectGroup.id];
   }
 
@@ -24,18 +27,14 @@ export const hasAccessToProjectGroup = (segmentId) => {
   const currentUser = store.getters['auth/currentUser'];
   const currentTenant = store.getters['auth/currentTenant'];
 
-  const permissionChecker = new PermissionChecker(
-    currentTenant,
-    currentUser,
-  );
+  const permissionChecker = new PermissionChecker(currentTenant, currentUser);
 
-  const isAdmin = permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
-  const isViewer = permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
+  const isAdmin = permissionChecker.currentUserRolesIds.includes(
+    Roles.values.admin,
+  );
 
   if (isAdmin) {
     return true;
-  } if (isViewer) {
-    return false;
   }
 
   const { adminSegments = [] } = currentUser;
