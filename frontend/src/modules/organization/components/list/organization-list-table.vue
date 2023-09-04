@@ -97,6 +97,7 @@
                 prop="displayName"
                 width="260"
                 fixed
+                sortable
               >
                 <template #default="scope">
                   <router-link

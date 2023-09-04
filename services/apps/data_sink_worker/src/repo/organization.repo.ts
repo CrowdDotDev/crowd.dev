@@ -178,7 +178,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     segmentId: string,
     domain: string,
   ): Promise<IDbOrganization> {
-    const result = await this.db().oneOrNone(
+    const results = await this.db().any(
       `
       SELECT
         o.id,
@@ -225,7 +225,17 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       },
     )
 
-    return result
+    if (results.length === 0) {
+      return null
+    }
+
+    results.sort((a, b) => {
+      const scoreA = Object.values(a).filter((value) => value !== null).length
+      const scoreB = Object.values(b).filter((value) => value !== null).length
+      return scoreB - scoreA
+    })
+
+    return results[0]
   }
 
   public async insert(tenantId: string, data: IDbInsertOrganizationData): Promise<string> {
