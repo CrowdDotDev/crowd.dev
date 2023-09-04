@@ -7,7 +7,7 @@
       <div class="flex justify-center">
         <div class="home-content px-8">
           <div
-            class="py-8 -mx-4 px-4 sticky -top-6 bg-white z-20"
+            class="py-8 -mx-4 px-4 sticky -top-6 bg-white z-20 flex items-center justify-between"
           >
             <app-lf-page-header
               :text-class="{
@@ -16,6 +16,10 @@
                 'text-base': scrolled,
               }"
             />
+            <div class=" text-sm flex items-center gap-2">
+              <i class="text-gray-500 ri-time-line text-base" />
+              <span class="text-gray-500">Data on this page is refreshed every 15 min.</span>
+            </div>
           </div>
 
           <div

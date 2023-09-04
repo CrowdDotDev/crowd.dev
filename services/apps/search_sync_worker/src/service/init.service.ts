@@ -62,7 +62,6 @@ export class InitService extends LoggerBase {
       logo: 'https://placehold.co/400',
       naics: [],
       name: 'Fake organization',
-      parentUrl: 'https://placehold.co/400',
       phoneNumbers: ['123456789'],
       profiles: ['https://placehold.co/400'],
       revenueRange: {},
@@ -80,6 +79,49 @@ export class InitService extends LoggerBase {
       activityCount: 10,
       memberCount: 10,
       identities: ['devto:fakeorg'],
+      manuallyCreated: false,
+      immediateParent: 'Fake parent',
+      ultimateParent: 'Fake ultimate parent',
+      affiliatedProfiles: ['https://placehold.co/400'],
+      allSubsidiaries: ['Fake subsidiary 1', 'Fake subsidiary 2'],
+      alternativeDomains: ['www.fake1.org', 'www.fake2.org'],
+      alternativeNames: ['Fake name 1', 'Fake name 2'],
+      averageEmployeeTenure: 2.8,
+      averageTenureByLevel: { cxo: 2, manager: 1.5 },
+      averageTenureByRole: {
+        customer_service: 1.141,
+        engineering: 1.827,
+        human_resources: 1.083,
+      },
+      employeeChurnRate: {
+        '3_month': 0.0248,
+        '6_month': 0.124,
+        '12_month': 0.1983,
+        '24_month': 0.3306,
+      },
+      employeeCountByMonth: {
+        '2022-04': 105,
+        '2022-05': 112,
+        '2022-06': 117,
+      },
+      employeeGrowthRate: {
+        '3_month': 0.0522,
+        '6_month': 0.0342,
+        '12_month': 0.375,
+        '24_month': 1.283,
+      },
+      employeeCountByMonthByLevel: {
+        '2020-01': { cxo: 2, manager: 5 },
+        '2020-02': { cxo: 3, manager: 6 },
+      },
+      employeeCountByMonthByRole: {
+        '2020-01': { marketing: 5, engineering: 10 },
+        '2020-02': { marketing: 6, engineering: 12 },
+      },
+      gicsSector: 'Fake GICS sector',
+      grossAdditionsByMonth: { '2022-05': 7, '2022-06': 6, '2022-07': 1, '2022-08': 1 },
+      grossDeparturesByMonth: { '2022-06': 2, '2022-07': 1, '2022-08': 2, '2022-09': 2 },
+      directSubsidiaries: ['Fake direct subsidiary 1', 'Fake direct subsidiary 2'],
     }
 
     const prepared = OrganizationSyncService.prefixData(fakeOrg)
@@ -143,6 +185,7 @@ export class InitService extends LoggerBase {
       noMergeIds: ['b176d053-c53e-42d2-88d2-6fbc3e34184c'],
 
       attributes: {},
+      manuallyCreated: false,
     }
 
     const prepared = MemberSyncService.prefixData(fakeMember, [])

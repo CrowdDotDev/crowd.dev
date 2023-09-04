@@ -5,7 +5,7 @@
 
   </a>
 
-  <h2 align="center">Understand who is engaging with your open source project.</h2>
+  <h2 align="center">Effortlessly centralize community, product, and customer data in one database</h2>
   
   <p align="center">
     <br>

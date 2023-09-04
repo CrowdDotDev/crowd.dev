@@ -198,16 +198,11 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async markDataProcessed(dataId: string): Promise<void> {
+  public async deleteData(dataId: string): Promise<void> {
     const result = await this.db().result(
-      `update integration."apiData"
-       set  state = $(state),
-            "processedAt" = now(),
-            "updatedAt" = now()
-       where id = $(dataId)`,
+      `delete from integration."apiData" where id = $(dataId)`,
       {
         dataId,
-        state: IntegrationStreamDataState.PROCESSED,
       },
     )
 

@@ -21,7 +21,7 @@ setImmediate(async () => {
   const emitter = new IntegrationDataWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = getDbConnection(DB_CONFIG(), 1)
+  const dbConnection = await getDbConnection(DB_CONFIG(), 1)
   const store = new DbStore(log, dbConnection)
   const repo = new IntegrationDataRepository(store, log)
 

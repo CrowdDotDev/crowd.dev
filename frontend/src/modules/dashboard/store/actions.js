@@ -56,11 +56,10 @@ export default {
           {
             lastActive: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -118,6 +117,7 @@ export default {
   // Fetch recent activities
   async getRecentActivities({ commit, state }) {
     state.activities.loading = true;
+
     const { platform, period, segments } = state.filters;
 
     return ActivityService.query({
@@ -127,11 +127,10 @@ export default {
           {
             timestamp: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -212,9 +211,10 @@ export default {
       activityIsContribution: null,
       activityTimestampFrom: moment()
         .utc()
-        .subtract(period.value, period.granularity)
+        .subtract(period.value - 1, period.granularity)
+        .startOf('day')
         .toISOString(),
-      activityTimestampTo: moment().utc(),
+      activityTimestampTo: moment().utc().endOf('day'),
       orderBy: 'activityCount_DESC',
       offset: 0,
       limit: 5,
@@ -232,6 +232,7 @@ export default {
   // Fetch recent members
   async getRecentMembers({ commit, state }) {
     state.members.loadingRecent = true;
+
     const { platform, period, segments } = state.filters;
 
     return MemberService.listMembers({
@@ -241,11 +242,10 @@ export default {
           {
             joinedAt: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -331,11 +331,10 @@ export default {
           {
             lastActive: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -378,11 +377,10 @@ export default {
           {
             joinedAt: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),

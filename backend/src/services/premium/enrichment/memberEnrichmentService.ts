@@ -144,6 +144,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -158,6 +159,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberId)
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (

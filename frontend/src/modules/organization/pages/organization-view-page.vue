@@ -31,9 +31,7 @@
               label="Associated contributors"
               name="members"
             >
-              <app-organization-view-members
-                :organization-id="props.id"
-              />
+              <app-organization-view-members />
             </el-tab-pane>
             <el-tab-pane
               label="Activities"
@@ -86,11 +84,12 @@ const tab = ref('members');
 
 onMounted(() => {
   try {
-    fetchOrganization(props.id);
+    fetchOrganization(props.id).finally(() => {
+      loading.value = false;
+    });
   } catch (e) {
     Message.error('Something went wrong');
   }
-  loading.value = false;
 });
 </script>
 

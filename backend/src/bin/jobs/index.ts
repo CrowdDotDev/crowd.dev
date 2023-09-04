@@ -4,6 +4,7 @@ import weeklyAnalyticsEmailsCoordinator from './weeklyAnalyticsEmailsCoordinator
 import memberScoreCoordinator from './memberScoreCoordinator'
 import checkSqsQueues from './checkSqsQueues'
 import refreshMaterializedViews from './refreshMaterializedViews'
+import refreshMaterializedViewsForCube from './refreshMaterializedViewsForCube'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
 import eagleEyeEmailDigestTicks from './eagleEyeEmailDigestTicks'
 import integrationDataChecker from './integrationDataChecker'
@@ -21,6 +22,7 @@ const jobs: CrowdJob[] = [
   memberScoreCoordinator,
   checkSqsQueues,
   refreshMaterializedViews,
+  refreshMaterializedViewsForCube,
   downgradeExpiredPlans,
   eagleEyeEmailDigestTicks,
   integrationDataChecker,

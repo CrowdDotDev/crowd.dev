@@ -18,7 +18,6 @@ const toCreate = {
   phoneNumbers: ['+42 424242424'],
   logo: 'https://logo.clearbit.com/crowd.dev',
   tags: ['community', 'growth', 'developer-first'],
-  parentUrl: null,
   twitter: {
     handle: 'CrowdDotDev',
     id: '1362101830923259908',
@@ -52,6 +51,25 @@ const toCreate = {
   employeeCountByCountry: null,
   address: null,
   profiles: null,
+  manuallyCreated: false,
+  affiliatedProfiles: null,
+  allSubsidiaries: null,
+  alternativeDomains: null,
+  alternativeNames: null,
+  averageEmployeeTenure: null,
+  averageTenureByLevel: null,
+  averageTenureByRole: null,
+  directSubsidiaries: null,
+  employeeChurnRate: null,
+  employeeCountByMonth: null,
+  employeeGrowthRate: null,
+  employeeCountByMonthByLevel: null,
+  employeeCountByMonthByRole: null,
+  gicsSector: null,
+  grossAdditionsByMonth: null,
+  grossDeparturesByMonth: null,
+  ultimateParent: null,
+  immediateParent: null,
 }
 
 async function createMembers(options) {
@@ -557,7 +575,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 424242424'],
       logo: 'https://logo.clearbit.com/crowd.dev',
       tags: ['community', 'growth', 'developer-first'],
-      parentUrl: null,
       twitter: {
         handle: 'CrowdDotDev',
         id: '1362101830923259908',
@@ -589,7 +606,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 54545454'],
       logo: 'https://logo.clearbit.com/piedpiper',
       tags: ['new-internet', 'compression'],
-      parentUrl: null,
       twitter: {
         handle: 'piedPiper',
         id: '1362101830923259908',
@@ -621,7 +637,6 @@ describe('OrganizationRepository tests', () => {
       phoneNumbers: ['+42 12121212'],
       logo: 'https://logo.clearbit.com/hooli',
       tags: ['not-google', 'elephant'],
-      parentUrl: null,
       twitter: {
         handle: 'hooli',
         id: '1362101830923259908',

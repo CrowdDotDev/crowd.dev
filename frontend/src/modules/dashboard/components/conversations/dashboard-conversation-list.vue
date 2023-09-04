@@ -37,7 +37,10 @@
         :to="{
           name: 'activity',
           hash: '#conversation',
-          query: { projectGroup: selectedProjectGroup?.id },
+          query: {
+            ...filterQueryService().setQuery(allConversationsFilter),
+            projectGroup: selectedProjectGroup?.id,
+          },
         }"
         class="text-red font-medium text-center text-xs leading-5 hover:underline"
       >
@@ -60,6 +63,8 @@ import AppDashboardConversationItem from '@/modules/dashboard/components/convers
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import moment from 'moment';
 
 export default {
   name: 'AppDashboardConversationList',
@@ -71,6 +76,7 @@ export default {
   data() {
     return {
       conversationId: null,
+      filterQueryService,
     };
   },
   computed: {
@@ -82,6 +88,21 @@ export default {
       const lsSegmentsStore = useLfSegmentsStore();
 
       return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
+    },
+    allConversationsFilter() {
+      return {
+        search: '',
+        relation: 'and',
+        order: {
+          prop: 'activityCount',
+          order: 'descending',
+        },
+        lastActivityDate: {
+          operator: 'gt',
+          value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
+          include: true,
+        },
+      };
     },
   },
   methods: {

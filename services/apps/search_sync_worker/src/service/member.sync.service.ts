@@ -2,7 +2,7 @@ import { SERVICE_CONFIG } from '@/conf'
 import { IDbMemberSyncData } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
 import { OpenSearchIndex } from '@/types'
-import { distinct, distinctBy, groupBy } from '@crowd/common'
+import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -14,6 +14,7 @@ import { IDbSegmentInfo } from '@/repo/segment.data'
 import { IMemberSyncResult } from './member.sync.data'
 
 export class MemberSyncService extends LoggerBase {
+  private static MAX_BYTE_LENGTH = 25000
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
 
@@ -193,20 +194,39 @@ export class MemberSyncService extends LoggerBase {
     }
   }
 
-  public async syncTenantMembers(
-    tenantId: string,
-    batchSize = 200,
-    syncCutoffTime?: string,
-  ): Promise<void> {
-    const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
-
-    this.log.warn({ tenantId, cutoffDate }, 'Syncing all tenant members!')
+  public async syncTenantMembers(tenantId: string, batchSize = 200): Promise<void> {
+    this.log.debug({ tenantId }, 'Syncing all tenant members!')
     let docCount = 0
     let memberCount = 0
 
+    const now = new Date()
+    const cutoffDate = now.toISOString()
+
     await logExecutionTime(
       async () => {
-        let memberIds = await this.memberRepo.getTenantMembersForSync(
+        let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
+
+        while (memberIds.length > 0) {
+          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+
+          docCount += documentsIndexed
+          memberCount += membersSynced
+
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { tenantId },
+            `Synced ${memberCount} members! Speed: ${Math.round(
+              memberCount / diffInSeconds,
+            )} members/second!`,
+          )
+          memberIds = await this.memberRepo.getTenantMembersForSync(
+            tenantId,
+            batchSize,
+            memberIds[memberIds.length - 1],
+          )
+        }
+
+        memberIds = await this.memberRepo.getRemainingTenantMembersForSync(
           tenantId,
           1,
           batchSize,
@@ -216,11 +236,18 @@ export class MemberSyncService extends LoggerBase {
         while (memberIds.length > 0) {
           const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
 
-          docCount += documentsIndexed
           memberCount += membersSynced
+          docCount += documentsIndexed
 
-          this.log.info({ tenantId }, `Synced ${memberCount} members with ${docCount} documents!`)
-          memberIds = await this.memberRepo.getTenantMembersForSync(
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { tenantId },
+            `Synced ${memberCount} members! Speed: ${Math.round(
+              memberCount / diffInSeconds,
+            )} members/second!`,
+          )
+
+          memberIds = await this.memberRepo.getRemainingTenantMembersForSync(
             tenantId,
             1,
             batchSize,
@@ -439,7 +466,8 @@ export class MemberSyncService extends LoggerBase {
 
       if (attribute.name in attData) {
         if (attribute.type === MemberAttributeType.SPECIAL) {
-          const data = JSON.stringify(attData[attribute.name])
+          let data = JSON.stringify(attData[attribute.name])
+          data = trimUtf8ToMaxByteLength(data, MemberSyncService.MAX_BYTE_LENGTH)
           p_attributes[`string_${attribute.name}`] = data
         } else {
           const p_data = {}
@@ -447,7 +475,11 @@ export class MemberSyncService extends LoggerBase {
           const prefix = this.attributeTypeToOpenSearchPrefix(defValue, attribute.type)
 
           for (const key of Object.keys(attData[attribute.name])) {
-            p_data[`${prefix}_${key}`] = attData[attribute.name][key]
+            let value = attData[attribute.name][key]
+            if (attribute.type === MemberAttributeType.STRING) {
+              value = trimUtf8ToMaxByteLength(value, MemberSyncService.MAX_BYTE_LENGTH)
+            }
+            p_data[`${prefix}_${key}`] = value
           }
 
           p_attributes[`obj_${attribute.name}`] = p_data
@@ -461,6 +493,7 @@ export class MemberSyncService extends LoggerBase {
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
     p.date_createdAt = new Date(data.createdAt).toISOString()
+    p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
     p.int_totalReach = data.totalReach
     p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
     p.string_arr_activeOn = data.activeOn
@@ -477,7 +510,7 @@ export class MemberSyncService extends LoggerBase {
         string_username: identity.username,
       })
     }
-    p.obj_arr_identities = p_identities
+    p.nested_identities = p_identities
 
     const p_organizations = []
     for (const organization of data.organizations) {
@@ -492,7 +525,7 @@ export class MemberSyncService extends LoggerBase {
         },
       })
     }
-    p.obj_arr_organizations = p_organizations
+    p.nested_organizations = p_organizations
 
     const p_tags = []
     for (const tag of data.tags) {
@@ -502,7 +535,7 @@ export class MemberSyncService extends LoggerBase {
       })
     }
 
-    p.obj_arr_tags = p_tags
+    p.nested_tags = p_tags
 
     p.uuid_arr_toMergeIds = data.toMergeIds
     p.uuid_arr_noMergeIds = data.noMergeIds

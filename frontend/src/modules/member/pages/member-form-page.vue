@@ -145,6 +145,7 @@ import {
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
+import { storeToRefs } from 'pinia';
 import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue';
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue';
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue';
@@ -157,7 +158,6 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
@@ -466,6 +466,7 @@ async function onSubmit() {
       dateStart: affiliation.dateStart,
       dateEnd: affiliation.dateEnd,
     })),
+    manuallyCreated: true,
   };
 
   let isRequestSuccessful = false;

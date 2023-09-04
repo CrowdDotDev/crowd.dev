@@ -179,7 +179,7 @@
         <el-button
           class="btn btn-link btn-link--primary"
           :disabled="loading"
-          @click="fetchActivities"
+          @click="fetchActivities()"
         >
           <i class="ri-arrow-down-line mr-2" />Load
           more

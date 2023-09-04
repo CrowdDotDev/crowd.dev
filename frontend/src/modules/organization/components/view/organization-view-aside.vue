@@ -212,10 +212,11 @@
 
 <script setup>
 import { computed } from 'vue';
-import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
 import { withHttp } from '@/utils/string';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import enrichmentAttributes from '@/modules/organization/config/enrichment';
+import { attributesTypes } from '@/modules/organization/types/Attributes';
 import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 
 const props = defineProps({
@@ -251,7 +252,7 @@ const noIdentities = computed(() => (
 ));
 
 const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
-  if (a.type === attributesTypes.multiSelect) {
+  if (a.type === attributesTypes.array) {
     return !!props.organization[a.name]?.length;
   }
 
