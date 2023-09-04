@@ -2,7 +2,7 @@
   <app-drawer
     v-model="isVisible"
     custom-class="integration-reddit-drawer"
-    title="groups.io"
+    title="Groups.io"
     size="600px"
     pre-title="Integration"
     :show-footer="true"
@@ -79,7 +79,7 @@
         <div class="flex flex-row gap-2">
           <el-button
             v-if="!isAPIConnectionValid"
-            class="btn"
+            class="btn btn--secondary btn--md"
             :disabled="!isVerificationEnabled"
             :loading="isVerifyingAccount"
             @click="validateAccount()"
@@ -87,7 +87,7 @@
             Verify Account
           </el-button>
 
-          <el-button v-if="isAPIConnectionValid" class="btn" @click="reverifyAccount()">
+          <el-button v-if="isAPIConnectionValid" class="btn btn--secondary btn--md" @click="reverifyAccount()">
             Reverify Account
           </el-button>
 
@@ -98,7 +98,7 @@
         </div>
       </el-form>
       <el-divider />
-      <div class="w-full flex flex-col mb-6" :class="isAPIConnectionValid ? 'opacity-100' : 'opacity-50'">
+      <div class="w-full flex flex-col mb-6">
         <p class="text-[16px] font-semibold">
           Connect groups
         </p>
@@ -114,16 +114,16 @@
       <el-form
         class="flex flex-col"
         label-position="top"
-        :class="isAPIConnectionValid ? 'opacity-100' : 'opacity-50'"
         @submit.prevent
       >
-        <div v-if="isAPIConnectionValid">
+        <div>
           <app-array-input
             v-for="(_, ii) of form.groups"
             :key="ii"
             v-model="form.groups[ii]"
             placeholder="crowd-test"
             :validation-function="validateGroup"
+            :disabled="!isAPIConnectionValid"
           >
             <template #after>
               <el-button
@@ -328,8 +328,7 @@ const handleCancel = () => {
     form.email = props.integration?.settings?.email;
     form.password = '';
     form.twoFactorCode = '';
-    // eslint-disable-next-line no-unsafe-optional-chaining
-    form.groups = props?.integration?.settings?.groups ? [...props.integration?.settings?.groups] : [''];
+    form.groups = props?.integration?.settings?.groups ? [...props.integration.settings.groups] : [''];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = props.integration?.settings?.token;
     isAPIConnectionValid.value = true;

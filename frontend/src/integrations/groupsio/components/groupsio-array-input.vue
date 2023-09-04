@@ -9,7 +9,7 @@
         }"
         class="mb-0 mr-2 no-margin flex-grow is-error-relative"
       >
-        <el-input v-model="model" :placeholder="placeholder" @blur="$v.$touch" />
+        <el-input v-model="model" :placeholder="placeholder" :disabled="disabled" @blur="$v.$touch" />
       </app-form-item>
     </div>
     <slot name="after" />
@@ -42,17 +42,29 @@ const props = defineProps({
     type: Boolean, // Whether to bind another value to the function output
     default: false,
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const notEmail = (value) => !value.includes('@');
-const rules = {
-  required,
-  notEmail,
-  customValidation: helpers.withMessage(
-    "This is not a valid group or you don't have access to it",
-    helpers.withAsync(props.validationFunction),
-  ),
-};
+
+const rules = computed(() => {
+  if (props.disabled) {
+    return {};
+  }
+
+  return {
+    required,
+    notEmail,
+    customValidation: helpers.withMessage(
+      "This is not a valid group or you don't have access to it",
+      helpers.withAsync(props.validationFunction),
+    ),
+  };
+});
+
 const model = computed({
   get() {
     return props.modelValue;

@@ -10,7 +10,7 @@ export default {
   description:
     'Connect Groups.io to sync groups and topics activity.',
   image:
-    '/images/integrations/groupsio.jpeg',
+    '/images/integrations/groupsio.svg',
   connectComponent: GroupsioConnect,
   chartColor: '#111827',
   showProfileLink: true,
