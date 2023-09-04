@@ -98,7 +98,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     const results = await this.db().any(
       `
       select id from members m
-      where m"tenantId" = $(tenantId) and m"deletedAt" is null
+      where m."tenantId" = $(tenantId) and m."deletedAt" is null
        and (
         m."searchSyncedAt" is null or
         m."searchSyncedAt" < $(cutoffDate)
