@@ -20,6 +20,7 @@ export default (attributes, model) => attributes.reduce(
       [attribute.name]: {
         ...model.attributes[attribute.name],
         default: model[attribute.name],
+        custom: model[attribute.name],
       },
     };
   },

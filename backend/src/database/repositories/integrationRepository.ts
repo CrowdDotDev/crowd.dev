@@ -228,6 +228,23 @@ class IntegrationRepository {
     return this._populateRelations(record)
   }
 
+  static async findActiveIntegrationByPlatform(platform: PlatformType, tenantId: string) {
+    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+
+    const record = await options.database.integration.findOne({
+      where: {
+        platform,
+        tenantId,
+      },
+    })
+
+    if (!record) {
+      throw new Error404()
+    }
+
+    return this._populateRelations(record)
+  }
+
   /**
    * Find all active integrations for a platform
    * @param platform The platform we want to find all active integrations for

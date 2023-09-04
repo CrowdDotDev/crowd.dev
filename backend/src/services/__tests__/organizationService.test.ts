@@ -10,7 +10,6 @@ const expectedEnriched = {
   name: 'Crowd.dev',
   description:
     'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
-  parentUrl: null,
   emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
   phoneNumbers: ['+42 424242'],
   logo: 'https://logo.clearbit.com/crowd.dev',
@@ -91,7 +90,6 @@ describe('OrganizationService tests', () => {
       expect(added.url).toEqual('crowd.dev')
       expect(added.name).toEqual(toAdd.name)
       expect(added.description).toEqual(expectedEnriched.description)
-      expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added.emails).toEqual(expectedEnriched.emails)
       expect(added.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(added.logo).toEqual(expectedEnriched.logo)
@@ -111,7 +109,6 @@ describe('OrganizationService tests', () => {
       expect(foundCache.url).toEqual('crowd.dev')
       expect(foundCache.name).toEqual(toAdd.name)
       expect(foundCache.description).toEqual(expectedEnriched.description)
-      expect(foundCache.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(foundCache.emails).toEqual(expectedEnriched.emails)
       expect(foundCache.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(foundCache.logo).toEqual(expectedEnriched.logo)
@@ -144,7 +141,6 @@ describe('OrganizationService tests', () => {
       expect(added.url).toEqual('crowd.dev')
       expect(added.name).toEqual(toAdd.name)
       expect(added.description).toEqual(expectedEnriched.description)
-      expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added.emails).toEqual(expectedEnriched.emails)
       expect(added.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(added.logo).toEqual(expectedEnriched.logo)
@@ -163,7 +159,6 @@ describe('OrganizationService tests', () => {
 
       expect(foundCache.name).toEqual('crowd.dev')
       expect(foundCache.description).toEqual(expectedEnriched.description)
-      expect(foundCache.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(foundCache.emails).toEqual(expectedEnriched.emails)
       expect(foundCache.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(foundCache.logo).toEqual(expectedEnriched.logo)
@@ -177,7 +172,6 @@ describe('OrganizationService tests', () => {
       const added2 = await service2.findOrCreate(toAdd)
       expect(added2.name).toEqual('crowd.dev')
       expect(added2.description).toEqual(expectedEnriched.description)
-      expect(added2.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added2.emails).toEqual(expectedEnriched.emails)
       expect(added2.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(added2.logo).toEqual(expectedEnriched.logo)

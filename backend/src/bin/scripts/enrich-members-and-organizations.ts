@@ -97,7 +97,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         const segmentIds = segments.map((segment) => segment.id)
 
         const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(
-          null,
+          userContext,
           tenant,
           segments,
         )
@@ -107,16 +107,14 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           let totalMembers = 0
 
           do {
-            const { rows: members, count: membersCount } = await MemberRepository.findAndCountAllv2(
-              { filter: {}, limit, offset, countOnly: false },
-              optionsWithTenant,
-            )
+            const { ids: memberIds, count: membersCount } =
+              await MemberRepository.getMemberIdsandCount(
+                { limit, offset, countOnly: false },
+                optionsWithTenant,
+              )
 
             totalMembers = membersCount
             log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
-
-            // get all member ids for the tenant
-            const memberIds = members.map((member) => member.id)
 
             await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
 

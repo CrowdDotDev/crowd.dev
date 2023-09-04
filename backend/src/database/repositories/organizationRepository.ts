@@ -25,46 +25,67 @@ class OrganizationRepository {
     const database = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
     const query = `
-      with orgActivities as (
-        SELECT memOrgs."organizationId", SUM(actAgg."activityCount") "orgActivityCount"
-        FROM "memberActivityAggregatesMVs" actAgg
-        INNER JOIN "memberOrganizations" memOrgs ON actAgg."id"=memOrgs."memberId"
-        GROUP BY memOrgs."organizationId"
-      ) 
-      SELECT org.id "id"
-      ,cach.id "cachId"
-      ,org."name"
-      ,org."displayName"
-      ,org."location"
-      ,org."website"
-      ,org."lastEnrichedAt"
-      ,org."twitter"
-      ,org."employees"
-      ,org."size"
-      ,org."founded"
-      ,org."industry"
-      ,org."naics"
-      ,org."profiles"
-      ,org."headline"
-      ,org."ticker"
-      ,org."type"
-      ,org."address"
-      ,org."geoLocation"
-      ,org."employeeCountByCountry"
-      ,org."twitter"
-      ,org."linkedin"
-      ,org."linkedin"
-      ,org."crunchbase"
-      ,org."github"
-      ,org."description"
-      ,activity."orgActivityCount"
-      FROM "organizations" as org
-      JOIN "organizationCaches" cach ON org."name" = cach."name"
-      JOIN orgActivities activity ON activity."organizationId" = org."id"
-      WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
-      ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
-      LIMIT :limit
-    ;
+    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
+                            from activities a
+                            where a."tenantId" = :tenantId and
+                                  a."deletedAt" is null and
+                                  a."isContribution" = true
+                            group by a."organizationId"
+                            having count(id) > 0)
+    select org.id
+        , cach.id "cachId"
+        , org."name"
+        , org."displayName"
+        , org."location"
+        , org."website"
+        , org."lastEnrichedAt"
+        , org."twitter"
+        , org."employees"
+        , org."size"
+        , org."founded"
+        , org."industry"
+        , org."naics"
+        , org."profiles"
+        , org."headline"
+        , org."ticker"
+        , org."type"
+        , org."address"
+        , org."geoLocation"
+        , org."employeeCountByCountry"
+        , org."twitter"
+        , org."linkedin"
+        , org."linkedin"
+        , org."crunchbase"
+        , org."github"
+        , org."description"
+        , org."revenueRange"
+        , org."tags"
+        , org."affiliatedProfiles"
+        , org."allSubsidiaries"
+        , org."alternativeDomains"
+        , org."alternativeNames"
+        , org."averageEmployeeTenure"
+        , org."averageTenureByLevel"
+        , org."averageTenureByRole"
+        , org."directSubsidiaries"
+        , org."employeeChurnRate"
+        , org."employeeCountByMonth"
+        , org."employeeGrowthRate"
+        , org."employeeCountByMonthByLevel"
+        , org."employeeCountByMonthByRole"
+        , org."gicsSector"
+        , org."grossAdditionsByMonth"
+        , org."grossDeparturesByMonth"
+        , org."ultimateParent"
+        , org."immediateParent"
+        , activity."orgActivityCount"
+    from "organizations" as org
+            join "organizationCaches" cach on org."name" = cach."name"
+            join org_activities activity on activity."organizationId" = org."id"
+    where :tenantId = org."tenantId"
+      and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
+    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    limit :limit;
     `
     const orgs: T[] = await database.query(query, {
       type: QueryTypes.SELECT,
@@ -95,7 +116,6 @@ class OrganizationRepository {
           'displayName',
           'url',
           'description',
-          'parentUrl',
           'emails',
           'phoneNumbers',
           'logo',
@@ -121,6 +141,24 @@ class OrganizationRepository {
           'size',
           'lastEnrichedAt',
           'manuallyCreated',
+          'affiliatedProfiles',
+          'allSubsidiaries',
+          'alternativeDomains',
+          'alternativeNames',
+          'averageEmployeeTenure',
+          'averageTenureByLevel',
+          'averageTenureByRole',
+          'directSubsidiaries',
+          'employeeChurnRate',
+          'employeeCountByMonth',
+          'employeeGrowthRate',
+          'employeeCountByMonthByLevel',
+          'employeeCountByMonthByRole',
+          'gicsSector',
+          'grossAdditionsByMonth',
+          'grossDeparturesByMonth',
+          'ultimateParent',
+          'immediateParent',
         ]),
 
         tenantId: tenant.id,
@@ -147,11 +185,35 @@ class OrganizationRepository {
     data: T,
     fields: string[],
     options: IRepositoryOptions,
+    isEnrichment: boolean = false,
   ): Promise<T> {
     // Ensure every organization has a non-undefine primary ID
     const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
     if (isValid) return [] as T
 
+    if (isEnrichment) {
+      // Fetch existing organizations
+      const existingOrgs = await options.database.organization.findAll({
+        where: {
+          id: {
+            [options.database.Sequelize.Op.in]: data.map((org) => org.id),
+          },
+        },
+      })
+
+      // Append new tags to existing tags instead of overwriting
+      if (fields.includes('tags')) {
+        // @ts-ignore
+        data = data.map((org) => {
+          const existingOrg = existingOrgs.find((o) => o.id === org.id)
+          if (existingOrg && existingOrg.tags) {
+            // Merge existing and new tags without duplicates
+            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+          }
+          return org
+        })
+      }
+    }
     // Using bulk insert to update on duplicate primary ID
     const orgs = await options.database.organization.bulkCreate(data, {
       fields: ['id', 'tenantId', ...fields],
@@ -242,7 +304,6 @@ class OrganizationRepository {
           'displayName',
           'url',
           'description',
-          'parentUrl',
           'emails',
           'phoneNumbers',
           'logo',
@@ -269,6 +330,24 @@ class OrganizationRepository {
           'employees',
           'twitter',
           'lastEnrichedAt',
+          'affiliatedProfiles',
+          'allSubsidiaries',
+          'alternativeDomains',
+          'alternativeNames',
+          'averageEmployeeTenure',
+          'averageTenureByLevel',
+          'averageTenureByRole',
+          'directSubsidiaries',
+          'employeeChurnRate',
+          'employeeCountByMonth',
+          'employeeGrowthRate',
+          'employeeCountByMonthByLevel',
+          'employeeCountByMonthByRole',
+          'gicsSector',
+          'grossAdditionsByMonth',
+          'grossDeparturesByMonth',
+          'ultimateParent',
+          'immediateParent',
           'attributes',
         ]),
         updatedById: currentUser.id,
@@ -385,7 +464,7 @@ class OrganizationRepository {
               member_counts AS (
                   SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
                   FROM "memberOrganizations"
-                  WHERE "organizationId" = :id
+                  WHERE "organizationId" = :id and "dateEnd" is null
                   GROUP BY "organizationId"
               ),
               active_on AS (
@@ -915,14 +994,6 @@ class OrganizationRepository {
         })
       }
 
-      if (filter.parentUrl) {
-        advancedFilter.and.push({
-          parentUrl: {
-            textContains: filter.parentUrl,
-          },
-        })
-      }
-
       if (filter.members) {
         advancedFilter.and.push({
           members: filter.members,
@@ -982,7 +1053,6 @@ class OrganizationRepository {
               'displayName',
               'url',
               'description',
-              'parentUrl',
               'emails',
               'phoneNumbers',
               'logo',
@@ -1070,7 +1140,6 @@ class OrganizationRepository {
             'displayName',
             'url',
             'description',
-            'parentUrl',
             'emails',
             'phoneNumbers',
             'logo',
@@ -1105,6 +1174,24 @@ class OrganizationRepository {
             'profiles',
             'attributes',
             'manuallyCreated',
+            'affiliatedProfiles',
+            'allSubsidiaries',
+            'alternativeDomains',
+            'alternativeNames',
+            'averageEmployeeTenure',
+            'averageTenureByLevel',
+            'averageTenureByRole',
+            'directSubsidiaries',
+            'employeeChurnRate',
+            'employeeCountByMonth',
+            'employeeGrowthRate',
+            'employeeCountByMonthByLevel',
+            'employeeCountByMonthByRole',
+            'gicsSector',
+            'grossAdditionsByMonth',
+            'grossDeparturesByMonth',
+            'ultimateParent',
+            'immediateParent',
           ],
           'organization',
         ),
