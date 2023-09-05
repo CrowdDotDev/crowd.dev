@@ -12,7 +12,7 @@ import {
   getUpdateOrganizationColumnSet,
 } from './organization.data'
 import { generateUUIDv1 } from '@crowd/common'
-import { SyncStatus } from '@crowd/types'
+import { SyncStatus, IOrganization } from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
@@ -298,22 +298,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     await this.db().none(query, parameters)
   }
 
-  public async addToMember(memberId: string, orgIds): Promise<void> {
+  public async addToMember(memberId: string, orgs: IOrganization[]): Promise<void> {
     const parameters: Record<string, unknown> = {
       memberId,
     }
 
     const valueStrings = []
-    for (let i = 0; i < orgIds.length; i++) {
-      const orgId = orgIds[i]
-      parameters[`orgId_${i}`] = orgId
-      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now())`)
+    for (let i = 0; i < orgs.length; i++) {
+      const org = orgs[i]
+      parameters[`orgId_${i}`] = org.id
+      parameters[`source_${i}`] = org.source
+      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now(), $(source_${i}))`)
     }
 
     const valueString = valueStrings.join(',')
 
     const query = `
-    insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt")
+    insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt", "source")
     values ${valueString}
     on conflict do nothing;
     `

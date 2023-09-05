@@ -400,6 +400,7 @@ class OrganizationRepository {
       from "memberOrganizations" as mo
       where mo."memberId" = m.id
       and mo."organizationId" = :organizationId
+      and mo."deletedAt" is null
       and m."tenantId" = :tenantId;
    `,
       {
@@ -464,7 +465,9 @@ class OrganizationRepository {
               member_counts AS (
                   SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
                   FROM "memberOrganizations"
-                  WHERE "organizationId" = :id and "dateEnd" is null
+                  WHERE "organizationId" = :id
+                    AND "deletedAt" IS NULL
+                    AND "dateEnd" IS NULL
                   GROUP BY "organizationId"
               ),
               active_on AS (
@@ -478,6 +481,7 @@ class OrganizationRepository {
                   FROM "memberOrganizations" mo
                   JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
                   WHERE mo."organizationId" = :id
+                    AND mo."deletedAt" IS NULL
                   GROUP BY "organizationId"
               ),
               last_active AS (
@@ -485,6 +489,7 @@ class OrganizationRepository {
                   FROM "memberOrganizations" mo
                   JOIN activities a ON a."memberId" = mo."memberId"
                   WHERE mo."organizationId" = :id
+                    AND mo."deletedAt" IS NULL
                   GROUP BY mo."organizationId"
               ),
               segments AS (
@@ -807,6 +812,9 @@ class OrganizationRepository {
         attributes: [],
         through: {
           attributes: [],
+          where: {
+            deletedAt: null,
+          },
         },
         include: [
           {

@@ -31,7 +31,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                                 a."segmentId" = os."segmentId" and a."deletedAt" is null
                                     left join members m on a."memberId" = m.id and m."deletedAt" is null
                                     left join "memberOrganizations" mo
-                                              on m.id = mo."memberId" and a."organizationId" = mo."organizationId"
+                                              on m.id = mo."memberId"
+                                              and a."organizationId" = mo."organizationId"
+                                              and mo."deletedAt" is null
                                     left join "memberIdentities" mi on m.id = mi."memberId"
                           group by os."segmentId", os."organizationId")
       select o.id                              as "organizationId",

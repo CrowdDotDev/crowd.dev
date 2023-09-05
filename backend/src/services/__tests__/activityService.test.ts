@@ -2807,6 +2807,7 @@ describe('ActivityService tests', () => {
           memberId,
           organizationId: orgId,
           updateAffiliation: false,
+          source: 'test',
           ...data,
         },
         options,

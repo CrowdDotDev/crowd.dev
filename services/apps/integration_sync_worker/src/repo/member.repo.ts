@@ -202,6 +202,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       `select distinct "memberId"
         from "memberOrganizations"
         where "organizationId" = $(organizationId)
+          and "deletedAt" is null
         order by "memberId"
         limit $(limit) offset $(offset)`,
       {
@@ -258,6 +259,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                               inner join "organizationSegments" os on o.id = os."organizationId"
                                       where mo."memberId" = $(id)
                                         and o."deletedAt" is null
+                                        and mo."deletedAt" is null
                                       group by mo."memberId", os."segmentId"),
             identities as (select mi."memberId",
                                   json_agg(
