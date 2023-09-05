@@ -21,6 +21,8 @@ import { TWITTER_GRID } from './twitter/grid'
 import { STACKOVERFLOW_GRID } from './stackoverflow/grid'
 import { DiscourseActivityType } from './discourse/types'
 import { DISCOURSE_GRID } from './discourse/grid'
+import { Groupsio_GRID } from './groupsio/grid'
+import { GroupsioActivityType } from './groupsio/types'
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
@@ -728,6 +730,32 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: DISCOURSE_GRID[DiscourseActivityType.LIKE].isContribution,
+    },
+  },
+  [PlatformType.GROUPSIO]: {
+    [GroupsioActivityType.MEMBER_JOIN]: {
+      display: {
+        default: 'Joined {channel}',
+        short: 'joined',
+        channel: '{channel}',
+      },
+      isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].isContribution,
+    },
+    [GroupsioActivityType.MESSAGE]: {
+      display: {
+        default: 'Sent a message in {channel}',
+        short: 'sent a message',
+        channel: '{channel}',
+      },
+      isContribution: Groupsio_GRID[GroupsioActivityType.MESSAGE].isContribution,
+    },
+    [GroupsioActivityType.MEMBER_LEAVE]: {
+      display: {
+        default: 'Left {channel}',
+        short: 'left',
+        channel: '{channel}',
+      },
+      isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_LEAVE].isContribution,
     },
   },
 }
