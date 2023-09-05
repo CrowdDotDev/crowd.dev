@@ -207,8 +207,8 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async findById(id) {
-    return OrganizationRepository.findById(id, this.options)
+  async findById(id: string, segmentId?: string) {
+    return OrganizationRepository.findById(id, this.options, segmentId)
   }
 
   async findAllAutocomplete(search, limit) {
