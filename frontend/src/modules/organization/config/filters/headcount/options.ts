@@ -23,6 +23,10 @@ const options: MultiSelectFilterOptionGroup[] = [
         label: '501-1000',
         value: '501-1000',
       },
+      {
+        label: '> 1000',
+        value: '1000-null',
+      },
     ],
   },
 ];
