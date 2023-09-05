@@ -138,6 +138,7 @@ export default {
             closeOnClickModal: false,
           }).then(() => {
             window.open('https://docs.crowd.dev/docs/slack-integration#how-to-install', '_blank');
+            this.$router.replace({ query: null });
           });
         }
       },
