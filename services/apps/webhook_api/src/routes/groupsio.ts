@@ -45,8 +45,6 @@ export const installGroupsIoRoutes = async (app: express.Express) => {
 
         await emitter.triggerWebhookProcessing(integration.tenantId, integration.platform, result)
 
-        await emitter.triggerWebhookProcessing(integration.tenantId, integration.platform, result)
-
         res.sendStatus(204)
       } else {
         req.log.error({ event }, 'No integration found for incoming Groups.io Webhook!')
