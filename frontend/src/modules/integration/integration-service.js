@@ -377,6 +377,7 @@ export class IntegrationService {
         email,
         token,
         groupNames,
+        ...getSegments(),
       },
     );
 
@@ -392,6 +393,7 @@ export class IntegrationService {
         email,
         password,
         twoFactorCode,
+        ...getSegments(),
       },
     );
 
@@ -406,6 +408,7 @@ export class IntegrationService {
       {
         groupName,
         cookie,
+        ...getSegments(),
       },
     );
 
