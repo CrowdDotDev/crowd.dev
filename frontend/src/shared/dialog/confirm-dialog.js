@@ -19,10 +19,12 @@ export default ({
   icon = 'ri-error-warning-line',
   distinguishCancelAndClose = false,
   autofocus = true,
+  closeOnClickModal = true,
   titleClass,
   messageClass,
   verticalCancelButtonClass,
   verticalConfirmButtonClass,
+  verticalCustomClass,
 }) => {
   let iconColorClass = 'text-yellow-600';
   let iconBgColorClass = 'bg-yellow-100';
@@ -47,21 +49,28 @@ export default ({
       class: 'flex',
     }, // props
     [
-      h(
-        'span', // type
+      type === 'custom' ? h(
+        'span',
         {
-          class: `rounded-full ${iconBgColorClass} w-10 h-10 flex items-center justify-center absolute custom-icon`,
-        }, // props
-        [
-          h(
-            'i', // type
-            {
-              class: `${icon} text-lg ${iconColorClass} leading-none`,
-            }, // props
-            [],
-          ),
-        ],
-      ),
+          innerHTML: icon,
+          class: '',
+        },
+      )
+        : h(
+          'span', // type
+          {
+            class: `rounded-full ${iconBgColorClass} w-10 h-10 flex items-center justify-center absolute custom-icon`,
+          }, // props
+          [
+            h(
+              'i', // type
+              {
+                class: `${icon} text-lg ${iconColorClass} leading-none`,
+              }, // props
+              [],
+            ),
+          ],
+        ),
       h('div', [
         h('p', {
           innerHTML: message,
@@ -96,22 +105,29 @@ export default ({
             class: 'flex justify-between items-center mb-4',
           },
           [
-            h(
-              'span', // type
+            type === 'custom' ? h(
+              'span',
               {
-                class: `rounded-full ${iconBgColorClass} w-10 h-10 flex items-center justify-center custom-icon`,
-              }, // props
-              [
-                h(
-                  'i', // type
-                  {
-                    class: `${icon} text-lg ${iconColorClass} leading-none`,
-                  }, // props
-                  [],
-                ),
-              ],
-            ),
-            h(
+                innerHTML: icon,
+                class: '',
+              },
+            )
+              : h(
+                'span', // type
+                {
+                  class: `rounded-full ${iconBgColorClass} w-10 h-10 flex items-center justify-center custom-icon`,
+                }, // props
+                [
+                  h(
+                    'i', // type
+                    {
+                      class: `${icon} text-lg ${iconColorClass} leading-none`,
+                    }, // props
+                    [],
+                  ),
+                ],
+              ),
+            showClose ? h(
               'button',
               {
                 class:
@@ -134,7 +150,7 @@ export default ({
                   [],
                 ),
               ],
-            ),
+            ) : null,
           ],
         ),
         h('h6', {
@@ -176,7 +192,7 @@ export default ({
       ],
     );
 
-    const overrideCustomClass = 'confirm-dialog confirm-dialog--vertical';
+    const overrideCustomClass = `confirm-dialog confirm-dialog--vertical ${verticalCustomClass}`;
     const overrideConfirmButtonClass = 'btn btn--md btn--primary w-full';
     const overrideCancelButtonClass = 'btn btn--md btn--transparent w-full';
 
@@ -192,6 +208,7 @@ export default ({
       cancelButtonClass: verticalCancelButtonClass || overrideCancelButtonClass,
       distinguishCancelAndClose,
       autofocus,
+      closeOnClickModal,
     });
   }
 
@@ -207,5 +224,6 @@ export default ({
     confirmButtonClass,
     distinguishCancelAndClose,
     autofocus,
+    closeOnClickModal,
   });
 };
