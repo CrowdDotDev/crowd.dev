@@ -104,7 +104,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block mr-4"
                   >
@@ -127,7 +130,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -154,7 +160,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -190,7 +199,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -219,7 +231,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -248,7 +263,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -280,7 +298,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -308,7 +329,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -361,7 +385,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -390,7 +417,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -419,7 +449,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -448,7 +481,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -478,7 +514,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="block"
                   >
@@ -503,7 +542,10 @@
                     :to="{
                       name: 'organizationView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
+                      query: {
+                        projectGroup: selectedProjectGroup?.id,
+                        segmentId: scope.row.segmentId,
+                      },
                     }"
                     class="flex justify-center"
                   >

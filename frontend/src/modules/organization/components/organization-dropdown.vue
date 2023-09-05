@@ -120,7 +120,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import {
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
@@ -136,6 +136,7 @@ import { useStore } from 'vuex';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
+const route = useRoute();
 const router = useRouter();
 
 defineProps({
@@ -214,6 +215,9 @@ const handleCommand = (command) => {
       name: 'organizationEdit',
       params: {
         id: command.organization.id,
+      },
+      query: {
+        segmentId: route.query.segmentId || route.query.projectGroup,
       },
     });
   } else if (

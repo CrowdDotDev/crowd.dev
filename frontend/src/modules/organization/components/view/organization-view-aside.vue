@@ -185,8 +185,13 @@
           <router-link
             :to="{
               name: 'organizationEdit',
-              params: { id: organization.id },
-              query: { projectGroup: selectedProjectGroup?.id },
+              params: {
+                id: organization.id,
+              },
+              query: {
+                projectGroup: selectedProjectGroup?.id,
+                segmentId: route.query.segmentId || selectedProjectGroup?.id,
+              },
             }"
             class="hover:underline"
           >
@@ -217,6 +222,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { useRoute } from 'vue-router';
 import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 
 const props = defineProps({
@@ -228,6 +234,8 @@ const props = defineProps({
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const route = useRoute();
 
 const showDivider = computed(
   () => (!!props.organization.emails?.length

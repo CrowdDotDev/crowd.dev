@@ -64,6 +64,7 @@ import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { useRoute } from 'vue-router';
 
 const props = defineProps({
   id: {
@@ -71,6 +72,7 @@ const props = defineProps({
     default: null,
   },
 });
+const route = useRoute();
 
 const organizationStore = useOrganizationStore();
 const { organization } = storeToRefs(organizationStore);
@@ -83,8 +85,10 @@ const loading = ref(true);
 const tab = ref('members');
 
 onMounted(() => {
+  const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
+
   try {
-    fetchOrganization(props.id).finally(() => {
+    fetchOrganization(props.id, segments).finally(() => {
       loading.value = false;
     });
   } catch (e) {

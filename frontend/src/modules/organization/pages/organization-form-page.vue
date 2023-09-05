@@ -373,9 +373,11 @@ onBeforeRouteLeave((to) => {
 onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
+    const { segmentId, projecGroup } = route.query;
+    const segments = segmentId || projecGroup ? [segmentId || projecGroup] : null;
 
     try {
-      record.value = await OrganizationService.find(id);
+      record.value = await OrganizationService.find(id, segments);
     } catch (e) {
       Errors.handle(error);
       router.push({ name: 'organization' });
@@ -411,10 +413,15 @@ watch(
   (isFormSubmittedSuccessfuly) => {
     if (isFormSubmittedSuccessfuly) {
       if (isEditPage.value) {
+        const { segmentId, projectGroup } = route.query;
+
         return router.push({
           name: 'organizationView',
           params: {
             id: record.value.id,
+          },
+          query: {
+            segmentId: segmentId || projectGroup,
           },
         });
       }
