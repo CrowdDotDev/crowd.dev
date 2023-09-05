@@ -59,7 +59,7 @@ export class OrganizationService {
           Authorization: sampleTenant?.token,
         },
         params: {
-          segments,
+          segmentId: segments[0],
         },
       },
     );
