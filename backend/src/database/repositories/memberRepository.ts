@@ -1987,7 +1987,7 @@ class MemberRepository {
 
     if (filter.organizations && filter.organizations.length > 0) {
       parsed.query.bool.must = parsed.query.bool.must.filter(
-        (d) => d.term['nested_organizations.uuid_id'] === undefined,
+        (d) => d.nested?.query?.term?.['nested_organizations.uuid_id'] === undefined,
       )
 
       // add organizations filter manually for now
