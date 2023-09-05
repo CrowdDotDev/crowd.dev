@@ -671,8 +671,12 @@ class SegmentRepository extends RepositoryBase<
       }
     })
 
-    // TODO: Add member count to segments after implementing member relations
-    return { count, rows, limit: criteria.limit, offset: criteria.offset }
+    return {
+      count,
+      rows: rows.map((sr) => SegmentRepository.populateRelations(sr)),
+      limit: criteria.limit,
+      offset: criteria.offset,
+    }
   }
 
   private async queryIntegrationsForSubprojects(subprojects) {

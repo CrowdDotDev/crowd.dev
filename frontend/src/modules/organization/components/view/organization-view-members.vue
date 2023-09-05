@@ -10,8 +10,7 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        Contributors can take up to two minutes to appear in the
-        list
+        No contributors are currently working in this organization.
       </p>
     </div>
     <div v-else>

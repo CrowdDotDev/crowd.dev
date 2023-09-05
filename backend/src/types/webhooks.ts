@@ -10,6 +10,7 @@ export enum WebhookType {
   GITHUB = 'GITHUB',
   DISCORD = 'DISCORD',
   DISCOURSE = 'DISCOURSE',
+  GROUPSIO = 'GROUPSIO',
 }
 
 export enum DiscordWebsocketEvent {
