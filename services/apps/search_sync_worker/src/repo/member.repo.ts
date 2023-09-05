@@ -98,7 +98,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     const results = await this.db().any(
       `
       select id from members m
-      where m"tenantId" = $(tenantId) and m"deletedAt" is null
+      where m."tenantId" = $(tenantId) and m."deletedAt" is null
        and (
         m."searchSyncedAt" is null or
         m."searchSyncedAt" < $(cutoffDate)
@@ -167,6 +167,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                               inner join organizations o on mo."organizationId" = o.id
                                               inner join "organizationSegments" os on o.id = os."organizationId"
                                       where mo."memberId" in ($(ids:csv))
+                                        and mo."deletedAt" is null
                                         and o."deletedAt" is null
                                         and exists (select 1
                                           from activities a

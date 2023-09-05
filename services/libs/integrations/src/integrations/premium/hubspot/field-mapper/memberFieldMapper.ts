@@ -7,6 +7,7 @@ import {
   MemberAttributeType,
   PlatformType,
   ITagOpensearch,
+  OrganizationSource,
 } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
@@ -206,6 +207,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
             member.organizations = [
               {
                 name: contactProperties[hubspotPropertyName],
+                source: OrganizationSource.HUBSPOT,
               },
             ]
           } else {
