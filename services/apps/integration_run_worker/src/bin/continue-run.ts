@@ -16,7 +16,7 @@ setImmediate(async () => {
   const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = await getDbConnection(DB_CONFIG(), 1)
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const repo = new IntegrationRunRepository(store, log)
@@ -24,6 +24,8 @@ setImmediate(async () => {
   const run = await repo.findIntegrationRunById(runId)
 
   if (run) {
+    log.info({ run }, 'Found run!')
+
     if (run.state != IntegrationRunState.PENDING) {
       log.warn(`Integration run is not pending, setting to pending!`)
 
