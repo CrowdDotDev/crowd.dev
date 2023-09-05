@@ -37,7 +37,7 @@ const connect = () => {
     vertical: true,
     distinguishCancelAndClose: true,
     autofocus: false,
-    messageClass: 'text-xs !leading-5 !mt-1',
+    messageClass: 'text-xs !leading-5 !mt-1 text-gray-600',
   }).then(() => {
     window.open(githubConnectUrl.value, '_self');
   }).catch((action) => {
