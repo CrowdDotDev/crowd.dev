@@ -4,12 +4,13 @@ import { RedisClient } from './types'
 export const aquireLock = async (
   client: RedisClient,
   key: string,
+  value: string,
   expireAfterSeconds: number,
   timeoutAfterSeconds: number,
 ): Promise<void> => {
   const now = new Date().getTime()
 
-  let result = await client.set(key, 'lock', {
+  let result = await client.set(key, value, {
     EX: expireAfterSeconds,
     NX: true,
   })
@@ -21,13 +22,27 @@ export const aquireLock = async (
     }
 
     await timeout(200)
-    result = await client.set(key, 'lock', {
+    result = await client.set(key, value, {
       EX: expireAfterSeconds,
       NX: true,
     })
   }
 }
 
-export const releaseLock = async (client: RedisClient, key: string): Promise<void> => {
-  await client.del(key)
+export const releaseLock = async (
+  client: RedisClient,
+  key: string,
+  value: string,
+): Promise<void> => {
+  const script = `
+    if redis.call("get",KEYS[1]) == ARGV[1] then
+      return redis.call("del",KEYS[1])
+    else
+      return 0
+    end
+  `
+  await client.eval(script, {
+    keys: [key],
+    arguments: [value],
+  })
 }
