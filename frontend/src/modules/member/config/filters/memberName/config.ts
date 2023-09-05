@@ -24,7 +24,7 @@ const memberName: StringFilterConfig = {
     );
   },
   apiFilterRenderer(value: StringFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.STRING]('memberName', value);
+    return apiFilterRendererByType[FilterConfigType.STRING]('displayName', value);
   },
 };
 
