@@ -1,5 +1,6 @@
 import { TimeoutError, timeout } from '@crowd/common'
 import { RedisClient } from './types'
+import { generateUUIDv4 } from '@crowd/common'
 
 export const acquireLock = async (
   client: RedisClient,
@@ -45,4 +46,26 @@ export const releaseLock = async (
     keys: [key],
     arguments: [value],
   })
+}
+
+export const processWithLock = async <T = void>(
+  client: RedisClient,
+  key: string,
+  expireAfterSeconds: number,
+  timeoutAfterSeconds: number,
+  process: () => Promise<T>,
+): Promise<T | void> => {
+  const value = generateUUIDv4()
+
+  await acquireLock(client, key, value, expireAfterSeconds, timeoutAfterSeconds)
+
+  // TODO: we can add logic to extend the lock here if we want to
+
+  let result: T | void
+  try {
+    result = await process()
+  } finally {
+    await releaseLock(client, key, value)
+  }
+  return result
 }
