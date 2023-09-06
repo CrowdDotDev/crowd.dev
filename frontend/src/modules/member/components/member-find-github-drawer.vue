@@ -6,7 +6,32 @@
     custom-class="identities-drawer"
   >
     <template #content>
-      Hey
+      <div v-for="suggestion in suggestions" class="flex items-center">
+        <div
+          class="py-2 flex justify-between w-full px-4 cursor-pointer hover:bg-gray-50 rounded-md hover:shadow-sm"
+          :class="{ selected: selected === suggestion.username }"
+          @click="changeSelected(suggestion.username)"
+        >
+          <div class="flex">
+            <app-avatar
+              :entity="{
+                displayName: suggestion.username,
+                avatar: suggestion.avatarUrl,
+              }"
+              size="xs"
+              class="mr-3"
+            />
+            <div class="flex flex-col justify-center">
+              <p class="text-xs leading-4.5" v-html="$sanitize(suggestion.username)" />
+            </div>
+          </div>
+          <div class="pt-1">
+            <a :href="suggestion.url" target="_blank" class="text-gray-300">
+              <i class="ri-external-link-line text-gray-400" />
+            </a>
+          </div>
+        </div>
+      </div>
     </template>
     <template #footer>
       <div style="flex: auto">
@@ -34,17 +59,13 @@
 import { useStore } from 'vuex';
 import {
   ref,
-  defineEmits,
-  defineProps,
   computed,
+  onMounted,
   reactive,
 } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
-import { MemberModel } from '@/modules/member/member-model';
-import { FormSchema } from '@/shared/form/form-schema';
-import isEqual from 'lodash/isEqual';
 
 const store = useStore();
 const props = defineProps({
@@ -57,6 +78,16 @@ const props = defineProps({
     default: {},
   },
 });
+
+const memberModel = reactive(cloneDeep(props.member));
+
+const suggestions = ref([]);
+const selected = ref('');
+
+onMounted(async () => {
+  suggestions.value = await MemberService.findGithub(props.member.id);
+});
+
 const emit = defineEmits(['update:modelValue']);
 
 const drawerModel = computed({
@@ -74,21 +105,27 @@ const handleCancel = () => {
   emit('update:modelValue', false);
 };
 
+const changeSelected = (username) => {
+  selected.value = username;
+};
+
 const handleSubmit = async () => {
-  // loading.value = true;
-  // MemberService.update(props.member.id, {
-  //   attributes: memberModel.attributes,
-  //   username: memberModel.username,
-  //   emails: memberModel.emails,
-  // }).then(() => {
-  //  store.dispatch('member/doFind', props.member.id).then(() => {
-  Message.success('Member identities updated successfully');
-  //   });
-  // }).catch((err) => {
-  //   Message.error(err.response.data);
-  // }).finally(() => {
-  //  loading.value = false;
-  // });
+  loading.value = true;
+  console.log('member', memberModel);
+  console.log(JSON.stringify({ ...memberModel.username, github: [selected.value] }));
+  console.log(JSON.stringify({ ...memberModel.username }));
+  MemberService.update(props.member.id, {
+    username: { ...memberModel.username, github: [selected.value] },
+  }).then(() => {
+    store.dispatch('member/doFind', props.member.id).then(() => {
+      Message.success('GitHub added successfully');
+    });
+  }).catch((err) => {
+    Message.error(err.response.data);
+  }).finally(() => {
+    loading.value = false;
+  });
+
   emit('update:modelValue', false);
 };
 </script>
@@ -106,4 +143,9 @@ export default {
     @apply mb-0;
   }
 }
+
+.selected {
+  @apply bg-brand-50 border-brand-400 hover:bg-brand-50 hover:border-brand-400
+}
+
 </style>

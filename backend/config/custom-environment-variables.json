@@ -157,6 +157,9 @@
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
   },
+  "githubToken": {
+    "token": "CROWD_GITHUB_TOKEN"
+  },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
   },
