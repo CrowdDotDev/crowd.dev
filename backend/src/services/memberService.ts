@@ -727,6 +727,29 @@ export default class MemberService extends LoggerBase {
     })
   }
 
+  async findGithub(memberId) {
+    const memberIdentities = (await MemberRepository.findById(memberId, this.options)).username
+    const axios = require('axios')
+    // GitHub allows a maximum of 5 parameters
+    const identities = Object.values(memberIdentities).flat().slice(0, 5)
+    // Join the usernames for search
+    const identitiesQuery = identities.join('+OR+')
+    const url = `https://api.github.com/search/users?q=${identitiesQuery}`
+    const headers = {
+      Accept: 'application/vnd.github+json',
+      Authorization: 'Bearer ghu_Jps6yPSjwJVy7SJVDaH6RqNXMzPXYz4QTpuM',
+      'X-GitHub-Api-Version': '2022-11-28',
+    }
+    const response = await axios.get(url, { headers })
+    const data = response.data.items.map((item) => ({
+      username: item.login,
+      avatarUrl: item.avatar_url,
+      score: item.score,
+      url: item.html_url,
+    }))
+    return data
+  }
+
   /**
    * Given two members, add them to the toMerge fields of each other.
    * It will also update the tenant's toMerge list, removing any entry that contains

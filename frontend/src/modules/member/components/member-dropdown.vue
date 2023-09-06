@@ -72,6 +72,27 @@
           </span>
         </el-tooltip>
         <el-dropdown-item
+          :command="{
+            action: 'memberFindGitHub',
+            member,
+          }"
+          class="h-10 mb-1"
+          :disabled="
+            EditLockedForSampleData
+          "
+        >
+          <app-svg
+            name="enrichment"
+            class="max-w-[16px] h-4"
+            color="#9CA3AF"
+          />
+          <span
+            class="ml-2 text-xs"
+          >
+            Find GitHub
+          </span>
+        </el-dropdown-item>
+        <el-dropdown-item
           class="h-10"
           :command="{
             action: 'memberMerge',
@@ -191,6 +212,10 @@
         </el-dropdown-item>
       </template>
     </el-dropdown>
+    <app-member-find-github-drawer
+      v-model="openFindGitHubDrawer"
+      :member="member"
+    />
   </div>
 </template>
 
@@ -206,11 +231,13 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
+import AppMemberFindGithbDrawer from './member-find-github-drawer.vue';
 
 export default {
   name: 'AppMemberDropdown',
   components: {
     AppSvg,
+    AppMemberFindGithbDrawer,
   },
   props: {
     member: {
@@ -225,6 +252,7 @@ export default {
     return {
       isMergeLoading: false,
       pair: [],
+      openFindGitHubDrawer: false,
     };
   },
   computed: {
@@ -245,6 +273,9 @@ export default {
         !this.member.username?.github?.length
         && !this.member.emails?.length
       );
+    },
+    isFindingGitHubEnabled() {
+      this.member.username?.github === undefined || !this.member.username?.github?.length;
     },
     isEditLockedForSampleData() {
       return new MemberPermissions(
@@ -358,8 +389,11 @@ export default {
       } else if (command.action === 'memberEnrich') {
         await this.doEnrich(command.member.id);
         await this.fetchMembers({ reload: true });
+      } else if (command.action === 'memberFindGitHub') {
+        console.log('here');
+        this.openFindGitHubDrawer = true;
+        console.log(this.openFindGitHubDrawer);
       }
-
       return null;
     },
   },
