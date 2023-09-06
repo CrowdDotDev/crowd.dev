@@ -6,10 +6,10 @@
     --el-switch-off-color: #d1d5db; // Gray-300
   }
 
-  @apply flex grow justify-between items-center ml-4 cursor-pointer;
+  @apply flex grow-0 justify-between items-center ml-4 cursor-pointer;
 
   // Label
   & .el-switch__label {
-    @apply text-xs text-gray-900 font-medium #{!important};
+    @apply text-xs text-gray-900 mr-2 font-medium #{!important};
   }
 }
