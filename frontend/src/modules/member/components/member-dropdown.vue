@@ -78,14 +78,10 @@
           }"
           class="h-10 mb-1"
           :disabled="
-            EditLockedForSampleData
+            !isFindingGitHubDisabled
           "
         >
-          <app-svg
-            name="enrichment"
-            class="max-w-[16px] h-4"
-            color="#9CA3AF"
-          />
+          <span class="max-w-[16px]" color="#9CA3AF"><i class="ri-github-fill" /></span>
           <span
             class="ml-2 text-xs"
           >
@@ -231,13 +227,13 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import AppMemberFindGithbDrawer from './member-find-github-drawer.vue';
+import AppMemberFindGithubDrawer from './member-find-github-drawer.vue';
 
 export default {
   name: 'AppMemberDropdown',
   components: {
     AppSvg,
-    AppMemberFindGithbDrawer,
+    AppMemberFindGithubDrawer,
   },
   props: {
     member: {
@@ -274,8 +270,9 @@ export default {
         && !this.member.emails?.length
       );
     },
-    isFindingGitHubEnabled() {
-      this.member.username?.github === undefined || !this.member.username?.github?.length;
+    isFindingGitHubDisabled() {
+      console.log(this.member.username?.github === undefined || !this.member.username?.github?.length);
+      return this.member.username?.github === undefined || !this.member.username?.github?.length;
     },
     isEditLockedForSampleData() {
       return new MemberPermissions(

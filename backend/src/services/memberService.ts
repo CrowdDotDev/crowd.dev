@@ -33,6 +33,7 @@ import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '../types/common'
 import SegmentRepository from '../database/repositories/segmentRepository'
+import { GITHUB_TOKEN_CONFIG } from '../conf'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -720,7 +721,7 @@ export default class MemberService extends LoggerBase {
     const url = `https://api.github.com/search/users?q=${identitiesQuery}`
     const headers = {
       Accept: 'application/vnd.github+json',
-      Authorization: 'Bearer ghu_Jps6yPSjwJVy7SJVDaH6RqNXMzPXYz4QTpuM',
+      Authorization: `Bearer ${GITHUB_TOKEN_CONFIG.token}`,
       'X-GitHub-Api-Version': '2022-11-28',
     }
     const response = await axios.get(url, { headers })
