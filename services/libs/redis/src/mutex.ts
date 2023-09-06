@@ -1,7 +1,7 @@
 import { TimeoutError, timeout } from '@crowd/common'
 import { RedisClient } from './types'
 
-export const aquireLock = async (
+export const acquireLock = async (
   client: RedisClient,
   key: string,
   value: string,

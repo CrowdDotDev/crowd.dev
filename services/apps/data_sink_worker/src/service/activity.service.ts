@@ -15,6 +15,8 @@ import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
 import IntegrationRepository from '@/repo/integration.repo'
 import MemberAffiliationService from './memberAffiliation.service'
+import { acquireLock, releaseLock } from '@crowd/redis'
+import { RedisClient } from '@crowd/redis'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -23,6 +25,7 @@ export default class ActivityService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {
     super(parentLog)
