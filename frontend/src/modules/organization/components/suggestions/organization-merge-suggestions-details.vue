@@ -43,13 +43,13 @@
         </button>
         <slot name="action" />
       </div>
-      <div class="flex items-center pb-4">
+      <div class="pb-4">
         <app-avatar
           :entity="{
             avatar: props.organization.logo,
             displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
           }"
-          class="mr-4"
+          class="mr-4 mb-4"
         />
         <div>
           <h6
@@ -84,31 +84,20 @@
       <div>
         <article
           v-if="
-            props.organization.memberCount
-              || props.compareOrganization?.memberCount
+            props.organization.website
+              || props.compareOrganization?.website
           "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
-            # of members
+            Website
           </p>
-          <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.memberCount || '-' }}
-          </p>
-        </article>
-        <article
-          v-if="
-            props.organization.activityCount
-              || props.compareOrganization?.activityCount
-          "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
-        >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
-            # of Activities
-          </p>
-          <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.activityCount || '-' }}
-          </p>
+          <a
+            :href="withHttp(props.organization.website)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs text-gray-900 text-right"
+          >{{ props.organization.website || '-' }}</a>
         </article>
         <article
           v-if="
@@ -123,23 +112,6 @@
           <p class="text-xs text-gray-900 text-right">
             {{ props.organization.location || '-' }}
           </p>
-        </article>
-        <article
-          v-if="
-            props.organization.website
-              || props.compareOrganization?.website
-          "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
-        >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
-            Website
-          </p>
-          <a
-            :href="withHttp(props.organization.website)"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-xs text-gray-900 text-right"
-          >{{ props.organization.website }}</a>
         </article>
         <article
           v-if="
@@ -173,6 +145,48 @@
         </article>
         <article
           v-if="
+            props.organization.industry
+              || props.compareOrganization?.industry
+          "
+          class="flex items-center justify-between h-12 border-b border-gray-200"
+        >
+          <p class="text-2xs font-medium text-gray-500 pr-4">
+            Industry
+          </p>
+          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+            {{ props.organization.industry || '-' }}
+          </p>
+        </article>
+        <article
+          v-if="
+            props.organization.type
+              || props.compareOrganization?.type
+          "
+          class="flex items-center justify-between h-12 border-b border-gray-200"
+        >
+          <p class="text-2xs font-medium text-gray-500 pr-4">
+            Industry
+          </p>
+          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+            {{ props.organization.type || '-' }}
+          </p>
+        </article>
+        <article
+          v-if="
+            props.organization.founded
+              || props.compareOrganization?.founded
+          "
+          class="flex items-center justify-between h-12 border-b border-gray-200"
+        >
+          <p class="text-2xs font-medium text-gray-500 pr-4">
+            Industry
+          </p>
+          <p class="text-xs text-gray-900 text-right">
+            {{ props.organization.founded || '-' }}
+          </p>
+        </article>
+        <article
+          v-if="
             props.organization.joinedAt
               || props.compareOrganization?.joinedAt
           "
@@ -183,6 +197,34 @@
           </p>
           <p class="text-xs text-gray-900 text-right">
             {{ formatDateToTimeAgo(props.organization.joinedAt) || '-' }}
+          </p>
+        </article>
+        <article
+          v-if="
+            props.organization.memberCount
+              || props.compareOrganization?.memberCount
+          "
+          class="flex items-center justify-between h-12 border-b border-gray-200"
+        >
+          <p class="text-2xs font-medium text-gray-500 pr-4">
+            # of members
+          </p>
+          <p class="text-xs text-gray-900 text-right">
+            {{ props.organization.memberCount || '-' }}
+          </p>
+        </article>
+        <article
+          v-if="
+            props.organization.activityCount
+              || props.compareOrganization?.activityCount
+          "
+          class="flex items-center justify-between h-12 border-b border-gray-200"
+        >
+          <p class="text-2xs font-medium text-gray-500 pr-4">
+            # of Activities
+          </p>
+          <p class="text-xs text-gray-900 text-right">
+            {{ props.organization.activityCount || '-' }}
           </p>
         </article>
       </div>

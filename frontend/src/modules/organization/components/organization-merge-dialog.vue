@@ -18,31 +18,30 @@
             />
           </div>
           <div class="w-1/2 px-3">
-            <!--            <app-member-selection-dropdown-->
-            <!--              v-if="memberToMerge === null"-->
-            <!--              :id="props.modelValue?.id"-->
-            <!--              v-model="memberToMerge"-->
-            <!--              style="margin-right: 5px"-->
-            <!--            />-->
-            <!--            <app-member-suggestions-details-->
-            <!--              v-else-->
-            <!--              :member="memberToMerge"-->
-            <!--              :compare-member="props.modelValue"-->
-            <!--              :is-primary="!originalMemberPrimary"-->
-            <!--              @make-primary="originalMemberPrimary = false"-->
-            <!--            >-->
-            <!--              <template #action>-->
-            <!--                <button-->
-            <!--                  class="btn btn&#45;&#45;transparent btn&#45;&#45;sm leading-5 !px-4 !py-1"-->
-            <!--                  type="button"-->
-            <!--                  @click="changeMember()"-->
-            <!--                >-->
-            <!--                  <span class="ri-refresh-line text-base text-brand-500 mr-2" />-->
-            <!--                  <span class="text-brand-500">Change member</span>-->
-            <!--                </button>-->
-            <!--              </template>-->
-            <!--            </app-member-suggestions-details>-->
-            <!--          </div>-->
+            <app-organization-selection-dropdown
+              v-if="organizationToMerge === null"
+              :id="props.modelValue?.id"
+              v-model="organizationToMerge"
+              style="margin-right: 5px"
+            />
+            <app-organization-merge-suggestions-details
+              v-else
+              :organization="organizationToMerge"
+              :compare-organization="props.modelValue"
+              :is-primary="!originalOrganizationPrimary"
+              @make-primary="originalOrganizationPrimary = false"
+            >
+              <template #action>
+                <button
+                  class="btn btn--transparent btn--sm leading-5 !px-4 !py-1"
+                  type="button"
+                  @click="changeOrganization()"
+                >
+                  <span class="ri-refresh-line text-base text-brand-500 mr-2" />
+                  <span class="text-brand-500">Change organization</span>
+                </button>
+              </template>
+            </app-organization-merge-suggestions-details>
           </div>
         </div>
         <div class="pt-6 flex justify-end">
@@ -55,7 +54,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge members
+            Merge organizations
           </el-button>
         </div>
       </div>
@@ -66,7 +65,6 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
-
 import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppDialog from '@/shared/dialog/dialog.vue';
@@ -74,6 +72,7 @@ import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import AppOrganizationSelectionDropdown from '@/modules/organization/components/organization-selection-dropdown.vue';
 
 const props = defineProps({
   modelValue: {
@@ -103,6 +102,11 @@ const isModalOpen = computed({
     organizationToMerge.value = null;
   },
 });
+
+const changeOrganization = () => {
+  organizationToMerge.value = null;
+  originalOrganizationPrimary.value = true;
+};
 
 const mergeSuggestion = () => {
   if (sendingMerge.value) {
