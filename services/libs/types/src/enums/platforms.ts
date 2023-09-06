@@ -19,6 +19,7 @@ export enum PlatformType {
   GIT = 'git',
   CRUNCHBASE = 'crunchbase',
   HUBSPOT = 'hubspot',
+  GROUPSIO = 'groupsio',
   OTHER = 'other',
 }
 
