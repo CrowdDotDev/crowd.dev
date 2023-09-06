@@ -16,7 +16,10 @@
       :to="{
         name: 'organizationView',
         params: { id: props.organization.id },
-        query: { projectGroup: selectedProjectGroup?.id },
+        query: {
+          projectGroup: selectedProjectGroup?.id,
+          segmentId: segments.segments?.[0],
+        },
       }"
       class="flex items-center justify-between group hover:cursor-pointer w-full"
     >
@@ -49,6 +52,7 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps({
   organization: {
@@ -65,6 +69,8 @@ const props = defineProps({
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const { segments } = mapGetters('dashboard');
 
 const entity = computed(() => ({
   avatar: props.organization.logo,

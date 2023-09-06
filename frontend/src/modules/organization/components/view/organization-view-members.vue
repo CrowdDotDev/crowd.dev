@@ -99,7 +99,7 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppMemberIdentities from '@/modules/member/components/member-identities.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const SearchIcon = h(
   'i', // type
@@ -108,6 +108,7 @@ const SearchIcon = h(
 );
 
 const store = useStore();
+const route = useRoute();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -169,7 +170,7 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: [selectedProjectGroup.value.id],
+      segments: [route.query.segmentId || selectedProjectGroup.value.id],
     },
     {
       headers: {

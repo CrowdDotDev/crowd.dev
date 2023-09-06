@@ -59,7 +59,9 @@ export class OrganizationService {
           Authorization: sampleTenant?.token,
         },
         params: {
-          segments,
+          segmentId: segments[0],
+          // The parameter id on this one is sematically different, so we are excluding the logic to add segments as an array
+          excludeSegments: true,
         },
       },
     );
