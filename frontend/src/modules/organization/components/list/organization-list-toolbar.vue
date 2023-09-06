@@ -22,6 +22,22 @@
         </el-dropdown-item>
 
         <el-dropdown-item
+          v-if="selectedOrganizations.length === 2"
+          :command="{
+            action: 'mergeOrganizations',
+          }"
+          :disabled="
+            isPermissionReadOnly
+              || isEditLockedForSampleData
+          "
+        >
+          <i
+            class="ri-lg mr-1 ri-shake-hands-line"
+          />
+          Merge organizations
+        </el-dropdown-item>
+
+        <el-dropdown-item
           v-if="markAsTeamOrganizationOptions"
           :command="{
             action: 'markAsTeamOrganization',
@@ -146,6 +162,12 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   })
   .then(() => fetchOrganizations({ reload: true }));
 
+const handleMergeOrganizations = () => {
+  const [firstOrganization, secondOrganization] = selectedOrganizations.value;
+  OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
+    .then(() => fetchOrganizations({ reload: true }));
+};
+
 const handleDoExport = async () => {
   try {
     const filter = {
@@ -200,6 +222,8 @@ const handleCommand = async (command) => {
     await handleDoExport();
   } else if (command.action === 'destroyAll') {
     await handleDoDestroyAllWithConfirm();
+  } else if (command.action === 'mergeOrganizations') {
+    await handleMergeOrganizations();
   } else if (command.action === 'markAsTeamOrganization') {
     Promise.all(
       selectedOrganizations.value.map((row) => OrganizationService.update(row.id, {
