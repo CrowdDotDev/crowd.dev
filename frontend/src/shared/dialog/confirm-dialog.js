@@ -17,6 +17,12 @@ export default ({
   confirmButtonText = 'Discard',
   confirmButtonClass = 'btn btn--md btn--primary',
   icon = 'ri-error-warning-line',
+  distinguishCancelAndClose = false,
+  autofocus = true,
+  titleClass,
+  messageClass,
+  verticalCancelButtonClass,
+  verticalConfirmButtonClass,
 }) => {
   let iconColorClass = 'text-yellow-600';
   let iconBgColorClass = 'bg-yellow-100';
@@ -59,7 +65,7 @@ export default ({
       h('div', [
         h('p', {
           innerHTML: message,
-          class: 'text-gray-500 text-sm',
+          class: `text-gray-500 text-sm ${messageClass}`,
         }),
         highlightedInfo
           ? h(
@@ -133,7 +139,7 @@ export default ({
         ),
         h('h6', {
           innerHTML: title,
-          class: 'text-black mb-3',
+          class: `text-black mb-3 ${titleClass}`,
         }),
         badgeContent
           ? h('div', {
@@ -144,7 +150,7 @@ export default ({
           : undefined,
         h('p', {
           innerHTML: message,
-          class: 'text-gray-500 text-sm',
+          class: `text-gray-500 text-sm ${messageClass}`,
         }),
         highlightedInfo
           ? h(
@@ -181,9 +187,11 @@ export default ({
       showCancelButton,
       customClass: overrideCustomClass,
       confirmButtonText,
-      confirmButtonClass: overrideConfirmButtonClass,
+      confirmButtonClass: verticalConfirmButtonClass || overrideConfirmButtonClass,
       cancelButtonText,
-      cancelButtonClass: overrideCancelButtonClass,
+      cancelButtonClass: verticalCancelButtonClass || overrideCancelButtonClass,
+      distinguishCancelAndClose,
+      autofocus,
     });
   }
 
@@ -197,5 +205,7 @@ export default ({
     cancelButtonClass,
     confirmButtonText,
     confirmButtonClass,
+    distinguishCancelAndClose,
+    autofocus,
   });
 };
