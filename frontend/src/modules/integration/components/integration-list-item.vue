@@ -46,7 +46,7 @@
         </div>
         <div class="h-5 leading-5 text-end">
           <el-tooltip
-            v-if="includeTimestamp"
+            v-if="isDone"
             :content="lastSynced.absolute"
             placement="top"
           >
@@ -176,14 +176,9 @@ const isNeedsToBeReconnected = computed(
   () => props.integration.status === 'needs-reconnect',
 );
 
-const includeTimestamp = computed(() => isConnected.value
-|| isDone.value || isError.value
-|| isNoData.value || isWaitingForAction.value
-|| isWaitingApproval.value || isNeedsToBeReconnected.value);
-
 const lastSynced = computed(() => ({
-  absolute: moment.utc(props.integration.updatedAt).format('MMM DD, YYYY HH:mm'),
-  relative: `last synced ${moment.utc(props.integration.updatedAt).fromNow()}`,
+  absolute: moment(props.integration.updatedAt).format('MMM DD, YYYY HH:mm'),
+  relative: `last synced ${moment(props.integration.updatedAt).fromNow()}`,
 }));
 
 const loadingDisconnect = ref(false);
