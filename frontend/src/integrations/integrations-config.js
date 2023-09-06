@@ -15,6 +15,7 @@ import crunchbase from './crunchbase';
 import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
+import groupsio from './groupsio';
 import youtube from './youtube';
 
 class IntegrationsConfig {
@@ -34,6 +35,7 @@ class IntegrationsConfig {
       git,
       crunchbase,
       discourse,
+      groupsio,
       hubspot,
       // make,
       facebook,

@@ -11,6 +11,7 @@ import {
   MemberEnrichmentAttributes,
   PlatformType,
   IOrganization,
+  OrganizationSource,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
@@ -144,6 +145,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -158,6 +160,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberId)
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (
@@ -319,6 +322,7 @@ export default class MemberEnrichmentService extends LoggerBase {
             title: workExperience.title,
             dateStart: workExperience.startDate,
             dateEnd,
+            source: OrganizationSource.ENRICHMENT,
           }
           await MemberRepository.createOrUpdateWorkExperience(data, options)
           await OrganizationRepository.includeOrganizationToSegments(org.id, options)

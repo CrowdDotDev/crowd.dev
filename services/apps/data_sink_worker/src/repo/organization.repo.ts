@@ -12,7 +12,7 @@ import {
   getUpdateOrganizationColumnSet,
 } from './organization.data'
 import { generateUUIDv1 } from '@crowd/common'
-import { SyncStatus } from '@crowd/types'
+import { SyncStatus, IOrganization } from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
@@ -173,6 +173,71 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return result
   }
 
+  public async findByDomain(
+    tenantId: string,
+    segmentId: string,
+    domain: string,
+  ): Promise<IDbOrganization> {
+    const results = await this.db().any(
+      `
+      SELECT
+        o.id,
+        o.name,
+        o.url,
+        o.description,
+        o.emails,
+        o.logo,
+        o.tags,
+        o.github,
+        o.twitter,
+        o.linkedin,
+        o.crunchbase,
+        o.employees,
+        o.location,
+        o.website,
+        o.type,
+        o.size,
+        o.headline,
+        o.industry,
+        o.founded,
+        o.attributes
+      FROM
+        organizations o
+      WHERE
+        o."tenantId" = $(tenantId) AND 
+        (
+          o.website ILIKE $(protocolDomain) OR
+          o.website ILIKE $(domainWithWww) OR
+          o.website ILIKE $(domain)
+        ) AND
+        o.id IN (
+          SELECT os."organizationId"
+          FROM "organizationSegments" os
+          WHERE os."segmentId" = $(segmentId)
+        )
+      `,
+      {
+        tenantId,
+        protocolDomain: `%://${domain}`,
+        domainWithWww: `%://www.${domain}`,
+        domain,
+        segmentId,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    results.sort((a, b) => {
+      const scoreA = Object.values(a).filter((value) => value !== null).length
+      const scoreB = Object.values(b).filter((value) => value !== null).length
+      return scoreB - scoreA
+    })
+
+    return results[0]
+  }
+
   public async insert(tenantId: string, data: IDbInsertOrganizationData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
@@ -233,22 +298,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     await this.db().none(query, parameters)
   }
 
-  public async addToMember(memberId: string, orgIds): Promise<void> {
+  public async addToMember(memberId: string, orgs: IOrganization[]): Promise<void> {
     const parameters: Record<string, unknown> = {
       memberId,
     }
 
     const valueStrings = []
-    for (let i = 0; i < orgIds.length; i++) {
-      const orgId = orgIds[i]
-      parameters[`orgId_${i}`] = orgId
-      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now())`)
+    for (let i = 0; i < orgs.length; i++) {
+      const org = orgs[i]
+      parameters[`orgId_${i}`] = org.id
+      parameters[`source_${i}`] = org.source
+      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now(), $(source_${i}))`)
     }
 
     const valueString = valueStrings.join(',')
 
     const query = `
-    insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt")
+    insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt", "source")
     values ${valueString}
     on conflict do nothing;
     `

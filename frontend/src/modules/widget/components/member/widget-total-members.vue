@@ -46,12 +46,13 @@
             </div>
             <div class="col-span-7 chart">
               <app-widget-area
-                :result-set="chartResultSet(resultSet)"
+                :result-set="resultSet"
                 :datasets="datasets"
                 :chart-options="widgetChartOptions"
                 :granularity="granularity"
                 :is-grid-min-max="true"
                 :show-min-as-value="true"
+                :pivot-modifier="(pivot) => pivot.splice(0, 1)"
                 @on-view-more-click="onViewMoreClick"
               />
             </div>
@@ -78,8 +79,6 @@
   </app-widget-api-drawer>
 </template>
 <script setup>
-import moment from 'moment';
-import cloneDeep from 'lodash/cloneDeep';
 import { ref, computed, defineProps } from 'vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
@@ -162,35 +161,6 @@ const kpiCurrentValue = (resultSet) => {
 const kpiPreviousValue = (resultSet) => {
   const data = resultSet.chartPivot();
   return Number(data[0]['Members.cumulativeCount']) || 0;
-};
-
-const spliceFirstValue = (data) => cloneDeep(data).reduce((acc, item, index) => {
-  if (index !== 0) {
-    acc.push({
-      ...item,
-    });
-  }
-  return acc;
-}, []);
-
-const chartResultSet = (resultSet) => {
-  const clone = cloneDeep(resultSet);
-
-  // We'll be excluding the first data point, since it's related to the last period
-  clone.loadResponses[0].data = spliceFirstValue(
-    clone.loadResponses[0].data,
-  );
-
-  // Then we also fix the first entry of the dateRange
-  clone.loadResponses[0].query.timeDimensions[0].dateRange[0] = moment(
-    clone.loadResponses[0].query.timeDimensions[0]
-      .dateRange[0],
-  )
-    .utc()
-    .add(1, 'day')
-    .format('YYYY-MM-DD');
-
-  return clone;
 };
 
 // Fetch function to pass to detail drawer

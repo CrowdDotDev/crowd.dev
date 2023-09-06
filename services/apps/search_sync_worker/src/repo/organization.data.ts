@@ -6,6 +6,7 @@ export interface IDbOrganizationSyncData {
   address: unknown | null
   attributes: unknown
   createdAt: string
+  manuallyCreated: boolean
   description: string | null
   displayName: string
   emails: string[]
@@ -22,7 +23,6 @@ export interface IDbOrganizationSyncData {
   logo: string | null
   naics: unknown[] | null
   name: string
-  parentUrl: string | null
   phoneNumbers: string[] | null
   profiles: string[] | null
   revenueRange: unknown | null
@@ -34,6 +34,24 @@ export interface IDbOrganizationSyncData {
   github: unknown | null
   crunchbase: unknown | null
   twitter: unknown | null
+  immediateParent: string | null
+  ultimateParent: string | null
+  affiliatedProfiles: string[] | null
+  allSubsidiaries: string[] | null
+  alternativeDomains: string[] | null
+  alternativeNames: string[] | null
+  averageEmployeeTenure: number | null
+  averageTenureByLevel: unknown | null
+  averageTenureByRole: unknown | null
+  directSubsidiaries: string[] | null
+  employeeChurnRate: unknown | null
+  employeeCountByMonth: unknown | null
+  employeeGrowthRate: unknown | null
+  employeeCountByMonthByLevel: unknown | null
+  employeeCountByMonthByRole: unknown | null
+  gicsSector: string | null
+  grossAdditionsByMonth: unknown | null
+  grossDeparturesByMonth: unknown | null
 
   // aggregate data
   joinedAt: string

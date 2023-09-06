@@ -19,11 +19,10 @@ const memberId = processArguments[0]
 
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log)
-  await openSearchService.initialize()
 
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 
-  const dbConnection = getDbConnection(DB_CONFIG())
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const repo = new MemberRepository(redis, store, log)

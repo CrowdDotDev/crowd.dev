@@ -25,46 +25,67 @@ class OrganizationRepository {
     const database = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
     const query = `
-      with orgActivities as (
-        SELECT memOrgs."organizationId", SUM(actAgg."activityCount") "orgActivityCount"
-        FROM "memberActivityAggregatesMVs" actAgg
-        INNER JOIN "memberOrganizations" memOrgs ON actAgg."id"=memOrgs."memberId"
-        GROUP BY memOrgs."organizationId"
-      ) 
-      SELECT org.id "id"
-      ,cach.id "cachId"
-      ,org."name"
-      ,org."displayName"
-      ,org."location"
-      ,org."website"
-      ,org."lastEnrichedAt"
-      ,org."twitter"
-      ,org."employees"
-      ,org."size"
-      ,org."founded"
-      ,org."industry"
-      ,org."naics"
-      ,org."profiles"
-      ,org."headline"
-      ,org."ticker"
-      ,org."type"
-      ,org."address"
-      ,org."geoLocation"
-      ,org."employeeCountByCountry"
-      ,org."twitter"
-      ,org."linkedin"
-      ,org."linkedin"
-      ,org."crunchbase"
-      ,org."github"
-      ,org."description"
-      ,activity."orgActivityCount"
-      FROM "organizations" as org
-      JOIN "organizationCaches" cach ON org."name" = cach."name"
-      JOIN orgActivities activity ON activity."organizationId" = org."id"
-      WHERE :tenantId = org."tenantId" AND (org."lastEnrichedAt" IS NULL OR DATE_PART('month', AGE(NOW(), org."lastEnrichedAt")) >= 6)
-      ORDER BY org."lastEnrichedAt" ASC, org."website", activity."orgActivityCount" DESC, org."createdAt" DESC
-      LIMIT :limit
-    ;
+    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
+                            from activities a
+                            where a."tenantId" = :tenantId and
+                                  a."deletedAt" is null and
+                                  a."isContribution" = true
+                            group by a."organizationId"
+                            having count(id) > 0)
+    select org.id
+        , cach.id "cachId"
+        , org."name"
+        , org."displayName"
+        , org."location"
+        , org."website"
+        , org."lastEnrichedAt"
+        , org."twitter"
+        , org."employees"
+        , org."size"
+        , org."founded"
+        , org."industry"
+        , org."naics"
+        , org."profiles"
+        , org."headline"
+        , org."ticker"
+        , org."type"
+        , org."address"
+        , org."geoLocation"
+        , org."employeeCountByCountry"
+        , org."twitter"
+        , org."linkedin"
+        , org."linkedin"
+        , org."crunchbase"
+        , org."github"
+        , org."description"
+        , org."revenueRange"
+        , org."tags"
+        , org."affiliatedProfiles"
+        , org."allSubsidiaries"
+        , org."alternativeDomains"
+        , org."alternativeNames"
+        , org."averageEmployeeTenure"
+        , org."averageTenureByLevel"
+        , org."averageTenureByRole"
+        , org."directSubsidiaries"
+        , org."employeeChurnRate"
+        , org."employeeCountByMonth"
+        , org."employeeGrowthRate"
+        , org."employeeCountByMonthByLevel"
+        , org."employeeCountByMonthByRole"
+        , org."gicsSector"
+        , org."grossAdditionsByMonth"
+        , org."grossDeparturesByMonth"
+        , org."ultimateParent"
+        , org."immediateParent"
+        , activity."orgActivityCount"
+    from "organizations" as org
+            join "organizationCaches" cach on org."name" = cach."name"
+            join org_activities activity on activity."organizationId" = org."id"
+    where :tenantId = org."tenantId"
+      and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
+    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    limit :limit;
     `
     const orgs: T[] = await database.query(query, {
       type: QueryTypes.SELECT,
@@ -95,7 +116,6 @@ class OrganizationRepository {
           'displayName',
           'url',
           'description',
-          'parentUrl',
           'emails',
           'phoneNumbers',
           'logo',
@@ -120,6 +140,25 @@ class OrganizationRepository {
           'founded',
           'size',
           'lastEnrichedAt',
+          'manuallyCreated',
+          'affiliatedProfiles',
+          'allSubsidiaries',
+          'alternativeDomains',
+          'alternativeNames',
+          'averageEmployeeTenure',
+          'averageTenureByLevel',
+          'averageTenureByRole',
+          'directSubsidiaries',
+          'employeeChurnRate',
+          'employeeCountByMonth',
+          'employeeGrowthRate',
+          'employeeCountByMonthByLevel',
+          'employeeCountByMonthByRole',
+          'gicsSector',
+          'grossAdditionsByMonth',
+          'grossDeparturesByMonth',
+          'ultimateParent',
+          'immediateParent',
         ]),
 
         tenantId: tenant.id,
@@ -146,11 +185,35 @@ class OrganizationRepository {
     data: T,
     fields: string[],
     options: IRepositoryOptions,
+    isEnrichment: boolean = false,
   ): Promise<T> {
     // Ensure every organization has a non-undefine primary ID
     const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
     if (isValid) return [] as T
 
+    if (isEnrichment) {
+      // Fetch existing organizations
+      const existingOrgs = await options.database.organization.findAll({
+        where: {
+          id: {
+            [options.database.Sequelize.Op.in]: data.map((org) => org.id),
+          },
+        },
+      })
+
+      // Append new tags to existing tags instead of overwriting
+      if (fields.includes('tags')) {
+        // @ts-ignore
+        data = data.map((org) => {
+          const existingOrg = existingOrgs.find((o) => o.id === org.id)
+          if (existingOrg && existingOrg.tags) {
+            // Merge existing and new tags without duplicates
+            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+          }
+          return org
+        })
+      }
+    }
     // Using bulk insert to update on duplicate primary ID
     const orgs = await options.database.organization.bulkCreate(data, {
       fields: ['id', 'tenantId', ...fields],
@@ -241,7 +304,6 @@ class OrganizationRepository {
           'displayName',
           'url',
           'description',
-          'parentUrl',
           'emails',
           'phoneNumbers',
           'logo',
@@ -268,6 +330,24 @@ class OrganizationRepository {
           'employees',
           'twitter',
           'lastEnrichedAt',
+          'affiliatedProfiles',
+          'allSubsidiaries',
+          'alternativeDomains',
+          'alternativeNames',
+          'averageEmployeeTenure',
+          'averageTenureByLevel',
+          'averageTenureByRole',
+          'directSubsidiaries',
+          'employeeChurnRate',
+          'employeeCountByMonth',
+          'employeeGrowthRate',
+          'employeeCountByMonthByLevel',
+          'employeeCountByMonthByRole',
+          'gicsSector',
+          'grossAdditionsByMonth',
+          'grossDeparturesByMonth',
+          'ultimateParent',
+          'immediateParent',
           'attributes',
         ]),
         updatedById: currentUser.id,
@@ -320,6 +400,7 @@ class OrganizationRepository {
       from "memberOrganizations" as mo
       where mo."memberId" = m.id
       and mo."organizationId" = :organizationId
+      and mo."deletedAt" is null
       and m."tenantId" = :tenantId;
    `,
       {
@@ -366,81 +447,103 @@ class OrganizationRepository {
     }
   }
 
-  static async findById(id, options: IRepositoryOptions) {
+  static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const results = await sequelize.query(
-      `
-          WITH
-              activity_counts AS (
-                SELECT "organizationId", COUNT(id) AS "activityCount"
-                FROM activities
-                WHERE "organizationId" = :id
-                GROUP BY "organizationId"
-              ),
-              member_counts AS (
-                  SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
-                  FROM "memberOrganizations"
-                  WHERE "organizationId" = :id
-                  GROUP BY "organizationId"
-              ),
-              active_on AS (
-                SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-                FROM activities
-                WHERE "organizationId" = :id
-                GROUP BY "organizationId"
-            ),
-              identities AS (
-                  SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
-                  FROM "memberOrganizations" mo
-                  JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY "organizationId"
-              ),
-              last_active AS (
-                  SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
-                  FROM "memberOrganizations" mo
-                  JOIN activities a ON a."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY mo."organizationId"
-              ),
-              segments AS (
-                  SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
-                  FROM "organizationSegments"
-                  WHERE "organizationId" = :id
-                  GROUP BY "organizationId"
-              )
-          SELECT
-              o.*,
-              COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",
-              COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
-              COALESCE(ao."activeOn", '{}') AS "activeOn",
-              COALESCE(id."identities", '{}') AS "identities",
-              COALESCE(s."segments", '{}') AS "segments",
-              a."lastActive",
-              a."joinedAt"
-          FROM organizations o
-          LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
-          LEFT JOIN member_counts mc ON mc."organizationId" = o.id
-          LEFT JOIN active_on ao ON ao."organizationId" = o.id
-          LEFT JOIN identities id ON id."organizationId" = o.id
-          LEFT JOIN last_active a ON a."organizationId" = o.id
-          LEFT JOIN segments s ON s."organizationId" = o.id
-          WHERE o.id = :id
-            AND o."tenantId" = :tenantId;
-      `,
-      {
-        replacements: {
-          id,
-          tenantId: currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
+    const replacements: Record<string, unknown> = {
+      id,
+      tenantId: currentTenant.id,
+    }
+
+    // query for all leaf segment ids
+    let segmentsSubQuery = `
+    select id
+    from segments
+    where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+    `
+
+    if (segmentId) {
+      // we load data for a specific segment (can be leaf, parent or grand parent id)
+      replacements.segmentId = segmentId
+      segmentsSubQuery = `
+      with input_segment as (select id,
+                                    slug,
+                                    "parentSlug",
+                                    "grandparentSlug"
+                            from segments
+                            where id = :segmentId
+                              and "tenantId" = :tenantId),
+                            segment_level as (select case
+                                        when "parentSlug" is not null and "grandparentSlug" is not null
+                                            then 'child'
+                                        when "parentSlug" is null and "grandparentSlug" is not null
+                                            then 'parent'
+                                        when "parentSlug" is null and "grandparentSlug" is null
+                                            then 'grandparent'
+                                        end as level,
+                                    id,
+                                    slug,
+                                    "parentSlug",
+                                    "grandparentSlug"
+                            from input_segment)
+                            select s.id
+                            from segments s
+                            join
+                            segment_level sl
+                            on
+                            (sl.level = 'child' and s.id = sl.id) or
+                            (sl.level = 'parent' and s."parentSlug" = sl.slug) or
+                            (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)`
+    }
+
+    const query = `
+    with leaf_segment_ids as (${segmentsSubQuery}),
+        member_data as (select a."organizationId",
+                                count(distinct m.id) filter ( where mo."dateEnd" is null )                  as "memberCount",
+                                count(distinct a.id)                                                        as "activityCount",
+                                case
+                                    when array_agg(distinct a.platform) = array [null] then array []::text[]
+                                    else array_agg(distinct a.platform) end                                 as "activeOn",
+                                max(a.timestamp)                                                            as "lastActive",
+                                case
+                                    when array_agg(distinct mi.platform) = array [null] then array []::text[]
+                                    else array_agg(distinct mi.platform) end                                as "identities",
+                                min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
+                        from leaf_segment_ids ls
+                                  left join activities a
+                                            on a."segmentId" = ls.id and a."organizationId" = :id and
+                                              a."deletedAt" is null
+                                  left join members m on a."memberId" = m.id and m."deletedAt" is null
+                                  left join "memberOrganizations" mo
+                                            on m.id = mo."memberId" and mo."organizationId" = :id
+                                  left join "memberIdentities" mi on m.id = mi."memberId"
+                        group by a."organizationId"),
+        organization_segments as (select "organizationId", array_agg("segmentId") as "segments"
+                                  from "organizationSegments"
+                                  where "organizationId" = :id
+                                  group by "organizationId")
+    select o.*,
+          coalesce(md."activityCount", 0)::integer as "activityCount",
+          coalesce(md."memberCount", 0)::integer   as "memberCount",
+          coalesce(md."activeOn", '{}')            as "activeOn",
+          coalesce(md.identities, '{}')            as identities,
+          coalesce(os.segments, '{}')              as segments,
+          md."lastActive",
+          md."joinedAt"
+    from organizations o
+            left join member_data md on md."organizationId" = o.id
+            left join organization_segments os on os."organizationId" = o.id
+    where o.id = :id and o."tenantId" = :tenantId;
+`
+
+    const results = await sequelize.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+      transaction,
+    })
 
     if (results.length === 0) {
       throw new Error404()
@@ -513,6 +616,35 @@ class OrganizationRepository {
     }
 
     return record.get({ plain: true })
+  }
+
+  static async findByDomain(domain, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    // Check if organization exists
+    const organization = await options.database.organization.findOne({
+      where: {
+        website: {
+          [Sequelize.Op.or]: [
+            // Matches URLs having 'http://' or 'https://'
+            { [Sequelize.Op.iLike]: `%://${domain}` },
+            // Matches URLs having 'www'
+            { [Sequelize.Op.iLike]: `%://www.${domain}` },
+            // Matches URLs that doesn't have 'http://' or 'https://' and 'www'
+            { [Sequelize.Op.iLike]: `${domain}` },
+          ],
+        },
+        tenantId: currentTenant.id,
+      },
+      transaction,
+    })
+
+    if (!organization) {
+      return null
+    }
+
+    return organization.get({ plain: true })
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -601,9 +733,18 @@ class OrganizationRepository {
 
     if (filter.and) {
       filter.and.push({
-        activityCount: {
-          gt: 0,
-        },
+        or: [
+          {
+            manuallyCreated: {
+              eq: true,
+            },
+          },
+          {
+            activityCount: {
+              gt: 0,
+            },
+          },
+        ],
       })
     }
 
@@ -689,6 +830,9 @@ class OrganizationRepository {
         attributes: [],
         through: {
           attributes: [],
+          where: {
+            deletedAt: null,
+          },
         },
         include: [
           {
@@ -876,14 +1020,6 @@ class OrganizationRepository {
         })
       }
 
-      if (filter.parentUrl) {
-        advancedFilter.and.push({
-          parentUrl: {
-            textContains: filter.parentUrl,
-          },
-        })
-      }
-
       if (filter.members) {
         advancedFilter.and.push({
           members: filter.members,
@@ -943,7 +1079,6 @@ class OrganizationRepository {
               'displayName',
               'url',
               'description',
-              'parentUrl',
               'emails',
               'phoneNumbers',
               'logo',
@@ -966,6 +1101,7 @@ class OrganizationRepository {
               'isTeamOrganization',
               'type',
               'attributes',
+              'manuallyCreated',
             ],
             'organization',
           ),
@@ -1030,7 +1166,6 @@ class OrganizationRepository {
             'displayName',
             'url',
             'description',
-            'parentUrl',
             'emails',
             'phoneNumbers',
             'logo',
@@ -1064,6 +1199,25 @@ class OrganizationRepository {
             'address',
             'profiles',
             'attributes',
+            'manuallyCreated',
+            'affiliatedProfiles',
+            'allSubsidiaries',
+            'alternativeDomains',
+            'alternativeNames',
+            'averageEmployeeTenure',
+            'averageTenureByLevel',
+            'averageTenureByRole',
+            'directSubsidiaries',
+            'employeeChurnRate',
+            'employeeCountByMonth',
+            'employeeGrowthRate',
+            'employeeCountByMonthByLevel',
+            'employeeCountByMonthByRole',
+            'gicsSector',
+            'grossAdditionsByMonth',
+            'grossDeparturesByMonth',
+            'ultimateParent',
+            'immediateParent',
           ],
           'organization',
         ),

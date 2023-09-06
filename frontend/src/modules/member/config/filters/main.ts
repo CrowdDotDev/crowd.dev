@@ -12,8 +12,10 @@ import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
 import reach from './reach/config';
 import tags from './tags/config';
+import memberName from './memberName/config';
 
 export const memberFilters: Record<string, FilterConfig> = {
+  memberName,
   noOfActivities,
   noOfOSSContributions,
   activeOn,
@@ -35,7 +37,7 @@ export const memberSearchFilter: SearchFilterConfig = {
       {
         or: [
           { displayName: { textContains: value } },
-          { emails: { contains: value } },
+          { emails: { textContains: value } },
         ],
       },
     ];

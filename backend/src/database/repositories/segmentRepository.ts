@@ -182,39 +182,71 @@ class SegmentRepository extends RepositoryBase<
         'sourceId',
         'sourceParentId',
         'customActivityTypes',
-        'activityChannels',
       ].includes(key),
     )
 
-    let segmentUpdateQuery = `UPDATE segments SET `
-    const replacements = {} as any
+    if (updateFields.length > 0) {
+      let segmentUpdateQuery = `UPDATE segments SET `
+      const replacements = {} as any
 
-    for (const field of updateFields) {
-      segmentUpdateQuery += ` "${field}" = :${field} `
-      replacements[field] = data[field]
+      for (const field of updateFields) {
+        segmentUpdateQuery += ` "${field}" = :${field} `
+        replacements[field] = data[field]
 
-      if (updateFields[updateFields.length - 1] !== field) {
-        segmentUpdateQuery += ', '
+        if (updateFields[updateFields.length - 1] !== field) {
+          segmentUpdateQuery += ', '
+        }
+      }
+
+      segmentUpdateQuery += ` WHERE id = :id and "tenantId" = :tenantId `
+      replacements.tenantId = this.options.currentTenant.id
+      replacements.id = id
+
+      if (replacements.customActivityTypes) {
+        replacements.customActivityTypes = JSON.stringify(replacements.customActivityTypes)
+      }
+
+      await this.options.database.sequelize.query(segmentUpdateQuery, {
+        replacements,
+        type: QueryTypes.UPDATE,
+        transaction,
+      })
+    }
+
+    if (data.activityChannels && typeof data.activityChannels === 'object') {
+      if (Object.keys(data.activityChannels).length > 0) {
+        const replacements = {}
+        let valuePlaceholders = ''
+        Object.keys(data.activityChannels).forEach((platform) => {
+          data.activityChannels[platform].forEach((channel, i) => {
+            valuePlaceholders += data.activityChannels[platform]
+              .map(
+                () =>
+                  `(:tenantId_${platform}_${i}, :segmentId_${platform}_${i}, :platform_${platform}_${i}, :channel_${platform}_${i})`,
+              )
+              .join(', ')
+
+            replacements[`tenantId_${platform}_${i}`] = this.options.currentTenant.id
+            replacements[`segmentId_${platform}_${i}`] = id
+            replacements[`platform_${platform}_${i}`] = platform
+            replacements[`channel_${platform}_${i}`] = channel
+          })
+        })
+
+        await this.options.database.sequelize.query(
+          `
+          INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel")
+          VALUES ${valuePlaceholders}
+          ON CONFLICT DO NOTHING;
+        `,
+          {
+            replacements,
+            type: QueryTypes.INSERT,
+            transaction,
+          },
+        )
       }
     }
-
-    segmentUpdateQuery += ` WHERE id = :id and "tenantId" = :tenantId `
-    replacements.tenantId = this.options.currentTenant.id
-    replacements.id = id
-
-    if (replacements.customActivityTypes) {
-      replacements.customActivityTypes = JSON.stringify(replacements.customActivityTypes)
-    }
-
-    if (replacements.activityChannels) {
-      replacements.activityChannels = JSON.stringify(replacements.activityChannels)
-    }
-
-    await this.options.database.sequelize.query(segmentUpdateQuery, {
-      replacements,
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
 
     return this.findById(id)
   }
@@ -298,11 +330,22 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
-      `SELECT *
-             FROM segments
-             WHERE id in (:ids)
-             and "tenantId" = :tenantId;
-            `,
+      `SELECT
+        s.*,
+        json_agg(sac."activityChannels") AS "activityChannels"
+        FROM segments s
+        LEFT JOIN (
+          SELECT
+            "tenantId",
+            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+          FROM "segmentActivityChannels" sac
+          WHERE "tenantId" = :tenantId
+          GROUP BY "tenantId", "platform"
+        ) sac
+        ON sac."tenantId" = s."tenantId"
+        WHERE id in (:ids)
+        AND s."tenantId" = :tenantId
+        GROUP BY s.id;`,
       {
         replacements: {
           ids,
@@ -312,6 +355,10 @@ class SegmentRepository extends RepositoryBase<
         transaction,
       },
     )
+
+    records.forEach((row) => {
+      row.activityChannels = Object.assign({}, ...row.activityChannels)
+    })
 
     return records.map((sr) => SegmentRepository.populateRelations(sr))
   }
@@ -333,11 +380,22 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
-      `SELECT *
-             FROM segments
-             WHERE id = :id
-             and "tenantId" = :tenantId;
-            `,
+      `SELECT
+        s.*,
+        json_agg(sac."activityChannels") AS "activityChannels"
+        FROM segments s
+        LEFT JOIN (
+          SELECT
+            "tenantId",
+            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+          FROM "segmentActivityChannels" sac
+          WHERE "tenantId" = :tenantId
+          GROUP BY "tenantId", "platform"
+        ) sac
+        ON sac."tenantId" = s."tenantId"
+        WHERE s.id = :id
+        AND s."tenantId" = :tenantId
+        GROUP BY s.id;`,
       {
         replacements: {
           id,
@@ -353,6 +411,7 @@ class SegmentRepository extends RepositoryBase<
     }
 
     const record = records[0]
+    record.activityChannels = Object.assign({}, ...record.activityChannels)
 
     if (SegmentRepository.isProjectGroup(record)) {
       // find projects
@@ -569,17 +628,27 @@ class SegmentRepository extends RepositoryBase<
 
     const subprojects = await this.options.database.sequelize.query(
       `
-            select s.*,
-            count(*) over () as "totalCount"
-            from segments s
-            where s."grandparentSlug" is not null
-            and s."parentSlug" is not null
-            and s."tenantId" = :tenantId
-            ${searchQuery}
-            GROUP BY s."id"
-            ORDER BY s."name"
-            ${this.getPaginationString(criteria)};
-            `,
+        SELECT
+          COUNT(DISTINCT s.id) AS count,
+          s.*,
+          json_agg(sac."activityChannels") AS "activityChannels"
+        FROM segments s
+        LEFT JOIN (
+          SELECT
+            "tenantId",
+            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+          FROM "segmentActivityChannels" sac
+          WHERE "tenantId" = :tenantId
+          GROUP BY "tenantId", "platform"
+        ) sac
+        ON sac."tenantId" = s."tenantId"
+        WHERE s."grandparentSlug" IS NOT NULL
+          AND s."parentSlug" IS NOT NULL
+          AND s."tenantId" = :tenantId
+          ${searchQuery}
+        GROUP BY s.id
+        ${this.getPaginationString(criteria)};
+      `,
       {
         replacements: {
           tenantId: this.currentTenant.id,
@@ -592,19 +661,22 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].totalCount, 10) : 0
+    const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].count, 10) : 0
 
-    const integrationsBySegments = await this.queryIntegrationsForSubprojects(subprojects)
-
-    const rows = subprojects.map((i) => {
-      let subproject = removeFieldsFromObject(i, 'totalCount')
-      subproject = SegmentRepository.populateRelations(subproject)
-      subproject.integrations = integrationsBySegments[subproject.id] || []
-      return subproject
+    const rows = subprojects
+    rows.forEach((row, i) => {
+      rows[i].activityChannels = rows[i].activityChannels[0]
+      if (rows[i].activityChannels === null) {
+        rows[i].activityChannels = {}
+      }
     })
 
-    // TODO: Add member count to segments after implementing member relations
-    return { count, rows, limit: criteria.limit, offset: criteria.offset }
+    return {
+      count,
+      rows: rows.map((sr) => SegmentRepository.populateRelations(sr)),
+      limit: criteria.limit,
+      offset: criteria.offset,
+    }
   }
 
   private async queryIntegrationsForSubprojects(subprojects) {
@@ -657,14 +729,17 @@ class SegmentRepository extends RepositoryBase<
 
   static getActivityChannels(options: IRepositoryOptions) {
     const channels = {}
+
     for (const segment of options.currentSegments) {
-      for (const platform of Object.keys(segment.activityChannels)) {
-        if (!channels[platform]) {
-          channels[platform] = new Set<string>(segment.activityChannels[platform])
-        } else {
-          segment.activityChannels[platform].forEach((ch) =>
-            (channels[platform] as Set<string>).add(ch),
-          )
+      if (segment.activityChannels) {
+        for (const platform of Object.keys(segment.activityChannels)) {
+          if (!channels[platform]) {
+            channels[platform] = new Set<string>(segment.activityChannels[platform])
+          } else {
+            segment.activityChannels[platform].forEach((ch) =>
+              (channels[platform] as Set<string>).add(ch),
+            )
+          }
         }
       }
     }

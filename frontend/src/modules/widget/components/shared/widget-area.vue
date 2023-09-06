@@ -12,7 +12,7 @@
 
 <script setup>
 import {
-  computed, defineEmits, defineProps, onMounted, ref,
+  computed, onMounted, ref,
 } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { externalTooltipHandler } from '@/modules/report/tooltip';
@@ -45,6 +45,10 @@ const props = defineProps({
   showMinAsValue: {
     type: Boolean,
     default: false,
+  },
+  pivotModifier: {
+    type: Function,
+    default: () => {},
   },
 });
 
@@ -103,6 +107,11 @@ const buildSeriesDataset = (d, index) => {
 const series = (resultSet) => {
   // For line & area charts
   const pivot = resultSet.chartPivot();
+
+  if (props.pivotModifier) {
+    props.pivotModifier(pivot);
+  }
+
   const computedSeries = [];
 
   if (resultSet.loadResponses.length > 0) {

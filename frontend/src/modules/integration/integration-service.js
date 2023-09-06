@@ -349,6 +349,50 @@ export class IntegrationService {
     return response.data.isWebhooksReceived;
   }
 
+  static async groupsioConnect(email, token, groupNames) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-connect`,
+      {
+        email,
+        token,
+        groupNames,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async groupsioGetToken(email, password, twoFactorCode = null) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-get-token`,
+      {
+        email,
+        password,
+        twoFactorCode,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async groupsioVerifyGroup(groupName, cookie) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-verify-group`,
+      {
+        groupName,
+        cookie,
+      },
+    );
+
+    return response.data;
+  }
+ 
   static async youtubeConnect(reqBody) {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.post(

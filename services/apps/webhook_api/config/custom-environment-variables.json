@@ -1,0 +1,16 @@
+{
+  "db": {
+    "host": "CROWD_DB_WRITE_HOST",
+    "port": "CROWD_DB_PORT",
+    "database": "CROWD_DB_DATABASE",
+    "user": "CROWD_DB_USERNAME",
+    "password": "CROWD_DB_PASSWORD"
+  },
+  "sqs": {
+    "region": "CROWD_SQS_AWS_REGION",
+    "host": "CROWD_SQS_HOST",
+    "port": "CROWD_SQS_PORT",
+    "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
+    "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY"
+  }
+}

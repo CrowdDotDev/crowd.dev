@@ -133,6 +133,21 @@ export default (app) => {
   )
 
   app.post(
+    '/tenant/:tenantId/groupsio-connect',
+    safeWrap(require('./helpers/groupsioConnectOrUpdate').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/groupsio-get-token',
+    safeWrap(require('./helpers/groupsioGetToken').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/groupsio-verify-group',
+    safeWrap(require('./helpers/groupsioVerifyGroup').default),
+  )
+
+  app.post(
     '/tenant/:tenantId/youtube-connect',
     safeWrap(require('./helpers/youtubeConnect').default),
   )

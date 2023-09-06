@@ -16,7 +16,7 @@ setImmediate(async () => {
   const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = getDbConnection(DB_CONFIG(), 1)
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const repo = new IntegrationRunRepository(store, log)
@@ -47,6 +47,7 @@ setImmediate(async () => {
       integration.id,
       true,
     )
+    process.exit(0)
   } else {
     log.error({ integrationId }, 'Integration not found!')
     process.exit(1)

@@ -12,7 +12,6 @@ const toCreate = {
   phoneNumbers: ['+42 424242424'],
   logo: 'https://logo.clearbit.com/crowd.dev',
   tags: ['community', 'growth', 'developer-first'],
-  parentUrl: null,
   website: 'https://crowd.dev',
   location: 'Berlin',
   github: {
@@ -50,6 +49,7 @@ const toCreate = {
   founded: null,
   employeeCountByCountry: null,
   address: null,
+  manuallyCreated: false,
 }
 
 describe('OrganizationCacheCacheRepository tests', () => {

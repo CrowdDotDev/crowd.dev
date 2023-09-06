@@ -453,11 +453,30 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_website = data.website
     p.date_lastEnrichedAt = data.lastEnrichedAt ? new Date(data.lastEnrichedAt).toISOString() : null
     p.bool_isTeamOrganization = data.isTeamOrganization ? data.isTeamOrganization : false
+    p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
     p.string_logo = data.logo || null
     p.obj_linkedin = data.linkedin
     p.obj_github = data.github
     p.obj_crunchbase = data.crunchbase
     p.obj_twitter = data.twitter
+    p.string_immediateParent = data.immediateParent
+    p.string_ultimateParent = data.ultimateParent
+    p.string_arr_affiliatedProfiles = data.affiliatedProfiles
+    p.string_arr_allSubsidiaries = data.allSubsidiaries
+    p.string_arr_alternativeDomains = data.alternativeDomains
+    p.string_arr_alternativeNames = data.alternativeNames
+    p.float_averageEmployeeTenure = data.averageEmployeeTenure
+    p.obj_averageTenureByLevel = data.averageTenureByLevel
+    p.obj_averageTenureByRole = data.averageTenureByRole
+    p.string_arr_directSubsidiaries = data.directSubsidiaries
+    p.obj_employeeChurnRate = data.employeeChurnRate
+    p.obj_employeeCountByMonth = data.employeeCountByMonth
+    p.obj_employeeGrowthRate = data.employeeGrowthRate
+    p.obj_employeeCountByMonthByLevel = data.employeeCountByMonthByLevel
+    p.obj_employeeCountByMonthByRole = data.employeeCountByMonthByRole
+    p.string_gicsSector = data.gicsSector
+    p.obj_grossAdditionsByMonth = data.grossAdditionsByMonth
+    p.obj_grossDeparturesByMonth = data.grossDeparturesByMonth
 
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null

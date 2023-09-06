@@ -117,6 +117,7 @@ import {
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
+import { storeToRefs } from 'pinia';
 import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue';
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue';
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue';
@@ -129,7 +130,6 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 
 const LoaderIcon = h(
   'i',
@@ -365,6 +365,7 @@ async function onSubmit() {
           ...o.memberOrganizations?.dateEnd && {
             endDate: o.memberOrganizations?.dateEnd,
           },
+          source: 'ui',
         }),
       ).filter(
         (o) => !!o.id,
@@ -383,6 +384,8 @@ async function onSubmit() {
     ...Object.keys(formModel.value.username).length && {
       username: formModel.value.username,
     },
+
+    manuallyCreated: true,
   };
 
   let isRequestSuccessful = false;

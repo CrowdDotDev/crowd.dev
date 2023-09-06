@@ -220,7 +220,6 @@ components:
             name: Pied Piper
             url: https://piedpiper.io
             description: The new internet
-            parentUrl: null
             emails:
               - richard@piedpiper.io
               - hello@piedpiper.io
@@ -337,7 +336,6 @@ components:
                 name: Pied Piper
                 url: https://piedpiper.io
                 description: The new internet
-                parentUrl: null
                 emails:
                   - richard@piedpiper.io
                   - hello@piedpiper.io
@@ -451,7 +449,6 @@ components:
                 name: Pied Piper
                 url: https://piedpiper.io
                 description: The new internet
-                parentUrl: null
                 emails:
                   - richard@piedpiper.io
                   - hello@piedpiper.io
