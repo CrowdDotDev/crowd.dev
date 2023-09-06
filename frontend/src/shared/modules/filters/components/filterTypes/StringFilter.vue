@@ -44,6 +44,7 @@ const form = computed<StringFilterValue>({
 
 const defaultForm: StringFilterValue = {
   value: '',
+  include: true,
   operator: FilterStringOperator.LIKE,
 };
 
