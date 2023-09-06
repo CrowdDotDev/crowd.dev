@@ -3511,6 +3511,8 @@ class MemberRepository {
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        AND "dateStart" IS NULL
+        AND "dateEnd" IS NULL
         AND "createdAt" <= :timestamp
         AND "deletedAt" IS NULL
       ORDER BY "createdAt" DESC, id
@@ -3542,6 +3544,8 @@ class MemberRepository {
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        AND "dateStart" IS NULL
+        AND "dateEnd" IS NULL
         AND "deletedAt" IS NULL
       ORDER BY "createdAt", id
       LIMIT 1
