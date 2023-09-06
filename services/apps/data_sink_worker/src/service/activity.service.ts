@@ -395,8 +395,8 @@ export default class ActivityService extends LoggerBase {
           this.redisClient,
           `activity:processing:${tenantId}:${segmentId}:${activity.sourceId}`,
           'check-activity',
-          5 * 60,
-          5 * 60,
+          10 * 60,
+          3 * 60,
         )
 
         // find existing activity
@@ -413,8 +413,8 @@ export default class ActivityService extends LoggerBase {
             this.redisClient,
             `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
             'check-member-inside-activity-exists',
-            5 * 60,
-            5 * 60,
+            10 * 60,
+            3 * 60,
           )
 
           let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
@@ -517,8 +517,8 @@ export default class ActivityService extends LoggerBase {
               this.redisClient,
               `member:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
               'check-object-member-inside-activity-exists',
-              5 * 60,
-              5 * 60,
+              10 * 60,
+              3 * 60,
             )
 
             if (dbActivity.objectMemberId) {
@@ -676,8 +676,8 @@ export default class ActivityService extends LoggerBase {
             this.redisClient,
             `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
             'check-member-inside-activity-does-not-exist',
-            5 * 60,
-            5 * 60,
+            10 * 60,
+            3 * 60,
           )
 
           // we don't have the activity yet in the database
@@ -736,8 +736,8 @@ export default class ActivityService extends LoggerBase {
               this.redisClient,
               `member:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
               'check-object-member-inside-activity-does-not-exist',
-              5 * 60,
-              5 * 60,
+              10 * 60,
+              3 * 60,
             )
 
             const dbObjectMember = await txMemberRepo.findMember(
