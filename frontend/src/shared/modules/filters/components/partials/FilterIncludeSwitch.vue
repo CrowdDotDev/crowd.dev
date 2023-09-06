@@ -12,7 +12,7 @@
       content="If excluded, turns the filter into a negative condition"
       placement="top"
     >
-      <i class="ri-question-line text-gray-400" />
+      <i class="ri-question-line text-gray-400 text-base" />
     </el-tooltip>
   </div>
 </template>
@@ -43,7 +43,10 @@ export default {
 
 <style lang="scss">
 .filter-include-switch{
+   @apply grow-0;
+
  .el-switch__label{
+   @apply mr-2;
    font-weight: normal !important;
  }
 }
