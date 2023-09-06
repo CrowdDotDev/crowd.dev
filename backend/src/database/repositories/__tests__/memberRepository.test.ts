@@ -3749,6 +3749,7 @@ describe('MemberRepository tests', () => {
         {
           memberId,
           organizationId: orgId,
+          source: 'test',
           ...data,
         },
         options,

@@ -1,4 +1,5 @@
 import { IAttributes } from './attributes'
+import { OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
   id?: string
@@ -39,6 +40,7 @@ export interface IOrganization {
   gicsSector?: string
   grossAdditionsByMonth?: Record<string, number>
   grossDeparturesByMonth?: Record<string, number>
+  source?: OrganizationSource
 }
 
 export interface IExecutiveChange {

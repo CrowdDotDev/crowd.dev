@@ -8,6 +8,7 @@ import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { sqsMiddleware } from './middleware/sqs'
 import { installGithubRoutes } from './routes/github'
+import { installGroupsIoRoutes } from './routes/groupsio'
 import cors from 'cors'
 
 const log = getServiceLogger()
@@ -29,6 +30,7 @@ setImmediate(async () => {
 
   // add routes
   installGithubRoutes(app)
+  installGroupsIoRoutes(app)
 
   app.use(errorMiddleware())
 

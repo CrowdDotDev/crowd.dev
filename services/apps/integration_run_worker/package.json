@@ -16,7 +16,8 @@
     "tsc-check": "./node_modules/.bin/tsc --noEmit",
     "script:onboard-integration": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/onboard-integration.ts",
     "script:process-repo": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-repo.ts",
-    "script:trigger-stream-processed": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/trigger-stream-processed.ts"
+    "script:trigger-stream-processed": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/trigger-stream-processed.ts",
+    "script:continue-run": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/continue-run.ts"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",

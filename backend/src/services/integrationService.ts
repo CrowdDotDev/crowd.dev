@@ -1,7 +1,7 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
-import axios from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
 import {
   HubspotFieldMapperFactory,
@@ -44,6 +44,11 @@ import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 import MemberRepository from '@/database/repositories/memberRepository'
+import {
+  GroupsioIntegrationData,
+  GroupsioGetToken,
+  GroupsioVerifyGroup,
+} from '@/serverless/integrations/usecases/groupsio/types'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1402,5 +1407,110 @@ export default class IntegrationService {
     )
 
     return integration
+  }
+
+  async groupsioConnectOrUpdate(integrationData: GroupsioIntegrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+
+    // integration data should have the following fields
+    // email, token, array of groups
+    // we shouldn't store password and 2FA token in the database
+    // user should update them every time thety change something
+
+    try {
+      this.options.log.info('Creating Groups.io integration!')
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.GROUPSIO,
+          settings: {
+            email: integrationData.email,
+            token: integrationData.token,
+            groups: integrationData.groupNames,
+            updateMemberAttributes: true,
+          },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Groups.io message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
+
+    return integration
+  }
+
+  async groupsioGetToken(data: GroupsioGetToken) {
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      url: 'https://groups.io/api/v1/login',
+      params: {
+        email: data.email,
+        password: data.password,
+        twofactor: data.twoFactorCode,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+
+    let response: AxiosResponse
+
+    try {
+      response = await axios(config)
+
+      // we need to get cookie from the response
+
+      const cookie = response.headers['set-cookie'][0].split(';')[0]
+
+      return {
+        groupsioCookie: cookie,
+      }
+    } catch (err) {
+      if ('two_factor_required' in response.data) {
+        throw new Error400(this.options.language, 'errors.groupsio.twoFactorRequired')
+      }
+      throw new Error400(this.options.language, 'errors.groupsio.invalidCredentials')
+    }
+  }
+
+  async groupsioVerifyGroup(data: GroupsioVerifyGroup) {
+    const groupName = data.groupName
+
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      url: `https://groups.io/api/v1/gettopics?group_name=${encodeURIComponent(groupName)}`,
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: data.cookie,
+      },
+    }
+
+    let response: AxiosResponse
+
+    try {
+      response = await axios(config)
+
+      return {
+        group: response?.data?.data?.group_id,
+      }
+    } catch (err) {
+      throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
+    }
   }
 }
