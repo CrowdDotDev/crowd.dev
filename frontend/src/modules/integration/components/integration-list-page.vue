@@ -150,9 +150,9 @@ export default {
 
 <style>
 .custom-slack-message-box .el-button--primary span::after {
-  content: url("/icons/external-link-line.svg");
-  width: 18px;
-  height: 18px;
+  content: "\ecaf";
+  font-family: "remixicon" !important;
+  font-size: 18px;
   margin-left: 0.5rem;
 }
 </style>
