@@ -381,6 +381,7 @@ export default class ActivityService extends LoggerBase {
           txStore,
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
+          this.redisClient,
           this.log,
         )
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
@@ -388,6 +389,15 @@ export default class ActivityService extends LoggerBase {
 
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
+
+        // acquiring lock for activity - we gonna hold it until transaction is done
+        await acquireLock(
+          this.redisClient,
+          `activity:processing:${tenantId}:${segmentId}:${activity.sourceId}`,
+          'check-activity',
+          5 * 60,
+          3 * 60,
+        )
 
         // find existing activity
         const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)
@@ -397,6 +407,16 @@ export default class ActivityService extends LoggerBase {
         if (dbActivity) {
           this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
           // process member data
+
+          // acquiring lock for member inside activity exists
+          await acquireLock(
+            this.redisClient,
+            `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+            'check-member',
+            5 * 60,
+            3 * 60,
+          )
+
           let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
           if (dbMember) {
             // we found a member for the identity from the activity
@@ -492,6 +512,15 @@ export default class ActivityService extends LoggerBase {
           }
 
           if (objectMember) {
+            // checking object member
+            await acquireLock(
+              this.redisClient,
+              `objectMember:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
+              'check-object-member',
+              5 * 60,
+              3 * 60,
+            )
+
             if (dbActivity.objectMemberId) {
               let dbObjectMember = await txMemberRepo.findMember(
                 tenantId,
@@ -587,6 +616,13 @@ export default class ActivityService extends LoggerBase {
                 objectMemberId = dbActivity.objectMemberId
               }
             }
+
+            // remove lock for objectMember
+            await releaseLock(
+              this.redisClient,
+              `objectMember:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
+              'check-object-member',
+            )
           }
 
           if (!createActivity) {
@@ -624,9 +660,25 @@ export default class ActivityService extends LoggerBase {
 
             activityId = dbActivity.id
           }
+
+          // release lock for member inside activity exists
+          await releaseLock(
+            this.redisClient,
+            `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+            'check-member',
+          )
         } else {
           this.log.trace('We did not find an existing activity. Creating a new one.')
           createActivity = true
+
+          // acquiring lock for member inside activity does not exist
+          await acquireLock(
+            this.redisClient,
+            `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+            'check-member',
+            5 * 60,
+            3 * 60,
+          )
 
           // we don't have the activity yet in the database
           // check if we have a member for the identity from the activity
@@ -678,6 +730,16 @@ export default class ActivityService extends LoggerBase {
           if (objectMember) {
             // we don't have the activity yet in the database
             // check if we have an object member for the identity from the activity
+
+            // acquiring lock for object member inside activity does not exist
+            await acquireLock(
+              this.redisClient,
+              `objectMember:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
+              'check-object-member',
+              5 * 60,
+              3 * 60,
+            )
+
             const dbObjectMember = await txMemberRepo.findMember(
               tenantId,
               segmentId,
@@ -727,7 +789,21 @@ export default class ActivityService extends LoggerBase {
                 false,
               )
             }
+
+            // release lock for object member inside activity does not exist
+            await releaseLock(
+              this.redisClient,
+              `objectMember:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
+              'check-object-member',
+            )
           }
+
+          // release lock for member inside activity does not exist
+          await releaseLock(
+            this.redisClient,
+            `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+            'check-member',
+          )
         }
 
         if (createActivity) {
@@ -762,6 +838,13 @@ export default class ActivityService extends LoggerBase {
             false,
           )
         }
+
+        // release activity lock
+        await releaseLock(
+          this.redisClient,
+          `activity:processing:${tenantId}:${segmentId}:${activity.sourceId}`,
+          'check-activity',
+        )
       })
 
       await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
