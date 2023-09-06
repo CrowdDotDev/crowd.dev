@@ -25,6 +25,7 @@ export default ({
   verticalCancelButtonClass,
   verticalConfirmButtonClass,
   verticalCustomClass,
+  hideCloseButton = false,
 }) => {
   let iconColorClass = 'text-yellow-600';
   let iconBgColorClass = 'bg-yellow-100';
@@ -127,7 +128,7 @@ export default ({
                   ),
                 ],
               ),
-            showClose ? h(
+            !hideCloseButton ? h(
               'button',
               {
                 class:

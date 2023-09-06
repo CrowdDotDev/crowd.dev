@@ -136,6 +136,7 @@ export default {
             messageClass: 'text-xs !leading-5 !mt-1 text-gray-600',
             verticalCustomClass: 'custom-slack-message-box',
             closeOnClickModal: false,
+            hideCloseButton: true,
           }).then(() => {
             window.open('https://docs.crowd.dev/docs/slack-integration#how-to-install', '_blank');
             this.$router.replace({ query: null });
