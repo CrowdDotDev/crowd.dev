@@ -32,7 +32,7 @@
           "
         >
           <i
-            class="ri-lg mr-1 ri-shake-hands-line"
+            class="ri-lg mr-1 ri-shuffle-line"
           />
           Merge organizations
         </el-dropdown-item>

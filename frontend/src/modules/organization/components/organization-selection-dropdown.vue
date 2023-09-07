@@ -2,7 +2,7 @@
   <div class="pt-16">
     <div class="flex justify-center">
       <i
-        class="ri-account-circle-line text-gray-200 account-icon text-center h-16 flex items-center"
+        class="ri-community-line text-gray-200 account-icon text-center h-16 flex items-center"
       />
     </div>
     <div class="text-gray-600 text-sm text-center py-4">

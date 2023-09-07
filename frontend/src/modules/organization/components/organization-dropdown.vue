@@ -37,7 +37,7 @@
           }"
           :disabled="isEditLockedForSampleData"
         >
-          <i class="ri-group-line text-base mr-2" /><span
+          <i class="ri-shuffle-line text-base mr-2" /><span
             class="text-xs"
           >Merge organization</span>
         </el-dropdown-item>
