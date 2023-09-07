@@ -269,47 +269,45 @@ export class OrganizationSyncService extends LoggerBase {
       for (const organizationId of organizationIds) {
         const organizationDocs = grouped.get(organizationId)
         if (isMultiSegment) {
-          // index each of them individually
           for (const organization of organizationDocs) {
+            // index each of them individually because it's per leaf segment
             const prepared = OrganizationSyncService.prefixData(organization)
             forSync.push({
               id: `${organizationId}-${organization.segmentId}`,
               body: prepared,
             })
-          }
 
-          const relevantSegmentInfos = segmentInfos.filter(
-            (s) => s.id === organizationDocs[0].segmentId,
-          )
+            const relevantSegmentInfos = segmentInfos.filter((s) => s.id === organization.segmentId)
 
-          // and for each parent and grandparent
-          const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
-          for (const parentId of parentIds) {
-            const aggregated = OrganizationSyncService.aggregateData(
-              organizationDocs,
-              relevantSegmentInfos,
-              parentId,
-            )
-            const prepared = OrganizationSyncService.prefixData(aggregated)
-            forSync.push({
-              id: `${organizationId}-${parentId}`,
-              body: prepared,
-            })
-          }
+            // and for each parent and grandparent
+            const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
+            for (const parentId of parentIds) {
+              const aggregated = OrganizationSyncService.aggregateData(
+                organizationDocs,
+                relevantSegmentInfos,
+                parentId,
+              )
+              const prepared = OrganizationSyncService.prefixData(aggregated)
+              forSync.push({
+                id: `${organizationId}-${parentId}`,
+                body: prepared,
+              })
+            }
 
-          const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
-          for (const grandParentId of grandParentIds) {
-            const aggregated = OrganizationSyncService.aggregateData(
-              organizationDocs,
-              relevantSegmentInfos,
-              undefined,
-              grandParentId,
-            )
-            const prepared = OrganizationSyncService.prefixData(aggregated)
-            forSync.push({
-              id: `${organizationId}-${grandParentId}`,
-              body: prepared,
-            })
+            const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
+            for (const grandParentId of grandParentIds) {
+              const aggregated = OrganizationSyncService.aggregateData(
+                organizationDocs,
+                relevantSegmentInfos,
+                undefined,
+                grandParentId,
+              )
+              const prepared = OrganizationSyncService.prefixData(aggregated)
+              forSync.push({
+                id: `${organizationId}-${grandParentId}`,
+                body: prepared,
+              })
+            }
           }
         } else {
           if (organizationDocs.length > 1) {
