@@ -6,7 +6,7 @@
     custom-class="identities-drawer"
   >
     <template #content>
-      <div v-for="suggestion in suggestions" class="flex items-center">
+      <div v-for="suggestion in suggestions" key="suggestion.url" class="flex items-center">
         <div
           class="py-2 flex justify-between w-full px-4 cursor-pointer hover:bg-gray-50 rounded-md hover:shadow-sm"
           :class="{ selected: selected === suggestion.username }"
