@@ -44,7 +44,9 @@
           class="btn btn--primary btn--full !h-8"
           :disabled=" isEditLockedForSampleData"
           @click="onFindGithubClick"
-        >Find GitHub</el-button>
+        >
+          <i class="ri-github-fill pr-2" /> Find GitHub
+        </el-button>
       </span>
       <span v-else>
         <el-button
