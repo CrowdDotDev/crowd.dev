@@ -8,6 +8,7 @@ import {
   OrganizationSource,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
+import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
@@ -137,6 +138,7 @@ class MemberRepository {
     await MemberRepository.updateMemberOrganizations(
       record,
       data.organizations,
+      true,
       transaction,
       options,
     )
@@ -689,6 +691,7 @@ class MemberRepository {
     await MemberRepository.updateMemberOrganizations(
       record,
       data.organizations,
+      data.organizationsReplace,
       transaction,
       options,
     )
@@ -3269,6 +3272,7 @@ class MemberRepository {
   static async updateMemberOrganizations(
     record,
     organizations,
+    replace,
     transaction,
     options: IRepositoryOptions,
   ) {
@@ -3276,26 +3280,30 @@ class MemberRepository {
       return
     }
 
-    const sourceUi = !!organizations.find((org) => org.source === OrganizationSource.UI)
+    function iso(v) {
+      return moment(v).toISOString()
+    }
 
-    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, sourceUi, options)
+    if (replace) {
+      const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
 
-    const toDelete = originalOrgs.filter(
-      (originalOrg: any) =>
-        !organizations.find(
-          (newOrg) =>
-            originalOrg.organizationId === newOrg.id &&
-            originalOrg.title === (newOrg.title || null) &&
-            originalOrg.dateStart === (newOrg.startDate || null) &&
-            originalOrg.dateEnd === (newOrg.endDate || null),
-        ),
-    )
+      const toDelete = originalOrgs.filter(
+        (originalOrg: any) =>
+          !organizations.find(
+            (newOrg) =>
+              originalOrg.organizationId === newOrg.id &&
+              originalOrg.title === (newOrg.title || null) &&
+              iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
+              iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
+          ),
+      )
 
-    for (const item of toDelete) {
-      await MemberRepository.deleteWorkExperience((item as any).id, {
-        transaction,
-        ...options,
-      })
+      for (const item of toDelete) {
+        await MemberRepository.deleteWorkExperience((item as any).id, {
+          transaction,
+          ...options,
+        })
+      }
     }
 
     for (const item of organizations) {
@@ -3439,18 +3447,13 @@ class MemberRepository {
     )
   }
 
-  static async fetchWorkExperiences(
-    memberId: string,
-    sourceUi: boolean,
-    options: IRepositoryOptions,
-  ) {
+  static async fetchWorkExperiences(memberId: string, options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
-        ${sourceUi ? '' : "AND (source IS NULL OR source != 'ui')"}
         AND "deletedAt" IS NULL
     `
 
