@@ -32,7 +32,21 @@
       :disabled="!isEnrichmentDisabled"
       popper-class="max-w-[260px]"
     >
-      <span>
+      <span v-if="forFeatureFlag">
+        <el-button
+          v-if="!isEnrichmentDisabled"
+          class="btn btn--primary btn--full !h-8"
+          :disabled=" isEditLockedForSampleData"
+          @click="onEnrichmentClick"
+        >Enrich member</el-button>
+        <el-button
+          v-else 
+          class="btn btn--primary btn--full !h-8"
+          :disabled=" isEditLockedForSampleData"
+          @click="onFindGithubClick"
+        >Find GitHub</el-button>
+      </span>
+      <span v-else>
         <el-button
           class="btn btn--primary btn--full !h-8"
           :disabled="
@@ -49,17 +63,22 @@
     >
       * requires a GitHub profile or Email
     </div>
+    <app-member-find-github-drawer
+      v-model="openFindGitHubDrawer"
+      :member="member"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, defineProps } from 'vue';
+import { computed, defineProps, ref } from 'vue';
 import {
   mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
 import { MemberPermissions } from '../member-permissions';
+import AppMemberFindGithubDrawer from './member-find-github-drawer.vue'
 
 const props = defineProps({
   member: {
@@ -76,6 +95,10 @@ const isEnrichmentDisabled = computed(
     && !props.member.emails?.length,
 );
 
+const openFindGitHubDrawer = ref(false);
+
+const forFeatureFlag = ref(true)
+
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
   currentUser.value,
@@ -84,6 +107,10 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
 const onEnrichmentClick = async () => {
   await doEnrich(props.member.id);
 };
+
+const onFindGithubClick = () => {
+  openFindGitHubDrawer.value = true;
+}
 </script>
 
 <style lang="scss">
