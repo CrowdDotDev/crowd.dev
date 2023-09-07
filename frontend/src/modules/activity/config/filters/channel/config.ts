@@ -2,7 +2,11 @@ import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import ChannelFilter from '@/modules/activity/config/filters/channel/ChannelFilter.vue';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
-import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+// import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+import {
+  MultiSelectFilterOptions,
+  MultiSelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 
 const channel: CustomFilterConfig = {
@@ -13,11 +17,11 @@ const channel: CustomFilterConfig = {
   component: ChannelFilter,
   options: {
   },
-  queryUrlParser: queryUrlParserByType[FilterConfigType.SELECT],
-  itemLabelRenderer(value: SelectFilterValue, options: SelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT]('Channel', value, data);
+  queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT],
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Channel', value, data);
   },
-  apiFilterRenderer({ value, include }:SelectFilterValue): any[] {
+  apiFilterRenderer({ value, include }:MultiSelectFilterValue): any[] {
     const filter = {
       channel: value,
     };

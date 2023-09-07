@@ -1,15 +1,20 @@
 <template>
-  <cr-select-filter v-model="form" :config="props.config as SelectFilterConfig" :options="data.options || []" />
+  <!-- <cr-select-filter v-model="form" :config="props.config as SelectFilterConfig" :options="data.options || []" /> -->
+  <cr-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
 </template>
 
 <script setup lang="ts">
 import {
   defineProps, defineEmits, computed, watch,
 } from 'vue';
-import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
+// import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
+// import {
+//   SelectFilterConfig, SelectFilterOptionGroup,
+// } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+import CrMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
 import {
-  SelectFilterConfig, SelectFilterOptionGroup,
-} from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+  MultiSelectFilterConfig, MultiSelectFilterOptionGroup,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
@@ -38,7 +43,7 @@ const data = computed({
 watch(() => currentTenant.value, (tenant: any) => {
   const activityChannels = tenant?.settings[0].activityChannels || {};
 
-  data.value.options = Object.entries(activityChannels).map(([platform, channels]): SelectFilterOptionGroup => ({
+  data.value.options = Object.entries(activityChannels).map(([platform, channels]): MultiSelectFilterOptionGroup => ({
     label: CrowdIntegrations.getConfig(platform).name,
     options: channels.map((channel) => ({
       value: channel,

@@ -1,7 +1,11 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import ActivityTypeFilter from '@/modules/activity/config/filters/activityType/ActivityTypeFilter.vue';
-import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+// import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+import {
+  MultiSelectFilterOptions,
+  MultiSelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 
@@ -13,13 +17,13 @@ const activityType: CustomFilterConfig = {
   component: ActivityTypeFilter,
   options: {
   },
-  queryUrlParser: queryUrlParserByType[FilterConfigType.SELECT],
-  itemLabelRenderer(value: SelectFilterValue, options: SelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT]('Activity type', value, data, null, {
+  queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT],
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Activity type', value, data, null, {
       addGroupLabel: true,
     });
   },
-  apiFilterRenderer({ value, include }:SelectFilterValue): any[] {
+  apiFilterRenderer({ value, include }:MultiSelectFilterValue): any[] {
     const [platform, activityType] = value.split(':');
     const filter = {
       and: [
