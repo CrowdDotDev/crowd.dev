@@ -104,6 +104,7 @@ const save = () => {
   doUpdate({
     id: props.member.id,
     values: {
+      organizationsReplace: true,
       organizations: organizations.value.map(
         (o) => ({
           id: o.id,
