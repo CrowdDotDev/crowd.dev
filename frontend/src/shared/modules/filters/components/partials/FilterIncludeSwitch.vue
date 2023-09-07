@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-start border-b border-gray-100 p-4">
+  <div class="flex justify-start items-center border-b border-gray-100 p-4">
     <el-switch
       v-model="model"
       :active-text="modelValue ? 'Include' : 'Exclude'"
@@ -7,6 +7,13 @@
       size="small"
       data-qa="filter-include-switch"
     />
+
+    <el-tooltip
+      content="If excluded, turns the filter into a negative condition"
+      placement="top"
+    >
+      <i class="ri-question-line text-gray-400 text-base" />
+    </el-tooltip>
   </div>
 </template>
 
@@ -36,7 +43,10 @@ export default {
 
 <style lang="scss">
 .filter-include-switch{
+   @apply grow-0;
+
  .el-switch__label{
+   @apply mr-2;
    font-weight: normal !important;
  }
 }
