@@ -713,8 +713,8 @@ export default class MemberService extends LoggerBase {
                   return {
                     id: o.id,
                     title: memberOrg?.title,
-                    startDate: memberOrg?.dateStart,
-                    endDate: memberOrg?.dateEnd,
+                    startDate: moment(memberOrg?.dateStart).toISOString(),
+                    endDate: moment(memberOrg?.dateEnd).toISOString(),
                     source: memberOrg?.source || null,
                   }
                 })
