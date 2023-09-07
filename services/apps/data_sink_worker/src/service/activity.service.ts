@@ -467,6 +467,13 @@ export default class ActivityService extends LoggerBase {
               false,
             )
 
+            // release lock for member inside activity exists right after we update the member
+            await releaseLock(
+              this.redisClient,
+              `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+              'check-member-inside-activity-exists',
+            )
+
             if (!createActivity) {
               // and use it's member id for the new activity
               dbActivity.memberId = dbMember.id
@@ -502,6 +509,13 @@ export default class ActivityService extends LoggerBase {
               },
               dbMember,
               false,
+            )
+
+            // release lock for member inside activity exists right after we update the member
+            await releaseLock(
+              this.redisClient,
+              `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+              'check-member-inside-activity-exists',
             )
 
             memberId = dbActivity.memberId
@@ -666,7 +680,7 @@ export default class ActivityService extends LoggerBase {
             activityId = dbActivity.id
           }
 
-          // release lock for member inside activity exists
+          // release lock for member inside activity exists - this migth be redundant, but just in case
           await releaseLock(
             this.redisClient,
             `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
@@ -709,6 +723,13 @@ export default class ActivityService extends LoggerBase {
               false,
             )
             memberId = dbMember.id
+
+            // release lock for member inside activity does not exist right after we update the member
+            await releaseLock(
+              this.redisClient,
+              `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+              'check-member-inside-activity-does-not-exist',
+            )
           } else {
             this.log.trace(
               'We did not find a member for the identity provided! Creating a new one.',
@@ -729,6 +750,13 @@ export default class ActivityService extends LoggerBase {
                 organizations: member.organizations,
               },
               false,
+            )
+
+            // release lock for member inside activity does not exist right after we create the member
+            await releaseLock(
+              this.redisClient,
+              `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+              'check-member-inside-activity-does-not-exist',
             )
           }
 
