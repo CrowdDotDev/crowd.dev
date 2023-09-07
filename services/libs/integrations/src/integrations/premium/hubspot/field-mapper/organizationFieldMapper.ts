@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { IOrganization, OrganizationAttributeName, PlatformType } from '@crowd/types'
+import {
+  IOrganization,
+  OrganizationAttributeName,
+  PlatformType,
+  OrganizationSource,
+} from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { serializeArray } from './utils/serialization'
@@ -249,6 +254,7 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
           [PlatformType.HUBSPOT]: organizationProperties.domain,
         },
       },
+      source: OrganizationSource.HUBSPOT,
     }
 
     // loop through organization properties

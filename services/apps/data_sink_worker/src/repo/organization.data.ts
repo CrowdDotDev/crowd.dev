@@ -80,7 +80,6 @@ export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSe
       'id',
       'tenantId',
       'displayName',
-      'url',
       'description',
       'emails',
       'logo',
@@ -161,7 +160,6 @@ export function getUpdateOrganizationColumnSet(instance: DbInstance): DbColumnSe
   updateOrganizationColumnSet = new instance.helpers.ColumnSet(
     [
       'displayName',
-      'url',
       'description',
       'emails',
       'logo',

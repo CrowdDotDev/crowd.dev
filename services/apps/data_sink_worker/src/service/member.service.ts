@@ -3,7 +3,13 @@ import MemberRepository from '@/repo/member.repo'
 import { areArraysEqual, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IMemberData, IMemberIdentity, PlatformType } from '@crowd/types'
+import {
+  IMemberData,
+  IMemberIdentity,
+  PlatformType,
+  IOrganization,
+  OrganizationSource,
+} from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
@@ -36,7 +42,7 @@ export default class MemberService extends LoggerBase {
         throw new Error('Member must have at least one identity!')
       }
 
-      const { id, organizationIds } = await this.store.transactionally(async (txStore) => {
+      const { id, organizations } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
 
@@ -66,33 +72,32 @@ export default class MemberService extends LoggerBase {
 
         await txRepo.insertIdentities(id, tenantId, integrationId, data.identities)
 
-        const organizationIds = []
+        const organizations = []
+        const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
-          const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
             const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
-            organizationIds.push(id)
-          }
-
-          if (organizationIds.length > 0) {
-            await orgService.addToMember(tenantId, segmentId, id, organizationIds)
+            organizations.push({
+              id,
+              source: org.source,
+            })
           }
         }
 
         if (data.emails) {
-          const orgIds = await this.assignOrganizationByEmailDomain(
-            tenantId,
-            segmentId,
-            data.emails,
-          )
-          if (orgIds.length > 0) {
-            organizationIds.push(...orgIds)
+          const orgs = await this.assignOrganizationByEmailDomain(tenantId, segmentId, data.emails)
+          if (orgs.length > 0) {
+            organizations.push(...orgs)
           }
+        }
+
+        if (organizations.length > 0) {
+          await orgService.addToMember(tenantId, segmentId, id, organizations)
         }
 
         return {
           id,
-          organizationIds,
+          organizations,
         }
       })
 
@@ -102,10 +107,14 @@ export default class MemberService extends LoggerBase {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
-      if (organizationIds.length > 0) {
-        await this.nodejsWorkerEmitter.enrichMemberOrganizations(tenantId, id, organizationIds)
-        for (const orgId of organizationIds) {
-          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, orgId)
+      if (organizations.length > 0) {
+        await this.nodejsWorkerEmitter.enrichMemberOrganizations(
+          tenantId,
+          id,
+          organizations.map((org) => org.id),
+        )
+        for (const org of organizations) {
+          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
         }
       }
 
@@ -126,7 +135,7 @@ export default class MemberService extends LoggerBase {
     fireSync = true,
   ): Promise<void> {
     try {
-      const { updated, organizationIds } = await this.store.transactionally(async (txStore) => {
+      const { updated, organizations } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
         const dbIdentities = await txRepo.getIdentities(id, tenantId)
@@ -180,42 +189,50 @@ export default class MemberService extends LoggerBase {
           updated = true
         }
 
-        const organizationIds = []
+        const organizations = []
+        const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
-          const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
             const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
-            organizationIds.push(id)
+            organizations.push({
+              id,
+              source: data.source,
+            })
           }
 
-          if (organizationIds.length > 0) {
-            await orgService.addToMember(tenantId, segmentId, id, organizationIds)
+          if (organizations.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, organizations)
             updated = true
           }
         }
 
         if (data.emails) {
-          const orgIds = await this.assignOrganizationByEmailDomain(
-            tenantId,
-            segmentId,
-            data.emails,
-          )
-          if (orgIds.length > 0) {
-            organizationIds.push(...orgIds)
+          const orgs = await this.assignOrganizationByEmailDomain(tenantId, segmentId, data.emails)
+          if (orgs.length > 0) {
+            organizations.push(...orgs)
           }
         }
 
-        return { updated, organizationIds }
+        if (organizations.length > 0) {
+          await orgService.addToMember(tenantId, segmentId, id, organizations)
+          updated = true
+        }
+
+        return { updated, organizations }
       })
 
       if (updated && fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
-      if (organizationIds.length > 0) {
-        await this.nodejsWorkerEmitter.enrichMemberOrganizations(tenantId, id, organizationIds)
-        for (const orgId of organizationIds) {
-          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, orgId)
+      if (organizations.length > 0) {
+        await this.nodejsWorkerEmitter.enrichMemberOrganizations(
+          tenantId,
+          id,
+          organizations.map((org) => org.id),
+        )
+        for (const org of organizations) {
+          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
         }
       }
     } catch (err) {
@@ -228,9 +245,9 @@ export default class MemberService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     emails: string[],
-  ): Promise<string[]> {
+  ): Promise<IOrganization[]> {
     const orgService = new OrganizationService(this.store, this.log)
-    const organizationIds: string[] = []
+    const organizations: IOrganization[] = []
     const emailDomains = new Set<string>()
 
     // Collect unique domains
@@ -243,11 +260,14 @@ export default class MemberService extends LoggerBase {
     for (const domain of emailDomains) {
       const org = await orgService.findByDomain(tenantId, segmentId, domain as string)
       if (org) {
-        organizationIds.push(org.id)
+        organizations.push({
+          ...org,
+          source: OrganizationSource.EMAIL_DOMAIN,
+        })
       }
     }
 
-    return organizationIds
+    return organizations
   }
 
   public async processMemberEnrich(

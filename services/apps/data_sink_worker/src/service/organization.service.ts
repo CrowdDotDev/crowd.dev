@@ -284,17 +284,21 @@ export class OrganizationService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     memberId: string,
-    orgIds: string[],
+    orgs: IOrganization[],
   ): Promise<void> {
-    await this.repo.addToSegments(tenantId, segmentId, orgIds)
-    await this.repo.addToMember(memberId, orgIds)
+    await this.repo.addToSegments(
+      tenantId,
+      segmentId,
+      orgs.map((org) => org.id),
+    )
+    await this.repo.addToMember(memberId, orgs)
   }
 
   public async findByDomain(
     tenantId: string,
     segmentId: string,
     domain: string,
-  ): Promise<IDbOrganization> {
+  ): Promise<IOrganization> {
     return await this.repo.findByDomain(tenantId, segmentId, domain)
   }
 

@@ -7,7 +7,7 @@ import {
   MemberAttributeType,
   PlatformType,
   ITagOpensearch,
-  IOrganizationCreateData,
+  OrganizationSource,
 } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
@@ -212,6 +212,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
                     platform: PlatformType.HUBSPOT,
                   },
                 ],
+                source: OrganizationSource.HUBSPOT,
               },
             ]
           } else {

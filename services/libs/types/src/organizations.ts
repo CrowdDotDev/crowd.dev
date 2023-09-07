@@ -1,4 +1,5 @@
 import { IAttributes } from './attributes'
+import { OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
   id?: string
@@ -41,6 +42,7 @@ export interface IOrganization {
   identities: IOrganizationIdentity[]
   weakIdentities?: IOrganizationIdentity[]
   members?: string[]
+  source?: OrganizationSource
 }
 
 export interface IOrganizationCreateData extends IOrganization {

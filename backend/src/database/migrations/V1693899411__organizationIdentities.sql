@@ -118,6 +118,6 @@ COMMIT;
 
 drop index if exists "organizations_name_tenant_id";
 
--- alter table organizations DROP COLUMN "name";
--- 
--- alter table organizations DROP COLUMN "url";
+alter table organizations DROP COLUMN "name";
+
+alter table organizations DROP COLUMN "url";

@@ -21,6 +21,7 @@ import {
   MemberAttributeName,
   IActivityScoringGrid,
   IOrganizationCreateData,
+  OrganizationSource,
 } from '@crowd/types'
 import { GITHUB_GRID } from './grid'
 import { generateSourceIdHash } from '../../helpers'
@@ -76,8 +77,9 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
     if (IS_TEST_ENV) {
       member.organizations = [
         {
-          identity: { name: 'crowd.dev', platform: PlatformType.GITHUB },
-        } as IOrganizationCreateData,
+          identities: [{ name: 'crowd.dev', platform: PlatformType.GITHUB }],
+          source: OrganizationSource.GITHUB,
+        },
       ]
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
@@ -97,6 +99,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
           github: orgs.url ? orgs.url.replace('https://github.com/', '') : null,
           twitter: orgs.twitterUsername ? orgs.twitterUsername : null,
           website: orgs.websiteUrl ?? null,
+          source: OrganizationSource.GITHUB,
         } as IOrganizationCreateData
 
         if (orgs.twitterUsername) {
@@ -119,6 +122,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
                 name: company,
               },
             ],
+            source: OrganizationSource.GITHUB,
           },
         ]
       }

@@ -1,7 +1,7 @@
 import { DB_CONFIG, SQS_CONFIG } from '@/conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import IntegrationRunRepository from '@/repo/integrationRun.repo'
 import { IntegrationRunState } from '@crowd/types'
 
@@ -13,10 +13,10 @@ const runId = processArguments[0]
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
+  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = await getDbConnection(DB_CONFIG(), 1)
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const repo = new IntegrationRunRepository(store, log)
@@ -24,15 +24,17 @@ setImmediate(async () => {
   const run = await repo.findIntegrationRunById(runId)
 
   if (run) {
+    log.info({ run }, 'Found run!')
+
     if (run.state != IntegrationRunState.PENDING) {
       log.warn(`Integration run is not pending, setting to pending!`)
 
-      await repo.restart(run.id)
+      await repo.resetDelayedRun(run.id)
     }
 
     log.info(`Triggering integration run for ${runId}!`)
 
-    await emitter.triggerIntegrationRun(run.tenantId, run.platform, run.integrationId, true)
+    await emitter.continueProcessingRunStreams(run.tenantId, run.platform, run.id)
     process.exit(0)
   } else {
     log.error({ run }, 'Run not found!')
