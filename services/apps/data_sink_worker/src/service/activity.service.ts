@@ -18,6 +18,11 @@ import MemberAffiliationService from './memberAffiliation.service'
 import { acquireLock, releaseLock } from '@crowd/redis'
 import { RedisClient } from '@crowd/redis'
 
+const DEFAULT_EXPIRE_AFTER = 15 * 60 // 15 minutes
+const DEFAULT_TIMEOUT_AFTER = DEFAULT_EXPIRE_AFTER // 10 minutes
+const MEMBER_LOCK_EXPIRE_AFTER = 5 * 60 // 10 minutes
+const MEMBER_LOCK_TIMEOUT_AFTER = 3 * 60 // 5 minutes
+
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
 
@@ -395,8 +400,8 @@ export default class ActivityService extends LoggerBase {
           this.redisClient,
           `activity:processing:${tenantId}:${segmentId}:${activity.sourceId}`,
           'check-activity',
-          10 * 60,
-          3 * 60,
+          DEFAULT_EXPIRE_AFTER,
+          DEFAULT_TIMEOUT_AFTER,
         )
 
         // find existing activity
@@ -413,8 +418,8 @@ export default class ActivityService extends LoggerBase {
             this.redisClient,
             `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
             'check-member-inside-activity-exists',
-            10 * 60,
-            3 * 60,
+            MEMBER_LOCK_EXPIRE_AFTER,
+            MEMBER_LOCK_TIMEOUT_AFTER,
           )
 
           let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
@@ -517,8 +522,8 @@ export default class ActivityService extends LoggerBase {
               this.redisClient,
               `member:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
               'check-object-member-inside-activity-exists',
-              10 * 60,
-              3 * 60,
+              MEMBER_LOCK_EXPIRE_AFTER,
+              MEMBER_LOCK_TIMEOUT_AFTER,
             )
 
             if (dbActivity.objectMemberId) {
@@ -676,8 +681,8 @@ export default class ActivityService extends LoggerBase {
             this.redisClient,
             `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
             'check-member-inside-activity-does-not-exist',
-            10 * 60,
-            3 * 60,
+            MEMBER_LOCK_EXPIRE_AFTER,
+            MEMBER_LOCK_TIMEOUT_AFTER,
           )
 
           // we don't have the activity yet in the database
@@ -736,8 +741,8 @@ export default class ActivityService extends LoggerBase {
               this.redisClient,
               `member:processing:${tenantId}:${segmentId}:${platform}:${objectMemberUsername}`,
               'check-object-member-inside-activity-does-not-exist',
-              10 * 60,
-              3 * 60,
+              MEMBER_LOCK_EXPIRE_AFTER,
+              MEMBER_LOCK_TIMEOUT_AFTER,
             )
 
             const dbObjectMember = await txMemberRepo.findMember(
