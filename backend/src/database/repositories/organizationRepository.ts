@@ -1,7 +1,7 @@
 import lodash from 'lodash'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
-import { OpenSearchIndex, SyncStatus } from '@crowd/types'
+import { IOrganization, IOrganizationIdentity, OpenSearchIndex, SyncStatus } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -300,9 +300,7 @@ class OrganizationRepository {
     record = await record.update(
       {
         ...lodash.pick(data, [
-          'name',
           'displayName',
-          'url',
           'description',
           'emails',
           'phoneNumbers',
@@ -446,6 +444,129 @@ class OrganizationRepository {
     }
   }
 
+  static async addIdentity(
+    organizationId: string,
+    identity: IOrganizationIdentity,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+          insert into 
+              "organizationIdentities"("organizationId", "platform", "name", "url", "sourceId", "tenantId", "integrationId", "createdAt")
+          values 
+              (:organizationId, :platform, :name, :url, :sourceId, :tenantId, :integrationId, now())
+          on conflict do nothing;
+    `
+
+    await sequelize.query(query, {
+      replacements: {
+        organizationId,
+        platform: identity.platform,
+        sourceId: identity.sourceId || null,
+        url: identity.url || null,
+        tenantId: currentTenant.id,
+        integrationId: identity.integrationId || null,
+        name: identity.name,
+      },
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  }
+
+  static async getIdentities(
+    organizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<IOrganizationIdentity[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const results = await sequelize.query(
+      `
+      select "sourceId", "platform", "name", "integrationId" from "organizationIdentities"
+      where "organizationId" = :organizationId and "tenantId" = :tenantId
+    `,
+      {
+        replacements: {
+          organizationId,
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return results as IOrganizationIdentity[]
+  }
+
+  static async findByIdentity(
+    segmentId: string,
+    identity: IOrganizationIdentity,
+    options: IRepositoryOptions,
+  ): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const results = await sequelize.query(
+      `
+      with
+          "organizationsWithIdentity" as (
+              select os."organizationId"
+              from "organizationSegments" os
+              join "organizationIdentities" oi on os."organizationId" = oi."organizationId"
+              where 
+                    os."segmentId" = :segmentId
+                    and oi.platform = :platform
+                    and oi.name = :name
+          )
+          select o.id,
+                  o.url,
+                  o.description,
+                  o.emails,
+                  o.logo,
+                  o.tags,
+                  o.github,
+                  o.twitter,
+                  o.linkedin,
+                  o.crunchbase,
+                  o.employees,
+                  o.location,
+                  o.website,
+                  o.type,
+                  o.size,
+                  o.headline,
+                  o.industry,
+                  o.founded,
+                  o.attributes
+          from organizations o
+          where o."tenantId" = :tenantId
+          and o.id in (select "organizationId" from "organizationsWithIdentity");
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId: currentTenant.id,
+          name: identity.name,
+          platform: identity.platform,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
+  }
+
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
@@ -455,44 +576,43 @@ class OrganizationRepository {
     const results = await sequelize.query(
       `
           WITH
-              activity_counts AS (
-                SELECT "organizationId", COUNT(id) AS "activityCount"
-                FROM activities
-                WHERE "organizationId" = :id
-                GROUP BY "organizationId"
-              ),
-              member_counts AS (
-                  SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
-                  FROM "memberOrganizations"
-                  WHERE "organizationId" = :id and "dateEnd" is null
-                  GROUP BY "organizationId"
-              ),
-              active_on AS (
-                SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-                FROM activities
-                WHERE "organizationId" = :id
-                GROUP BY "organizationId"
-            ),
-              identities AS (
-                  SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
-                  FROM "memberOrganizations" mo
-                  JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY "organizationId"
-              ),
-              last_active AS (
-                  SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
-                  FROM "memberOrganizations" mo
-                  JOIN activities a ON a."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY mo."organizationId"
-              ),
-              segments AS (
-                  SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
-                  FROM "organizationSegments"
-                  WHERE "organizationId" = :id
-                  GROUP BY "organizationId"
-              )
+          activity_counts AS (
+            SELECT "organizationId", COUNT(id) AS "activityCount"
+            FROM activities
+            WHERE "organizationId" = :id
+            GROUP BY "organizationId"
+          ),
+          member_counts AS (
+              SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
+              FROM "memberOrganizations"
+              WHERE "organizationId" = :id and "dateEnd" is null
+              GROUP BY "organizationId"
+          ),
+          active_on AS (
+            SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
+            FROM activities
+            WHERE "organizationId" = :id
+            GROUP BY "organizationId"
+        ),
+          identities AS (
+              SELECT oi."organizationId", jsonb_agg(oi) AS "identities"
+              FROM "organizationIdentities" oi
+              WHERE oi."organizationId" = :id
+              GROUP BY "organizationId"
+          ),
+          last_active AS (
+              SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
+              FROM "memberOrganizations" mo
+              JOIN activities a ON a."memberId" = mo."memberId"
+              WHERE mo."organizationId" = :id
+              GROUP BY mo."organizationId"
+          ),
+          segments AS (
+              SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
+              FROM "organizationSegments"
+              WHERE "organizationId" = :id
+              GROUP BY "organizationId"
+          )
           SELECT
               o.*,
               COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",

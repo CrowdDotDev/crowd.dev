@@ -1,3 +1,4 @@
+import { IOrganization } from '@crowd/types'
 import { LoggerBase } from '@crowd/logging'
 import { websiteNormalizer } from '@crowd/common'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
@@ -28,18 +29,38 @@ export default class OrganizationService extends LoggerBase {
     return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
   }
 
-  async findOrCreate(data, enrichP = true) {
+  async findOrCreate(data: IOrganization, enrichP = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const segment = await SequelizeRepository.getStrictlySingleActiveSegment(this.options)
 
-    if (!data.name) {
-      throw new Error400(this.options.language, 'errors.OrganizationNameRequired.message')
+    if ((data as any).name && (!data.identities || data.identities.length === 0)) {
+      data.identities = [
+        {
+          name: (data as any).name,
+          platform: 'custom',
+        },
+      ]
+      delete (data as any).name
+    }
+
+    if (
+      !data.identities ||
+      data.identities.length === 0 ||
+      !data.identities[0].name ||
+      !data.identities[0].platform
+    ) {
+      const message = `Missing organization identity while creating/updating organization!`
+      this.log.error(data, message)
+      throw new Error(message)
     }
 
     try {
       const shouldDoEnrich = await this.shouldEnrich(enrichP)
 
+      const primaryIdentity = data.identities[0]
+
       // check cache existing by name
-      let cache = await organizationCacheRepository.findByName(data.name, {
+      let cache = await organizationCacheRepository.findByName(primaryIdentity.name, {
         ...this.options,
         transaction,
       })
@@ -62,16 +83,22 @@ export default class OrganizationService extends LoggerBase {
         })
       } else {
         // save it to cache
-        cache = await organizationCacheRepository.create(data, {
-          ...this.options,
-          transaction,
-        })
+        cache = await organizationCacheRepository.create(
+          {
+            ...data,
+            name: primaryIdentity.name,
+          },
+          {
+            ...this.options,
+            transaction,
+          },
+        )
       }
 
       // clearbit enrich
       if (shouldDoEnrich && !cache.enriched) {
         try {
-          const enrichedData = await enrichOrganization(data.name)
+          const enrichedData = await enrichOrganization(primaryIdentity.name)
 
           // overwrite cache with enriched data, but keep the name because it's serving as a unique identifier
           data = {
@@ -86,7 +113,7 @@ export default class OrganizationService extends LoggerBase {
             transaction,
           })
         } catch (error) {
-          this.log.error(error, `Could not enrich ${data.name}!`)
+          this.log.error(error, `Could not enrich ${primaryIdentity.name}!`)
         }
       }
 
@@ -99,13 +126,14 @@ export default class OrganizationService extends LoggerBase {
 
       let record
 
-      const existingByName = await OrganizationRepository.findByName(data.name, {
-        ...this.options,
-        transaction,
-      })
+      const existing = await OrganizationRepository.findByIdentity(
+        segment.id,
+        primaryIdentity,
+        this.options,
+      )
 
-      if (existingByName) {
-        record = await this.update(existingByName.id, cache)
+      if (existing) {
+        record = await this.update(existing.id, cache)
       } else {
         const organization = {
           ...cache,
@@ -123,6 +151,19 @@ export default class OrganizationService extends LoggerBase {
           },
           this.options,
         )
+      }
+
+      const identities = await OrganizationRepository.getIdentities(record.id, {...this.options, transaction } )
+
+      for (const identity of data.identities) {
+        const identityExists = identities.find(
+          (i) => i.name === identity.name && i.platform === identity.platform,
+        )
+
+        if (!identityExists) {
+          // add the identity
+          await OrganizationRepository.addIdentity(record.id, identity, {...this.options, transaction } )
+        }
       }
 
       await SequelizeRepository.commitTransaction(transaction)

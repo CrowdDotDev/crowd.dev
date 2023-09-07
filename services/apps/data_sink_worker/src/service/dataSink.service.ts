@@ -4,6 +4,7 @@ import {
   IActivityData,
   IMemberData,
   IOrganization,
+  IOrganizationCreateData,
   IntegrationResultState,
   IntegrationResultType,
 } from '@crowd/types'
@@ -121,7 +122,7 @@ export default class DataSinkService extends LoggerBase {
 
         case IntegrationResultType.ORGANIZATION_ENRICH: {
           const service = new OrganizationService(this.store, this.log)
-          const organizationData = data.data as IOrganization
+          const organizationData = data.data as IOrganizationCreateData
 
           await service.processOrganizationEnrich(
             resultInfo.tenantId,

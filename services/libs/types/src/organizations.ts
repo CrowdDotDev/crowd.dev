@@ -2,7 +2,6 @@ import { IAttributes } from './attributes'
 
 export interface IOrganization {
   id?: string
-  name: string
   url?: string
   description?: string
   emails?: string[]
@@ -39,6 +38,13 @@ export interface IOrganization {
   gicsSector?: string
   grossAdditionsByMonth?: Record<string, number>
   grossDeparturesByMonth?: Record<string, number>
+  identities: IOrganizationIdentity[]
+  weakIdentities?: IOrganizationIdentity[]
+  members?: string[]
+}
+
+export interface IOrganizationCreateData extends IOrganization {
+  identity: IOrganizationIdentity
 }
 
 export interface IExecutiveChange {
@@ -74,4 +80,12 @@ export interface IOrganizationSyncRemoteData {
   syncFrom: string
   metaData: string
   lastSyncedAt?: string
+}
+
+export interface IOrganizationIdentity {
+  integrationId?: string
+  platform: string
+  name: string
+  sourceId?: string
+  url?: string
 }

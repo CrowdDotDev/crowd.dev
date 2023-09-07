@@ -230,7 +230,14 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
     }
 
     const organization: IOrganization = {
-      name: organizationProperties.name,
+      identities: [
+        {
+          name: organizationProperties.name,
+          platform: PlatformType.HUBSPOT,
+          sourceId: hubspotOrganization.id,
+          url: `https://app.hubspot.com/contacts/${this.hubspotId}/company/${hubspotOrganization.id}`,
+        },
+      ],
       attributes: {
         [OrganizationAttributeName.SOURCE_ID]: {
           [PlatformType.HUBSPOT]: hubspotOrganization.id,

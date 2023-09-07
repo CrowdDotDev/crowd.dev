@@ -70,7 +70,7 @@ export default class MemberService extends LoggerBase {
         if (data.organizations) {
           const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
             organizationIds.push(id)
           }
 
@@ -184,7 +184,7 @@ export default class MemberService extends LoggerBase {
         if (data.organizations) {
           const orgService = new OrganizationService(txStore, this.log)
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
             organizationIds.push(id)
           }
 
