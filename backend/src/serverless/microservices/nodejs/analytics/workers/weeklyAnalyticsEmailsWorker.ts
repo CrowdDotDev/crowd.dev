@@ -355,7 +355,9 @@ async function getAnalyticsData(tenantId: string) {
          o.name as name,
          o.logo as "avatarUrl"
       from organizations o
-        inner join "memberOrganizations" mo on o.id = mo."organizationId"
+        inner join "memberOrganizations" mo
+          on o.id = mo."organizationId"
+          and mo."deletedAt" is null
         inner join members m on mo."memberId" = m.id
         inner join activities a on m.id = a."memberId"
       where m."tenantId" = :tenantId

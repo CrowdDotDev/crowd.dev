@@ -45,6 +45,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
             ("dateStart" <= $(timestamp) AND "dateEnd" >= $(timestamp))
             OR ("dateStart" <= $(timestamp) AND "dateEnd" IS NULL)
           )
+          AND "deletedAt" IS NULL
         ORDER BY "dateStart" DESC, id
         LIMIT 1
       `,
@@ -65,7 +66,10 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       `
         SELECT * FROM "memberOrganizations"
         WHERE "memberId" = $(memberId)
+          AND "dateStart" IS NULL
+          AND "dateEnd" IS NULL
           AND "createdAt" <= $(timestamp)
+          AND "deletedAt" IS NULL
         ORDER BY "createdAt" DESC, id
         LIMIT 1
       `,
@@ -85,6 +89,9 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       `
         SELECT * FROM "memberOrganizations"
         WHERE "memberId" = $(memberId)
+          AND "dateStart" IS NULL
+          AND "dateEnd" IS NULL
+          AND "deletedAt" IS NULL
         ORDER BY "createdAt", id
         LIMIT 1
       `,

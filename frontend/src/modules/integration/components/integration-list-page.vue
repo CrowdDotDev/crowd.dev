@@ -35,22 +35,6 @@
         </app-alert>
         <app-alert
           v-if="
-            integrations.slack
-              && integrations.slack.status === 'in-progress'
-          "
-        >
-          <template #body>
-            Add Slack Bot to channels.
-            <a
-              href="https://docs.crowd.dev/docs/slack-integration#how-to-install"
-              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
-              rel="noopener noreferrer"
-              target="_blank"
-            >Read more</a>
-          </template>
-        </app-alert>
-        <app-alert
-          v-if="
             integrations.discord
               && integrations.discord.status === 'in-progress'
           "
@@ -115,6 +99,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppIntegrationList from './integration-list.vue';
 
 export default {
@@ -129,5 +114,45 @@ export default {
       integrationsWithNoData: 'integration/withNoData',
     }),
   },
+
+  watch: {
+    '$route.query.slack-success': {
+      immediate: true,
+      handler(value) {
+        if (value) {
+          ConfirmDialog({
+            vertical: true,
+            type: 'custom',
+            icon: '<img src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="h-8 w-8" alt="slack logo" />',
+            title: `<span class="flex items-start gap-1">Connect Slack bot 
+              <span class="text-brand-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
+            titleClass: 'text-lg',
+            message: `
+            <img src="/images/integrations/slack-bot.png" class="mb-6" alt="slack bot installation" />
+            To fetch data from Slack, you need to install the crowd.dev Slack bot and add it to all channels you want to track. <br><br>
+            You can either add the Slack bot directly from a channel, or add the app via channel Integrations.`,
+            confirmButtonText: 'How to connect Slack bot',
+            showCancelButton: false,
+            messageClass: 'text-xs !leading-5 !mt-1 text-gray-600',
+            verticalCustomClass: 'custom-slack-message-box',
+            closeOnClickModal: false,
+            hideCloseButton: true,
+          }).then(() => {
+            window.open('https://docs.crowd.dev/docs/slack-integration#how-to-install', '_blank');
+            this.$router.replace({ query: null });
+          });
+        }
+      },
+    },
+  },
 };
 </script>
+
+<style>
+.custom-slack-message-box .el-button--primary span::after {
+  content: "\ecaf";
+  font-family: "remixicon" !important;
+  font-size: 18px;
+  margin-left: 0.5rem;
+}
+</style>
