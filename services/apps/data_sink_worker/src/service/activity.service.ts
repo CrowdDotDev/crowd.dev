@@ -20,8 +20,8 @@ import { RedisClient } from '@crowd/redis'
 
 const DEFAULT_EXPIRE_AFTER = 15 * 60 // 15 minutes
 const DEFAULT_TIMEOUT_AFTER = DEFAULT_EXPIRE_AFTER // 10 minutes
-const MEMBER_LOCK_EXPIRE_AFTER = 5 * 60 // 10 minutes
-const MEMBER_LOCK_TIMEOUT_AFTER = 3 * 60 // 5 minutes
+const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
+const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
