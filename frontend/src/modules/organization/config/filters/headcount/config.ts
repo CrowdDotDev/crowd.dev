@@ -19,7 +19,7 @@ const headcount: MultiSelectFilterConfig = {
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {
-      or: value.map((count) => ({ size: count })),
+      or: value.map((count) => ({ size: { eq: count } })),
     };
     return [
       (include ? filter : { not: filter }),
