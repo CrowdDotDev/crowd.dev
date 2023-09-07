@@ -565,7 +565,8 @@ class MemberRepository {
                     'dateEnd', "dateEnd",
                     'createdAt', "createdAt",
                     'updatedAt', "updatedAt",
-                    'title', title
+                    'title', title,
+                    'source', source
                   )
                 )
             ) AS orgs
@@ -963,7 +964,7 @@ class MemberRepository {
         as: 'organizations',
         order: [['createdAt', 'ASC']],
         through: {
-          attributes: ['memberId', 'organizationId', 'dateStart', 'dateEnd', 'title'],
+          attributes: ['memberId', 'organizationId', 'dateStart', 'dateEnd', 'title', 'source'],
           where: {
             deletedAt: null,
           },
@@ -3199,7 +3200,7 @@ class MemberRepository {
     output.organizations = await record.getOrganizations({
       transaction,
       order: [['createdAt', 'ASC']],
-      joinTableAttributes: ['dateStart', 'dateEnd', 'title'],
+      joinTableAttributes: ['dateStart', 'dateEnd', 'title', 'source'],
       through: {
         where: {
           deletedAt: null,

@@ -715,6 +715,7 @@ export default class MemberService extends LoggerBase {
                     title: memberOrg?.title,
                     startDate: memberOrg?.dateStart,
                     endDate: memberOrg?.dateEnd,
+                    source: memberOrg?.source || null,
                   }
                 })
             : []
