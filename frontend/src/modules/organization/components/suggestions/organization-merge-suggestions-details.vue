@@ -115,16 +115,16 @@
         </article>
         <article
           v-if="
-            props.organization.size
-              || props.compareOrganization?.size
+            props.organization.employees
+              || props.compareOrganization?.employees
           "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
-            Headcount
+            Number of employees
           </p>
           <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.size || '-' }}
+            {{ props.organization.employees || '-' }}
           </p>
         </article>
         <article
@@ -361,10 +361,6 @@
             class="ri-external-link-line text-gray-300 pl-2"
           />
         </a>
-        <el-divider
-          v-if="showDivider"
-          class="border-t-gray-200"
-        />
         <a
           v-for="email of props.organization.emails"
           :key="email"

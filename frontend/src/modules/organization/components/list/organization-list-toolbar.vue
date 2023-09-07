@@ -165,7 +165,8 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
 const handleMergeOrganizations = () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
-    .then(() => fetchOrganizations({ reload: true }));
+    .then(() => fetchOrganizations({ reload: true }))
+    .catch(() => Message.error('There was an error merging organizations'));
 };
 
 const handleDoExport = async () => {
