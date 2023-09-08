@@ -80,16 +80,28 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return id
   }
 
-  public async updateCache(id: string, data: IDbUpdateOrganizationCacheData): Promise<void> {
+  public async updateCache(
+    id: string,
+    data: Partial<IDbUpdateOrganizationCacheData>,
+  ): Promise<void> {
+    const keys = Object.keys(data)
+    keys.push('updatedAt')
+    // construct custom column set
+    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
+      table: {
+        table: 'organizationCaches',
+      },
+    })
+
     const prepared = RepositoryBase.prepare(
       {
         ...data,
         updatedAt: new Date(),
       },
-      this.updateCacheOrganizationColumnSet,
+      dynamicColumnSet,
     )
 
-    const query = this.dbInstance.helpers.update(prepared, this.updateCacheOrganizationColumnSet)
+    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
     const condition = this.format('where id = $(id)', { id })
 
     const result = await this.db().result(`${query} ${condition}`)

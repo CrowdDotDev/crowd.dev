@@ -10,7 +10,6 @@ import {
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
   PlatformType,
-  IOrganization,
   OrganizationSource,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
@@ -352,39 +351,6 @@ export default class MemberEnrichmentService extends LoggerBase {
       )
       member.emails.forEach((email) => emailSet.add(email))
       member.emails = Array.from(emailSet)
-    }
-
-    if (enrichmentData.company) {
-      const organization: IOrganization = {
-        name: enrichmentData.company,
-      }
-
-      // check for more info about the company in work experiences
-      if (enrichmentData.work_experiences && enrichmentData.work_experiences.length > 0) {
-        const organizationsByWorkExperience = enrichmentData.work_experiences.filter(
-          (w) => w.company === enrichmentData.company && w.current,
-        )
-        if (organizationsByWorkExperience.length > 0) {
-          organization.location = organizationsByWorkExperience[0].location
-          const linkedinUrl = organizationsByWorkExperience[0].companyLinkedInUrl
-          if (linkedinUrl) {
-            organization.linkedin = {
-              handle: linkedinUrl.split('/').pop(),
-              // remove https/http if exists
-              url: linkedinUrl.replace(/(^\w+:|^)\/\//, ''),
-            }
-          }
-          organization.url = organizationsByWorkExperience[0].companyUrl
-
-          // fetch jobTitle from most recent work experience
-          member.attributes.jobTitle = {
-            custom: organizationsByWorkExperience[0].title,
-            default: organizationsByWorkExperience[0].title,
-          }
-        }
-      }
-
-      member.organizations = [organization]
     }
 
     member.contributions = enrichmentData.oss_contributions?.map(
