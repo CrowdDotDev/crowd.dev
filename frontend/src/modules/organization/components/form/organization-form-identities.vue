@@ -21,6 +21,7 @@
             <el-switch
               v-model="value.enabled"
               :inactive-text="findPlatform(key).name"
+              :disabled="editingDisabled(key)"
               @change="
                 (newValue) => onSwitchChange(newValue, key)
               "
@@ -39,6 +40,7 @@
                   <el-input
                     v-model="model.identities[ii].name"
                     placeholder="johndoe"
+                    :disabled="editingDisabled(key)"
                     @input="(newValue) =>
                       onInputChange(newValue, key, value, ii)
                     "
@@ -55,8 +57,9 @@
                   </template>
                 </el-form-item>
                 <el-button
+                  :disabled="editingDisabled(key)"
                   class="btn btn--md btn--transparent w-10 h-10"
-                  @click="removeUsername(key, ii)"
+                  @click="removeUsername(ii)"
                 >
                   <i class="ri-delete-bin-line text-lg" />
                 </el-button>
@@ -203,21 +206,18 @@ function onSwitchChange(value, key) {
   }
 }
 
-const removeUsername = (platform, index) => {
-  model.value.username[platform].splice(index, 1);
+function editingDisabled(platform) {
+  return props.record
+    ? props.record.activeOn.includes(platform)
+    : false;
+}
 
-  if (!model.value.username[platform]?.length) {
-    delete model.value.username?.[platform];
-    delete model.value.attributes?.url?.[platform];
-    identitiesForm[platform].enabled = false;
-  } else {
-    model.value.attributes = {
-      ...props.modelValue.attributes,
-      url: {
-        ...props.modelValue.attributes?.url,
-        [platform]: CrowdIntegrations.getConfig(platform)?.url(model.value.username[platform][0]),
-      },
-    };
+const removeUsername = (index) => {
+  const element = model.value.identities[index];
+  model.value.identities.splice(index, 1);
+
+  if (platformInIdentities(element.platform).length === 0) {
+    identitiesForm[element.platform].enabled = false;
   }
 };
 
