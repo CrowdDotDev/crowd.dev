@@ -39,6 +39,7 @@ import {
 } from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
+import GithubReposRepository from '../database/repositories/githubReposRepository'
 import MemberService from './memberService'
 import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
@@ -344,7 +345,7 @@ export default class IntegrationService {
           token,
           settings: { repos, updateMemberAttributes: true },
           integrationIdentifier: installId,
-          status: 'in-progress',
+          status: 'mapping',
         },
         transaction,
       )
@@ -355,19 +356,43 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending GitHub message to int-run-worker!',
-    )
-    const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
-
     return integration
+  }
+
+  async mapGithubRepos(integrationId, mapping) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+      const integration = await IntegrationRepository.update(
+        integrationId,
+        { status: 'in-progress' },
+        txOptions,
+      )
+
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending GitHub message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
   }
 
   /**
