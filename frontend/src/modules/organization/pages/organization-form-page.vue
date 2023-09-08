@@ -170,6 +170,7 @@ const formSchema = new FormSchema([
   fields.linkedin,
   fields.crunchbase,
   fields.emails,
+  fields.identities,
   fields.phoneNumbers,
   fields.type,
   fields.size,
@@ -211,22 +212,10 @@ function getInitialModel(record) {
         employees: record ? record.employees : null,
         location: record ? record.location : null,
         website: record ? record.website : null,
-        github:
-          record && record.github
-            ? record.github.handle
-            : '',
-        twitter:
-          record && record.twitter
-            ? record.twitter.handle
-            : '',
-        linkedin:
-          record && record.linkedin
-            ? record.linkedin.handle
-            : '',
-        crunchbase:
-          record && record.crunchbase
-            ? record.crunchbase.handle
-            : '',
+        identities: record ? record.identities.map((i) => ({
+          platform: i.platform,
+          name: i.name,
+        })) : [],
         revenueRange: record ? record.revenueRange : {},
         emails:
           record && record.emails?.length > 0

@@ -3,37 +3,69 @@
     <h6>Identities</h6>
     <div class="col-span-2 organization-identities-form">
       <div
-        v-for="platform of platforms"
-        :key="platform.name"
-        class="platform"
+        v-for="[key, value] in Object.entries(
+          identitiesForm,
+        )"
+        :key="key"
+        class="border-b border-gray-200 last:border-none"
       >
-        <div class="flex items-center">
-          <div
-            class="platform-logo mr-3"
-            :class="platform.imgContainerClass"
-          >
-            <img
-              :src="findPlatform(platform.name).image"
-              :alt="findPlatform(platform.name).name"
-              :class="
-                platform.name === 'crunchbase'
-                  ? 'w-5 h-4'
-                  : 'w-4 h-4'
+        <div v-if="findPlatform(key)">
+          <el-form-item class="h-14 !flex items-center w-full mb-0">
+            <div :class="value.imgContainerClass">
+              <img
+                :src="findPlatform(key).image"
+                :alt="findPlatform(key).name"
+                class="w-4"
+              />
+            </div>
+            <el-switch
+              v-model="value.enabled"
+              :inactive-text="findPlatform(key).name"
+              :disabled="editingDisabled(key)"
+              @change="
+                (newValue) => onSwitchChange(newValue, key)
               "
             />
-          </div>
-          <div class="font-medium">
-            {{ platform.label }}
-          </div>
-        </div>
-        <div class="flex items-center grow justify-end">
-          <div class="text-gray-400 text-right mr-3">
-            {{ platform.prefix }}
-          </div>
-          <el-input
-            v-model="model[platform.name]"
-            class="!w-64"
-          />
+          </el-form-item>
+          <template v-for="(identity, ii) of model.identities" :key="`${identity}${ii}`">
+            <div v-if="value.enabled && identity.platform === key">
+              <div
+                class="flex flex-grow gap-2 mt-1 pb-3 last:!mb-6 last:pb-0"
+              >
+                <el-form-item
+                  :prop="`identities.${ii}.name`"
+                  required
+                  class="flex-grow"
+                >
+                  <el-input
+                    v-model="model.identities[ii].name"
+                    placeholder="johndoe"
+                    :disabled="editingDisabled(key)"
+                    @input="(newValue) =>
+                      onInputChange(newValue, key, value, ii)
+                    "
+                  >
+                    <template #prepend>
+                      <span>{{ value.urlPrefix }}</span>
+                      <span class="text-brand-500">*</span>
+                    </template>
+                  </el-input>
+                  <template #error>
+                    <div class="el-form-item__error">
+                      Identity profile is required
+                    </div>
+                  </template>
+                </el-form-item>
+                <el-button
+                  :disabled="editingDisabled(key)"
+                  class="btn btn--md btn--transparent w-10 h-10"
+                  @click="removeUsername(ii)"
+                >
+                  <i class="ri-delete-bin-line text-lg" />
+                </el-button>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
       <div class="flex items-start justify-between mt-16">
@@ -67,7 +99,9 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue';
+import {
+  computed, defineEmits, defineProps, reactive,
+} from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['update:modelValue']);
@@ -94,40 +128,99 @@ const model = computed({
   },
 });
 
+const identitiesForm = reactive({
+  github: {
+    label: 'GitHub',
+    enabled:
+      props.modelValue.identities?.some((el) => el.platform === 'github')
+      || false,
+    urlPrefix: 'github.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
+  },
+  linkedin: {
+    label: 'LinkedIn',
+    enabled:
+      props.modelValue.identities?.some((el) => el.platform === 'linkedin')
+      || false,
+    urlPrefix: 'linkedin.com/company/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
+  },
+  twitter: {
+    label: 'Twitter',
+    enabled:
+      props.modelValue.identities?.some((el) => el.platform === 'twitter')
+      || false,
+    urlPrefix: 'twitter.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter',
+  },
+  crunchbase: {
+    label: 'Crunchbase',
+    enabled:
+      props.modelValue.identities?.some((el) => el.platform === 'crunchbase')
+      || false,
+    urlPrefix: 'crunchbase.com/organization/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase',
+  },
+});
+
 function findPlatform(platform) {
   return CrowdIntegrations.getConfig(platform);
 }
 
-const platforms = [
-  {
-    name: 'github',
-    label: 'GitHub',
-    prefix: 'github.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
-  },
-  {
-    name: 'linkedin',
-    label: 'LinkedIn',
-    prefix: 'linkedin.com/company/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--linkedin',
-  },
-  {
-    name: 'twitter',
-    label: 'Twitter',
-    prefix: 'twitter.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--twitter',
-  },
-  {
-    name: 'crunchbase',
-    label: 'Crunchbase',
-    prefix: 'crunchbase.com/organization/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase',
-  },
-];
+function onInputChange(newValue, key, value, index) {
+  if (index === 0) {
+    model.value.attributes = {
+      ...props.modelValue.attributes,
+      url: {
+        ...props.modelValue.attributes?.url,
+        [key]: `https://${value.urlPrefix}${newValue}`,
+      },
+    };
+  }
+}
+
+function platformInIdentities(platform) {
+  return props.modelValue.identities.filter((i) => i.platform === platform);
+}
+
+function onSwitchChange(value, key) {
+  // Add platform to identities array
+  if (
+    (platformInIdentities(key).length === 0)
+    && value
+  ) {
+    model.value.identities.push({
+      name: '',
+      platform: key,
+    });
+    return;
+  }
+
+  // Remove platform from identities array
+  if (!value) {
+    model.value.identities = model.value.identities.filter((i) => i.platform !== key);
+  }
+}
+
+function editingDisabled(platform) {
+  return props.record
+    ? props.record.activeOn.includes(platform)
+    : false;
+}
+
+const removeUsername = (index) => {
+  const element = model.value.identities[index];
+  model.value.identities.splice(index, 1);
+
+  if (platformInIdentities(element.platform).length === 0) {
+    identitiesForm[element.platform].enabled = false;
+  }
+};
+
 </script>
 
 <style lang="scss">
