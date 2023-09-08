@@ -136,10 +136,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               o.founded,
               o.attributes
       from organizations o
-      where o."tenantId" = $(tenantId) and o.name = $(name)
-      and o.id in (select os."organizationId"
-                    from "organizationSegments" os
-                      where os."segmentId" = $(segmentId))`,
+      where o."tenantId" = $(tenantId) and o.name = $(name)`,
       { tenantId, name, segmentId },
     )
 
