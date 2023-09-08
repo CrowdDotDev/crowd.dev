@@ -220,7 +220,7 @@ export default class OrganizationService extends LoggerBase {
       // instead of making it a weak identity we throw an error here, because this function
       // is mainly used for doing manual updates through UI and possibly
       // we don't wanna do an auto-merge here or make strong identities sent by user as weak
-      if (originalIdentities.length !== data.identites.length) {
+      if (originalIdentities.length !== data.identities.length) {
         const alreadyExistingStrongIdentities = originalIdentities.filter(
           (oi) => !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
         )

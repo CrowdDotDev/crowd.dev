@@ -237,14 +237,15 @@ class OrganizationRepository {
     options: IRepositoryOptions,
     organizationId?: string,
   ): Promise<void> {
-    const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
-      data.weakIdentities,
-      options,
-      organizationId,
-    )
 
     // convert non-existing weak identities to strong ones
     if (data.weakIdentities && data.weakIdentities.length > 0) {
+      const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
+        data.weakIdentities,
+        options,
+        organizationId,
+      )
+  
       const strongIdentities = []
 
       // find weak identities in the payload that doesn't exist as a strong identity yet
@@ -277,6 +278,12 @@ class OrganizationRepository {
 
     // convert already existing strong identities to weak ones
     if (data.identities && data.identities.length > 0) {
+      const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
+        data.identities,
+        options,
+        organizationId,
+      )
+  
       const weakIdentities: IOrganizationIdentity[] = []
 
       // find strong identities in payload that already exist in some other organization, and convert these to weak
