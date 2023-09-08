@@ -373,15 +373,6 @@ function onCancel() {
   router.push({ name: 'organization' });
 }
 
-function platformPayload(platform, value) {
-  if (value && value !== '') {
-    return {
-      handle: value,
-      url: `https://${platform}.com/${value}`,
-    };
-  }
-  return undefined;
-}
 async function onSubmit() {
   isFormSubmitting.value = true;
   const data = {
@@ -404,27 +395,6 @@ async function onSubmit() {
       },
       [],
     ),
-    github: formModel.value.github
-      ? platformPayload('github', formModel.value.github)
-      : null,
-    linkedin: formModel.value.linkedin
-      ? platformPayload(
-        'linkedin',
-        formModel.value.linkedin,
-      )
-      : null,
-    twitter: formModel.value.twitter
-      ? platformPayload(
-        'twitter',
-        formModel.value.twitter,
-      )
-      : null,
-    crunchbase: formModel.value.crunchbase
-      ? platformPayload(
-        'crunchbase',
-        formModel.value.crunchbase,
-      )
-      : null,
   };
 
   const payload = isEditPage.value

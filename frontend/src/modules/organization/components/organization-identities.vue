@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center gap-3">
     <div
-      v-if="hasSocialIdentities"
+      v-if="organization.identities.length > 0"
       class="flex items-center gap-2"
     >
       <!-- Github -->
@@ -65,13 +65,6 @@ const props = defineProps({
   },
 });
 
-const hasSocialIdentities = computed(
-  () => !!props.organization.github
-    || !!props.organization.linkedin
-    || !!props.organization.twitter
-    || !!props.organization.crunchbase
-    || !!props.organization.facebook,
-);
 const showDivider = computed(
   () => !!props.organization.phoneNumbers?.length
     && hasSocialIdentities.value,

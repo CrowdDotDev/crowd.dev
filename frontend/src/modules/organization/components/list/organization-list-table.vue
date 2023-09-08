@@ -280,7 +280,7 @@
                     >
                       <div class="h-full flex items-center">
                         <app-organization-identities
-                          v-if="hasIdentities(scope.row)"
+                          v-if="scope.row.identities.length > 0"
                           :organization="scope.row"
                         />
                         <span
@@ -647,15 +647,6 @@ const rowClass = ({ row }) => {
 
   return isSelected ? 'is-selected' : '';
 };
-
-const hasIdentities = (row) => (
-  !!row.github
-    || !!row.linkedin
-    || !!row.twitter
-    || !!row.crunchbase
-    || !!row.facebook
-    || !!row.phoneNumbers?.length
-);
 
 // On custom scrollbar scroll, set the table scroll with the same value
 const onCustomScrollbarScroll = ({ scrollLeft }) => {
