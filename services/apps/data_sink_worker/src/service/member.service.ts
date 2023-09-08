@@ -185,9 +185,9 @@ export default class MemberService extends LoggerBase {
           await txRepo.addToSegment(id, tenantId, segmentId)
 
           updated = true
-          await txRepo.addToSegment(id, tenantId, segmentId)
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
+          await txRepo.addToSegment(id, tenantId, segmentId)
         }
 
         if (toUpdate.identities) {
