@@ -15,6 +15,7 @@ import make from './make';
 import git from './git';
 import facebook from './facebook';
 import lfx from './custom/lfx';
+import cvent from './custom/cvent';
 
 class IntegrationsConfig {
   get integrations() {
@@ -91,6 +92,7 @@ class IntegrationsConfig {
   get customIntegrations() {
     return {
       lfx,
+      cvent,
     };
   }
 }
