@@ -63,7 +63,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
                               inner join "memberIdentities" mi
                                         on ms."tenantId" = mi."tenantId" and ms."memberId" = mi."memberId"
                     where ms."tenantId" = $(tenantId)
-                      and ms."segmentId" = $(segmentId)
                       and mi.platform = $(platform)
                       and mi.username = $(username));
     `,
