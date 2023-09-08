@@ -658,6 +658,15 @@ export default class ActivityService extends LoggerBase {
 
             // release lock for member inside activity exists - this migth be redundant, but just in case
           } else {
+            // acquiring lock for member inside activity not exists
+            await acquireLock(
+              this.redisClient,
+              `member:processing:${tenantId}:${platform}:${username}`,
+              'check-member-inside-activity-not-exists',
+              MEMBER_LOCK_EXPIRE_AFTER,
+              MEMBER_LOCK_TIMEOUT_AFTER,
+            )
+
             this.log.trace('We did not find an existing activity. Creating a new one.')
             createActivity = true
 
@@ -683,6 +692,12 @@ export default class ActivityService extends LoggerBase {
                 },
                 dbMember,
                 false,
+                async () =>
+                  await releaseLock(
+                    this.redisClient,
+                    `member:processing:${tenantId}:${platform}:${username}`,
+                    'check-member-inside-activity-not-exists',
+                  ),
               )
               memberId = dbMember.id
             } else {
@@ -705,6 +720,12 @@ export default class ActivityService extends LoggerBase {
                   organizations: member.organizations,
                 },
                 false,
+                async () =>
+                  await releaseLock(
+                    this.redisClient,
+                    `member:processing:${tenantId}:${platform}:${username}`,
+                    'check-member-inside-activity-not-exists',
+                  ),
               )
             }
 
@@ -800,12 +821,19 @@ export default class ActivityService extends LoggerBase {
             )
           }
         } finally {
-          // release lock no matter that
-          await releaseLock(
-            this.redisClient,
-            `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
-            'check-member-inside-activity-exists',
-          )
+          // release locks in parallel no matter what
+          await Promise.all([
+            releaseLock(
+              this.redisClient,
+              `member:processing:${tenantId}:${platform}:${username}`,
+              'check-member-inside-activity-exists',
+            ),
+            releaseLock(
+              this.redisClient,
+              `member:processing:${tenantId}:${platform}:${username}`,
+              'check-member-inside-activity-not-exists',
+            ),
+          ])
         }
       })
 
