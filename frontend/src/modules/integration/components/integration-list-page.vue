@@ -25,7 +25,7 @@
           "
         >
           <template #body>
-            Please invite your GitHub admin to Crowd.dev and
+            Please invite your GitHub admin to LFX and
             ask them to set up the integration.
             <a
               href="https://docs.crowd.dev/docs/github-integration#set-up-with-missing-permissions"
@@ -132,7 +132,7 @@ export default {
             titleClass: 'text-lg',
             message: `
             <img src="/images/integrations/slack-bot.png" class="mb-6" alt="slack bot installation" />
-            To fetch data from Slack, you need to install the crowd.dev Slack bot and add it to all channels you want to track. <br><br>
+            To fetch data from Slack, you need to install the LFX Slack bot and add it to all channels you want to track. <br><br>
             You can either add the Slack bot directly from a channel, or add the app via channel Integrations.`,
             confirmButtonText: 'How to connect Slack bot',
             showCancelButton: false,
