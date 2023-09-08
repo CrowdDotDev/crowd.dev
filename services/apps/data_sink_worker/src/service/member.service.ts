@@ -1,6 +1,6 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
-import { areArraysEqual, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { firstArrayContainsSecondArray, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -419,8 +419,8 @@ export default class MemberService extends LoggerBase {
     }
 
     let emails: string[] | undefined
-    if (member.emails) {
-      if (!areArraysEqual(member.emails, dbMember.emails)) {
+    if (member.emails && member.emails.length > 0) {
+      if (!firstArrayContainsSecondArray(dbMember.emails, member.emails)) {
         emails = [...new Set([...member.emails, ...dbMember.emails])]
       }
     }
