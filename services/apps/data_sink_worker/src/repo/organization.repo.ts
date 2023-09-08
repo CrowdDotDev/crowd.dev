@@ -168,19 +168,16 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
   public async findByIdentity(
     tenantId: string,
-    segmentId: string,
     identity: IOrganizationIdentity,
   ): Promise<IDbOrganization> {
     const result = await this.db().oneOrNone(
       `
       with
           "organizationsWithIdentity" as (
-              select os."organizationId"
-              from "organizationSegments" os
-              join "organizationIdentities" oi on os."organizationId" = oi."organizationId"
+              select oi."organizationId"
+              from "organizationIdentities" oi
               where 
-                    os."segmentId" = $(segmentId)
-                    and oi.platform = $(platform)
+                    oi.platform = $(platform)
                     and oi.name = $(name)
           )
           select o.id,
@@ -205,7 +202,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           where o."tenantId" = $(tenantId) 
           and o.id in (select "organizationId" from "organizationsWithIdentity");
       `,
-      { segmentId, tenantId, name: identity.name, platform: identity.platform },
+      { tenantId, name: identity.name, platform: identity.platform },
     )
 
     return result

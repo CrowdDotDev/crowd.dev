@@ -29,9 +29,8 @@ export default class OrganizationService extends LoggerBase {
     return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
   }
 
-  async findOrCreate(data: IOrganization, enrichP = true) {
+  async createOrUpdate(data: IOrganization, enrichP = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const segment = await SequelizeRepository.getStrictlySingleActiveSegment(this.options)
 
     if ((data as any).name && (!data.identities || data.identities.length === 0)) {
       data.identities = [
@@ -126,19 +125,25 @@ export default class OrganizationService extends LoggerBase {
 
       let record
 
-      const existing = await OrganizationRepository.findByIdentity(
-        segment.id,
-        primaryIdentity,
-        this.options,
-      )
+      const existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
 
       if (existing) {
-        record = await this.update(existing.id, cache)
+        await OrganizationRepository.checkIdentities(data, this.options, existing.id)
+
+        record = await OrganizationRepository.update(
+          existing.id,
+          { ...data, ...cache },
+          { ...this.options, transaction },
+        )
       } else {
+        await OrganizationRepository.checkIdentities(data, this.options)
+
         const organization = {
+          ...data, // to keep uncacheable data (like identities, weakIdentities)
           ...cache,
           displayName: cache.name,
         }
+
         record = await OrganizationRepository.create(organization, {
           ...this.options,
           transaction,
@@ -153,16 +158,24 @@ export default class OrganizationService extends LoggerBase {
         )
       }
 
-      const identities = await OrganizationRepository.getIdentities(record.id, {...this.options, transaction } )
+      const identities = await OrganizationRepository.getIdentities(record.id, {
+        ...this.options,
+        transaction,
+      })
 
-      for (const identity of data.identities) {
-        const identityExists = identities.find(
-          (i) => i.name === identity.name && i.platform === identity.platform,
-        )
+      if (data.identities.length > 0) {
+        for (const identity of data.identities) {
+          const identityExists = identities.find(
+            (i) => i.name === identity.name && i.platform === identity.platform,
+          )
 
-        if (!identityExists) {
-          // add the identity
-          await OrganizationRepository.addIdentity(record.id, identity, {...this.options, transaction } )
+          if (!identityExists) {
+            // add the identity
+            await OrganizationRepository.addIdentity(record.id, identity, {
+              ...this.options,
+              transaction,
+            })
+          }
         }
       }
 
@@ -196,6 +209,27 @@ export default class OrganizationService extends LoggerBase {
       // Normalize the website URL if it exists
       if (data.website) {
         data.website = websiteNormalizer(data.website)
+      }
+
+      const originalIdentities = data.identities
+
+      // check identities
+      await OrganizationRepository.checkIdentities(data, { ...this.options, transaction }, id)
+
+      // if we found any strong identities sent already existing in another organization
+      // instead of making it a weak identity we throw an error here, because this function
+      // is mainly used for doing manual updates through UI and possibly
+      // we don't wanna do an auto-merge here or make strong identities sent by user as weak
+      if (originalIdentities.length !== data.identites.length) {
+        const alreadyExistingStrongIdentities = originalIdentities.filter(
+          (oi) => !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
+        )
+
+        throw new Error(
+          `Organization identities ${JSON.stringify(
+            alreadyExistingStrongIdentities,
+          )} already exist in another organization!`,
+        )
       }
 
       const record = await OrganizationRepository.update(id, data, {
@@ -318,7 +352,7 @@ export default class OrganizationService extends LoggerBase {
       importHash,
     }
 
-    return this.findOrCreate(dataToCreate)
+    return this.createOrUpdate(dataToCreate)
   }
 
   async _isImportHashExistent(importHash) {

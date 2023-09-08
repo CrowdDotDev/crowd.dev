@@ -57,26 +57,28 @@ export class OrganizationService extends LoggerBase {
 
         if (cached) {
           // if exists in cache update it
-          await txRepo.updateCache(cached.id, {
-            name: primaryIdentity.name,
-            url: data.url || cached.url,
-            description: data.description || cached.description,
-            emails: data.emails || cached.emails,
-            logo: data.logo || cached.logo,
-            tags: data.tags || cached.tags,
-            github: (data.github || cached.github) as IOrganizationSocial,
-            twitter: (data.twitter || cached.twitter) as IOrganizationSocial,
-            linkedin: (data.linkedin || cached.linkedin) as IOrganizationSocial,
-            crunchbase: (data.crunchbase || cached.crunchbase) as IOrganizationSocial,
-            employees: data.employees || cached.employees,
-            location: data.location || cached.location,
-            website: data.website || cached.website,
-            type: data.type || cached.type,
-            size: data.size || cached.size,
-            headline: data.headline || cached.headline,
-            industry: data.industry || cached.industry,
-            founded: data.founded || cached.founded,
-          })
+          const updateData: Partial<IOrganization> = {}
+          // no need to update name since it's aka primary key
+          if (data.url) updateData.url = data.url
+          if (data.description) updateData.description = data.description
+          if (data.emails) updateData.emails = data.emails
+          if (data.logo) updateData.logo = data.logo
+          if (data.tags) updateData.tags = data.tags
+          if (data.github) updateData.github = data.github as IOrganizationSocial
+          if (data.twitter) updateData.twitter = data.twitter as IOrganizationSocial
+          if (data.linkedin) updateData.linkedin = data.linkedin as IOrganizationSocial
+          if (data.crunchbase) updateData.crunchbase = data.crunchbase as IOrganizationSocial
+          if (data.employees) updateData.employees = data.employees
+          if (data.location) updateData.location = data.location
+          if (data.website) updateData.website = data.website
+          if (data.type) updateData.type = data.type
+          if (data.size) updateData.size = data.size
+          if (data.headline) updateData.headline = data.headline
+          if (data.industry) updateData.industry = data.industry
+          if (data.founded) updateData.founded = data.founded
+          if (Object.keys(updateData).length > 0) {
+            await this.repo.updateCache(cached.id, { ...updateData, name: primaryIdentity.name })
+          }
         } else {
           // if it doesn't exists in cache create it
           const insertData: IDbInsertOrganizationCacheData = {
@@ -111,7 +113,7 @@ export class OrganizationService extends LoggerBase {
         }
 
         // now check if exists in this tenant using the primary identity
-        const existing = await txRepo.findByIdentity(tenantId, segmentId, primaryIdentity)
+        const existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
 
         const displayName = existing?.displayName ? existing?.displayName : primaryIdentity.name
 
@@ -337,7 +339,7 @@ export class OrganizationService extends LoggerBase {
 
         if (!dbOrganization && organization.identity.name) {
           // try finding the organization using name
-          dbOrganization = await txRepo.findByIdentity(tenantId, segmentId, organization.identity)
+          dbOrganization = await txRepo.findByIdentity(tenantId, organization.identity)
         }
 
         if (dbOrganization) {

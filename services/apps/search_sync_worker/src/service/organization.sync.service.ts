@@ -476,13 +476,23 @@ export class OrganizationSyncService extends LoggerBase {
     p.obj_grossAdditionsByMonth = data.grossAdditionsByMonth
     p.obj_grossDeparturesByMonth = data.grossDeparturesByMonth
 
+    // identities
+    const p_identities = []
+    for (const identity of data.identities) {
+      p_identities.push({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        string_url: identity.url,
+      })
+    }
+    p.nested_identities = p_identities
+
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
     p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
-    p.string_arr_identities = data.identities
 
     return p
   }
