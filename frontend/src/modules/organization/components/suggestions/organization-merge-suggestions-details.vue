@@ -229,138 +229,23 @@
         </article>
       </div>
       <div class="pt-5">
-        <a
-          v-if="getIdentityLink('github')"
-          class="py-2 flex items-center relative text-gray-900"
-          :class="
-            getIdentityLink('github')
-              ? 'hover:text-brand-500 transition-colors cursor-pointer'
-              : ''
-          "
-          :href="getIdentityLink('github')"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="github" />
-            <span class="text-xs">
-              GitHub</span>
-          </div>
-          <i
-            v-if="getIdentityLink('github')"
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-if="getIdentityLink('twitter')"
-          class="py-2 flex items-center relative text-gray-900"
-          :class="
-            getIdentityLink('twitter')
-              ? 'hover:text-brand-500 transition-colors cursor-pointer'
-              : ''
-          "
-          :href="getIdentityLink('twitter')"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="twitter" />
-            <span class="text-xs">
-              Twitter</span>
-          </div>
-          <i
-            v-if="getIdentityLink('twitter')"
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-if="getIdentityLink('linkedin')"
-          class="py-2 flex items-center relative text-gray-900"
-          :class="
-            getIdentityLink('linkedin')
-              ? 'hover:text-brand-500 transition-colors cursor-pointer'
-              : ''
-          "
-          :href="getIdentityLink('linkedin')"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="linkedin" />
-            <span class="text-xs">
-              LinkedIn</span>
-          </div>
-          <i
-            v-if="getIdentityLink('linkedin')"
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-if="getIdentityLink('crunchbase')"
-          class="py-2 flex items-center relative text-gray-900"
-          :class="
-            getIdentityLink('crunchbase')
-              ? 'hover:text-brand-500 transition-colors cursor-pointer'
-              : ''
-          "
-          :href="getIdentityLink('crunchbase')"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="crunchbase" />
-            <span class="text-xs">
-              Crunchbase</span>
-          </div>
-          <i
-            v-if="getIdentityLink('crunchbase')"
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-if="getIdentityLink('facebook')"
-          class="py-2 flex items-center relative text-gray-900"
-          :class="
-            getIdentityLink('facebook')
-              ? 'hover:text-brand-500 transition-colors cursor-pointer'
-              : ''
-          "
-          :href="getIdentityLink('facebook')"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="facebook" />
-            <span class="text-xs">
-              Facebook</span>
-          </div>
-          <i
-            v-if="getIdentityLink('facebook')"
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-if="getIdentityLink('hubspot')"
-          class="py-2 flex items-center relative text-gray-900"
-          :class="
-            getIdentityLink('hubspot')
-              ? 'hover:text-brand-500 transition-colors cursor-pointer'
-              : ''
-          "
-          :href="getIdentityLink('hubspot')"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="hubspot" />
-            <span class="text-xs">
-              HubSpot</span>
-          </div>
-          <i
-            v-if="getIdentityLink('hubspot')"
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
+        <template v-if="props.organization.identities && props.organization.identities.length > 0">
+          <a
+            class="py-2 flex items-center relative text-gray-900 hover:text-brand-500 transition-colors cursor-pointer"
+            :href="getIdentityLink(identity)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="flex gap-3 items-center">
+              <app-platform :platform="identity.platform" />
+              <span class="text-xs">
+                {{ getPlatformDetails(identity.platform).name }}</span>
+            </div>
+            <i
+              class="ri-external-link-line text-gray-300 pl-2"
+            />
+          </a>
+        </template>
         <a
           v-for="email of props.organization.emails"
           :key="email"
@@ -412,6 +297,7 @@ import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppPlatform from '@/shared/platform/platform.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   organization: {
@@ -453,31 +339,30 @@ const bio = ref(null);
 const displayShowMore = ref(null);
 const more = ref(null);
 
-const getIdentityLink = (platform) => {
-  if (props.organization[platform]?.url) {
-    return withHttp(props.organization[platform]?.url);
+const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
+
+const getIdentityLink = (identity) => {
+  if (identity.url) {
+    return withHttp(identity.url);
   }
-  if (props.organization[platform]?.handle) {
+  if (identity.name) {
     let url;
 
-    if (platform === 'linkedin') {
+    if (identity.platform === 'linkedin') {
       url = 'https://www.linkedin.com/company';
-    } else if (platform === 'github') {
+    } else if (identity.platform === 'github') {
       url = 'https://github.com/';
-    } else if (platform === 'twitter') {
+    } else if (identity.platform === 'twitter') {
       url = 'https://twitter.com/';
-    } else if (platform === 'crunchbase') {
+    } else if (identity.platform === 'crunchbase') {
       url = 'https://www.crunchbase.com/organization/';
-    } else if (platform === 'facebook') {
+    } else if (identity.platform === 'facebook') {
       url = 'https://www.facebook.com/';
     } else {
       return null;
     }
 
-    return `${url}${props.organization[platform].handle}`;
-  }
-  if (props.organization.attributes?.url?.[platform]) {
-    return props.organization.attributes?.url?.[platform];
+    return `${url}${identity.name}`;
   }
   return null;
 };

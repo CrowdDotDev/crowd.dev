@@ -6,138 +6,49 @@
     >
       <!-- Github -->
       <app-platform
-        v-if="!!organization.github"
-        platform="github"
+        v-for="(identity, ii) of organization.identities"
+        :key="ii"
+        :platform="identity.platform"
         track-event-name="Click Organization Contact"
-        track-event-channel="GitHub"
-        tooltip-label="GitHub profile"
-        :username-handles="[organization['github']?.handle]"
+        :track-event-channel="getPlatformDetails(identity.platform).name"
+        :tooltip-label="`${getPlatformDetails(identity.platform).name} profile`"
+        :username-handles="[identity.name]"
         :has-tooltip="true"
-        :href="getIdentityLink('github')"
+        :href="getIdentityLink(identity)"
         :as-link="
           !!(
-            organization['github']?.url
-            || organization['github']?.handle
+            identity.url
+            || identity.name
           )
         "
       />
 
-      <!-- LinkedIn -->
-      <app-platform
-        v-if="!!organization.linkedin"
-        platform="linkedin"
-        track-event-name="Click Organization Contact"
-        track-event-channel="LinkedIn"
-        tooltip-label="LinkedIn profile"
-        :username-handles="[organization['linkedin']?.handle]"
-        :has-tooltip="true"
-        :href="getIdentityLink('linkedin')"
-        :as-link="
-          !!(
-            organization['linkedin']?.url
-            || organization['linkedin']?.handle
-          )
-        "
+      <el-divider
+        v-if="showDivider"
+        direction="vertical"
+        class="border-gray-200 m-0 h-8"
       />
 
-      <!-- Twitter -->
-      <app-platform
-        v-if="!!organization.twitter"
-        platform="twitter"
-        track-event-name="Click Organization Contact"
-        track-event-channel="Twitter"
-        tooltip-label="Twitter profile"
-        :username-handles="[organization['twitter']?.handle]"
-        :has-tooltip="true"
-        :href="getIdentityLink('twitter')"
-        :as-link="
-          !!(
-            organization['twitter']?.url
-            || organization['twitter']?.handle
-          )
-        "
-      />
-
-      <!-- Crunchbase -->
-      <app-platform
-        v-if="!!organization.crunchbase"
-        platform="crunchbase"
-        track-event-name="Click Organization Contact"
-        track-event-channel="Crunchbase"
-        tooltip-label="Crunchbase profile"
-        :username-handles="[organization['crunchbase']?.handle]"
-        :has-tooltip="true"
-        :href="getIdentityLink('crunchbase')"
-        :as-link="
-          !!(
-            organization['crunchbase']?.url
-            || organization['crunchbase']?.handle
-          )
-        "
-      />
-
-      <!-- HubSpot -->
-      <app-platform
-        v-if="!!organization.attributes?.url?.hubspot && !!organization.attributes?.domain?.hubspot"
-        platform="hubspot"
-        track-event-name="Click Organization Contact"
-        track-event-channel="HubSpot"
-        tooltip-label="HubSpot profile"
-        :username-handles="[organization.attributes?.domain?.hubspot]"
-        :has-tooltip="true"
-        :href="getIdentityLink('hubspot')"
-        :as-link="
-          !!(
-            organization.attributes?.url?.hubspot
-            || organization.attributes?.domain?.hubspot
-          )
-        "
-      />
-    </div>
-
-    <!-- Facebook -->
-    <app-platform
-      v-if="!!organization.facebook"
-      platform="facebook"
-      track-event-name="Click Organization Contact"
-      track-event-channel="Facebook"
-      tooltip-label="Facebook profile"
-      :username-handles="[organization['facebook']?.handle]"
-      :has-tooltip="true"
-      :href="getIdentityLink('facebook')"
-      :as-link="
-        !!(
-          organization['facebook']?.url
-          || organization['facebook']?.handle
-        )
-      "
-    />
-
-    <el-divider
-      v-if="showDivider"
-      direction="vertical"
-      class="border-gray-200 m-0 h-8"
-    />
-
-    <div
-      v-if="!!props.organization.phoneNumbers?.length"
-      class="flex items-center gap-2"
-    >
-      <!-- Phone numbers -->
-      <app-platform
-        v-if="!!organization.phoneNumbers?.length"
-        platform="phone"
-        track-event-name="Click Organization Contact"
-        track-event-channel="Phone"
-        :has-tooltip="true"
-        tooltip-label="Call"
-        :href="
-          organization.phoneNumbers?.length
-            ? `tel:${organization.phoneNumbers[0]}`
-            : null
-        "
-        :as-link="!!organization.phoneNumbers?.length"
-      />
+      <div
+        v-if="!!props.organization.phoneNumbers?.length"
+        class="flex items-center gap-2"
+      >
+        <!-- Phone numbers -->
+        <app-platform
+          v-if="!!organization.phoneNumbers?.length"
+          platform="phone"
+          track-event-name="Click Organization Contact"
+          track-event-channel="Phone"
+          :has-tooltip="true"
+          tooltip-label="Call"
+          :href="
+            organization.phoneNumbers?.length
+              ? `tel:${organization.phoneNumbers[0]}`
+              : null
+          "
+          :as-link="!!organization.phoneNumbers?.length"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -145,6 +56,7 @@
 <script setup>
 import { withHttp } from '@/utils/string';
 import { defineProps, computed } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
   organization: {
@@ -165,33 +77,31 @@ const showDivider = computed(
     && hasSocialIdentities.value,
 );
 
-const getIdentityLink = (platform) => {
-  if (props.organization[platform]?.url) {
-    return withHttp(props.organization[platform]?.url);
+const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
+
+const getIdentityLink = (identity) => {
+  if (identity.url) {
+    return withHttp(identity.url);
   }
-  if (props.organization[platform]?.handle) {
+  if (identity.name) {
     let url;
 
-    if (platform === 'linkedin') {
-      url = 'https://www.linkedin.com/company/';
-    } else if (platform === 'github') {
+    if (identity.platform === 'linkedin') {
+      url = 'https://www.linkedin.com/company';
+    } else if (identity.platform === 'github') {
       url = 'https://github.com/';
-    } else if (platform === 'twitter') {
+    } else if (identity.platform === 'twitter') {
       url = 'https://twitter.com/';
-    } else if (platform === 'crunchbase') {
+    } else if (identity.platform === 'crunchbase') {
       url = 'https://www.crunchbase.com/organization/';
-    } else if (platform === 'facebook') {
+    } else if (identity.platform === 'facebook') {
       url = 'https://www.facebook.com/';
     } else {
       return null;
     }
 
-    return `${url}${props.organization[platform].handle}`;
+    return `${url}${identity.name}`;
   }
-  if (props.organization.attributes?.url?.[platform]) {
-    return props.organization.attributes?.url?.[platform];
-  }
-
   return null;
 };
 </script>
