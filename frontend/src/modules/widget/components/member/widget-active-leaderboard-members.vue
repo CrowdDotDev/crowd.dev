@@ -52,7 +52,7 @@
           `We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
             selectedPeriod.granularity,
             selectedPeriod.value,
-            true,
+            true
           )}. They are probably eager to share their experiences and enthusiasm for your community.`
         }}</span>
       </template>
@@ -78,13 +78,7 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  onMounted,
-  computed,
-  defineProps,
-  watch,
-} from 'vue';
+import { ref, onMounted, computed, defineProps, watch } from 'vue';
 import pluralize from 'pluralize';
 import moment from 'moment';
 import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
@@ -92,13 +86,17 @@ import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vu
 import AppWidgetInsight from '@/modules/widget/components/shared/widget-insight.vue';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { getSelectedPeriodFromLabel } from '@/modules/widget/widget-utility';
 import { MemberService } from '@/modules/member/member-service';
 import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import MEMBERS_REPORT, { ACTIVE_LEADERBOARD_MEMBERS_WIDGET } from '@/modules/report/templates/config/members';
+import MEMBERS_REPORT, {
+  ACTIVE_LEADERBOARD_MEMBERS_WIDGET,
+} from '@/modules/report/templates/config/members';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   filters: {
@@ -107,10 +105,17 @@ const props = defineProps({
   },
 });
 
+const route = useRoute();
+const router = useRouter();
 const drawerExpanded = ref();
 const drawerTitle = ref();
 
-const selectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
+const selectedPeriod = ref(
+  getSelectedPeriodFromLabel(
+    route.query.activeMembersLeaderBoardPeriod,
+    SEVEN_DAYS_PERIOD_FILTER
+  )
+);
 const activeMembers = ref([]);
 const loading = ref(false);
 const error = ref(false);
@@ -118,15 +123,13 @@ const error = ref(false);
 const { doExport } = mapActions('member');
 
 const empty = computed(
-  () => !loading.value
-    && !error.value
-    && activeMembers.value.length === 0,
+  () => !loading.value && !error.value && activeMembers.value.length === 0
 );
 
 const getActiveMembers = async (
   period = selectedPeriod.value,
   platforms = props.filters.platform.value,
-  teamMembers = props.filters.teamMembers,
+  teamMembers = props.filters.teamMembers
 ) => {
   loading.value = true;
   error.value = false;
@@ -160,29 +163,34 @@ const getActiveMembers = async (
 const onUpdatePeriod = async (updatedPeriod) => {
   activeMembers.value = await getActiveMembers(updatedPeriod);
   selectedPeriod.value = updatedPeriod;
+  router.replace({
+    query: {
+      ...route.query,
+      activeMembersLeaderBoardPeriod: updatedPeriod.label,
+    },
+  });
 };
 
 // Fetch function to pass to detail drawer
 const getDetailedActiveMembers = ({
   pagination,
   period = selectedPeriod.value,
-}) => MemberService.listActive({
-  platform: props.filters.platform.value,
-  isTeamMember: props.filters.teamMembers,
-  activityIsContribution: null,
-  activityTimestampFrom: moment()
-    .utc()
-    .subtract(period.value, period.granularity)
-    .toISOString(),
-  activityTimestampTo: moment().utc(),
-  orderBy: 'activeDaysCount_DESC',
-  offset: !pagination.count
-    ? (pagination.currentPage - 1) * pagination.pageSize
-    : 0,
-  limit: !pagination.count
-    ? pagination.pageSize
-    : pagination.count,
-});
+}) =>
+  MemberService.listActive({
+    platform: props.filters.platform.value,
+    isTeamMember: props.filters.teamMembers,
+    activityIsContribution: null,
+    activityTimestampFrom: moment()
+      .utc()
+      .subtract(period.value, period.granularity)
+      .toISOString(),
+    activityTimestampTo: moment().utc(),
+    orderBy: 'activeDaysCount_DESC',
+    offset: !pagination.count
+      ? (pagination.currentPage - 1) * pagination.pageSize
+      : 0,
+    limit: !pagination.count ? pagination.pageSize : pagination.count,
+  });
 
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
@@ -216,9 +224,7 @@ const onExport = async ({ ids, count }) => {
 };
 
 onMounted(async () => {
-  activeMembers.value = await getActiveMembers(
-    selectedPeriod.value,
-  );
+  activeMembers.value = await getActiveMembers(selectedPeriod.value);
 });
 
 // Each time filter changes, query a new response
@@ -228,9 +234,9 @@ watch(
     activeMembers.value = await getActiveMembers(
       selectedPeriod.value,
       platforms,
-      teamMembers,
+      teamMembers
     );
-  },
+  }
 );
 </script>
 

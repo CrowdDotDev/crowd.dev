@@ -6,9 +6,7 @@
         class="flex grow justify-between items-center pb-5 border-b border-gray-100 mb-8"
       >
         <div class="flex gap-1">
-          <app-widget-title
-            :title="ACTIVITIES_LEADERBOARD_WIDGET.name"
-          />
+          <app-widget-title :title="ACTIVITIES_LEADERBOARD_WIDGET.name" />
         </div>
         <app-widget-period
           :template="ACTIVITIES_REPORT.nameAsId"
@@ -25,10 +23,7 @@
         :limit="10"
       >
         <template #button="{ showButton }">
-          <div
-            v-if="showButton"
-            class="flex justify-end"
-          >
+          <div v-if="showButton" class="flex justify-end">
             <el-button
               class="btn btn-link btn-link--primary mt-4 !h-8"
               @click="handleDrawerOpen"
@@ -61,12 +56,16 @@
 
 <script setup>
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { getSelectedPeriodFromLabel } from '@/modules/widget/widget-utility';
 import { ref } from 'vue';
 import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
 import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 import AppWidgetCubeDrawer from '@/modules/widget/components/shared/widget-cube-drawer.vue';
-import ACTIVITIES_REPORT, { ACTIVITIES_LEADERBOARD_WIDGET } from '@/modules/report/templates/config/activities';
+import ACTIVITIES_REPORT, {
+  ACTIVITIES_LEADERBOARD_WIDGET,
+} from '@/modules/report/templates/config/activities';
 import AppWidgetActivitiesTypeList from '@/modules/widget/components/activity/widget-activities-type-list.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 defineProps({
   filters: {
@@ -75,14 +74,27 @@ defineProps({
   },
 });
 
+const route = useRoute();
+const router = useRouter();
 const drawerExpanded = ref();
 const drawerTitle = ref('Leaderboard: Activities by type');
 
-const selectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
+const selectedPeriod = ref(
+  getSelectedPeriodFromLabel(
+    route.query.leaderboardActivitiesByTypePeriod,
+    SEVEN_DAYS_PERIOD_FILTER
+  )
+);
 const drawerSelectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
 
 const onUpdatePeriod = (updatedPeriod) => {
   selectedPeriod.value = updatedPeriod;
+  router.replace({
+    query: {
+      ...route.query,
+      leaderboardActivitiesByTypePeriod: updatedPeriod.label,
+    },
+  });
 };
 
 const onDrawerUpdatePeriod = (updatedPeriod) => {
