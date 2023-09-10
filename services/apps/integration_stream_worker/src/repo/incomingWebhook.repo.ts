@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IWebhookData } from './incomingWebhook.data'
-import { WebhookState } from '@crowd/types'
+import { WebhookState, WebhookType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 
 export default class IncomingWebhookRepository extends RepositoryBase<IncomingWebhookRepository> {
@@ -105,5 +105,36 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     )
 
     return result?.id ?? null
+  }
+
+  public async getPendingWebhooks(limit: number): Promise<
+    {
+      id: string
+      tenantId: string
+      platform: string
+    }[]
+  > {
+    const results = await this.db().manyOrNone(
+      `
+        select
+            iw.id,
+            iw."tenantId" as "tenantId",
+            i.platform as "platform",
+        from 
+            "incomingWebhooks" iw
+        join "integrations" i on iw."integrationId" = i.id
+        where
+             iw.state = $(state)
+             and iw.type != $(type)
+        limit $(limit)
+      `,
+      {
+        state: WebhookState.PENDING,
+        type: WebhookType.DISCOURSE,
+        limit,
+      },
+    )
+
+    return results
   }
 }
