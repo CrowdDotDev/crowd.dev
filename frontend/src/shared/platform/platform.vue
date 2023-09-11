@@ -4,6 +4,7 @@
     :tooltip-label="tooltipLabel"
     :platform="platform"
     :href="asLink ? href : null"
+    :links="props.links"
   >
     <template #platform>
       <div class="relative">
@@ -82,6 +83,10 @@ const props = defineProps({
     default: () => false,
   },
   usernameHandles: {
+    type: Array,
+    default: () => [],
+  },
+  links: {
     type: Array,
     default: () => [],
   },

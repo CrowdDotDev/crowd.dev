@@ -123,22 +123,21 @@ const mergeSuggestion = () => {
       Message.success('Organizations merged successfuly');
 
       emit('update:modelValue', null);
-      changeOrganization();
 
       if (route.name === 'organizationView') {
         const keepId = originalOrganizationPrimary.value ? props.modelValue?.id : organizationToMerge.value?.id;
         fetchOrganization(keepId);
-        if (props.modelValue.id !== keepId) {
-          router.push({
-            name: 'organizationView',
-            params: {
-              id: keepId,
-            },
-          });
-        }
+        router.push({
+          name: 'organizationView',
+          params: {
+            id: keepId,
+          },
+        });
       } else if (route.name === 'organization') {
         fetchOrganizations({ reload: true });
       }
+
+      changeOrganization();
     })
     .catch(() => {
       Message.error('There was an error merging organizations');

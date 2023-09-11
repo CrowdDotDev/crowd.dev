@@ -15,6 +15,7 @@
     <app-platform-list
       :username-handles="usernameHandles"
       :platform="platform"
+      :links="links"
     />
   </el-popover>
   <el-tooltip
@@ -40,6 +41,10 @@ import AppPlatformList from './platform-list.vue';
 
 defineProps({
   usernameHandles: {
+    type: Array,
+    default: () => [],
+  },
+  links: {
     type: Array,
     default: () => [],
   },
