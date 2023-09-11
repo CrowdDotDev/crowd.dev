@@ -231,6 +231,8 @@
       <div class="pt-5">
         <template v-if="props.organization.identities && props.organization.identities.length > 0">
           <a
+            v-for="(identity, ii) of props.organization.identities"
+            :key="ii"
             class="py-2 flex items-center relative text-gray-900 hover:text-brand-500 transition-colors cursor-pointer"
             :href="getIdentityLink(identity)"
             target="_blank"
