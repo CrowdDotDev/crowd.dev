@@ -13,16 +13,18 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     const result = await this.db().oneOrNone(
       `
         select
-            id,
-            "tenantId",
-            "integrationId",
-            state,
-            type,
-            payload
+            iw.id,
+            iw."tenantId",
+            iw."integrationId",
+            iw.state,
+            iw.type,
+            iw.payload,
+            i.platform as "platform"
         from 
-            "incomingWebhooks"
+            "incomingWebhooks" iw
+        join "integrations" i on iw."integrationId" = i.id
         where
-             id = $(id)
+             iw.id = $(id)
       `,
       {
         id,
