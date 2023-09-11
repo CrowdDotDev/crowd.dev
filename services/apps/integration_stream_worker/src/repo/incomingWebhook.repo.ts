@@ -155,7 +155,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
         select
             iw.id,
             iw."tenantId" as "tenantId",
-            i.platform as "platform",
+            i.platform as "platform"
         from 
             "incomingWebhooks" iw
         join "integrations" i on iw."integrationId" = i.id
