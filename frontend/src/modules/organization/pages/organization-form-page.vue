@@ -212,10 +212,10 @@ function getInitialModel(record) {
         employees: record ? record.employees : null,
         location: record ? record.location : null,
         website: record ? record.website : null,
-        identities: record ? record.identities.map((i) => ({
+        identities: record ? [...record.identities.map((i) => ({
           platform: i.platform,
           name: i.name,
-        })) : [],
+        }))] : [],
         revenueRange: record ? record.revenueRange : {},
         emails:
           record && record.emails?.length > 0

@@ -64,7 +64,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppDialog from '@/shared/dialog/dialog.vue';
@@ -84,6 +84,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const route = useRoute();
+const router = useRouter();
 
 const { fetchOrganizations, fetchOrganization } = useOrganizationStore();
 
@@ -125,7 +126,16 @@ const mergeSuggestion = () => {
       changeOrganization();
 
       if (route.name === 'organizationView') {
-        fetchOrganization((originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value).id);
+        const keepId = originalOrganizationPrimary.value ? props.modelValue?.id : organizationToMerge.value?.id;
+        fetchOrganization(keepId);
+        if (props.modelValue.id !== keepId) {
+          router.push({
+            name: 'organizationView',
+            params: {
+              id: keepId,
+            },
+          });
+        }
       } else if (route.name === 'organization') {
         fetchOrganizations({ reload: true });
       }
