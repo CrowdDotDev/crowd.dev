@@ -30,7 +30,7 @@ const ptBR = {
   },
 
   app: {
-    title: 'crowd.dev',
+    title: 'LFX',
   },
   api: {
     menu: 'API',
