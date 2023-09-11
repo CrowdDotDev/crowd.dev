@@ -241,7 +241,7 @@ const parseWebhookPullRequestReview = async (
   }
 }
 
-const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext) => {
+const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext, date?: string) => {
   if (payload.action === 'created' || payload.action === 'deleted') {
     const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
@@ -250,6 +250,7 @@ const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext)
         webhookType: GithubWehookEvent.STAR,
         data: payload,
         member,
+        ...(date ? { date } : {}),
       })
     }
   }
@@ -352,7 +353,7 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
     await processPullCommitsStream(ctx as IProcessStreamContext)
   } else {
     // this is for normal weqbook events
-    const { signature, event, data } = ctx.stream.data as GithubWebhookPayload
+    const { signature, event, data, date } = ctx.stream.data as GithubWebhookPayload
 
     await verifyWebhookSignature(signature, data, ctx)
 
