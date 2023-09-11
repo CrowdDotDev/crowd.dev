@@ -37,7 +37,7 @@
     >
       <div class="flex items-center">
         <span class="ri-alert-fill text-yellow-500 text-base mr-3" />
-        <span class="text-xs leading-5 text-gray-900">Please make sure you have the LFX notifier app installed in your Slack workspace.</span>
+        <span class="text-xs leading-5 text-gray-900">Please make sure you have the crowd.dev notifier app installed in your Slack workspace.</span>
       </div>
       <el-button
         class="btn btn--primary btn--sm ml-4"

@@ -13,7 +13,7 @@
       Merging suggestions
     </h4>
     <div class="text-xs text-gray-600 pb-6">
-      LFX is constantly checking your community for duplicate contributors.
+      crowd.dev is constantly checking your community for duplicate contributors.
       Here you can check all the merging suggestions.
     </div>
 

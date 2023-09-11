@@ -22,7 +22,7 @@
             Enable data syncing
           </h4>
           <p class="text-2xs text-gray-500">
-            Define which LFX core elements can be synced to or from HubSpot.
+            Define which crowd.dev core elements can be synced to or from HubSpot.
           </p>
         </section>
         <section class="pb-10 border-b border-gray-200">
@@ -66,7 +66,7 @@
           </h4>
           <div class="flex justify-between pb-5">
             <p class="text-2xs text-gray-500">
-              Select and map which attributes and properties to sync between LFX and HubSpot.
+              Select and map which attributes and properties to sync between crowd.dev and HubSpot.
             </p>
             <div class="pl-8">
               <el-button
@@ -82,7 +82,7 @@
           </div>
           <div v-if="form.members || form.organizations" class="p-2 rounded bg-blue-50 flex items-center mb-3">
             <span class="ri-information-line text-blue-900 mr-2 text-base h-4 flex items-center" />
-            <span class="text-[11px] text-blue-900 leading-4.5">We recommend creating custom properties in Hubspot for every LFX attribute.
+            <span class="text-[11px] text-blue-900 leading-4.5">We recommend creating custom properties in Hubspot for every crowd.dev attribute.
               <a
                 href="https://go.crowd.dev/hubspot-docs-properties"
                 target="_blank"
@@ -117,7 +117,7 @@
               <div v-if="activeView === 'member'">
                 <div class="flex pt-3 pb-2 border-b border-gray-100">
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
-                    LFX ATTRIBUTES
+                    CROWD.DEV ATTRIBUTES
                   </div>
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
                     HUBSPOT PROPERTIES <span class="text-brand-500">*</span>
@@ -158,7 +158,7 @@
               <div v-if="activeView === 'organization'">
                 <div class="flex pt-3 pb-2 border-b border-gray-100">
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
-                    LFX ATTRIBUTES
+                    CROWD.DEV ATTRIBUTES
                   </div>
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
                     HUBSPOT PROPERTIES <span class="text-brand-500">*</span>

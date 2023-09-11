@@ -100,7 +100,7 @@ BODY:
     "member": {
         "username": "john doe",
         "displayName": "Jonh Doe",
-        "email": "johndoe@lfx.dev",
+        "email": "johndoe@crowd.dev",
         "joinedAt": "2023-05-26"
     },
     "sourceId": "123",

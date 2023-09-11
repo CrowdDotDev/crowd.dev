@@ -36,7 +36,7 @@
         </span>
         <app-keywords-input
           v-model="keywords"
-          placeholder="e.g. LFX, linux"
+          placeholder="e.g. crowd.dev, crowddev, CrowdDotDev"
         />
       </div>
       <el-form class="form integration-hackerNews-form">

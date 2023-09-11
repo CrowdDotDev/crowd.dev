@@ -19,7 +19,7 @@
     <template #content>
       <div class="flex flex-row items-center justify-between w-full">
         <p class="font-bold text-base">
-          Set up LFX in Zapier
+          Set up crowd.dev in Zapier
         </p>
         <a
           href="https://docs.crowd.dev/docs/zapier-integration"
@@ -59,7 +59,7 @@
                 rel="noopener noreferrer"
                 class="underline underline-offset-4"
               >Zapier</a>
-              and connect your LFX account using your workspace API Keys
+              and connect your crowd.dev account using your workspace API Keys
             </p>
           </li>
           <li class="flex items-center">

@@ -30,7 +30,7 @@ const en = {
   },
 
   app: {
-    title: 'LFX',
+    title: 'crowd.dev',
   },
 
   api: {

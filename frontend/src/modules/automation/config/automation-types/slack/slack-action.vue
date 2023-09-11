@@ -5,7 +5,7 @@
     </div>
     <div class="flex-grow pl-4">
       <h6 class="text-sm font-medium">
-        LFX notifier
+        crowd.dev notifier
       </h6>
       <p class="text-2xs leading-4.5 text-gray-600">
         Required to receive notifications in your workspace
