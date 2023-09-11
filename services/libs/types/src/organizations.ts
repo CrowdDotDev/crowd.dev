@@ -47,6 +47,18 @@ export interface IOrganization {
   tenantId?: string
 }
 
+export interface IMemberOrganization {
+  id?: string
+  title?: string
+  dateStart: Date | string
+  dateEnd: Date | string
+  memberId: string
+  organizationId: string
+  updatedAt?: string
+  createdAt?: string
+  source?: string
+}
+
 export interface IOrganizationCache {
   id?: string
   url?: string

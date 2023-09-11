@@ -1,4 +1,4 @@
-import { IOrganization } from '@crowd/types'
+import { IOrganization, IOrganizationIdentity } from '@crowd/types'
 import { LoggerBase } from '@crowd/logging'
 import { websiteNormalizer } from '@crowd/common'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
@@ -12,6 +12,14 @@ import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { enrichOrganization } from './helpers/enrichment'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import merge from './helpers/merge'
+import {
+  keepPrimary,
+  keepPrimaryIfExists,
+  mergeUniqueStringArrayItems,
+} from './helpers/mergeFunctions'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -27,6 +35,196 @@ export default class OrganizationService extends LoggerBase {
       return false
     }
     return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
+  }
+
+  async merge(originalId, toMergeId) {
+    this.options.log.info({ originalId, toMergeId }, 'Merging organizations!')
+
+    const removeExtraFields = (organization: IOrganization): IOrganization =>
+      getObjectWithoutKey(organization, [
+        'activityCount',
+        'memberCount',
+        'activeOn',
+        'segments',
+        'lastActive',
+        'joinedAt',
+      ])
+
+    let tx
+
+    try {
+      let original = await OrganizationRepository.findById(originalId, this.options)
+      let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+
+      if (original.id === toMerge.id) {
+        return {
+          status: 203,
+          mergedId: originalId,
+        }
+      }
+
+      tx = await SequelizeRepository.createTransaction(this.options)
+      const repoOptions: IRepositoryOptions = { ...this.options }
+      repoOptions.transaction = tx
+
+      const allIdentities = await OrganizationRepository.getIdentities(
+        [originalId, toMergeId],
+        repoOptions,
+      )
+
+      const originalIdentities = allIdentities.filter((i) => i.organizationId === originalId)
+      const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
+      const identitiesToMove = []
+      for (const identity of toMergeIdentities) {
+        if (
+          !originalIdentities.find(
+            (i) => i.platform === identity.platform && i.name === identity.name,
+          )
+        ) {
+          identitiesToMove.push(identity)
+        }
+      }
+
+      await OrganizationRepository.moveIdentitiesBetweenOrganizations(
+        toMergeId,
+        originalId,
+        identitiesToMove,
+        repoOptions,
+      )
+
+      // remove aggregate fields and relationships
+      original = removeExtraFields(original)
+      toMerge = removeExtraFields(toMerge)
+
+      // Performs a merge and returns the fields that were changed so we can update
+      const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
+
+      // Update original organization
+      const txService = new OrganizationService(repoOptions as IServiceOptions)
+      await txService.update(originalId, toUpdate)
+
+      // update members that belong to source organization to destination org
+      await OrganizationRepository.moveMembersBetweenOrganizations(
+        toMergeId,
+        originalId,
+        repoOptions,
+      )
+
+      // update activities that belong to source org to destination org
+      await OrganizationRepository.moveActivitiesBetweenOrganizations(
+        toMergeId,
+        originalId,
+        repoOptions,
+      )
+
+      const secondMemberSegments = await OrganizationRepository.getOrganizationSegments(
+        toMergeId,
+        repoOptions,
+      )
+
+      await OrganizationRepository.includeOrganizationToSegments(originalId, {
+        ...repoOptions,
+        currentSegments: secondMemberSegments,
+      })
+
+      // Delete toMerge member
+      await OrganizationRepository.destroy(toMergeId, repoOptions, true)
+
+      await SequelizeRepository.commitTransaction(tx)
+
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, originalId)
+      await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
+
+      this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
+      return { status: 200, mergedId: originalId }
+    } catch (err) {
+      this.options.log.error(err, 'Error while merging organizations!')
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
+      throw err
+    }
+  }
+
+  static organizationsMerge(originalObject, toMergeObject) {
+    return merge(originalObject, toMergeObject, {
+      description: keepPrimaryIfExists,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      emails: mergeUniqueStringArrayItems,
+      phoneNumbers: mergeUniqueStringArrayItems,
+      logo: keepPrimaryIfExists,
+      tags: mergeUniqueStringArrayItems,
+      twitter: keepPrimaryIfExists,
+      linkedin: keepPrimaryIfExists,
+      crunchbase: keepPrimaryIfExists,
+      employees: keepPrimaryIfExists,
+      revenueRange: keepPrimaryIfExists,
+      importHash: keepPrimary,
+      createdAt: keepPrimary,
+      updatedAt: keepPrimary,
+      deletedAt: keepPrimary,
+      tenantId: keepPrimary,
+      createdById: keepPrimary,
+      updatedById: keepPrimary,
+      location: keepPrimaryIfExists,
+      github: keepPrimaryIfExists,
+      website: keepPrimaryIfExists,
+      isTeamOrganization: keepPrimaryIfExists,
+      lastEnrichedAt: keepPrimary,
+      employeeCounByCountry: keepPrimaryIfExists,
+      type: keepPrimaryIfExists,
+      geoLocation: keepPrimaryIfExists,
+      size: keepPrimaryIfExists,
+      ticker: keepPrimaryIfExists,
+      headline: keepPrimaryIfExists,
+      profiles: mergeUniqueStringArrayItems,
+      naics: keepPrimaryIfExists,
+      address: keepPrimaryIfExists,
+      industry: keepPrimaryIfExists,
+      founded: keepPrimaryIfExists,
+      displayName: keepPrimary,
+      attributes: keepPrimary,
+      searchSyncedAt: keepPrimary,
+      affiliatedProfiles: mergeUniqueStringArrayItems,
+      allSubsidiaries: mergeUniqueStringArrayItems,
+      alternativeDomains: mergeUniqueStringArrayItems,
+      alternativeNames: mergeUniqueStringArrayItems,
+      averageEmployeeTenure: keepPrimaryIfExists,
+      averageTenureByLevel: keepPrimaryIfExists,
+      averageTenureByRole: keepPrimaryIfExists,
+      directSubsidiaries: mergeUniqueStringArrayItems,
+      employeeChurnRate: keepPrimaryIfExists,
+      employeeCountByMonth: keepPrimaryIfExists,
+      employeeGrowthRate: keepPrimaryIfExists,
+      employeeCountByMonthByLevel: keepPrimaryIfExists,
+      employeeCountByMonthByRole: keepPrimaryIfExists,
+      gicsSector: keepPrimaryIfExists,
+      grossAdditionsByMonth: keepPrimaryIfExists,
+      grossDeparturesByMonth: keepPrimaryIfExists,
+      ultimateParent: keepPrimaryIfExists,
+      immediateParent: keepPrimaryIfExists,
+      manuallyCreated: keepPrimary,
+      weakIdentities: (
+        weakIdentitiesPrimary: IOrganizationIdentity[],
+        weakIdentitiesSecondary: IOrganizationIdentity[],
+      ): IOrganizationIdentity[] => {
+        const uniqueMap: { [key: string]: IOrganizationIdentity } = {}
+
+        const createKey = (identity: IOrganizationIdentity) =>
+          `${identity.platform}_${identity.name}`
+
+        ;[...weakIdentitiesPrimary, ...weakIdentitiesSecondary].forEach((identity) => {
+          const key = createKey(identity)
+
+          if (!uniqueMap[key]) {
+            uniqueMap[key] = identity
+          }
+        })
+
+        return Object.values(uniqueMap)
+      },
+    })
   }
 
   async createOrUpdate(data: IOrganization, enrichP = true) {

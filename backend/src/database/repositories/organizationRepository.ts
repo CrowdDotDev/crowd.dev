@@ -3,6 +3,7 @@ import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch
 import { PageData } from '@crowd/common'
 import {
   IEnrichableOrganization,
+  IMemberOrganization,
   IOrganization,
   IOrganizationIdentity,
   OpenSearchIndex,
@@ -19,6 +20,8 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '@/types/common'
+import { SegmentData } from '@/types/segmentTypes'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
@@ -237,7 +240,6 @@ class OrganizationRepository {
     options: IRepositoryOptions,
     organizationId?: string,
   ): Promise<void> {
-
     // convert non-existing weak identities to strong ones
     if (data.weakIdentities && data.weakIdentities.length > 0) {
       const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
@@ -245,7 +247,7 @@ class OrganizationRepository {
         options,
         organizationId,
       )
-  
+
       const strongIdentities = []
 
       // find weak identities in the payload that doesn't exist as a strong identity yet
@@ -283,7 +285,7 @@ class OrganizationRepository {
         options,
         organizationId,
       )
-  
+
       const weakIdentities: IOrganizationIdentity[] = []
 
       // find strong identities in payload that already exist in some other organization, and convert these to weak
@@ -303,6 +305,10 @@ class OrganizationRepository {
 
         // push new weak identities to the payload
         for (const weakIdentity of weakIdentities) {
+          if (!data.weakIdentities) {
+            data.weakIdentities = []
+          }
+
           if (
             data.weakIdentities.find(
               (w) => w.platform === weakIdentity.platform && w.name === weakIdentity.name,
@@ -361,6 +367,56 @@ class OrganizationRepository {
         segmentIds: SequelizeRepository.getSegmentIds(options),
       },
       type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
+  static async removeMemberRole(role: IMemberOrganization, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const deleteMemberRole = `DELETE FROM "memberOrganizations" 
+                                            WHERE 
+                                            "organizationId" = :organizationId and 
+                                            "memberId" = :memberId and 
+                                            "dateStart" = :dateStart and 
+                                            "dateEnd" = :dateEnd;`
+
+    await seq.query(deleteMemberRole, {
+      replacements: {
+        organizationId: role.organizationId,
+        memberId: role.memberId,
+        dateStart: role.dateStart ? (role.dateStart as Date).toISOString() : null,
+        dateEnd: role.dateEnd ? (role.dateEnd as Date).toString() : null,
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
+  static async addMemberRole(
+    role: IMemberOrganization,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+
+    const query = `
+          insert into "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
+          values (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
+          on conflict do nothing;
+    `
+
+    await sequelize.query(query, {
+      replacements: {
+        memberId: role.memberId,
+        organizationId: role.organizationId,
+        title: role.title || null,
+        dateStart: role.dateStart,
+        dateEnd: role.dateEnd,
+        source: role.source || null,
+      },
+      type: QueryTypes.INSERT,
       transaction,
     })
   }
@@ -601,7 +657,7 @@ class OrganizationRepository {
   }
 
   static async getIdentities(
-    organizationId: string,
+    organizationIds: string[],
     options: IRepositoryOptions,
   ): Promise<IOrganizationIdentity[]> {
     const transaction = SequelizeRepository.getTransaction(options)
@@ -610,12 +666,12 @@ class OrganizationRepository {
 
     const results = await sequelize.query(
       `
-      select "sourceId", "platform", "name", "integrationId" from "organizationIdentities"
-      where "organizationId" = :organizationId and "tenantId" = :tenantId
+      select "sourceId", "platform", "name", "integrationId", "organizationId" from "organizationIdentities"
+      where "tenantId" = :tenantId and "organizationId" in (:organizationIds) 
     `,
       {
         replacements: {
-          organizationId,
+          organizationIds,
           tenantId: currentTenant.id,
         },
         type: QueryTypes.SELECT,
@@ -624,6 +680,278 @@ class OrganizationRepository {
     )
 
     return results as IOrganizationIdentity[]
+  }
+
+  static async moveIdentitiesBetweenOrganizations(
+    fromOrganizationId: string,
+    toOrganizationId: string,
+    identitiesToMove: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+      update "organizationIdentities" 
+      set 
+        "organizationId" = :newOrganizationId
+      where 
+        "tenantId" = :tenantId and 
+        "organizationId" = :oldOrganizationId and 
+        platform = :platform and 
+        name = :name;
+    `
+
+    for (const identity of identitiesToMove) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [_, count] = await seq.query(query, {
+        replacements: {
+          tenantId: tenant.id,
+          oldOrganizationId: fromOrganizationId,
+          newOrganizationId: toOrganizationId,
+          platform: identity.platform,
+          name: identity.name,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      })
+
+      if (count !== 1) {
+        throw new Error('One row should be updated!')
+      }
+    }
+  }
+
+  static async findMembersBelongToBothOrganizations(
+    organizationId1: string,
+    organizationId2: string,
+    options: IRepositoryOptions,
+  ): Promise<IMemberOrganization[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+
+    const results = await sequelize.query(
+      `
+      SELECT  mo.*
+      FROM "memberOrganizations" AS mo
+      WHERE mo."deletedAt" is null and
+         mo."memberId" IN (
+          SELECT "memberId"
+          FROM "memberOrganizations"
+          WHERE "organizationId" = :organizationId1
+      )
+      AND mo."memberId" IN (
+          SELECT "memberId"
+          FROM "memberOrganizations"
+          WHERE "organizationId" = :organizationId2);
+    `,
+      {
+        replacements: {
+          organizationId1,
+          organizationId2,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return results as IMemberOrganization[]
+  }
+
+  static async moveActivitiesBetweenOrganizations(
+    fromOrganizationId: string,
+    toOrganizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+      update "activities" 
+      set 
+        "organizationId" = :newOrganizationId
+      where 
+        "tenantId" = :tenantId and 
+        "organizationId" = :oldOrganizationId 
+    `
+
+    await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        oldOrganizationId: fromOrganizationId,
+        newOrganizationId: toOrganizationId,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async moveMembersBetweenOrganizations(
+    fromOrganizationId: string,
+    toOrganizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let removeRoles: IMemberOrganization[] = []
+
+    let addRoles: IMemberOrganization[] = []
+
+    // first, handle members that belong to both organizations,
+    // then make a full update on remaining org2 members (that doesn't belong to o1)
+    const memberRolesWithBothOrganizations = await this.findMembersBelongToBothOrganizations(
+      fromOrganizationId,
+      toOrganizationId,
+      options,
+    )
+
+    const primaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
+      (m) => m.organizationId === toOrganizationId,
+    )
+    const secondaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
+      (m) => m.organizationId === fromOrganizationId,
+    )
+
+    for (const memberOrganization of secondaryOrganizationMemberRoles) {
+      // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
+      if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
+        removeRoles.push(memberOrganization)
+      }
+      // it's a current role, also check org1 to see which one starts earlier
+      else if (memberOrganization.dateStart !== null && memberOrganization.dateEnd === null) {
+        const currentRoles = primaryOrganizationMemberRoles.filter(
+          (mo) =>
+            mo.memberId === memberOrganization.memberId &&
+            mo.dateStart !== null &&
+            mo.dateEnd === null,
+        )
+        if (currentRoles.length === 0) {
+          // no current role in org1, add the memberOrganization to org1
+          addRoles.push(memberOrganization)
+        } else if (currentRoles.length === 1) {
+          const currentRole = currentRoles[0]
+          if (new Date(memberOrganization.dateStart) <= new Date(currentRoles[0].dateStart)) {
+            // add a new role with earlier dateStart
+            addRoles.push({
+              id: currentRole.id,
+              dateStart: memberOrganization.dateStart,
+              dateEnd: null,
+              memberId: currentRole.memberId,
+              organizationId: currentRole.organizationId,
+              title: currentRole.organizationId,
+            })
+
+            // remove current role
+            removeRoles.push(currentRole)
+          }
+
+          // delete role from org2
+          removeRoles.push(memberOrganization)
+        } else {
+          throw new Error(`Member ${memberOrganization.memberId} has more than one current roles.`)
+        }
+      } else if (memberOrganization.dateStart === null && memberOrganization.dateEnd !== null) {
+        throw new Error(`Member organization with dateEnd and without dateStart!`)
+      } else {
+        // both dateStart and dateEnd exists
+        const foundIntersectingRoles = primaryOrganizationMemberRoles.filter((mo) => {
+          const primaryStart = new Date(mo.dateStart)
+          const primaryEnd = new Date(mo.dateEnd)
+          const secondaryStart = new Date(memberOrganization.dateStart)
+          const secondaryEnd = new Date(memberOrganization.dateEnd)
+
+          return (
+            mo.memberId === memberOrganization.memberId &&
+            ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
+              (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
+              (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
+              (primaryStart < secondaryStart && secondaryEnd > primaryEnd))
+          )
+        })
+
+        // rebuild dateRanges using intersecting roles coming from primary and secondary organizations
+        const startDates = foundIntersectingRoles.map((org) => new Date(org.dateStart).getTime())
+        const endDates = foundIntersectingRoles.map((org) => new Date(org.dateEnd).getTime())
+
+        addRoles.push({
+          dateStart: new Date(Math.min.apply(null, startDates)).toISOString(),
+          dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
+          memberId: foundIntersectingRoles[0].memberId,
+          organizationId: foundIntersectingRoles[0].organizationId,
+        })
+
+        // we'll delete all roles that intersect with incoming org member roles and create a merged role
+        for (const r of foundIntersectingRoles) {
+          removeRoles.push(r)
+        }
+      }
+
+      for (const removeRole of removeRoles) {
+        await this.removeMemberRole(removeRole, options)
+      }
+
+      for (const addRole of addRoles) {
+        await this.addMemberRole(addRole, options)
+      }
+
+      addRoles = []
+      removeRoles = []
+    }
+
+    // update rest of the o2 members
+    await seq.query(
+      `
+      update "memberOrganizations"
+      set "organizationId" = :toOrganizationId
+      where "organizationId" = :fromOrganizationId
+      and "deletedAt" is null;
+      `,
+      {
+        replacements: {
+          toOrganizationId,
+          fromOrganizationId,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
+  }
+
+  static async getOrganizationSegments(
+    organizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<SegmentData[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+    const segmentRepository = new SegmentRepository(options)
+
+    const query = `
+        SELECT "segmentId"
+        FROM "organizationSegments"
+        WHERE "organizationId" = :organizationId
+        ORDER BY "createdAt";
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        organizationId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    const segmentIds = (data as any[]).map((item) => item.segmentId)
+    const segments = await segmentRepository.findInIds(segmentIds)
+
+    return segments
   }
 
   static async findByIdentity(
