@@ -940,7 +940,7 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
       sourceId: generateSourceIdHash(
         payload.sender.login,
         type,
-        Math.floor(new Date(payload.starred_at).getTime() / 1000).toString(),
+        Math.floor(new Date(starredAt).getTime() / 1000).toString(),
         PlatformType.GITHUB,
       ),
       sourceParentId: null,

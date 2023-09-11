@@ -245,7 +245,7 @@ const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext)
   if (payload.action === 'created' || payload.action === 'deleted') {
     const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
-    if (member && payload.starred_at !== null) {
+    if (member) {
       await ctx.publishData<GithubWebhookData>({
         webhookType: GithubWehookEvent.STAR,
         data: payload,
