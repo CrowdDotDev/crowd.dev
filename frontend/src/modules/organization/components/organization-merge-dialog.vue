@@ -85,8 +85,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const route = useRoute();
 
-const { doFind } = mapActions('organization');
-const { fetchOrganizations } = useOrganizationStore();
+const { fetchOrganizations, fetchOrganization } = useOrganizationStore();
 
 const originalOrganizationPrimary = ref(true);
 const sendingMerge = ref(false);
@@ -123,9 +122,10 @@ const mergeSuggestion = () => {
       Message.success('Organizations merged successfuly');
 
       emit('update:modelValue', null);
+      changeOrganization();
 
       if (route.name === 'organizationView') {
-        doFind((originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value).id);
+        fetchOrganization((originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value).id);
       } else if (route.name === 'organization') {
         fetchOrganizations({ reload: true });
       }
