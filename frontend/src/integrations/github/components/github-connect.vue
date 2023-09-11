@@ -27,7 +27,7 @@ const connect = () => {
       'Are you the admin of your GitHub organization?',
     titleClass: 'text-lg pt-2',
     message:
-      `Only GitHub users with admin permissions are able to connect crowd.dev's GitHub integration.
+      `Only GitHub users with admin permissions are able to connect LFX's GitHub integration.
       If you are an organization member, you will need an approval from the GitHub workspace admin. <a href="https://docs.crowd.dev/docs/github-integration" target="_blank">Read more</a>`,
     icon: 'ri-information-line',
     confirmButtonText: 'I\'m the GitHub organization admin',

@@ -39,7 +39,7 @@
           <el-input
             ref="focus"
             v-model="form.discourseURL"
-            placeholder="https://community.crowd.dev"
+            placeholder="https://community.lfx.dev"
             @blur="onBlurDiscourseURL()"
           />
         </app-form-item>
@@ -163,7 +163,7 @@
         <div
           class="text-2xs text-gray-500 leading-normal mb-1"
         >
-          Confirm if your webhooks are properly configured and crowd.dev is receiving data from Discourse.
+          Confirm if your webhooks are properly configured and LFX is receiving data from Discourse.
         </div>
       </el-card>
     </template>
