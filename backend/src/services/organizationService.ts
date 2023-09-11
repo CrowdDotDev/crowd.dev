@@ -104,7 +104,7 @@ export default class OrganizationService extends LoggerBase {
       await txService.update(originalId, toUpdate, repoOptions.transaction)
 
       // update members that belong to source organization to destination org
-      const updatedMembers = await OrganizationRepository.moveMembersBetweenOrganizations(
+      await OrganizationRepository.moveMembersBetweenOrganizations(
         toMergeId,
         originalId,
         repoOptions,
@@ -136,10 +136,8 @@ export default class OrganizationService extends LoggerBase {
       await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, originalId)
       await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
 
-      while (updatedMembers.length > 0) {
-        const updatedMember = updatedMembers.shift()
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, updatedMember)
-      }
+      // sync organization members
+      await searchSyncEmitter.triggerOrganizationMembersSync(originalId)
 
       // sync organization activities
       await searchSyncEmitter.triggerOrganizationActivitiesSync(originalId)

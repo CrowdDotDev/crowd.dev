@@ -808,7 +808,7 @@ class OrganizationRepository {
     fromOrganizationId: string,
     toOrganizationId: string,
     options: IRepositoryOptions,
-  ): Promise<string[]> {
+  ): Promise<void> {
     const seq = SequelizeRepository.getSequelize(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -816,8 +816,6 @@ class OrganizationRepository {
     let removeRoles: IMemberOrganization[] = []
 
     let addRoles: IMemberOrganization[] = []
-
-    const updatedMembers = new Set<string>()
 
     // first, handle members that belong to both organizations,
     // then make a full update on remaining org2 members (that doesn't belong to o1)
@@ -917,12 +915,10 @@ class OrganizationRepository {
 
       for (const removeRole of removeRoles) {
         await this.removeMemberRole(removeRole, options)
-        updatedMembers.add(removeRole.memberId)
       }
 
       for (const addRole of addRoles) {
         await this.addMemberRole(addRole, options)
-        updatedMembers.add(addRole.memberId)
       }
 
       addRoles = []
@@ -930,10 +926,9 @@ class OrganizationRepository {
     }
 
     // update rest of the o2 members
-    const results = await seq.query(
+    await seq.query(
       `
-      WITH updated AS (
-        UPDATE "memberOrganizations"
+      UPDATE "memberOrganizations"
         SET "organizationId" = :toOrganizationId
         WHERE "organizationId" = :fromOrganizationId 
         AND "deletedAt" IS NULL
@@ -941,26 +936,17 @@ class OrganizationRepository {
             SELECT "memberId" 
             FROM "memberOrganizations" 
             WHERE "organizationId" = :toOrganizationId
-        )
-        RETURNING "memberId"
-      )
-      SELECT "memberId" FROM updated;
+        );
       `,
       {
         replacements: {
           toOrganizationId,
           fromOrganizationId,
         },
-        type: QueryTypes.SELECT,
+        type: QueryTypes.UPDATE,
         transaction,
       },
     )
-
-    for (const result of results) {
-      updatedMembers.add((result as any).memberId)
-    }
-
-    return Array.from(updatedMembers)
   }
 
   static async getOrganizationSegments(
