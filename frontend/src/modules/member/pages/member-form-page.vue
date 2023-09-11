@@ -352,6 +352,7 @@ async function onSubmit() {
       tags: formModel.value.tags.map((t) => t.id),
     },
     ...formModel.value.organizations.length && {
+      organizationsReplace: true,
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,
@@ -365,6 +366,7 @@ async function onSubmit() {
           ...o.memberOrganizations?.dateEnd && {
             endDate: o.memberOrganizations?.dateEnd,
           },
+          source: 'ui',
         }),
       ).filter(
         (o) => !!o.id,

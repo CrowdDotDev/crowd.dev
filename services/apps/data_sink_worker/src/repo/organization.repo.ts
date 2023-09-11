@@ -12,7 +12,7 @@ import {
   getUpdateOrganizationColumnSet,
 } from './organization.data'
 import { generateUUIDv1 } from '@crowd/common'
-import { SyncStatus } from '@crowd/types'
+import { SyncStatus, IOrganization } from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
@@ -79,16 +79,28 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return id
   }
 
-  public async updateCache(id: string, data: IDbUpdateOrganizationCacheData): Promise<void> {
+  public async updateCache(
+    id: string,
+    data: Partial<IDbUpdateOrganizationCacheData>,
+  ): Promise<void> {
+    const keys = Object.keys(data)
+    keys.push('updatedAt')
+    // construct custom column set
+    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
+      table: {
+        table: 'organizationCaches',
+      },
+    })
+
     const prepared = RepositoryBase.prepare(
       {
         ...data,
         updatedAt: new Date(),
       },
-      this.updateCacheOrganizationColumnSet,
+      dynamicColumnSet,
     )
 
-    const query = this.dbInstance.helpers.update(prepared, this.updateCacheOrganizationColumnSet)
+    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
     const condition = this.format('where id = $(id)', { id })
 
     const result = await this.db().result(`${query} ${condition}`)
@@ -298,22 +310,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     await this.db().none(query, parameters)
   }
 
-  public async addToMember(memberId: string, orgIds): Promise<void> {
+  public async addToMember(memberId: string, orgs: IOrganization[]): Promise<void> {
     const parameters: Record<string, unknown> = {
       memberId,
     }
 
     const valueStrings = []
-    for (let i = 0; i < orgIds.length; i++) {
-      const orgId = orgIds[i]
-      parameters[`orgId_${i}`] = orgId
-      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now())`)
+    for (let i = 0; i < orgs.length; i++) {
+      const org = orgs[i]
+      parameters[`orgId_${i}`] = org.id
+      parameters[`source_${i}`] = org.source
+      valueStrings.push(`($(orgId_${i}), $(memberId), now(), now(), $(source_${i}))`)
     }
 
     const valueString = valueStrings.join(',')
 
     const query = `
-    insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt")
+    insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt", "source")
     values ${valueString}
     on conflict do nothing;
     `

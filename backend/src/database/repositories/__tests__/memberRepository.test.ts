@@ -3217,7 +3217,7 @@ describe('MemberRepository tests', () => {
       // member1 is expected to have [org1,org2] after update
       member1 = await MemberRepository.update(
         member1.id,
-        { organizations: [org1.id, org2.id] },
+        { organizations: [org1.id, org2.id], organizationsReplace: true },
         mockIRepositoryOptions,
       )
 
@@ -3749,6 +3749,7 @@ describe('MemberRepository tests', () => {
         {
           memberId,
           organizationId: orgId,
+          source: 'test',
           ...data,
         },
         options,

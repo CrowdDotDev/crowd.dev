@@ -400,6 +400,7 @@ class OrganizationRepository {
       from "memberOrganizations" as mo
       where mo."memberId" = m.id
       and mo."organizationId" = :organizationId
+      and mo."deletedAt" is null
       and m."tenantId" = :tenantId;
    `,
       {
@@ -446,81 +447,103 @@ class OrganizationRepository {
     }
   }
 
-  static async findById(id, options: IRepositoryOptions) {
+  static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const results = await sequelize.query(
-      `
-          WITH
-              activity_counts AS (
-                SELECT "organizationId", COUNT(id) AS "activityCount"
-                FROM activities
-                WHERE "organizationId" = :id
-                GROUP BY "organizationId"
-              ),
-              member_counts AS (
-                  SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
-                  FROM "memberOrganizations"
-                  WHERE "organizationId" = :id and "dateEnd" is null
-                  GROUP BY "organizationId"
-              ),
-              active_on AS (
-                SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-                FROM activities
-                WHERE "organizationId" = :id
-                GROUP BY "organizationId"
-            ),
-              identities AS (
-                  SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
-                  FROM "memberOrganizations" mo
-                  JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY "organizationId"
-              ),
-              last_active AS (
-                  SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
-                  FROM "memberOrganizations" mo
-                  JOIN activities a ON a."memberId" = mo."memberId"
-                  WHERE mo."organizationId" = :id
-                  GROUP BY mo."organizationId"
-              ),
-              segments AS (
-                  SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
-                  FROM "organizationSegments"
-                  WHERE "organizationId" = :id
-                  GROUP BY "organizationId"
-              )
-          SELECT
-              o.*,
-              COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",
-              COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
-              COALESCE(ao."activeOn", '{}') AS "activeOn",
-              COALESCE(id."identities", '{}') AS "identities",
-              COALESCE(s."segments", '{}') AS "segments",
-              a."lastActive",
-              a."joinedAt"
-          FROM organizations o
-          LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
-          LEFT JOIN member_counts mc ON mc."organizationId" = o.id
-          LEFT JOIN active_on ao ON ao."organizationId" = o.id
-          LEFT JOIN identities id ON id."organizationId" = o.id
-          LEFT JOIN last_active a ON a."organizationId" = o.id
-          LEFT JOIN segments s ON s."organizationId" = o.id
-          WHERE o.id = :id
-            AND o."tenantId" = :tenantId;
-      `,
-      {
-        replacements: {
-          id,
-          tenantId: currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
+    const replacements: Record<string, unknown> = {
+      id,
+      tenantId: currentTenant.id,
+    }
+
+    // query for all leaf segment ids
+    let segmentsSubQuery = `
+    select id
+    from segments
+    where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+    `
+
+    if (segmentId) {
+      // we load data for a specific segment (can be leaf, parent or grand parent id)
+      replacements.segmentId = segmentId
+      segmentsSubQuery = `
+      with input_segment as (select id,
+                                    slug,
+                                    "parentSlug",
+                                    "grandparentSlug"
+                            from segments
+                            where id = :segmentId
+                              and "tenantId" = :tenantId),
+                            segment_level as (select case
+                                        when "parentSlug" is not null and "grandparentSlug" is not null
+                                            then 'child'
+                                        when "parentSlug" is not null and "grandparentSlug" is null
+                                            then 'parent'
+                                        when "parentSlug" is null and "grandparentSlug" is null
+                                            then 'grandparent'
+                                        end as level,
+                                    id,
+                                    slug,
+                                    "parentSlug",
+                                    "grandparentSlug"
+                            from input_segment)
+                            select s.id
+                            from segments s
+                            join
+                            segment_level sl
+                            on
+                            (sl.level = 'child' and s.id = sl.id) or
+                            (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null) or
+                            (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)`
+    }
+
+    const query = `
+    with leaf_segment_ids as (${segmentsSubQuery}),
+        member_data as (select a."organizationId",
+                                count(distinct m.id) filter ( where mo."dateEnd" is null )                  as "memberCount",
+                                count(distinct a.id)                                                        as "activityCount",
+                                case
+                                    when array_agg(distinct a.platform) = array [null] then array []::text[]
+                                    else array_agg(distinct a.platform) end                                 as "activeOn",
+                                max(a.timestamp)                                                            as "lastActive",
+                                case
+                                    when array_agg(distinct mi.platform) = array [null] then array []::text[]
+                                    else array_agg(distinct mi.platform) end                                as "identities",
+                                min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
+                        from leaf_segment_ids ls
+                                  left join activities a
+                                            on a."segmentId" = ls.id and a."organizationId" = :id and
+                                              a."deletedAt" is null
+                                  left join members m on a."memberId" = m.id and m."deletedAt" is null
+                                  left join "memberOrganizations" mo
+                                            on m.id = mo."memberId" and mo."organizationId" = :id
+                                  left join "memberIdentities" mi on m.id = mi."memberId"
+                        group by a."organizationId"),
+        organization_segments as (select "organizationId", array_agg("segmentId") as "segments"
+                                  from "organizationSegments"
+                                  where "organizationId" = :id
+                                  group by "organizationId")
+    select o.*,
+          coalesce(md."activityCount", 0)::integer as "activityCount",
+          coalesce(md."memberCount", 0)::integer   as "memberCount",
+          coalesce(md."activeOn", '{}')            as "activeOn",
+          coalesce(md.identities, '{}')            as identities,
+          coalesce(os.segments, '{}')              as segments,
+          md."lastActive",
+          md."joinedAt"
+    from organizations o
+            left join member_data md on md."organizationId" = o.id
+            left join organization_segments os on os."organizationId" = o.id
+    where o.id = :id and o."tenantId" = :tenantId;
+`
+
+    const results = await sequelize.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+      transaction,
+    })
 
     if (results.length === 0) {
       throw new Error404()
@@ -807,6 +830,9 @@ class OrganizationRepository {
         attributes: [],
         through: {
           attributes: [],
+          where: {
+            deletedAt: null,
+          },
         },
         include: [
           {

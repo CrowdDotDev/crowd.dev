@@ -26,12 +26,19 @@ class MemberAffiliationRepository {
                  a.timestamp BETWEEN msa."dateStart" AND msa."dateEnd"
                  OR (a.timestamp >= msa."dateStart" AND msa."dateEnd" IS NULL)
              )
-          LEFT JOIN "memberOrganizations" mo ON mo."memberId" = a."memberId" AND (
+          LEFT JOIN "memberOrganizations" mo ON mo."memberId" = a."memberId"
+              AND (
                   a.timestamp BETWEEN mo."dateStart" AND mo."dateEnd"
                   OR (a.timestamp >= mo."dateStart" AND mo."dateEnd" IS NULL)
               )
-          LEFT JOIN "memberOrganizations" mo1 ON mo1."memberId" = a."memberId" AND mo1."createdAt" <= a.timestamp
+              AND mo."deletedAt" IS NULL
+          LEFT JOIN "memberOrganizations" mo1 ON mo1."memberId" = a."memberId"
+              AND mo1."dateStart" IS NULL AND mo1."dateEnd" IS NULL
+              AND mo1."createdAt" <= a.timestamp
+              AND mo1."deletedAt" IS NULL
           LEFT JOIN "memberOrganizations" mo2 ON mo2."memberId" = a."memberId"
+              AND mo2."dateStart" IS NULL AND mo2."dateEnd" IS NULL
+              AND mo2."deletedAt" IS NULL
           WHERE a."memberId" = :memberId
           GROUP BY a.id
       )

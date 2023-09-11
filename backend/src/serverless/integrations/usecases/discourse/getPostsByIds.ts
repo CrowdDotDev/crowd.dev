@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { Logger } from '@crowd/logging'
+import { RateLimitError } from '@crowd/types'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
 import { DiscoursePostsByIdsResponse, DiscoursePostsByIdsInput } from '../../types/discourseTypes'
 
@@ -47,6 +48,10 @@ export const getDiscoursePostsByIds = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
+    if (err.response && err.response.status === 429) {
+      // wait 5 mins
+      throw new RateLimitError(5 * 60, 'discourse/getpostsbyids')
+    }
     logger.error({ err, params, input }, 'Error while getting posts by ids from Discourse ')
     throw err
   }

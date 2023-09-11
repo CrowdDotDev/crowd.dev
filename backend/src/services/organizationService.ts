@@ -1,4 +1,5 @@
 import { LoggerBase } from '@crowd/logging'
+import { websiteNormalizer } from '@crowd/common'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
 import MemberRepository from '../database/repositories/memberRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
@@ -42,6 +43,11 @@ export default class OrganizationService extends LoggerBase {
         ...this.options,
         transaction,
       })
+
+      // Normalize the website URL if it exists
+      if (data.website) {
+        data.website = websiteNormalizer(data.website)
+      }
 
       // if cache exists, merge current data with cache data
       // if it doesn't exist, create it from incoming data
@@ -146,6 +152,11 @@ export default class OrganizationService extends LoggerBase {
         })
       }
 
+      // Normalize the website URL if it exists
+      if (data.website) {
+        data.website = websiteNormalizer(data.website)
+      }
+
       const record = await OrganizationRepository.update(id, data, {
         ...this.options,
         transaction,
@@ -196,8 +207,8 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async findById(id) {
-    return OrganizationRepository.findById(id, this.options)
+  async findById(id: string, segmentId?: string) {
+    return OrganizationRepository.findById(id, this.options, segmentId)
   }
 
   async findAllAutocomplete(search, limit) {
