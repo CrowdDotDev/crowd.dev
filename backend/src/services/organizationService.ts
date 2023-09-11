@@ -101,10 +101,10 @@ export default class OrganizationService extends LoggerBase {
 
       // Update original organization
       const txService = new OrganizationService(repoOptions as IServiceOptions)
-      await txService.update(originalId, toUpdate)
+      await txService.update(originalId, toUpdate, repoOptions.transaction)
 
       // update members that belong to source organization to destination org
-      await OrganizationRepository.moveMembersBetweenOrganizations(
+      const updatedMembers = await OrganizationRepository.moveMembersBetweenOrganizations(
         toMergeId,
         originalId,
         repoOptions,
@@ -135,6 +135,30 @@ export default class OrganizationService extends LoggerBase {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
       await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, originalId)
       await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
+
+      while (updatedMembers.length > 0) {
+        const updatedMember = updatedMembers.shift()
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, updatedMember)
+      }
+
+      // sync organization activities
+      const batchSize = 200
+      let activities
+      let offset
+
+      do {
+        offset = activities ? offset + batchSize : 0
+        activities = await OrganizationRepository.findOrganizationActivities(
+          originalId,
+          batchSize,
+          offset,
+          this.options,
+        )
+
+        for (const activity of activities) {
+          await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, activity.id)
+        }
+      } while (activities.length > 0)
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }

@@ -375,20 +375,32 @@ class OrganizationRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const deleteMemberRole = `DELETE FROM "memberOrganizations" 
+    let deleteMemberRole = `DELETE FROM "memberOrganizations" 
                                             WHERE 
                                             "organizationId" = :organizationId and 
-                                            "memberId" = :memberId and 
-                                            "dateStart" = :dateStart and 
-                                            "dateEnd" = :dateEnd;`
+                                            "memberId" = :memberId`
+
+    const replacements = {
+      organizationId: role.organizationId,
+      memberId: role.memberId,
+    } as any
+
+    if (role.dateStart === null) {
+      deleteMemberRole += ` and "dateStart" is null `
+    } else {
+      deleteMemberRole += ` and "dateStart" = :dateStart `
+      replacements.dateStart = (role.dateStart as Date).toISOString()
+    }
+
+    if (role.dateEnd === null) {
+      deleteMemberRole += ` and "dateEnd" is null `
+    } else {
+      deleteMemberRole += ` and "dateEnd" = :dateEnd `
+      replacements.dateEnd = (role.dateEnd as Date).toISOString()
+    }
 
     await seq.query(deleteMemberRole, {
-      replacements: {
-        organizationId: role.organizationId,
-        memberId: role.memberId,
-        dateStart: role.dateStart ? (role.dateStart as Date).toISOString() : null,
-        dateEnd: role.dateEnd ? (role.dateEnd as Date).toString() : null,
-      },
+      replacements,
       type: QueryTypes.DELETE,
       transaction,
     })
@@ -796,7 +808,7 @@ class OrganizationRepository {
     fromOrganizationId: string,
     toOrganizationId: string,
     options: IRepositoryOptions,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const seq = SequelizeRepository.getSequelize(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -804,6 +816,8 @@ class OrganizationRepository {
     let removeRoles: IMemberOrganization[] = []
 
     let addRoles: IMemberOrganization[] = []
+
+    const updatedMembers = new Set<string>()
 
     // first, handle members that belong to both organizations,
     // then make a full update on remaining org2 members (that doesn't belong to o1)
@@ -842,11 +856,12 @@ class OrganizationRepository {
             // add a new role with earlier dateStart
             addRoles.push({
               id: currentRole.id,
-              dateStart: memberOrganization.dateStart,
+              dateStart: (memberOrganization.dateStart as Date).toISOString(),
               dateEnd: null,
               memberId: currentRole.memberId,
               organizationId: currentRole.organizationId,
-              title: currentRole.organizationId,
+              title: currentRole.title,
+              source: currentRole.source,
             })
 
             // remove current role
@@ -878,14 +893,20 @@ class OrganizationRepository {
         })
 
         // rebuild dateRanges using intersecting roles coming from primary and secondary organizations
-        const startDates = foundIntersectingRoles.map((org) => new Date(org.dateStart).getTime())
-        const endDates = foundIntersectingRoles.map((org) => new Date(org.dateEnd).getTime())
+        const startDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
+          new Date(org.dateStart).getTime(),
+        )
+        const endDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
+          new Date(org.dateEnd).getTime(),
+        )
 
         addRoles.push({
           dateStart: new Date(Math.min.apply(null, startDates)).toISOString(),
           dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
           memberId: foundIntersectingRoles[0].memberId,
           organizationId: foundIntersectingRoles[0].organizationId,
+          title: foundIntersectingRoles[0].title,
+          source: foundIntersectingRoles[0].source,
         })
 
         // we'll delete all roles that intersect with incoming org member roles and create a merged role
@@ -896,10 +917,12 @@ class OrganizationRepository {
 
       for (const removeRole of removeRoles) {
         await this.removeMemberRole(removeRole, options)
+        updatedMembers.add(removeRole.memberId)
       }
 
       for (const addRole of addRoles) {
         await this.addMemberRole(addRole, options)
+        updatedMembers.add(addRole.memberId)
       }
 
       addRoles = []
@@ -907,22 +930,37 @@ class OrganizationRepository {
     }
 
     // update rest of the o2 members
-    await seq.query(
+    const results = await seq.query(
       `
-      update "memberOrganizations"
-      set "organizationId" = :toOrganizationId
-      where "organizationId" = :fromOrganizationId
-      and "deletedAt" is null;
+      WITH updated AS (
+        UPDATE "memberOrganizations"
+        SET "organizationId" = :toOrganizationId
+        WHERE "organizationId" = :fromOrganizationId 
+        AND "deletedAt" IS NULL
+        AND "memberId" NOT IN (
+            SELECT "memberId" 
+            FROM "memberOrganizations" 
+            WHERE "organizationId" = :toOrganizationId
+        )
+        RETURNING "memberId"
+      )
+      SELECT "memberId" FROM updated;
       `,
       {
         replacements: {
           toOrganizationId,
           fromOrganizationId,
         },
-        type: QueryTypes.UPDATE,
+        type: QueryTypes.SELECT,
         transaction,
       },
     )
+
+    for (const result of results) {
+      updatedMembers.add((result as any).memberId)
+    }
+
+    return Array.from(updatedMembers)
   }
 
   static async getOrganizationSegments(
@@ -1327,6 +1365,33 @@ class OrganizationRepository {
       },
       transaction,
     })
+  }
+
+  static async findOrganizationActivities(
+    organizationId: string,
+    limit: number,
+    offset: number,
+    options: IRepositoryOptions,
+  ): Promise<any[]> {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const results = await seq.query(
+      `select "id", "organizationId"
+        from "activities"
+        where "organizationId" = :organizationId
+        order by "createdAt"
+        limit :limit offset :offset`,
+      {
+        replacements: {
+          organizationId,
+          limit,
+          offset,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return results
   }
 
   static async findAndCountAllOpensearch(
