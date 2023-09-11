@@ -22,7 +22,7 @@
           >
             lorem ipsum<br />
           </span>
-          <el-form-item class="mb-4 w-full"> 
+          <el-form-item class="mb-4 w-full">
             <div
               class="flex flex-row items-center w-full gap-4"
             >
@@ -39,9 +39,9 @@
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
-          lorem ipsum<br />
+            lorem ipsum<br />
           </span>
-          <el-form-item class="mb-4 w-full"> 
+          <el-form-item class="mb-4 w-full">
             <div
               class="flex flex-row items-center w-full gap-4"
             >
@@ -55,7 +55,7 @@
           </el-form-item>
         </div>
       </el-form>
-      <div class="flex flex-col gap-2 items-start mb-2" v-if="isKeywordsEnabled">
+      <div v-if="isKeywordsEnabled" class="flex flex-col gap-2 items-start mb-2">
         <span class="text-sm font-medium">Keywords Search</span>
         <span
           class="text-2xs font-light mb-2 text-gray-600"
@@ -117,19 +117,8 @@ export default {
       channelId: null,
       keywords: [],
       loading: false,
-      isKeywordsEnabled: true
+      isKeywordsEnabled: true,
     };
-  },
-  watch: {
-    channelId: {
-      handler(newValue) {
-        if (!newValue && !this.isKeywordsEnabled) {
-          this.isKeywordsEnabled = true
-        } else if (newValue !== '') {
-          this.isKeywordsEnabled = false
-        }
-      }
-    }
   },
   computed: {
     isVisible: {
@@ -141,10 +130,10 @@ export default {
       },
     },
     shouldDisableChannelIdInput() {
-      return this.keywords.length > 0
+      return this.keywords.length > 0;
     },
     connectDisabled() {
-      if (!this.apiKey || this.apiKey === "") {
+      if (!this.apiKey || this.apiKey === '') {
         return true;
       }
 
@@ -155,9 +144,20 @@ export default {
       const validKeywords = this.keywords.filter((k) => !!k);
       const empty = validKeywords.length === 0;
       if (this.integration.settings && !empty) {
-        return validKeywords.length === this.integration.settings.keywords.length
+        return validKeywords.length === this.integration.settings.keywords.length;
       }
       return empty;
+    },
+  },
+  watch: {
+    channelId: {
+      handler(newValue) {
+        if (!newValue && !this.isKeywordsEnabled) {
+          this.isKeywordsEnabled = true;
+        } else if (newValue !== '') {
+          this.isKeywordsEnabled = false;
+        }
+      },
     },
   },
   methods: {
@@ -176,14 +176,14 @@ export default {
       const youtubeConnectReq = {};
 
       if (this.isKeywordsEnabled) {
-        youtubeConnectReq.channelId = null 
-        youtubeConnectReq.keywords = relevantKeywords
+        youtubeConnectReq.channelId = null;
+        youtubeConnectReq.keywords = relevantKeywords;
       } else if (this.channelId) {
-        youtubeConnectReq.channelId = this.channelId 
-        youtubeConnectReq.keywords = [] 
+        youtubeConnectReq.channelId = this.channelId;
+        youtubeConnectReq.keywords = [];
       }
 
-      youtubeConnectReq.apiKey = this.apiKey
+      youtubeConnectReq.apiKey = this.apiKey;
       await this.doYoutubeConnect(youtubeConnectReq);
       this.isVisible = false;
       this.loading = false;

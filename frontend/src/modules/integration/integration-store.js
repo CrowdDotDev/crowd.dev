@@ -593,7 +593,7 @@ export default {
 
     async doYoutubeConnect(
       { commit },
-      reqBody
+      reqBody,
     ) {
       try {
         commit('CREATE_STARTED');

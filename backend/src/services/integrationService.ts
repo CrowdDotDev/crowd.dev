@@ -1516,19 +1516,18 @@ export default class IntegrationService {
 
   async connectYoutube(integrationData) {
     this.options.log.info('Creating youtube integration!!')
-    let uploadPlaylistId = null
-    let channelId = null 
+    let channelId = ''
     let keywords = []
     let shouldVerifyChannelId = true
 
     const isValidKeyword = integrationData.keywords && Array.isArray(integrationData.keywords)
     if (isValidKeyword && integrationData.keywords.length > 0) {
-      keywords = integrationData.keywords
-      shouldVerifyChannelId = false
-
       if (integrationData.keywords.length > 5) {
         throw new Error400('The maximum number of keywords is 5')
       }
+
+      keywords = integrationData.keywords
+      shouldVerifyChannelId = false
     }
 
     if (shouldVerifyChannelId) {
@@ -1536,19 +1535,20 @@ export default class IntegrationService {
         const channelDetailsConfig: AxiosRequestConfig = {
           method: 'get',
           url: `https://www.googleapis.com/youtube/v3/channels`,
-            params: {
+          params: {
             key: integrationData.apiKey,
             id: integrationData.channelId,
             part: 'contentDetails',
-          }
+          },
         }
 
         const response = (await axios(channelDetailsConfig)).data
-        const channelDetails = response.items[0] 
+        const channelDetails = response.items[0]
         channelId = channelDetails.id
-        uploadPlaylistId = channelDetails.contentDetails.relatedPlaylists.uploads
       } catch (err) {
-        throw new Error400(`The channel: ${integrationData.channelId} with the api key: ${integrationData.apiKey} is not valid`)
+        throw new Error400(
+          `The channel: ${integrationData.channelId} with the api key: ${integrationData.apiKey} is not valid`,
+        )
       }
     }
 
@@ -1561,9 +1561,9 @@ export default class IntegrationService {
           platform: PlatformType.YOUTUBE,
           settings: {
             apiKey: integrationData.apiKey,
-            uploadPlaylistId,
             channelId,
-            keywords
+            keywords,
+            page: 1,
           },
           status: 'in-progress',
         },
