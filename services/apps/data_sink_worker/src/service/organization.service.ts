@@ -36,25 +36,33 @@ export class OrganizationService extends LoggerBase {
       // if exists in cache update it
       const updateData: Partial<IOrganization> = {}
       // no need to update name since it's aka primary key
-      if (data.url) updateData.url = data.url
-      if (data.description) updateData.description = data.description
-      if (data.emails) updateData.emails = data.emails
-      if (data.logo) updateData.logo = data.logo
-      if (data.tags) updateData.tags = data.tags
-      if (data.github) updateData.github = data.github as IOrganizationSocial
-      if (data.twitter) updateData.twitter = data.twitter as IOrganizationSocial
-      if (data.linkedin) updateData.linkedin = data.linkedin as IOrganizationSocial
-      if (data.crunchbase) updateData.crunchbase = data.crunchbase as IOrganizationSocial
-      if (data.employees) updateData.employees = data.employees
-      if (data.location) updateData.location = data.location
-      if (data.website) updateData.website = data.website
-      if (data.type) updateData.type = data.type
-      if (data.size) updateData.size = data.size
-      if (data.headline) updateData.headline = data.headline
-      if (data.industry) updateData.industry = data.industry
-      if (data.founded) updateData.founded = data.founded
+      const fields = [
+        'url',
+        'description',
+        'emails',
+        'logo',
+        'tags',
+        'github',
+        'twitter',
+        'linkedin',
+        'crunchbase',
+        'employees',
+        'location',
+        'website',
+        'type',
+        'size',
+        'headline',
+        'industry',
+        'founded',
+      ]
+      fields.forEach((field) => {
+        if (data[field] && !isEqual(data[field], cached[field])) {
+          updateData[field] = data[field]
+        }
+      })
       if (Object.keys(updateData).length > 0) {
         await this.repo.updateCache(cached.id, updateData)
+        cached = { ...cached, ...updateData } // Update the cached data with the new data
       }
     } else {
       // if it doesn't exists in cache create it
@@ -91,11 +99,9 @@ export class OrganizationService extends LoggerBase {
     // now check if exists in this tenant
     const existing = await this.repo.findByName(tenantId, segmentId, data.name)
 
-    const displayName = existing?.displayName ? existing?.displayName : data?.name
-
     let attributes = existing?.attributes
 
-    if (data.attributes) {
+    if (data?.attributes) {
       const temp = mergeWith({}, existing?.attributes, data?.attributes)
       if (!isEqual(temp, existing?.attributes)) {
         attributes = temp
@@ -104,28 +110,37 @@ export class OrganizationService extends LoggerBase {
 
     if (existing) {
       // if it does exists update it
-      await this.repo.update(existing.id, {
-        name: cached.name,
-        displayName,
-        url: cached.url,
-        description: cached.description,
-        emails: cached.emails,
-        logo: cached.logo,
-        tags: cached.tags,
-        github: cached.github,
-        twitter: cached.twitter,
-        linkedin: cached.linkedin,
-        crunchbase: cached.crunchbase,
-        employees: cached.employees,
-        location: cached.location,
-        website: cached.website,
-        type: cached.type,
-        size: cached.size,
-        headline: cached.headline,
-        industry: cached.industry,
-        founded: cached.founded,
-        attributes,
+      const updateData: Partial<IOrganization> = {}
+      const fields = [
+        'name',
+        'displayName',
+        'url',
+        'description',
+        'emails',
+        'logo',
+        'tags',
+        'github',
+        'twitter',
+        'linkedin',
+        'crunchbase',
+        'employees',
+        'location',
+        'website',
+        'type',
+        'size',
+        'headline',
+        'industry',
+        'founded',
+        'attributes',
+      ]
+      fields.forEach((field) => {
+        if (cached[field] && !isEqual(cached[field], existing[field])) {
+          updateData[field] = cached[field]
+        }
       })
+      if (Object.keys(updateData).length > 0) {
+        await this.repo.update(existing.id, updateData)
+      }
 
       return existing.id
     } else {

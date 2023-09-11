@@ -931,7 +931,7 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
     const starredAt =
       type === GithubActivityType.STAR
         ? new Date(payload.starred_at).toISOString()
-        : new Date().toISOString()
+        : data.date ?? new Date().toISOString()
 
     const activity: IActivityData = {
       member,
@@ -940,7 +940,7 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
       sourceId: generateSourceIdHash(
         payload.sender.login,
         type,
-        Math.floor(new Date(payload.starred_at).getTime() / 1000).toString(),
+        Math.floor(new Date(starredAt).getTime() / 1000).toString(),
         PlatformType.GITHUB,
       ),
       sourceParentId: null,
