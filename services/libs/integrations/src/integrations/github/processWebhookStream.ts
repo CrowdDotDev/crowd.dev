@@ -241,7 +241,7 @@ const parseWebhookPullRequestReview = async (
   }
 }
 
-const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext, date?: string) => {
+const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext, date: string) => {
   if (payload.action === 'created' || payload.action === 'deleted') {
     const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
@@ -250,7 +250,7 @@ const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext,
         webhookType: GithubWehookEvent.STAR,
         data: payload,
         member,
-        ...(date ? { date } : {}),
+        date,
       })
     }
   }
@@ -345,6 +345,7 @@ const parseWebhookPullRequestReviewComment = async (
 
 const handler: ProcessWebhookStreamHandler = async (ctx) => {
   const identifier = ctx.stream.identifier
+  const webhookCreatedAt = ctx.stream.webhookCreatedAt
 
   // this is for pull request commits which are published during runtime
   if (identifier.startsWith(GithubStreamType.PULL_COMMITS)) {
@@ -353,7 +354,7 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
     await processPullCommitsStream(ctx as IProcessStreamContext)
   } else {
     // this is for normal weqbook events
-    const { signature, event, data, date } = ctx.stream.data as GithubWebhookPayload
+    const { signature, event, data } = ctx.stream.data as GithubWebhookPayload
 
     await verifyWebhookSignature(signature, data, ctx)
 
@@ -371,7 +372,7 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
         await parseWebhookPullRequestReview(data, ctx)
         break
       case GithubWehookEvent.STAR:
-        await parseWebhookStar(data, ctx, date)
+        await parseWebhookStar(data, ctx, webhookCreatedAt)
         break
       case GithubWehookEvent.FORK:
         await parseWebhookFork(data, ctx)

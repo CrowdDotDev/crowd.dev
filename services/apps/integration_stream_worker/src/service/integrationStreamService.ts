@@ -287,6 +287,7 @@ export default class IntegrationStreamService extends LoggerBase {
         identifier: streamInfo.identifier,
         type: streamInfo.parentId ? IntegrationStreamType.CHILD : IntegrationStreamType.ROOT,
         data: streamInfo.data,
+        webhookCreatedAt: webhookInfo.createdAt,
       },
 
       log: this.log,
