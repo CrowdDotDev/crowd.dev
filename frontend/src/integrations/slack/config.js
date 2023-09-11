@@ -10,7 +10,7 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/3800/3800024.png',
   connectComponent: SlackConnect,
-  url: (username) => `https://slack.com/${username}`,
+  url: ({ username }) => (username ? `https://slack.com/${username}` : null),
   chartColor: '#E41756',
   showProfileLink: false,
   activityDisplay: {

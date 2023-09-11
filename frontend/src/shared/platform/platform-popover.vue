@@ -15,6 +15,7 @@
     <app-platform-list
       :username-handles="usernameHandles"
       :platform="platform"
+      :attributes="attributes"
     />
   </el-popover>
   <el-tooltip
@@ -54,6 +55,10 @@ defineProps({
   href: {
     type: String,
     default: () => null,
+  },
+  attributes: {
+    type: Object,
+    default: null,
   },
 });
 </script>

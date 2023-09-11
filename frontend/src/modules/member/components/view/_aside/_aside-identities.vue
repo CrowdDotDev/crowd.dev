@@ -22,6 +22,7 @@
           :username-handles="socialIdentities[platform]"
           :platform="platform"
           :url="member.attributes?.url?.[platform]"
+          :attributes="member.attributes"
         />
       </div>
     </div>
