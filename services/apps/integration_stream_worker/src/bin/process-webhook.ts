@@ -29,16 +29,21 @@ setImmediate(async () => {
     const info = await repo.getWebhookById(webhookId)
 
     if (info) {
+      log.info({ webhookId }, 'Found webhook!')
+
       if (![WebhookType.GITHUB, WebhookType.GROUPSIO, WebhookType.DISCORD].includes(info.type)) {
         log.error({ webhookId }, 'Webhook is not a supported type!')
         process.exit(1)
       }
 
       if (info.state !== WebhookState.PENDING) {
+        log.info({ webhookId }, 'Webhook is not pending, resetting...')
         await repo.markWebhookPending(webhookId)
       }
 
+      log.info({ webhookId }, 'Triggering webhook processing...')
       await emitter.triggerWebhookProcessing(info.tenantId, info.platform, info.id)
+      log.info({ webhookId }, 'Triggered webhook processing!')
     } else {
       log.error({ webhookId }, 'Webhook not found!')
       process.exit(1)
