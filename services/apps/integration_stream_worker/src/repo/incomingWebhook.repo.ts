@@ -19,6 +19,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
             iw.state,
             iw.type,
             iw.payload,
+            iw."createdAt" as "createdAt",
             i.platform as "platform"
         from 
             "incomingWebhooks" iw
