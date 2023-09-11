@@ -29,7 +29,7 @@ setImmediate(async () => {
     const info = await repo.getWebhookById(webhookId)
 
     if (info) {
-      if (!(info.type in [WebhookType.GITHUB, WebhookType.GROUPSIO, WebhookType.DISCORD])) {
+      if (![WebhookType.GITHUB, WebhookType.GROUPSIO, WebhookType.DISCORD].includes(info.type)) {
         log.error({ webhookId }, 'Webhook is not a supported type!')
         process.exit(1)
       }
