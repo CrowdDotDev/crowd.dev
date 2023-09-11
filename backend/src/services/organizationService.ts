@@ -142,23 +142,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       // sync organization activities
-      const batchSize = 200
-      let activities
-      let offset
-
-      do {
-        offset = activities ? offset + batchSize : 0
-        activities = await OrganizationRepository.findOrganizationActivities(
-          originalId,
-          batchSize,
-          offset,
-          this.options,
-        )
-
-        for (const activity of activities) {
-          await searchSyncEmitter.triggerActivitySync(this.options.currentTenant.id, activity.id)
-        }
-      } while (activities.length > 0)
+      await searchSyncEmitter.triggerOrganizationActivitiesSync(originalId)
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }

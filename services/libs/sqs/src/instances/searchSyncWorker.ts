@@ -87,6 +87,16 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
+  public async triggerOrganizationActivitiesSync(organizationId: string) {
+    if (!organizationId) {
+      throw new Error('organizationId is required!')
+    }
+    await this.sendMessage(organizationId, {
+      type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES,
+      organizationId,
+    })
+  }
+
   public async triggerRemoveActivity(tenantId: string, activityId: string) {
     if (!tenantId) {
       throw new Error('tenantId is required!')

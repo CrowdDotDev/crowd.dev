@@ -156,6 +156,13 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
               .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
           }
           break
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES:
+          if (data.organizationId) {
+            this.initActivityService()
+              .syncOrganizationActivities(data.organizationId)
+              .catch((err) => this.log.error(err, 'Error while syncing organization activities!'))
+          }
+          break
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:
           if (data.tenantId) {
             this.initActivityService()

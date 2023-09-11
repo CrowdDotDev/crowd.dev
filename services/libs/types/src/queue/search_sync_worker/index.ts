@@ -6,6 +6,7 @@ export enum SearchSyncWorkerQueueMessageType {
 
   SYNC_ACTIVITY = 'sync_activity',
   SYNC_TENANT_ACTIVITIES = 'sync_tenant_activities',
+  SYNC_ORGANIZATION_ACTIVITIES = 'sync_organization_activities',
   REMOVE_ACTIVITY = 'remove_activity',
   CLEANUP_TENANT_ACTIVITIES = 'cleanup_tenant_activities',
 
