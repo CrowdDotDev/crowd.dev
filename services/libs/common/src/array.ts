@@ -125,3 +125,7 @@ export const areArraysEqual = <T>(a: T[], b: T[]): boolean => {
 
   return true
 }
+
+export const firstArrayContainsSecondArray = <T>(array1: T[], array2: T[]): boolean => {
+  return array2.every((val) => array1.includes(val))
+}
