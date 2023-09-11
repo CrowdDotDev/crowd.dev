@@ -49,6 +49,40 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     )
   }
 
+  public async markWebhookPending(id: string): Promise<void> {
+    await this.db().none(
+      `
+        update "incomingWebhooks"
+        set 
+          state = $(state),
+          error = null,
+          "processedAt" = null
+        where id = $(id)
+      `,
+      {
+        id,
+        state: WebhookState.PENDING,
+      },
+    )
+  }
+
+  public async markWebhooksPendingBatch(ids: string[]): Promise<void> {
+    await this.db().none(
+      `
+        update "incomingWebhooks"
+        set 
+          state = $(state),
+          error = null,
+          "processedAt" = null
+        where id in ($(ids:csv))
+      `,
+      {
+        ids,
+        state: WebhookState.PENDING,
+      },
+    )
+  }
+
   public async markWebhookError(id: string, error: unknown): Promise<void> {
     await this.db().none(
       `
@@ -107,7 +141,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     return result?.id ?? null
   }
 
-  public async getPendingWebhooks(limit: number): Promise<
+  public async getFailedWebhooks(limit: number): Promise<
     {
       id: string
       tenantId: string
@@ -129,7 +163,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
         limit $(limit)
       `,
       {
-        state: WebhookState.PENDING,
+        state: WebhookState.ERROR,
         type: WebhookType.DISCOURSE,
         limit,
       },
