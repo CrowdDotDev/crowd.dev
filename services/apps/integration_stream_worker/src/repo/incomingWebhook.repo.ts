@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IWebhookData } from './incomingWebhook.data'
-import { WebhookState } from '@crowd/types'
+import { WebhookState, WebhookType } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 
 export default class IncomingWebhookRepository extends RepositoryBase<IncomingWebhookRepository> {
@@ -13,16 +13,18 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     const result = await this.db().oneOrNone(
       `
         select
-            id,
-            "tenantId",
-            "integrationId",
-            state,
-            type,
-            payload
+            iw.id,
+            iw."tenantId",
+            iw."integrationId",
+            iw.state,
+            iw.type,
+            iw.payload,
+            i.platform as "platform"
         from 
-            "incomingWebhooks"
+            "incomingWebhooks" iw
+        join "integrations" i on iw."integrationId" = i.id
         where
-             id = $(id)
+             iw.id = $(id)
       `,
       {
         id,
@@ -45,6 +47,40 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
       {
         id,
         state: WebhookState.PROCESSED,
+      },
+    )
+  }
+
+  public async markWebhookPending(id: string): Promise<void> {
+    await this.db().none(
+      `
+        update "incomingWebhooks"
+        set 
+          state = $(state),
+          error = null,
+          "processedAt" = null
+        where id = $(id)
+      `,
+      {
+        id,
+        state: WebhookState.PENDING,
+      },
+    )
+  }
+
+  public async markWebhooksPendingBatch(ids: string[]): Promise<void> {
+    await this.db().none(
+      `
+        update "incomingWebhooks"
+        set 
+          state = $(state),
+          error = null,
+          "processedAt" = null
+        where id in ($(ids:csv))
+      `,
+      {
+        ids,
+        state: WebhookState.PENDING,
       },
     )
   }
@@ -105,5 +141,36 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     )
 
     return result?.id ?? null
+  }
+
+  public async getFailedWebhooks(limit: number): Promise<
+    {
+      id: string
+      tenantId: string
+      platform: string
+    }[]
+  > {
+    const results = await this.db().manyOrNone(
+      `
+        select
+            iw.id,
+            iw."tenantId" as "tenantId",
+            i.platform as "platform"
+        from 
+            "incomingWebhooks" iw
+        join "integrations" i on iw."integrationId" = i.id
+        where
+             iw.state = $(state)
+             and iw.type != $(type)
+        limit $(limit)
+      `,
+      {
+        state: WebhookState.ERROR,
+        type: WebhookType.DISCOURSE,
+        limit,
+      },
+    )
+
+    return results
   }
 }

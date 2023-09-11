@@ -3,6 +3,7 @@ import { BaseError } from './baseError'
 export enum WebhookState {
   PENDING = 'PENDING',
   PROCESSED = 'PROCESSED',
+  PROCESSING = 'PROCESSING',
   ERROR = 'ERROR',
 }
 

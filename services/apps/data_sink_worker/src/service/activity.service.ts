@@ -800,10 +800,10 @@ export default class ActivityService extends LoggerBase {
             )
           }
         } finally {
-          // release lock no matter that
+          // release locks matter what
           await releaseLock(
             this.redisClient,
-            `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
+            `member:processing:${tenantId}:${platform}:${username}`,
             'check-member-inside-activity-exists',
           )
         }

@@ -329,7 +329,15 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return id
   }
 
-  public async update(id: string, data: IDbUpdateOrganizationData): Promise<void> {
+  public async update(id: string, data: Partial<IDbUpdateOrganizationData>): Promise<void> {
+    const keys = Object.keys(data)
+    keys.push('updatedAt')
+    // construct dynamic column set
+    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
+      table: {
+        table: 'organizations',
+      },
+    })
     const prepared = RepositoryBase.prepare(
       {
         ...data,
@@ -339,10 +347,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           }),
         updatedAt: new Date(),
       },
-      this.updateOrganizationColumnSet,
+      dynamicColumnSet,
     )
 
-    const query = this.dbInstance.helpers.update(prepared, this.updateOrganizationColumnSet)
+    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
     const condition = this.format('where id = $(id)', { id })
 
     const result = await this.db().result(`${query} ${condition}`)
