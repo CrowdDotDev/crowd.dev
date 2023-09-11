@@ -9,7 +9,7 @@ import { PlatformType } from '@crowd/types'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.YOUTUBE,
   memberAttributes: YOUTUBE_MEMBER_ATTRIBUTES,
-  checkEvery: 60,
+  checkEvery: 360,
   generateStreams,
   processStream,
   processData,

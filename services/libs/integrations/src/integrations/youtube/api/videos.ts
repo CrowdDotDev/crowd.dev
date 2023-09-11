@@ -1,9 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { YoutubeIntegrationSettings, YoutubeVideoSearch } from '../types'
+import { YoutubeIntegrationStreamConfig, YoutubeVideoSearch } from '../types'
 import { IProcessStreamContext } from '@/types'
 
 export const getVideos = async (ctx: IProcessStreamContext): Promise<YoutubeVideoSearch> => {
-  const channelSettings = ctx.stream.data as YoutubeIntegrationSettings
+  const channelSettings = ctx.stream.data as YoutubeIntegrationStreamConfig
 
   try {
     const getChannelVideosConfig: AxiosRequestConfig = {

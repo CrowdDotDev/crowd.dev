@@ -9,12 +9,12 @@ export enum YoutubeRootStream {
   KEYWORDS_SEARCH = 'keywords_search' 
 }
 
-export interface YoutubeIntegrationSettings {
+export interface YoutubeIntegrationStreamConfig {
   apiKey: string
-  uploadPlaylistId: string
   channelId: string
   nextPageToken?: string
   keywords: string[]
+  page: number
 } 
 
 export interface YoutubeVideoStreamConfig {

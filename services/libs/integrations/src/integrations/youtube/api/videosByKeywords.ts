@@ -1,11 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { YoutubeIntegrationSettings, YoutubeVideoSearch } from '../types'
+import { YoutubeIntegrationStreamConfig, YoutubeVideoSearch } from '../types'
 import { IProcessStreamContext } from '@/types'
 
 export const getVideosByKeywords = async (
   ctx: IProcessStreamContext
 ): Promise<YoutubeVideoSearch> => {
-  const channelSettings = ctx.stream.data as YoutubeIntegrationSettings
+  const channelSettings = ctx.stream.data as YoutubeIntegrationStreamConfig
 
   const now = new Date()
   const publishedAfter = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 30) // 30 days
