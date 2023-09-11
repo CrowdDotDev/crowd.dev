@@ -38,6 +38,9 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     emails: {
       type: OpensearchFieldType.STRING_ARR,
     },
+    tags: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
     employeeCountByCountry: {
       type: OpensearchFieldType.OBJECT,
     },
@@ -68,6 +71,12 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     revenueRange: {
       type: OpensearchFieldType.OBJECT,
       preventNestedFieldTranslation: true,
+    },
+    revenueRangeMin: {
+      type: OpensearchFieldType.INT,
+    },
+    revenueRangeMax: {
+      type: OpensearchFieldType.INT,
     },
     size: {
       type: OpensearchFieldType.STRING,
@@ -174,6 +183,12 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     },
     grossDeparturesByMonth: {
       type: OpensearchFieldType.OBJECT,
+    },
+    employeeChurnRate12Month: {
+      type: OpensearchFieldType.FLOAT,
+    },
+    employeeGrowthRate12Month: {
+      type: OpensearchFieldType.FLOAT,
     },
   }
 }

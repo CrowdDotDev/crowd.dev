@@ -70,6 +70,14 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         return JSON.stringify(revenueRange)
       },
     },
+    revenueRangeMin: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
+    revenueRangeMax: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
     employeeCountByCountry: {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
@@ -166,12 +174,20 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         return JSON.stringify(employeeCountByMonth)
       },
     },
+    employeeChurnRate12Month: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
+    },
     employeeGrowthRate: {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
       serialize: (employeeGrowthRate: any) => {
         return JSON.stringify(employeeGrowthRate)
       },
+    },
+    employeeGrowthRate12Month: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
     },
     employeeCountByMonthByLevel: {
       hubspotType: HubspotPropertyType.STRING,
