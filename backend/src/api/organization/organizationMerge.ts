@@ -11,7 +11,7 @@ export default async (req, res) => {
     req.body.organizationToMerge,
   )
 
-  track('Merge members', { ...payload }, { ...req })
+  track('Merge organizations', { ...payload }, { ...req })
 
   const status = payload.status || 200
 
