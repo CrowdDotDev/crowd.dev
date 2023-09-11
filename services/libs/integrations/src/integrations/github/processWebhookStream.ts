@@ -371,7 +371,7 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
         await parseWebhookPullRequestReview(data, ctx)
         break
       case GithubWehookEvent.STAR:
-        await parseWebhookStar(data, ctx)
+        await parseWebhookStar(data, ctx, date)
         break
       case GithubWehookEvent.FORK:
         await parseWebhookFork(data, ctx)
