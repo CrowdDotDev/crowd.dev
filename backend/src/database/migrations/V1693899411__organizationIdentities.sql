@@ -110,12 +110,12 @@ $$
                                 WHERE id = org.id;
                         END;
                     END IF;
-                    COMMIT;
                 EXCEPTION
                     WHEN others THEN
                         ROLLBACK; -- Rollback the transaction when an unexpected exception occurs
                         RAISE NOTICE 'Unexpected error for organization %: %', org.id, SQLERRM; -- Log the error
                 END;
+                COMMIT;
             END LOOP;
     END ;
 $$;
