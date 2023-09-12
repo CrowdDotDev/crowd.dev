@@ -35,7 +35,7 @@
       <el-divider class="border-t-gray-200" />
       <div class="mt-4">
         <a
-          v-for="email of emails"
+          v-for="(email, index) of emails"
           :key="email"
           class="py-2 px-6 -mx-6 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
           :href="`mailto:${email}`"
@@ -45,10 +45,16 @@
           <el-tooltip
             placement="top"
             :content="email"
+            :disabled="!showTooltip[index]"
           >
-            <div class="flex gap-3 items-center overflow-hidden">
+
+            <div
+              class="flex gap-3 items-center overflow-hidden mr-2"
+              @mouseover="handleOnMouseOver(index)"
+              @mouseleave="handleOnMouseLeave(index)"
+            >
               <app-platform platform="email" />
-              <span class="text-gray-900 text-xs truncate">
+              <span ref="emailRef" class="text-gray-900 text-xs truncate">
                 {{ email }}</span>
             </div>
           </el-tooltip>
@@ -85,6 +91,23 @@ const props = defineProps({
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const identitiesDrawer = ref(false);
+
+const emailRef = ref([]);
+const showTooltip = ref([]);
+
+const handleOnMouseOver = (index) => {
+  if (!emailRef.value[index]) {
+    showTooltip.value[index] = false;
+  }
+
+  showTooltip.value[index] = emailRef.value[index].scrollWidth > emailRef.value[index].clientWidth;
+
+  console.log(emailRef.value);
+};
+
+const handleOnMouseLeave = (index) => {
+  showTooltip.value[index] = false;
+};
 
 const emails = computed(() => (props.member.emails
   // Filters out any falsy values (like `null`, `undefined)
