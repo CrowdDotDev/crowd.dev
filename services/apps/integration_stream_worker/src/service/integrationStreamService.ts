@@ -210,7 +210,7 @@ export default class IntegrationStreamService extends LoggerBase {
     }
 
     if (streamInfo.runId) {
-      this.log.warn({ webhookId, streamId }, 'Stream is not a webhook stream! Processing as such!')
+      this.log.warn({ streamId }, 'Stream is a regular stream! Processing as such!')
       await this.processStream(streamId)
       return
     }
