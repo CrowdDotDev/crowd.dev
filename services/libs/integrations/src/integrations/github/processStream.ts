@@ -169,7 +169,8 @@ export const prepareMember = async (
       orgs = [{ name: 'crowd.dev' }]
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
-      const fromAPI = await getOrganization(company, ctx.integration.token)
+      const token = await getGithubToken(ctx)
+      const fromAPI = await getOrganization(company, token)
 
       orgs = fromAPI
     }
