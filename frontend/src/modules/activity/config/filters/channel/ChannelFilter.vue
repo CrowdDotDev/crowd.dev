@@ -1,5 +1,4 @@
 <template>
-  <!-- <cr-select-filter v-model="form" :config="props.config as SelectFilterConfig" :options="data.options || []" /> -->
   <cr-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
 </template>
 
@@ -7,10 +6,6 @@
 import {
   defineProps, defineEmits, computed, watch,
 } from 'vue';
-// import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
-// import {
-//   SelectFilterConfig, SelectFilterOptionGroup,
-// } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import CrMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
 import {
   MultiSelectFilterConfig, MultiSelectFilterOptionGroup,

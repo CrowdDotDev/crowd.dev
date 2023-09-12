@@ -2,7 +2,6 @@ import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import ChannelFilter from '@/modules/activity/config/filters/channel/ChannelFilter.vue';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
-// import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import {
   MultiSelectFilterOptions,
   MultiSelectFilterValue,
@@ -23,7 +22,7 @@ const channel: CustomFilterConfig = {
   },
   apiFilterRenderer({ value, include }:MultiSelectFilterValue): any[] {
     const filter = {
-      channel: value,
+      or: value.map((v) => ({ channel: { eq: v } })),
     };
     return [
       (include ? filter : { not: filter }),

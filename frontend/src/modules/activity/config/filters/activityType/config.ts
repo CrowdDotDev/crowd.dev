@@ -1,7 +1,6 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import ActivityTypeFilter from '@/modules/activity/config/filters/activityType/ActivityTypeFilter.vue';
-// import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import {
   MultiSelectFilterOptions,
   MultiSelectFilterValue,
@@ -24,12 +23,14 @@ const activityType: CustomFilterConfig = {
     });
   },
   apiFilterRenderer({ value, include }:MultiSelectFilterValue): any[] {
-    const [platform, activityType] = value.split(':');
     const filter = {
-      and: [
-        { platform },
-        { type: activityType },
-      ],
+      or: value.map((type) => {
+        const [platform, activityType] = type.split(':');
+        return {
+          platform: { eq: platform },
+          type: { eq: activityType },
+        };
+      }),
     };
     return [
       (include ? filter : { not: filter }),

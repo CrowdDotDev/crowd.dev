@@ -1,14 +1,12 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import ActivityTypeFilter from '@/modules/member/config/filters/activityType/ActivityTypeFilter.vue';
-// import { SelectFilterOptions, SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import {
   MultiSelectFilterOptions,
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
-import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
 const activityType: CustomFilterConfig = {
   id: 'activityType',
@@ -24,8 +22,13 @@ const activityType: CustomFilterConfig = {
       addGroupLabel: true,
     });
   },
-  apiFilterRenderer(value: MultiSelectFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('activityTypes', value);
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
+    const filter = {
+      or: value.map((type) => ({ activityTypes: { eq: type } })),
+    };
+    return [
+      (include ? filter : { not: filter }),
+    ];
   },
 };
 
