@@ -1,10 +1,13 @@
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
+import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-export default {
+const ultimateParent: OrganizationEnrichmentConfig = {
   name: 'ultimateParent',
   label: 'Ultimate Parent',
-  type: attributesTypes.string,
+  type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: true,
-  displayValue: (value) => value,
+  displayValue: (value: string) => value,
 };
+
+export default ultimateParent;

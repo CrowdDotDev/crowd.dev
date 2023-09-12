@@ -1,11 +1,14 @@
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 import { toSentenceCase } from '@/utils/string';
+import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-export default {
+const size: OrganizationEnrichmentConfig = {
   name: 'size',
   label: 'Headcount',
-  type: attributesTypes.string,
+  type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: false,
   displayValue: (value) => toSentenceCase(value),
 };
+
+export default size;

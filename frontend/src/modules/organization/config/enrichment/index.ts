@@ -1,3 +1,4 @@
+import { AttributeType } from '@/modules/organization/types/Attributes';
 import affiliatedProfiles from './affiliatedProfiles';
 import allSubsidiaries from './allSubsidiaries';
 import alternativeDomains from './alternativeDomains';
@@ -24,7 +25,21 @@ import typeAttribute from './type';
 import immediateParent from './immediateParent';
 import ultimateParent from './ultimateParent';
 
-export default [
+export interface OrganizationEnrichmentConfig {
+  name: string; // id of the enrichment attribute
+  label: string; // name of the enrichment property
+  type: AttributeType; // Type of the attribute
+  showInForm: boolean; // Display in Organization Form
+  showInAttributes: boolean; // Display in Organization Profile
+  isLink?: boolean; // If attribute is a url
+  component?: any; // Component that will render attribute in organization profile
+  displayValue?: (value: any) => string; // Formatter for displaying attribute value
+  keyParser?: (key: string) => string; // Formatter for keys of jsons if attribute is json
+  valueParser?: (value: any) => string; // Formatter for values of jsons if attribute is json
+  filterValue?: (value: any) => any; // Filter attributes values
+}
+
+const enrichmentConfig: OrganizationEnrichmentConfig[] = [
   lastEnrichedAt,
   industry,
   headcount,
@@ -51,3 +66,5 @@ export default [
   tags,
   ultimateParent,
 ];
+
+export default enrichmentConfig;
