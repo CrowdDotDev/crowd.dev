@@ -1,7 +1,7 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-const getValue = (value?: number) => {
+const getValue = (value?: number | null): string => {
   if (value === undefined || value === null) {
     return '';
   }
@@ -9,7 +9,7 @@ const getValue = (value?: number) => {
   return `$${value >= 1000 ? value / 1000 : value}${value >= 1000 ? 'B' : 'M'}`;
 };
 
-const getMiddle = (min: string, max: string) => {
+const getMiddle = (min: string, max: string): string => {
   if (min && max) {
     return '-';
   }
