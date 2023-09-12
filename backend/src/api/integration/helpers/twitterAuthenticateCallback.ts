@@ -49,7 +49,7 @@ export default async (req, res) => {
 
   // attach segments to request
   const segmentRepository = new SegmentRepository(req)
-        req.currentSegments = await segmentRepository.findInIds(segmentIds)
+  req.currentSegments = await segmentRepository.findInIds(segmentIds)
 
   try {
     const response = await axios.post(
@@ -66,18 +66,16 @@ export default async (req, res) => {
         auth: {
           username: TWITTER_CONFIG.clientId,
           password: TWITTER_CONFIG.clientSecret,
-        }
+        },
       },
     )
 
     // with the token let's get user info
-    const userResponse = await axios.get('https://api.twitter.com/2/users/me', 
-      {
-        headers: {
-          Authorization: `Bearer ${response.data.access_token}`,
-        },
+    const userResponse = await axios.get('https://api.twitter.com/2/users/me', {
+      headers: {
+        Authorization: `Bearer ${response.data.access_token}`,
       },
-    )
+    })
 
     const twitterUserId = userResponse.data.data.id
 

@@ -49,13 +49,11 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
   async getStreams(context: IStepContext): Promise<IPendingStream[]> {
     const hashtags = context.integration.settings.hashtags
 
-    // twitter deprecated followers endpoint, so we are left only with mentions 
-    return ['mentions']
-      .concat((hashtags || []).map((h) => `hashtag/${h}`))
-      .map((s) => ({
-        value: s,
-        metadata: { page: '' },
-      }))
+    // twitter deprecated followers endpoint, so we are left only with mentions
+    return ['mentions'].concat((hashtags || []).map((h) => `hashtag/${h}`)).map((s) => ({
+      value: s,
+      metadata: { page: '' },
+    }))
   }
 
   async processStream(
