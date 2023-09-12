@@ -42,11 +42,16 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="email" />
-            <span class="text-gray-900 text-xs">
-              {{ email }}</span>
-          </div>
+          <el-tooltip
+            placement="top"
+            :content="email"
+          >
+            <div class="flex gap-3 items-center overflow-hidden">
+              <app-platform platform="email" />
+              <span class="text-gray-900 text-xs truncate">
+                {{ email }}</span>
+            </div>
+          </el-tooltip>
           <i
             class="ri-external-link-line text-gray-300"
           />
