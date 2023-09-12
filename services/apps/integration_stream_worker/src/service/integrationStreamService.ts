@@ -14,6 +14,7 @@ import {
 } from '@crowd/sqs'
 import {
   IntegrationRunState,
+  IntegrationState,
   IntegrationStreamType,
   RateLimitError,
   WebhookType,
@@ -146,6 +147,14 @@ export default class IntegrationStreamService extends LoggerBase {
       return
     }
 
+    if (stream.webhookId) {
+      await this.webhookRepo.markWebhookError(stream.webhookId, {
+        errorMessage: err?.message,
+        errorStack: err?.stack,
+        errorString: err ? JSON.stringify(err) : undefined,
+      })
+    }
+
     // stop run because of stream error
     if (stream.runId) {
       this.log.warn('Reached maximum retries for stream! Stopping the run!')
@@ -212,6 +221,13 @@ export default class IntegrationStreamService extends LoggerBase {
     if (streamInfo.runId) {
       this.log.warn({ streamId }, 'Stream is a regular stream! Processing as such!')
       await this.processStream(streamId)
+      return
+    }
+
+    if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
+      this.log.warn('Integration is not correctly connected! Deleting the stream and webhook!')
+      await this.repo.deleteStream(streamId)
+      await this.webhookRepo.deleteWebhook(webhookId)
       return
     }
 
@@ -382,7 +398,14 @@ export default class IntegrationStreamService extends LoggerBase {
     }
 
     if (streamInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
-      this.log.warn('Integration was deleted! Skipping stream processing!')
+      this.log.warn('Integration was deleted! Skipping stream processing! Deleting the stream!')
+      await this.repo.deleteStream(streamId)
+      return
+    }
+
+    if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
+      this.log.warn('Integration is not correctly connected! Deleting the stream!')
+      await this.repo.deleteStream(streamId)
       return
     }
 

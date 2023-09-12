@@ -89,6 +89,57 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results.map((r) => r.id)
   }
 
+  public async getOrganizationMembersForSync(
+    organizationId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+        select distinct mo."memberId"
+        from "memberOrganizations" mo
+        where mo."organizationId" = $(organizationId) and
+              mo."deletedAt" is null and
+              mo."memberId" > $(lastId) and
+              (
+                exists (select 1 from activities where "memberId" = mo."memberId") or
+                exists (select 1 from members where "memberId" = mo."memberId" and "manuallyCreated")
+              ) and
+              exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
+        order by mo."memberId"
+        limit ${perPage};`,
+        {
+          organizationId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+        select distinct mo."memberId"
+        from "memberOrganizations" mo
+        where mo."organizationId" = $(organizationId) and
+              mo."deletedAt" is null and
+              (
+                exists (select 1 from activities where "memberId" = mo."memberId") or
+                exists (select 1 from members where "memberId" = mo."memberId" and "manuallyCreated")
+              ) and
+              exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
+        order by mo."memberId"
+        limit ${perPage};`,
+        {
+          organizationId,
+        },
+      )
+    }
+
+    return results.map((r) => r.memberId)
+  }
+
   public async getRemainingTenantMembersForSync(
     tenantId: string,
     page: number,

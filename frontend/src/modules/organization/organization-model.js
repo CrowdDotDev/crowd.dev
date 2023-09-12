@@ -81,6 +81,10 @@ const fields = {
     'crunchbase',
     label('crunchbase'),
   ),
+  identities: new JsonField(
+    'identities',
+    'Identities',
+  ),
   emails: new StringArrayField('emails', 'E-mail address'),
   phoneNumbers: new StringArrayField(
     'phoneNumbers',
