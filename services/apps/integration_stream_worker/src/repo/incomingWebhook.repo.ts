@@ -19,6 +19,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
             iw.state,
             iw.type,
             iw.payload,
+            iw."createdAt" as "createdAt",
             i.platform as "platform"
         from 
             "incomingWebhooks" iw
@@ -108,10 +109,10 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     tenantId: string,
     integrationId: string,
     type: string,
-    //  eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload: any,
-  ): Promise<string | null> {
-    const result = await this.db().oneOrNone(
+    payload: unknown,
+  ): Promise<string> {
+    const id = generateUUIDv1()
+    const result = await this.db().result(
       `
         insert into "incomingWebhooks" (
           id,
@@ -131,7 +132,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
         returning id
       `,
       {
-        id: generateUUIDv1(),
+        id,
         tenantId,
         integrationId,
         type,
@@ -140,7 +141,9 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
       },
     )
 
-    return result?.id ?? null
+    this.checkUpdateRowCount(result.rowCount, 1)
+
+    return id
   }
 
   public async getFailedWebhooks(limit: number): Promise<
