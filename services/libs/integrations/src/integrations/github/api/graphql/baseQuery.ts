@@ -124,7 +124,12 @@ class BaseQuery {
   }
 
   static processGraphQLError(err: any): any {
-    if (err.errors && err.errors[0].type === 'RATE_LIMITED') {
+    if (
+      (err.status === 403 &&
+        err.message &&
+        (err.message as string).toLowerCase().includes('secondary rate limit')) ||
+      (err.errors && err.errors[0].type === 'RATE_LIMITED')
+    ) {
       if (err.headers && err.headers['x-ratelimit-reset']) {
         const query =
           err.request && err.request.query ? err.request.query : 'Unknown GraphQL query!'

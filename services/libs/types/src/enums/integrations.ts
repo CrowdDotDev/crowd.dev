@@ -4,6 +4,7 @@ export enum IntegrationState {
   ERROR = 'error',
   INACTIVE = 'inactive',
   WAITING_APPROVAL = 'waiting-approval',
+  NEEDS_RECONNECT = 'needs-reconnect',
 }
 
 export enum IntegrationRunState {
