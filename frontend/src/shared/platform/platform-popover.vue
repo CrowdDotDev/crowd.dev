@@ -11,11 +11,13 @@
         <slot name="platform" />
       </div>
     </template>
-
-    <app-platform-list
-      :username-handles="usernameHandles"
-      :platform="platform"
-    />
+    <div class="max-h-48 overflow-auto">
+      <app-platform-list
+        :username-handles="usernameHandles"
+        :platform="platform"
+        :links="links"
+      />
+    </div>
   </el-popover>
   <el-tooltip
     v-else
@@ -40,6 +42,10 @@ import AppPlatformList from './platform-list.vue';
 
 defineProps({
   usernameHandles: {
+    type: Array,
+    default: () => [],
+  },
+  links: {
     type: Array,
     default: () => [],
   },

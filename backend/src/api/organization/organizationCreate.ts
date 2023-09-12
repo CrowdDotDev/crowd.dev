@@ -22,7 +22,7 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationCreate)
 
   const enrichP = req.body?.shouldEnrich || false
-  const payload = await new OrganizationService(req).findOrCreate(req.body, enrichP)
+  const payload = await new OrganizationService(req).createOrUpdate(req.body, enrichP)
 
   track('Organization Manually Created', { ...payload }, { ...req })
 

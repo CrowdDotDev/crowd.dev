@@ -269,47 +269,45 @@ export class OrganizationSyncService extends LoggerBase {
       for (const organizationId of organizationIds) {
         const organizationDocs = grouped.get(organizationId)
         if (isMultiSegment) {
-          // index each of them individually
           for (const organization of organizationDocs) {
+            // index each of them individually because it's per leaf segment
             const prepared = OrganizationSyncService.prefixData(organization)
             forSync.push({
               id: `${organizationId}-${organization.segmentId}`,
               body: prepared,
             })
-          }
 
-          const relevantSegmentInfos = segmentInfos.filter(
-            (s) => s.id === organizationDocs[0].segmentId,
-          )
+            const relevantSegmentInfos = segmentInfos.filter((s) => s.id === organization.segmentId)
 
-          // and for each parent and grandparent
-          const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
-          for (const parentId of parentIds) {
-            const aggregated = OrganizationSyncService.aggregateData(
-              organizationDocs,
-              relevantSegmentInfos,
-              parentId,
-            )
-            const prepared = OrganizationSyncService.prefixData(aggregated)
-            forSync.push({
-              id: `${organizationId}-${parentId}`,
-              body: prepared,
-            })
-          }
+            // and for each parent and grandparent
+            const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
+            for (const parentId of parentIds) {
+              const aggregated = OrganizationSyncService.aggregateData(
+                organizationDocs,
+                relevantSegmentInfos,
+                parentId,
+              )
+              const prepared = OrganizationSyncService.prefixData(aggregated)
+              forSync.push({
+                id: `${organizationId}-${parentId}`,
+                body: prepared,
+              })
+            }
 
-          const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
-          for (const grandParentId of grandParentIds) {
-            const aggregated = OrganizationSyncService.aggregateData(
-              organizationDocs,
-              relevantSegmentInfos,
-              undefined,
-              grandParentId,
-            )
-            const prepared = OrganizationSyncService.prefixData(aggregated)
-            forSync.push({
-              id: `${organizationId}-${grandParentId}`,
-              body: prepared,
-            })
+            const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
+            for (const grandParentId of grandParentIds) {
+              const aggregated = OrganizationSyncService.aggregateData(
+                organizationDocs,
+                relevantSegmentInfos,
+                undefined,
+                grandParentId,
+              )
+              const prepared = OrganizationSyncService.prefixData(aggregated)
+              forSync.push({
+                id: `${organizationId}-${grandParentId}`,
+                body: prepared,
+              })
+            }
           }
         } else {
           if (organizationDocs.length > 1) {
@@ -478,13 +476,23 @@ export class OrganizationSyncService extends LoggerBase {
     p.obj_grossAdditionsByMonth = data.grossAdditionsByMonth
     p.obj_grossDeparturesByMonth = data.grossDeparturesByMonth
 
+    // identities
+    const p_identities = []
+    for (const identity of data.identities) {
+      p_identities.push({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        string_url: identity.url,
+      })
+    }
+    p.nested_identities = p_identities
+
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
     p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
-    p.string_arr_identities = data.identities
 
     return p
   }

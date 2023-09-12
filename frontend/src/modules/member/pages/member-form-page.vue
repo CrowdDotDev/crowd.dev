@@ -352,6 +352,7 @@ async function onSubmit() {
       tags: formModel.value.tags.map((t) => t.id),
     },
     ...formModel.value.organizations.length && {
+      organizationsReplace: true,
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,

@@ -5,7 +5,6 @@ import {
   ErrorWebhook,
   IncomingWebhookData,
   PendingWebhook,
-  WebhookError,
   WebhookState,
   WebhookType,
 } from '../../types/webhooks'
@@ -155,7 +154,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     )
   }
 
-  async markError(id: string, error: WebhookError): Promise<void> {
+  async markError(id: string, error: any): Promise<void> {
     const transaction = this.transaction
 
     const [, rowCount] = await this.seq.query(
@@ -172,10 +171,9 @@ export default class IncomingWebhookRepository extends RepositoryBase<
           id,
           state: WebhookState.ERROR,
           error: JSON.stringify({
-            message: error.message,
-            originalError: JSON.stringify(error.originalError),
-            originalMessage: error.originalError.message,
-            stack: error.stack,
+            errorMessage: error.message,
+            errorString: JSON.stringify(error.originalError),
+            errorStack: error.stack,
           }),
         },
         type: QueryTypes.UPDATE,

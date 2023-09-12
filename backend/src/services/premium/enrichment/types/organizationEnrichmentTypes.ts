@@ -1,3 +1,4 @@
+import { IOrganizationIdentity } from '@crowd/types'
 import { CompanyEnrichmentParams, CompanyResponse } from 'peopledatalabs'
 
 export type IEnrichmentResponse = CompanyResponse & { address?: any; geoLocation?: string }
@@ -50,14 +51,10 @@ export interface IOrganization {
   grossAdditionsByMonth?: IEnrichmentResponse['gross_additions_by_month']
   grossDeparturesByMonth?: IEnrichmentResponse['gross_departures_by_month']
   inferredRevenue?: IEnrichmentResponse['inferred_revenue']
+  identities?: IOrganizationIdentity[]
 }
 
 interface ISocialNetwork {
   url: string
   handle: string
-}
-
-export interface IEnrichableOrganization extends IOrganization {
-  cachId: string
-  tenantId: string
 }

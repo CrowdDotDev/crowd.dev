@@ -9,10 +9,6 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      name: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
       displayName: {
         type: DataTypes.TEXT,
         allowNull: false,
@@ -32,10 +28,6 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
         comment: 'A detailed description of the company',
-      },
-      url: {
-        type: DataTypes.TEXT,
-        allowNull: true,
       },
       immediateParent: {
         type: DataTypes.TEXT,

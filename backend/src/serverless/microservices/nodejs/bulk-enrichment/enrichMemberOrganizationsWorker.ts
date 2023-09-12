@@ -19,7 +19,7 @@ export const enrichMemberOrganizations = async (
     for (const orgId of orgIds) {
       log.info({ memberId, organizationId: orgId }, `Enriching organization!`)
       const organization = await OrganizationRepository.findById(orgId, context)
-      await orgService.findOrCreate(organization, true)
+      await orgService.createOrUpdate(organization, true)
     }
   }
 }

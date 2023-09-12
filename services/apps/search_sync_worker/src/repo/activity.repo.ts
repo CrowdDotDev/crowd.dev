@@ -104,6 +104,44 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
     return results.map((r) => r.id)
   }
 
+  public async getOrganizationActivitiesForSync(
+    organizationId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+      select id from activities 
+      where "organizationId" = $(organizationId) and "deletedAt" is null and id > $(lastId)
+      order by id
+      limit ${perPage};
+      `,
+        {
+          organizationId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+      select id from activities 
+      where "organizationId" = $(organizationId) and "deletedAt" is null
+      order by id
+      limit ${perPage};
+      `,
+        {
+          organizationId,
+        },
+      )
+    }
+
+    return results.map((r) => r.id)
+  }
+
   public async getRemainingTenantActivitiesForSync(
     tenantId: string,
     page: number,
