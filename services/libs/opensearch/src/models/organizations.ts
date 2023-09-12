@@ -75,9 +75,6 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     type: {
       type: OpensearchFieldType.STRING,
     },
-    url: {
-      type: OpensearchFieldType.STRING,
-    },
     website: {
       type: OpensearchFieldType.STRING,
     },
@@ -113,7 +110,11 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.INT,
     },
     identities: {
-      type: OpensearchFieldType.STRING_ARR,
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_identities.string_name',
+        fromOpensearch: 'nested_identities',
+      },
     },
     isTeamOrganization: {
       type: OpensearchFieldType.BOOL,

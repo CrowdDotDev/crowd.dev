@@ -170,6 +170,7 @@ const formSchema = new FormSchema([
   fields.linkedin,
   fields.crunchbase,
   fields.emails,
+  fields.identities,
   fields.phoneNumbers,
   fields.type,
   fields.size,
@@ -211,22 +212,10 @@ function getInitialModel(record) {
         employees: record ? record.employees : null,
         location: record ? record.location : null,
         website: record ? record.website : null,
-        github:
-          record && record.github
-            ? record.github.handle
-            : '',
-        twitter:
-          record && record.twitter
-            ? record.twitter.handle
-            : '',
-        linkedin:
-          record && record.linkedin
-            ? record.linkedin.handle
-            : '',
-        crunchbase:
-          record && record.crunchbase
-            ? record.crunchbase.handle
-            : '',
+        identities: record ? [...record.identities.map((i) => ({
+          platform: i.platform,
+          name: i.name,
+        }))] : [],
         revenueRange: record ? record.revenueRange : {},
         emails:
           record && record.emails?.length > 0
@@ -384,15 +373,6 @@ function onCancel() {
   router.push({ name: 'organization' });
 }
 
-function platformPayload(platform, value) {
-  if (value && value !== '') {
-    return {
-      handle: value,
-      url: `https://${platform}.com/${value}`,
-    };
-  }
-  return undefined;
-}
 async function onSubmit() {
   isFormSubmitting.value = true;
   const data = {
@@ -415,27 +395,6 @@ async function onSubmit() {
       },
       [],
     ),
-    github: formModel.value.github
-      ? platformPayload('github', formModel.value.github)
-      : null,
-    linkedin: formModel.value.linkedin
-      ? platformPayload(
-        'linkedin',
-        formModel.value.linkedin,
-      )
-      : null,
-    twitter: formModel.value.twitter
-      ? platformPayload(
-        'twitter',
-        formModel.value.twitter,
-      )
-      : null,
-    crunchbase: formModel.value.crunchbase
-      ? platformPayload(
-        'crunchbase',
-        formModel.value.crunchbase,
-      )
-      : null,
   };
 
   const payload = isEditPage.value
