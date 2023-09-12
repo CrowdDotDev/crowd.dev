@@ -104,7 +104,7 @@
             props.organization.location
               || props.compareOrganization?.location
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between h-12 border-b border-gray-200 truncate"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Location
@@ -233,7 +233,8 @@
           <a
             v-for="(identity, ii) of props.organization.identities"
             :key="ii"
-            class="py-2 flex items-center relative text-gray-900 hover:text-brand-500 transition-colors cursor-pointer"
+            class="py-2 flex items-center relative text-gray-900 transition-colors"
+            :class="getIdentityLink(identity) ? 'hover:text-brand-500 cursor-pointer' : ''"
             :href="getIdentityLink(identity)"
             target="_blank"
             rel="noopener noreferrer"
@@ -241,9 +242,10 @@
             <div class="flex gap-3 items-center">
               <app-platform :platform="identity.platform" />
               <span class="text-xs">
-                {{ getPlatformDetails(identity.platform).name }}</span>
+                {{ identity.name ?? getPlatformDetails(identity.platform).name }}</span>
             </div>
             <i
+              v-if="identity.url"
               class="ri-external-link-line text-gray-300 pl-2"
             />
           </a>
@@ -346,25 +348,6 @@ const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 const getIdentityLink = (identity) => {
   if (identity.url) {
     return withHttp(identity.url);
-  }
-  if (identity.name) {
-    let url;
-
-    if (identity.platform === 'linkedin') {
-      url = 'https://www.linkedin.com/company';
-    } else if (identity.platform === 'github') {
-      url = 'https://github.com/';
-    } else if (identity.platform === 'twitter') {
-      url = 'https://twitter.com/';
-    } else if (identity.platform === 'crunchbase') {
-      url = 'https://www.crunchbase.com/organization/';
-    } else if (identity.platform === 'facebook') {
-      url = 'https://www.facebook.com/';
-    } else {
-      return null;
-    }
-
-    return `${url}${identity.name}`;
   }
   return null;
 };

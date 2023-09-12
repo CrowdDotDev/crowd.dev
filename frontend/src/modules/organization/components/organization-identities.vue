@@ -4,24 +4,21 @@
       v-if="organization.identities.length > 0"
       class="flex items-center gap-2"
     >
-      <!-- Github -->
-      <app-platform
-        v-for="(identity, ii) of organization.identities"
-        :key="ii"
-        :platform="identity.platform"
-        track-event-name="Click Organization Contact"
-        :track-event-channel="getPlatformDetails(identity.platform).name"
-        :tooltip-label="`${getPlatformDetails(identity.platform).name} profile`"
-        :username-handles="[identity.name]"
-        :has-tooltip="true"
-        :href="getIdentityLink(identity)"
-        :as-link="
-          !!(
-            identity.url
-            || identity.name
-          )
-        "
-      />
+      <div
+        v-for="platform of platforms"
+        :key="platform"
+      >
+        <app-platform
+          :platform="platform"
+          :username-handles="getHandlesByPlatform(platform)"
+          :links="getUrlsByPlatform(platform)"
+          :track-event-name="getPlatformDetails(platform).trackEventName"
+          :track-event-channel="getPlatformDetails(platform).trackEventChannel"
+          :tooltip-label="getPlatformDetails(platform).tooltipLabel"
+          :show-handles-badge="true"
+          :as-link="true"
+        />
+      </div>
 
       <el-divider
         v-if="showDivider"
@@ -65,9 +62,18 @@ const props = defineProps({
   },
 });
 
+const platforms = computed(() => [...new Set(props.organization.identities.map((i) => i.platform))]);
+
+const getHandlesByPlatform = (platform) => props.organization.identities
+  .filter((i) => i.platform === platform)
+  .map((i) => i.name);
+const getUrlsByPlatform = (platform) => props.organization.identities
+  .filter((i) => i.platform === platform)
+  .map((i) => getIdentityLink(i));
+
 const showDivider = computed(
   () => !!props.organization.phoneNumbers?.length
-    && hasSocialIdentities.value,
+    && platforms.value,
 );
 
 const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
@@ -75,25 +81,6 @@ const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 const getIdentityLink = (identity) => {
   if (identity.url) {
     return withHttp(identity.url);
-  }
-  if (identity.name) {
-    let url;
-
-    if (identity.platform === 'linkedin') {
-      url = 'https://www.linkedin.com/company';
-    } else if (identity.platform === 'github') {
-      url = 'https://github.com/';
-    } else if (identity.platform === 'twitter') {
-      url = 'https://twitter.com/';
-    } else if (identity.platform === 'crunchbase') {
-      url = 'https://www.crunchbase.com/organization/';
-    } else if (identity.platform === 'facebook') {
-      url = 'https://www.facebook.com/';
-    } else {
-      return null;
-    }
-
-    return `${url}${identity.name}`;
   }
   return null;
 };
