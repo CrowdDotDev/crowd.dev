@@ -209,6 +209,12 @@ export default class IntegrationStreamService extends LoggerBase {
       return
     }
 
+    if (streamInfo.runId) {
+      this.log.warn({ streamId }, 'Stream is a regular stream! Processing as such!')
+      await this.processStream(streamId)
+      return
+    }
+
     this.log = getChildLogger('webhook-stream-processor', this.log, {
       webhookId: streamInfo.webhookId,
       integrationId: streamInfo.integrationId,
@@ -361,6 +367,12 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ streamId }, 'Stream not found!')
+      return
+    }
+
+    if (streamInfo.webhookId) {
+      this.log.warn({ streamId }, 'Stream is a webhook stream! Processing as such!')
+      await this.processWebhookStream(streamInfo.webhookId)
       return
     }
 
