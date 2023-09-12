@@ -61,7 +61,7 @@ export default class IntegrationStreamService extends LoggerBase {
           await this.streamWorkerEmitter.triggerWebhookProcessing(
             stream.tenantId,
             stream.integrationType,
-            stream.id,
+            stream.webhookId,
           )
         }
       }
