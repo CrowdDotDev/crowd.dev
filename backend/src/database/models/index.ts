@@ -56,6 +56,9 @@ function models() {
     credentials.password,
     {
       dialect: DB_CONFIG.dialect,
+      dialectOptions: {
+        application_name: SERVICE,
+      },
       port: DB_CONFIG.port,
       replication: {
         read: [
