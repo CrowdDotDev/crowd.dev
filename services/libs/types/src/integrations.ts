@@ -8,6 +8,7 @@ export interface IIntegrationStream {
   identifier: string
   type: IntegrationStreamType
   data?: unknown
+  webhookCreatedAt?: string
 }
 
 export interface IIntegrationResult {

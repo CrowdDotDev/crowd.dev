@@ -61,7 +61,7 @@ export default class IntegrationStreamService extends LoggerBase {
           await this.streamWorkerEmitter.triggerWebhookProcessing(
             stream.tenantId,
             stream.integrationType,
-            stream.id,
+            stream.webhookId,
           )
         }
       }
@@ -209,6 +209,12 @@ export default class IntegrationStreamService extends LoggerBase {
       return
     }
 
+    if (streamInfo.runId) {
+      this.log.warn({ streamId }, 'Stream is a regular stream! Processing as such!')
+      await this.processStream(streamId)
+      return
+    }
+
     this.log = getChildLogger('webhook-stream-processor', this.log, {
       webhookId: streamInfo.webhookId,
       integrationId: streamInfo.integrationId,
@@ -287,6 +293,7 @@ export default class IntegrationStreamService extends LoggerBase {
         identifier: streamInfo.identifier,
         type: streamInfo.parentId ? IntegrationStreamType.CHILD : IntegrationStreamType.ROOT,
         data: streamInfo.data,
+        webhookCreatedAt: webhookInfo.createdAt,
       },
 
       log: this.log,
@@ -360,6 +367,12 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ streamId }, 'Stream not found!')
+      return
+    }
+
+    if (streamInfo.webhookId) {
+      this.log.warn({ streamId }, 'Stream is a webhook stream! Processing as such!')
+      await this.processWebhookStream(streamInfo.webhookId)
       return
     }
 

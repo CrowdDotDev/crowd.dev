@@ -241,15 +241,16 @@ const parseWebhookPullRequestReview = async (
   }
 }
 
-const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext) => {
+const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext, date: string) => {
   if (payload.action === 'created' || payload.action === 'deleted') {
     const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
-    if (member && payload.starred_at !== null) {
+    if (member) {
       await ctx.publishData<GithubWebhookData>({
         webhookType: GithubWehookEvent.STAR,
         data: payload,
         member,
+        date,
       })
     }
   }
@@ -344,6 +345,7 @@ const parseWebhookPullRequestReviewComment = async (
 
 const handler: ProcessWebhookStreamHandler = async (ctx) => {
   const identifier = ctx.stream.identifier
+  const webhookCreatedAt = ctx.stream.webhookCreatedAt
 
   // this is for pull request commits which are published during runtime
   if (identifier.startsWith(GithubStreamType.PULL_COMMITS)) {
@@ -370,7 +372,7 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
         await parseWebhookPullRequestReview(data, ctx)
         break
       case GithubWehookEvent.STAR:
-        await parseWebhookStar(data, ctx)
+        await parseWebhookStar(data, ctx, webhookCreatedAt)
         break
       case GithubWehookEvent.FORK:
         await parseWebhookFork(data, ctx)
