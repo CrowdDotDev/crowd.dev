@@ -20,7 +20,20 @@ export const getMessage = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
-    const newErr = handleDiscordError(err, config, { channelId, messageId }, ctx)
-    throw newErr
+    if (
+      err.response &&
+      err.response.data &&
+      err.response.data.message === 'Unknown Channel' &&
+      err.response.data.code === 10003
+    ) {
+      ctx.log.warn(
+        { channelId, messageId },
+        'Discord API returned Unknown Channel error when fetching message during webhook processing, skipping message.',
+      )
+      return null
+    } else {
+      const newErr = handleDiscordError(err, config, { channelId, messageId }, ctx)
+      throw newErr
+    }
   }
 }
