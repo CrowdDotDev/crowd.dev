@@ -11,12 +11,13 @@
         <slot name="platform" />
       </div>
     </template>
-
-    <app-platform-list
-      :username-handles="usernameHandles"
-      :platform="platform"
-      :links="links"
-    />
+    <div class="max-h-48 overflow-auto">
+      <app-platform-list
+        :username-handles="usernameHandles"
+        :platform="platform"
+        :links="links"
+      />
+    </div>
   </el-popover>
   <el-tooltip
     v-else

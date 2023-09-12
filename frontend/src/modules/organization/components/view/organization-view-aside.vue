@@ -104,8 +104,8 @@ import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { withHttp } from '@/utils/string';
 import { attributesTypes } from '@/modules/organization/types/Attributes';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppPlatform from '@/shared/platform/platform.vue';
 import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
-import AppPlatform from "@/shared/platform/platform.vue";
 
 const props = defineProps({
   organization: {

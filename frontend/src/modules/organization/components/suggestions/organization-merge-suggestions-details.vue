@@ -104,7 +104,7 @@
             props.organization.location
               || props.compareOrganization?.location
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between h-12 border-b border-gray-200 truncate"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Location
@@ -242,7 +242,7 @@
             <div class="flex gap-3 items-center">
               <app-platform :platform="identity.platform" />
               <span class="text-xs">
-                {{ getPlatformDetails(identity.platform).name }}</span>
+                {{ identity.name ?? getPlatformDetails(identity.platform).name }}</span>
             </div>
             <i
               v-if="identity.url"

@@ -19,23 +19,6 @@
           :as-link="true"
         />
       </div>
-      <!--      <app-platform-->
-      <!--        v-for="(identity, ii) of organization.identities"-->
-      <!--        :key="ii"-->
-      <!--        :platform="identity.platform"-->
-      <!--        track-event-name="Click Organization Contact"-->
-      <!--        :track-event-channel="getPlatformDetails(identity.platform).name"-->
-      <!--        :tooltip-label="`${getPlatformDetails(identity.platform).name} profile`"-->
-      <!--        :username-handles="[identity.name]"-->
-      <!--        :has-tooltip="true"-->
-      <!--        :href="getIdentityLink(identity)"-->
-      <!--        :as-link="-->
-      <!--          !!(-->
-      <!--            identity.url-->
-      <!--            || identity.name-->
-      <!--          )-->
-      <!--        "-->
-      <!--      />-->
 
       <el-divider
         v-if="showDivider"

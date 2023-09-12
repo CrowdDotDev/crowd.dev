@@ -66,7 +66,6 @@
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Message from '@/shared/message/message';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
