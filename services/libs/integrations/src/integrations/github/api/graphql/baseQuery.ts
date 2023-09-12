@@ -125,10 +125,9 @@ class BaseQuery {
 
   static processGraphQLError(err: any): any {
     if (
-      (err.status &&
-        err.status === 403 &&
+      (err.status === 403 &&
         err.message &&
-        (err.message as string).includes('secondary rate limit')) ||
+        (err.message as string).toLowerCase().includes('secondary rate limit')) ||
       (err.errors && err.errors[0].type === 'RATE_LIMITED')
     ) {
       if (err.headers && err.headers['x-ratelimit-reset']) {
