@@ -1,11 +1,14 @@
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 import OrganizationAttributesArrayRenderer from '@/modules/organization/components/organization-attributes-array-renderer.vue';
+import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-export default {
+const alternativeNames: OrganizationEnrichmentConfig = {
   name: 'alternativeNames',
   label: 'Alternative Names',
-  type: attributesTypes.array,
+  type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
   component: OrganizationAttributesArrayRenderer,
 };
+
+export default alternativeNames;

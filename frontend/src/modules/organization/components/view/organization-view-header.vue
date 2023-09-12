@@ -53,6 +53,7 @@
       <div class="flex items-center">
         <app-organization-dropdown
           :organization="organization"
+          @merge="isMergeDialogOpen = organization"
         />
       </div>
     </div>
@@ -156,6 +157,8 @@
         </p>
       </div>
     </div>
+
+    <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -174,6 +177,7 @@ import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
+import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({
@@ -185,6 +189,7 @@ const props = defineProps({
 
 const showMore = ref(false);
 const descriptionRef = ref(null);
+const isMergeDialogOpen = ref(null);
 const displayShowMore = computed(() => {
   if (!props.organization.description) {
     return false;

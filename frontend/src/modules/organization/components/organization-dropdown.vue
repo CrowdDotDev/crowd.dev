@@ -28,6 +28,20 @@
           >Edit organization</span>
         </el-dropdown-item>
 
+        <!-- Merge organization -->
+        <el-dropdown-item
+          class="h-10"
+          :command="{
+            action: 'organizationMerge',
+            organization,
+          }"
+          :disabled="isEditLockedForSampleData"
+        >
+          <i class="ri-shuffle-line text-base mr-2" /><span
+            class="text-xs"
+          >Merge organization</span>
+        </el-dropdown-item>
+
         <!-- Hubspot -->
         <el-dropdown-item
           v-if="!isSyncingWithHubspot(organization)"
@@ -146,6 +160,10 @@ defineProps({
   },
 });
 
+const emit = defineEmits([
+  'merge',
+]);
+
 const store = useStore();
 
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -220,6 +238,8 @@ const handleCommand = (command) => {
         segmentId: route.query.segmentId || route.query.projectGroup,
       },
     });
+  } else if (command.action === 'organizationMerge') {
+    emit('merge');
   } else if (
     command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
   ) {

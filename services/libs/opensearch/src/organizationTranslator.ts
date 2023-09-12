@@ -17,6 +17,11 @@ export default class OrganizationTranslator extends FieldTranslator {
       return acc
     }, {})
 
+    // identities
+    this.translations.platform = 'string_platform'
+    this.translations.name = 'string_name'
+    this.translations.url = 'string_url'
+
     this.setTranslationMaps()
   }
 
