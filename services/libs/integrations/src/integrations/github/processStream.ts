@@ -83,7 +83,7 @@ const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenRespon
   await cache.set(key, JSON.stringify(token), 5 * 60)
 }
 
-async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
+export async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
   const auth = getAuth(ctx)
   if (auth) {
     let appToken: AppTokenResponse
