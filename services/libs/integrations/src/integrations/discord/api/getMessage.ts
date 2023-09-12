@@ -44,6 +44,12 @@ export const getMessage = async (
         'Discord API returned Unknown Message error when fetching message during webhook processing, skipping message.',
       )
       return null
+    } else if (err.response && err.response.status === 404) {
+      ctx.log.warn(
+        { channelId, messageId },
+        'Discord API returned 404 error when fetching message during webhook processing, skipping message.',
+      )
+      return null
     } else {
       const newErr = handleDiscordError(err, config, { channelId, messageId }, ctx)
       throw newErr
