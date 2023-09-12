@@ -11,6 +11,7 @@ export const FEATURE_FLAGS = {
   memberEnrichment: 'member-enrichment',
   csvExport: 'csv-export',
   hubspot: 'hubspot',
+  findGitHub: 'find-github'
 };
 
 class FeatureFlagService {
@@ -24,7 +25,6 @@ class FeatureFlagService {
         appName: 'crowd-web-app',
         environment: 'production',
       };
-
       this.unleash = new UnleashClient(unleashConfig);
     }
   }
@@ -59,7 +59,7 @@ class FeatureFlagService {
     if (config.isCommunityVersion) {
       return true;
     }
-
+    console.log('unleash', flag, this.unleash.isEnabled(flag))
     return this.unleash.isEnabled(flag);
   }
 
@@ -69,8 +69,9 @@ class FeatureFlagService {
     }
 
     const context = this.getContextFromTenant(tenant);
-    if (context) {
-      this.unleash.updateContext(context);
+
+    if (context.tenantId) {
+    this.unleash.updateContext(context);
     }
   }
 

@@ -72,6 +72,7 @@
           </span>
         </el-tooltip>
         <el-dropdown-item
+          v-if="isFindGitHubFeatureEnabled"
           :command="{
             action: 'memberFindGitHub',
             member,
@@ -228,6 +229,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import AppMemberFindGithubDrawer from './member-find-github-drawer.vue';
+import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
 
 export default {
   name: 'AppMemberDropdown',
@@ -249,6 +251,9 @@ export default {
       isMergeLoading: false,
       pair: [],
       openFindGitHubDrawer: false,
+      isFindGitHubFeatureEnabled: FeatureFlag.isFlagEnabled(
+        FEATURE_FLAGS.findGitHub,
+    )
     };
   },
   computed: {
