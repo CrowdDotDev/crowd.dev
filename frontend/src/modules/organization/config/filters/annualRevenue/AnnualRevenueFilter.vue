@@ -1,12 +1,13 @@
 <template>
   <div v-if="form">
+    <cr-filter-include-switch v-model="form.include" />
     <div class="p-4 pb-5">
       <cr-filter-inline-select
         v-if="!props.forceOperator"
         v-model="form.operator"
         :prefix="`${props.config.label}:`"
         class="mb-3"
-        :options="numberFilterOperators"
+        :options="annualRevenueFilterOperators"
       />
       <div class="flex -mx-1">
         <div class="flex-grow px-1">
@@ -15,8 +16,8 @@
             type="number"
             min="0"
             step="1"
-            :suffix="config.options.suffix"
-            :placeholder="!isBetween ? 'Enter value' : 'From'"
+            prefix="$"
+            :placeholder="!isBetween ? 'Enter value' : 'Min'"
             data-qa="filter-number-from"
             @blur="$v.value.$touch"
             @change="$v.value.$touch"
@@ -32,10 +33,10 @@
             <cr-filter-input
               v-model="form.valueTo"
               type="number"
-              placeholder="To"
+              placeholder="Max"
               min="0"
               data-qa="filter-number-to"
-              :suffix="config.options.suffix"
+              prefix="$"
               @blur="$v.valueTo.$touch"
               @change="$v.valueTo.$touch"
             />
@@ -74,6 +75,7 @@ import CrFilterInput from '@/shared/modules/filters/components/partials/string/F
 import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
 import AppFormErrors from '@/shared/form/form-errors.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
+import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 
 const props = defineProps<{
   modelValue: NumberFilterValue,
@@ -89,18 +91,19 @@ const form = computed<NumberFilterValue>({
 
 const defaultForm: NumberFilterValue = {
   value: '',
-  operator: FilterNumberOperator.EQ,
+  include: true,
+  operator: FilterNumberOperator.BETWEEN,
 };
 
 const rules: any = computed(() => ({
-  value: props.config.options.validators || {
+  value: {
     required,
     numeric,
     integer,
     minValue: minValue(0),
   },
   ...(isBetween.value ? {
-    valueTo: props.config.options.validators || {
+    valueTo: {
       required,
       numeric,
       integer,
@@ -114,19 +117,20 @@ const rules: any = computed(() => ({
 
 const isBetween = computed<boolean>(() => ([
   FilterNumberOperator.BETWEEN,
-  FilterNumberOperator.NOT_BETWEEN,
 ] as FilterNumberOperator[]).includes(form.value.operator));
+
+const annualRevenueFilterOperators = computed(() => numberFilterOperators.filter((operator) => operator.value !== FilterNumberOperator.EQ
+      && operator.value !== FilterNumberOperator.NE
+      && operator.value !== FilterNumberOperator.NOT_BETWEEN));
 
 const $v = useVuelidate(rules, form);
 
 watch(() => form.value.operator, (operator, previousOperator) => {
   const isPreviousBetweenOperator = ([
     FilterNumberOperator.BETWEEN,
-    FilterNumberOperator.NOT_BETWEEN,
   ] as FilterNumberOperator[]).includes(previousOperator);
   const isCurrentBetweenOperator = ([
     FilterNumberOperator.BETWEEN,
-    FilterNumberOperator.NOT_BETWEEN,
   ] as FilterNumberOperator[]).includes(operator);
   if (!isCurrentBetweenOperator) {
     delete form.value.valueTo;
@@ -136,23 +140,15 @@ watch(() => form.value.operator, (operator, previousOperator) => {
 });
 
 onMounted(() => {
-  if (props.forceOperator && props.forceOperator.length > 0) {
-    form.value = {
-      ...defaultForm,
-      ...form.value,
-      operator: props.forceOperator,
-    };
-  } else {
-    form.value = {
-      ...defaultForm,
-      ...form.value,
-    };
-  }
+  form.value = {
+    ...defaultForm,
+    ...form.value,
+  };
 });
 </script>
 
 <script lang="ts">
 export default {
-  name: 'CrNumberFilter',
+  name: 'AnnualRevenueFilter',
 };
 </script>

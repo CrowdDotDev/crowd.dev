@@ -484,24 +484,155 @@
                   </template>
                 </el-table-column>
 
-                <!-- Actions -->
-                <el-table-column fixed="right">
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="flex justify-center"
+              <!-- Employee Churn Rate -->
+              <el-table-column
+                label="Ann. Employee Churn Rate"
+                width="220"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
                     >
-                      <app-organization-dropdown
-                        :organization="scope.row"
-                        @merge="isMergeDialogOpen = scope.row"
-                      />
-                    </router-link>
-                  </template>
-                </el-table-column>
-              </el-table>
+                      <span v-if="scope.row.employeeChurnRate?.['12_month']" class="text-gray-900">
+                        {{
+                          employeeChurnRate.valueParser(scope.row.employeeChurnRate['12_month'])
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Employee Growth Rate -->
+              <el-table-column
+                label="Ann. Employee Growth Rate"
+                width="230"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
+                        {{
+                          employeeGrowthRate.valueParser(scope.row.employeeGrowthRate['12_month'])
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Employee Count -->
+              <el-table-column
+                label="Employee Count"
+                width="150"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.employees" class="text-gray-900">
+                        {{
+                          scope.row.employees
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Inferred Revenue -->
+              <el-table-column
+                label="Annual Revenue"
+                width="150"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      class="text-sm h-full flex items-center"
+                    >
+                      <span v-if="scope.row.revenueRange" class="text-gray-900">
+                        {{
+                          revenueRange.displayValue(scope.row.revenueRange)
+                        }}
+                      </span>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Tags -->
+              <el-table-column
+                label="Tags"
+                :width="tagsColumnWidth"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-tag-list
+                      v-if="scope.row.tags?.length"
+                      :member="scope.row"
+                      :editable="false"
+                    />
+                    <span v-else class="text-gray-500">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Actions -->
+              <el-table-column fixed="right">
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'organizationView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="flex justify-center"
+                  >
+                    <app-organization-dropdown
+                      :organization="scope.row"
+                      @merge="isMergeDialogOpen = scope.row"
+                    />
+                  </router-link>
+                </template>
+              </el-table-column>
+            </el-table>
 
               <div
                 v-if="showBottomPagination"
@@ -532,7 +663,6 @@
 <script setup>
 import {
   computed,
-  defineProps,
   ref,
   watch,
   onUnmounted,
@@ -543,7 +673,14 @@ import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
+<<<<<<< Updated upstream
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+=======
+import employeeChurnRate from '@/modules/organization/config/enrichment/employeeChurnRate';
+import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
+import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
+import AppTagList from '@/modules/tag/components/tag-list.vue';
+>>>>>>> Stashed changes
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -606,6 +743,24 @@ const showBottomPagination = computed(() => (
     ) > 1
 ));
 const isLoading = computed(() => props.isPageLoading);
+
+const tagsColumnWidth = computed(() => {
+  let maxTabWidth = 0;
+
+  organizations.value.forEach((row) => {
+    if (row.tags) {
+      const tabWidth = row.tags
+        .map((tag) => tag.name.length * 20)
+        .reduce((a, b) => a + b, 0);
+
+      if (tabWidth > maxTabWidth) {
+        maxTabWidth = tabWidth;
+      }
+    }
+  });
+
+  return Math.min(maxTabWidth + 100, 500);
+});
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
