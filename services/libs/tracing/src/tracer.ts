@@ -1,28 +1,54 @@
+import fs from 'fs'
+
 import opentelemetry, { Tracer } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
-import { Resource } from '@opentelemetry/resources'
+import { Resource, ResourceAttributes } from '@opentelemetry/resources'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 
 let sdk: NodeSDK | undefined
-let isSet = false
+let isInitialized = false
 
-export const getServiceTracer = (service: string, version: string): Tracer => {
-  if (isSet) {
-    return opentelemetry.trace.getTracer(service, version)
+export const getServiceTracer = (): Tracer => {
+  const service = process.env['SERVICE']
+  if (!service) {
+    throw new Error('Environment variable `SERVICE` is not set')
+  }
+
+  if (isInitialized) {
+    return opentelemetry.trace.getTracer(service)
+  }
+
+  const attrs: ResourceAttributes = {
+    [SemanticResourceAttributes.SERVICE_NAME]: service,
+  }
+
+  // Try to retrieve the Kubernetes namespace from file. If found, we can assume
+  // service is running in Kubernetes so we can set other Kubernetes-related
+  // resources such as pod and deployment names.
+  try {
+    const data = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/namespace')
+    if (data) {
+      attrs[SemanticResourceAttributes.K8S_NAMESPACE_NAME] = data.toString()
+
+      const pod = process.env['HOSTNAME']
+      if (pod) {
+        attrs[SemanticResourceAttributes.K8S_POD_NAME] = pod
+        attrs[SemanticResourceAttributes.K8S_DEPLOYMENT_NAME] = `${service}-dpl`
+      }
+    }
+  } catch (err) {
+    console.log('Ignoring Kubernetes tracing resources...')
   }
 
   sdk = new NodeSDK({
     traceExporter: new OTLPTraceExporter(),
-    resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: service,
-      [SemanticResourceAttributes.SERVICE_VERSION]: version,
-    }),
+    resource: new Resource(attrs),
   })
 
-  isSet = true
+  isInitialized = true
   sdk.start()
-  return opentelemetry.trace.getTracer(service, version)
+  return opentelemetry.trace.getTracer(service)
 }
 
 process.on('SIGTERM', async () => {
