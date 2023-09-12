@@ -1,7 +1,6 @@
 import passport from 'passport'
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
@@ -197,7 +196,6 @@ export default (app) => {
       //   failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
       // }),
       (req, _res, next) => {
-        console.log('req.query', req.query)
         const stateQueryParam = req.query.state
         const decodedState = decodeBase64Url(stateQueryParam)
         const stateObject = JSON.parse(decodedState)
