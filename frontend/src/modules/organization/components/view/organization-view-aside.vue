@@ -102,7 +102,7 @@
 import { computed } from 'vue';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { withHttp } from '@/utils/string';
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppPlatform from '@/shared/platform/platform.vue';
 import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
@@ -137,7 +137,7 @@ const noIdentities = computed(() => (
 ));
 
 const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
-  if (a.type === attributesTypes.array) {
+  if (a.type === AttributeType.ARRAY) {
     return !!props.organization[a.name]?.length;
   }
 

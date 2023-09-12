@@ -131,7 +131,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 
 const LoaderIcon = h(
   'i',
@@ -286,7 +286,7 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
     return false;
   }
 
-  if (a.type === attributesTypes.array) {
+  if (a.type === AttributeType.ARRAY) {
     return !!record.value?.[a.name]?.length;
   }
 
