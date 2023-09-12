@@ -23,7 +23,6 @@ update on "organizationIdentities" for each row execute procedure trigger_set_up
 alter table organizations
     add "weakIdentities" jsonb default '[]'::jsonb not null;
 
-BEGIN;
 DO
 $$
     DECLARE
@@ -32,88 +31,94 @@ $$
         gin integrations%ROWTYPE;
     BEGIN
         FOR org IN SELECT * FROM organizations
+            WHERE NOT EXISTS (SELECT 1 FROM "organizationIdentities" WHERE "organizationId" = org.id)
             LOOP
-                -- check for organization activity on github
-                SELECT INTO act * FROM activities WHERE "platform" = 'github' AND "organizationId" = org.id LIMIT 1;
                 BEGIN
-                    -- If activity is found
-                    IF FOUND THEN
-                        SELECT INTO gin *
-                        FROM integrations
-                        WHERE "platform" = 'github'
-                          AND "tenantId" = org."tenantId"
-                          AND "deletedAt" IS NULL
-                        LIMIT 1;
-                        -- If integration is found
+                    -- check for organization activity on github
+                    SELECT INTO act * FROM activities WHERE "platform" = 'github' AND "organizationId" = org.id LIMIT 1;
+                    BEGIN
+                        -- If activity is found
                         IF FOUND THEN
-                            INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "url",
-                                                                  "sourceId", "integrationId", "tenantId")
-                            VALUES (org.id, 'github', org.name, org.url, null, gin.id, org."tenantId");
-                            -- If integration is not found, `platform` is set to 'custom' and `integrationId` is set to null
+                            SELECT INTO gin *
+                            FROM integrations
+                            WHERE "platform" = 'github'
+                              AND "tenantId" = org."tenantId"
+                              AND "deletedAt" IS NULL
+                            LIMIT 1;
+                            -- If integration is found
+                            IF FOUND THEN
+                                INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "url",
+                                                                      "sourceId", "integrationId", "tenantId")
+                                VALUES (org.id, 'github', org.name, org.url, null, gin.id, org."tenantId");
+                                -- If integration is not found, `platform` is set to 'custom' and `integrationId` is set to null
+                            ELSE
+                                INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "sourceId",
+                                                                      "integrationId", "tenantId")
+                                VALUES (org.id, 'custom', org.name, null, null, org."tenantId");
+                            END IF;
+                            -- If no activity is found, `platform` is set to 'custom' and `integrationId` is set to null
                         ELSE
                             INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "sourceId",
                                                                   "integrationId", "tenantId")
                             VALUES (org.id, 'custom', org.name, null, null, org."tenantId");
                         END IF;
-                        -- If no activity is found, `platform` is set to 'custom' and `integrationId` is set to null
-                    ELSE
-                        INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "sourceId",
-                                                              "integrationId", "tenantId")
-                        VALUES (org.id, 'custom', org.name, null, null, org."tenantId");
+                    EXCEPTION
+                        WHEN unique_violation THEN
+                            -- If conflict happens, insert this identity into organizations."weakIdentities" jsonb array
+                            UPDATE organizations
+                            SET "weakIdentities" = COALESCE("weakIdentities", '{}'::jsonb) ||
+                                                   jsonb_build_object('platform', 'github', 'name', org.name)
+                            WHERE id = org.id;
+                    END;
+
+                    -- check for non-null LinkedIn handle
+                    IF org.linkedin -> 'handle' IS NOT NULL THEN
+                       BEGIN
+                            INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "sourceId",
+                                                                  "integrationId", "tenantId", "url")
+                            VALUES (org.id, 'linkedin', replace(org.linkedin ->> 'handle', 'company/', ''), null, null,
+                                    org."tenantId", CONCAT('https://linkedin.com/company/',
+                                                           replace(org.linkedin ->> 'handle', 'company/', '')));
+                       EXCEPTION
+                            WHEN unique_violation THEN
+                                -- If conflict happens, insert this identity into organizations."weakIdentities" jsonb array
+                                UPDATE organizations
+                                SET "weakIdentities" = COALESCE("weakIdentities", '{}'::jsonb) ||
+                                                       jsonb_build_object('platform', 'linkedin', 'name',
+                                                                          replace(org.linkedin ->> 'handle', 'company/', ''),
+                                                                          'url', CONCAT('https://linkedin.com/company/',
+                                                                                        replace(org.linkedin ->> 'handle', 'company/', '')))
+                                WHERE id = org.id;
+                       END;
                     END IF;
+
+                    -- check for non-null Twitter handle
+                    IF org.twitter -> 'handle' IS NOT NULL THEN
+                        BEGIN
+                            INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "sourceId",
+                                                                  "integrationId", "tenantId", "url")
+                            VALUES (org.id, 'twitter', org.twitter ->> 'handle'::text, null, null, org."tenantId",
+                                    CONCAT('https://twitter.com/', org.twitter ->> 'handle'::text));
+                        EXCEPTION
+                            WHEN unique_violation THEN
+                                -- If conflict happens, insert this identity into organizations."weakIdentities" jsonb array
+                                UPDATE organizations
+                                SET "weakIdentities" = COALESCE("weakIdentities", '{}'::jsonb) ||
+                                                       jsonb_build_object('platform', 'twitter', 'name',
+                                                                          org.twitter ->> 'handle', 'url',
+                                                                          CONCAT('https://twitter.com/', org.twitter ->> 'handle'::text))
+                                WHERE id = org.id;
+                        END;
+                    END IF;
+                    COMMIT;
                 EXCEPTION
-                    WHEN unique_violation THEN
-                        -- If conflict happens, insert this identity into organizations."weakIdentities" jsonb array
-                        UPDATE organizations
-                        SET "weakIdentities" = COALESCE("weakIdentities", '{}'::jsonb) ||
-                                               jsonb_build_object('platform', 'github', 'name', org.name)
-                        WHERE id = org.id;
+                    WHEN others THEN
+                        ROLLBACK; -- Rollback the transaction when an unexpected exception occurs
+                        RAISE NOTICE 'Unexpected error for organization %: %', org.id, SQLERRM; -- Log the error
                 END;
-
-                -- check for non-null LinkedIn handle
-                IF org.linkedin -> 'handle' IS NOT NULL THEN
-                    BEGIN
-                        INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "sourceId",
-                                                              "integrationId", "tenantId", "url")
-                        VALUES (org.id, 'linkedin', replace(org.linkedin ->> 'handle', 'company/', ''), null, null,
-                                org."tenantId", CONCAT('https://linkedin.com/company/',
-                                                       replace(org.linkedin ->> 'handle', 'company/', '')));
-                    EXCEPTION
-                        WHEN unique_violation THEN
-                            -- If conflict happens, insert this identity into organizations."weakIdentities" jsonb array
-                            UPDATE organizations
-                            SET "weakIdentities" = COALESCE("weakIdentities", '{}'::jsonb) ||
-                                                   jsonb_build_object('platform', 'linkedin', 'name',
-                                                                      replace(org.linkedin ->> 'handle', 'company/', ''),
-                                                                      'url', CONCAT('https://linkedin.com/company/',
-                                                                                    replace(org.linkedin ->> 'handle', 'company/', '')))
-                            WHERE id = org.id;
-                    END;
-                END IF;
-
-                -- check for non-null Twitter handle
-                IF org.twitter -> 'handle' IS NOT NULL THEN
-                    BEGIN
-                        INSERT INTO "organizationIdentities" ("organizationId", "platform", "name", "sourceId",
-                                                              "integrationId", "tenantId", "url")
-                        VALUES (org.id, 'twitter', org.twitter ->> 'handle'::text, null, null, org."tenantId",
-                                CONCAT('https://twitter.com/', org.twitter ->> 'handle'::text));
-                    EXCEPTION
-                        WHEN unique_violation THEN
-                            -- If conflict happens, insert this identity into organizations."weakIdentities" jsonb array
-                            UPDATE organizations
-                            SET "weakIdentities" = COALESCE("weakIdentities", '{}'::jsonb) ||
-                                                   jsonb_build_object('platform', 'twitter', 'name',
-                                                                      org.twitter ->> 'handle', 'url',
-                                                                      CONCAT('https://twitter.com/', org.twitter ->> 'handle'::text))
-                            WHERE id = org.id;
-                    END;
-                END IF;
             END LOOP;
     END ;
 $$;
-
-COMMIT;
 
 
 drop index if exists "organizations_name_tenant_id";

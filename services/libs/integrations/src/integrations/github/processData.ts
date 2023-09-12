@@ -20,8 +20,8 @@ import {
   PlatformType,
   MemberAttributeName,
   IActivityScoringGrid,
-  IOrganizationCreateData,
   OrganizationSource,
+  IOrganization,
 } from '@crowd/types'
 import { GITHUB_GRID } from './grid'
 import { generateSourceIdHash } from '../../helpers'
@@ -100,7 +100,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
           twitter: orgs.twitterUsername ? orgs.twitterUsername : null,
           website: orgs.websiteUrl ?? null,
           source: OrganizationSource.GITHUB,
-        } as IOrganizationCreateData
+        } as IOrganization
 
         if (orgs.twitterUsername) {
           organizationPayload.weakIdentities = [

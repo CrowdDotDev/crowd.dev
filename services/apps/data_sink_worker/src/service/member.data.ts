@@ -1,9 +1,4 @@
-import {
-  IMemberIdentity,
-  IOrganization,
-  IOrganizationCreateData,
-  OrganizationSource,
-} from '@crowd/types'
+import { IMemberIdentity, IOrganization, OrganizationSource } from '@crowd/types'
 
 export interface IMemberUpdateData {
   attributes?: Record<string, unknown>
@@ -23,5 +18,5 @@ export interface IMemberCreateData {
   joinedAt: Date
   weakIdentities?: IMemberIdentity[]
   identities: IMemberIdentity[]
-  organizations?: IOrganizationCreateData[]
+  organizations?: IOrganization[]
 }

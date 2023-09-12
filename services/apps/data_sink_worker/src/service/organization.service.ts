@@ -5,12 +5,7 @@ import { IDbInsertOrganizationCacheData, IDbOrganization } from '@/repo/organiza
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import {
-  IOrganization,
-  IOrganizationCreateData,
-  IOrganizationSocial,
-  PlatformType,
-} from '@crowd/types'
+import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
 
 export class OrganizationService extends LoggerBase {
@@ -45,7 +40,7 @@ export class OrganizationService extends LoggerBase {
 
         const primaryIdentity = data.identities[0]
 
-        data = this.normalizeSocialFields(data) as IOrganizationCreateData
+        data = this.normalizeSocialFields(data) as IOrganization
 
         // Normalize the website URL if it exists
         if (data.website) {
@@ -267,7 +262,7 @@ export class OrganizationService extends LoggerBase {
     }
   }
 
-  private normalizeSocialFields(data: IOrganization): IOrganization | IOrganizationCreateData {
+  private normalizeSocialFields(data: IOrganization): IOrganization {
     if (typeof data.twitter === 'string') {
       data.twitter = {
         handle: data.twitter,
@@ -284,7 +279,7 @@ export class OrganizationService extends LoggerBase {
     if (typeof data.crunchbase === 'string') {
       data.crunchbase = {
         handle: data.crunchbase,
-        url: `crunchbase.com/organization/${data.linkedin}`,
+        url: `crunchbase.com/organization/${data.crunchbase}`,
       }
     }
 
@@ -323,7 +318,7 @@ export class OrganizationService extends LoggerBase {
     tenantId: string,
     integrationId: string,
     platform: PlatformType,
-    organization: IOrganizationCreateData,
+    organization: IOrganization,
   ): Promise<void> {
     this.log = getChildLogger('OrganizationService.processOrganizationEnrich', this.log, {
       integrationId,
@@ -333,11 +328,17 @@ export class OrganizationService extends LoggerBase {
     try {
       this.log.debug('Processing organization enrich.')
 
-      if (!organization.identity?.name && !organization.attributes?.sourceId?.[platform]) {
-        const errorMessage = `Organization can't be enriched. It is missing both name and attributes.sourceId[${platform}}] fields.`
+      if (
+        organization.identities.length === 0 ||
+        (!organization.identities[0].name && !organization.identities[0].sourceId)
+      ) {
+        const errorMessage = `Organization can't be enriched. It either doesn't have any identity or sent identities are missing name or sourceId fields.`
         this.log.warn(errorMessage)
         return
       }
+
+
+      const primaryIdentity = organization.identities[0]
 
       await this.store.transactionally(async (txStore) => {
         const txRepo = new OrganizationRepository(txStore, this.log)
@@ -347,14 +348,13 @@ export class OrganizationService extends LoggerBase {
         const segmentId = dbIntegration.segmentId
 
         // first try finding the organization using the remote sourceId
-        const sourceId = organization.attributes?.sourceId?.[platform]
-        let dbOrganization = sourceId
-          ? await txRepo.findBySourceId(tenantId, segmentId, platform, sourceId)
+        let dbOrganization = primaryIdentity.sourceId
+          ? await txRepo.findBySourceId(tenantId, segmentId, platform, primaryIdentity.sourceId)
           : null
 
-        if (!dbOrganization && organization.identity.name) {
+        if (!dbOrganization && primaryIdentity.name) {
           // try finding the organization using name
-          dbOrganization = await txRepo.findByIdentity(tenantId, organization.identity)
+          dbOrganization = await txRepo.findInIdentityNames(tenantId, primaryIdentity.name)
         }
 
         if (dbOrganization) {
@@ -362,8 +362,26 @@ export class OrganizationService extends LoggerBase {
 
           // set a record in organizationsSyncRemote to save the sourceId
           // we can't use organization.attributes because of segments
-          if (sourceId) {
-            await txRepo.addToSyncRemote(dbOrganization.id, dbIntegration.id, sourceId)
+          if (primaryIdentity.sourceId) {
+            await txRepo.addToSyncRemote(
+              dbOrganization.id,
+              dbIntegration.id,
+              primaryIdentity.sourceId,
+            )
+          }
+
+          // check if sent primary identity already exists in the org
+          const existingIdentities = await txRepo.getIdentities(dbOrganization.id, tenantId)
+
+          const primaryIdentityExists = existingIdentities.find(
+            (i) => i.name === primaryIdentity.name && i.platform === primaryIdentity.platform,
+          )
+
+          // if it doesn't exist yet, append existing identities to the payload
+          // so that findOrCreate can find the organization to update
+          if (!primaryIdentityExists) {
+            // we add to the start of the array, because findOrCreate checks the first item in identities as primary identity
+            organization.identities.unshift(...existingIdentities)
           }
 
           await this.findOrCreate(tenantId, segmentId, integrationId, organization)

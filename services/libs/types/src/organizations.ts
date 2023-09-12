@@ -104,10 +104,6 @@ export interface IOrganizationCache {
   name?: string
 }
 
-export interface IOrganizationCreateData extends IOrganization {
-  identity: IOrganizationIdentity
-}
-
 export interface IExecutiveChange {
   joined_date?: string
   pdl_id?: string

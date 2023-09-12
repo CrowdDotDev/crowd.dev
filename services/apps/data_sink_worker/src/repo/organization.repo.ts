@@ -166,6 +166,45 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return resultMap
   }
 
+  public async findInIdentityNames(tenantId: string, name: string): Promise<IDbOrganization> {
+    const result = await this.db().oneOrNone(
+      `
+      with
+          "organizationsWithIdentityName" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where 
+                    oi.name = $(name)
+              limit 1
+          )
+          select o.id,
+                  o.description,
+                  o.emails,
+                  o.logo,
+                  o.tags,
+                  o.github,
+                  o.twitter,
+                  o.linkedin,
+                  o.crunchbase,
+                  o.employees,
+                  o.location,
+                  o.website,
+                  o.type,
+                  o.size,
+                  o.headline,
+                  o.industry,
+                  o.founded,
+                  o.attributes
+          from organizations o
+          where o."tenantId" = $(tenantId) 
+          and o.id in (select "organizationId" from "organizationsWithIdentityName");
+      `,
+      { tenantId, name },
+    )
+
+    return result
+  }
+
   public async findByIdentity(
     tenantId: string,
     identity: IOrganizationIdentity,
@@ -216,6 +255,16 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   ): Promise<IDbOrganization> {
     const result = await this.db().oneOrNone(
       `
+      with
+          "organizationsWithSourceIdAndSegment" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              join "organizationSegments" os on oi."organizationId" = os."organizationId"
+              where 
+                    oi.platform = $(platform)
+                    and oi."sourceId" = $(sourceId)
+                    and os."segmentId" =  $(segmentId)
+          )
       select  o.id,
               o.description,
               o.emails,
@@ -235,11 +284,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               o.founded,
               o.attributes
       from organizations o
-      where o."tenantId" = $(tenantId) and COALESCE(((o.attributes -> 'sourceId'::text) ->> '${platform}'::text)::text, '') = $(sourceId)
-      and o.id in (select os."organizationId"
-                    from "organizationSegments" os
-                      where os."segmentId" = $(segmentId))`,
-      { tenantId, sourceId, segmentId },
+      where o."tenantId" = $(tenantId) 
+      and o.id in (select "organizationId" from "organizationsWithSourceIdAndSegment");`,
+      { tenantId, sourceId, segmentId, platform },
     )
 
     return result
