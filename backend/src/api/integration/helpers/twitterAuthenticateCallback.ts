@@ -6,7 +6,7 @@ import IntegrationService from '../../../services/integrationService'
 import { API_CONFIG, TWITTER_CONFIG } from '../../../conf'
 import SegmentRepository from '../../../database/repositories/segmentRepository'
 
-const errorURL = `${API_CONFIG.frontendUrl}/integrations?error=true`
+const errorURL = `${API_CONFIG.frontendUrl}/integrations?twitter-error=true`
 
 const decodeBase64Url = (data) => {
   data = data.replaceAll('-', '+').replaceAll('_', '/')
