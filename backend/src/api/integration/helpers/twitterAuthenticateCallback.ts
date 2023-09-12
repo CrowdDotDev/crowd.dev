@@ -19,7 +19,6 @@ const decodeBase64Url = (data) => {
 export default async (req, res) => {
   // Checking we have permision to edit the integration
   new PermissionChecker(req).validateHas(Permissions.values.integrationEdit)
-        
 
   const cache = new RedisCache('twitterPKCE', req.redis, req.log)
 

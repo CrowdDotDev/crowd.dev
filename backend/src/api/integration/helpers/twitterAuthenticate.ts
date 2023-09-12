@@ -3,10 +3,12 @@ import { PlatformType } from '@crowd/types'
 import { Response } from 'express'
 import { RedisCache } from '@crowd/redis'
 import { generateUUIDv4 as uuid } from '@crowd/common'
-import { TWITTER_CONFIG, API_CONFIG } from '../../../conf'
+import { TWITTER_CONFIG } from '../../../conf'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
+
+/// credits to lucia-auth library for these functions
 
 const createUrl = (url: string | URL, urlSearchParams: Record<string, string | undefined>): URL => {
   const newUrl = new URL(url)
@@ -70,6 +72,8 @@ const generatePKCECodeChallenge = (method: 'S256', verifier: string) => {
   throw new TypeError('Invalid PKCE code challenge method')
 }
 
+/// end credits
+
 export default async (req, res: Response) => {
   // Checking we have permision to edit the project
   new PermissionChecker(req).validateHas(Permissions.values.integrationEdit)
@@ -85,7 +89,7 @@ export default async (req, res: Response) => {
 
   const handle = uuid()
 
-  const callbackUrl = `http://127.0.0.1:8081/api/twitter/callback`
+  const callbackUrl = TWITTER_CONFIG.callbackUrl
 
   const state = {
     handle,
@@ -99,9 +103,6 @@ export default async (req, res: Response) => {
     codeVerifier,
     segmentIds: SequelizeRepository.getSegmentIds(req),
   }
-  //   // Save codeVerifier and state as session http only cookies
-  //   res.cookie("twitter_code_verifier", codeVerifier, { httpOnly: true, maxAge: 60 * 60  })
-  //   res.cookie("twitter_oauth_state", JSON.stringify(state), { httpOnly: true, maxAge: 60 * 60  })
 
   const twitterState = {
     crowdToken: req.query.crowdToken,
