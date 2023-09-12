@@ -901,10 +901,10 @@ class OrganizationRepository {
         addRoles.push({
           dateStart: new Date(Math.min.apply(null, startDates)).toISOString(),
           dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
-          memberId: foundIntersectingRoles[0].memberId,
-          organizationId: foundIntersectingRoles[0].organizationId,
-          title: foundIntersectingRoles[0].title,
-          source: foundIntersectingRoles[0].source,
+          memberId: memberOrganization.memberId,
+          organizationId: toOrganizationId,
+          title: foundIntersectingRoles.length > 0 ? foundIntersectingRoles[0].title : memberOrganization.title,
+          source: foundIntersectingRoles.length > 0 ? foundIntersectingRoles[0].source : memberOrganization.source,
         })
 
         // we'll delete all roles that intersect with incoming org member roles and create a merged role
