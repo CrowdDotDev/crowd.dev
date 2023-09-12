@@ -27,6 +27,7 @@ export enum FeatureFlag {
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
+  FIND_GITHUB = 'find-github'
 }
 
 export enum FeatureFlagRedisKey {

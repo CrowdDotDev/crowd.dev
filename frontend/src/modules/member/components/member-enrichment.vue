@@ -32,7 +32,7 @@
       :disabled="!isEnrichmentDisabled"
       popper-class="max-w-[260px]"
     >
-      <span v-if="forFeatureFlag">
+      <span v-if="isFindGitHubFeatureEnabled">
         <el-button
           v-if="!isEnrichmentDisabled"
           class="btn btn--primary btn--full !h-8"
@@ -81,6 +81,7 @@ import {
 import AppSvg from '@/shared/svg/svg.vue';
 import { MemberPermissions } from '../member-permissions';
 import AppMemberFindGithubDrawer from './member-find-github-drawer.vue'
+import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
 
 const props = defineProps({
   member: {
@@ -92,14 +93,16 @@ const props = defineProps({
 const { doEnrich } = mapActions('member');
 const { currentTenant, currentUser } = mapGetters('auth');
 
+const isFindGitHubFeatureEnabled = FeatureFlag.isFlagEnabled(
+        FEATURE_FLAGS.findGitHub,
+    )
+
 const isEnrichmentDisabled = computed(
   () => !props.member.username?.github?.length
     && !props.member.emails?.length,
 );
 
 const openFindGitHubDrawer = ref(false);
-
-const forFeatureFlag = ref(true)
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
