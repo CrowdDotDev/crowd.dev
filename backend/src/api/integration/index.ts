@@ -1,11 +1,20 @@
 import passport from 'passport'
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
 import { FeatureFlag } from '@/types/common'
 import { featureFlagMiddleware } from '@/middlewares/featureFlagMiddleware'
+
+const decodeBase64Url = (data) => {
+  data = data.replaceAll('-', '+').replaceAll('_', '/')
+  while (data.length % 4) {
+    data += '='
+  }
+  return atob(data)
+}
 
 export default (app) => {
   app.post(`/tenant/:tenantId/integration/query`, safeWrap(require('./integrationQuery').default))
@@ -188,8 +197,10 @@ export default (app) => {
       //   failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
       // }),
       (req, _res, next) => {
+        console.log('req.query', req.query)
         const stateQueryParam = req.query.state
-        const stateObject = JSON.parse(decodeURIComponent(stateQueryParam))
+        const decodedState = decodeBase64Url(stateQueryParam)
+        const stateObject = JSON.parse(decodedState)
         const { crowdToken } = stateObject
         req.headers.authorization = `Bearer ${crowdToken}`
         next()
@@ -197,7 +208,8 @@ export default (app) => {
       authMiddleware,
       async (req, _res, next) => {
         const stateQueryParam = req.query.state
-        const stateObject = JSON.parse(decodeURIComponent(stateQueryParam))
+        const decodedState = decodeBase64Url(stateQueryParam)
+        const stateObject = JSON.parse(decodedState)
         const { tenantId } = stateObject
         req.currentTenant = await new TenantService(req).findById(tenantId)
         next()
