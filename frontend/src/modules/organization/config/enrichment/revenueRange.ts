@@ -1,6 +1,7 @@
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
+import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-const getValue = (value) => {
+const getValue = (value?: number) => {
   if (value === undefined || value === null) {
     return '';
   }
@@ -8,7 +9,7 @@ const getValue = (value) => {
   return `$${value >= 1000 ? value / 1000 : value}${value >= 1000 ? 'B' : 'M'}`;
 };
 
-const getMiddle = (min, max) => {
+const getMiddle = (min: string, max: string) => {
   if (min && max) {
     return '-';
   }
@@ -20,10 +21,10 @@ const getMiddle = (min, max) => {
   return '';
 };
 
-export default {
+const revenueRange: OrganizationEnrichmentConfig = {
   name: 'revenueRange',
   label: 'Annual Revenue',
-  type: attributesTypes.string,
+  type: AttributeType.STRING,
   showInForm: false,
   showInAttributes: false,
   displayValue: (value) => {
@@ -37,3 +38,5 @@ export default {
     return `${min}${getMiddle(min, max)}${max}`;
   },
 };
+
+export default revenueRange;
