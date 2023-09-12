@@ -73,6 +73,8 @@ setImmediate(async () => {
             for (const org of orgs) {
               await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
             }
+
+            await searchSyncWorkerEmitter.triggerMemberSync(tenantId, member.id)
           }
         }
 
