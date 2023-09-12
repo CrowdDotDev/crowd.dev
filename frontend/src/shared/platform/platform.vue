@@ -48,7 +48,7 @@
               :alt="imageProperties.name"
               class="channels-icon"
             />
-            <i v-else class="ri-user-3-fill" />
+            <i v-else :class="props.customPlatformIconClass" />
           </component>
         </el-tooltip>
       </div>
@@ -105,6 +105,10 @@ const props = defineProps({
   backupUrl: {
     type: String,
     default: null,
+  },
+  customPlatformIconClass: {
+    type: String,
+    default: 'ri-user-3-fill',
   },
 });
 
