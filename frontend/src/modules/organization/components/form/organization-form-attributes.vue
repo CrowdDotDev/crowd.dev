@@ -26,7 +26,7 @@
           :is-enrichment-field="true"
         >
           <app-autocomplete-many-input
-            v-if="attribute.type === attributesTypes.array"
+            v-if="attribute.type === AttributeType.ARRAY"
             v-model="model[attribute.name]"
             disabled
             input-class="w-full multi-select-field"
@@ -34,7 +34,7 @@
             :collapse-tags="true"
           />
           <app-organization-form-json
-            v-else-if="attribute.type === attributesTypes.json"
+            v-else-if="attribute.type === AttributeType.JSON"
             v-model="model[attribute.name]"
             :type="attribute.type"
             :filter-value="attribute.filterValue"
@@ -58,7 +58,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import AppOrganizationFormItem from './organization-form-item.vue';
 import AppOrganizationFormJson from './organization-form-json.vue';
