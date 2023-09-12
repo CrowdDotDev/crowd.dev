@@ -350,6 +350,11 @@ export default class IntegrationStreamService extends LoggerBase {
       await this.webhookRepo.markWebhookProcessed(webhookId)
     } catch (err) {
       this.log.error(err, 'Error while processing webhook stream!')
+      await this.webhookRepo.markWebhookError(webhookId, {
+        errorMessage: err?.message,
+        errorStack: err?.stack,
+        errorString: err ? JSON.stringify(err) : undefined,
+      })
       await this.triggerStreamError(
         streamInfo,
         'webhook-stream-process',
