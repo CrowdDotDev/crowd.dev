@@ -1,7 +1,7 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import IntegrationRepository from '@/repo/integration.repo'
-import { IDbInsertOrganizationCacheData, IDbOrganization } from '@/repo/organization.data'
+import { IDbInsertOrganizationCacheData } from '@/repo/organization.data'
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -336,7 +336,6 @@ export class OrganizationService extends LoggerBase {
         this.log.warn(errorMessage)
         return
       }
-
 
       const primaryIdentity = organization.identities[0]
 
