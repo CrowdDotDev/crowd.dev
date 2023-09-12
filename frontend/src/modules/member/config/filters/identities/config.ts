@@ -21,6 +21,10 @@ const identities: MultiSelectFilterConfig = {
             label: (platform as any).name,
             value: platform.platform,
           }))),
+          {
+            label: 'Email',
+            value: 'email',
+          },
         ],
       },
     ],
