@@ -8,7 +8,6 @@ import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  NodejsWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
 import { IntegrationStreamState } from '@crowd/types'
