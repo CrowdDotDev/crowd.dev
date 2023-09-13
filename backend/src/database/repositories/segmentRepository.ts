@@ -479,6 +479,7 @@ class SegmentRepository extends RepositoryBase<
       tenantId: this.currentTenant.id,
       name: `%${criteria.filter?.name}%`,
       status: criteria.filter?.status,
+      adminSegments: null,
     }
 
     if (criteria.filter?.status) {
