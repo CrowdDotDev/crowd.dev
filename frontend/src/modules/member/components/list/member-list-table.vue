@@ -350,7 +350,7 @@
                         </template>
                         <div class="flex flex-wrap gap-3 my-1">
                           <el-tooltip
-                            v-for="email of scope.row.emails"
+                            v-for="email of scope.row.emails.slice(3)"
                             :key="email"
                             :disabled="!email"
                             popper-class="custom-identity-tooltip flex "
