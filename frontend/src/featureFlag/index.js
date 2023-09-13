@@ -65,12 +65,13 @@ class FeatureFlagService {
     }
 
     const context = this.getContextFromTenant(tenant);
-
-    this.unleash.updateContext(context);
+    if (context) {
+      this.unleash.updateContext(context);
+    }
   }
 
   getContextFromTenant(tenant) {
-    if (!tenant) {
+    if (!tenant || !tenant.id) {
       return null;
     }
 
