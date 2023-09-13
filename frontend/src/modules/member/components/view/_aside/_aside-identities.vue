@@ -101,8 +101,6 @@ const handleOnMouseOver = (index) => {
   }
 
   showTooltip.value[index] = emailRef.value[index].scrollWidth > emailRef.value[index].clientWidth;
-
-  console.log(emailRef.value);
 };
 
 const handleOnMouseLeave = (index) => {
