@@ -63,6 +63,7 @@ export const getDbConnection = async (
     ...config,
     max: maxPoolSize || 5,
     query_timeout: 30000,
+    application_name: process.env.SERVICE || 'unknown-app',
   })
 
   await dbConnection.connect()
