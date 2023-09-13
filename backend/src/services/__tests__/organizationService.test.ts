@@ -59,7 +59,7 @@ describe('OrganizationService tests', () => {
         name: 'crowd.dev',
       }
 
-      const added = await service.findOrCreate(toAdd, false)
+      const added = await service.createOrUpdate(toAdd, false)
       expect(added.url).toEqual(null)
     })
 
@@ -71,7 +71,7 @@ describe('OrganizationService tests', () => {
         name: 'crowd.dev',
       }
 
-      const added = await service.findOrCreate(toAdd, true)
+      const added = await service.createOrUpdate(toAdd, true)
       expect(added.url).toEqual(null)
     })
 
@@ -86,7 +86,7 @@ describe('OrganizationService tests', () => {
         name: 'crowd.dev',
       }
 
-      const added = await service.findOrCreate(toAdd)
+      const added = await service.createOrUpdate(toAdd)
       expect(added.url).toEqual('crowd.dev')
       expect(added.name).toEqual(toAdd.name)
       expect(added.description).toEqual(expectedEnriched.description)
@@ -137,7 +137,7 @@ describe('OrganizationService tests', () => {
         name: 'crowd.dev',
       }
 
-      const added = await service.findOrCreate(toAdd)
+      const added = await service.createOrUpdate(toAdd)
       expect(added.url).toEqual('crowd.dev')
       expect(added.name).toEqual(toAdd.name)
       expect(added.description).toEqual(expectedEnriched.description)
@@ -169,7 +169,7 @@ describe('OrganizationService tests', () => {
       expect(foundCache.employees).toEqual(expectedEnriched.employees)
       expect(foundCache.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
 
-      const added2 = await service2.findOrCreate(toAdd)
+      const added2 = await service2.createOrUpdate(toAdd)
       expect(added2.name).toEqual('crowd.dev')
       expect(added2.description).toEqual(expectedEnriched.description)
       expect(added2.emails).toEqual(expectedEnriched.emails)
@@ -200,7 +200,7 @@ describe('OrganizationService tests', () => {
 
       const toAdd = {}
 
-      await expect(service.findOrCreate(toAdd)).rejects.toThrowError(
+      await expect(service.createOrUpdate(toAdd)).rejects.toThrowError(
         'Organization Name is required',
       )
     })
@@ -213,9 +213,9 @@ describe('OrganizationService tests', () => {
         name: 'crowd.dev',
       }
 
-      await service.findOrCreate(toAdd)
+      await service.createOrUpdate(toAdd)
 
-      const added = await service.findOrCreate(toAdd)
+      const added = await service.createOrUpdate(toAdd)
       expect(added.name).toEqual(toAdd.name)
       expect(added.url).toBeNull()
 
