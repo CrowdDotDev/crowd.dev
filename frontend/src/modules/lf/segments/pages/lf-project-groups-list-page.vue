@@ -1,19 +1,33 @@
 <template>
   <div class="p-3">
-    <div class="w-full flex items-center justify-between mb-9">
+    <div
+      class="w-full flex items-center justify-between"
+      :class="{ 'mb-9': !isProjectAdminUser }"
+    >
       <h4 class="text-gray-900">
         Project Groups
       </h4>
 
       <div class="basis-1/4">
         <app-lf-search-input
-          v-if="pagination.total"
+          v-if="pagination.total && !isProjectAdminUser"
           placeholder="Search project group..."
-          @on-change="(query) => searchProjectGroup(query, null)"
+          @on-change="(query) => searchProjectGroup(query, null, adminOnly)"
         />
       </div>
     </div>
 
+    <el-tabs v-if="isProjectAdminUser" v-model="computedActiveTab" class="mt-8">
+      <el-tab-pane label="My project groups" name="project-groups" />
+      <el-tab-pane label="All project groups" name="all-project-groups" />
+    </el-tabs>
+
+    <app-lf-search-input
+      v-if="pagination.total && isProjectAdminUser"
+      class="my-6"
+      placeholder="Search project group..."
+      @on-change="(query) => searchProjectGroup(query, null, adminOnly)"
+    />
     <div
       v-if="loading"
       v-loading="loading"
@@ -28,7 +42,10 @@
         description="Create your first project group and start integrating your projects"
         cta-btn="Manage project groups"
         @cta-click="router.push({
-          name: 'adminProjectGroups',
+          name: 'adminPanel',
+          query: {
+            activeTab: 'project-groups',
+          },
         })"
       />
 
@@ -81,6 +98,7 @@
             </el-button>
 
             <router-link
+              v-if="hasPermissionToAccessAdminPanel && hasAccessToProjectGroup(projectGroup.id)"
               :to="{
                 name: 'adminProjects',
                 params: {
@@ -88,7 +106,9 @@
                 },
               }"
             >
-              <el-button v-if="hasPermissionToAccessAdminPanel" class="btn btn--md btn--full btn--secondary">
+              <el-button
+                class="btn btn--md btn--full btn--secondary"
+              >
                 Settings
               </el-button>
             </router-link>
@@ -101,32 +121,80 @@
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, reactive } from 'vue';
+import {
+  computed, onMounted, reactive, ref, watch,
+} from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import pluralize from 'pluralize';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { hasAccessToProjectGroup } from '@/utils/segments';
+import { PermissionChecker } from '@/modules/user/permission-checker';
+import Roles from '@/security/roles';
 
 const router = useRouter();
+const route = useRoute();
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { listProjectGroups, updateSelectedProjectGroup, searchProjectGroup } = lsSegmentsStore;
+const {
+  listProjectGroups, updateSelectedProjectGroup, searchProjectGroup,
+} = lsSegmentsStore;
+
+const activeTab = ref();
+
+const isProjectAdminUser = computed(() => {
+  const permissionChecker = new PermissionChecker(
+    currentTenant.value,
+    currentUser.value,
+  );
+
+  return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
+});
+const adminOnly = computed(() => isProjectAdminUser.value && activeTab.value === 'project-groups');
 
 const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
 const list = computed(() => projectGroups.value.list);
 
+const computedActiveTab = computed({
+  get() {
+    return activeTab.value;
+  },
+  set(value) {
+    router.push({
+      name: 'projectGroupsList',
+      query: { activeTab: value },
+    });
+  },
+});
+
 const imageErrors = reactive({});
 
+watch(() => route.query.activeTab, (newActiveTab) => {
+  if (newActiveTab && isProjectAdminUser.value) {
+    activeTab.value = newActiveTab;
+    listProjectGroups({
+      limit: null,
+      offset: 0,
+      adminOnly: adminOnly.value,
+    });
+  }
+});
+
 onMounted(() => {
+  if (isProjectAdminUser.value) {
+    activeTab.value = route.query.activeTab || 'project-groups';
+  }
+
   listProjectGroups({
     limit: null,
-    reset: true,
+    offset: 0,
+    adminOnly: adminOnly.value,
   });
 });
 

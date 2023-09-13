@@ -34,7 +34,12 @@
     </div>
 
     <!-- Title & description -->
-    <div class="mt-4 pb-9 border-b border-gray-100">
+    <div
+      class="mt-4 pb-9"
+      :class="{
+        'border-b border-gray-100': hasPermissionToTakeAction,
+      }"
+    >
       <div
         v-if="result.platform === 'twitter'"
         class="text-sm text-gray-900 break-words"
@@ -66,8 +71,14 @@
     </div>
 
     <!-- Actions footer -->
-    <span class="text-gray-400 text-3xs mt-2 mb-1">Rate this content</span>
-    <div class="flex items-center justify-between gap-2">
+    <span
+      v-if="hasPermissionToTakeAction"
+      class="text-gray-400 text-3xs mt-2 mb-1"
+    >Rate this content</span>
+    <div
+      v-if="hasPermissionToTakeAction"
+      class="flex items-center justify-between gap-2"
+    >
       <div class="flex items-center gap-1">
         <el-tooltip placement="top" content="Relevant">
           <span @click.stop>
@@ -360,6 +371,7 @@ import { formatDateToTimeAgo } from '@/utils/date';
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
 import { withHttp } from '@/utils/string';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({
@@ -403,6 +415,13 @@ const DialogHeading = h(
       'Alpha',
     ),
   ],
+);
+
+const hasPermissionToTakeAction = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).action,
 );
 
 const isBookmarked = computed(() => props.result.actions.some(

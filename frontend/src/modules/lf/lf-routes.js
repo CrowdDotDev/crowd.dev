@@ -1,16 +1,17 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import Permissions from '@/security/permissions';
+import { hasAccessToProjectGroup } from '@/utils/segments';
 
 const ProjectGroupsListPage = () => import(
   '@/modules/lf/segments/pages/lf-project-groups-list-page.vue'
 );
 
-const ProjectGroupsPage = () => import(
-  '@/modules/lf/segments/pages/lf-project-groups-page.vue'
-);
-
 const ProjectsPage = () => import(
   '@/modules/lf/segments/pages/lf-projects-page.vue'
+);
+
+const AdminPanelPage = () => import(
+  '@/modules/lf/segments/pages/lf-admin-panel-page.vue'
 );
 
 export default [
@@ -33,9 +34,9 @@ export default [
         },
       },
       {
-        name: 'adminProjectGroups',
-        path: '/admin/project-groups',
-        component: ProjectGroupsPage,
+        name: 'adminPanel',
+        path: '/admin',
+        component: AdminPanelPage,
         meta: {
           title: 'Admin Panel',
           permission: Permissions.values.projectGroupCreate,
@@ -49,6 +50,13 @@ export default [
           auth: true,
           title: 'Admin Panel',
           permission: Permissions.values.projectCreate,
+        },
+        beforeEnter: async (to, _from, next) => {
+          if (!hasAccessToProjectGroup(to.params.id)) {
+            return next('/403');
+          }
+
+          return next();
         },
       },
     ],

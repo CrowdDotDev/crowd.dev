@@ -1,9 +1,12 @@
 <template>
-  <app-page-wrapper>
-    <div class="w-full flex items-center justify-between mb-6">
-      <h4 class="text-gray-900 py-6">
-        Admin panel
-      </h4>
+  <div class="pt-6">
+    <div class="flex gap-4">
+      <!-- Search input -->
+      <app-lf-search-input
+        v-if="pagination.total"
+        placeholder="Search project groups..."
+        @on-change="searchProjectGroup"
+      />
       <el-button
         v-if="pagination.total && hasPermissionToCreate"
         class="btn btn--md btn--primary"
@@ -12,13 +15,6 @@
         Add project group
       </el-button>
     </div>
-
-    <!-- Search input -->
-    <app-lf-search-input
-      v-if="pagination.total"
-      placeholder="Search project groups..."
-      @on-change="searchProjectGroup"
-    />
 
     <div
       v-if="loading"
@@ -64,7 +60,7 @@
       v-model="isProjectFormDrawerOpen"
       :parent-slug="projectGroupForm.parentSlug"
     />
-  </app-page-wrapper>
+  </div>
 </template>
 
 <script setup>
@@ -79,6 +75,8 @@ import AppLfProjectGroupsTable from '@/modules/lf/segments/components/view/lf-pr
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { PermissionChecker } from '@/modules/user/permission-checker';
+import Roles from '@/security/roles';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -101,10 +99,19 @@ const hasPermissionToCreate = computed(() => new LfPermissions(
   currentUser.value,
 )?.createProjectGroup);
 
+const isProjectAdminUser = computed(() => {
+  const permissionChecker = new PermissionChecker(
+    currentTenant.value,
+    currentUser.value,
+  );
+  return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
+});
+
 onMounted(() => {
   updateSelectedProjectGroup(null);
   listProjectGroups({
     reset: true,
+    adminOnly: isProjectAdminUser.value || null,
   });
 });
 

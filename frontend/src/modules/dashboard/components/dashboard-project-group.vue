@@ -35,6 +35,7 @@
       Projects list
     </el-button>
     <router-link
+      v-if="hasPermissionToAccessAdminPanel && hasAccessToProjectGroup(selectedProjectGroup.id)"
       :to="{
         name: 'adminProjects',
         params: {
@@ -43,7 +44,6 @@
       }"
     >
       <el-button
-        v-if="hasPermissionToAccessAdminPanel"
         class="btn btn-link btn-link--md btn-link--primary btn--full"
       >
         <i class="ri-external-link-line" />
@@ -66,6 +66,7 @@ import isUrl from '@/utils/isUrl';
 import { ref, computed } from 'vue';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { hasAccessToProjectGroup } from '@/utils/segments';
 import AppDashboardProjectGroupDrawer from './dashboard-project-group-drawer.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
