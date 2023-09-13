@@ -3,9 +3,8 @@ import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { IOrganization, PlatformType } from '@crowd/types'
-import { RequestThrottler } from '@crowd/common'
+import { RequestThrottler, websiteNormalizer } from '@crowd/common'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
-import { getOrganizationDomain } from './utils/getOrganizationDomain'
 import { IBatchCreateOrganizationsResult } from './types'
 import { getCompanyById } from './companyById'
 import { batchUpdateOrganizations } from './batchUpdateOrganizations'
@@ -30,12 +29,12 @@ export const batchCreateOrganizations = async (
     const hubspotCompanies = []
 
     for (const organization of organizations) {
-      if (!organization.website || !getOrganizationDomain(organization.website)) {
+      if (!organization.website || !websiteNormalizer(organization.website)) {
         ctx.log.info(
           `Organization ${organization.id} can't be created in hubspot! Organization doesn't have any associated website or domain can't be derived from existing website.`,
         )
       } else {
-        const organizationDomain = getOrganizationDomain(organization.website)
+        const organizationDomain = websiteNormalizer(organization.website)
 
         const hubspotCompany = {
           properties: {
@@ -83,7 +82,7 @@ export const batchCreateOrganizations = async (
       const organization = organizations.find(
         (crowdOrganization) =>
           crowdOrganization.website &&
-          getOrganizationDomain(crowdOrganization.website) === o.properties.domain,
+          websiteNormalizer(crowdOrganization.website) === o.properties.domain,
       )
       acc.push({
         organizationId: organization.id,

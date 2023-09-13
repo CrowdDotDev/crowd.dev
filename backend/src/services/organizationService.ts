@@ -502,8 +502,8 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findByUrl(url, this.options)
   }
 
-  async findByDomain(domain) {
-    return OrganizationRepository.findByDomain(domain, this.options)
+  async findOrCreateByDomain(domain) {
+    return OrganizationRepository.findOrCreateByDomain(domain, this.options)
   }
 
   async query(data) {

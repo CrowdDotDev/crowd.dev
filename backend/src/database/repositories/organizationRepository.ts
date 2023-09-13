@@ -1264,30 +1264,25 @@ class OrganizationRepository {
     return record.get({ plain: true })
   }
 
-  static async findByDomain(domain, options: IRepositoryOptions) {
+  static async findOrCreateByDomain(domain, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     // Check if organization exists
-    const organization = await options.database.organization.findOne({
+    let organization = await options.database.organization.findOne({
       where: {
-        website: {
-          [Sequelize.Op.or]: [
-            // Matches URLs having 'http://' or 'https://'
-            { [Sequelize.Op.iLike]: `%://${domain}` },
-            // Matches URLs having 'www'
-            { [Sequelize.Op.iLike]: `%://www.${domain}` },
-            // Matches URLs that doesn't have 'http://' or 'https://' and 'www'
-            { [Sequelize.Op.iLike]: `${domain}` },
-          ],
-        },
+        website: domain,
         tenantId: currentTenant.id,
       },
       transaction,
     })
 
     if (!organization) {
-      return null
+      organization = await options.database.organization.create({
+        name: domain,
+        website: domain,
+        tenantId: currentTenant.id,
+      }, { transaction })
     }
 
     return organization.get({ plain: true })

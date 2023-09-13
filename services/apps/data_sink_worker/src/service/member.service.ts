@@ -268,7 +268,7 @@ export default class MemberService extends LoggerBase {
 
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
-      const org = await orgService.findByDomain(tenantId, segmentId, domain as string)
+      const org = await orgService.findOrCreateByDomain(tenantId, segmentId, domain as string)
       if (org) {
         organizations.push({
           ...org,

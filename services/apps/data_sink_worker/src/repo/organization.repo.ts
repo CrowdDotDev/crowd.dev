@@ -292,12 +292,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return result
   }
 
-  public async findByDomain(
+  public async findOrCreateByDomain(
     tenantId: string,
     segmentId: string,
     domain: string,
   ): Promise<IOrganization> {
-    const results = await this.db().any(
+    let results = await this.db().any(
       `
       SELECT
         o.id,
@@ -323,11 +323,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         organizations o
       WHERE
         o."tenantId" = $(tenantId) AND 
-        (
-          o.website ILIKE $(protocolDomain) OR
-          o.website ILIKE $(domainWithWww) OR
-          o.website ILIKE $(domain)
-        ) AND
+        o.website = $(domain) AND
         o.id IN (
           SELECT os."organizationId"
           FROM "organizationSegments" os
@@ -336,15 +332,42 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `,
       {
         tenantId,
-        protocolDomain: `%://${domain}`,
-        domainWithWww: `%://www.${domain}`,
         domain,
         segmentId,
       },
     )
 
     if (results.length === 0) {
-      return null
+      const data = {
+        displayName: domain,
+        website: domain,
+        url: null,
+        description: null,
+        emails: null,
+        logo: null,
+        tags: null,
+        github: null,
+        twitter: null,
+        linkedin: null,
+        crunchbase: null,
+        employees: null,
+        location: null,
+        type: null,
+        size: null,
+        headline: null,
+        industry: null,
+        founded: null,
+        attributes: null,
+        weakIdentities: [],
+      }
+      const newOrgId = await this.insert(tenantId, data)
+
+      results = [
+        {
+          id: newOrgId,
+          ...data,
+        },
+      ]
     }
 
     results.sort((a, b) => {
