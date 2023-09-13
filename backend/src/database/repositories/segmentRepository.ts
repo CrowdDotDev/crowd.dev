@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { ActivityTypeSettings } from '@crowd/types'
+import { partition } from '@crowd/common'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 import {
@@ -215,36 +216,39 @@ class SegmentRepository extends RepositoryBase<
 
     if (data.activityChannels && typeof data.activityChannels === 'object') {
       if (Object.keys(data.activityChannels).length > 0) {
-        const replacements = {}
-        let valuePlaceholders = ''
+        const values: { sql: string; replacements: any }[] = []
+
         Object.keys(data.activityChannels).forEach((platform) => {
           data.activityChannels[platform].forEach((channel, i) => {
-            valuePlaceholders += data.activityChannels[platform]
-              .map(
-                () =>
-                  `(:tenantId_${platform}_${i}, :segmentId_${platform}_${i}, :platform_${platform}_${i}, :channel_${platform}_${i})`,
-              )
-              .join(', ')
-
-            replacements[`tenantId_${platform}_${i}`] = this.options.currentTenant.id
-            replacements[`segmentId_${platform}_${i}`] = id
-            replacements[`platform_${platform}_${i}`] = platform
-            replacements[`channel_${platform}_${i}`] = channel
+            values.push({
+              sql: `(:tenantId_${platform}_${i}, :segmentId_${platform}_${i}, :platform_${platform}_${i}, :channel_${platform}_${i})`,
+              replacements: {
+                [`tenantId_${platform}_${i}`]: this.options.currentTenant.id,
+                [`segmentId_${platform}_${i}`]: id,
+                [`platform_${platform}_${i}`]: platform,
+                [`channel_${platform}_${i}`]: channel,
+              },
+            })
           })
         })
 
-        await this.options.database.sequelize.query(
-          `
-          INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel")
-          VALUES ${valuePlaceholders}
-          ON CONFLICT DO NOTHING;
-        `,
-          {
-            replacements,
-            type: QueryTypes.INSERT,
-            transaction,
-          },
-        )
+        for (const batch of partition(values, 999)) {
+          const valuePlaceholders = batch.map((v) => v.sql).join(', ')
+          const replacements = batch.reduce((acc, v) => ({ ...acc, ...v.replacements }), {})
+
+          await this.options.database.sequelize.query(
+            `
+            INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel")
+            VALUES ${valuePlaceholders}
+            ON CONFLICT DO NOTHING;
+          `,
+            {
+              replacements,
+              type: QueryTypes.INSERT,
+              transaction,
+            },
+          )
+        }
       }
     }
 
@@ -330,22 +334,24 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
-      `SELECT
-        s.*,
-        json_agg(sac."activityChannels") AS "activityChannels"
+      `
+        SELECT
+          s.*,
+          jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
           SELECT
             "tenantId",
-            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+            "segmentId",
+            jsonb_build_object(platform, json_agg(DISTINCT sac.channel)) AS "activityChannels"
           FROM "segmentActivityChannels" sac
           WHERE "tenantId" = :tenantId
-          GROUP BY "tenantId", "platform"
-        ) sac
-        ON sac."tenantId" = s."tenantId"
+          GROUP BY "tenantId", "segmentId", "platform"
+        ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
         WHERE id in (:ids)
         AND s."tenantId" = :tenantId
-        GROUP BY s.id;`,
+        GROUP BY s.id;
+      `,
       {
         replacements: {
           ids,
@@ -357,7 +363,10 @@ class SegmentRepository extends RepositoryBase<
     )
 
     records.forEach((row) => {
-      row.activityChannels = Object.assign({}, ...row.activityChannels)
+      if (!row.activityChannels) {
+        row.activityChannels = {}
+      }
+      row.activityChannels = { ...row.activityChannels }
     })
 
     return records.map((sr) => SegmentRepository.populateRelations(sr))
@@ -380,22 +389,24 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
-      `SELECT
-        s.*,
-        json_agg(sac."activityChannels") AS "activityChannels"
+      `
+        SELECT
+          s.*,
+          jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
           SELECT
             "tenantId",
-            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+            "segmentId",
+            jsonb_build_object(platform, json_agg(DISTINCT sac.channel)) AS "activityChannels"
           FROM "segmentActivityChannels" sac
           WHERE "tenantId" = :tenantId
-          GROUP BY "tenantId", "platform"
-        ) sac
-        ON sac."tenantId" = s."tenantId"
+          GROUP BY "tenantId", "segmentId", "platform"
+        ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
         WHERE s.id = :id
         AND s."tenantId" = :tenantId
-        GROUP BY s.id;`,
+        GROUP BY s.id;
+      `,
       {
         replacements: {
           id,
@@ -411,7 +422,10 @@ class SegmentRepository extends RepositoryBase<
     }
 
     const record = records[0]
-    record.activityChannels = Object.assign({}, ...record.activityChannels)
+    if (!record.activityChannels) {
+      record.activityChannels = {}
+    }
+    record.activityChannels = { ...record.activityChannels }
 
     if (SegmentRepository.isProjectGroup(record)) {
       // find projects
@@ -631,17 +645,17 @@ class SegmentRepository extends RepositoryBase<
         SELECT
           COUNT(DISTINCT s.id) AS count,
           s.*,
-          json_agg(sac."activityChannels") AS "activityChannels"
+          jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
           SELECT
             "tenantId",
-            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+            "segmentId",
+            jsonb_build_object(platform, json_agg(sac.channel)) AS "activityChannels"
           FROM "segmentActivityChannels" sac
           WHERE "tenantId" = :tenantId
-          GROUP BY "tenantId", "platform"
-        ) sac
-        ON sac."tenantId" = s."tenantId"
+          GROUP BY "tenantId", "segmentId", "platform"
+        ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
           AND s."tenantId" = :tenantId
@@ -665,14 +679,17 @@ class SegmentRepository extends RepositoryBase<
 
     const rows = subprojects
     rows.forEach((row, i) => {
-      rows[i].activityChannels = rows[i].activityChannels[0]
       if (rows[i].activityChannels === null) {
         rows[i].activityChannels = {}
       }
     })
 
-    // TODO: Add member count to segments after implementing member relations
-    return { count, rows, limit: criteria.limit, offset: criteria.offset }
+    return {
+      count,
+      rows: rows.map((sr) => SegmentRepository.populateRelations(sr)),
+      limit: criteria.limit,
+      offset: criteria.offset,
+    }
   }
 
   private async queryIntegrationsForSubprojects(subprojects) {

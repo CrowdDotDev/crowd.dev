@@ -150,8 +150,8 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
-import { attributesTypes } from '@/modules/organization/types/Attributes';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 
 const LoaderIcon = h(
   'i',
@@ -190,6 +190,7 @@ const formSchema = new FormSchema([
   fields.linkedin,
   fields.crunchbase,
   fields.emails,
+  fields.identities,
   fields.phoneNumbers,
   fields.type,
   fields.size,
@@ -254,22 +255,10 @@ function getInitialModel(record) {
         employees: record ? record.employees : null,
         location: record ? record.location : null,
         website: record ? record.website : null,
-        github:
-          record && record.github
-            ? record.github.handle
-            : '',
-        twitter:
-          record && record.twitter
-            ? record.twitter.handle
-            : '',
-        linkedin:
-          record && record.linkedin
-            ? record.linkedin.handle
-            : '',
-        crunchbase:
-          record && record.crunchbase
-            ? record.crunchbase.handle
-            : '',
+        identities: record ? [...record.identities.map((i) => ({
+          platform: i.platform,
+          name: i.name,
+        }))] : [],
         revenueRange: record ? record.revenueRange : {},
         emails:
           record && record.emails?.length > 0
@@ -348,7 +337,7 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
     return false;
   }
 
-  if (a.type === attributesTypes.array) {
+  if (a.type === AttributeType.ARRAY) {
     return !!record.value?.[a.name]?.length;
   }
 
@@ -373,9 +362,11 @@ onBeforeRouteLeave((to) => {
 onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
+    const { segmentId, projecGroup } = route.query;
+    const segments = segmentId || projecGroup ? [segmentId || projecGroup] : null;
 
     try {
-      record.value = await OrganizationService.find(id);
+      record.value = await OrganizationService.find(id, segments);
     } catch (e) {
       Errors.handle(error);
       router.push({ name: 'organization' });
@@ -411,10 +402,15 @@ watch(
   (isFormSubmittedSuccessfuly) => {
     if (isFormSubmittedSuccessfuly) {
       if (isEditPage.value) {
+        const { segmentId, projectGroup } = route.query;
+
         return router.push({
           name: 'organizationView',
           params: {
             id: record.value.id,
+          },
+          query: {
+            segmentId: segmentId || projectGroup,
           },
         });
       }
@@ -435,15 +431,6 @@ function onCancel() {
   router.push({ name: 'organization' });
 }
 
-function platformPayload(platform, value) {
-  if (value && value !== '') {
-    return {
-      handle: value,
-      url: `https://${platform}.com/${value}`,
-    };
-  }
-  return undefined;
-}
 async function onSubmit() {
   isFormSubmitting.value = true;
   const data = {
@@ -466,27 +453,6 @@ async function onSubmit() {
       },
       [],
     ),
-    github: formModel.value.github
-      ? platformPayload('github', formModel.value.github)
-      : null,
-    linkedin: formModel.value.linkedin
-      ? platformPayload(
-        'linkedin',
-        formModel.value.linkedin,
-      )
-      : null,
-    twitter: formModel.value.twitter
-      ? platformPayload(
-        'twitter',
-        formModel.value.twitter,
-      )
-      : null,
-    crunchbase: formModel.value.crunchbase
-      ? platformPayload(
-        'crunchbase',
-        formModel.value.crunchbase,
-      )
-      : null,
   };
 
   const payload = isEditPage.value

@@ -11,11 +11,14 @@
         <slot name="platform" />
       </div>
     </template>
-
-    <app-platform-list
-      :username-handles="usernameHandles"
-      :platform="platform"
-    />
+    <div class="max-h-48 overflow-auto">
+      <app-platform-list
+        :username-handles="usernameHandles"
+        :platform="platform"
+        :links="links"
+        :attributes="attributes"
+      />
+    </div>
   </el-popover>
   <el-tooltip
     v-else
@@ -43,6 +46,10 @@ defineProps({
     type: Array,
     default: () => [],
   },
+  links: {
+    type: Array,
+    default: () => [],
+  },
   platform: {
     type: String,
     default: () => null,
@@ -54,6 +61,10 @@ defineProps({
   href: {
     type: String,
     default: () => null,
+  },
+  attributes: {
+    type: Object,
+    default: null,
   },
 });
 </script>

@@ -49,3 +49,7 @@ export * from './stackoverflow/memberAttributes'
 export * from './twitter/grid'
 export * from './twitter/types'
 export * from './twitter/memberAttributes'
+
+export * from './groupsio/grid'
+export * from './groupsio/types'
+export * from './groupsio/memberAttributes'

@@ -14,6 +14,7 @@ import MemberService from './member.service'
 import { SLACK_ALERTING_CONFIG } from '@/conf'
 import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import { OrganizationService } from './organization.service'
+import { RedisClient } from '@crowd/redis'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -22,6 +23,7 @@ export default class DataSinkService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -88,6 +90,7 @@ export default class DataSinkService extends LoggerBase {
             this.store,
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
+            this.redisClient,
             this.log,
           )
           const activityData = data.data as IActivityData

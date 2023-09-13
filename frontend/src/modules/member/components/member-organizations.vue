@@ -5,7 +5,10 @@
         :to="{
           name: 'organizationView',
           params: { id: activeOrganization.id },
-          query: { projectGroup: selectedProjectGroup?.id },
+          query: {
+            projectGroup: selectedProjectGroup?.id,
+            segmentId: member.segmentId,
+          },
         }"
         class="flex items-start hover:cursor-pointer"
         @click.stop
@@ -79,7 +82,10 @@
         :to="{
           name: 'organizationView',
           params: { id: activeOrganization.id },
-          query: { projectGroup: selectedProjectGroup?.id },
+          query: {
+            projectGroup: selectedProjectGroup?.id,
+            segmentId: member.segmentId,
+          },
         }"
         class="badge--interactive"
         @click.stop

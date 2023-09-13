@@ -28,6 +28,20 @@
           >Edit organization</span>
         </el-dropdown-item>
 
+        <!-- Merge organization -->
+        <el-dropdown-item
+          class="h-10"
+          :command="{
+            action: 'organizationMerge',
+            organization,
+          }"
+          :disabled="isEditLockedForSampleData"
+        >
+          <i class="ri-shuffle-line text-base mr-2" /><span
+            class="text-xs"
+          >Merge organization</span>
+        </el-dropdown-item>
+
         <!-- Hubspot -->
         <el-dropdown-item
           v-if="!isSyncingWithHubspot(organization)"
@@ -120,7 +134,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import {
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
@@ -136,6 +150,7 @@ import { useStore } from 'vuex';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
+const route = useRoute();
 const router = useRouter();
 
 defineProps({
@@ -144,6 +159,10 @@ defineProps({
     default: () => {},
   },
 });
+
+const emit = defineEmits([
+  'merge',
+]);
 
 const store = useStore();
 
@@ -215,7 +234,12 @@ const handleCommand = (command) => {
       params: {
         id: command.organization.id,
       },
+      query: {
+        segmentId: route.query.segmentId || route.query.projectGroup,
+      },
     });
+  } else if (command.action === 'organizationMerge') {
+    emit('merge');
   } else if (
     command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
   ) {

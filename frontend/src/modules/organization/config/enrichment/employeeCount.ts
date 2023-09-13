@@ -1,10 +1,13 @@
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
+import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-export default {
+const employeeCount: OrganizationEnrichmentConfig = {
   name: 'employeeCount',
   label: 'Employee Count',
-  type: attributesTypes.number,
+  type: AttributeType.NUMBER,
   showInForm: true,
   showInAttributes: true,
   displayValue: (value) => value,
 };
+
+export default employeeCount;

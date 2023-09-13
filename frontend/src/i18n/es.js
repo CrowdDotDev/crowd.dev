@@ -31,7 +31,7 @@ const es = {
     },
   },
   app: {
-    title: 'crowd.dev',
+    title: 'LFX',
   },
   api: {
     menu: 'API',

@@ -27,6 +27,7 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/sentiment": "file:../../libs/sentiment",
     "@crowd/sqs": "file:../../libs/sqs",
+    "@crowd/redis": "file:../../libs/redis",
     "@crowd/types": "file:../../libs/types",
     "@crowd/alerting": "file:../../libs/alerting",
     "@types/config": "^3.3.0",

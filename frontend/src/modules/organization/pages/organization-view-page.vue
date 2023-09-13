@@ -28,10 +28,25 @@
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
-              label="Associated contributors"
+              label="Current contributors"
               name="members"
             >
-              <app-organization-view-members />
+              <template #label>
+                <span class="flex gap-2">
+                  <span>Current contributors</span>
+                  <el-tooltip
+                    content="Members that are currently a part of this organization."
+                    placement="top"
+                  >
+                    <i class="ri-information-line" />
+                  </el-tooltip>
+                </span>
+              </template>
+              <template #default>
+                <app-organization-view-members
+                  :organization-id="props.id"
+                />
+              </template>
             </el-tab-pane>
             <el-tab-pane
               label="Activities"
@@ -64,6 +79,7 @@ import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { useRoute } from 'vue-router';
 
 const props = defineProps({
   id: {
@@ -71,6 +87,7 @@ const props = defineProps({
     default: null,
   },
 });
+const route = useRoute();
 
 const organizationStore = useOrganizationStore();
 const { organization } = storeToRefs(organizationStore);
@@ -83,8 +100,10 @@ const loading = ref(true);
 const tab = ref('members');
 
 onMounted(() => {
+  const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
+
   try {
-    fetchOrganization(props.id).finally(() => {
+    fetchOrganization(props.id, segments).finally(() => {
       loading.value = false;
     });
   } catch (e) {

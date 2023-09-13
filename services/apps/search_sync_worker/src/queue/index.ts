@@ -128,6 +128,14 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           }
 
           break
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS:
+          if (data.organizationId) {
+            this.initMemberService()
+              .syncOrganizationMembers(data.organizationId)
+              .catch((err) => this.log.error(err, 'Error while syncing organization members!'))
+          }
+
+          break
         // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS:
           if (data.tenantId) {
@@ -154,6 +162,13 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
             this.initActivityService()
               .syncTenantActivities(data.tenantId)
               .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES:
+          if (data.organizationId) {
+            this.initActivityService()
+              .syncOrganizationActivities(data.organizationId)
+              .catch((err) => this.log.error(err, 'Error while syncing organization activities!'))
           }
           break
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:

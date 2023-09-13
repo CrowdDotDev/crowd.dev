@@ -20,8 +20,8 @@ export default {
         return Promise.reject(err);
       });
   },
-  fetchOrganization(this: OrganizationState, id: string): Promise<Organization> {
-    return OrganizationService.find(id)
+  fetchOrganization(this: OrganizationState, id: string, segments: string[]): Promise<Organization> {
+    return OrganizationService.find(id, segments)
       .then((organization: Organization) => {
         this.organization = organization;
         return Promise.resolve(organization);

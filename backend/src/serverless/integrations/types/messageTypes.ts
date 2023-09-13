@@ -62,7 +62,7 @@ export type Member = {
   displayName?: string
   attributes?: any
   emails?: string[]
-  organizations?: [any]
+  organizations?: any[]
   bio?: string
   reach?: number | any
   location?: string

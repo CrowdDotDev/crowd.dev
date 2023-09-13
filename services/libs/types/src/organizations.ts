@@ -1,8 +1,8 @@
 import { IAttributes } from './attributes'
+import { OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
   id?: string
-  name: string
   url?: string
   description?: string
   emails?: string[]
@@ -39,6 +39,69 @@ export interface IOrganization {
   gicsSector?: string
   grossAdditionsByMonth?: Record<string, number>
   grossDeparturesByMonth?: Record<string, number>
+  identities: IOrganizationIdentity[]
+  weakIdentities?: IOrganizationIdentity[]
+  members?: string[]
+  source?: OrganizationSource
+  lastEnrichedAt?: string | Date
+  tenantId?: string
+}
+
+export interface IMemberOrganization {
+  id?: string
+  title?: string
+  dateStart: Date | string
+  dateEnd: Date | string
+  memberId: string
+  organizationId: string
+  updatedAt?: string
+  createdAt?: string
+  source?: string
+}
+
+export interface IOrganizationCache {
+  id?: string
+  url?: string
+  description?: string
+  emails?: string[]
+  logo?: string
+  tags?: string[]
+  github?: IOrganizationSocial
+  twitter?: IOrganizationSocial
+  linkedin?: IOrganizationSocial
+  crunchbase?: IOrganizationSocial
+  employees?: number
+  location?: string
+  website?: string
+  type?: string
+  size?: string
+  headline?: string
+  industry?: string
+  founded?: string
+  attributes?: IAttributes
+  immediateParent?: string
+  ultimateParent?: string
+  affiliatedProfiles?: string[]
+  allSubsidiaries?: string[]
+  alternativeDomains?: string[]
+  alternativeNames?: string[]
+  averageEmployeeTenure?: number
+  averageTenureByLevel?: Record<string, number>
+  averageTenureByRole?: Record<string, number>
+  employeeChurnRate?: Record<string, number>
+  employeeCountByMonth?: Record<string, number>
+  employeeGrowthRate?: Record<string, number>
+  employeeCountByMonthByLevel?: Record<string, number>
+  employeeCountByMonthByRole?: Record<string, number>
+  directSubsidiaries?: string[]
+  gicsSector?: string
+  grossAdditionsByMonth?: Record<string, number>
+  grossDeparturesByMonth?: Record<string, number>
+  identities: IOrganizationIdentity[]
+  weakIdentities?: IOrganizationIdentity[]
+  members?: string[]
+  source?: OrganizationSource
+  name?: string
 }
 
 export interface IExecutiveChange {
@@ -74,4 +137,17 @@ export interface IOrganizationSyncRemoteData {
   syncFrom: string
   metaData: string
   lastSyncedAt?: string
+}
+
+export interface IOrganizationIdentity {
+  organizationId?: string
+  integrationId?: string
+  platform: string
+  name: string
+  sourceId?: string
+  url?: string
+}
+
+export interface IEnrichableOrganization extends IOrganization {
+  orgActivityCount: number
 }

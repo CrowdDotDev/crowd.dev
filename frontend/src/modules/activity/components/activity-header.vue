@@ -14,7 +14,10 @@
             params: {
               id: activity.organization.id,
             },
-            query: { projectGroup: selectedProjectGroup?.id },
+            query: {
+              projectGroup: selectedProjectGroup?.id,
+              segmentId,
+            },
           }"
           class="group hover:cursor-pointer"
         >
@@ -50,6 +53,7 @@ import AppActivitySentiment from '@/modules/activity/components/activity-sentime
 import { formatDateToTimeAgo } from '@/utils/date';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useActivityStore } from '../store/pinia';
 
 const props = defineProps({
   activity: {
@@ -65,6 +69,16 @@ const props = defineProps({
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
+const activityStore = useActivityStore();
+const { filters } = storeToRefs(activityStore);
+
+const segmentId = computed(() => {
+  if (!filters.value.projects) {
+    return selectedProjectGroup.value.id;
+  }
+
+  return filters.value.projects.values[0];
+});
 const timeAgo = computed(() => formatDateToTimeAgo(props.activity.timestamp));
 const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);
 </script>

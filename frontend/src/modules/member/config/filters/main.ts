@@ -13,10 +13,14 @@ import lastActivityDate from './lastActivityDate/config';
 import reach from './reach/config';
 import projects from './projects/config';
 import tags from './tags/config';
+import memberName from './memberName/config';
+import jobTitle from './jobTitle/config';
 
 export const memberFilters: Record<string, FilterConfig> = {
+  memberName,
   noOfActivities,
   noOfOSSContributions,
+  jobTitle,
   activeOn,
   activityType,
   avgSentiment,

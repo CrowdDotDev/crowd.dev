@@ -1,10 +1,10 @@
 {
   "firstName": "John",
   "lastName": "Doe",
-  "email": "john.doe@crowd.dev",
+  "email": "john.doe@lfx.dev",
   "password": "correctPassword",
   "wrong": {
-    "email": "john@crowd.dev",
+    "email": "john@lfx.dev",
     "password": "wrongPassword"
   },
   "tenant": {

@@ -32,7 +32,7 @@ export const customAttributesService = () => {
   ): Record<string, FilterConfig> {
     const filters: Record<string, FilterConfig> = {};
     attributes
-      .filter((attribute) => attribute.show)
+      .filter((attribute) => attribute.show && attribute.name !== 'jobTitle')
       .forEach((attribute) => {
         // Number type
         if (attribute.type === FilterCustomAttributeType.NUMBER) {

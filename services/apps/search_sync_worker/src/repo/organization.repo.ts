@@ -10,91 +10,101 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getOrganizationData(ids: string[]): Promise<IDbOrganizationSyncData[]> {
     const results = await this.db().any(
       `
-      with organization_segments as (select "segmentId", "organizationId"
-                                    from "organizationSegments"
-                                    where "organizationId" in ($(ids:csv))),
-          member_data as (select os."segmentId",
-                                  os."organizationId",
-                                  count(distinct m.id) filter ( where mo."dateEnd" is null )                  as "memberCount",
-                                  count(distinct a.id)                                                        as "activityCount",
-                                  case
-                                      when array_agg(distinct a.platform) = array [null] then array []::text[]
-                                      else array_agg(distinct a.platform) end                                 as "activeOn",
-                                  max(a.timestamp)                                                            as "lastActive",
-                                  case
-                                      when array_agg(distinct mi.platform) = array [null] then array []::text[]
-                                      else array_agg(distinct mi.platform) end                                as "identities",
-                                  min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
-                          from organization_segments os
-                                    left join activities a
-                                              on a."organizationId" = os."organizationId" and
-                                                a."segmentId" = os."segmentId" and a."deletedAt" is null
-                                    left join members m on a."memberId" = m.id and m."deletedAt" is null
-                                    left join "memberOrganizations" mo
-                                              on m.id = mo."memberId" and a."organizationId" = mo."organizationId"
-                                    left join "memberIdentities" mi on m.id = mi."memberId"
-                          group by os."segmentId", os."organizationId")
-      select o.id                              as "organizationId",
-            md."segmentId",
-            o."tenantId",
-            o.address,
-            o.attributes,
-            o."createdAt",
-            o."manuallyCreated",
-            o.description,
-            coalesce(o."displayName", o.name) as "displayName",
-            o.emails,
-            o."employeeCountByCountry",
-            o.employees,
-            o.founded,
-            o."geoLocation",
-            o.headline,
-            o."importHash",
-            o.industry,
-            o."isTeamOrganization",
-            o."lastEnrichedAt",
-            o.location,
-            o.logo,
-            o.naics,
-            o.name,
-            o."phoneNumbers",
-            o.profiles,
-            o."revenueRange",
-            o.size,
-            o.type,
-            o.url,
-            o.website,
-            o.linkedin,
-            o.github,
-            o.crunchbase,
-            o.twitter,
-            o."affiliatedProfiles",
-            o."allSubsidiaries",
-            o."alternativeDomains",
-            o."alternativeNames",
-            o."averageEmployeeTenure",
-            o."averageTenureByLevel",
-            o."averageTenureByRole",
-            o."directSubsidiaries",
-            o."employeeChurnRate",
-            o."employeeCountByMonth",
-            o."employeeGrowthRate",
-            o."employeeCountByMonthByLevel",
-            o."employeeCountByMonthByRole",
-            o."gicsSector",
-            o."grossAdditionsByMonth",
-            o."grossDeparturesByMonth",
-            o."ultimateParent",
-            o."immediateParent",
-            md."joinedAt",
-            md."lastActive",
-            md."activeOn",
-            md."activityCount",
-            md."memberCount",
-            md.identities
-      from organizations o
-            left join member_data md on o.id = md."organizationId"
-      where o.id in ($(ids:csv))
+      with 
+        organization_segments as (
+          select "segmentId", "organizationId"
+          from "organizationSegments"
+          where "organizationId" in ($(ids:csv))
+        ),
+        member_data as (
+            select os."segmentId",
+            os."organizationId",
+            count(distinct m.id) filter ( where mo."dateEnd" is null )                 as "memberCount",
+            count(distinct a.id)                                                       as "activityCount",
+            case
+                when array_agg(distinct a.platform) = array [null] then array []::text[]
+                else array_agg(distinct a.platform) end                                as "activeOn",
+            max(a.timestamp)                                                           as "lastActive",
+            min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z') as "joinedAt"
+            from organization_segments os
+            left join activities a
+                      on a."organizationId" = os."organizationId" 
+                          and a."segmentId" = os."segmentId" and a."deletedAt" is null
+            left join members m on a."memberId" = m.id and m."deletedAt" is null
+            left join "memberOrganizations" mo
+                      on m.id = mo."memberId"
+                          and a."organizationId" = mo."organizationId"
+                          and mo."deletedAt" is null
+            left join "memberIdentities" mi on m.id = mi."memberId"
+            group by os."segmentId", os."organizationId"
+        ),
+        identities as (
+            select oi."organizationId", jsonb_agg(oi) as "identities"
+            from "organizationIdentities" oi
+            where oi."organizationId" in ($(ids:csv))
+            group by oi."organizationId"
+        )
+    select 
+        o.id as "organizationId",
+        md."segmentId",
+        o."tenantId",
+        o.address,
+        o.attributes,
+        o."createdAt",
+        o."manuallyCreated",
+        o.description,
+        o."displayName",
+        o.emails,
+        o."employeeCountByCountry",
+        o.employees,
+        o.founded,
+        o."geoLocation",
+        o.headline,
+        o."importHash",
+        o.industry,
+        o."isTeamOrganization",
+        o."lastEnrichedAt",
+        o.location,
+        o.logo,
+        o.naics,
+        o."phoneNumbers",
+        o.profiles,
+        o."revenueRange",
+        o.size,
+        o.type,
+        o.website,
+        o.linkedin,
+        o.github,
+        o.crunchbase,
+        o.twitter,
+        o."affiliatedProfiles",
+        o."allSubsidiaries",
+        o."alternativeDomains",
+        o."alternativeNames",
+        o."averageEmployeeTenure",
+        o."averageTenureByLevel",
+        o."averageTenureByRole",
+        o."directSubsidiaries",
+        o."employeeChurnRate",
+        o."employeeCountByMonth",
+        o."employeeGrowthRate",
+        o."employeeCountByMonthByLevel",
+        o."employeeCountByMonthByRole",
+        o."gicsSector",
+        o."grossAdditionsByMonth",
+        o."grossDeparturesByMonth",
+        o."ultimateParent",
+        o."immediateParent",
+        md."joinedAt",
+        md."lastActive",
+        md."activeOn",
+        md."activityCount",
+        md."memberCount",
+        i.identities
+        from organizations o
+        left join member_data md on o.id = md."organizationId"
+        left join identities i on o.id = i."organizationId"
+        where o.id in ($(ids:csv))
         and o."deletedAt" is null
         and (md."organizationId" is not null or o."manuallyCreated");
       `,

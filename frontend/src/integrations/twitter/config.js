@@ -10,7 +10,7 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/733/733579.png',
   connectComponent: TwitterConnect,
-  url: (username) => `https://twitter.com/${username}`,
+  url: ({ username }) => (username ? `https://twitter.com/${username}` : null),
   chartColor: '#1D9BF0',
   showProfileLink: true,
   activityDisplay: {

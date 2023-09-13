@@ -34,6 +34,32 @@ export class OrganizationService {
     return response.data;
   }
 
+  static async mergeOrganizations(organizationToKeepId, organizationToMergeId) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/organization/${organizationToKeepId}/merge`,
+      {
+        organizationToMerge: organizationToMergeId,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async noMergeOrganizations(organizationAId, organizationBId) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/organization/${organizationAId}/no-merge`,
+      {
+        organizationToNotMerge: organizationBId,
+      },
+    );
+
+    return response.data;
+  }
+
   static async create(data, segments) {
     const tenantId = AuthCurrentTenant.get();
 
@@ -59,7 +85,9 @@ export class OrganizationService {
           Authorization: sampleTenant?.token,
         },
         params: {
-          segments,
+          segmentId: segments[0],
+          // The parameter id on this one is sematically different, so we are excluding the logic to add segments as an array
+          excludeSegments: true,
         },
       },
     );

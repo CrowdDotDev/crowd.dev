@@ -16,6 +16,8 @@ import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
 import lfx from './custom/lfx';
+import groupsio from './groupsio';
+import cvent from './custom/cvent';
 
 class IntegrationsConfig {
   get integrations() {
@@ -34,6 +36,7 @@ class IntegrationsConfig {
       git,
       crunchbase,
       discourse,
+      groupsio,
       hubspot,
       // make,
       facebook,
@@ -94,6 +97,7 @@ class IntegrationsConfig {
   get customIntegrations() {
     return {
       lfx,
+      cvent,
     };
   }
 }

@@ -371,4 +371,46 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
 
     return result.settings
   }
+
+  public async findIntegrationRunById(runId: string): Promise<{
+    id: string
+    state: IntegrationRunState
+    tenantId: string
+    integrationId: string
+    platform: string
+  } | null> {
+    const result = await this.db().oneOrNone(
+      `
+      select r.id, r.state, r."tenantId", r."integrationId", i.platform
+      from integration.runs r
+      inner join integrations i on r."integrationId" = i.id
+      where r.id = $(runId)
+    `,
+      {
+        runId,
+      },
+    )
+
+    return result
+  }
+
+  public async restart(runId: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update integration.runs
+         set state = $(state),
+             "processedAt" = null,
+              error = null,
+              "delayedUntil" = null,
+             "updatedAt" = now()
+       where id = $(runId)
+    `,
+      {
+        runId,
+        state: IntegrationRunState.PENDING,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
 }
