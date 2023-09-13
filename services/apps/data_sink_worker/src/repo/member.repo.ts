@@ -275,6 +275,30 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     segmentId: string,
     { limit = 20, offset = 0, orderBy = 'joinedAt_DESC' },
   ) {
+    let orderByString = ''
+    const orderByParts = orderBy.split('_')
+    const direction = orderByParts[1].toLowerCase()
+
+    switch (orderByParts[0]) {
+      case 'joinedAt':
+        orderByString = 'm."joinedAt"'
+        break
+      case 'displayName':
+        orderByString = 'm."displayName"'
+        break
+      case 'reach':
+        orderByString = "(m.reach ->> 'total')::int"
+        break
+      case 'score':
+        orderByString = 'm.score'
+        break
+
+      default:
+        throw new Error(`Invalid order by: ${orderBy}!`)
+    }
+
+    orderByString = `${orderByString} ${direction}`
+
     return await this.db().any(
       `
       SELECT m.id, m.emails
@@ -282,7 +306,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)
       AND ms."segmentId" = $(segmentId)
-      ORDER BY ${orderBy}
+      ORDER BY ${orderByString}
       LIMIT $(limit) OFFSET $(offset)
       `,
       {
