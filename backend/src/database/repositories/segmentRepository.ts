@@ -334,22 +334,24 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
-      `SELECT
-        s.*,
-        json_agg(sac."activityChannels") AS "activityChannels"
+      `
+        SELECT
+          s.*,
+          jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
           SELECT
             "tenantId",
-            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+            "segmentId",
+            jsonb_build_object(platform, json_agg(DISTINCT sac.channel)) AS "activityChannels"
           FROM "segmentActivityChannels" sac
           WHERE "tenantId" = :tenantId
-          GROUP BY "tenantId", "platform"
-        ) sac
-        ON sac."tenantId" = s."tenantId"
+          GROUP BY "tenantId", "segmentId", "platform"
+        ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
         WHERE id in (:ids)
         AND s."tenantId" = :tenantId
-        GROUP BY s.id;`,
+        GROUP BY s.id;
+      `,
       {
         replacements: {
           ids,
@@ -361,7 +363,10 @@ class SegmentRepository extends RepositoryBase<
     )
 
     records.forEach((row) => {
-      row.activityChannels = Object.assign({}, ...row.activityChannels)
+      if (!row.activityChannels) {
+        row.activityChannels = {}
+      }
+      row.activityChannels = { ...row.activityChannels }
     })
 
     return records.map((sr) => SegmentRepository.populateRelations(sr))
@@ -384,22 +389,24 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
-      `SELECT
-        s.*,
-        json_agg(sac."activityChannels") AS "activityChannels"
+      `
+        SELECT
+          s.*,
+          jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
           SELECT
             "tenantId",
-            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+            "segmentId",
+            jsonb_build_object(platform, json_agg(DISTINCT sac.channel)) AS "activityChannels"
           FROM "segmentActivityChannels" sac
           WHERE "tenantId" = :tenantId
-          GROUP BY "tenantId", "platform"
-        ) sac
-        ON sac."tenantId" = s."tenantId"
+          GROUP BY "tenantId", "segmentId", "platform"
+        ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
         WHERE s.id = :id
         AND s."tenantId" = :tenantId
-        GROUP BY s.id;`,
+        GROUP BY s.id;
+      `,
       {
         replacements: {
           id,
@@ -415,7 +422,10 @@ class SegmentRepository extends RepositoryBase<
     }
 
     const record = records[0]
-    record.activityChannels = Object.assign({}, ...record.activityChannels)
+    if (!record.activityChannels) {
+      record.activityChannels = {}
+    }
+    record.activityChannels = { ...record.activityChannels }
 
     if (SegmentRepository.isProjectGroup(record)) {
       // find projects
@@ -635,17 +645,17 @@ class SegmentRepository extends RepositoryBase<
         SELECT
           COUNT(DISTINCT s.id) AS count,
           s.*,
-          json_agg(sac."activityChannels") AS "activityChannels"
+          jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
           SELECT
             "tenantId",
-            json_build_object(concat(platform), json_agg(sac.channel)) AS "activityChannels"
+            "segmentId",
+            jsonb_build_object(platform, json_agg(sac.channel)) AS "activityChannels"
           FROM "segmentActivityChannels" sac
           WHERE "tenantId" = :tenantId
-          GROUP BY "tenantId", "platform"
-        ) sac
-        ON sac."tenantId" = s."tenantId"
+          GROUP BY "tenantId", "segmentId", "platform"
+        ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
           AND s."tenantId" = :tenantId
@@ -669,7 +679,6 @@ class SegmentRepository extends RepositoryBase<
 
     const rows = subprojects
     rows.forEach((row, i) => {
-      rows[i].activityChannels = rows[i].activityChannels[0]
       if (rows[i].activityChannels === null) {
         rows[i].activityChannels = {}
       }

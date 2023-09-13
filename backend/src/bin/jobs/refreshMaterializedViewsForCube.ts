@@ -25,7 +25,9 @@ const job: CrowdJob = {
     for (const view of materializedViews) {
       await logExecutionTimeV2(
         () =>
-          dbOptions.database.sequelize.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY "${view}"`),
+          dbOptions.database.sequelize.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY "${view}"`, {
+            useMaster: true,
+          }),
         log,
         `Refresh Materialized View ${view}`,
       )
