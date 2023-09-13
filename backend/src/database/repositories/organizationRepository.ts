@@ -1,7 +1,14 @@
 import lodash from 'lodash'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
-import { OpenSearchIndex, SyncStatus } from '@crowd/types'
+import {
+  IEnrichableOrganization,
+  IMemberOrganization,
+  IOrganization,
+  IOrganizationIdentity,
+  OpenSearchIndex,
+  SyncStatus,
+} from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -13,81 +20,85 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '@/types/common'
+import { SegmentData } from '@/types/segmentTypes'
+import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
 class OrganizationRepository {
-  static async filterByPayingTenant<T extends object>(
+  static async filterByPayingTenant(
     tenantId: string,
     limit: number,
     options: IRepositoryOptions,
-  ): Promise<T[]> {
+  ): Promise<IEnrichableOrganization[]> {
     const database = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
     const query = `
     with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
-                            from activities a
-                            where a."tenantId" = :tenantId and
-                                  a."deletedAt" is null and
-                                  a."isContribution" = true
-                            group by a."organizationId"
-                            having count(id) > 0)
-    select org.id
-        , cach.id "cachId"
-        , org."name"
-        , org."displayName"
-        , org."location"
-        , org."website"
-        , org."lastEnrichedAt"
-        , org."twitter"
-        , org."employees"
-        , org."size"
-        , org."founded"
-        , org."industry"
-        , org."naics"
-        , org."profiles"
-        , org."headline"
-        , org."ticker"
-        , org."type"
-        , org."address"
-        , org."geoLocation"
-        , org."employeeCountByCountry"
-        , org."twitter"
-        , org."linkedin"
-        , org."linkedin"
-        , org."crunchbase"
-        , org."github"
-        , org."description"
-        , org."revenueRange"
-        , org."tags"
-        , org."affiliatedProfiles"
-        , org."allSubsidiaries"
-        , org."alternativeDomains"
-        , org."alternativeNames"
-        , org."averageEmployeeTenure"
-        , org."averageTenureByLevel"
-        , org."averageTenureByRole"
-        , org."directSubsidiaries"
-        , org."employeeChurnRate"
-        , org."employeeCountByMonth"
-        , org."employeeGrowthRate"
-        , org."employeeCountByMonthByLevel"
-        , org."employeeCountByMonthByRole"
-        , org."gicsSector"
-        , org."grossAdditionsByMonth"
-        , org."grossDeparturesByMonth"
-        , org."ultimateParent"
-        , org."immediateParent"
-        , activity."orgActivityCount"
+                        from activities a
+                        where a."tenantId" = :tenantId
+                          and a."deletedAt" is null
+                          and a."isContribution" = true
+                        group by a."organizationId"
+                        having count(id) > 0),
+     identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
+                    from "organizationIdentities" oi
+                    where oi."tenantId" = :tenantId
+                    group by oi."organizationId")
+    select org.id,
+          i.identities,
+          org."displayName",
+          org."location",
+          org."website",
+          org."lastEnrichedAt",
+          org."twitter",
+          org."employees",
+          org."size",
+          org."founded",
+          org."industry",
+          org."naics",
+          org."profiles",
+          org."headline",
+          org."ticker",
+          org."type",
+          org."address",
+          org."geoLocation",
+          org."employeeCountByCountry",
+          org."twitter",
+          org."linkedin",
+          org."crunchbase",
+          org."github",
+          org."description",
+          org."revenueRange",
+          org."tags",
+          org."affiliatedProfiles",
+          org."allSubsidiaries",
+          org."alternativeDomains",
+          org."alternativeNames",
+          org."averageEmployeeTenure",
+          org."averageTenureByLevel",
+          org."averageTenureByRole",
+          org."directSubsidiaries",
+          org."employeeChurnRate",
+          org."employeeCountByMonth",
+          org."employeeGrowthRate",
+          org."employeeCountByMonthByLevel",
+          org."employeeCountByMonthByRole",
+          org."gicsSector",
+          org."grossAdditionsByMonth",
+          org."grossDeparturesByMonth",
+          org."ultimateParent",
+          org."immediateParent",
+          activity."orgActivityCount"
     from "organizations" as org
-            join "organizationCaches" cach on org."name" = cach."name"
             join org_activities activity on activity."organizationId" = org."id"
+            join identities i on i."organizationId" = org.id
     where :tenantId = org."tenantId"
       and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
     order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
-    limit :limit;
+    limit :limit
     `
-    const orgs: T[] = await database.query(query, {
+    const orgs: IEnrichableOrganization[] = await database.query(query, {
       type: QueryTypes.SELECT,
       transaction,
       replacements: {
@@ -106,15 +117,13 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     if (!data.displayName) {
-      data.displayName = data.name
+      data.displayName = data.identities[0].name
     }
 
     const record = await options.database.organization.create(
       {
         ...lodash.pick(data, [
-          'name',
           'displayName',
-          'url',
           'description',
           'emails',
           'phoneNumbers',
@@ -174,6 +183,10 @@ class OrganizationRepository {
       transaction,
     })
 
+    if (data.identities && data.identities.length > 0) {
+      await OrganizationRepository.setIdentities(record.id, data.identities, options)
+    }
+
     await OrganizationRepository.includeOrganizationToSegments(record.id, options)
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
@@ -187,6 +200,8 @@ class OrganizationRepository {
     options: IRepositoryOptions,
     isEnrichment: boolean = false,
   ): Promise<T> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
     // Ensure every organization has a non-undefine primary ID
     const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
     if (isValid) return [] as T
@@ -219,8 +234,95 @@ class OrganizationRepository {
       fields: ['id', 'tenantId', ...fields],
       updateOnDuplicate: fields,
       returning: fields,
+      transaction,
     })
     return orgs
+  }
+
+  static async checkIdentities(
+    data: IOrganization,
+    options: IRepositoryOptions,
+    organizationId?: string,
+  ): Promise<void> {
+    // convert non-existing weak identities to strong ones
+    if (data.weakIdentities && data.weakIdentities.length > 0) {
+      const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
+        data.weakIdentities,
+        options,
+        organizationId,
+      )
+
+      const strongIdentities = []
+
+      // find weak identities in the payload that doesn't exist as a strong identity yet
+      for (const weakIdentity of data.weakIdentities) {
+        if (!strongNotOwnedIdentities.has(`${weakIdentity.platform}:${weakIdentity.name}`)) {
+          strongIdentities.push(weakIdentity)
+        }
+      }
+
+      // exclude identities that are converted to a strong one from weakIdentities
+      if (strongIdentities.length > 0) {
+        data.weakIdentities = data.weakIdentities.filter(
+          (i) =>
+            strongIdentities.find((s) => s.platform === i.platform && s.name === i.name) ===
+            undefined,
+        )
+
+        // push new strong identities to the payload
+        for (const identity of strongIdentities) {
+          if (
+            data.identities.find(
+              (i) => i.platform === identity.platform && i.name === identity.name,
+            ) === undefined
+          ) {
+            data.identities.push(identity)
+          }
+        }
+      }
+    }
+
+    // convert already existing strong identities to weak ones
+    if (data.identities && data.identities.length > 0) {
+      const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
+        data.identities,
+        options,
+        organizationId,
+      )
+
+      const weakIdentities: IOrganizationIdentity[] = []
+
+      // find strong identities in payload that already exist in some other organization, and convert these to weak
+      for (const identity of data.identities) {
+        if (strongNotOwnedIdentities.has(`${identity.platform}:${identity.name}`)) {
+          weakIdentities.push(identity)
+        }
+      }
+
+      // exclude identities that are converted to a weak one from strong identities
+      if (weakIdentities.length > 0) {
+        data.identities = data.identities.filter(
+          (i) =>
+            weakIdentities.find((w) => w.platform === i.platform && w.name === i.name) ===
+            undefined,
+        )
+
+        // push new weak identities to the payload
+        for (const weakIdentity of weakIdentities) {
+          if (!data.weakIdentities) {
+            data.weakIdentities = []
+          }
+
+          if (
+            data.weakIdentities.find(
+              (w) => w.platform === weakIdentity.platform && w.name === weakIdentity.name,
+            ) === undefined
+          ) {
+            data.weakIdentities.push(weakIdentity)
+          }
+        }
+      }
+    }
   }
 
   static async includeOrganizationToSegments(organizationId: string, options: IRepositoryOptions) {
@@ -273,6 +375,68 @@ class OrganizationRepository {
     })
   }
 
+  static async removeMemberRole(role: IMemberOrganization, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let deleteMemberRole = `DELETE FROM "memberOrganizations" 
+                                            WHERE 
+                                            "organizationId" = :organizationId and 
+                                            "memberId" = :memberId`
+
+    const replacements = {
+      organizationId: role.organizationId,
+      memberId: role.memberId,
+    } as any
+
+    if (role.dateStart === null) {
+      deleteMemberRole += ` and "dateStart" is null `
+    } else {
+      deleteMemberRole += ` and "dateStart" = :dateStart `
+      replacements.dateStart = (role.dateStart as Date).toISOString()
+    }
+
+    if (role.dateEnd === null) {
+      deleteMemberRole += ` and "dateEnd" is null `
+    } else {
+      deleteMemberRole += ` and "dateEnd" = :dateEnd `
+      replacements.dateEnd = (role.dateEnd as Date).toISOString()
+    }
+
+    await seq.query(deleteMemberRole, {
+      replacements,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
+  static async addMemberRole(
+    role: IMemberOrganization,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+
+    const query = `
+          insert into "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
+          values (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
+          on conflict do nothing;
+    `
+
+    await sequelize.query(query, {
+      replacements: {
+        memberId: role.memberId,
+        organizationId: role.organizationId,
+        title: role.title || null,
+        dateStart: role.dateStart,
+        dateEnd: role.dateEnd,
+        source: role.source || null,
+      },
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  }
+
   static async update(id, data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -300,9 +464,7 @@ class OrganizationRepository {
     record = await record.update(
       {
         ...lodash.pick(data, [
-          'name',
           'displayName',
-          'url',
           'description',
           'emails',
           'phoneNumbers',
@@ -349,6 +511,7 @@ class OrganizationRepository {
           'ultimateParent',
           'immediateParent',
           'attributes',
+          'weakIdentities',
         ]),
         updatedById: currentUser.id,
       },
@@ -376,6 +539,10 @@ class OrganizationRepository {
         ...options,
         transaction,
       })
+    }
+
+    if (data.identities && data.identities.length > 0) {
+      await this.setIdentities(id, data.identities, options)
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
@@ -447,6 +614,489 @@ class OrganizationRepository {
     }
   }
 
+  static async setIdentities(
+    organizationId: string,
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    await sequelize.query(
+      `delete from "organizationIdentities" where "organizationId" = :organizationId and "tenantId" = :tenantId`,
+      {
+        replacements: {
+          organizationId,
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      },
+    )
+
+    for (const identity of identities) {
+      await this.addIdentity(organizationId, identity, options)
+    }
+  }
+
+  static async addIdentity(
+    organizationId: string,
+    identity: IOrganizationIdentity,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+          insert into 
+              "organizationIdentities"("organizationId", "platform", "name", "url", "sourceId", "tenantId", "integrationId", "createdAt")
+          values 
+              (:organizationId, :platform, :name, :url, :sourceId, :tenantId, :integrationId, now())
+          on conflict do nothing;
+    `
+
+    await sequelize.query(query, {
+      replacements: {
+        organizationId,
+        platform: identity.platform,
+        sourceId: identity.sourceId || null,
+        url: identity.url || null,
+        tenantId: currentTenant.id,
+        integrationId: identity.integrationId || null,
+        name: identity.name,
+      },
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  }
+
+  static async getIdentities(
+    organizationIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<IOrganizationIdentity[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const results = await sequelize.query(
+      `
+      select "sourceId", "platform", "name", "integrationId", "organizationId" from "organizationIdentities"
+      where "tenantId" = :tenantId and "organizationId" in (:organizationIds) 
+    `,
+      {
+        replacements: {
+          organizationIds,
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return results as IOrganizationIdentity[]
+  }
+
+  static async moveIdentitiesBetweenOrganizations(
+    fromOrganizationId: string,
+    toOrganizationId: string,
+    identitiesToMove: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+      update "organizationIdentities" 
+      set 
+        "organizationId" = :newOrganizationId
+      where 
+        "tenantId" = :tenantId and 
+        "organizationId" = :oldOrganizationId and 
+        platform = :platform and 
+        name = :name;
+    `
+
+    for (const identity of identitiesToMove) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [_, count] = await seq.query(query, {
+        replacements: {
+          tenantId: tenant.id,
+          oldOrganizationId: fromOrganizationId,
+          newOrganizationId: toOrganizationId,
+          platform: identity.platform,
+          name: identity.name,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      })
+
+      if (count !== 1) {
+        throw new Error('One row should be updated!')
+      }
+    }
+  }
+
+  static async findMembersBelongToBothOrganizations(
+    organizationId1: string,
+    organizationId2: string,
+    options: IRepositoryOptions,
+  ): Promise<IMemberOrganization[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+
+    const results = await sequelize.query(
+      `
+      SELECT  mo.*
+      FROM "memberOrganizations" AS mo
+      WHERE mo."deletedAt" is null and
+         mo."memberId" IN (
+          SELECT "memberId"
+          FROM "memberOrganizations"
+          WHERE "organizationId" = :organizationId1
+      )
+      AND mo."memberId" IN (
+          SELECT "memberId"
+          FROM "memberOrganizations"
+          WHERE "organizationId" = :organizationId2);
+    `,
+      {
+        replacements: {
+          organizationId1,
+          organizationId2,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return results as IMemberOrganization[]
+  }
+
+  static async moveActivitiesBetweenOrganizations(
+    fromOrganizationId: string,
+    toOrganizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+      update "activities" 
+      set 
+        "organizationId" = :newOrganizationId
+      where 
+        "tenantId" = :tenantId and 
+        "organizationId" = :oldOrganizationId 
+    `
+
+    await seq.query(query, {
+      replacements: {
+        tenantId: tenant.id,
+        oldOrganizationId: fromOrganizationId,
+        newOrganizationId: toOrganizationId,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async moveMembersBetweenOrganizations(
+    fromOrganizationId: string,
+    toOrganizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let removeRoles: IMemberOrganization[] = []
+
+    let addRoles: IMemberOrganization[] = []
+
+    // first, handle members that belong to both organizations,
+    // then make a full update on remaining org2 members (that doesn't belong to o1)
+    const memberRolesWithBothOrganizations = await this.findMembersBelongToBothOrganizations(
+      fromOrganizationId,
+      toOrganizationId,
+      options,
+    )
+
+    const primaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
+      (m) => m.organizationId === toOrganizationId,
+    )
+    const secondaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
+      (m) => m.organizationId === fromOrganizationId,
+    )
+
+    for (const memberOrganization of secondaryOrganizationMemberRoles) {
+      // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
+      if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
+        removeRoles.push(memberOrganization)
+      }
+      // it's a current role, also check org1 to see which one starts earlier
+      else if (memberOrganization.dateStart !== null && memberOrganization.dateEnd === null) {
+        const currentRoles = primaryOrganizationMemberRoles.filter(
+          (mo) =>
+            mo.memberId === memberOrganization.memberId &&
+            mo.dateStart !== null &&
+            mo.dateEnd === null,
+        )
+        if (currentRoles.length === 0) {
+          // no current role in org1, add the memberOrganization to org1
+          addRoles.push(memberOrganization)
+        } else if (currentRoles.length === 1) {
+          const currentRole = currentRoles[0]
+          if (new Date(memberOrganization.dateStart) <= new Date(currentRoles[0].dateStart)) {
+            // add a new role with earlier dateStart
+            addRoles.push({
+              id: currentRole.id,
+              dateStart: (memberOrganization.dateStart as Date).toISOString(),
+              dateEnd: null,
+              memberId: currentRole.memberId,
+              organizationId: currentRole.organizationId,
+              title: currentRole.title,
+              source: currentRole.source,
+            })
+
+            // remove current role
+            removeRoles.push(currentRole)
+          }
+
+          // delete role from org2
+          removeRoles.push(memberOrganization)
+        } else {
+          throw new Error(`Member ${memberOrganization.memberId} has more than one current roles.`)
+        }
+      } else if (memberOrganization.dateStart === null && memberOrganization.dateEnd !== null) {
+        throw new Error(`Member organization with dateEnd and without dateStart!`)
+      } else {
+        // both dateStart and dateEnd exists
+        const foundIntersectingRoles = primaryOrganizationMemberRoles.filter((mo) => {
+          const primaryStart = new Date(mo.dateStart)
+          const primaryEnd = new Date(mo.dateEnd)
+          const secondaryStart = new Date(memberOrganization.dateStart)
+          const secondaryEnd = new Date(memberOrganization.dateEnd)
+
+          return (
+            mo.memberId === memberOrganization.memberId &&
+            ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
+              (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
+              (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
+              (primaryStart < secondaryStart && secondaryEnd > primaryEnd))
+          )
+        })
+
+        // rebuild dateRanges using intersecting roles coming from primary and secondary organizations
+        const startDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
+          new Date(org.dateStart).getTime(),
+        )
+        const endDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
+          new Date(org.dateEnd).getTime(),
+        )
+
+        addRoles.push({
+          dateStart: new Date(Math.min.apply(null, startDates)).toISOString(),
+          dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
+          memberId: memberOrganization.memberId,
+          organizationId: toOrganizationId,
+          title:
+            foundIntersectingRoles.length > 0
+              ? foundIntersectingRoles[0].title
+              : memberOrganization.title,
+          source:
+            foundIntersectingRoles.length > 0
+              ? foundIntersectingRoles[0].source
+              : memberOrganization.source,
+        })
+
+        // we'll delete all roles that intersect with incoming org member roles and create a merged role
+        for (const r of foundIntersectingRoles) {
+          removeRoles.push(r)
+        }
+      }
+
+      for (const removeRole of removeRoles) {
+        await this.removeMemberRole(removeRole, options)
+      }
+
+      for (const addRole of addRoles) {
+        await this.addMemberRole(addRole, options)
+      }
+
+      addRoles = []
+      removeRoles = []
+    }
+
+    // update rest of the o2 members
+    await seq.query(
+      `
+      UPDATE "memberOrganizations"
+        SET "organizationId" = :toOrganizationId
+        WHERE "organizationId" = :fromOrganizationId 
+        AND "deletedAt" IS NULL
+        AND "memberId" NOT IN (
+            SELECT "memberId" 
+            FROM "memberOrganizations" 
+            WHERE "organizationId" = :toOrganizationId
+        );
+      `,
+      {
+        replacements: {
+          toOrganizationId,
+          fromOrganizationId,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
+  }
+
+  static async getOrganizationSegments(
+    organizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<SegmentData[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+    const segmentRepository = new SegmentRepository(options)
+
+    const query = `
+        SELECT "segmentId"
+        FROM "organizationSegments"
+        WHERE "organizationId" = :organizationId
+        ORDER BY "createdAt";
+    `
+
+    const data = await seq.query(query, {
+      replacements: {
+        organizationId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    const segmentIds = (data as any[]).map((item) => item.segmentId)
+    const segments = await segmentRepository.findInIds(segmentIds)
+
+    return segments
+  }
+
+  static async findByIdentity(
+    identity: IOrganizationIdentity,
+    options: IRepositoryOptions,
+  ): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const results = await sequelize.query(
+      `
+      with
+          "organizationsWithIdentity" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where 
+                    oi.platform = :platform
+                    and oi.name = :name
+          )
+          select o.id,
+                  o.description,
+                  o.emails,
+                  o.logo,
+                  o.tags,
+                  o.github,
+                  o.twitter,
+                  o.linkedin,
+                  o.crunchbase,
+                  o.employees,
+                  o.location,
+                  o.website,
+                  o.type,
+                  o.size,
+                  o.headline,
+                  o.industry,
+                  o.founded,
+                  o.attributes
+          from organizations o
+          where o."tenantId" = :tenantId
+          and o.id in (select "organizationId" from "organizationsWithIdentity");
+      `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          name: identity.name,
+          platform: identity.platform,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
+  }
+
+  static async findIdentities(
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+    organizationId?: string,
+  ): Promise<Map<string, string>> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const params: any = {
+      tenantId: currentTenant.id,
+    }
+
+    let condition = ''
+    if (organizationId) {
+      condition = 'and "organizationId" <> :organizationId'
+      params.organizationId = organizationId
+    }
+
+    const identityParams = identities
+      .map((identity) => `('${identity.platform}', '${identity.name}')`)
+      .join(', ')
+
+    const results = (await sequelize.query(
+      `
+      with input_identities (platform, name) as (
+        values ${identityParams}
+      )
+      select "organizationId", i.platform, i.name
+      from "organizationIdentities" oi
+        inner join input_identities i on oi.platform = i.platform and oi.name = i.name
+      where oi."tenantId" = :tenantId ${condition}
+    `,
+      {
+        replacements: params,
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )) as IOrganizationIdentity[]
+
+    const resultMap = new Map<string, string>()
+    results.forEach((row) => {
+      resultMap.set(`${row.platform}:${row.name}`, row.organizationId)
+    })
+
+    return resultMap
+  }
+
   static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
@@ -501,42 +1151,48 @@ class OrganizationRepository {
 
     const query = `
     with leaf_segment_ids as (${segmentsSubQuery}),
-        member_data as (select a."organizationId",
-                                count(distinct m.id) filter ( where mo."dateEnd" is null )                  as "memberCount",
-                                count(distinct a.id)                                                        as "activityCount",
-                                case
-                                    when array_agg(distinct a.platform) = array [null] then array []::text[]
-                                    else array_agg(distinct a.platform) end                                 as "activeOn",
-                                max(a.timestamp)                                                            as "lastActive",
-                                case
-                                    when array_agg(distinct mi.platform) = array [null] then array []::text[]
-                                    else array_agg(distinct mi.platform) end                                as "identities",
-                                min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
-                        from leaf_segment_ids ls
-                                  left join activities a
-                                            on a."segmentId" = ls.id and a."organizationId" = :id and
-                                              a."deletedAt" is null
-                                  left join members m on a."memberId" = m.id and m."deletedAt" is null
-                                  left join "memberOrganizations" mo
-                                            on m.id = mo."memberId" and mo."organizationId" = :id
-                                  left join "memberIdentities" mi on m.id = mi."memberId"
-                        group by a."organizationId"),
-        organization_segments as (select "organizationId", array_agg("segmentId") as "segments"
-                                  from "organizationSegments"
-                                  where "organizationId" = :id
-                                  group by "organizationId")
-    select o.*,
-          coalesce(md."activityCount", 0)::integer as "activityCount",
-          coalesce(md."memberCount", 0)::integer   as "memberCount",
-          coalesce(md."activeOn", '{}')            as "activeOn",
-          coalesce(md.identities, '{}')            as identities,
-          coalesce(os.segments, '{}')              as segments,
-          md."lastActive",
-          md."joinedAt"
+    member_data as (select a."organizationId",
+        count(distinct m.id) filter ( where mo."dateEnd" is null )                  as "memberCount",
+        count(distinct a.id)                                                        as "activityCount",
+        case
+            when array_agg(distinct a.platform) = array [null] then array []::text[]
+            else array_agg(distinct a.platform) end                                 as "activeOn",
+        max(a.timestamp)                                                            as "lastActive",
+        min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
+    from leaf_segment_ids ls
+          left join activities a
+                    on a."segmentId" = ls.id and a."organizationId" = :id and
+                      a."deletedAt" is null
+          left join members m on a."memberId" = m.id and m."deletedAt" is null
+          left join "memberOrganizations" mo
+                    on m.id = mo."memberId" and mo."organizationId" = :id
+          left join "memberIdentities" mi on m.id = mi."memberId"
+    group by a."organizationId"),
+    organization_segments as (select "organizationId", array_agg("segmentId") as "segments"
+          from "organizationSegments"
+          where "organizationId" = :id
+          group by "organizationId"),
+    identities as (
+      SELECT oi."organizationId", jsonb_agg(oi) AS "identities"
+      FROM "organizationIdentities" oi
+      WHERE oi."organizationId" = :id
+      GROUP BY "organizationId"
+    )
+    select 
+      o.*,
+      coalesce(md."activityCount", 0)::integer as "activityCount",
+      coalesce(md."memberCount", 0)::integer   as "memberCount",
+      coalesce(md."activeOn", '{}')            as "activeOn",
+      coalesce(i.identities, '{}')            as identities,
+      coalesce(os.segments, '{}')              as segments,
+      md."lastActive",
+      md."joinedAt"
     from organizations o
-            left join member_data md on md."organizationId" = o.id
-            left join organization_segments os on os."organizationId" = o.id
-    where o.id = :id and o."tenantId" = :tenantId;
+    left join member_data md on md."organizationId" = o.id
+    left join organization_segments os on os."organizationId" = o.id
+    left join identities i on i."organizationId" = o.id
+    where o.id = :id
+    and o."tenantId" = :tenantId;
 `
 
     const results = await sequelize.query(query, {
@@ -705,6 +1361,33 @@ class OrganizationRepository {
       },
       transaction,
     })
+  }
+
+  static async findOrganizationActivities(
+    organizationId: string,
+    limit: number,
+    offset: number,
+    options: IRepositoryOptions,
+  ): Promise<any[]> {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const results = await seq.query(
+      `select "id", "organizationId"
+        from "activities"
+        where "organizationId" = :organizationId
+        order by "createdAt"
+        limit :limit offset :offset`,
+      {
+        replacements: {
+          organizationId,
+          limit,
+          offset,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return results
   }
 
   static async findAndCountAllOpensearch(
@@ -895,26 +1578,10 @@ class OrganizationRepository {
         })
       }
 
-      if (filter.name) {
-        advancedFilter.and.push({
-          name: {
-            textContains: filter.name,
-          },
-        })
-      }
-
       if (filter.displayName) {
         advancedFilter.and.push({
           displayName: {
             textContains: filter.displayName,
-          },
-        })
-      }
-
-      if (filter.url) {
-        advancedFilter.and.push({
-          url: {
-            textContains: filter.url,
           },
         })
       }
@@ -1075,9 +1742,7 @@ class OrganizationRepository {
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
             [
               'id',
-              'name',
               'displayName',
-              'url',
               'description',
               'emails',
               'phoneNumbers',
@@ -1162,9 +1827,7 @@ class OrganizationRepository {
         ...SequelizeFilterUtils.getLiteralProjections(
           [
             'id',
-            'name',
             'displayName',
-            'url',
             'description',
             'emails',
             'phoneNumbers',

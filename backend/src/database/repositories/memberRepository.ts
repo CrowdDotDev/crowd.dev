@@ -888,7 +888,7 @@ class MemberRepository {
         s.name as "segmentName",
         s."parentName" as "segmentParentName", 
         o.id as "organizationId", 
-        o.name as "organizationName",
+        o."displayName" as "organizationName",
         o.logo as "organizationLogo",
         msa."dateStart" as "dateStart",
         msa."dateEnd" as "dateEnd"
@@ -963,7 +963,7 @@ class MemberRepository {
     const include = [
       {
         model: options.database.organization,
-        attributes: ['id', 'name'],
+        attributes: ['id', 'displayName'],
         as: 'organizations',
         order: [['createdAt', 'ASC']],
         through: {
@@ -2711,7 +2711,7 @@ class MemberRepository {
       include: [
         {
           model: options.database.organization,
-          attributes: ['id', 'name'],
+          attributes: ['id', 'displayName'],
           as: 'organizations',
         },
         {
