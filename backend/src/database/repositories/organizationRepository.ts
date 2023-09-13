@@ -117,7 +117,7 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     if (!data.displayName) {
-      data.displayName = data.name
+      data.displayName = data.identities[0].name
     }
 
     const record = await options.database.organization.create(
@@ -182,6 +182,10 @@ class OrganizationRepository {
     await record.setMembers(data.members || [], {
       transaction,
     })
+
+    if (data.identities && data.identities.length > 0) {
+      await OrganizationRepository.setIdentities(record.id, data.identities, options)
+    }
 
     await OrganizationRepository.includeOrganizationToSegments(record.id, options)
 
@@ -537,7 +541,7 @@ class OrganizationRepository {
       })
     }
 
-    if (data.identities.length > 0) {
+    if (data.identities && data.identities.length > 0) {
       await this.setIdentities(id, data.identities, options)
     }
 
@@ -903,8 +907,14 @@ class OrganizationRepository {
           dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
           memberId: memberOrganization.memberId,
           organizationId: toOrganizationId,
-          title: foundIntersectingRoles.length > 0 ? foundIntersectingRoles[0].title : memberOrganization.title,
-          source: foundIntersectingRoles.length > 0 ? foundIntersectingRoles[0].source : memberOrganization.source,
+          title:
+            foundIntersectingRoles.length > 0
+              ? foundIntersectingRoles[0].title
+              : memberOrganization.title,
+          source:
+            foundIntersectingRoles.length > 0
+              ? foundIntersectingRoles[0].source
+              : memberOrganization.source,
         })
 
         // we'll delete all roles that intersect with incoming org member roles and create a merged role
@@ -1568,26 +1578,10 @@ class OrganizationRepository {
         })
       }
 
-      if (filter.name) {
-        advancedFilter.and.push({
-          name: {
-            textContains: filter.name,
-          },
-        })
-      }
-
       if (filter.displayName) {
         advancedFilter.and.push({
           displayName: {
             textContains: filter.displayName,
-          },
-        })
-      }
-
-      if (filter.url) {
-        advancedFilter.and.push({
-          url: {
-            textContains: filter.url,
           },
         })
       }
@@ -1748,9 +1742,7 @@ class OrganizationRepository {
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
             [
               'id',
-              'name',
               'displayName',
-              'url',
               'description',
               'emails',
               'phoneNumbers',
@@ -1835,9 +1827,7 @@ class OrganizationRepository {
         ...SequelizeFilterUtils.getLiteralProjections(
           [
             'id',
-            'name',
             'displayName',
-            'url',
             'description',
             'emails',
             'phoneNumbers',

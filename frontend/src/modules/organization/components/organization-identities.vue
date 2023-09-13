@@ -12,11 +12,12 @@
           :platform="platform"
           :username-handles="getHandlesByPlatform(platform)"
           :links="getUrlsByPlatform(platform)"
-          :track-event-name="getPlatformDetails(platform).trackEventName"
-          :track-event-channel="getPlatformDetails(platform).trackEventChannel"
-          :tooltip-label="getPlatformDetails(platform).tooltipLabel"
+          :track-event-name="getPlatformDetails(platform)?.trackEventName"
+          :track-event-channel="getPlatformDetails(platform)?.trackEventChannel"
+          :tooltip-label="getPlatformDetails(platform)?.tooltipLabel"
           :show-handles-badge="true"
           :as-link="true"
+          custom-platform-icon-class="ri-community-fill"
         />
       </div>
 

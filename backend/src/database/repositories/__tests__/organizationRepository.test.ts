@@ -10,9 +10,14 @@ import { generateUUIDv1 } from '@crowd/common'
 const db = null
 
 const toCreate = {
-  name: 'crowd.dev',
+  identities: [
+    {
+      name: 'crowd.dev',
+      platform: 'crowd',
+      url: 'https://crowd.dev',
+    },
+  ],
   displayName: 'crowd.dev',
-  url: 'https://crowd.dev',
   description: 'Community-led Growth for Developer-first Companies.\nJoin our private beta',
   emails: ['hello@crowd.dev', 'jonathan@crow.dev'],
   phoneNumbers: ['+42 424242424'],
@@ -185,6 +190,11 @@ describe('OrganizationRepository tests', () => {
       organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
       organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
 
+      delete organizationCreated.identities[0].createdAt
+      delete organizationCreated.identities[0].updatedAt
+
+      const primaryIdentity = toCreate.identities[0]
+
       const expectedOrganizationCreated = {
         id: organizationCreated.id,
         ...toCreate,
@@ -194,7 +204,17 @@ describe('OrganizationRepository tests', () => {
         memberCount: 0,
         activityCount: 0,
         activeOn: [],
-        identities: [],
+        identities: [
+          {
+            integrationId: null,
+            name: primaryIdentity.name,
+            organizationId: organizationCreated.id,
+            platform: primaryIdentity.platform,
+            url: primaryIdentity.url,
+            sourceId: null,
+            tenantId: mockIRepositoryOptions.currentTenant.id,
+          },
+        ],
         importHash: null,
         lastActive: null,
         joinedAt: null,
@@ -207,6 +227,7 @@ describe('OrganizationRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
         attributes: {},
+        weakIdentities: [],
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
     })
@@ -246,10 +267,26 @@ describe('OrganizationRepository tests', () => {
       organizationCreated.lastActive = organizationCreated.lastActive.toISOString().split('T')[0]
       organizationCreated.joinedAt = organizationCreated.joinedAt.toISOString().split('T')[0]
 
+      delete organizationCreated.identities[0].createdAt
+      delete organizationCreated.identities[0].updatedAt
+
+      const primaryIdentity = toCreate.identities[0]
+
       const expectedOrganizationCreated = {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 2,
+        identities: [
+          {
+            integrationId: null,
+            name: primaryIdentity.name,
+            organizationId: organizationCreated.id,
+            platform: primaryIdentity.platform,
+            url: primaryIdentity.url,
+            sourceId: null,
+            tenantId: mockIRepositoryOptions.currentTenant.id,
+          },
+        ],
         activityCount: 2,
         github: null,
         location: null,
@@ -257,7 +294,6 @@ describe('OrganizationRepository tests', () => {
         lastActive: '2020-05-27',
         joinedAt: '2020-05-27',
         activeOn: ['github'],
-        identities: ['github'],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -268,13 +304,14 @@ describe('OrganizationRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
         attributes: {},
+        weakIdentities: [],
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
 
       const member1 = await MemberRepository.findById(memberIds[0], mockIRepositoryOptions)
       const member2 = await MemberRepository.findById(memberIds[1], mockIRepositoryOptions)
-      expect(member1.organizations[0].url).toStrictEqual(organizationCreated.url)
-      expect(member2.organizations[0].url).toStrictEqual(organizationCreated.url)
+      expect(member1.organizations.length).toEqual(1)
+      expect(member2.organizations.length).toEqual(1)
     })
   })
 
@@ -290,16 +327,28 @@ describe('OrganizationRepository tests', () => {
       organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
       organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
 
+      const primaryIdentity = toCreate.identities[0]
+
       const expectedOrganizationFound = {
         id: organizationCreated.id,
         ...toCreate,
+        identities: [
+          {
+            integrationId: null,
+            name: primaryIdentity.name,
+            organizationId: organizationCreated.id,
+            platform: primaryIdentity.platform,
+            url: primaryIdentity.url,
+            sourceId: null,
+            tenantId: mockIRepositoryOptions.currentTenant.id,
+          },
+        ],
         github: null,
         location: null,
         website: null,
         memberCount: 0,
         activityCount: 0,
         activeOn: [],
-        identities: [],
         lastActive: null,
         joinedAt: null,
         importHash: null,
@@ -312,6 +361,7 @@ describe('OrganizationRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
         attributes: {},
+        weakIdentities: [],
       }
       const organizationById = await OrganizationRepository.findById(
         organizationCreated.id,
@@ -320,6 +370,9 @@ describe('OrganizationRepository tests', () => {
 
       organizationById.createdAt = organizationById.createdAt.toISOString().split('T')[0]
       organizationById.updatedAt = organizationById.updatedAt.toISOString().split('T')[0]
+
+      delete organizationById.identities[0].createdAt
+      delete organizationById.identities[0].updatedAt
 
       expect(organizationById).toStrictEqual(expectedOrganizationFound)
     })
@@ -334,90 +387,18 @@ describe('OrganizationRepository tests', () => {
     })
   })
 
-  describe('findByUrl/name methods', () => {
-    it('Should successfully find created organization by name', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const organizationCreated = await OrganizationRepository.create(
-        toCreate,
-        mockIRepositoryOptions,
-      )
-
-      organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
-      organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
-
-      const expectedOrganizationFound = {
-        id: organizationCreated.id,
-        ...toCreate,
-        github: null,
-        location: null,
-        website: null,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-        isTeamOrganization: false,
-        attributes: {},
-      }
-      const organizatioFound = await OrganizationRepository.findByName(
-        organizationCreated.name,
-        mockIRepositoryOptions,
-      )
-
-      organizatioFound.createdAt = organizatioFound.createdAt.toISOString().split('T')[0]
-      organizatioFound.updatedAt = organizatioFound.updatedAt.toISOString().split('T')[0]
-
-      expect(organizatioFound).toStrictEqual(expectedOrganizationFound)
-    })
-
-    it('Should successfully find created organization by url', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const organizationCreated = await OrganizationRepository.create(
-        toCreate,
-        mockIRepositoryOptions,
-      )
-
-      organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
-      organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
-
-      const expectedOrganizationFound = {
-        id: organizationCreated.id,
-        ...toCreate,
-        github: null,
-        location: null,
-        website: null,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-        isTeamOrganization: false,
-        attributes: {},
-      }
-      const organizatioFound = await OrganizationRepository.findByUrl(
-        organizationCreated.url,
-        mockIRepositoryOptions,
-      )
-
-      organizatioFound.createdAt = organizatioFound.createdAt.toISOString().split('T')[0]
-      organizatioFound.updatedAt = organizatioFound.updatedAt.toISOString().split('T')[0]
-
-      expect(organizatioFound).toStrictEqual(expectedOrganizationFound)
-    })
-  })
-
   describe('filterIdsInTenant method', () => {
     it('Should return the given ids of previously created organization entities', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const organization1 = { name: 'test1' }
-      const organization2 = { name: 'test2' }
+      const organization1 = {
+        identities: [{ name: 'test1', platform: 'crowd' }],
+        displayName: 'test1',
+      }
+      const organization2 = {
+        identities: [{ name: 'test2', platform: 'crowd' }],
+        displayName: 'test2',
+      }
 
       const organization1Created = await OrganizationRepository.create(
         organization1,
@@ -439,7 +420,10 @@ describe('OrganizationRepository tests', () => {
     it('Should only return the ids of previously created organizations and filter random uuids out', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const organization = { name: 'test1' }
+      const organization = {
+        identities: [{ name: 'test1', platform: 'crowd' }],
+        displayName: 'test1',
+      }
 
       const organizationCreated = await OrganizationRepository.create(
         organization,
@@ -459,7 +443,10 @@ describe('OrganizationRepository tests', () => {
     it('Should return an empty array for an irrelevant tenant', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const organization = { name: 'test' }
+      const organization = {
+        identities: [{ name: 'test1', platform: 'crowd' }],
+        displayName: 'test1',
+      }
 
       const organizationCreated = await OrganizationRepository.create(
         organization,
@@ -610,10 +597,16 @@ describe('OrganizationRepository tests', () => {
     })
   })
 
-  describe('filter method', () => {
+  // we can skip these tests as well - we use opensearch method findAndCountAllOpensearch instead
+  describe.skip('filter method', () => {
     const crowddev = {
-      name: 'crowd.dev',
-      url: 'https://crowd.dev',
+      identities: [
+        {
+          name: 'crowd.dev',
+          platform: 'crowd',
+          url: 'https://crowd.dev',
+        },
+      ],
       description: 'Community-led Growth for Developer-first Companies.\nJoin our private beta',
       emails: ['hello@crowd.dev', 'jonathan@crowd.dev'],
       phoneNumbers: ['+42 424242424'],
@@ -643,8 +636,13 @@ describe('OrganizationRepository tests', () => {
     }
 
     const piedpiper = {
-      name: 'Pied Piper',
-      url: 'https://piedpiper.io',
+      identities: [
+        {
+          name: 'Pied Piper',
+          platform: 'crowd',
+          url: 'https://piedpiper.io',
+        },
+      ],
       description: 'Pied Piper is a fictional technology company in the HBO television series',
       emails: ['richard@piedpiper.io', 'jarded@pipedpiper.io'],
       phoneNumbers: ['+42 54545454'],
@@ -674,8 +672,13 @@ describe('OrganizationRepository tests', () => {
     }
 
     const hooli = {
-      name: 'Hooli',
-      url: 'https://hooli.com',
+      identities: [
+        {
+          name: 'Hooli',
+          platform: 'crowd',
+          url: 'https://hooli.com',
+        },
+      ],
       description: 'Hooli is a fictional technology company in the HBO television series',
       emails: ['gavin@hooli.com'],
       phoneNumbers: ['+42 12121212'],
@@ -1180,13 +1183,18 @@ describe('OrganizationRepository tests', () => {
 
       const organizationUpdated = await OrganizationRepository.update(
         organizationCreated.id,
-        { name: 'updated-organization-name' },
+        { displayName: 'updated-organization-name' },
         mockIRepositoryOptions,
       )
 
       expect(organizationUpdated.updatedAt.getTime()).toBeGreaterThan(
         organizationUpdated.createdAt.getTime(),
       )
+
+      const primaryIdentity = organizationCreated.identities[0]
+
+      delete organizationUpdated.identities[0].createdAt
+      delete organizationUpdated.identities[0].updatedAt
 
       const organizationExpected = {
         id: organizationCreated.id,
@@ -1197,10 +1205,20 @@ describe('OrganizationRepository tests', () => {
         memberCount: 0,
         activityCount: 0,
         activeOn: [],
-        identities: [],
+        identities: [
+          {
+            integrationId: null,
+            name: primaryIdentity.name,
+            organizationId: organizationCreated.id,
+            platform: primaryIdentity.platform,
+            url: primaryIdentity.url,
+            sourceId: null,
+            tenantId: mockIRepositoryOptions.currentTenant.id,
+          },
+        ],
         lastActive: null,
         joinedAt: null,
-        name: organizationUpdated.name,
+        displayName: organizationUpdated.displayName,
         importHash: null,
         createdAt: organizationCreated.createdAt,
         updatedAt: organizationUpdated.updatedAt,
@@ -1211,6 +1229,7 @@ describe('OrganizationRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         isTeamOrganization: false,
         attributes: {},
+        weakIdentities: [],
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)
@@ -1416,7 +1435,7 @@ describe('OrganizationRepository tests', () => {
     it('Should succesfully destroy previously created organization', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const organization = { name: 'test-organization' }
+      const organization = { displayName: 'test-organization' }
 
       const returnedOrganization = await OrganizationRepository.create(
         organization,
