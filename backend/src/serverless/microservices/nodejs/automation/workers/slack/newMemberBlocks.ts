@@ -1,19 +1,46 @@
-import { integrationLabel } from '@crowd/types'
+import { integrationLabel, integrationProfileUrl } from '@crowd/types'
 import { API_CONFIG } from '../../../../../../conf'
 
 export const newMemberBlocks = (member) => {
   const platforms = member.activeOn
   const reach =
     platforms && platforms.length > 0 ? member.reach?.[platforms[0]] : member.reach?.total
+  const details = []
+  if (member.attributes.jobTitle?.default) {
+    details.push(`*💼 Job title:* ${member.attributes.jobTitle?.default}`)
+  }
+  if (member.organizations.length > 0) {
+    const orgs = member.organizations.map(
+      (org) =>
+        `<${`${API_CONFIG.frontendUrl}/organizations/${org.id}`}|${org.name || org.displayName}>`,
+    )
+    details.push(`*🏢 Organization:* ${orgs.join(' | ')}`)
+  }
+  if (reach > 0) {
+    details.push(`*👥 Reach:* ${reach} followers`)
+  }
+  if (member.attributes?.location?.default) {
+    details.push(`*📍 Location:* ${member.attributes?.location?.default}`)
+  }
+  if (member.emails.length > 0) {
+    const [email] = member.emails
+    details.push(`*✉️ Email:* <mailto:${email}|${email}>`)
+  }
+  const profiles = Object.keys(member.username)
+    .filter((p) => p !== platforms[0])
+    .map((p) => {
+      const username = member.username?.[p].length > 0 ? member.username[p][0] : null
+      const url =
+        member.attributes?.url?.[p] || (username && integrationProfileUrl[p](username)) || null
+      return {
+        platform: p,
+        url,
+      }
+    })
+    .filter((p) => !!p.url)
+
   return {
     blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: ':tada: *New member*',
-        },
-      },
       {
         type: 'header',
         text: {
@@ -40,82 +67,21 @@ export const newMemberBlocks = (member) => {
       {
         type: 'divider',
       },
-      ...(member.attributes.jobTitle?.default
+      ...(details.length > 0 || member.attributes?.avatarUrl?.default
         ? [
             {
               type: 'section',
-              fields: [
-                {
-                  type: 'mrkdwn',
-                  text: '*Title/Role:*',
-                },
-                {
-                  type: 'mrkdwn',
-                  text: member.attributes.jobTitle?.default || '-',
-                },
-              ],
-            },
-            {
-              type: 'divider',
-            },
-          ]
-        : []),
-      ...(member.organizations.length > 0
-        ? [
-            {
-              type: 'section',
-              fields: [
-                {
-                  type: 'mrkdwn',
-                  text: '*Organization:*',
-                },
-                {
-                  type: 'mrkdwn',
-                  text: `<${`${API_CONFIG.frontendUrl}/organizations/${member.organizations[0].id}`}|${
-                    member.organizations[0].name
-                  }>`,
-                },
-              ],
-            },
-            {
-              type: 'divider',
-            },
-          ]
-        : []),
-      ...(reach > 0
-        ? [
-            {
-              type: 'section',
-              fields: [
-                {
-                  type: 'mrkdwn',
-                  text: '*Followers:*',
-                },
-                {
-                  type: 'mrkdwn',
-                  text: reach > 0 ? `${reach}` : '-',
-                },
-              ],
-            },
-            {
-              type: 'divider',
-            },
-          ]
-        : []),
-      ...(member.attributes?.location?.default
-        ? [
-            {
-              type: 'section',
-              fields: [
-                {
-                  type: 'mrkdwn',
-                  text: '*Location:*',
-                },
-                {
-                  type: 'mrkdwn',
-                  text: member.attributes?.location?.default || '-',
-                },
-              ],
+              text: {
+                type: 'mrkdwn',
+                text: details.length > 0 ? details.join('\n') : '\n',
+              },
+              accessory: member.attributes?.avatarUrl?.default
+                ? {
+                    type: 'image',
+                    image_url: member.attributes?.avatarUrl?.default,
+                    alt_text: 'computer thumbnail',
+                  }
+                : undefined,
             },
             {
               type: 'divider',
@@ -139,12 +105,27 @@ export const newMemberBlocks = (member) => {
               type: 'button',
               text: {
                 type: 'plain_text',
-                text: `View ${integrationLabel[platform]} profile`,
+                text: `${integrationLabel[platform] ?? platform} profile`,
                 emoji: true,
               },
               url: member.attributes?.url?.[platform],
             }))
             .filter((action) => !!action.url),
+          ...(profiles.length > 0
+            ? [
+                {
+                  type: 'overflow',
+                  options: profiles.map(({ platform, url }) => ({
+                    text: {
+                      type: 'plain_text',
+                      text: `${integrationLabel[platform] ?? platform} profile`,
+                      emoji: true,
+                    },
+                    url,
+                  })),
+                },
+              ]
+            : []),
         ],
       },
     ],
