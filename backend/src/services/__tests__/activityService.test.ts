@@ -1417,14 +1417,14 @@ describe('ActivityService tests', () => {
       await populateSegments(mockIRepositoryOptions)
       const org1 = await OrganizationRepository.create(
         {
-          name: 'tesla',
+          displayName: 'tesla',
         },
         mockIRepositoryOptions,
       )
 
       const org2 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
@@ -2768,8 +2768,13 @@ describe('ActivityService tests', () => {
     }
 
     async function createOrg(name, data = {}) {
-      return await organizationService.findOrCreate({
-        name,
+      return await organizationService.createOrUpdate({
+        identities: [
+          {
+            name,
+            platform: 'crowd',
+          },
+        ],
         ...data,
       })
     }

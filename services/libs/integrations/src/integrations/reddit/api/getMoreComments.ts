@@ -51,7 +51,7 @@ async function getMoreComments(
     const response: RedditMoreCommentsResponse = (await axios(config)).data
     return response
   } catch (err) {
-    ctx.log.error({ err, input }, 'Error while getting posts in subreddit')
+    ctx.log.error({ err, input }, 'Error while getting more comments in subreddit')
     throw err
   }
 }

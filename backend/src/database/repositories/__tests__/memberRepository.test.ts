@@ -417,7 +417,7 @@ describe('MemberRepository tests', () => {
 
       const org1 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
@@ -1359,19 +1359,35 @@ describe('MemberRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const crowd = await mockIRepositoryOptions.database.organization.create({
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: 'https://crowd.dev',
         tenantId: mockIRepositoryOptions.currentTenant.id,
         segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
+      await OrganizationRepository.addIdentity(
+        crowd.id,
+        {
+          name: 'crowd.dev',
+          url: 'https://crowd.dev',
+          platform: 'crowd',
+        },
+        mockIRepositoryOptions,
+      )
+
       const pp = await mockIRepositoryOptions.database.organization.create({
-        name: 'pied piper',
         displayName: 'pied piper',
-        url: 'https://piedpiper.com',
         tenantId: mockIRepositoryOptions.currentTenant.id,
         segmentId: mockIRepositoryOptions.currentSegments[0].id,
       })
+
+      await OrganizationRepository.addIdentity(
+        pp.id,
+        {
+          name: 'pied piper',
+          url: 'https://piedpiper.com',
+          platform: 'crowd',
+        },
+        mockIRepositoryOptions,
+      )
 
       await MemberRepository.create(
         {
@@ -1425,8 +1441,8 @@ describe('MemberRepository tests', () => {
       )
       const member2 = members.rows.find((m) => m.username[PlatformType.SLACK][0] === 'test2')
       expect(members.rows.length).toEqual(1)
-      expect(member2.organizations[0].name).toEqual('crowd.dev')
-      expect(member2.organizations[1].name).toEqual('pied piper')
+      expect(member2.organizations[0].displayName).toEqual('crowd.dev')
+      expect(member2.organizations[1].displayName).toEqual('pied piper')
     })
 
     it('is successfully finding and counting all members, and scoreRange is gte than 1 and less or equal to 6', async () => {
@@ -2422,9 +2438,14 @@ describe('MemberRepository tests', () => {
 
       const crowd = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          identities: [
+            {
+              name: 'crowd.dev',
+              url: 'https://crowd.dev',
+              platform: 'crowd',
+            },
+          ],
           displayName: 'crowd.dev',
-          url: 'https://crowd.dev',
           tenantId: mockIRepositoryOptions.currentTenant.id,
           segmentId: mockIRepositoryOptions.currentSegments[0].id,
         },
@@ -2432,9 +2453,14 @@ describe('MemberRepository tests', () => {
       )
       const pp = await OrganizationRepository.create(
         {
-          name: 'pied piper',
+          identities: [
+            {
+              name: 'pied piper',
+              url: 'https://piedpiper.com',
+              platform: 'crowd',
+            },
+          ],
           displayName: 'pied piper',
-          url: 'https://piedpiper.com',
           tenantId: mockIRepositoryOptions.currentTenant.id,
           segmentId: mockIRepositoryOptions.currentSegments[0].id,
         },
@@ -2503,7 +2529,7 @@ describe('MemberRepository tests', () => {
       )
       const member2 = members.rows.find((m) => m.username[PlatformType.SLACK].includes('test2'))
       expect(members.rows.length).toEqual(1)
-      expect(member2.organizations.map((o) => o.name)).toEqual(
+      expect(member2.organizations.map((o) => o.displayName)).toEqual(
         expect.arrayContaining(['crowd.dev', 'pied piper']),
       )
     })
@@ -3185,15 +3211,24 @@ describe('MemberRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const org1 = await OrganizationRepository.create(
-        { name: 'crowd.dev', url: 'https://crowd.dev' },
+        {
+          displayName: 'crowd.dev',
+          identities: [{ name: 'crowd.dev', url: 'https://crowd.dev', platform: 'crowd' }],
+        },
         mockIRepositoryOptions,
       )
       const org2 = await OrganizationRepository.create(
-        { name: 'pied piper', url: 'https://piedpiper.com' },
+        {
+          displayName: 'pied piper',
+          identities: [{ name: 'pied piper', url: 'https://piedpiper.com', platform: 'crowd' }],
+        },
         mockIRepositoryOptions,
       )
       const org3 = await OrganizationRepository.create(
-        { name: 'hooli', url: 'https://hooli.com' },
+        {
+          displayName: 'hooli',
+          identities: [{ name: 'hooli', url: 'https://hooli.com', platform: 'crowd' }],
+        },
         mockIRepositoryOptions,
       )
 
@@ -3271,6 +3306,7 @@ describe('MemberRepository tests', () => {
             'joinedAt',
             'activityCount',
             'segments',
+            'weakIdentities',
           ]),
           SequelizeTestUtils.objectWithoutKey(org2Plain, [
             'lastActive',
@@ -3279,6 +3315,7 @@ describe('MemberRepository tests', () => {
             'joinedAt',
             'activityCount',
             'segments',
+            'weakIdentities',
           ]),
         ],
         noMerge: [],
@@ -3294,6 +3331,16 @@ describe('MemberRepository tests', () => {
         affiliations: [],
         manuallyCreated: false,
       }
+
+      member1.organizations = member1.organizations.sort((a, b) => {
+        if (a.displayName < b.displayName) {
+          return -1
+        }
+        if (a.displayName > b.displayName) {
+          return 1
+        }
+        return 0
+      })
 
       expect(member1).toStrictEqual(expectedMemberCreated)
     })
@@ -3446,7 +3493,7 @@ describe('MemberRepository tests', () => {
 
       const org1 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
@@ -3738,8 +3785,13 @@ describe('MemberRepository tests', () => {
     }
 
     async function createOrg(name, data = {}) {
-      return await organizationService.findOrCreate({
-        name,
+      return await organizationService.createOrUpdate({
+        identities: [
+          {
+            name,
+            platform: 'crowd',
+          },
+        ],
         ...data,
       })
     }

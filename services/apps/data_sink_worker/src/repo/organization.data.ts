@@ -27,7 +27,6 @@ export interface IDbOrganization {
 
 export interface IDbInsertOrganizationData {
   displayName?: string
-  url: string | null
   description: string | null
   emails: string[] | null
   logo: string | null
