@@ -74,6 +74,7 @@
             :as-link="true"
             :username-handles="member.username[platform]"
             :show-handles-badge="true"
+            :attributes="member.attributes"
           />
         </div>
       </div>

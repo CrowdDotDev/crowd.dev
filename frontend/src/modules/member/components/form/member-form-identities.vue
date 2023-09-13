@@ -303,7 +303,7 @@ const removeUsername = (platform, index) => {
       ...props.modelValue.attributes,
       url: {
         ...props.modelValue.attributes?.url,
-        [platform]: CrowdIntegrations.getConfig(platform)?.url(model.value.username[platform][0]),
+        [platform]: CrowdIntegrations.getConfig(platform)?.url({ username: model.value.username[platform][0], attributes: model.value.attributes }),
       },
     };
   }
