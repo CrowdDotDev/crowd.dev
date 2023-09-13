@@ -4,6 +4,7 @@
     :tooltip-label="tooltipLabel"
     :platform="platform"
     :href="asLink ? href : null"
+    :links="props.links"
   >
     <template #platform>
       <div class="relative">
@@ -47,7 +48,7 @@
               :alt="imageProperties.name"
               class="channels-icon"
             />
-            <i v-else class="ri-user-3-fill" />
+            <i v-else :class="props.customPlatformIconClass" />
           </component>
         </el-tooltip>
       </div>
@@ -85,6 +86,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  links: {
+    type: Array,
+    default: () => [],
+  },
   showHandlesBadge: {
     type: Boolean,
     default: false,
@@ -100,6 +105,10 @@ const props = defineProps({
   backupUrl: {
     type: String,
     default: null,
+  },
+  customPlatformIconClass: {
+    type: String,
+    default: 'ri-user-3-fill',
   },
 });
 

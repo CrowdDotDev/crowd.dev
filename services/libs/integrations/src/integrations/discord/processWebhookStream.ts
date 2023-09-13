@@ -26,6 +26,11 @@ const parseWebhookMessage = async (payload: any, ctx: IProcessWebhookStreamConte
     ctx as IProcessStreamContext,
   )
 
+  if (!record) {
+    // skipping 404 errors, they are most likely due to the message / channel being deleted
+    return
+  }
+
   let parent: string | undefined
   let parentChannel: string | undefined
 

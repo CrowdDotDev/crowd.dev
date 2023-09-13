@@ -4,7 +4,7 @@ import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { MemberAttributeType } from '@crowd/types'
+import { IOrganization, MemberAttributeType } from '@crowd/types'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -319,13 +319,22 @@ export default class MemberService extends LoggerBase {
             let data = {}
             if (typeof organization === 'string') {
               // If a string was sent, we assume it is the name of the organization
-              data = { name: organization }
+              data = {
+                identities: [
+                  {
+                    name: organization,
+                    platform,
+                  },
+                ],
+              }
             } else {
               // Otherwise, we assume it is an object with the data of the organization
               data = organization
             }
-            // We findOrCreate the organization and add it to the list of IDs
-            const organizationRecord = await organizationService.findOrCreate(data)
+            // We createOrUpdate the organization and add it to the list of IDs
+            const organizationRecord = await organizationService.createOrUpdate(
+              data as IOrganization,
+            )
             organizations.push({ id: organizationRecord.id })
           }
         }

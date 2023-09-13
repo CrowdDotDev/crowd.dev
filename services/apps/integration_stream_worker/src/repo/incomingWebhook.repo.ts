@@ -52,6 +52,14 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
     )
   }
 
+  public async deleteWebhook(id: string): Promise<void> {
+    const result = await this.db().result(`delete from "incomingWebhooks" where id = $(id)`, {
+      id,
+    })
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
   public async markWebhookPending(id: string): Promise<void> {
     await this.db().none(
       `
