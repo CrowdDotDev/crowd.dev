@@ -305,6 +305,7 @@ export default class OrganizationService extends LoggerBase {
 
           // overwrite cache with enriched data, but keep the name because it's serving as a unique identifier
           data = {
+            ...data, // to keep uncacheable data (like identities, weakIdentities)
             ...cache,
             ...enrichedData,
             name: cache.name,
@@ -367,7 +368,7 @@ export default class OrganizationService extends LoggerBase {
         transaction,
       })
 
-      if (data.identities.length > 0) {
+      if (data.identities && data.identities.length > 0) {
         for (const identity of data.identities) {
           const identityExists = identities.find(
             (i) => i.name === identity.name && i.platform === identity.platform,
@@ -388,7 +389,7 @@ export default class OrganizationService extends LoggerBase {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
       await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
 
-      return record
+      return await this.findById(record.id)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
