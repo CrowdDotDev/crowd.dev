@@ -12,7 +12,7 @@
     rel="noopener noreferrer"
   >
     <div class="flex gap-3 items-center">
-      <app-platform :platform="platform" :show-tooltip="true" />
+      <app-platform :platform="platform" :show-tooltip="true" :attributes="attributes" />
       <div
         v-if="
           platform === 'linkedin'
@@ -63,6 +63,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  attributes: {
+    type: Object,
+    default: null,
+  },
 });
 
 const asLink = computed(() => CrowdIntegrations.getConfig(props.platform)?.showProfileLink);
@@ -70,7 +74,8 @@ const getPlatformUrl = ({ platform, username, index }) => {
   if (props.links && props.links.length > 0 && index < props.links.length) {
     return props.links[index];
   }
-  const url = CrowdIntegrations.getConfig(platform)?.url(username);
+
+  const url = CrowdIntegrations.getConfig(platform)?.url({ username, attributes: props.attributes });
   return url ?? props.url;
 };
 </script>
