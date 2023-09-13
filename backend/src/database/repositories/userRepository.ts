@@ -338,6 +338,19 @@ export default class UserRepository {
     return this._populateRelations(record, options)
   }
 
+  static async findByProviderId(providerId, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const record = await options.database.user.findOne({
+      where: {
+        [Op.and]: SequelizeFilterUtils.ilikeExact('user', 'providerId', providerId),
+      },
+      transaction,
+    })
+
+    return this._populateRelations(record, options)
+  }
+
   static async findByEmailWithoutAvatar(email, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 

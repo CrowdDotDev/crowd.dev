@@ -189,6 +189,10 @@
     "clientId": "CROWD_AUTH0_CLIENT_ID",
     "jwks": "CROWD_AUTH0_JWKS"
   },
+  "sso": {
+    "crowdTenantId": "CROWD_SSO_CROWD_TENANT_ID",
+    "lfTenantId": "CROWD_SSO_LF_TENANT_ID"
+  },
   "crowdAnalytics": {
     "isEnabled": "CROWD_ANALYTICS_IS_ENABLED",
     "tenantId": "CROWD_ANALYTICS_TENANT_ID",

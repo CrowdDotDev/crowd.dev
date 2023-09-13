@@ -21,6 +21,7 @@ import { PageData, QueryData } from '../../types/common'
 import Error404 from '../../errors/Error404'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 class SegmentRepository extends RepositoryBase<
   SegmentData,
@@ -475,12 +476,28 @@ class SegmentRepository extends RepositoryBase<
   async queryProjectGroups(criteria: QueryData): Promise<PageData<SegmentData>> {
     let searchQuery = 'WHERE 1=1'
 
+    const replacements = {
+      tenantId: this.currentTenant.id,
+      name: `%${criteria.filter?.name}%`,
+      status: criteria.filter?.status,
+      adminSegments: null,
+    }
+
     if (criteria.filter?.status) {
       searchQuery += `AND s.status = :status`
     }
 
     if (criteria.filter?.name) {
       searchQuery += `AND s.name ilike :name`
+    }
+
+    if (criteria.filter?.adminOnly) {
+      const adminSegments = this.options.currentUser.tenants.flatMap((t) => t.adminSegments)
+      if (adminSegments.length === 0) {
+        return { count: 0, rows: [], limit: criteria.limit, offset: criteria.offset }
+      }
+      searchQuery += `AND s.id IN (:adminSegments)`
+      replacements.adminSegments = adminSegments
     }
 
     const projectGroups = await this.options.database.sequelize.query(
@@ -538,11 +555,7 @@ class SegmentRepository extends RepositoryBase<
           ${this.getPaginationString(criteria)};
       `,
       {
-        replacements: {
-          tenantId: this.currentTenant.id,
-          name: `%${criteria.filter?.name}%`,
-          status: criteria.filter?.status,
-        },
+        replacements,
         type: QueryTypes.SELECT,
       },
     )
@@ -640,11 +653,17 @@ class SegmentRepository extends RepositoryBase<
       searchQuery += ` AND s."grandparentSlug" = :grandparent_slug `
     }
 
+    if (criteria.filter?.ids) {
+      searchQuery += ` AND (s.id IN (:ids) OR sp.id IN (:ids) OR sgp.id IN (:ids)) `
+    }
+
     const subprojects = await this.options.database.sequelize.query(
       `
         SELECT
           COUNT(DISTINCT s.id) AS count,
           s.*,
+          sp.id AS "projectId",
+          sgp.id AS "projectGroupId",
           jsonb_merge_agg(sac."activityChannels") AS "activityChannels"
         FROM segments s
         LEFT JOIN (
@@ -656,11 +675,21 @@ class SegmentRepository extends RepositoryBase<
           WHERE "tenantId" = :tenantId
           GROUP BY "tenantId", "segmentId", "platform"
         ) sac ON sac."tenantId" = s."tenantId" AND sac."segmentId" = s.id
+        JOIN segments sp ON sp.slug = s."parentSlug"
+          AND sp."grandparentSlug" IS NULL
+          AND sp."parentSlug" IS NOT NULL
+          AND sp."tenantId" = s."tenantId"
+        JOIN segments sgp ON sgp.slug = sp."parentSlug"
+          AND sgp.slug = s."grandparentSlug"
+          AND sgp."grandparentSlug" IS NULL
+          AND sgp."parentSlug" IS NULL
+          AND sgp."tenantId" = s."tenantId"
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
           AND s."tenantId" = :tenantId
           ${searchQuery}
-        GROUP BY s.id
+        GROUP BY s.id, sp.id, sgp.id
+        ORDER BY s.name
         ${this.getPaginationString(criteria)};
       `,
       {
@@ -670,6 +699,7 @@ class SegmentRepository extends RepositoryBase<
           status: criteria.filter?.status,
           parent_slug: `${criteria.filter?.parentSlug}`,
           grandparent_slug: `${criteria.filter?.grandparentSlug}`,
+          ids: criteria.filter?.ids,
         },
         type: QueryTypes.SELECT,
       },
@@ -774,6 +804,34 @@ class SegmentRepository extends RepositoryBase<
     }
 
     return false
+  }
+
+  async findBySourceIds(sourceIds: string[]) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const seq = SequelizeRepository.getSequelize(this.options)
+
+    if (!sourceIds || !sourceIds.length) {
+      return []
+    }
+
+    const segments = await seq.query(
+      `
+        SELECT
+          id
+        FROM segments
+        WHERE "tenantId" = :tenantId
+          AND "sourceId" IN (:sourceIds)
+          AND "parentSlug" IS NOT NULL
+          AND "grandparentSlug" IS NOT NULL
+      `,
+      {
+        replacements: { sourceIds, tenantId: this.options.currentTenant.id },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return segments.map((i: any) => i.id)
   }
 }
 

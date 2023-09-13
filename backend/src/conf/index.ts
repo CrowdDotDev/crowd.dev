@@ -32,6 +32,7 @@ import {
   OrganizationEnrichmentConfiguration,
   IOpenSearchConfig,
   Auth0Configuration,
+  SSOConfiguration,
   WeeklyEmailsConfiguration,
   CrowdAnalyticsConfiguration,
 } from './configTypes'
@@ -77,6 +78,8 @@ export const CLEARBIT_CONFIG: ClearbitConfiguration = config.get<ClearbitConfigu
 export const API_CONFIG: ApiConfiguration = config.get<ApiConfiguration>('api')
 
 export const AUTH0_CONFIG: Auth0Configuration = config.get<Auth0Configuration>('auth0')
+
+export const SSO_CONFIG: SSOConfiguration = config.get<SSOConfiguration>('sso')
 
 export const PLANS_CONFIG: PlansConfiguration = config.get<PlansConfiguration>('plans')
 

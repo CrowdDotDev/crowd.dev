@@ -28,6 +28,9 @@ export default (sequelize, DataTypes) => {
           },
         },
       },
+      adminSegments: {
+        type: SequelizeArrayUtils.DataType,
+      },
       invitationToken: {
         type: DataTypes.STRING(255),
         allowNull: true,

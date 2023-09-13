@@ -1,11 +1,14 @@
 import assert from 'assert'
+import lodash from 'lodash'
 import Error403 from '../../errors/Error403'
 import Plans from '../../security/plans'
+import Roles from '../../security/roles'
 import Permissions from '../../security/permissions'
 import EmailSender from '../emailSender'
 import Error400 from '../../errors/Error400'
 
 const plans = Plans.values
+const roles = Roles.values
 
 /**
  * Checks the Permission of the User on a Tenant.
@@ -17,10 +20,18 @@ export default class PermissionChecker {
 
   currentUser
 
-  constructor({ currentTenant, language, currentUser }) {
+  adminSegments
+
+  currentSegments
+
+  constructor({ currentTenant, language, currentUser, currentSegments }) {
     this.currentTenant = currentTenant
     this.language = language
     this.currentUser = currentUser
+    this.currentSegments = currentSegments
+    this.adminSegments = currentUser.tenants.find(
+      (t) => t.tenantId === currentTenant.id,
+    )?.adminSegments
   }
 
   /**
@@ -116,9 +127,21 @@ export default class PermissionChecker {
    * Checks if the current user roles allows the permission.
    */
   hasRolePermission(permission) {
-    return this.currentUserRolesIds.some((role) =>
-      permission.allowedRoles.some((allowedRole) => allowedRole === role),
-    )
+    return this.currentUserRolesIds.some((role) => {
+      if (!permission.allowedRoles.some((allowedRole) => allowedRole === role)) {
+        // First, make sure the role is even allowed
+        return false
+      }
+      if (role !== roles.projectAdmin) {
+        // Second, if the role is not project admin, we don't have to do extra checks
+        return true
+      }
+
+      // Third, for project admin, we need to check if the user is admin of all segments
+      return this.currentSegments.every((segment) =>
+        this.adminSegments.includes(segment.projectGroupId),
+      )
+    })
   }
 
   /**
@@ -156,7 +179,12 @@ export default class PermissionChecker {
       return []
     }
 
-    return tenant.roles
+    const userRoles = tenant.roles
+    if (userRoles.includes(roles.projectAdmin)) {
+      return lodash.uniq(userRoles.concat(roles.readonly))
+    }
+
+    return userRoles
   }
 
   /**

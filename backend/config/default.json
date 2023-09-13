@@ -54,6 +54,7 @@
     "enabled": "true"
   },
   "auth0": {},
+  "sso": {},
   "crowdAnalytics": {
     "isEnabled": "false"
   }

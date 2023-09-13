@@ -3,6 +3,7 @@ class Roles {
     return {
       admin: 'admin',
       readonly: 'readonly',
+      projectAdmin: 'projectAdmin',
     }
   }
 }

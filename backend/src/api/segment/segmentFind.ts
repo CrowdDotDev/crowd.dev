@@ -6,7 +6,7 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.segmentRead)
 
   const segmentService = new SegmentService(req)
-  const payload = await segmentService.findById(req.params.id)
+  const payload = await segmentService.findById(req.params.segmentId)
 
   await req.responseHandler.success(req, res, payload)
 }
