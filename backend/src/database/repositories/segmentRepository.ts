@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { ActivityTypeSettings } from '@crowd/types'
+import { partition } from '@crowd/common'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 import {
@@ -215,36 +216,39 @@ class SegmentRepository extends RepositoryBase<
 
     if (data.activityChannels && typeof data.activityChannels === 'object') {
       if (Object.keys(data.activityChannels).length > 0) {
-        const replacements = {}
-        let valuePlaceholders = ''
+        const values: { sql: string; replacements: any }[] = []
+
         Object.keys(data.activityChannels).forEach((platform) => {
           data.activityChannels[platform].forEach((channel, i) => {
-            valuePlaceholders += data.activityChannels[platform]
-              .map(
-                () =>
-                  `(:tenantId_${platform}_${i}, :segmentId_${platform}_${i}, :platform_${platform}_${i}, :channel_${platform}_${i})`,
-              )
-              .join(', ')
-
-            replacements[`tenantId_${platform}_${i}`] = this.options.currentTenant.id
-            replacements[`segmentId_${platform}_${i}`] = id
-            replacements[`platform_${platform}_${i}`] = platform
-            replacements[`channel_${platform}_${i}`] = channel
+            values.push({
+              sql: `(:tenantId_${platform}_${i}, :segmentId_${platform}_${i}, :platform_${platform}_${i}, :channel_${platform}_${i})`,
+              replacements: {
+                [`tenantId_${platform}_${i}`]: this.options.currentTenant.id,
+                [`segmentId_${platform}_${i}`]: id,
+                [`platform_${platform}_${i}`]: platform,
+                [`channel_${platform}_${i}`]: channel,
+              },
+            })
           })
         })
 
-        await this.options.database.sequelize.query(
-          `
-          INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel")
-          VALUES ${valuePlaceholders}
-          ON CONFLICT DO NOTHING;
-        `,
-          {
-            replacements,
-            type: QueryTypes.INSERT,
-            transaction,
-          },
-        )
+        for (const batch of partition(values, 999)) {
+          const valuePlaceholders = batch.map((v) => v.sql).join(', ')
+          const replacements = batch.reduce((acc, v) => ({ ...acc, ...v.replacements }), {})
+
+          await this.options.database.sequelize.query(
+            `
+            INSERT INTO "segmentActivityChannels" ("tenantId", "segmentId", "platform", "channel")
+            VALUES ${valuePlaceholders}
+            ON CONFLICT DO NOTHING;
+          `,
+            {
+              replacements,
+              type: QueryTypes.INSERT,
+              transaction,
+            },
+          )
+        }
       }
     }
 
