@@ -57,6 +57,9 @@ export const getOrganizationArticles = async (
     )
     return result.data
   } catch (err) {
+    if (err.response.status === 404) {
+      return []
+    }
     // rate limit?
     if (err.response.status === 429) {
       const retryAfter = err.response.headers['retry-after']

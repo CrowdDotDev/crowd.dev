@@ -13,5 +13,5 @@ export default {
   activityDisplay: {
     showLinkToUrl: true,
   },
-  url: (attributes) => attributes.url.discourse,
+  url: ({ attributes }) => attributes?.url?.discourse,
 };
