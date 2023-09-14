@@ -132,7 +132,10 @@ export const newActivityBlocks = (activity) => {
                 type: 'mrkdwn',
                 text: `>${
                   activity.title && activity.title !== activity.display.default
-                    ? `*${truncateText(htmlToMrkdwn(activity.title).text, 120).replaceAll('\n', '\n>')}* \n `
+                    ? `*${truncateText(htmlToMrkdwn(activity.title).text, 120).replaceAll(
+                        '\n',
+                        '\n>',
+                      )}* \n `
                     : ''
                 }${truncateText(htmlToMrkdwn(activity.body).text, 260).replaceAll('\n', '\n>')}`,
               },
