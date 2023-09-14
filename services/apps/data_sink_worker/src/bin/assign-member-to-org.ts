@@ -34,8 +34,8 @@ setImmediate(async () => {
   const dataSinkRepo = new DataSinkRepository(store, log)
   const memberRepo = new MemberRepository(store, log)
 
-  const result = await dataSinkRepo.getSegmentIds(tenantId)
-  const segmentId = result[0] // parent segment id
+  const segmentIds = await dataSinkRepo.getSegmentIds(tenantId)
+  // const segmentId = result[0] // parent segment id
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, log)
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
@@ -45,34 +45,35 @@ setImmediate(async () => {
 
   const limit = 100
   let offset = 0
-  let totalMembers = 0
   let processedMembers = 0
 
   try {
-    do {
-      const { members, totalCount } = await memberRepo.getMembersWithIdAndEmails(
-        tenantId,
-        segmentId,
-        {
-          limit,
-          offset,
-        },
-      )
+    const { totalCount } = await memberRepo.getMemberIdsAndEmailsAndCount(tenantId, segmentIds, {
+      limit,
+      offset,
+      countOnly: true,
+    })
 
-      totalMembers = totalCount
-      log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
+    log.info({ tenantId }, `Total members found in the tenant: ${totalCount}`)
+
+    do {
+      const { members } = await memberRepo.getMemberIdsAndEmailsAndCount(tenantId, segmentIds, {
+        limit,
+        offset,
+      })
 
       // member -> organization based on email domain
       for (const member of members) {
         if (member.emails) {
           const orgs = await memberService.assignOrganizationByEmailDomain(
             tenantId,
-            segmentId,
+            segmentIds[0],
             member.emails,
           )
 
           if (orgs.length > 0) {
-            orgService.addToMember(tenantId, segmentId, member.id, orgs)
+            log.info('orgs', orgs)
+            orgService.addToMember(tenantId, segmentIds[0], member.id, orgs)
 
             for (const org of orgs) {
               await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
@@ -83,12 +84,13 @@ setImmediate(async () => {
         }
 
         processedMembers++
-        log.info(`Processed member ${member.id}. Progress: ${processedMembers}/${totalMembers}`)
+        log.info(`Processed member ${member.id}. Progress: ${processedMembers}/${totalCount}`)
       }
       offset += limit
-    } while (totalMembers > offset)
+    } while (totalCount > offset)
 
     log.info(`Member to organization association completed for the tenant ${tenantId}`)
+    process.exit(0)
   } catch (err) {
     log.error(`Failed to assign member to organizations for the tenant ${tenantId}`, err)
     process.exit(1)

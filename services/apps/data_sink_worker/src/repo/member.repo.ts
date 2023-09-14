@@ -270,10 +270,10 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async getMembersWithIdAndEmails(
+  public async getMemberIdsAndEmailsAndCount(
     tenantId: string,
-    segmentId: string,
-    { limit = 20, offset = 0, orderBy = 'joinedAt_DESC' },
+    segmentIds: string[],
+    { limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
   ) {
     let orderByString = ''
     const orderByParts = orderBy.split('_')
@@ -306,14 +306,21 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         FROM "members" m
         JOIN "memberSegments" ms ON ms."memberId" = m.id
         WHERE m."tenantId" = $(tenantId)
-        AND ms."segmentId" = $(segmentId)
+        AND ms."segmentId" = ANY($(segmentIds)::uuid[])
       ) as count
       `,
       {
         tenantId,
-        segmentId,
+        segmentIds,
       },
     )
+
+    if (countOnly) {
+      return {
+        totalCount: Number(memberCount.count),
+        members: [],
+      }
+    }
 
     const members = await this.db().any(
       `
@@ -321,20 +328,20 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       FROM "members" m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)
-      AND ms."segmentId" = $(segmentId)
+      AND ms."segmentId" = ANY($(segmentIds)::uuid[])
       ORDER BY ${orderByString}
       LIMIT $(limit) OFFSET $(offset)
       `,
       {
         tenantId,
-        segmentId,
+        segmentIds,
         limit,
         offset,
       },
     )
 
     return {
-      totalCount: memberCount[0].count,
+      totalCount: Number(memberCount.count),
       members: members,
     }
   }
