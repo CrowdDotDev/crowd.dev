@@ -272,28 +272,4 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       },
     )
   }
-
-  public async getMembersWithIdAndEmails(
-    tenantId: string,
-    segmentId: string,
-    { limit = 20, offset = 0, orderBy = 'joinedAt_DESC' },
-  ) {
-    return await this.db().any(
-      `
-      SELECT m.id, m.emails
-      FROM "members" m
-      JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."tenantId" = $(tenantId)
-      AND ms."segmentId" = $(segmentId)
-      ORDER BY ${orderBy}
-      LIMIT $(limit) OFFSET $(offset)
-      `,
-      {
-        tenantId,
-        segmentId,
-        limit,
-        offset,
-      },
-    )
-  }
 }
