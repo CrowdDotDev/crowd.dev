@@ -472,9 +472,7 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: null,
         github: null,
         location: null,
         website: null,
@@ -567,9 +565,7 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: 'https://crowd.dev',
         github: null,
         location: null,
         website: null,
@@ -633,8 +629,13 @@ describe('MemberService tests', () => {
     it('Should create non existent member - organization as id, no enrichment', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
-      const oCreated = await new OrganizationService(mockIServiceOptions).findOrCreate({
-        name: 'crowd.dev',
+      const oCreated = await new OrganizationService(mockIServiceOptions).createOrUpdate({
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+          },
+        ],
       })
 
       const member1 = {
@@ -666,9 +667,7 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: null,
         github: null,
         location: null,
         website: null,
@@ -764,9 +763,7 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: 'crowd.dev',
         github: null,
         location: null,
         website: null,
@@ -1695,9 +1692,9 @@ describe('MemberService tests', () => {
       let t2 = await TagRepository.create({ name: 'tag2' }, mockIRepositoryOptions)
       let t3 = await TagRepository.create({ name: 'tag3' }, mockIRepositoryOptions)
 
-      let o1 = await OrganizationRepository.create({ name: 'org1' }, mockIRepositoryOptions)
-      let o2 = await OrganizationRepository.create({ name: 'org2' }, mockIRepositoryOptions)
-      let o3 = await OrganizationRepository.create({ name: 'org3' }, mockIRepositoryOptions)
+      let o1 = await OrganizationRepository.create({ displayName: 'org1' }, mockIRepositoryOptions)
+      let o2 = await OrganizationRepository.create({ displayName: 'org2' }, mockIRepositoryOptions)
+      let o3 = await OrganizationRepository.create({ displayName: 'org3' }, mockIRepositoryOptions)
 
       let task1 = await TaskRepository.create({ name: 'task1' }, mockIRepositoryOptions)
       let task2 = await TaskRepository.create({ name: 'task2' }, mockIRepositoryOptions)
@@ -1954,18 +1951,21 @@ describe('MemberService tests', () => {
             'identities',
             'lastActive',
             'segments',
+            'weakIdentities',
           ]),
           SequelizeTestUtils.objectWithoutKey(o2, [
             'activeOn',
             'identities',
             'lastActive',
             'segments',
+            'weakIdentities',
           ]),
           SequelizeTestUtils.objectWithoutKey(o3, [
             'activeOn',
             'identities',
             'lastActive',
             'segments',
+            'weakIdentities',
           ]),
         ],
         noMerge: [returnedMember3.id],
@@ -2005,8 +2005,37 @@ describe('MemberService tests', () => {
           return 0
         }),
       )
+
+      expect(
+        mergedMember.organizations.sort((a, b) => {
+          const nameA = a.displayName.toLowerCase()
+          const nameB = b.displayName.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      ).toEqual(
+        expectedMember.organizations.sort((a, b) => {
+          const nameA = a.displayName.toLowerCase()
+          const nameB = b.displayName.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      )
       delete mergedMember.tasks
       delete expectedMember.tasks
+      delete mergedMember.organizations
+      delete expectedMember.organizations
+
       expect(mergedMember).toStrictEqual(expectedMember)
     })
 

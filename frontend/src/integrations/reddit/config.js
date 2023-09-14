@@ -9,7 +9,7 @@ export default {
     'Connect Reddit to sync posts and comments from selected subreddits.',
   image: '/images/integrations/reddit.svg',
   connectComponent: RedditConnect,
-  url: (username) => `https://reddit.com/user/${username}`,
+  url: ({ username }) => (username ? `https://reddit.com/user/${username}` : null),
   chartColor: '#FF4500',
   showProfileLink: true,
   activityDisplay: {

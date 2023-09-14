@@ -307,8 +307,13 @@ export default class MemberEnrichmentService extends LoggerBase {
       const organizationService = new OrganizationService(options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
-          const org = await organizationService.findOrCreate({
-            name: workExperience.company,
+          const org = await organizationService.createOrUpdate({
+            identities: [
+              {
+                name: workExperience.company,
+                platform: PlatformType.ENRICHMENT,
+              },
+            ],
           })
 
           const dateEnd = workExperience.endDate
