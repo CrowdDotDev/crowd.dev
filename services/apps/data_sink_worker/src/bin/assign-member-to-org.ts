@@ -35,10 +35,13 @@ setImmediate(async () => {
   const memberRepo = new MemberRepository(store, log)
 
   const segmentIds = await dataSinkRepo.getSegmentIds(tenantId)
-  // const segmentId = result[0] // parent segment id
+  const segmentId = segmentIds[segmentIds.length - 1] // leaf segment id
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, log)
+  await nodejsWorkerEmitter.init()
+
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
+  await searchSyncWorkerEmitter.init()
 
   const memberService = new MemberService(store, nodejsWorkerEmitter, searchSyncWorkerEmitter, log)
   const orgService = new OrganizationService(store, log)
@@ -67,13 +70,12 @@ setImmediate(async () => {
         if (member.emails) {
           const orgs = await memberService.assignOrganizationByEmailDomain(
             tenantId,
-            segmentIds[0],
+            segmentId,
             member.emails,
           )
 
           if (orgs.length > 0) {
-            log.info('orgs', orgs)
-            orgService.addToMember(tenantId, segmentIds[0], member.id, orgs)
+            orgService.addToMember(tenantId, segmentId, member.id, orgs)
 
             for (const org of orgs) {
               await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
