@@ -21,7 +21,6 @@
             <el-switch
               v-model="value.enabled"
               :inactive-text="findPlatform(key).name"
-              :disabled="editingDisabled(key)"
               @change="
                 (newValue) => onSwitchChange(newValue, key)
               "
@@ -40,7 +39,6 @@
                   <el-input
                     v-model="model.identities[ii].name"
                     placeholder="johndoe"
-                    :disabled="editingDisabled(key)"
                     @input="(newValue) =>
                       onInputChange(newValue, key, value, ii)
                     "
@@ -57,7 +55,6 @@
                   </template>
                 </el-form-item>
                 <el-button
-                  :disabled="editingDisabled(key)"
                   class="btn btn--md btn--transparent w-10 h-10"
                   @click="removeUsername(ii)"
                 >
@@ -199,12 +196,6 @@ function onSwitchChange(value, key) {
   if (!value) {
     model.value.identities = model.value.identities.filter((i) => i.platform !== key);
   }
-}
-
-function editingDisabled(platform) {
-  return props.record
-    ? props.record.activeOn.includes(platform)
-    : false;
 }
 
 const removeUsername = (index) => {
