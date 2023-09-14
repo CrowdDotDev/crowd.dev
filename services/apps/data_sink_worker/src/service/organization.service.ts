@@ -136,7 +136,6 @@ export class OrganizationService extends LoggerBase {
           const updateData: Partial<IOrganization> = {}
           const fields = [
             'displayName',
-            'url',
             'description',
             'emails',
             'logo',
@@ -172,7 +171,6 @@ export class OrganizationService extends LoggerBase {
           // if it doesn't exists create it
           id = await this.repo.insert(tenantId, {
             displayName: cached.name,
-            url: cached.url,
             description: cached.description,
             emails: cached.emails,
             logo: cached.logo,
