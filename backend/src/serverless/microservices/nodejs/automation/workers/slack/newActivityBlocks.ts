@@ -135,28 +135,32 @@ export const newActivityBlocks = (activity) => {
                     ? `*${truncateText(htmlToMrkdwn(activity.title).text, 120).replaceAll(
                         '\n',
                         '\n>',
-                      )}* \n `
+                      )}* \n>`
                     : ''
                 }${truncateText(htmlToMrkdwn(activity.body).text, 260).replaceAll('\n', '\n>')}`,
               },
             },
           ]
         : []),
-      {
-        type: 'divider',
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: memberProperties.join('\n'),
-        },
-        accessory: {
-          type: 'image',
-          image_url: member.attributes?.avatarUrl?.default ?? defaultAvatarUrl,
-          alt_text: 'computer thumbnail',
-        },
-      },
+      ...(memberProperties.length > 0
+        ? [
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: memberProperties.join('\n'),
+              },
+              accessory: {
+                type: 'image',
+                image_url: member.attributes?.avatarUrl?.default ?? defaultAvatarUrl,
+                alt_text: 'computer thumbnail',
+              },
+            },
+          ]
+        : []),
       {
         type: 'actions',
         elements: [

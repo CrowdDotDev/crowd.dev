@@ -67,24 +67,28 @@ export const newMemberBlocks = (member) => {
             },
           ]
         : []),
-      {
-        type: 'divider',
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: details.length > 0 ? details.join('\n') : '\n',
-        },
-        accessory: {
-          type: 'image',
-          image_url: member.attributes?.avatarUrl?.default ?? defaultAvatarUrl,
-          alt_text: 'computer thumbnail',
-        },
-      },
-      {
-        type: 'divider',
-      },
+      ...(details.length > 0
+        ? [
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: details.length > 0 ? details.join('\n') : '\n',
+              },
+              accessory: {
+                type: 'image',
+                image_url: member.attributes?.avatarUrl?.default ?? defaultAvatarUrl,
+                alt_text: 'computer thumbnail',
+              },
+            },
+            {
+              type: 'divider',
+            },
+          ]
+        : []),
       {
         type: 'actions',
         elements: [
