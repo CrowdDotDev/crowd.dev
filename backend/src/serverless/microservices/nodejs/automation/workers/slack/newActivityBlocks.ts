@@ -1,5 +1,5 @@
 import htmlToMrkdwn from 'html-to-mrkdwn-ts'
-import { integrationLabel } from '@crowd/types'
+import { integrationLabel, integrationProfileUrl } from '@crowd/types'
 import { API_CONFIG } from '../../../../../../conf'
 
 const computeEngagementLevel = (score) => {
@@ -49,23 +49,51 @@ const truncateText = (text: string, characters: number = 60): string => {
 export const newActivityBlocks = (activity) => {
   const display = htmlToMrkdwn(replaceHeadline(`${activity.display.default}`))
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
+
+  const { member } = activity
   const memberProperties = []
-  if (activity.member.attributes.jobTitle?.default) {
-    memberProperties.push(activity.member.attributes.jobTitle?.default)
+  if (member.attributes.jobTitle?.default) {
+    memberProperties.push(`*💼 Job title:* ${member.attributes.jobTitle?.default}`)
+  }
+  if (member.organizations.length > 0) {
+    const orgs = member.organizations.map(
+      (org) =>
+        `<${`${API_CONFIG.frontendUrl}/organizations/${org.id}`}|${org.name || org.displayName}>`,
+    )
+    memberProperties.push(`*🏢 Organization:* ${orgs.join(' | ')}`)
   }
   if (reach > 0) {
-    memberProperties.push(`${reach} followers`)
+    memberProperties.push(`*👥 Reach:* ${reach} followers`)
+  }
+  if (member.attributes?.location?.default) {
+    memberProperties.push(`*📍 Location:* ${member.attributes?.location?.default}`)
+  }
+  if (member.emails.length > 0) {
+    const [email] = member.emails
+    memberProperties.push(`*✉️ Email:* <mailto:${email}|${email}>`)
   }
   const engagementLevel = computeEngagementLevel(activity.member.score || activity.engagement)
   if (engagementLevel.length > 0) {
-    memberProperties.push(`*Engagement level:* ${engagementLevel}`)
+    memberProperties.push(`*📊 Engagement level:* ${engagementLevel}`)
   }
   if (activity.member.activeOn) {
     const platforms = activity.member.activeOn
       .map((platform) => integrationLabel[platform] || platform)
       .join(' | ')
-    memberProperties.push(`*Active on:* ${platforms}`)
+    memberProperties.push(`*💬 Active on:* ${platforms}`)
   }
+
+  const profiles = Object.keys(member.username)
+    .map((p) => {
+      const username = (member.username?.[p] || []).length > 0 ? member.username[p][0] : null
+      const url =
+        member.attributes?.url?.[p] || (username && integrationProfileUrl[p](username)) || null
+      return {
+        platform: p,
+        url,
+      }
+    })
+    .filter((p) => !!p.url)
 
   return {
     blocks: [
@@ -73,19 +101,9 @@ export const newActivityBlocks = (activity) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: ':satellite_antenna: *New activity*',
-        },
-      },
-      {
-        type: 'divider',
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
           text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${
             activity.member.displayName
-          }>* \n *${truncateText(display.text)}*`,
+          }>* *${truncateText(display.text)}*`,
         },
         ...(activity.url
           ? {
@@ -105,37 +123,65 @@ export const newActivityBlocks = (activity) => {
             }
           : {}),
       },
+      ...(activity.title || activity.body
+        ? [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `>${
+                  activity.title && activity.title !== activity.display.default
+                    ? `*${htmlToMrkdwn(activity.title).text}* \n `
+                    : ''
+                }${htmlToMrkdwn(activity.body).text}`,
+              },
+            },
+          ]
+        : []),
       {
-        type: 'context',
+        type: 'divider',
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: memberProperties.join('\n'),
+        },
+        accessory: {
+          type: 'image',
+          image_url: member.attributes?.avatarUrl?.default,
+          alt_text: 'computer thumbnail',
+        },
+      },
+      {
+        type: 'actions',
         elements: [
           {
-            type: 'mrkdwn',
-            text: memberProperties.join(' • '),
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: 'View in crowd.dev',
+              emoji: true,
+            },
+            url: `${API_CONFIG.frontendUrl}/members/${member.id}`,
           },
+          ...(profiles.length > 0
+            ? [
+                {
+                  type: 'overflow',
+                  options: profiles.map(({ platform, url }) => ({
+                    text: {
+                      type: 'plain_text',
+                      text: `${integrationLabel[platform] ?? platform} profile`,
+                      emoji: true,
+                    },
+                    url,
+                  })),
+                },
+              ]
+            : []),
         ],
       },
     ],
-    ...(activity.title || activity.body
-      ? {
-          attachments: [
-            {
-              color: '#eeeeee',
-              blocks: [
-                {
-                  type: 'section',
-                  text: {
-                    type: 'mrkdwn',
-                    text: `${
-                      activity.title && activity.title !== activity.display.default
-                        ? `*${htmlToMrkdwn(activity.title).text}* \n `
-                        : ''
-                    }${htmlToMrkdwn(activity.body).text}`,
-                  },
-                },
-              ],
-            },
-          ],
-        }
-      : {}),
   }
 }

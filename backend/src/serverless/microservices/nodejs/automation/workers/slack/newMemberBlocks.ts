@@ -27,9 +27,9 @@ export const newMemberBlocks = (member) => {
     details.push(`*✉️ Email:* <mailto:${email}|${email}>`)
   }
   const profiles = Object.keys(member.username)
-    .filter((p) => p !== platforms[0])
+    .filter((p) => !platforms.includes(p))
     .map((p) => {
-      const username = member.username?.[p].length > 0 ? member.username[p][0] : null
+      const username = (member.username?.[p] || []).length > 0 ? member.username[p][0] : null
       const url =
         member.attributes?.url?.[p] || (username && integrationProfileUrl[p](username)) || null
       return {
@@ -67,27 +67,21 @@ export const newMemberBlocks = (member) => {
       {
         type: 'divider',
       },
-      ...(details.length > 0 || member.attributes?.avatarUrl?.default
-        ? [
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: details.length > 0 ? details.join('\n') : '\n',
-              },
-              accessory: member.attributes?.avatarUrl?.default
-                ? {
-                    type: 'image',
-                    image_url: member.attributes?.avatarUrl?.default,
-                    alt_text: 'computer thumbnail',
-                  }
-                : undefined,
-            },
-            {
-              type: 'divider',
-            },
-          ]
-        : []),
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: details.length > 0 ? details.join('\n') : '\n',
+        },
+        accessory: {
+          type: 'image',
+          image_url: member.attributes?.avatarUrl?.default,
+          alt_text: 'computer thumbnail',
+        },
+      },
+      {
+        type: 'divider',
+      },
       {
         type: 'actions',
         elements: [
