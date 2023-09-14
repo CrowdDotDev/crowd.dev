@@ -28,7 +28,7 @@
             />
           </el-form-item>
           <template v-for="(identity, ii) of model.identities" :key="`${identity}${ii}`">
-            <div v-if="value.enabled && identity.platform === key">
+            <div v-if="value.enabled && identity.platform === key && identity.url">
               <div
                 class="flex flex-grow gap-2 mt-1 pb-3 last:!mb-6 last:pb-0"
               >
@@ -132,7 +132,7 @@ const identitiesForm = reactive({
   github: {
     label: 'GitHub',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'github')
+      props.modelValue.identities?.some((el) => el.platform === 'github' && el.url)
       || false,
     urlPrefix: 'github.com/',
     imgContainerClass:
@@ -141,7 +141,7 @@ const identitiesForm = reactive({
   linkedin: {
     label: 'LinkedIn',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'linkedin')
+      props.modelValue.identities?.some((el) => el.platform === 'linkedin' && el.url)
       || false,
     urlPrefix: 'linkedin.com/company/',
     imgContainerClass:
@@ -150,7 +150,7 @@ const identitiesForm = reactive({
   twitter: {
     label: 'Twitter',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'twitter')
+      props.modelValue.identities?.some((el) => el.platform === 'twitter' && el.url)
       || false,
     urlPrefix: 'twitter.com/',
     imgContainerClass:
@@ -159,7 +159,7 @@ const identitiesForm = reactive({
   crunchbase: {
     label: 'Crunchbase',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'crunchbase')
+      props.modelValue.identities?.some((el) => el.platform === 'crunchbase' && el.url)
       || false,
     urlPrefix: 'crunchbase.com/organization/',
     imgContainerClass:
@@ -172,15 +172,10 @@ function findPlatform(platform) {
 }
 
 function onInputChange(newValue, key, value, index) {
-  if (index === 0) {
-    model.value.attributes = {
-      ...props.modelValue.attributes,
-      url: {
-        ...props.modelValue.attributes?.url,
-        [key]: `https://${value.urlPrefix}${newValue}`,
-      },
-    };
-  }
+  model.value.identities[index] = {
+    ...props.modelValue.identities[index],
+    url: `https://${value.urlPrefix}${newValue}`,
+  };
 }
 
 function platformInIdentities(platform) {
