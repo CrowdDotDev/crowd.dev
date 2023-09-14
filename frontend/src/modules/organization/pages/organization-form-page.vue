@@ -215,7 +215,7 @@ function getInitialModel(record) {
         identities: record ? [...record.identities.map((i) => ({
           platform: i.platform,
           name: i.name,
-          username: i.url ? i.url.split('/').at(-1) : i.name,
+          username: i.url ? i.url.split('/').at(-1) : '',
           url: i.url,
         }))] : [],
         revenueRange: record ? record.revenueRange : {},
@@ -391,7 +391,7 @@ async function onSubmit() {
     identities: formModel.value.identities.map((i) => ({
       platform: i.platform,
       url: i.url,
-      name: i.name ?? i.username,
+      name: i.username.length ? i.username : i.name,
     })),
     phoneNumbers: formModel.value.phoneNumbers.reduce(
       (acc, item) => {

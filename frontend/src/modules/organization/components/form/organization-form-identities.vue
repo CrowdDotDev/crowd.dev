@@ -27,18 +27,18 @@
             />
           </el-form-item>
           <template v-for="(identity, ii) of model.identities" :key="`${identity}${ii}`">
-            <div v-if="value.enabled && identity.platform === key && identity.url">
+            <div v-if="value.enabled && identity.platform === key">
               <div
                 class="flex flex-grow gap-2 mt-1 pb-3 last:!mb-6 last:pb-0"
               >
                 <el-form-item
-                  :prop="`identities.${ii}.name`"
+                  :prop="`identities.${ii}.username`"
                   required
                   class="flex-grow"
                 >
                   <el-input
-                    v-model="model.identities[ii].name"
-                    placeholder="johndoe"
+                    v-model="model.identities[ii].username"
+                    :placeholder="identity.name.length ? identity.name : 'johndoe'"
                     @input="(newValue) =>
                       onInputChange(newValue, key, value, ii)
                     "
@@ -54,6 +54,7 @@
                     </div>
                   </template>
                 </el-form-item>
+
                 <el-button
                   class="btn btn--md btn--transparent w-10 h-10"
                   @click="removeUsername(ii)"
@@ -129,7 +130,7 @@ const identitiesForm = reactive({
   github: {
     label: 'GitHub',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'github' && el.url)
+      props.modelValue.identities?.some((el) => el.platform === 'github')
       || false,
     urlPrefix: 'github.com/',
     imgContainerClass:
@@ -138,7 +139,7 @@ const identitiesForm = reactive({
   linkedin: {
     label: 'LinkedIn',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'linkedin' && el.url)
+      props.modelValue.identities?.some((el) => el.platform === 'linkedin')
       || false,
     urlPrefix: 'linkedin.com/company/',
     imgContainerClass:
@@ -147,7 +148,7 @@ const identitiesForm = reactive({
   twitter: {
     label: 'Twitter',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'twitter' && el.url)
+      props.modelValue.identities?.some((el) => el.platform === 'twitter')
       || false,
     urlPrefix: 'twitter.com/',
     imgContainerClass:
@@ -156,7 +157,7 @@ const identitiesForm = reactive({
   crunchbase: {
     label: 'Crunchbase',
     enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'crunchbase' && el.url)
+      props.modelValue.identities?.some((el) => el.platform === 'crunchbase')
       || false,
     urlPrefix: 'crunchbase.com/organization/',
     imgContainerClass:
