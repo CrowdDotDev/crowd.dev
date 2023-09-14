@@ -391,7 +391,7 @@ async function onSubmit() {
     identities: formModel.value.identities.map((i) => ({
       platform: i.platform,
       url: i.url,
-      name: i.username.length ? i.username : i.name,
+      name: i.name,
     })),
     phoneNumbers: formModel.value.phoneNumbers.reduce(
       (acc, item) => {
