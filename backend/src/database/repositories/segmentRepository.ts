@@ -661,31 +661,15 @@ class SegmentRepository extends RepositoryBase<
       searchQuery += ` AND s."grandparentSlug" = :grandparent_slug `
     }
 
-    if (criteria.filter?.ids) {
-      searchQuery += ` AND (s.id IN (:ids) OR sp.id IN (:ids) OR sgp.id IN (:ids)) `
-    }
-
     const subprojects = await this.options.database.sequelize.query(
       `
         SELECT
-          s.*,
-          sp.id AS "projectId",
-          sgp.id AS "projectGroupId"
+          s.*
         FROM segments s
-        JOIN segments sp ON sp.slug = s."parentSlug"
-          AND sp."grandparentSlug" IS NULL
-          AND sp."parentSlug" IS NOT NULL
-          AND sp."tenantId" = s."tenantId"
-        JOIN segments sgp ON sgp.slug = sp."parentSlug"
-          AND sgp.slug = s."grandparentSlug"
-          AND sgp."grandparentSlug" IS NULL
-          AND sgp."parentSlug" IS NULL
-          AND sgp."tenantId" = s."tenantId"
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
           AND s."tenantId" = :tenantId
           ${searchQuery}
-        GROUP BY s.id, sp.id, sgp.id
         ORDER BY s.name
         ${this.getPaginationString(criteria)};
       `,
