@@ -2,7 +2,11 @@ import { Logger } from '@crowd/logging'
 import { DATA_SINK_WORKER_QUEUE_SETTINGS } from '../config'
 import { SqsQueueEmitter } from '../queue'
 import { SqsClient } from '../types'
-import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
+import {
+  CreateAndProcessActivityResultQueueMessage,
+  IActivityData,
+  ProcessIntegrationResultQueueMessage,
+} from '@crowd/types'
 
 export class DataSinkWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
@@ -16,5 +20,16 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
     sourceId: string,
   ) {
     await this.sendMessage(sourceId, new ProcessIntegrationResultQueueMessage(resultId), resultId)
+  }
+
+  public async createAndProcessActivityResult(
+    tenantId: string,
+    segmentId: string,
+    activity: IActivityData,
+  ) {
+    await this.sendMessage(
+      new Date().toISOString(),
+      new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, activity),
+    )
   }
 }

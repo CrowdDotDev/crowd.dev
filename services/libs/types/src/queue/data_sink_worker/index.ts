@@ -1,8 +1,10 @@
+import { IActivityData } from '@/activities'
 import { IQueueMessage } from '../'
 
 export enum DataSinkWorkerQueueMessageType {
   PROCESS_INTEGRATION_RESULT = 'process_integration_result',
   CALCULATE_SENTIMENT = 'calculate_sentiment',
+  CREATE_AND_PROCESS_ACTIVITY_RESULT = 'create_and_process_activity_result',
 }
 
 export class ProcessIntegrationResultQueueMessage implements IQueueMessage {
@@ -15,4 +17,14 @@ export class CalculateSentimentQueueMessage implements IQueueMessage {
   public readonly type: string = DataSinkWorkerQueueMessageType.CALCULATE_SENTIMENT
 
   constructor(public readonly activityId: string) {}
+}
+
+export class CreateAndProcessActivityResultQueueMessage implements IQueueMessage {
+  public readonly type: string = DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT
+
+  constructor(
+    public readonly tenantId: string,
+    public readonly segmentId: string,
+    public readonly activityData: IActivityData,
+  ) {}
 }
