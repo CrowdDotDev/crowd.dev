@@ -2,6 +2,9 @@ import htmlToMrkdwn from 'html-to-mrkdwn-ts'
 import { integrationLabel, integrationProfileUrl } from '@crowd/types'
 import { API_CONFIG } from '../../../../../../conf'
 
+const defaultAvatarUrl =
+  'https://uploads-ssl.webflow.com/635150609746eee5c60c4aac/6502afc9d75946873c1efa93_image%20(292).png'
+
 const computeEngagementLevel = (score) => {
   if (score <= 1) {
     return 'Silent'
@@ -39,15 +42,8 @@ const replaceHeadline = (text) => {
   return text
 }
 
-const truncateText = (text: string, characters: number = 60): string => {
-  if (text.length > characters) {
-    return `${text.substring(0, characters)}...`
-  }
-  return text
-}
-
 export const newActivityBlocks = (activity) => {
-  const display = htmlToMrkdwn(replaceHeadline(`${activity.display.default}`))
+  const display = htmlToMrkdwn(replaceHeadline(activity.display.default))
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
 
   const { member } = activity
@@ -101,9 +97,7 @@ export const newActivityBlocks = (activity) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${
-            activity.member.displayName
-          }>* *${truncateText(display.text)}*`,
+          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${activity.member.displayName}>* *${display.text}*`,
         },
         ...(activity.url
           ? {
@@ -131,9 +125,9 @@ export const newActivityBlocks = (activity) => {
                 type: 'mrkdwn',
                 text: `>${
                   activity.title && activity.title !== activity.display.default
-                    ? `*${htmlToMrkdwn(activity.title).text}* \n `
+                    ? `*${htmlToMrkdwn(activity.title).text.replaceAll('\n', '\n>')}* \n `
                     : ''
-                }${htmlToMrkdwn(activity.body).text}`,
+                }${htmlToMrkdwn(activity.body).text.replaceAll('\n', '\n>')}`,
               },
             },
           ]
@@ -149,7 +143,7 @@ export const newActivityBlocks = (activity) => {
         },
         accessory: {
           type: 'image',
-          image_url: member.attributes?.avatarUrl?.default,
+          image_url: member.attributes?.avatarUrl?.default ?? defaultAvatarUrl,
           alt_text: 'computer thumbnail',
         },
       },

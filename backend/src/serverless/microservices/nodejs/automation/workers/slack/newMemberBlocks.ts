@@ -1,6 +1,9 @@
 import { integrationLabel, integrationProfileUrl } from '@crowd/types'
 import { API_CONFIG } from '../../../../../../conf'
 
+const defaultAvatarUrl =
+  'https://uploads-ssl.webflow.com/635150609746eee5c60c4aac/6502afc9d75946873c1efa93_image%20(292).png'
+
 export const newMemberBlocks = (member) => {
   const platforms = member.activeOn
   const reach =
@@ -75,7 +78,7 @@ export const newMemberBlocks = (member) => {
         },
         accessory: {
           type: 'image',
-          image_url: member.attributes?.avatarUrl?.default,
+          image_url: member.attributes?.avatarUrl?.default ?? defaultAvatarUrl,
           alt_text: 'computer thumbnail',
         },
       },
