@@ -172,7 +172,7 @@ function findPlatform(platform) {
 function onInputChange(newValue, key, value, index) {
   model.value.identities[index] = {
     ...props.modelValue.identities[index],
-    url: `https://${value.urlPrefix}${newValue}`,
+    url: newValue.length ? `https://${value.urlPrefix}${newValue}` : null,
   };
 }
 

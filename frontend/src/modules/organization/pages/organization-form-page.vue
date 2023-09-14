@@ -388,7 +388,7 @@ async function onSubmit() {
       }
       return acc;
     }, []),
-    identities: formModel.value.identities.map((i) => ({
+    identities: formModel.value.identities.filter((i) => i.username.length > 0).map((i) => ({
       platform: i.platform,
       url: i.url,
       name: i.name,
