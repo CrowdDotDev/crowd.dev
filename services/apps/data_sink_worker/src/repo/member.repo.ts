@@ -299,7 +299,23 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
     orderByString = `${orderByString} ${direction}`
 
-    return await this.db().any(
+    const memberCount = await this.db().one(
+      `
+      SELECT count(*) FROM (
+        SELECT m.id
+        FROM "members" m
+        JOIN "memberSegments" ms ON ms."memberId" = m.id
+        WHERE m."tenantId" = $(tenantId)
+        AND ms."segmentId" = $(segmentId)
+      ) as count
+      `,
+      {
+        tenantId,
+        segmentId,
+      },
+    )
+
+    const members = await this.db().any(
       `
       SELECT m.id, m.emails
       FROM "members" m
@@ -316,5 +332,10 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         offset,
       },
     )
+
+    return {
+      totalCount: memberCount[0].count,
+      members: members,
+    }
   }
 }

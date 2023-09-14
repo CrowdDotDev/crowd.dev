@@ -50,12 +50,16 @@ setImmediate(async () => {
 
   try {
     do {
-      const members = await memberRepo.getMembersWithIdAndEmails(tenantId, segmentId, {
-        limit,
-        offset,
-      })
+      const { members, totalCount } = await memberRepo.getMembersWithIdAndEmails(
+        tenantId,
+        segmentId,
+        {
+          limit,
+          offset,
+        },
+      )
 
-      totalMembers = members.length
+      totalMembers = totalCount
       log.info({ tenantId }, `Total members found in the tenant: ${totalMembers}`)
 
       // member -> organization based on email domain
