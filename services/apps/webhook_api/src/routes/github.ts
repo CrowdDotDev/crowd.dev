@@ -43,6 +43,7 @@ export const installGithubRoutes = async (app: express.Express) => {
             signature,
             event,
             data,
+            date: new Date().toISOString(),
           },
         )
 

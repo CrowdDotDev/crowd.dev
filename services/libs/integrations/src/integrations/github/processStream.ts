@@ -83,7 +83,7 @@ const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenRespon
   await cache.set(key, JSON.stringify(token), 5 * 60)
 }
 
-async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
+export async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
   const auth = getAuth(ctx)
   if (auth) {
     let appToken: AppTokenResponse
@@ -169,7 +169,8 @@ export const prepareMember = async (
       orgs = [{ name: 'crowd.dev' }]
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
-      const fromAPI = await getOrganization(company, ctx.integration.token)
+      const token = await getGithubToken(ctx)
+      const fromAPI = await getOrganization(company, token)
 
       orgs = fromAPI
     }

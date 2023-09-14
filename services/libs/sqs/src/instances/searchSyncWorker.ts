@@ -35,6 +35,16 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     })
   }
 
+  public async triggerOrganizationMembersSync(organizationId: string) {
+    if (!organizationId) {
+      throw new Error('organizationId is required!')
+    }
+    await this.sendMessage(organizationId, {
+      type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS,
+      organizationId,
+    })
+  }
+
   public async triggerRemoveMember(tenantId: string, memberId: string) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
@@ -84,6 +94,16 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     await this.sendMessage(tenantId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES,
       tenantId,
+    })
+  }
+
+  public async triggerOrganizationActivitiesSync(organizationId: string) {
+    if (!organizationId) {
+      throw new Error('organizationId is required!')
+    }
+    await this.sendMessage(organizationId, {
+      type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES,
+      organizationId,
     })
   }
 

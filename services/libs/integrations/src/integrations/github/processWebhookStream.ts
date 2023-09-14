@@ -20,7 +20,7 @@ import getMember from './api/graphql/members'
 import { prepareMember } from './processStream'
 import TeamsQuery from './api/graphql/teams'
 import { GithubWebhookTeam } from './api/graphql/types'
-import { processPullCommitsStream } from './processStream'
+import { processPullCommitsStream, getGithubToken } from './processStream'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
@@ -44,7 +44,8 @@ const prepareWebhookMember = async (
     return null
   }
 
-  const member = await getMember(login, ctx.integration.token)
+  const token = await getGithubToken(ctx as IProcessStreamContext)
+  const member = await getMember(login, token)
 
   if (!member) {
     ctx.log.warn(
@@ -196,7 +197,8 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
   if (payload.action === 'review_requested' && payload.requested_team) {
     // a team sent as reviewer, first we need to find members in this team
     const team: GithubWebhookTeam = payload.requested_team
-    const teamMembers = await new TeamsQuery(team.node_id, ctx.integration.token).getSinglePage('')
+    const token = await getGithubToken(ctx as IProcessStreamContext)
+    const teamMembers = await new TeamsQuery(team.node_id, token).getSinglePage('')
 
     for (const teamMember of teamMembers.data) {
       await parseWebhookPullRequestEvents({ ...payload, requested_reviewer: teamMember }, ctx)
@@ -241,15 +243,16 @@ const parseWebhookPullRequestReview = async (
   }
 }
 
-const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext) => {
+const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext, date: string) => {
   if (payload.action === 'created' || payload.action === 'deleted') {
     const member = await prepareWebhookMember(payload?.sender?.login, ctx)
 
-    if (member && payload.starred_at !== null) {
+    if (member) {
       await ctx.publishData<GithubWebhookData>({
         webhookType: GithubWehookEvent.STAR,
         data: payload,
         member,
+        date,
       })
     }
   }
@@ -344,6 +347,7 @@ const parseWebhookPullRequestReviewComment = async (
 
 const handler: ProcessWebhookStreamHandler = async (ctx) => {
   const identifier = ctx.stream.identifier
+  const webhookCreatedAt = ctx.stream.webhookCreatedAt
 
   // this is for pull request commits which are published during runtime
   if (identifier.startsWith(GithubStreamType.PULL_COMMITS)) {
@@ -370,7 +374,7 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
         await parseWebhookPullRequestReview(data, ctx)
         break
       case GithubWehookEvent.STAR:
-        await parseWebhookStar(data, ctx)
+        await parseWebhookStar(data, ctx, webhookCreatedAt)
         break
       case GithubWehookEvent.FORK:
         await parseWebhookFork(data, ctx)

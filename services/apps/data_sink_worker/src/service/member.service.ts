@@ -1,6 +1,6 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
-import { areArraysEqual, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { firstArrayContainsSecondArray, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -81,7 +81,7 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
             organizations.push({
               id,
               source: org.source,
@@ -185,9 +185,9 @@ export default class MemberService extends LoggerBase {
           await txRepo.addToSegment(id, tenantId, segmentId)
 
           updated = true
-          await txRepo.addToSegment(id, tenantId, segmentId)
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
+          await txRepo.addToSegment(id, tenantId, segmentId)
         }
 
         if (toUpdate.identities) {
@@ -203,11 +203,16 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
             organizations.push({
               id,
               source: data.source,
             })
+          }
+
+          if (organizations.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, organizations)
+            updated = true
           }
         }
 
@@ -419,8 +424,8 @@ export default class MemberService extends LoggerBase {
     }
 
     let emails: string[] | undefined
-    if (member.emails) {
-      if (!areArraysEqual(member.emails, dbMember.emails)) {
+    if (member.emails && member.emails.length > 0) {
+      if (!firstArrayContainsSecondArray(dbMember.emails, member.emails)) {
         emails = [...new Set([...member.emails, ...dbMember.emails])]
       }
     }
