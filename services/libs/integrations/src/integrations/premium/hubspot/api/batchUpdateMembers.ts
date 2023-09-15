@@ -26,49 +26,51 @@ export const batchUpdateMembers = async (
     const hubspotMembers = []
 
     for (const member of members) {
-      const hubspotSourceId = member.attributes?.sourceId?.hubspot
+      if (member) {
+        const hubspotSourceId = member.attributes?.sourceId?.hubspot
 
-      if (!hubspotSourceId) {
-        ctx.log.warn(
-          `Member ${member.id} can't be updated in hubspot! Member doesn't have a hubspot sourceId in attributes.`,
-        )
-      } else {
-        const hsMember = {
-          id: hubspotSourceId,
-          properties: {},
-        } as any
+        if (!hubspotSourceId) {
+          ctx.log.warn(
+            `Member ${member.id} can't be updated in hubspot! Member doesn't have a hubspot sourceId in attributes.`,
+          )
+        } else {
+          const hsMember = {
+            id: hubspotSourceId,
+            properties: {},
+          } as any
 
-        const fields = memberMapper.getAllCrowdFields()
+          const fields = memberMapper.getAllCrowdFields()
 
-        for (const crowdField of fields) {
-          const hubspotField = memberMapper.getHubspotFieldName(crowdField)
-          if (crowdField.startsWith('attributes')) {
-            const attributeName = crowdField.split('.')[1] || null
+          for (const crowdField of fields) {
+            const hubspotField = memberMapper.getHubspotFieldName(crowdField)
+            if (crowdField.startsWith('attributes')) {
+              const attributeName = crowdField.split('.')[1] || null
 
-            if (
-              attributeName &&
-              hubspotField &&
-              member.attributes[attributeName]?.default !== undefined
-            ) {
-              hsMember.properties[hubspotField] = member.attributes[attributeName].default
+              if (
+                attributeName &&
+                hubspotField &&
+                member.attributes[attributeName]?.default !== undefined
+              ) {
+                hsMember.properties[hubspotField] = member.attributes[attributeName].default
+              }
+            } else if (crowdField.startsWith('identities')) {
+              const identityPlatform = crowdField.split('.')[1] || null
+
+              const identityFound = member.identities.find((i) => i.platform === identityPlatform)
+
+              if (identityPlatform && hubspotField && identityFound) {
+                hsMember.properties[hubspotField] = identityFound.username
+              }
+            } else if (crowdField === 'organizationName') {
+              // send latest org of member as value
+            } else if (hubspotField && member[crowdField] !== undefined) {
+              hsMember.properties[hubspotField] = memberMapper.getHubspotValue(member, crowdField)
             }
-          } else if (crowdField.startsWith('identities')) {
-            const identityPlatform = crowdField.split('.')[1] || null
-
-            const identityFound = member.identities.find((i) => i.platform === identityPlatform)
-
-            if (identityPlatform && hubspotField && identityFound) {
-              hsMember.properties[hubspotField] = identityFound.username
-            }
-          } else if (crowdField === 'organizationName') {
-            // send latest org of member as value
-          } else if (hubspotField && member[crowdField] !== undefined) {
-            hsMember.properties[hubspotField] = memberMapper.getHubspotValue(member, crowdField)
           }
-        }
 
-        if (Object.keys(hsMember.properties).length > 0) {
-          hubspotMembers.push(hsMember)
+          if (Object.keys(hsMember.properties).length > 0) {
+            hubspotMembers.push(hsMember)
+          }
         }
       }
     }
