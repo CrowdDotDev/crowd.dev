@@ -13,7 +13,6 @@ import {
 import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import MemberRepository from '../database/repositories/memberRepository'
 import ReportRepository from '../database/repositories/reportRepository'
 
 interface UnnestedActivityTypes {
@@ -461,11 +460,7 @@ export default class SegmentService extends LoggerBase {
     if (!subprojectIds.length) {
       return
     }
-    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
-      this.options,
-      subprojectIds,
-    )
-    this.setMembersCount(segments, level, membersCountPerSegment)
+    this.setMembersCount(segments, level, {})
   }
 
   static async refreshSegments(options: IRepositoryOptions) {
