@@ -50,6 +50,9 @@ setImmediate(async () => {
   let offset = 0
   let processedMembers = 0
 
+  let currentMemberId = null
+  let currentEmails = null
+
   try {
     const { totalCount } = await memberRepo.getMemberIdsAndEmailsAndCount(tenantId, segmentIds, {
       limit,
@@ -67,6 +70,8 @@ setImmediate(async () => {
 
       // member -> organization based on email domain
       for (const member of members) {
+        currentMemberId = member.id
+        currentEmails = member.emails
         if (member.emails) {
           const orgs = await memberService.assignOrganizationByEmailDomain(
             tenantId,
@@ -94,7 +99,10 @@ setImmediate(async () => {
     log.info(`Member to organization association completed for the tenant ${tenantId}`)
     process.exit(0)
   } catch (err) {
-    log.error(`Failed to assign member to organizations for the tenant ${tenantId}`, err)
+    log.error(
+      `Failed to assign member to organizations for the tenant ${tenantId}. Member ID: ${currentMemberId}, Emails: ${currentEmails}`,
+      err,
+    )
     process.exit(1)
   }
 })
