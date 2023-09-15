@@ -774,7 +774,7 @@ export default class UserRepository {
           model: options.database.tenant,
           as: 'tenant',
           required: true,
-          include: ['settings', 'conversationSettings'],
+          include: ['settings'],
         },
       ],
       transaction: SequelizeRepository.getTransaction(options),
