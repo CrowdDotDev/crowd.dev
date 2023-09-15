@@ -524,11 +524,30 @@ export default class UserRepository {
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    let record = await options.database.user.findByPk(id, {
-      transaction,
-    })
+    let record: any = await options.database.sequelize.query(
+      `
+        SELECT
+          "id",
+          ROW_TO_JSON(users) AS json
+        FROM users
+        WHERE "deletedAt" IS NULL
+          AND "id" = :id;
+      `,
+      {
+        replacements: { id },
+        transaction,
+        model: options.database.user,
+        mapToModel: true,
+      },
+    )
+    record = record[0]
 
     record = await this._populateRelations(record, options)
+    record = {
+      ...record,
+      ...record.json,
+    }
+    delete record.json
 
     if (!record) {
       throw new Error404()
