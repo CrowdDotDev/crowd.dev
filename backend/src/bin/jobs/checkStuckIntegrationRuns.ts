@@ -248,7 +248,7 @@ export const checkStuckWebhooks = async (): Promise<void> => {
 
 const job: CrowdJob = {
   name: 'Detect & Fix Stuck Integration Runs',
-  cronTime: cronGenerator.every(30).minutes(),
+  cronTime: cronGenerator.every(90).minutes(),
   onTrigger: async () => {
     if (!running) {
       running = true
