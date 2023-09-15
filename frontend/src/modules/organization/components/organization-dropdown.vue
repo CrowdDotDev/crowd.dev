@@ -226,6 +226,7 @@ const doDestroyWithConfirm = async (id) => {
 };
 
 const handleCommand = (command) => {
+  const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
   if (command.action === 'organizationDelete') {
     return doDestroyWithConfirm(command.organization.id);
   } if (command.action === 'organizationEdit') {
@@ -254,7 +255,7 @@ const handleCommand = (command) => {
             reload: true,
           });
         } else {
-          fetchOrganization(command.organization.id);
+          fetchOrganization(command.organization.id, segments);
         }
         if (sync) {
           Message.success('Organization is now syncing with HubSpot');
@@ -278,7 +279,7 @@ const handleCommand = (command) => {
           reload: true,
         });
       } else {
-        fetchOrganization(command.organization.id);
+        fetchOrganization(command.organization.id, segments);
       }
     });
   }
