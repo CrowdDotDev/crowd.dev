@@ -48,6 +48,7 @@ import {
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { useRoute } from 'vue-router';
 
 const emit = defineEmits('update:modelValue');
 const props = defineProps({
