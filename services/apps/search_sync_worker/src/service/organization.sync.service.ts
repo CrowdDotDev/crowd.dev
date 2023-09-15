@@ -126,7 +126,7 @@ export class OrganizationSyncService extends LoggerBase {
       processed += results.length
       this.log.warn({ tenantId }, `Processed ${processed} organizations while cleaning up tenant!`)
 
-      // use last joinedAt to get the next page
+      // use last createdAt to get the next page
       lastCreatedAt = results[results.length - 1]._source.date_createdAt
       results = (await this.openSearchService.search(
         OpenSearchIndex.ORGANIZATIONS,
