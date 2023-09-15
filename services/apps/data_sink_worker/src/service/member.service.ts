@@ -248,8 +248,10 @@ export default class MemberService extends LoggerBase {
 
     // Collect unique domains
     for (const email of emails) {
-      const domain = email.split('@')[1]
-      emailDomains.add(domain)
+      if (email) {
+        const domain = email.split('@')[1]
+        emailDomains.add(domain)
+      }
     }
 
     // Assign member to organization based on email domain
