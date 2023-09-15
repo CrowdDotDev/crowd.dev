@@ -309,7 +309,7 @@ export default class TenantUserRepository {
     const { roles, adminSegments } = await TenantUserRepository.convertRoles(rawRoles, options)
 
     await options.database.tenantUser.update(
-      { roles, adminSegments },
+      { roles, adminSegments, status: 'active', invitationToken: null },
       {
         where: {
           id: tenantUserId,
