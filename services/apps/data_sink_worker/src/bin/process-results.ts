@@ -4,13 +4,7 @@ import DataSinkService from '@/service/dataSink.service'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import {
-  DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
-import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
 const log = getServiceLogger()
 
