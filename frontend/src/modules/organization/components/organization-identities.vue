@@ -16,7 +16,7 @@
           :track-event-channel="getPlatformDetails(platform)?.trackEventChannel"
           :tooltip-label="getPlatformDetails(platform)?.tooltipLabel"
           :show-handles-badge="true"
-          :as-link="true"
+          :as-link="getUrlsByPlatform(platform).length ? getUrlsByPlatform(platform)[0] : false"
           custom-platform-icon-class="ri-community-fill"
         />
       </div>
@@ -67,7 +67,7 @@ const platforms = computed(() => [...new Set(props.organization.identities.map((
 
 const getHandlesByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
-  .map((i) => i.name);
+  .map((i) => (i.url ? i.url.split('/').at(-1) : i.name));
 const getUrlsByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
   .map((i) => getIdentityLink(i));
