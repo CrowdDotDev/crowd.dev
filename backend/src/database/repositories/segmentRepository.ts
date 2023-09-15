@@ -652,14 +652,13 @@ class SegmentRepository extends RepositoryBase<
     const subprojects = await this.options.database.sequelize.query(
       `
         SELECT
-          COUNT(DISTINCT s.id) AS count,
-          s.*,
+          s.*
         FROM segments s
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
           AND s."tenantId" = :tenantId
           ${searchQuery}
-        GROUP BY s.id
+        ORDER BY s.name
         ${this.getPaginationString(criteria)};
       `,
       {
@@ -674,12 +673,10 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    const count = subprojects.length > 0 ? Number.parseInt(subprojects[0].count, 10) : 0
-
     const rows = subprojects
 
     return {
-      count,
+      count: 1,
       rows: rows.map((sr) => SegmentRepository.populateRelations(sr)),
       limit: criteria.limit,
       offset: criteria.offset,
