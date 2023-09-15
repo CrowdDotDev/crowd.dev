@@ -43,7 +43,7 @@ import {
   computed,
   ref,
   defineProps,
-  defineEmits,
+  defineEmits, onMounted,
 } from 'vue';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
@@ -60,6 +60,10 @@ const props = defineProps({
     required: true,
   },
 });
+
+const route = useRoute();
+
+const segments = ref([]);
 const loadingOrganizationToMerge = ref();
 const computedOrganizationToMerge = computed({
   get() {
@@ -68,7 +72,7 @@ const computedOrganizationToMerge = computed({
   async set(value) {
     loadingOrganizationToMerge.value = true;
 
-    const response = await OrganizationService.find(value.id);
+    const response = await OrganizationService.find(value.id, segments.value);
 
     emit('update:modelValue', response);
     loadingOrganizationToMerge.value = false;
@@ -79,6 +83,7 @@ const fetchFn = async (query, limit) => {
   const options = await OrganizationService.listAutocomplete(
     query,
     limit,
+    segments.value,
   );
 
   // Remove primary organization from organizations that can be merged with
@@ -88,10 +93,14 @@ const fetchFn = async (query, limit) => {
   if (options.length !== filteredOptions.length) {
     filteredOptions.push({});
   }
-  console.log(filteredOptions);
 
   return filteredOptions;
 };
+
+onMounted(() => {
+  segments.value = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
+});
+
 </script>
 
 <script>

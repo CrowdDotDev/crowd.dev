@@ -125,7 +125,9 @@ const mergeSuggestion = () => {
 
       if (route.name === 'organizationView') {
         const keepId = originalOrganizationPrimary.value ? props.modelValue?.id : organizationToMerge.value?.id;
-        fetchOrganization(keepId);
+        const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
+
+        fetchOrganization(keepId, segments);
         router.push({
           name: 'organizationView',
           params: {
