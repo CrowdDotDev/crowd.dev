@@ -57,13 +57,7 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.integrationRead,
-        },
-        beforeEnter: async (to, _from, next) => {
-          if (!hasAccessToProjectGroup(to.params.grandparentId)) {
-            return next('/403');
-          }
-
-          return next();
+          paramSegmentAccess: 'grandparentId',
         },
       },
     ],

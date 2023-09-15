@@ -50,13 +50,7 @@ export default [
           auth: true,
           title: 'Admin Panel',
           permission: Permissions.values.projectCreate,
-        },
-        beforeEnter: async (to, _from, next) => {
-          if (!hasAccessToProjectGroup(to.params.id)) {
-            return next('/403');
-          }
-
-          return next();
+          paramSegmentAccess: 'id',
         },
       },
     ],
