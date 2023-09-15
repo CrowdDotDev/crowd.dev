@@ -1,4 +1,4 @@
-import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+import { Logger, getChildLogger, getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
 import { timeout } from '@crowd/common'
@@ -119,7 +119,19 @@ async function handleMessages() {
     })
 
     try {
-      messageLogger.debug('Received a new queue message!')
+      if (
+        msg.type === NodeWorkerMessageType.DB_OPERATIONS &&
+        (msg as any).operation === 'update_members'
+      ) {
+        messageLogger.warn('Skipping update_members message! TEMPORARY MEASURE!')
+        await removeFromQueue(message.ReceiptHandle)
+        return
+      }
+
+      messageLogger.info(
+        { messageType: msg.type, messagePayload: JSON.stringify(msg) },
+        'Received a new queue message!',
+      )
 
       let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
       let keep = false
@@ -152,7 +164,13 @@ async function handleMessages() {
           await removeFromQueue(message.ReceiptHandle)
           messagesInProgress.set(message.MessageId, msg)
           try {
-            await processFunction(msg, messageLogger)
+            await logExecutionTimeV2(
+              async () => {
+                await processFunction(msg, messageLogger)
+              },
+              messageLogger,
+              'queueMessageProcessingTime',
+            )
           } catch (err) {
             messageLogger.error(err, 'Error while processing queue message!')
           } finally {
