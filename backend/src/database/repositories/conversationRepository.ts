@@ -393,7 +393,7 @@ class ConversationRepository {
     }
 
     // eslint-disable-next-line prefer-const
-    let { rows, count } = await options.database.conversation.findAndCountAll({
+    let rows = await options.database.conversation.findAll({
       attributes: [
         ...SequelizeFilterUtils.getLiteralProjections(
           [
@@ -427,7 +427,20 @@ class ConversationRepository {
       distinct: true,
     })
     rows = await this._populateRelationsForRows(rows, options, lazyLoad)
-    return { rows, count: count.length }
+    const [countRow] = await options.database.sequelize.query(
+      `
+        SELECT n_live_tup AS count
+        FROM pg_stat_all_tables
+        WHERE schemaname = 'public'
+          AND relname = 'conversations'
+      `,
+      {
+        type: Sequelize.QueryTypes.SELECT,
+        transaction: SequelizeRepository.getTransaction(options),
+      },
+    )
+    const { count } = countRow
+    return { rows, count }
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
