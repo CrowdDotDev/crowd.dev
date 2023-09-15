@@ -1,4 +1,6 @@
-CREATE UNIQUE INDEX idx_org_tenant_website ON organizations (tenantId, website);
+CREATE UNIQUE INDEX CREATE UNIQUE INDEX idx_organization_tenant_website
+ON organizations ("tenantId", website)
+WHERE website IS NOT NULL; ON organizations (tenantId, website);
 
 DO
 $$
