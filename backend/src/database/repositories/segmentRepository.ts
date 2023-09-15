@@ -20,6 +20,7 @@ import { PageData, QueryData } from '../../types/common'
 import Error404 from '../../errors/Error404'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 class SegmentRepository extends RepositoryBase<
   SegmentData,
@@ -731,6 +732,31 @@ class SegmentRepository extends RepositoryBase<
 
   static getActivityTypes(options: IRepositoryOptions): ActivityTypeSettings {
     return options.currentSegments.reduce((acc, s) => lodash.merge(acc, s.activityTypes), {})
+  }
+
+  static async fetchTenantActivityTypes(options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const [record] = await options.database.sequelize.query(
+      `
+        SELECT
+            jsonb_merge_agg(s."customActivityTypes") AS "customActivityTypes"
+        FROM segments s
+        WHERE s."grandparentSlug" IS NOT NULL
+          AND s."parentSlug" IS NOT NULL
+          AND s."tenantId" = :tenantId
+          AND s."customActivityTypes" != '{}'
+      `,
+      {
+        replacements: {
+          tenantId: options.currentTenant.id,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return SegmentRepository.buildActivityTypes(record)
   }
 
   static activityTypeExists(platform: string, key: string, options: IRepositoryOptions): boolean {
