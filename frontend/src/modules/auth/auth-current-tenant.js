@@ -97,9 +97,6 @@ export default class AuthCurrentTenant {
       return this.clear();
     }
 
-    // Refresh feature flags each time tenant is set
-    FeatureFlag.updateContext(tenant);
-
     localStorage.setItem('currentTenant', tenant.id);
     localStorage.setItem('tenant', JSON.stringify(tenant));
 

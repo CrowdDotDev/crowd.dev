@@ -26,17 +26,6 @@ class FeatureFlagService {
     return true;
   }
 
-  updateContext(tenant) {
-    if (config.isCommunityVersion) {
-      return;
-    }
-
-    const context = this.getContextFromTenant(tenant);
-    if (context) {
-      this.unleash.updateContext(context);
-    }
-  }
-
   getContextFromTenant(tenant) {
     if (!tenant || !tenant.id) {
       return null;
