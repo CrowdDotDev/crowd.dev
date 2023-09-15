@@ -23,6 +23,5 @@ $$
                 RAISE NOTICE 'org id: %, fixed url: %', org_record.id, correct_url;
                 UPDATE organizations SET website = correct_url WHERE id = org_record.id;
             END LOOP;
-        COMMIT;
     END;
 $$;
