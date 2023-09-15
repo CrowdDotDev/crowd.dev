@@ -112,15 +112,8 @@ export default class MemberService extends LoggerBase {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
-      if (organizations.length > 0) {
-        await this.nodejsWorkerEmitter.enrichMemberOrganizations(
-          tenantId,
-          id,
-          organizations.map((org) => org.id),
-        )
-        for (const org of organizations) {
-          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
-        }
+      for (const org of organizations) {
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
       }
 
       return id
@@ -235,15 +228,8 @@ export default class MemberService extends LoggerBase {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
-      if (organizations.length > 0) {
-        await this.nodejsWorkerEmitter.enrichMemberOrganizations(
-          tenantId,
-          id,
-          organizations.map((org) => org.id),
-        )
-        for (const org of organizations) {
-          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
-        }
+      for (const org of organizations) {
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')

@@ -107,9 +107,6 @@ describe('OrganizationService tests', () => {
       }
 
       const added = await service.createOrUpdate(toAdd)
-      console.log('added is: ')
-      console.log(added)
-
       expect(added.identities[0].url).toEqual(toAdd.identities[0].url)
       expect(added.identities[0].name).toEqual(toAdd.identities[0].name)
       expect(added.description).toEqual(expectedEnriched.description)

@@ -128,13 +128,23 @@ async function handleMessages() {
         return
       }
 
+      if (
+        msg.type === NodeWorkerMessageType.NODE_MICROSERVICE &&
+        (msg as any).service === 'enrich_member_organizations'
+      ) {
+        messageLogger.warn(
+          'Skipping enrich_member_organizations message! Purging the queue because they are not needed anymore!',
+        )
+        await removeFromQueue(message.ReceiptHandle)
+        return
+      }
+
       messageLogger.info(
         { messageType: msg.type, messagePayload: JSON.stringify(msg) },
         'Received a new queue message!',
       )
 
       let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
-      let keep = false
 
       switch (msg.type) {
         case NodeWorkerMessageType.INTEGRATION_CHECK:
@@ -154,31 +164,26 @@ async function handleMessages() {
           break
 
         default:
-          keep = true
           messageLogger.error('Error while parsing queue message! Invalid type.')
       }
 
       if (processFunction) {
-        if (!keep) {
-          // remove the message from the queue as it's about to be processed
-          await removeFromQueue(message.ReceiptHandle)
-          messagesInProgress.set(message.MessageId, msg)
-          try {
-            await logExecutionTimeV2(
-              async () => {
-                await processFunction(msg, messageLogger)
-              },
-              messageLogger,
-              'queueMessageProcessingTime',
-            )
-          } catch (err) {
-            messageLogger.error(err, 'Error while processing queue message!')
-          } finally {
-            messagesInProgress.delete(message.MessageId)
-          }
-        } else {
-          messageLogger.warn('Keeping the message in the queue!')
-        }
+        await logExecutionTimeV2(
+          async () => {
+            // remove the message from the queue as it's about to be processed
+            await removeFromQueue(message.ReceiptHandle)
+            messagesInProgress.set(message.MessageId, msg)
+            try {
+              await processFunction(msg, messageLogger)
+            } catch (err) {
+              messageLogger.error(err, 'Error while processing queue message!')
+            } finally {
+              messagesInProgress.delete(message.MessageId)
+            }
+          },
+          messageLogger,
+          'Processing queue message!',
+        )
       }
     } catch (err) {
       messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
