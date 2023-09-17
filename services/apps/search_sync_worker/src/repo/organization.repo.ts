@@ -19,7 +19,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         member_data as (
             select os."segmentId",
             os."organizationId",
-            count(distinct m.id) filter ( where mo."dateEnd" is null )                 as "memberCount",
+            count(distinct a."memberId")                                               as "memberCount",
             count(distinct a.id)                                                       as "activityCount",
             case
                 when array_agg(distinct a.platform) = array [null] then array []::text[]
@@ -27,15 +27,15 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             max(a.timestamp)                                                           as "lastActive",
             min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z') as "joinedAt"
             from organization_segments os
-            left join activities a
+            join activities a
                       on a."organizationId" = os."organizationId" 
                           and a."segmentId" = os."segmentId" and a."deletedAt" is null
-            left join members m on a."memberId" = m.id and m."deletedAt" is null
-            left join "memberOrganizations" mo
+            join members m on a."memberId" = m.id and m."deletedAt" is null
+            join "memberOrganizations" mo
                       on m.id = mo."memberId"
                           and a."organizationId" = mo."organizationId"
                           and mo."deletedAt" is null
-            left join "memberIdentities" mi on m.id = mi."memberId"
+                          and mo."dateEnd" is null
             group by os."segmentId", os."organizationId"
         ),
         identities as (

@@ -23,14 +23,3 @@ export class NewMemberAutomationQueueMessage implements IQueueMessage {
 
   constructor(public readonly tenant: string, public readonly memberId: string) {}
 }
-
-export class EnrichMemberOrganizationsQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'enrich_member_organizations'
-
-  constructor(
-    public readonly tenant: string,
-    public readonly memberId: string,
-    public readonly organizationIds: string[],
-  ) {}
-}

@@ -117,7 +117,7 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     if (!data.displayName) {
-      data.displayName = data.name
+      data.displayName = data.identities[0].name
     }
 
     const record = await options.database.organization.create(
@@ -182,6 +182,10 @@ class OrganizationRepository {
     await record.setMembers(data.members || [], {
       transaction,
     })
+
+    if (data.identities && data.identities.length > 0) {
+      await OrganizationRepository.setIdentities(record.id, data.identities, options)
+    }
 
     await OrganizationRepository.includeOrganizationToSegments(record.id, options)
 
@@ -537,7 +541,7 @@ class OrganizationRepository {
       })
     }
 
-    if (data.identities.length > 0) {
+    if (data.identities && data.identities.length > 0) {
       await this.setIdentities(id, data.identities, options)
     }
 
@@ -903,8 +907,14 @@ class OrganizationRepository {
           dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
           memberId: memberOrganization.memberId,
           organizationId: toOrganizationId,
-          title: foundIntersectingRoles.length > 0 ? foundIntersectingRoles[0].title : memberOrganization.title,
-          source: foundIntersectingRoles.length > 0 ? foundIntersectingRoles[0].source : memberOrganization.source,
+          title:
+            foundIntersectingRoles.length > 0
+              ? foundIntersectingRoles[0].title
+              : memberOrganization.title,
+          source:
+            foundIntersectingRoles.length > 0
+              ? foundIntersectingRoles[0].source
+              : memberOrganization.source,
         })
 
         // we'll delete all roles that intersect with incoming org member roles and create a merged role
@@ -1142,7 +1152,7 @@ class OrganizationRepository {
     const query = `
     with leaf_segment_ids as (${segmentsSubQuery}),
     member_data as (select a."organizationId",
-        count(distinct m.id) filter ( where mo."dateEnd" is null )                  as "memberCount",
+        count(distinct a."memberId")                                                        as "memberCount",
         count(distinct a.id)                                                        as "activityCount",
         case
             when array_agg(distinct a.platform) = array [null] then array []::text[]
@@ -1150,13 +1160,11 @@ class OrganizationRepository {
         max(a.timestamp)                                                            as "lastActive",
         min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
     from leaf_segment_ids ls
-          left join activities a
+          join activities a
                     on a."segmentId" = ls.id and a."organizationId" = :id and
                       a."deletedAt" is null
-          left join members m on a."memberId" = m.id and m."deletedAt" is null
-          left join "memberOrganizations" mo
-                    on m.id = mo."memberId" and mo."organizationId" = :id
-          left join "memberIdentities" mi on m.id = mi."memberId"
+          join members m on a."memberId" = m.id and m."deletedAt" is null
+          join "memberOrganizations" mo on m.id = mo."memberId" and mo."organizationId" = :id and mo."dateEnd" is null
     group by a."organizationId"),
     organization_segments as (select "organizationId", array_agg("segmentId") as "segments"
           from "organizationSegments"
@@ -1563,26 +1571,10 @@ class OrganizationRepository {
         })
       }
 
-      if (filter.name) {
-        advancedFilter.and.push({
-          name: {
-            textContains: filter.name,
-          },
-        })
-      }
-
       if (filter.displayName) {
         advancedFilter.and.push({
           displayName: {
             textContains: filter.displayName,
-          },
-        })
-      }
-
-      if (filter.url) {
-        advancedFilter.and.push({
-          url: {
-            textContains: filter.url,
           },
         })
       }
@@ -1743,9 +1735,7 @@ class OrganizationRepository {
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
             [
               'id',
-              'name',
               'displayName',
-              'url',
               'description',
               'emails',
               'phoneNumbers',
@@ -1830,9 +1820,7 @@ class OrganizationRepository {
         ...SequelizeFilterUtils.getLiteralProjections(
           [
             'id',
-            'name',
             'displayName',
-            'url',
             'description',
             'emails',
             'phoneNumbers',

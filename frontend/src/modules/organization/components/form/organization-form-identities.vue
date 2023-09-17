@@ -21,7 +21,6 @@
             <el-switch
               v-model="value.enabled"
               :inactive-text="findPlatform(key).name"
-              :disabled="editingDisabled(key)"
               @change="
                 (newValue) => onSwitchChange(newValue, key)
               "
@@ -33,14 +32,13 @@
                 class="flex flex-grow gap-2 mt-1 pb-3 last:!mb-6 last:pb-0"
               >
                 <el-form-item
-                  :prop="`identities.${ii}.name`"
+                  :prop="`identities.${ii}.username`"
                   required
                   class="flex-grow"
                 >
                   <el-input
-                    v-model="model.identities[ii].name"
-                    placeholder="johndoe"
-                    :disabled="editingDisabled(key)"
+                    v-model="model.identities[ii].username"
+                    :placeholder="identity.name.length ? identity.name : 'johndoe'"
                     @input="(newValue) =>
                       onInputChange(newValue, key, value, ii)
                     "
@@ -56,8 +54,8 @@
                     </div>
                   </template>
                 </el-form-item>
+
                 <el-button
-                  :disabled="editingDisabled(key)"
                   class="btn btn--md btn--transparent w-10 h-10"
                   @click="removeUsername(ii)"
                 >
@@ -172,15 +170,10 @@ function findPlatform(platform) {
 }
 
 function onInputChange(newValue, key, value, index) {
-  if (index === 0) {
-    model.value.attributes = {
-      ...props.modelValue.attributes,
-      url: {
-        ...props.modelValue.attributes?.url,
-        [key]: `https://${value.urlPrefix}${newValue}`,
-      },
-    };
-  }
+  model.value.identities[index] = {
+    ...props.modelValue.identities[index],
+    url: newValue.length ? `https://${value.urlPrefix}${newValue}` : null,
+  };
 }
 
 function platformInIdentities(platform) {
@@ -204,12 +197,6 @@ function onSwitchChange(value, key) {
   if (!value) {
     model.value.identities = model.value.identities.filter((i) => i.platform !== key);
   }
-}
-
-function editingDisabled(platform) {
-  return props.record
-    ? props.record.activeOn.includes(platform)
-    : false;
 }
 
 const removeUsername = (index) => {
