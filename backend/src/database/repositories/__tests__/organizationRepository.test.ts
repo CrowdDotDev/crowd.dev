@@ -20,6 +20,7 @@ const toCreate = {
   displayName: 'crowd.dev',
   description: 'Community-led Growth for Developer-first Companies.\nJoin our private beta',
   emails: ['hello@crowd.dev', 'jonathan@crow.dev'],
+  website: 'crowd.dev',
   phoneNumbers: ['+42 424242424'],
   logo: 'https://logo.clearbit.com/crowd.dev',
   tags: ['community', 'growth', 'developer-first'],
@@ -200,7 +201,6 @@ describe('OrganizationRepository tests', () => {
         ...toCreate,
         github: null,
         location: null,
-        website: null,
         memberCount: 0,
         activityCount: 0,
         activeOn: [],
@@ -290,7 +290,6 @@ describe('OrganizationRepository tests', () => {
         activityCount: 2,
         github: null,
         location: null,
-        website: null,
         lastActive: '2020-05-27',
         joinedAt: '2020-05-27',
         activeOn: ['github'],
@@ -345,7 +344,6 @@ describe('OrganizationRepository tests', () => {
         ],
         github: null,
         location: null,
-        website: null,
         memberCount: 0,
         activityCount: 0,
         activeOn: [],
@@ -384,6 +382,80 @@ describe('OrganizationRepository tests', () => {
       await expect(() =>
         OrganizationRepository.findById(randomUUID(), mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
+    })
+  })
+
+  describe('findOrCreateByDomain method', () => {
+    it('Should successfully find an organization by domain', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const organizationCreated = await OrganizationRepository.create(
+        toCreate,
+        mockIRepositoryOptions,
+      )
+
+      organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
+      organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
+
+      const organizationFound = await OrganizationRepository.findOrCreateByDomain(
+        organizationCreated.website,
+        mockIRepositoryOptions,
+      )
+
+      organizationFound.createdAt = organizationFound.createdAt.toISOString().split('T')[0]
+      organizationFound.updatedAt = organizationFound.updatedAt.toISOString().split('T')[0]
+
+      expect(organizationFound).toStrictEqual(organizationCreated)
+    })
+
+    it('Should successfully create an organization by domain', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const organizationCreated = await OrganizationRepository.findOrCreateByDomain(
+        toCreate.website,
+        mockIRepositoryOptions,
+      )
+
+      organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
+      organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
+
+      const primaryIdentity = toCreate.identities[0]
+
+      const expectedOrganizationCreated = {
+        id: organizationCreated.id,
+        ...toCreate,
+        identities: [
+          {
+            integrationId: null,
+            name: primaryIdentity.name,
+            organizationId: organizationCreated.id,
+            platform: primaryIdentity.platform,
+            url: primaryIdentity.url,
+            sourceId: null,
+            tenantId: mockIRepositoryOptions.currentTenant.id,
+          },
+        ],
+        github: null,
+        location: null,
+        memberCount: 0,
+        activityCount: 0,
+        activeOn: [],
+        lastActive: null,
+        joinedAt: null,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        segments: mockIRepositoryOptions.currentSegments.map((s) => s.id),
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+        isTeamOrganization: false,
+        attributes: {},
+        weakIdentities: [],
+      }
+
+      expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
     })
   })
 
