@@ -1286,11 +1286,14 @@ class OrganizationRepository {
     })
 
     if (!organization) {
-      organization = await options.database.organization.create({
-        name: domain,
-        website: domain,
-        tenantId: currentTenant.id,
-      }, { transaction })
+      organization = await options.database.organization.create(
+        {
+          name: domain,
+          website: domain,
+          tenantId: currentTenant.id,
+        },
+        { transaction },
+      )
     }
 
     return organization.get({ plain: true })
