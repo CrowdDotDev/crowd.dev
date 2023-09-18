@@ -1,6 +1,11 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
-import { firstArrayContainsSecondArray, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import {
+  firstArrayContainsSecondArray,
+  isObjectEmpty,
+  singleOrDefault,
+  isDomainExcluded,
+} from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -250,7 +255,9 @@ export default class MemberService extends LoggerBase {
     for (const email of emails) {
       if (email) {
         const domain = email.split('@')[1]
-        emailDomains.add(domain)
+        if (!isDomainExcluded(domain)) {
+          emailDomains.add(domain)
+        }
       }
     }
 
