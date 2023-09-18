@@ -11,6 +11,7 @@
       #default="{
         connect,
         settings,
+        settingsComponent,
         hasSettings,
         hasIntegration,
       }"
@@ -18,6 +19,7 @@
       <slot
         :connect="connect"
         :settings="settings"
+        :settings-component="settingsComponent"
         :has-settings="hasSettings"
         :has-integration="hasIntegration"
         :connected="isConnected"

@@ -194,6 +194,8 @@ export default {
     DESTROY_ALL_ERROR(state) {
       state.loading = false;
     },
+
+    OPEN_GITHUB_SETTINGS(state, record) {},
   },
 
   actions: {
@@ -269,20 +271,7 @@ export default {
           setupAction,
         );
 
-        commit('CREATE_SUCCESS', integration);
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> '
-          + '<br /> This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'GitHub integration created successfully',
-          },
-        );
-        router.push({
-          name: 'integration',
-          params: {
-            id: integration.segmentId,
-          },
-        });
+        commit('OPEN_GITHUB_SETTINGS', integration);
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');

@@ -100,7 +100,7 @@
             >
               Disconnect
             </el-button>
-            <component :is="settingsComponent" v-if="connected && hasSettings && settingsComponent" />
+            <component :is="settingsComponent" v-if="connected && hasSettings && settingsComponent" :integration="integration" />
             <el-button
               v-else-if="connected && hasSettings"
               class="btn btn-link btn-link--md btn-link--primary"
