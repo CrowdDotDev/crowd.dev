@@ -1279,7 +1279,16 @@ class OrganizationRepository {
     // Check if organization exists
     let organization = await options.database.organization.findOne({
       where: {
-        website: domain,
+        website: {
+          [Sequelize.Op.or]: [
+            // Matches URLs having 'http://' or 'https://'
+            { [Sequelize.Op.iLike]: `%://${domain}` },
+            // Matches URLs having 'www'
+            { [Sequelize.Op.iLike]: `%://www.${domain}` },
+            // Matches URLs that doesn't have 'http://' or 'https://' and 'www'
+            { [Sequelize.Op.iLike]: `${domain}` },
+          ],
+        },
         tenantId: currentTenant.id,
       },
       transaction,
