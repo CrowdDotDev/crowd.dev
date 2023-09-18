@@ -47,12 +47,15 @@ export const batchCreateOrganizations = async (
 
         for (const crowdField of fields) {
           const hubspotField = organizationMapper.getHubspotFieldName(crowdField)
-
-          if (hubspotField && organization[crowdField] !== undefined) {
-            hubspotCompany.properties[hubspotField] = organizationMapper.getHubspotValue(
-              organization,
-              crowdField,
-            )
+          // if hubspot domain field is mapped to a crowd field, we should ignore it
+          // because we handle this manually above
+          if (hubspotField && hubspotField !== 'domain') {
+            if (organization[crowdField] !== undefined) {
+              hubspotCompany.properties[hubspotField] = organizationMapper.getHubspotValue(
+                organization,
+                crowdField,
+              )
+            }
           }
         }
 
