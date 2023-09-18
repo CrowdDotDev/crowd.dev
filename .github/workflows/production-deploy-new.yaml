@@ -130,7 +130,7 @@ jobs:
   deploy-webhook-api:
     needs: build-and-push-webhook-api
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_webhook-api }}
+    if: ${{ inputs.deploy_webhook_api }}
     defaults:
       run:
         shell: bash

@@ -46,6 +46,13 @@ export class OrganizationSyncService extends LoggerBase {
     const organizationsToUpdate = []
 
     if (syncRemote.sourceId) {
+      organization.attributes = {
+        ...organization.attributes,
+        sourceId: {
+          ...(organization.attributes.sourceId || {}),
+          [integration.platform]: syncRemote.sourceId,
+        },
+      }
       organizationsToUpdate.push(organization)
     } else {
       oranizationsToCreate.push(organization)
@@ -121,6 +128,7 @@ export class OrganizationSyncService extends LoggerBase {
           organization.attributes = {
             ...organization.attributes,
             sourceId: {
+              ...(organization.attributes.sourceId || {}),
               [integration.platform]: organizationToSync.sourceId,
             },
           }
@@ -235,6 +243,7 @@ export class OrganizationSyncService extends LoggerBase {
             organization.attributes = {
               ...organization.attributes,
               sourceId: {
+                ...(organization.attributes.sourceId || {}),
                 [integration.platform]: syncRemote.sourceId,
               },
             }
