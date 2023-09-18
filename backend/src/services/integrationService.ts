@@ -1,6 +1,7 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
+import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
 import {
@@ -322,6 +323,7 @@ export default class IntegrationService {
       const installToken = await IntegrationService.getInstallToken(installId)
 
       const repos = await getInstalledRepositories(installToken)
+      const githubOwner = IntegrationService.extractOwner(repos, this.options)
 
       // TODO: I will do this later. For now they can add it manually.
       // // If the git integration is configured, we add the repos to the git config
@@ -338,12 +340,21 @@ export default class IntegrationService {
       //     remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
       //   })
       // }
+      let orgAvatar
+      try {
+        const response = await request('GET /users/{user}', {
+          user: githubOwner,
+        })
+        orgAvatar = response.data.avatar_url
+      } catch (err) {
+        this.options.log.warn(err, 'Error while fetching GitHub user!')
+      }
 
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GITHUB,
           token,
-          settings: { repos, updateMemberAttributes: true },
+          settings: { repos, updateMemberAttributes: true, orgAvatar },
           integrationIdentifier: installId,
           status: 'mapping',
         },
@@ -357,6 +368,19 @@ export default class IntegrationService {
     }
 
     return integration
+  }
+
+  static extractOwner(repos, options) {
+    const owners = lodash.countBy(repos, 'owner')
+
+    if (Object.keys(owners).length === 1) {
+      return Object.keys(owners)[0]
+    }
+
+    options.log.warn('Multiple owners found in GitHub repos!', owners)
+
+    // return the owner with the most repos
+    return lodash.maxBy(Object.keys(owners), (owner) => owners[owner])
   }
 
   async mapGithubRepos(integrationId, mapping) {
