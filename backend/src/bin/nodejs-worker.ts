@@ -96,7 +96,7 @@ async function handleDelayedMessages() {
 }
 
 let processingMessages = 0
-const isWorkerAvailable = (): boolean => processingMessages <= 2
+const isWorkerAvailable = (): boolean => processingMessages <= 3
 const addWorkerJob = (): void => {
   processingMessages++
 }
@@ -119,15 +119,6 @@ async function handleMessages() {
     })
 
     try {
-      if (
-        msg.type === NodeWorkerMessageType.DB_OPERATIONS &&
-        (msg as any).operation === 'update_members'
-      ) {
-        messageLogger.warn('Skipping update_members message! TEMPORARY MEASURE!')
-        await removeFromQueue(message.ReceiptHandle)
-        return
-      }
-
       if (
         msg.type === NodeWorkerMessageType.NODE_MICROSERVICE &&
         (msg as any).service === 'enrich_member_organizations'
