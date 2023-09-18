@@ -395,6 +395,25 @@ export default class IntegrationService {
     }
   }
 
+  async getGithubRepos(integrationId) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      const mapping = await GithubReposRepository.getMapping(integrationId, txOptions)
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return mapping
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
   /**
    * Adds discord integration to a tenant
    * @param guildId Guild id of the discord server

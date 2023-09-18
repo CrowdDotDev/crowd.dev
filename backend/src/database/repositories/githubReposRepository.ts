@@ -1,4 +1,5 @@
 import trim from 'lodash/trim'
+import { QueryTypes } from 'sequelize'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
@@ -47,5 +48,32 @@ export default class GithubReposRepository {
       })),
       options,
     )
+  }
+
+  static async getMapping(integrationId, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const tenantId = options.currentTenant.id
+
+    const results = await options.database.sequelize.query(
+      `
+        SELECT *
+        FROM "githubRepos"
+        WHERE "integrationId" = :integrationId
+        AND "tenantId" = :tenantId
+      `,
+      {
+        replacements: {
+          integrationId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return results.reduce((acc, result) => {
+      acc[result.url] = result.segmentId
+      return acc
+    }, {})
   }
 }
