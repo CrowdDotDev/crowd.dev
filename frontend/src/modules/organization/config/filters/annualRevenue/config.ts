@@ -27,8 +27,8 @@ const annualRevenue: NumberFilterConfig = {
       operandText = '';
     }
 
-    const parsedValue = `$${value}`;
-    const parsedValueTo = `$${valueTo}`;
+    const parsedValue = `$${value}M`;
+    const parsedValueTo = `$${valueTo}M`;
 
     const isBetween = [FilterNumberOperator.BETWEEN].includes(operator);
     const valueText = isBetween ? `${operandText}${parsedValue} - ${parsedValueTo}` : `${operandText}${parsedValue}`;
@@ -38,15 +38,48 @@ const annualRevenue: NumberFilterConfig = {
   apiFilterRenderer({
     value, valueTo, operator, include,
   }: NumberFilterValue): any[] {
-    const filterValue = [FilterNumberOperator.BETWEEN].includes(operator)
-      ? [+value, +valueTo!]
-      : +value;
+    let filter;
 
-    const filter = {
-      revenueRange: {
-        [operator]: filterValue,
-      },
-    };
+    if ([FilterNumberOperator.BETWEEN].includes(operator)) {
+      filter = {
+        or: [
+          {
+            revenueRangeMax: {
+              lte: valueTo,
+            },
+          },
+          {
+            revenueRangeMin: {
+              gte: value,
+            },
+          },
+        ],
+      };
+    } else {
+      filter = {
+        or: [
+          {
+            revenueRangeMax: {
+              [operator]: value,
+            },
+          },
+          {
+            and: [
+              {
+                revenueRangeMax: {
+                  eq: null,
+                },
+              },
+              {
+                revenueRangeMin: {
+                  [operator]: value,
+                },
+              },
+            ],
+          },
+        ],
+      };
+    }
 
     return [
       (include ? filter : {

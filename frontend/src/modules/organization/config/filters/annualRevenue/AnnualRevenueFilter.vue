@@ -17,6 +17,7 @@
             min="0"
             step="1"
             prefix="$"
+            suffix="M"
             :placeholder="!isBetween ? 'Enter value' : 'Min'"
             data-qa="filter-number-from"
             @blur="$v.value.$touch"
@@ -37,6 +38,7 @@
               min="0"
               data-qa="filter-number-to"
               prefix="$"
+              suffix="M"
               @blur="$v.valueTo.$touch"
               @change="$v.valueTo.$touch"
             />
