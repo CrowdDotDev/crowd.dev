@@ -46,28 +46,32 @@ export const batchCreateMembers = async (
 
         for (const crowdField of fields) {
           const hubspotField = memberMapper.getHubspotFieldName(crowdField)
-          if (crowdField.startsWith('attributes')) {
-            const attributeName = crowdField.split('.')[1] || null
+          // if hubspot e-mail field is mapped to a crowd field, we should ignore it because
+          // we handle this manually above
+          if (hubspotField && hubspotField !== 'email') {
+            if (crowdField.startsWith('attributes')) {
+              const attributeName = crowdField.split('.')[1] || null
 
-            if (
-              attributeName &&
-              hubspotField &&
-              member.attributes[attributeName]?.default !== undefined
-            ) {
-              hsMember.properties[hubspotField] = member.attributes[attributeName].default
+              if (
+                attributeName &&
+                hubspotField &&
+                member.attributes[attributeName]?.default !== undefined
+              ) {
+                hsMember.properties[hubspotField] = member.attributes[attributeName].default
+              }
+            } else if (crowdField.startsWith('identities')) {
+              const identityPlatform = crowdField.split('.')[1] || null
+
+              const identityFound = member.identities.find((i) => i.platform === identityPlatform)
+
+              if (identityPlatform && hubspotField && identityFound) {
+                hsMember.properties[hubspotField] = identityFound.username
+              }
+            } else if (crowdField === 'organizationName') {
+              // send latest org of member as value
+            } else if (hubspotField && member[crowdField] !== undefined) {
+              hsMember.properties[hubspotField] = memberMapper.getHubspotValue(member, crowdField)
             }
-          } else if (crowdField.startsWith('identities')) {
-            const identityPlatform = crowdField.split('.')[1] || null
-
-            const identityFound = member.identities.find((i) => i.platform === identityPlatform)
-
-            if (identityPlatform && hubspotField && identityFound) {
-              hsMember.properties[hubspotField] = identityFound.username
-            }
-          } else if (crowdField === 'organizationName') {
-            // send latest org of member as value
-          } else if (hubspotField && member[crowdField] !== undefined) {
-            hsMember.properties[hubspotField] = memberMapper.getHubspotValue(member, crowdField)
           }
         }
 
