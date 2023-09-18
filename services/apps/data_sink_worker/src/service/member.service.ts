@@ -287,8 +287,8 @@ export default class MemberService extends LoggerBase {
         (!member.identities || member.identities.length === 0)
       ) {
         const errorMessage = `Member can't be enriched. It is missing both emails and identities fields.`
-        this.log.error(errorMessage)
-        throw new Error(errorMessage)
+        this.log.warn(errorMessage)
+        return
       }
 
       await this.store.transactionally(async (txStore) => {
@@ -305,7 +305,10 @@ export default class MemberService extends LoggerBase {
         const segmentId = dbIntegration.segmentId
 
         // first try finding the member using the identity
-        const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
+        const identity = singleOrDefault(
+          member.identities,
+          (i) => i.platform === platform && i.sourceId !== null,
+        )
         let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
 
         if (!dbMember && member.emails && member.emails.length > 0) {
