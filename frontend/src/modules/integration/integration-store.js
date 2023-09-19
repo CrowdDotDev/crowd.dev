@@ -194,8 +194,6 @@ export default {
     DESTROY_ALL_ERROR(state) {
       state.loading = false;
     },
-
-    OPEN_GITHUB_SETTINGS(state, record) {},
   },
 
   actions: {
@@ -265,13 +263,13 @@ export default {
       try {
         commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.githubConnect(
+        await IntegrationService.githubConnect(
           code,
           installId,
           setupAction,
         );
 
-        commit('OPEN_GITHUB_SETTINGS', integration);
+
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');

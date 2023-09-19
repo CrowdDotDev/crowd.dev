@@ -74,21 +74,33 @@
                 </p>
               </div>
               <div class="w-1/2">
-                <el-select
-                  v-model="form[repo.url]"
-                  placeholder="Select sub-project"
-                  class="w-full"
-                  clearable
-                  placement="bottom-end"
-                  filterable
+                <app-form-item
+                  :validation="$v[repo.url]"
+                  :error-messages="{
+                    required: 'This field is required',
+                  }"
+                  class="mb-0"
+                  error-class="relative top-0"
+                  :show-error="false"
                 >
-                  <el-option
-                    v-for="subproject of subprojects"
-                    :key="subproject.id"
-                    :value="subproject.id"
-                    :label="subproject.name"
-                  />
-                </el-select>
+                  <el-select
+                    v-model="form[repo.url]"
+                    placeholder="Select sub-project"
+                    class="w-full"
+                    clearable
+                    placement="bottom-end"
+                    filterable
+                    @blur="$v[repo.url].$touch"
+                    @change="$v[repo.url].$touch"
+                  >
+                    <el-option
+                      v-for="subproject of subprojects"
+                      :key="subproject.id"
+                      :value="subproject.id"
+                      :label="subproject.name"
+                    />
+                  </el-select>
+                </app-form-item>
               </div>
             </article>
           </div>
@@ -107,7 +119,7 @@
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
-          :disabled="sending"
+          :disabled="sending || $v.$invalid"
           :loading="sending"
           @click="connect()"
         >
@@ -126,7 +138,13 @@ import {
 import Message from '@/shared/message/message';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { required } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
+import AppFormItem from '@/shared/form/form-item.vue';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { OrganizationService } from '@/modules/organization/organization-service';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -136,6 +154,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const route = useRoute();
+const router = useRouter();
 
 // Drawer visibility
 const isDrawerVisible = computed({
@@ -159,31 +178,59 @@ const owner = computed<{name: string, logo?: string} | null>(() => (repos.value.
 const githubDetails = computed(() => CrowdIntegrations.getConfig('github'));
 
 // Form
-const form = reactive({});
+const form = reactive<Record<string, string>>({});
 
-// const rules = computed(() => {
-//   return repos.value.reduce((a, b) => {
-//     a[b.id]
-//   }, {})
-// })
+const rules = computed(() => repos.value.reduce((a: Record<string, any>, b: any) => ({
+  ...a,
+  [b.url]: {
+    required,
+  },
+}), {}));
+
+const $v = useVuelidate(rules, form);
 
 // Connecting
 const sending = ref(false);
 
 const connect = () => {
-  Message.success(
-    'The first activities will show up in a couple of seconds. <br /> '
-    + '<br /> This process might take a few minutes to finish, depending on the amount of data.',
-    {
-      title: 'GitHub integration created successfully',
-    },
-  );
-  // router.push({
-  //   name: 'integration',
-  //   params: {
-  //     id: integration.segmentId,
-  //   },
-  // });
+  const data = { ...form };
+  ConfirmDialog({
+    type: 'warning',
+    title: 'Are you sure you want to proceed?',
+    message:
+        'Repository mapping is not reversible. Once GitHub is connected, you wont be able to update these settings.\n\n'
+        + 'Reconnecting a different organization and/or repositories won’t remove past activities. '
+        + 'In order to clean up existing data please reach out to our support team.',
+    confirmButtonText: 'Connect GitHub',
+    cancelButtonText: 'Cancel',
+    icon: 'ri-alert-fill',
+  } as any)
+    .then(() => {
+      IntegrationService.githubMapRepos(props.integration.id, data)
+        .then(() => {
+          isDrawerVisible.value = false;
+
+          Message.success(
+            'The first activities will show up in a couple of seconds. <br /> '
+                + '<br /> This process might take a few minutes to finish, depending on the amount of data.',
+            {
+              title: 'GitHub integration created successfully',
+            },
+          );
+
+          router.push({
+            name: 'integration',
+            params: {
+              id: props.integration.segmentId,
+            },
+          });
+        })
+        .catch(() => {
+          Message.error(
+            'There was an error mapping github repos',
+          );
+        });
+    });
 };
 
 // Fetching subprojects
