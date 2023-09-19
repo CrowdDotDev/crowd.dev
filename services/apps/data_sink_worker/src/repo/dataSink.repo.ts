@@ -164,4 +164,12 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
 
     this.checkUpdateRowCount(result.rowCount, resultIds.length)
   }
+
+  public async getSegmentIds(tenantId: string): Promise<string[]> {
+    const result = await this.db().any(`select id from "segments" where "tenantId" = $(tenantId)`, {
+      tenantId,
+    })
+
+    return result.map((r) => r.id)
+  }
 }
