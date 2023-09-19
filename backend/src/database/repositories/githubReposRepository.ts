@@ -56,10 +56,16 @@ export default class GithubReposRepository {
 
     const results = await options.database.sequelize.query(
       `
-        SELECT *
-        FROM "githubRepos"
-        WHERE "integrationId" = :integrationId
-        AND "tenantId" = :tenantId
+        SELECT
+          r.url,
+          JSONB_BUILD_OBJECT(
+            'id', s.id,
+            'name', s.name
+          ) as "segment"
+        FROM "githubRepos" r
+        JOIN segments s ON s.id = r."segmentId"
+        WHERE r."integrationId" = :integrationId
+        AND r."tenantId" = :tenantId
       `,
       {
         replacements: {
@@ -71,9 +77,6 @@ export default class GithubReposRepository {
       },
     )
 
-    return results.reduce((acc, result) => {
-      acc[result.url] = result.segmentId
-      return acc
-    }, {})
+    return results
   }
 }
