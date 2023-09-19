@@ -24,7 +24,7 @@
           </p>
           <div class="flex items-center">
             <div v-if="owner.logo" class="h-5 w-5 rounded border border-gray-200 mr-2">
-              <img src="#" class="object-cover" :alt="owner.logo">
+              <img :src="owner.logo" class="object-cover" :alt="owner.logo">
             </div>
             <p class="text-xs font-medium leading-5">
               {{ owner.name }}
@@ -174,7 +174,7 @@ const repos = computed(() => props.integration?.settings?.repos || []);
 
 const owner = computed<{name: string, logo?: string} | null>(() => (repos.value.length > 0 ? {
   name: repos.value[0].owner,
-  logo: undefined,
+  logo: props.integration?.settings?.orgAvatar,
 } : null));
 
 // Static github details

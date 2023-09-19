@@ -19,14 +19,14 @@
       </template>
 
       <div class="-my-1 px-1 max-h-44 overflow-auto">
-        <article v-for="(subproject, repoUrl) in mappings" :key="repoUrl" class="py-2 flex items-center flex-nowrap">
+        <article v-for="mapping of mappings" :key="mapping.url" class="py-2 flex items-center flex-nowrap">
           <div class="ri-git-repository-line text-base mr-2 h-4 flex items-center" />
           <div class="text-xs leading-5 max-w-3xs truncate">
-            /{{ repoNameFromUrl(repoUrl) }}
+            /{{ repoNameFromUrl(mapping.url) }}
           </div>
           <div class="ri-arrow-right-line text-gray-400 text-base mx-2 h-4 flex items-center" />
           <div class="text-xs leading-5 max-w-3xs truncate">
-            {{ subproject }}
+            {{ mapping.segment.name }}
           </div>
         </article>
       </div>
@@ -49,7 +49,7 @@ const props = defineProps({
 
 const settingsDrawerOpen = ref(props.integration.status === 'mapping');
 
-const mappings = ref({});
+const mappings = ref([]);
 
 const repoNameFromUrl = (url) => url.split('/').at(-1);
 
