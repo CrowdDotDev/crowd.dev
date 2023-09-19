@@ -19,7 +19,6 @@ export enum IntegrationRunState {
 export enum IntegrationStreamState {
   DELAYED = 'delayed',
   PENDING = 'pending',
-  PROCESSING = 'processing',
   PROCESSED = 'processed',
   ERROR = 'error',
 }
