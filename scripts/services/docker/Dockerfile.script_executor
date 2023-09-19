@@ -1,0 +1,42 @@
+FROM node:16-alpine
+
+RUN apk add --update --no-cache bash python3 build-base micro && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools
+
+WORKDIR /usr/crowd/app
+
+COPY ./scripts ./scripts
+COPY ./services/scripts ./services/scripts
+
+# prepare libraries
+COPY ./services/libs/alerting/package.json ./services/libs/alerting/package-lock.json ./services/libs/alerting/
+COPY ./services/libs/common/package.json ./services/libs/common/package-lock.json ./services/libs/common/
+COPY ./services/libs/conversations/package.json ./services/libs/conversations/package-lock.json ./services/libs/conversations/
+COPY ./services/libs/database/package.json ./services/libs/database/package-lock.json ./services/libs/database/
+COPY ./services/libs/integrations/package.json ./services/libs/integrations/package-lock.json ./services/libs/integrations/
+COPY ./services/libs/logging/package.json ./services/libs/logging/package-lock.json ./services/libs/logging/
+COPY ./services/libs/opensearch/package.json ./services/libs/opensearch/package-lock.json ./services/libs/opensearch/
+COPY ./services/libs/redis/package.json ./services/libs/redis/package-lock.json ./services/libs/redis/
+COPY ./services/libs/sentiment/package.json ./services/libs/sentiment/package-lock.json ./services/libs/sentiment/
+COPY ./services/libs/sqs/package.json ./services/libs/sqs/package-lock.json ./services/libs/sqs/
+COPY ./services/libs/types/package.json ./services/libs/types/package-lock.json ./services/libs/types/
+RUN ./services/scripts/install_lib_packages.sh
+
+# prepare new services
+COPY ./services/apps/data_sink_worker/package.json ./services/apps/data_sink_worker/package-lock.json ./services/apps/data_sink_worker/
+COPY ./services/apps/integration_data_worker/package.json ./services/apps/integration_data_worker/package-lock.json ./services/apps/integration_data_worker/
+COPY ./services/apps/integration_run_worker/package.json ./services/apps/integration_run_worker/package-lock.json ./services/apps/integration_run_worker/
+COPY ./services/apps/integration_stream_worker/package.json ./services/apps/integration_stream_worker/package-lock.json ./services/apps/integration_stream_worker/
+COPY ./services/apps/integration_sync_worker/package.json ./services/apps/integration_sync_worker/package-lock.json ./services/apps/integration_sync_worker/
+COPY ./services/apps/search_sync_worker/package.json ./services/apps/search_sync_worker/package-lock.json ./services/apps/search_sync_worker/
+COPY ./services/apps/webhook_api/package.json ./services/apps/webhook_api/package-lock.json ./services/apps/webhook_api/
+RUN ./services/scripts/install_app_packages.sh
+
+# prepare backend
+COPY ./backend/package.json ./backend/package-lock.json ./backend/
+RUN (cd backend && npm ci)
+
+COPY ./backend ./backend
+COPY ./services/libs ./services/libs
+COPY ./services/apps ./services/apps
+
+RUN npm cache clean --force
