@@ -167,7 +167,7 @@ const isError = computed(
 const isNoData = computed(() => props.integration.status === 'no-data');
 
 const isWaitingForAction = computed(
-  () => props.integration.status === 'pending-action',
+  () => ['pending-action', 'mapping'].includes(props.integration.status),
 );
 
 const isWaitingApproval = computed(

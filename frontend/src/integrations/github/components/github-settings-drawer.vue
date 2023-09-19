@@ -67,7 +67,7 @@
           </div>
           <div class="py-1.5">
             <article v-for="repo of repos" :key="repo.url" class="py-1.5 flex items-center">
-              <div class="w-1/2 flex items-center">
+              <div class="w-1/2 flex items-center pr-4">
                 <i class="ri-git-repository-line text-base mr-2" />
                 <p class="text-2xs leading-5 flex-grow truncate">
                   /{{ repo.name }}
@@ -144,7 +144,7 @@ import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { OrganizationService } from '@/modules/organization/organization-service';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -155,6 +155,9 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const route = useRoute();
 const router = useRouter();
+
+// Store
+const { doFetch } = mapActions('integration');
 
 // Drawer visibility
 const isDrawerVisible = computed({
@@ -206,9 +209,11 @@ const connect = () => {
     icon: 'ri-alert-fill',
   } as any)
     .then(() => {
-      IntegrationService.githubMapRepos(props.integration.id, data)
+      IntegrationService.githubMapRepos(props.integration.id, data, [props.integration.segmentId])
         .then(() => {
           isDrawerVisible.value = false;
+
+          doFetch([props.integration.segmentId]);
 
           Message.success(
             'The first activities will show up in a couple of seconds. <br /> '

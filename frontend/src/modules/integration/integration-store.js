@@ -256,20 +256,27 @@ export default {
     },
 
     async doGithubConnect(
-      { commit },
+      { commit, dispatch },
       { code, installId, setupAction },
     ) {
       // Function to trigger Oauth performance.
       try {
         commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        await IntegrationService.githubConnect(
+        const integration = await IntegrationService.githubConnect(
           code,
           installId,
           setupAction,
         );
 
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
 
+        dispatch('doFetch', [integration.segmentId]);
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');

@@ -135,13 +135,22 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async githubMapRepos(integrationId, mapping) {
+  static async githubMapRepos(integrationId, mapping, segments) {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(
       `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
       {
         mapping,
+        segments,
       },
+    );
+    return response.data;
+  }
+
+  static async fetchGitHubMappings(integrationId, segments) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
     );
     return response.data;
   }
