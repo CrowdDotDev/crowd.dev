@@ -119,7 +119,7 @@ export class OrganizationService extends LoggerBase {
 
         // now check if exists in this tenant using the website or primary identity
         if (data.website) {
-          existing = await txRepo.findByDomain(tenantId, segmentId, data.website)
+          existing = await txRepo.findOrCreateByDomain(tenantId, segmentId, data.website)
         } else {
           existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
         }
