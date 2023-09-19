@@ -70,7 +70,7 @@ class FeatureFlagService {
 
     const context = this.getContextFromTenant(tenant);
 
-    if (context.tenantId) {
+    if (context) {
     this.unleash.updateContext(context);
     }
   }
