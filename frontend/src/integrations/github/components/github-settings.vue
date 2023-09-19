@@ -32,7 +32,7 @@
       </div>
     </el-popover>
   </div>
-  <app-github-settings-drawer v-model="settingsDrawerOpen" :integration="props.integration" />
+  <app-github-settings-drawer v-if="settingsDrawerOpen" v-model="settingsDrawerOpen" :integration="props.integration" />
 </template>
 
 <script setup>

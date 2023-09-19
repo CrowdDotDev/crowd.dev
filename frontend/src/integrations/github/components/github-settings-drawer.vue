@@ -81,13 +81,11 @@
                   }"
                   class="mb-0"
                   error-class="relative top-0"
-                  :show-error="false"
                 >
                   <el-select
                     v-model="form[repo.url]"
                     placeholder="Select sub-project"
                     class="w-full"
-                    clearable
                     placement="bottom-end"
                     filterable
                     @blur="$v[repo.url].$touch"
@@ -181,7 +179,10 @@ const owner = computed<{name: string, logo?: string} | null>(() => (repos.value.
 const githubDetails = computed(() => CrowdIntegrations.getConfig('github'));
 
 // Form
-const form = reactive<Record<string, string>>({});
+const form = reactive<Record<string, string>>(repos.value.reduce((a: Record<string, any>, b: any) => ({
+  ...a,
+  [b.url]: props.integration.segmentId,
+}), {}));
 
 const rules = computed(() => repos.value.reduce((a: Record<string, any>, b: any) => ({
   ...a,
