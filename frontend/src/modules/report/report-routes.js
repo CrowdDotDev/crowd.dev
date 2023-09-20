@@ -29,7 +29,7 @@ export default [
       },
       {
         name: 'reportTemplate',
-        path: '/reports/template/:id',
+        path: '/reports/default/:id',
         component: ReportTemplatePage,
         meta: {
           auth: true,
