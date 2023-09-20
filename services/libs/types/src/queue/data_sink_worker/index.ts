@@ -25,6 +25,7 @@ export class CreateAndProcessActivityResultQueueMessage implements IQueueMessage
   constructor(
     public readonly tenantId: string,
     public readonly segmentId: string,
+    public readonly integrationId: string,
     public readonly activityData: IActivityData,
   ) {}
 }

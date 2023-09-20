@@ -51,11 +51,12 @@ export default class DataSinkService extends LoggerBase {
   public async createAndProcessActivityResult(
     tenantId: string,
     segmentId: string,
+    integrationId: string,
     data: IActivityData,
   ): Promise<void> {
     this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
 
-    const resultId = await this.repo.createResult(tenantId, {
+    const resultId = await this.repo.createResult(tenantId, integrationId, {
       type: IntegrationResultType.ACTIVITY,
       data,
       segmentId,

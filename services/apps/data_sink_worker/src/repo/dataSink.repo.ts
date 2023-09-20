@@ -33,15 +33,20 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return result
   }
 
-  public async createResult(tenantId: string, result: IIntegrationResult): Promise<string> {
+  public async createResult(
+    tenantId: string,
+    integrationId: string,
+    result: IIntegrationResult,
+  ): Promise<string> {
     const results = await this.db().one(
       `
-    insert into integration.results(state, data, "tenantId")
-    values($(state), $(data), $(tenantId))
+    insert into integration.results(state, data, "tenantId", "integrationId")
+    values($(state), $(data), $(tenantId), $(integrationId))
     returning id;
     `,
       {
         tenantId,
+        integrationId,
         state: IntegrationResultState.PENDING,
         data: JSON.stringify(result),
       },

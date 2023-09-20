@@ -25,11 +25,12 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
   public async createAndProcessActivityResult(
     tenantId: string,
     segmentId: string,
+    integrationId: string,
     activity: IActivityData,
   ) {
     await this.sendMessage(
       new Date().toISOString(),
-      new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, activity),
+      new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, integrationId, activity),
     )
   }
 }

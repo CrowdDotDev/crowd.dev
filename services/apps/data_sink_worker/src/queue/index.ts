@@ -50,6 +50,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           await service.createAndProcessActivityResult(
             msg.tenantId,
             msg.segmentId,
+            msg.integrationId,
             msg.activityData,
           )
           break
