@@ -1278,6 +1278,7 @@ class OrganizationRepository {
 
     // Check if organization exists
     let organization = await options.database.organization.findOne({
+      attributes: ['id'],
       where: {
         website: {
           [Sequelize.Op.or]: [
@@ -1297,15 +1298,21 @@ class OrganizationRepository {
     if (!organization) {
       organization = await options.database.organization.create(
         {
-          name: domain,
+          displayName: domain,
           website: domain,
+          identities: [
+            {
+              name: domain,
+              platform: 'email',
+            },
+          ],
           tenantId: currentTenant.id,
         },
         { transaction },
       )
     }
 
-    return organization.get({ plain: true })
+    return organization.get('id')
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {

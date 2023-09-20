@@ -359,9 +359,9 @@ export default class MemberService extends LoggerBase {
         const organizationService = new OrganizationService(this.options)
         for (const domain of emailDomains) {
           if (domain) {
-            const organizationRecord = await organizationService.findOrCreateByDomain(domain)
-            if (organizationRecord) {
-              organizations.push({ id: organizationRecord.id })
+            const orgId = await organizationService.findOrCreateByDomain(domain)
+            if (orgId) {
+              organizations.push({ id: orgId })
             }
           }
         }

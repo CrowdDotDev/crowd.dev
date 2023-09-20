@@ -301,24 +301,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `
       SELECT
         o.id,
-        o.description,
-        o.emails,
-        o.logo,
-        o.tags,
-        o.github,
-        o.twitter,
-        o.linkedin,
-        o.crunchbase,
-        o.employees,
-        o.location,
-        o.website,
-        o.type,
-        o.size,
-        o.headline,
-        o.industry,
-        o.founded,
-        o.attributes,
-        o."weakIdentities"
       FROM
         organizations o
       WHERE
@@ -348,6 +330,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         displayName: domain,
         website: domain,
         url: null,
+        identities: [
+          {
+            platform: 'email',
+            name: domain,
+          },
+        ],
         description: null,
         emails: null,
         logo: null,
@@ -366,14 +354,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         attributes: null,
         weakIdentities: [],
       }
-      const newOrgId = await this.insert(tenantId, data)
-
-      results = [
-        {
-          id: newOrgId,
-          ...data,
-        },
-      ]
+      results = [await this.insert(tenantId, data)]
     }
 
     results.sort((a, b) => {
