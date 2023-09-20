@@ -45,7 +45,7 @@ setImmediate(async () => {
     `
     select id
     from integration.streams
-    where state in ('${IntegrationStreamState.ERROR}', '${IntegrationStreamState.PENDING}', '${IntegrationStreamState.PROCESSING}')
+    where state in ('${IntegrationStreamState.ERROR}', '${IntegrationStreamState.PENDING}')
     order by id
     limit ${BATCH_SIZE};
     `,
@@ -78,7 +78,7 @@ setImmediate(async () => {
       `
       select id
       from integration.streams
-      where state in ('${IntegrationStreamState.ERROR}', '${IntegrationStreamState.PENDING}', '${IntegrationStreamState.PROCESSING}')
+      where state in ('${IntegrationStreamState.ERROR}', '${IntegrationStreamState.PENDING}')
       and id > $(lastId)
       order by id
       limit ${BATCH_SIZE};
