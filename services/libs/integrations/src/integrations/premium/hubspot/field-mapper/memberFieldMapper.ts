@@ -206,7 +206,12 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
           } else if (crowdKey === 'organizationName') {
             member.organizations = [
               {
-                name: contactProperties[hubspotPropertyName],
+                identities: [
+                  {
+                    name: contactProperties[hubspotPropertyName],
+                    platform: PlatformType.HUBSPOT,
+                  },
+                ],
                 source: OrganizationSource.HUBSPOT,
               },
             ]

@@ -1,6 +1,6 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
-import { areArraysEqual, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { firstArrayContainsSecondArray, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -81,7 +81,7 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
             organizations.push({
               id,
               source: org.source,
@@ -112,15 +112,8 @@ export default class MemberService extends LoggerBase {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
-      if (organizations.length > 0) {
-        await this.nodejsWorkerEmitter.enrichMemberOrganizations(
-          tenantId,
-          id,
-          organizations.map((org) => org.id),
-        )
-        for (const org of organizations) {
-          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
-        }
+      for (const org of organizations) {
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
       }
 
       return id
@@ -185,9 +178,9 @@ export default class MemberService extends LoggerBase {
           await txRepo.addToSegment(id, tenantId, segmentId)
 
           updated = true
-          await txRepo.addToSegment(id, tenantId, segmentId)
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
+          await txRepo.addToSegment(id, tenantId, segmentId)
         }
 
         if (toUpdate.identities) {
@@ -203,11 +196,16 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, org)
+            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
             organizations.push({
               id,
               source: data.source,
             })
+          }
+
+          if (organizations.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, organizations)
+            updated = true
           }
         }
 
@@ -230,15 +228,8 @@ export default class MemberService extends LoggerBase {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
-      if (organizations.length > 0) {
-        await this.nodejsWorkerEmitter.enrichMemberOrganizations(
-          tenantId,
-          id,
-          organizations.map((org) => org.id),
-        )
-        for (const org of organizations) {
-          await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
-        }
+      for (const org of organizations) {
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
@@ -257,8 +248,10 @@ export default class MemberService extends LoggerBase {
 
     // Collect unique domains
     for (const email of emails) {
-      const domain = email.split('@')[1]
-      emailDomains.add(domain)
+      if (email) {
+        const domain = email.split('@')[1]
+        emailDomains.add(domain)
+      }
     }
 
     // Assign member to organization based on email domain
@@ -294,8 +287,8 @@ export default class MemberService extends LoggerBase {
         (!member.identities || member.identities.length === 0)
       ) {
         const errorMessage = `Member can't be enriched. It is missing both emails and identities fields.`
-        this.log.error(errorMessage)
-        throw new Error(errorMessage)
+        this.log.warn(errorMessage)
+        return
       }
 
       await this.store.transactionally(async (txStore) => {
@@ -312,7 +305,10 @@ export default class MemberService extends LoggerBase {
         const segmentId = dbIntegration.segmentId
 
         // first try finding the member using the identity
-        const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
+        const identity = singleOrDefault(
+          member.identities,
+          (i) => i.platform === platform && i.sourceId !== null,
+        )
         let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
 
         if (!dbMember && member.emails && member.emails.length > 0) {
@@ -419,8 +415,8 @@ export default class MemberService extends LoggerBase {
     }
 
     let emails: string[] | undefined
-    if (member.emails) {
-      if (!areArraysEqual(member.emails, dbMember.emails)) {
+    if (member.emails && member.emails.length > 0) {
+      if (!firstArrayContainsSecondArray(dbMember.emails, member.emails)) {
         emails = [...new Set([...member.emails, ...dbMember.emails])]
       }
     }

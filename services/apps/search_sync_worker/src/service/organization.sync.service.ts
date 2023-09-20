@@ -88,10 +88,10 @@ export class OrganizationSyncService extends LoggerBase {
       },
     }
 
-    const sort = [{ date_joinedAt: 'asc' }]
-    const include = ['date_joinedAt', 'uuid_organizationId']
+    const sort = [{ date_createdAt: 'asc' }]
+    const include = ['date_createdAt', 'uuid_organizationId']
     const pageSize = 500
-    let lastJoinedAt: string
+    let lastCreatedAt: string
 
     let results = (await this.openSearchService.search(
       OpenSearchIndex.ORGANIZATIONS,
@@ -101,7 +101,7 @@ export class OrganizationSyncService extends LoggerBase {
       sort,
       undefined,
       include,
-    )) as ISearchHit<{ date_joinedAt: string; uuid_organizationId: string }>[]
+    )) as ISearchHit<{ date_createdAt: string; uuid_organizationId: string }>[]
 
     let processed = 0
 
@@ -126,17 +126,17 @@ export class OrganizationSyncService extends LoggerBase {
       processed += results.length
       this.log.warn({ tenantId }, `Processed ${processed} organizations while cleaning up tenant!`)
 
-      // use last joinedAt to get the next page
-      lastJoinedAt = results[results.length - 1]._source.date_joinedAt
+      // use last createdAt to get the next page
+      lastCreatedAt = results[results.length - 1]._source.date_createdAt
       results = (await this.openSearchService.search(
         OpenSearchIndex.ORGANIZATIONS,
         query,
         undefined,
         pageSize,
         sort,
-        lastJoinedAt,
+        lastCreatedAt,
         include,
-      )) as ISearchHit<{ date_joinedAt: string; uuid_organizationId: string }>[]
+      )) as ISearchHit<{ date_createdAt: string; uuid_organizationId: string }>[]
     }
 
     this.log.warn(
@@ -485,13 +485,23 @@ export class OrganizationSyncService extends LoggerBase {
     p.obj_grossAdditionsByMonth = data.grossAdditionsByMonth
     p.obj_grossDeparturesByMonth = data.grossDeparturesByMonth
 
+    // identities
+    const p_identities = []
+    for (const identity of data.identities) {
+      p_identities.push({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        string_url: identity.url,
+      })
+    }
+    p.nested_identities = p_identities
+
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
     p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
-    p.string_arr_identities = data.identities
 
     return p
   }

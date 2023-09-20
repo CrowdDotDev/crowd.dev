@@ -1,12 +1,13 @@
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 import OrganizationAttributesJSONRenderer from '@/modules/organization/components/organization-attributes-json-renderer.vue';
 import { formatFloatToPercentage } from '@/utils/number';
 import { snakeToSentenceCase } from '@/utils/string';
+import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-export default {
+const employeeChurnRate: OrganizationEnrichmentConfig = {
   name: 'employeeChurnRate',
   label: 'Employee Churn Rate',
-  type: attributesTypes.json,
+  type: AttributeType.JSON,
   showInForm: true,
   showInAttributes: true,
   component: OrganizationAttributesJSONRenderer,
@@ -14,3 +15,5 @@ export default {
   keyParser: (key) => `${snakeToSentenceCase(key)}s`,
   filterValue: (value) => ({ '12_month': value['12_month'] }),
 };
+
+export default employeeChurnRate;

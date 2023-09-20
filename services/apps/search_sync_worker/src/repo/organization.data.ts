@@ -1,3 +1,5 @@
+import { IOrganizationIdentity } from '@crowd/types'
+
 export interface IDbOrganizationSyncData {
   // organization data
   organizationId: string
@@ -62,5 +64,5 @@ export interface IDbOrganizationSyncData {
   activeOn: string[]
   activityCount: number
   memberCount: number
-  identities: string[]
+  identities: IOrganizationIdentity[]
 }

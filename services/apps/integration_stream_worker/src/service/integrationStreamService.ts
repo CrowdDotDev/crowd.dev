@@ -14,6 +14,7 @@ import {
 } from '@crowd/sqs'
 import {
   IntegrationRunState,
+  IntegrationState,
   IntegrationStreamType,
   RateLimitError,
   WebhookType,
@@ -61,7 +62,7 @@ export default class IntegrationStreamService extends LoggerBase {
           await this.streamWorkerEmitter.triggerWebhookProcessing(
             stream.tenantId,
             stream.integrationType,
-            stream.id,
+            stream.webhookId,
           )
         }
       }
@@ -73,11 +74,10 @@ export default class IntegrationStreamService extends LoggerBase {
   public async continueProcessingRunStreams(runId: string): Promise<void> {
     this.log.info('Continuing processing run streams!')
 
-    let streams = await this.repo.getPendingStreams(runId, 1, 20)
+    let streams = await this.repo.getPendingStreams(runId, 20)
     while (streams.length > 0) {
       for (const stream of streams) {
         this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
-        await this.repo.markStreamInProgress(stream.id)
         this.streamWorkerEmitter.triggerStreamProcessing(
           stream.tenantId,
           stream.integrationType,
@@ -85,7 +85,7 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       }
 
-      streams = await this.repo.getPendingStreams(runId, 1, 20)
+      streams = await this.repo.getPendingStreams(runId, 20, streams[streams.length - 1].id)
     }
   }
 
@@ -144,6 +144,14 @@ export default class IntegrationStreamService extends LoggerBase {
       this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
       await this.repo.delayStream(stream.id, until)
       return
+    }
+
+    if (stream.webhookId) {
+      await this.webhookRepo.markWebhookError(stream.webhookId, {
+        errorMessage: err?.message,
+        errorStack: err?.stack,
+        errorString: err ? JSON.stringify(err) : undefined,
+      })
     }
 
     // stop run because of stream error
@@ -206,6 +214,19 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ webhookStreamId: streamId }, 'Webhook stream not found!')
+      return
+    }
+
+    if (streamInfo.runId) {
+      this.log.warn({ streamId }, 'Stream is a regular stream! Processing as such!')
+      await this.processStream(streamId)
+      return
+    }
+
+    if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
+      this.log.warn('Integration is not correctly connected! Deleting the stream and webhook!')
+      await this.repo.deleteStream(streamId)
+      await this.webhookRepo.deleteWebhook(webhookId)
       return
     }
 
@@ -287,6 +308,7 @@ export default class IntegrationStreamService extends LoggerBase {
         identifier: streamInfo.identifier,
         type: streamInfo.parentId ? IntegrationStreamType.CHILD : IntegrationStreamType.ROOT,
         data: streamInfo.data,
+        webhookCreatedAt: webhookInfo.createdAt,
       },
 
       log: this.log,
@@ -363,13 +385,26 @@ export default class IntegrationStreamService extends LoggerBase {
       return
     }
 
+    if (streamInfo.webhookId) {
+      this.log.warn({ streamId }, 'Stream is a webhook stream! Processing as such!')
+      await this.processWebhookStream(streamInfo.webhookId)
+      return
+    }
+
     if (streamInfo.runState === IntegrationRunState.DELAYED) {
       this.log.warn('Run is delayed! Skipping stream processing!')
       return
     }
 
     if (streamInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
-      this.log.warn('Integration was deleted! Skipping stream processing!')
+      this.log.warn('Integration was deleted! Skipping stream processing! Deleting the stream!')
+      await this.repo.deleteStream(streamId)
+      return
+    }
+
+    if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
+      this.log.warn('Integration is not correctly connected! Deleting the stream!')
+      await this.repo.deleteStream(streamId)
       return
     }
 

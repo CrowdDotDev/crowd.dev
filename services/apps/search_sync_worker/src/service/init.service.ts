@@ -44,6 +44,9 @@ export class InitService extends LoggerBase {
         address_line_2: null,
         street_address: null,
       },
+      tags: ['fake1', 'fake2'],
+      employeeChurnRate12Month: 0.12,
+      employeeGrowthRate12Month: 0.12,
       attributes: {},
       createdAt: new Date().toISOString(),
       description: 'Fake organization',
@@ -78,7 +81,12 @@ export class InitService extends LoggerBase {
       activeOn: ['devto'],
       activityCount: 10,
       memberCount: 10,
-      identities: ['devto:fakeorg'],
+      identities: [
+        {
+          platform: 'devto',
+          name: 'fakeorg',
+        },
+      ],
       manuallyCreated: false,
       immediateParent: 'Fake parent',
       ultimateParent: 'Fake ultimate parent',
