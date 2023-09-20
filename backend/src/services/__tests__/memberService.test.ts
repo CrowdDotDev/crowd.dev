@@ -172,7 +172,20 @@ describe('MemberService tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          }
+        ],
         tenantId: mockIServiceOptions.currentTenant.id,
         segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
@@ -271,7 +284,20 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          }
+        ],
         enrichedBy: [],
         contributions: null,
         reach: { total: -1 },
@@ -315,7 +341,20 @@ describe('MemberService tests', () => {
         attributes: {},
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          }
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -366,7 +405,20 @@ describe('MemberService tests', () => {
         displayName: username,
         attributes: {},
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          }
+        ],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -420,7 +472,20 @@ describe('MemberService tests', () => {
         emails: member1.emails,
         score: member1.score,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          }
+        ],
         enrichedBy: [],
         contributions: null,
         importHash: null,
@@ -466,7 +531,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].get({ plain: true })
+      const o1 = foundMember.organizations[1].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -559,7 +624,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].get({ plain: true })
+      const o1 = foundMember.organizations[1].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -661,7 +726,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].get({ plain: true })
+      const o1 = foundMember.organizations[1].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -757,7 +822,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[0].get({ plain: true })
+      const o1 = foundMember.organizations[1].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
