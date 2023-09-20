@@ -321,7 +321,7 @@
                       class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
                       <el-tooltip
-                        v-for="email of scope.row.emails"
+                        v-for="email of scope.row.emails.slice(0, 3)"
                         :key="email"
                         :disabled="!email"
                         popper-class="custom-identity-tooltip"
@@ -344,6 +344,45 @@
                           >{{ email }}</a>
                         </div>
                       </el-tooltip>
+                      <el-popover
+                        v-if="scope.row.emails?.length > 3"
+                        placement="top"
+                        :width="400"
+                        trigger="hover"
+                        popper-class="support-popover"
+                      >
+                        <template #reference>
+                          <span
+                            class="badge--interactive hover:text-gray-900"
+                          >+{{ scope.row.emails.length - 3 }}</span>
+                        </template>
+                        <div class="flex flex-wrap gap-3 my-1">
+                          <el-tooltip
+                            v-for="email of scope.row.emails.slice(3)"
+                            :key="email"
+                            :disabled="!email"
+                            popper-class="custom-identity-tooltip flex "
+                            placement="top"
+                          >
+                            <template #content>
+                              <span>Send email
+                                <i
+                                  v-if="email"
+                                  class="ri-external-link-line text-gray-400"
+                                /></span>
+                            </template>
+                            <div @click.prevent>
+                              <a
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="badge--interactive"
+                                :href="`mailto:${email}`"
+                                @click.stop="trackEmailClick"
+                              >{{ email }}</a>
+                            </div>
+                          </el-tooltip>
+                        </div>
+                      </el-popover>
                     </div>
                     <span v-else class="text-gray-500">-</span>
                   </router-link>
@@ -413,6 +452,7 @@ import { useStore } from 'vuex';
 import {
   computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
+import { storeToRefs } from 'pinia';
 import { i18n } from '@/i18n';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
@@ -420,7 +460,6 @@ import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
