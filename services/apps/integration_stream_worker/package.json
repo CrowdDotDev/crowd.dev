@@ -15,6 +15,7 @@
     "format-check": "./node_modules/.bin/prettier --check .",
     "tsc-check": "./node_modules/.bin/tsc --noEmit",
     "script:process-stream": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-stream.ts",
+    "script:process-webhook": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-webhook.ts",
     "script:process-all-streams": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-streams.ts",
     "script:process-all-webhooks": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-webhooks.ts",
     "script:trigger-all-failed-webhooks": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-failed-webhooks.ts",

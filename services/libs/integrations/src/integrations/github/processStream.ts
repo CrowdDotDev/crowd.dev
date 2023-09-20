@@ -566,11 +566,10 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
 
   const data = ctx.stream.data as GithubBasicStream
   const pullRequestNumber = data.prNumber
-  const pullRequestCommitsQuery = new PullRequestCommitsQuery(
-    data.repo,
-    pullRequestNumber,
-    ctx.integration.token,
-  )
+
+  const token = await getGithubToken(ctx)
+
+  const pullRequestCommitsQuery = new PullRequestCommitsQuery(data.repo, pullRequestNumber, token)
 
   try {
     result = await pullRequestCommitsQuery.getSinglePage(data.page)
