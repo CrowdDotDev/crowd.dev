@@ -17,6 +17,17 @@ const MAX_CONCURRENT = 3
 
 const log = getServiceLogger()
 
+async function processWebhook(
+  webhookId: string,
+  service: IntegrationStreamService,
+): Promise<boolean> {
+  try {
+    return await service.processWebhookStream(webhookId)
+  } catch (err) {
+    return false
+  }
+}
+
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
 
@@ -46,12 +57,18 @@ setImmediate(async () => {
     select id
     from "incomingWebhooks"
     where state in ('PENDING', 'ERROR') and type <> '${WebhookType.DISCOURSE}'
-    order by id
+    order by 
+    case when state = 'PENDING' then 1
+    else 2
+    end,
+    id
     limit ${BATCH_SIZE};
     `,
   )
 
   let current = 0
+  let total = 0
+  let errors = 0
   while (results.length > 0) {
     for (const result of results) {
       while (current == MAX_CONCURRENT) {
@@ -59,19 +76,18 @@ setImmediate(async () => {
       }
       const webhookId = result.id
 
-      log.info(`Processing webhook ${webhookId}!`)
-
       current++
-      service
-        .processWebhookStream(webhookId)
-        .then(() => {
-          current--
-          log.info(`Processed webhook ${webhookId}!`)
-        })
-        .catch((err) => {
-          current--
-          log.error(err, { webhookId }, 'Error processing webhook!')
-        })
+      processWebhook(webhookId, service).then((res) => {
+        current--
+
+        if (res) {
+          total++
+        } else {
+          errors++
+        }
+
+        log.info({ res }, `Processed ${total} webhooks successfully so far! ${errors} errors!`)
+      })
     }
 
     results = await dbConnection.any(
@@ -80,7 +96,11 @@ setImmediate(async () => {
       from "incomingWebhooks"
       where state in ('PENDING', 'ERROR') and type <> '${WebhookType.DISCOURSE}'
       and id > $(lastId)
-      order by id
+      order by
+      case when state = 'PENDING' then 1
+      else 2
+      end,
+      id
       limit ${BATCH_SIZE};
       `,
       {
