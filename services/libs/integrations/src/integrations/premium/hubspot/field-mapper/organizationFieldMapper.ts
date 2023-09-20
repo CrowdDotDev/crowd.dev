@@ -63,13 +63,13 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         return crunchbase.handle
       },
     },
-    revenueRange: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (revenueRange: any) => {
-        return JSON.stringify(revenueRange)
-      },
-    },
+    // revenueRange: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (revenueRange: any) => {
+    //     return JSON.stringify(revenueRange)
+    //   },
+    // },
     revenueRangeMin: {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
@@ -160,13 +160,13 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       readonly: true,
       serialize: serializeArray,
     },
-    employeeChurnRate: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (employeeChurnRate: any) => {
-        return JSON.stringify(employeeChurnRate)
-      },
-    },
+    // employeeChurnRate: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (employeeChurnRate: any) => {
+    //     return JSON.stringify(employeeChurnRate)
+    //   },
+    // },
     employeeCountByMonth: {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
@@ -178,13 +178,13 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
     },
-    employeeGrowthRate: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (employeeGrowthRate: any) => {
-        return JSON.stringify(employeeGrowthRate)
-      },
-    },
+    // employeeGrowthRate: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (employeeGrowthRate: any) => {
+    //     return JSON.stringify(employeeGrowthRate)
+    //   },
+    // },
     employeeGrowthRate12Month: {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
