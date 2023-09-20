@@ -55,7 +55,7 @@ const repoNameFromUrl = (url) => url.split('/').at(-1);
 
 onMounted(() => {
   if (props.integration.status !== 'mapping') {
-    IntegrationService.fetchGitHubMappings(props.integration.id, [])
+    IntegrationService.fetchGitHubMappings(props.integration)
       .then((res) => {
         mappings.value = res;
       });

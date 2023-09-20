@@ -147,10 +147,15 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async fetchGitHubMappings(integrationId, segments) {
+  static async fetchGitHubMappings(integration) {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
+      `/tenant/${tenantId}/integration/${integration.id}/github/repos`,
+      {
+        params: {
+          segments: [integration.segmentId],
+        },
+      },
     );
     return response.data;
   }
