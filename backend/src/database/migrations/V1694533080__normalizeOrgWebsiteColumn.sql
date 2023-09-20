@@ -1,7 +1,3 @@
-CREATE UNIQUE INDEX idx_organization_tenant_website
-ON organizations ("tenantId", website)
-WHERE website IS NOT NULL;
-
 DO
 $$
     DECLARE
