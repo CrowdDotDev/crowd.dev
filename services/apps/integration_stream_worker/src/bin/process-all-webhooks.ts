@@ -56,7 +56,7 @@ setImmediate(async () => {
     `
     select id
     from "incomingWebhooks"
-    where state in ('PENDING', 'ERROR') and type <> '${WebhookType.DISCOURSE}'
+    where state in ('PENDING', 'ERROR') and type not in ('${WebhookType.DISCOURSE}', '${WebhookType.CROWD_GENERATED}')
     order by 
     case when state = 'PENDING' then 1
     else 2
@@ -94,7 +94,7 @@ setImmediate(async () => {
       `
       select id
       from "incomingWebhooks"
-      where state in ('PENDING', 'ERROR') and type <> '${WebhookType.DISCOURSE}'
+      where state in ('PENDING', 'ERROR') and type not in ('${WebhookType.DISCOURSE}', '${WebhookType.CROWD_GENERATED}')
       and id > $(lastId)
       order by
       case when state = 'PENDING' then 1
