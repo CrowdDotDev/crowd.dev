@@ -184,7 +184,7 @@ describe('MemberService tests', () => {
               title: null,
               source: null,
             },
-          }
+          },
         ],
         tenantId: mockIServiceOptions.currentTenant.id,
         segments: mockIServiceOptions.currentSegments,
@@ -296,7 +296,7 @@ describe('MemberService tests', () => {
               title: null,
               source: null,
             },
-          }
+          },
         ],
         enrichedBy: [],
         contributions: null,
@@ -353,7 +353,7 @@ describe('MemberService tests', () => {
               title: null,
               source: null,
             },
-          }
+          },
         ],
         enrichedBy: [],
         contributions: null,
@@ -417,7 +417,7 @@ describe('MemberService tests', () => {
               title: null,
               source: null,
             },
-          }
+          },
         ],
         enrichedBy: [],
         contributions: null,
@@ -484,7 +484,7 @@ describe('MemberService tests', () => {
               title: null,
               source: null,
             },
-          }
+          },
         ],
         enrichedBy: [],
         contributions: null,
@@ -511,7 +511,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -531,7 +531,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[1].get({ plain: true })
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -604,7 +604,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -624,7 +624,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[1].get({ plain: true })
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -706,7 +706,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -726,7 +726,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[1].get({ plain: true })
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -802,7 +802,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -822,7 +822,7 @@ describe('MemberService tests', () => {
 
       const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
 
-      const o1 = foundMember.organizations[1].get({ plain: true })
+      const o1 = foundMember.organizations[0].get({ plain: true })
       delete o1.createdAt
       delete o1.updatedAt
 
@@ -948,7 +948,7 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: 'anil',
-        emails: ['test@email.com', 'test2@email.com'],
+        emails: ['test@gmail.com', 'test2@yahoo.com'],
         platform: PlatformType.GITHUB,
         location: 'Ankara',
       }
@@ -987,10 +987,23 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
-        emails: ['lala@l.com', 'test@email.com', 'test2@email.com'],
+        emails: ['lala@l.com', 'test@gmail.com', 'test2@yahoo.com'],
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1099,7 +1112,20 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -1207,7 +1233,20 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1387,7 +1426,20 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
