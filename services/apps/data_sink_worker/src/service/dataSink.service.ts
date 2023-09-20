@@ -10,6 +10,7 @@ import {
   IOrganization,
   IntegrationResultState,
   IntegrationResultType,
+  PlatformType,
 } from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
@@ -112,10 +113,12 @@ export default class DataSinkService extends LoggerBase {
           )
           const activityData = data.data as IActivityData
 
+          const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
+
           await service.processActivity(
             resultInfo.tenantId,
             resultInfo.integrationId,
-            resultInfo.platform,
+            platform,
             activityData,
             data.segmentId,
           )
