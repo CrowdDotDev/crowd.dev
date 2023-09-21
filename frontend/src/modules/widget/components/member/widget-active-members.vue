@@ -115,8 +115,8 @@ const router = useRouter();
 const granularity = ref(
   getSelectedGranularityFromLabel(
     route.query.activeMembersGranularity,
-    DAILY_GRANULARITY_FILTER
-  )
+    DAILY_GRANULARITY_FILTER,
+  ),
 );
 const period = ref(
   getSelectedPeriodFromLabel(
@@ -124,9 +124,9 @@ const period = ref(
     SEVEN_DAYS_PERIOD_FILTER,
     getSelectedGranularityFromLabel(
       route.query.activeMembersGranularity,
-      DAILY_GRANULARITY_FILTER
-    )
-  )
+      DAILY_GRANULARITY_FILTER,
+    ),
+  ),
 );
 const drawerExpanded = ref();
 const drawerDate = ref();

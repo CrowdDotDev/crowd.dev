@@ -41,8 +41,8 @@ import { LEADERBOARD_ACTIVITIES_TYPES_QUERY } from '@/modules/widget/widget-quer
 import ACTIVITIES_REPORT, {
   ACTIVITIES_PLATFORM_WIDGET,
 } from '@/modules/report/templates/config/activities';
-import AppWidgetActivitiesPlatformContent from './widget-activities-platform-content.vue';
 import { useRoute, useRouter } from 'vue-router';
+import AppWidgetActivitiesPlatformContent from './widget-activities-platform-content.vue';
 
 const props = defineProps({
   filters: {
@@ -58,17 +58,15 @@ const router = useRouter();
 const selectedPeriod = ref(
   getSelectedPeriodFromLabel(
     route.query.activitiesByPlatformPeriod,
-    SEVEN_DAYS_PERIOD_FILTER
-  )
+    SEVEN_DAYS_PERIOD_FILTER,
+  ),
 );
 
-const query = computed(() =>
-  LEADERBOARD_ACTIVITIES_TYPES_QUERY({
-    period: selectedPeriod.value,
-    selectedPlatforms: props.filters.platform.value,
-    selectedHasTeamActivities: props.filters.teamActivities,
-  })
-);
+const query = computed(() => LEADERBOARD_ACTIVITIES_TYPES_QUERY({
+  period: selectedPeriod.value,
+  selectedPlatforms: props.filters.platform.value,
+  selectedHasTeamActivities: props.filters.teamActivities,
+}));
 
 const onUpdatePeriod = (updatedPeriod) => {
   selectedPeriod.value = updatedPeriod;

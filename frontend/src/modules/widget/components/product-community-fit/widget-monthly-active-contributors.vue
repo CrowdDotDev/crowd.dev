@@ -104,8 +104,8 @@ const router = useRouter();
 const period = ref(
   getSelectedPeriodFromLabel(
     route.query.activeContributorsPeriod,
-    SIX_MONTHS_PERIOD_FILTER
-  )
+    SIX_MONTHS_PERIOD_FILTER,
+  ),
 );
 const granularity = ref(MONTHLY_GRANULARITY_FILTER);
 const drawerExpanded = ref();
@@ -118,87 +118,85 @@ const ySuggestedMax = ref(200);
 const highestNumber = ref(0);
 const shouldUseLogarithmicScale = computed(() => highestNumber.value >= 800);
 
-const widgetChartOptions = computed(() =>
-  chartOptions('area', {
-    ySuggestedMax: ySuggestedMax.value,
-    yMaxTicksLimit: yMaxTicksLimit.value,
-    yType: yType.value,
-    yMin: 0,
-    yStepSize: 50,
-    yAfterBuildTicks: (axis) => {
-      // Default ticks that need to be rendered regardless of axis type
-      const ticks = [
-        { label: '0', value: 0 },
-        { label: '50', value: 50 },
-        { label: '100', value: 100 },
-      ];
+const widgetChartOptions = computed(() => chartOptions('area', {
+  ySuggestedMax: ySuggestedMax.value,
+  yMaxTicksLimit: yMaxTicksLimit.value,
+  yType: yType.value,
+  yMin: 0,
+  yStepSize: 50,
+  yAfterBuildTicks: (axis) => {
+    // Default ticks that need to be rendered regardless of axis type
+    const ticks = [
+      { label: '0', value: 0 },
+      { label: '50', value: 50 },
+      { label: '100', value: 100 },
+    ];
 
-      const defaultLinearTick = { label: '150', value: 150 };
-      const defaultLogarithmicTicks = { label: '10', value: 10 };
+    const defaultLinearTick = { label: '150', value: 150 };
+    const defaultLogarithmicTicks = { label: '10', value: 10 };
 
-      // Depending on the scale, push new ticks
-      // For scale, we will be adding hundreths until the maximum value
-      // For logarithmic, we will be calculating base 10 powers
-      // until the maximum order of magniture was reached
-      if (!shouldUseLogarithmicScale.value) {
-        ticks.push(defaultLinearTick);
-        yType.value = 'linear';
+    // Depending on the scale, push new ticks
+    // For scale, we will be adding hundreths until the maximum value
+    // For logarithmic, we will be calculating base 10 powers
+    // until the maximum order of magniture was reached
+    if (!shouldUseLogarithmicScale.value) {
+      ticks.push(defaultLinearTick);
+      yType.value = 'linear';
 
-        const magnitude = Math.ceil(highestNumber.value / 100);
+      const magnitude = Math.ceil(highestNumber.value / 100);
 
-        for (let i = 2; i <= magnitude; i += 1) {
-          const newTickValue = 100 * i;
+      for (let i = 2; i <= magnitude; i += 1) {
+        const newTickValue = 100 * i;
+
+        ticks.push({
+          label: `${newTickValue}`,
+          value: newTickValue,
+        });
+      }
+    } else {
+      ticks.splice(1, 0, defaultLogarithmicTicks);
+      yType.value = 'customLogarithmic';
+
+      const magnitude = Math.floor(Math.log10(highestNumber.value));
+
+      for (let i = 0; i <= magnitude + 1; i += 1) {
+        const newTickValue = 10 ** i;
+
+        if (newTickValue >= 1000) {
+          ticks.push({
+            label: `${newTickValue / 2}`,
+            value: newTickValue / 2,
+          });
 
           ticks.push({
             label: `${newTickValue}`,
             value: newTickValue,
           });
         }
-      } else {
-        ticks.splice(1, 0, defaultLogarithmicTicks);
-        yType.value = 'customLogarithmic';
-
-        const magnitude = Math.floor(Math.log10(highestNumber.value));
-
-        for (let i = 0; i <= magnitude + 1; i += 1) {
-          const newTickValue = 10 ** i;
-
-          if (newTickValue >= 1000) {
-            ticks.push({
-              label: `${newTickValue / 2}`,
-              value: newTickValue / 2,
-            });
-
-            ticks.push({
-              label: `${newTickValue}`,
-              value: newTickValue,
-            });
-          }
-        }
       }
+    }
 
-      yMaxTicksLimit.value = ticks.length;
-      ySuggestedMax.value = ticks[ticks.length - 1].value;
+    yMaxTicksLimit.value = ticks.length;
+    ySuggestedMax.value = ticks[ticks.length - 1].value;
 
-      Object.assign(axis, {
-        ticks,
-      });
-    },
-    xTicksCallback: (value) => parseAxisLabel(value, granularity.value.value),
-    annotationPlugin: {
-      annotations: {
-        idealRange: {
-          backgroundColor: 'rgb(253, 246, 245)',
-          yMin: 50,
-          yMax: 100,
-          borderColor: 'transparent',
-          type: 'box',
-          drawTime: 'beforeDraw',
-        },
+    Object.assign(axis, {
+      ticks,
+    });
+  },
+  xTicksCallback: (value) => parseAxisLabel(value, granularity.value.value),
+  annotationPlugin: {
+    annotations: {
+      idealRange: {
+        backgroundColor: 'rgb(253, 246, 245)',
+        yMin: 50,
+        yMax: 100,
+        borderColor: 'transparent',
+        type: 'box',
+        drawTime: 'beforeDraw',
       },
     },
-  })
-);
+  },
+}));
 
 const { cubejsApi } = mapGetters('widget');
 const { doExport } = mapActions('member');
@@ -224,13 +222,11 @@ const datasets = computed(() => [
   },
 ]);
 
-const query = computed(() =>
-  TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
-    period: period.value,
-    granularity: granularity.value,
-    selectedHasTeamMembers: props.filters.teamMembers,
-  })
-);
+const query = computed(() => TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
+  period: period.value,
+  granularity: granularity.value,
+  selectedHasTeamMembers: props.filters.teamMembers,
+}));
 
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;

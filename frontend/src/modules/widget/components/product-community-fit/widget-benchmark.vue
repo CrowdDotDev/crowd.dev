@@ -52,8 +52,7 @@
         </div>
         <app-widget-insight v-if="!loading">
           <template #description>
-            <span
-              >Considering the contribution history of over 150,000 open-source
+            <span>Considering the contribution history of over 150,000 open-source
               repositories, we come to the conclusion that you
               {{
                 average < 20
@@ -62,17 +61,15 @@
               }}
               <span v-if="average >= 20" class="font-medium">{{
                 getInsightContent
-              }}</span
-              >{{
+              }}</span>{{
                 period.label === 'All time'
                   ? ' since the beginning of your community.'
                   : ` during the past ${pluralize(
-                      period.granularity,
-                      period.value,
-                      true
-                    )}.`
-              }}</span
-            >
+                    period.granularity,
+                    period.value,
+                    true,
+                  )}.`
+              }}</span>
           </template>
         </app-widget-insight>
       </template>
@@ -125,8 +122,8 @@ const router = useRouter();
 const period = ref(
   getSelectedPeriodFromLabel(
     route.query.benchmarkPeriod,
-    SIX_MONTHS_PERIOD_FILTER
-  )
+    SIX_MONTHS_PERIOD_FILTER,
+  ),
 );
 const granularity = ref(MONTHLY_GRANULARITY_FILTER);
 const average = ref(0);
@@ -145,165 +142,162 @@ const getInsightContent = computed(() => {
   return 'Scale beyond Product-Community Fit';
 });
 
-const benchmarkChartOptions = computed(() =>
-  chartOptions('bar', {
-    clip: true,
-    xTicks: false,
-    xLines: false,
-    xType: 'category',
-    yLines: false,
-    yLinesDrawOnChartArea: false,
-    yTicksAutoSkip: false,
-    yMin: 0,
-    yMax: 250,
-    yAfterBuildTicks: (axis) => {
+const benchmarkChartOptions = computed(() => chartOptions('bar', {
+  clip: true,
+  xTicks: false,
+  xLines: false,
+  xType: 'category',
+  yLines: false,
+  yLinesDrawOnChartArea: false,
+  yTicksAutoSkip: false,
+  yMin: 0,
+  yMax: 250,
+  yAfterBuildTicks: (axis) => {
+    Object.assign(axis, {
+      ticks: [0, 20, 50, 100, 200].map((v) => ({
+        value: v,
+      })),
+    });
+  },
+  y1Scale: {
+    type: 'linear',
+    position: 'right',
+    min: 0,
+    max: 250,
+    grid: {
+      display: true,
+      drawBorder: false,
+      color: '#9CA3AF',
+      borderDash: [4, 6],
+      drawOnChartArea: true,
+      drawTicks: false,
+    },
+    ticks: {
+      display: false,
+      padding: 8,
+      font: {
+        family: 'Inter',
+        size: 12,
+      },
+    },
+    afterBuildTicks: (axis) => {
       Object.assign(axis, {
         ticks: [0, 20, 50, 100, 200].map((v) => ({
           value: v,
         })),
       });
     },
-    y1Scale: {
-      type: 'linear',
-      position: 'right',
-      min: 0,
-      max: 250,
-      grid: {
-        display: true,
-        drawBorder: false,
+    afterTickToLabelConversion: (axis) => {
+      const match = {
+        color: '#111827',
+        fontWeight: 500,
+      };
+      const unmatch = {
         color: '#9CA3AF',
-        borderDash: [4, 6],
-        drawOnChartArea: true,
-        drawTicks: false,
-      },
-      ticks: {
-        display: false,
-        padding: 8,
-        font: {
-          family: 'Inter',
-          size: 12,
+        fontWeight: 400,
+      };
+
+      const getMatch = (min, max) => (average.value >= min && (!max || average.value <= max)
+        ? match
+        : unmatch);
+
+      const labels = [
+        { text: '' },
+        {
+          text: 'Early signals of Product-Community Fit (20-50)',
+          color: getMatch(20, 50).color,
+          fontWeight: getMatch(20, 50).fontWeight,
         },
-      },
-      afterBuildTicks: (axis) => {
-        Object.assign(axis, {
-          ticks: [0, 20, 50, 100, 200].map((v) => ({
-            value: v,
-          })),
-        });
-      },
-      afterTickToLabelConversion: (axis) => {
-        const match = {
-          color: '#111827',
-          fontWeight: 500,
-        };
-        const unmatch = {
-          color: '#9CA3AF',
-          fontWeight: 400,
-        };
+        {
+          text: 'Strong emerging signals of Product-Community Fit (51-100)',
+          color: getMatch(51, 100).color,
+          fontWeight: getMatch(51, 100).fontWeight,
+        },
+        {
+          text: 'Great Product-Community Fit (101-200)',
+          color: getMatch(101, 200).color,
+          fontWeight: getMatch(101, 200).fontWeight,
+        },
+        {
+          text: 'Scale beyond Product-Community Fit (200+)',
+          color: getMatch(201).color,
+          fontWeight: getMatch(201).fontWeight,
+        },
+      ];
 
-        const getMatch = (min, max) =>
-          average.value >= min && (!max || average.value <= max)
-            ? match
-            : unmatch;
-
-        const labels = [
-          { text: '' },
-          {
-            text: 'Early signals of Product-Community Fit (20-50)',
-            color: getMatch(20, 50).color,
-            fontWeight: getMatch(20, 50).fontWeight,
-          },
-          {
-            text: 'Strong emerging signals of Product-Community Fit (51-100)',
-            color: getMatch(51, 100).color,
-            fontWeight: getMatch(51, 100).fontWeight,
-          },
-          {
-            text: 'Great Product-Community Fit (101-200)',
-            color: getMatch(101, 200).color,
-            fontWeight: getMatch(101, 200).fontWeight,
-          },
-          {
-            text: 'Scale beyond Product-Community Fit (200+)',
-            color: getMatch(201).color,
-            fontWeight: getMatch(201).fontWeight,
-          },
-        ];
-
-        Object.assign(axis, {
-          ticks: axis.ticks.map(({ value }, i) => ({
-            value,
-            ...labels[i],
-          })),
-        });
-      },
-      afterFit: (scaleInstance) => {
-        Object.assign(scaleInstance, {
-          width: 400,
-          maxWidth: 410,
-        });
-      },
+      Object.assign(axis, {
+        ticks: axis.ticks.map(({ value }, i) => ({
+          value,
+          ...labels[i],
+        })),
+      });
     },
-    legendPlugin: false,
-    tooltipPlugin: { enabled: false },
-    verticalHoverLinePlugin: false,
-    backgroundChartPlugin: {
-      backgroundColor: '#F9FAFB',
+    afterFit: (scaleInstance) => {
+      Object.assign(scaleInstance, {
+        width: 400,
+        maxWidth: 410,
+      });
     },
-    updateTicksLabelsPositionPlugin: {
-      scale: 'y1',
-      ranges: [0, 35, 75, 160, 235],
-      labelsHeight: 14,
-      labelsWidth: 380,
-    },
-    annotationPlugin: {
-      annotations: {
-        idealRange: () => {
-          const getIdealRange = () => {
-            if (average.value < 20) {
-              return {
-                min: 0,
-                max: 20,
-              };
-            }
-            if (average.value >= 20 && average.value <= 50) {
-              return {
-                min: 20,
-                max: 50,
-              };
-            }
-            if (average.value > 50 && average.value <= 100) {
-              return {
-                min: 51,
-                max: 100,
-              };
-            }
-            if (average.value > 100 && average.value <= 200) {
-              return {
-                min: 101,
-                max: 200,
-              };
-            }
-
+  },
+  legendPlugin: false,
+  tooltipPlugin: { enabled: false },
+  verticalHoverLinePlugin: false,
+  backgroundChartPlugin: {
+    backgroundColor: '#F9FAFB',
+  },
+  updateTicksLabelsPositionPlugin: {
+    scale: 'y1',
+    ranges: [0, 35, 75, 160, 235],
+    labelsHeight: 14,
+    labelsWidth: 380,
+  },
+  annotationPlugin: {
+    annotations: {
+      idealRange: () => {
+        const getIdealRange = () => {
+          if (average.value < 20) {
             return {
-              min: 200,
-              max: 250,
+              min: 0,
+              max: 20,
             };
-          };
+          }
+          if (average.value >= 20 && average.value <= 50) {
+            return {
+              min: 20,
+              max: 50,
+            };
+          }
+          if (average.value > 50 && average.value <= 100) {
+            return {
+              min: 51,
+              max: 100,
+            };
+          }
+          if (average.value > 100 && average.value <= 200) {
+            return {
+              min: 101,
+              max: 200,
+            };
+          }
 
           return {
-            backgroundColor: 'rgb(250, 237, 234)',
-            yMin: getIdealRange().min,
-            yMax: getIdealRange().max,
-            borderColor: 'transparent',
-            type: 'box',
-            drawTime: 'beforeDraw',
+            min: 200,
+            max: 250,
           };
-        },
+        };
+
+        return {
+          backgroundColor: 'rgb(250, 237, 234)',
+          yMin: getIdealRange().min,
+          yMax: getIdealRange().max,
+          borderColor: 'transparent',
+          type: 'box',
+          drawTime: 'beforeDraw',
+        };
       },
     },
-  })
-);
+  },
+}));
 
 const { cubejsApi } = mapGetters('widget');
 
@@ -321,13 +315,11 @@ const datasets = computed(() => [
   },
 ]);
 
-const query = computed(() =>
-  TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
-    period: period.value,
-    granularity: granularity.value,
-    selectedHasTeamMembers: props.filters.teamMembers,
-  })
-);
+const query = computed(() => TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
+  period: period.value,
+  granularity: granularity.value,
+  selectedHasTeamMembers: props.filters.teamMembers,
+}));
 
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;

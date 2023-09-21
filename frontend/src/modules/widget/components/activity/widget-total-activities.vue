@@ -94,8 +94,8 @@ const router = useRouter();
 const period = ref(
   getSelectedPeriodFromLabel(
     route.query.totalActivitiesPeriod,
-    SEVEN_DAYS_PERIOD_FILTER
-  )
+    SEVEN_DAYS_PERIOD_FILTER,
+  ),
 );
 const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 
@@ -115,14 +115,12 @@ const datasets = computed(() => [
 
 const { cubejsApi } = mapGetters('widget');
 
-const query = computed(() =>
-  TOTAL_ACTIVITIES_QUERY({
-    period: period.value,
-    granularity,
-    selectedPlatforms: props.filters.platform.value,
-    selectedHasTeamActivities: props.filters.teamActivities,
-  })
-);
+const query = computed(() => TOTAL_ACTIVITIES_QUERY({
+  period: period.value,
+  granularity,
+  selectedPlatforms: props.filters.platform.value,
+  selectedHasTeamActivities: props.filters.teamActivities,
+}));
 
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;
@@ -144,15 +142,14 @@ const kpiPreviousValue = (resultSet) => {
   return Number(data[0]['Activities.cumulativeCount']) || 0;
 };
 
-const spliceFirstValue = (data) =>
-  cloneDeep(data).reduce((acc, item, index) => {
-    if (index !== 0) {
-      acc.push({
-        ...item,
-      });
-    }
-    return acc;
-  }, []);
+const spliceFirstValue = (data) => cloneDeep(data).reduce((acc, item, index) => {
+  if (index !== 0) {
+    acc.push({
+      ...item,
+    });
+  }
+  return acc;
+}, []);
 
 const chartResultSet = (resultSet) => {
   const clone = cloneDeep(resultSet);
@@ -162,7 +159,7 @@ const chartResultSet = (resultSet) => {
 
   // Then we also fix the first entry of the dateRange
   clone.loadResponses[0].query.timeDimensions[0].dateRange[0] = moment(
-    clone.loadResponses[0].query.timeDimensions[0].dateRange[0]
+    clone.loadResponses[0].query.timeDimensions[0].dateRange[0],
   )
     .utc()
     .add(1, 'day')

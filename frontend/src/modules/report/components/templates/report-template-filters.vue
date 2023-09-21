@@ -12,12 +12,10 @@
           <div class="relative">
             <el-button class="custom-btn" @click="handleOpenPlatform">
               <div class="flex items-center gap-2">
-                <i class="ri-apps-2-line" /><span class="font-medium"
-                  >Platforms:
+                <i class="ri-apps-2-line" /><span class="font-medium">Platforms:
                   <span class="font-normal text-gray-600">{{
                     platformLabel
-                  }}</span></span
-                >
+                  }}</span></span>
               </div>
             </el-button>
             <div
@@ -29,9 +27,9 @@
         <template #optionPrefix="{ item }">
           <img
             v-if="
-              item.value &&
-              platformOptions(item.value) &&
-              platformOptions(item.value).image
+              item.value
+                && platformOptions(item.value)
+                && platformOptions(item.value).image
             "
             :src="platformOptions(item.value).image"
             :alt="platformOptions(item.value).name"
@@ -65,10 +63,12 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps, reactive } from 'vue';
+import {
+  computed, defineEmits, defineProps, reactive,
+} from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { useRoute, useRouter } from 'vue-router';
 
 const emit = defineEmits([
   'update:platform',
@@ -117,7 +117,7 @@ const platformLabel = computed(() => {
 });
 
 const platformOptions = (platform) => CrowdIntegrations.getConfig(platform);
-if (!!route.query.selectedPlatforms) {
+if (route.query.selectedPlatforms) {
   const platformsValues = route.query.selectedPlatforms.split(' ');
   const platforms = platformsValues
     .map((value) => {

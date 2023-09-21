@@ -82,8 +82,8 @@ const drawerTitle = ref('Leaderboard: Activities by type');
 const selectedPeriod = ref(
   getSelectedPeriodFromLabel(
     route.query.leaderboardActivitiesByTypePeriod,
-    SEVEN_DAYS_PERIOD_FILTER
-  )
+    SEVEN_DAYS_PERIOD_FILTER,
+  ),
 );
 const drawerSelectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
 

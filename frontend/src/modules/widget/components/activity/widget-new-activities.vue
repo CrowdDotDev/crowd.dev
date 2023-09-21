@@ -83,8 +83,8 @@ const router = useRouter();
 const granularity = ref(
   getSelectedGranularityFromLabel(
     route.query.newActivitiesGranularity,
-    DAILY_GRANULARITY_FILTER
-  )
+    DAILY_GRANULARITY_FILTER,
+  ),
 );
 const period = ref(
   getSelectedPeriodFromLabel(
@@ -92,9 +92,9 @@ const period = ref(
     SEVEN_DAYS_PERIOD_FILTER,
     getSelectedGranularityFromLabel(
       route.query.newActivitiesGranularity,
-      DAILY_GRANULARITY_FILTER
-    )
-  )
+      DAILY_GRANULARITY_FILTER,
+    ),
+  ),
 );
 
 const widgetChartOptions = chartOptions('area', {
@@ -114,14 +114,12 @@ const datasets = computed(() => [
   },
 ]);
 
-const query = computed(() =>
-  ACTIVITIES_QUERY({
-    period: period.value,
-    granularity: granularity.value,
-    selectedPlatforms: props.filters.platform.value,
-    selectedHasTeamActivities: props.filters.teamActivities,
-  })
-);
+const query = computed(() => ACTIVITIES_QUERY({
+  period: period.value,
+  granularity: granularity.value,
+  selectedPlatforms: props.filters.platform.value,
+  selectedHasTeamActivities: props.filters.teamActivities,
+}));
 
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;

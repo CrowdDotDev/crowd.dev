@@ -116,8 +116,8 @@ const router = useRouter();
 const period = ref(
   getSelectedPeriodFromLabel(
     route.query.totalMembersPeriod,
-    SEVEN_DAYS_PERIOD_FILTER
-  )
+    SEVEN_DAYS_PERIOD_FILTER,
+  ),
 );
 
 const drawerExpanded = ref();
@@ -145,14 +145,12 @@ const datasets = computed(() => [
 const { doExport } = mapActions('member');
 const { cubejsApi } = mapGetters('widget');
 
-const query = computed(() =>
-  TOTAL_MEMBERS_QUERY({
-    period: period.value,
-    granularity,
-    selectedPlatforms: props.filters.platform.value,
-    selectedHasTeamMembers: props.filters.teamMembers,
-  })
-);
+const query = computed(() => TOTAL_MEMBERS_QUERY({
+  period: period.value,
+  granularity,
+  selectedPlatforms: props.filters.platform.value,
+  selectedHasTeamMembers: props.filters.teamMembers,
+}));
 
 const kpiCurrentValue = (resultSet) => {
   const data = resultSet.chartPivot();

@@ -9,61 +9,39 @@ import {
   THREE_MONTHS_PERIOD_FILTER,
 } from './widget-constants';
 
-export const getSelectedPeriodFromLabel = (
-  label,
-  defaultMinimumPeriod,
-  granularity
-) => {
-  if (label === 'All time') return ALL_TIME_PERIOD_FILTER;
+const compareGranularityValues = (a, b) => {
+  if (a === 'year' || b === 'day' || a === b) return 1;
 
-  let selectedPeriod = WIDGET_PERIOD_OPTIONS.find(
-    (option) => option.label === label
-  );
-
-  if (granularity) {
-    selectedPeriod = getGranularityBasedPeriod(granularity, selectedPeriod);
+  if (
+    a === 'day'
+    || (a === 'month' && b === 'year')
+    || (a === 'week' && ['year', 'month'].includes(b))
+  ) {
+    return -1;
   }
 
-  if (selectedPeriod && comparePeriods(selectedPeriod, defaultMinimumPeriod)) {
-    return selectedPeriod;
-  }
-
-  return defaultMinimumPeriod;
+  return 1;
 };
 
 export const getSelectedGranularityFromLabel = (
   label,
-  defaultMinimumGranularity
+  defaultMinimumGranularity,
 ) => {
   const selectedGranularity = WIDGET_GRANULARITY_OPTIONS.find(
-    (option) => option.label === label
+    (option) => option.label === label,
   );
 
   if (
-    selectedGranularity &&
-    compareGranularityValues(
+    selectedGranularity
+    && compareGranularityValues(
       selectedGranularity.value,
-      defaultMinimumGranularity.value
+      defaultMinimumGranularity.value,
     )
   ) {
     return selectedGranularity;
   }
 
   return defaultMinimumGranularity;
-};
-
-const compareGranularityValues = (a, b) => {
-  if (a === 'year' || b === 'day' || a === b) return 1;
-
-  if (
-    a === 'day' ||
-    (a === 'month' && b === 'year') ||
-    (a === 'week' && ['year', 'month'].includes(b))
-  ) {
-    return -1;
-  }
-
-  return 1;
 };
 
 const comparePeriods = (a, b) => {
@@ -76,18 +54,46 @@ const comparePeriods = (a, b) => {
 
 const getGranularityBasedPeriod = (granularity, period) => {
   if (
-    granularity.value === WEEKLY_GRANULARITY_FILTER.value &&
-    period.label === SEVEN_DAYS_PERIOD_FILTER.label
+    granularity.value === WEEKLY_GRANULARITY_FILTER.value
+    && period.label === SEVEN_DAYS_PERIOD_FILTER.label
   ) {
     return FOURTEEN_DAYS_PERIOD_FILTER;
   }
 
   if (
-    granularity.value === MONTHLY_GRANULARITY_FILTER.value &&
-    period.granularity === 'day'
+    granularity.value === MONTHLY_GRANULARITY_FILTER.value
+    && period.granularity === 'day'
   ) {
     return THREE_MONTHS_PERIOD_FILTER;
   }
 
   return period;
+};
+
+/*
+  * This function is used to get the selected period from the label.
+  * It finds for the period from the provided label.
+  * It then checks for granularity if provided and provides the correct period as per granularity, it is done to avoid sending mismatching period and granularity.
+  * It also checks whether the selected period is greater than the defaultMinimumPeriod.
+*/
+export const getSelectedPeriodFromLabel = (
+  label,
+  defaultMinimumPeriod,
+  granularity,
+) => {
+  if (label === 'All time') return ALL_TIME_PERIOD_FILTER;
+
+  let selectedPeriod = WIDGET_PERIOD_OPTIONS.find(
+    (option) => option.label === label,
+  );
+
+  if (selectedPeriod && granularity) {
+    selectedPeriod = getGranularityBasedPeriod(granularity, selectedPeriod);
+  }
+
+  if (selectedPeriod && comparePeriods(selectedPeriod, defaultMinimumPeriod)) {
+    return selectedPeriod;
+  }
+
+  return defaultMinimumPeriod;
 };
