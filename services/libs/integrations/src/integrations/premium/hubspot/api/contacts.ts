@@ -70,7 +70,9 @@ export const getContacts = async (
             throttler,
           )
 
-          element.organization = company
+          if ((company?.properties as any)?.name) {
+            element.organization = company
+          }
         }
       }
     }
