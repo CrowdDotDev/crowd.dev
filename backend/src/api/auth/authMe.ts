@@ -37,7 +37,10 @@ export default async (req, res) => {
       const segmentService = new SegmentService(req)
       const tenantSubprojects = await segmentService.getTenantSubprojects(tenantUser.tenant)
       const activityTypes = await SegmentService.getTenantActivityTypes(tenantSubprojects)
-      const activityChannels = await SegmentService.getTenantActivityChannels(tenantSubprojects)
+      const activityChannels = await SegmentService.getTenantActivityChannels(
+        tenantUser.tenant,
+        req,
+      )
 
       // TODO: return actual activityTypes using segment information
       tenantUser.tenant.dataValues.settings[0].dataValues = {

@@ -300,6 +300,7 @@ export default class ActivityService extends LoggerBase {
     integrationId: string,
     platform: PlatformType,
     activity: IActivityData,
+    providedSegmentId?: string,
   ): Promise<void> {
     this.log = getChildLogger('ActivityService.processActivity', this.log, {
       integrationId,
@@ -392,8 +393,11 @@ export default class ActivityService extends LoggerBase {
           const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
           const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
 
-          const dbIntegration = await txIntegrationRepo.findById(integrationId)
-          segmentId = dbIntegration.segmentId
+          segmentId = providedSegmentId
+          if (!segmentId) {
+            const dbIntegration = await txIntegrationRepo.findById(integrationId)
+            segmentId = dbIntegration.segmentId
+          }
 
           // find existing activity
           const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)

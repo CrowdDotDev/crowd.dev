@@ -8,6 +8,7 @@ import {
   SqsQueueReceiver,
 } from '@crowd/sqs'
 import {
+  CreateAndProcessActivityResultQueueMessage,
   DataSinkWorkerQueueMessageType,
   IQueueMessage,
   ProcessIntegrationResultQueueMessage,
@@ -44,6 +45,17 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
           await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
           break
+        case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
+          const msg = message as CreateAndProcessActivityResultQueueMessage
+          await service.createAndProcessActivityResult(
+            msg.tenantId,
+            msg.segmentId,
+            msg.integrationId,
+            msg.activityData,
+          )
+          break
+        }
+
         default:
           throw new Error(`Unknown message type: ${message.type}`)
       }

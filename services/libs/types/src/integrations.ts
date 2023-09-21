@@ -13,6 +13,7 @@ export interface IIntegrationStream {
 
 export interface IIntegrationResult {
   type: IntegrationResultType
+  segmentId?: string
   data: unknown
 }
 
