@@ -17,6 +17,17 @@ const MAX_CONCURRENT = 3
 
 const log = getServiceLogger()
 
+async function processStream(
+  streamId: string,
+  service: IntegrationStreamService,
+): Promise<boolean> {
+  try {
+    return await service.processStream(streamId)
+  } catch (err) {
+    return false
+  }
+}
+
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
 
@@ -52,6 +63,8 @@ setImmediate(async () => {
   )
 
   let current = 0
+  let total = 0
+  let errors = 0
   while (results.length > 0) {
     for (const result of results) {
       while (current == MAX_CONCURRENT) {
@@ -62,16 +75,16 @@ setImmediate(async () => {
       log.info(`Processing stream ${streamId}!`)
 
       current++
-      service
-        .processStream(streamId)
-        .then(() => {
-          current--
-          log.info(`Processed stream ${streamId}!`)
-        })
-        .catch((err) => {
-          current--
-          log.error(err, `Error processing stream ${streamId}!`)
-        })
+      processStream(streamId, service).then((res) => {
+        current--
+        if (res) {
+          total++
+        } else {
+          errors++
+        }
+
+        log.info({ res }, `Processed ${total} streams successfully so far! ${errors} errors!`)
+      })
     }
 
     results = await dbConnection.any(
