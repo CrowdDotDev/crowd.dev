@@ -157,6 +157,11 @@ export default class IncomingWebhookRepository extends RepositoryBase<
   async markError(id: string, error: any): Promise<void> {
     const transaction = this.transaction
 
+    const errorPayload = {
+      errorMessage: error.message,
+      errorString: JSON.stringify(error),
+      errorStack: error.stack,
+    }
     const [, rowCount] = await this.seq.query(
       `
       update "incomingWebhooks"
@@ -170,11 +175,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
         replacements: {
           id,
           state: WebhookState.ERROR,
-          error: JSON.stringify({
-            errorMessage: error.message,
-            errorString: JSON.stringify(error.originalError),
-            errorStack: error.stack,
-          }),
+          error: JSON.stringify(errorPayload),
         },
         type: QueryTypes.UPDATE,
         transaction,

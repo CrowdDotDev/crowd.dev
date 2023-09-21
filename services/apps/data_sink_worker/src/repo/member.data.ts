@@ -8,6 +8,7 @@ export interface IDbMember {
   joinedAt: string
   attributes: Record<string, unknown>
   weakIdentities: IMemberIdentity[]
+  tenantId: string
 }
 
 let getMemberColumnSet: DbColumnSet
@@ -15,7 +16,17 @@ export function getSelectMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (getMemberColumnSet) return getMemberColumnSet
 
   getMemberColumnSet = new instance.helpers.ColumnSet(
-    ['id', 'emails', 'score', 'joinedAt', 'reach', 'attributes', 'weakIdentities', 'displayName'],
+    [
+      'id',
+      'emails',
+      'score',
+      'joinedAt',
+      'reach',
+      'attributes',
+      'weakIdentities',
+      'displayName',
+      'tenantId',
+    ],
     {
       table: {
         table: 'members',
