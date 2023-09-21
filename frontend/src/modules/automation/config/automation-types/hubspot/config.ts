@@ -1,5 +1,5 @@
 import { AutomationTypeConfig } from '@/modules/automation/config/automation-types';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import noOfActivities from '@/modules/member/config/filters/noOfActivities/config';
 import activityType from '@/modules/member/config/filters/activityType/config';

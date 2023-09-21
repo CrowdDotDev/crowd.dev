@@ -1,3 +1,5 @@
+import { UnleashClient } from 'unleash-proxy-client';
+import { useLogRocket } from '@/utils/logRocket';
 import config from '@/config';
 import { store } from '@/store';
 
@@ -9,6 +11,7 @@ export const FEATURE_FLAGS = {
   memberEnrichment: 'member-enrichment',
   csvExport: 'csv-export',
   hubspot: 'hubspot',
+  logRocket: 'log-rocket',
 };
 
 class FeatureFlagService {

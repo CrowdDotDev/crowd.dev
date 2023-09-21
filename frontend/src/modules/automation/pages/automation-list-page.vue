@@ -130,7 +130,7 @@ import AppAutomationForm from '@/modules/automation/components/automation-form.v
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';

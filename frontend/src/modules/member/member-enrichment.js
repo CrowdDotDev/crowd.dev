@@ -5,7 +5,7 @@ import { router } from '@/router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { formatNumber } from '@/utils/number';
 import Message from '@/shared/message/message';
-import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
+import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 
 const scaleEnrichmentMax = 10000;
 const growthEnrichmentMax = 1000;
