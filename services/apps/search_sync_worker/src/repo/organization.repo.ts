@@ -45,7 +45,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o."createdAt",
             o."manuallyCreated",
             o.description,
-            o.displayName,
+            o."displayName",
             o.emails,
             o."employeeCountByCountry",
             o.employees,
