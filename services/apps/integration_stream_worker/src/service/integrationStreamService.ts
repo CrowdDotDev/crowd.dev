@@ -169,7 +169,7 @@ export default class IntegrationStreamService extends LoggerBase {
     }
   }
 
-  public async processWebhookStream(webhookId: string): Promise<void> {
+  public async processWebhookStream(webhookId: string): Promise<boolean> {
     this.log.debug({ webhookId }, 'Trying to process webhook!')
 
     // get webhook info
@@ -363,19 +363,26 @@ export default class IntegrationStreamService extends LoggerBase {
       this.log.debug('Finished processing webhook stream!')
       await this.repo.deleteStream(streamId)
       await this.webhookRepo.markWebhookProcessed(webhookId)
+      return true
     } catch (err) {
       this.log.error(err, 'Error while processing webhook stream!')
-      await this.triggerStreamError(
-        streamInfo,
-        'webhook-stream-process',
-        'Error while processing webhook stream!',
-        undefined,
-        err,
-      )
+      try {
+        await this.triggerStreamError(
+          streamInfo,
+          'webhook-stream-process',
+          'Error while processing webhook stream!',
+          undefined,
+          err,
+        )
+      } catch (err2) {
+        this.log.error(err2, 'Error while triggering stream error!')
+      }
+
+      return false
     }
   }
 
-  public async processStream(streamId: string): Promise<void> {
+  public async processStream(streamId: string): Promise<boolean> {
     this.log.debug({ streamId }, 'Trying to process stream!')
 
     const streamInfo = await this.repo.getStreamData(streamId)
@@ -523,15 +530,22 @@ export default class IntegrationStreamService extends LoggerBase {
       await integrationService.processStream(context)
       this.log.debug('Finished processing stream!')
       await this.repo.deleteStream(streamId)
+      return true
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
-      await this.triggerStreamError(
-        streamInfo,
-        'stream-process',
-        'Error while processing stream!',
-        undefined,
-        err,
-      )
+      try {
+        await this.triggerStreamError(
+          streamInfo,
+          'stream-process',
+          'Error while processing stream!',
+          undefined,
+          err,
+        )
+      } catch (err2) {
+        this.log.error(err2, 'Error while triggering stream error!')
+      }
+
+      return false
     } finally {
       await this.runWorkerEmitter.streamProcessed(
         streamInfo.tenantId,
