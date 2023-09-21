@@ -57,6 +57,7 @@ export const getContacts = async (
           HubspotAssociationType.CONTACT_TO_COMPANY,
           element.id,
           ctx,
+          throttler,
         )
 
         if (companyAssociations.length > 0) {
