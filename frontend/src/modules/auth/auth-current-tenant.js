@@ -1,5 +1,5 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 
 /**
