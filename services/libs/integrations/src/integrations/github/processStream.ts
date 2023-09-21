@@ -1,43 +1,41 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 // processStream.ts content
+import { singleOrDefault, timeout } from '@crowd/common'
+import { GraphQlQueryResponse } from '@crowd/types'
+import { createAppAuth } from '@octokit/auth-app'
+import { AuthInterface } from '@octokit/auth-app/dist-types/types'
 import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
-import {
-  GithubStreamType,
-  GithubRootStream,
-  Repos,
-  GithubBasicStream,
-  Repo,
-  GithubIntegrationSettings,
-  GithubApiData,
-  AppTokenResponse,
-  GithubPlatformSettings,
-  GithubPrepareMemberOutput,
-  GithubPullRequestEvents,
-  GithubActivityType,
-  GithubActivitySubType,
-} from './types'
-import StargazersQuery from './api/graphql/stargazers'
+import DiscussionCommentsQuery from './api/graphql/discussionComments'
+import DiscussionsQuery from './api/graphql/discussions'
 import ForksQuery from './api/graphql/forks'
-import PullRequestsQuery from './api/graphql/pullRequests'
+import IssueCommentsQuery from './api/graphql/issueComments'
+import IssuesQuery from './api/graphql/issues'
+import getMember from './api/graphql/members'
+import getOrganization from './api/graphql/organizations'
 import PullRequestCommentsQuery from './api/graphql/pullRequestComments'
 import PullRequestCommitsQuery, { PullRequestCommit } from './api/graphql/pullRequestCommits'
-import PullRequestReviewThreadsQuery from './api/graphql/pullRequestReviewThreads'
-import PullRequestReviewThreadCommentsQuery from './api/graphql/pullRequestReviewThreadComments'
 import PullRequestCommitsQueryNoAdditions, {
   PullRequestCommitNoAdditions,
 } from './api/graphql/pullRequestCommitsNoAdditions'
-import IssuesQuery from './api/graphql/issues'
-import IssueCommentsQuery from './api/graphql/issueComments'
-import DiscussionsQuery from './api/graphql/discussions'
-import DiscussionCommentsQuery from './api/graphql/discussionComments'
-import { singleOrDefault } from '@crowd/common'
-import { timeout } from '@crowd/common'
-import { GraphQlQueryResponse } from '@crowd/types'
-import getOrganization from './api/graphql/organizations'
-import getMember from './api/graphql/members'
+import PullRequestReviewThreadCommentsQuery from './api/graphql/pullRequestReviewThreadComments'
+import PullRequestReviewThreadsQuery from './api/graphql/pullRequestReviewThreads'
+import PullRequestsQuery from './api/graphql/pullRequests'
+import StargazersQuery from './api/graphql/stargazers'
 import { getAppToken } from './api/rest/getAppToken'
-import { createAppAuth } from '@octokit/auth-app'
-import { AuthInterface } from '@octokit/auth-app/dist-types/types'
+import {
+  GithubActivitySubType,
+  GithubActivityType,
+  GithubApiData,
+  GithubBasicStream,
+  GithubIntegrationSettings,
+  GithubPlatformSettings,
+  GithubPrepareMemberOutput,
+  GithubPullRequestEvents,
+  GithubRootStream,
+  GithubStreamType,
+  Repo,
+  Repos,
+} from './types'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
@@ -62,42 +60,46 @@ function getAuth(ctx: IProcessStreamContext): AuthInterface | undefined {
   return githubAuthenticator
 }
 
-const getTokenFromCache = async (ctx: IProcessStreamContext) => {
-  const key = 'github-token-cache'
-  const cache = ctx.integrationCache // this cache is tied up with integrationId
+// const getTokenFromCache = async (ctx: IProcessStreamContext) => {
+//   const key = 'github-token-cache'
+//   const cache = ctx.integrationCache // this cache is tied up with integrationId
 
-  const token = await cache.get(key)
+//   const token = await cache.get(key)
 
-  if (token) {
-    return JSON.parse(token)
-  } else {
-    return null
-  }
-}
+//   if (token) {
+//     return JSON.parse(token)
+//   } else {
+//     return null
+//   }
+// }
 
-const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenResponse) => {
-  const key = 'github-token-cache'
-  const cache = ctx.integrationCache // this cache is tied up with integrationId
+// const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenResponse) => {
+//   const key = 'github-token-cache'
+//   const cache = ctx.integrationCache // this cache is tied up with integrationId
 
-  // cache for 5 minutes
-  await cache.set(key, JSON.stringify(token), 5 * 60)
-}
+//   // cache for 5 minutes
+//   await cache.set(key, JSON.stringify(token), 5 * 60)
+// }
 
 export async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
   const auth = getAuth(ctx)
   if (auth) {
-    let appToken: AppTokenResponse
-    const tokenFromCache = await getTokenFromCache(ctx)
-    if (tokenFromCache) {
-      appToken = tokenFromCache
-    } else {
-      // no token or it expired (more 5 minutes)
-      const authResponse = await auth({ type: 'app' })
-      const jwtToken = authResponse.token
-      appToken = await getAppToken(jwtToken, ctx.integration.identifier)
-    }
+    // let appToken: AppTokenResponse
+    // const tokenFromCache = await getTokenFromCache(ctx)
+    // if (tokenFromCache) {
+    //   appToken = tokenFromCache
+    // } else {
+    //   // no token or it expired (more 5 minutes)
+    //   const authResponse = await auth({ type: 'app' })
+    //   const jwtToken = authResponse.token
+    //   appToken = await getAppToken(jwtToken, ctx.integration.identifier)
+    // }
 
-    await setTokenToCache(ctx, appToken)
+    // await setTokenToCache(ctx, appToken)
+
+    const authResponse = await auth({ type: 'app' })
+    const jwtToken = authResponse.token
+    const appToken = await getAppToken(jwtToken, ctx.integration.identifier)
 
     return appToken.token
   }
@@ -566,11 +568,10 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
 
   const data = ctx.stream.data as GithubBasicStream
   const pullRequestNumber = data.prNumber
-  const pullRequestCommitsQuery = new PullRequestCommitsQuery(
-    data.repo,
-    pullRequestNumber,
-    ctx.integration.token,
-  )
+
+  const token = await getGithubToken(ctx)
+
+  const pullRequestCommitsQuery = new PullRequestCommitsQuery(data.repo, pullRequestNumber, token)
 
   try {
     result = await pullRequestCommitsQuery.getSinglePage(data.page)

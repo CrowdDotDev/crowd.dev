@@ -1,4 +1,4 @@
-import LogRocket from 'logrocket';
+import { useLogRocket } from '@/utils/logRocket';
 import { i18n, i18nExists } from '@/i18n';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
@@ -43,13 +43,13 @@ function selectErrorCode(error) {
 
 export default class Errors {
   static handle(error) {
+    const { captureException } = useLogRocket();
+
+    captureException(error);
+
     if (import.meta.env.NODE_ENV !== 'test') {
       console.error(selectErrorMessage(error));
       console.error(error);
-    }
-
-    if (config.env === 'production') {
-      LogRocket.captureException(error);
     }
 
     if (selectErrorCode(error) === 401) {

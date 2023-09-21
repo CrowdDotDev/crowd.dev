@@ -27,10 +27,11 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/types": "file:../types",
-    "@crowd/logging": "file:../logging",
-    "@crowd/common": "file:../common",
     "@aws-sdk/client-sqs": "^3.332.0",
-    "@aws-sdk/types": "^3.329.0"
+    "@aws-sdk/types": "^3.329.0",
+    "@crowd/common": "file:../common",
+    "@crowd/logging": "file:../logging",
+    "@crowd/types": "file:../types",
+    "@smithy/util-retry": "^2.0.1"
   }
 }

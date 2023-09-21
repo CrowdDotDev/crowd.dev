@@ -1,20 +1,20 @@
 <template>
-  <cr-select-filter v-model="form" :config="props.config as SelectFilterConfig" :options="data.options || []" />
+  <cr-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
 </template>
 
 <script setup lang="ts">
 import {
   defineProps, defineEmits, computed, watch,
 } from 'vue';
-import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
+import { storeToRefs } from 'pinia';
+import { useStore } from 'vuex';
+import CrMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
 import {
-  SelectFilterConfig,
-} from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+  MultiSelectFilterConfig,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { useStore } from 'vuex';
 
 const props = defineProps<{
   modelValue: string
