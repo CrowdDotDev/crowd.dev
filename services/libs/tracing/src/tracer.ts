@@ -6,6 +6,11 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
 import { Resource, ResourceAttributes } from '@opentelemetry/resources'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
+import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
+import { SequelizeInstrumentation } from 'opentelemetry-instrumentation-sequelize'
+
 let sdk: NodeSDK | undefined
 let isInitialized = false
 
@@ -44,6 +49,13 @@ export const getServiceTracer = (): Tracer => {
   sdk = new NodeSDK({
     traceExporter: new OTLPTraceExporter(),
     resource: new Resource(attrs),
+    autoDetectResources: true,
+    instrumentations: [
+      new HttpInstrumentation(),
+      new ExpressInstrumentation(),
+      new AwsInstrumentation(),
+      new SequelizeInstrumentation(),
+    ],
   })
 
   isInitialized = true

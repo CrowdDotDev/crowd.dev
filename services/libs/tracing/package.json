@@ -28,10 +28,14 @@
   },
   "dependencies": {
     "@crowd/common": "file:../common",
-    "@opentelemetry/api": "~1.4.1",
-    "@opentelemetry/exporter-trace-otlp-grpc": "~0.41.2",
-    "@opentelemetry/resources": "~1.15.2",
-    "@opentelemetry/sdk-node": "~0.41.2",
-    "@opentelemetry/semantic-conventions": "~1.15.2"
+    "@opentelemetry/api": "~1.6.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "~0.43.0",
+    "@opentelemetry/instrumentation-aws-sdk": "~0.36.0",
+    "@opentelemetry/instrumentation-express": "~0.33.1",
+    "@opentelemetry/instrumentation-http": "~0.43.0",
+    "@opentelemetry/resources": "~1.17.0",
+    "@opentelemetry/sdk-node": "~0.43.0",
+    "@opentelemetry/semantic-conventions": "~1.17.0",
+    "opentelemetry-instrumentation-sequelize": "~0.39.1"
   }
 }
