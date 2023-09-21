@@ -162,15 +162,15 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.STRING_ARR,
     },
     employeeChurnRate: {
-      type: OpensearchFieldType.STRING,
-      objectAsString: true,
+      type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employeeCountByMonth: {
       type: OpensearchFieldType.OBJECT,
     },
     employeeGrowthRate: {
-      type: OpensearchFieldType.STRING,
-      objectAsString: true,
+      type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employeeCountByMonthByLevel: {
       type: OpensearchFieldType.OBJECT,

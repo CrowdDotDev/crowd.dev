@@ -476,13 +476,9 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_arr_directSubsidiaries = data.directSubsidiaries
     p.float_employeeChurnRate12Month = data.employeeChurnRate12Month
     p.float_employeeGrowthRate12Month = data.employeeGrowthRate12Month
-    p.string_employeeChurnRate = data.employeeChurnRate
-      ? JSON.stringify(data.employeeChurnRate)
-      : null
+    p.obj_employeeChurnRate = data.employeeChurnRate
     p.obj_employeeCountByMonth = data.employeeCountByMonth
-    p.string_employeeGrowthRate = data.employeeGrowthRate
-      ? JSON.stringify(data.employeeGrowthRate)
-      : null
+    p.obj_employeeGrowthRate = data.employeeGrowthRate
     p.obj_employeeCountByMonthByLevel = data.employeeCountByMonthByLevel
     p.obj_employeeCountByMonthByRole = data.employeeCountByMonthByRole
     p.string_gicsSector = data.gicsSector
