@@ -139,6 +139,14 @@ function restore_db_backup() {
     say "All done!"
 }
 
+function install_backend_libs() {
+    say "Installing services libraries"
+    (cd $CLI_HOME/../services/scripts && ./install_all_packages.sh && ./build_libs.sh)
+
+    say "Installinb backend libraries"
+    (cd $CLI_HOME/../backend && npm ci)
+}
+
 function scaffold() {
     HELP="${RESET}\nUsage:\n ./cli scaffold [ up | down | destroy | reset ]\n"
 
@@ -592,6 +600,10 @@ do
         ;;
         db-restore)
             restore_db_backup $2
+            exit;
+        ;;
+        install-backend-libs)
+            install_backend_libs
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"
