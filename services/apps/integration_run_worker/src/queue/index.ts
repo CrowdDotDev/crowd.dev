@@ -1,4 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/database'
+import { addTraceToLogFields } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {
@@ -17,6 +18,7 @@ import {
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
+import { Tracer, SpanStatusCode } from '@opentelemetry/api'
 import IntegrationRunService from '../service/integrationRunService'
 
 /* eslint-disable no-case-declarations */
@@ -31,15 +33,24 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
+    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, tracer, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
+    const span = this.tracer.startSpan('processMessage')
+    span.setStatus({
+      code: SpanStatusCode.OK,
+    })
+
     try {
-      this.log.trace({ messageType: message.type }, 'Processing message!')
+      this.log.trace(
+        addTraceToLogFields(span, { messageType: message.type }),
+        'Processing message!',
+      )
 
       const service = new IntegrationRunService(
         this.redisClient,
@@ -76,8 +87,14 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           throw new Error(`Unknown message type: ${message.type}`)
       }
     } catch (err) {
-      this.log.error(err, 'Error while processing message!')
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+      })
+
+      this.log.error(addTraceToLogFields(span, { err }), 'Error while processing message!')
       throw err
+    } finally {
+      span.end()
     }
   }
 }

@@ -9,6 +9,7 @@ LIBRARIES=(
   "types"
   "common"
   "logging"
+  "tracing"
   "database"
   "redis"
   "sqs"

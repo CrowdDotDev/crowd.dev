@@ -9,10 +9,11 @@ import {
   ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
+import { Tracer } from '@opentelemetry/api'
 
 export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public async checkStreams() {

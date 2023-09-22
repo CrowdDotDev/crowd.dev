@@ -7,10 +7,11 @@ import {
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
 } from '@crowd/types'
+import { Tracer } from '@opentelemetry/api'
 
 export class NodejsWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, NODEJS_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, NODEJS_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public override sendMessage(

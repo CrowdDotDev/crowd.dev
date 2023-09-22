@@ -7,10 +7,11 @@ import {
   IActivityData,
   ProcessIntegrationResultQueueMessage,
 } from '@crowd/types'
+import { Tracer } from '@opentelemetry/api'
 
 export class DataSinkWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public async triggerResultProcessing(
