@@ -11,11 +11,45 @@ import {
   getSqsClient,
 } from '@crowd/sqs'
 import { WebhookType } from '@crowd/types'
-
+import commandLineArgs from 'command-line-args'
+import commandLineUsage from 'command-line-usage'
 const BATCH_SIZE = 100
 const MAX_CONCURRENT = 3
 
 const log = getServiceLogger()
+
+const options = [
+  {
+    name: 'tenant',
+    alias: 't',
+    type: String,
+    description: 'The unique ID of tenant.',
+  },
+  {
+    name: 'help',
+    alias: 'h',
+    type: Boolean,
+    description: 'Print this usage guide.',
+  },
+]
+const sections = [
+  {
+    header: 'Update tenant plan',
+    content: 'Updates tenant plan.',
+  },
+  {
+    header: 'Options',
+    optionList: options,
+  },
+]
+
+const usage = commandLineUsage(sections)
+const parameters = commandLineArgs(options)
+
+if (parameters.help || !parameters.tenant) {
+  console.log(usage)
+  process.exit(1)
+}
 
 async function processWebhook(
   webhookId: string,
@@ -52,11 +86,21 @@ setImmediate(async () => {
     log,
   )
 
+  const conditions = [
+    `state in ('PENDING', 'ERROR') and type not in ('${WebhookType.DISCOURSE}', '${WebhookType.CROWD_GENERATED}')`,
+  ]
+  const params: Record<string, unknown> = {}
+
+  if (parameters.tenant) {
+    conditions.push(`"tenantId" = $(tenantId)`)
+    params.tenantId = parameters.tenant
+  }
+
   let results = await dbConnection.any(
     `
     select id
     from "incomingWebhooks"
-    where state in ('PENDING', 'ERROR') and type not in ('${WebhookType.DISCOURSE}', '${WebhookType.CROWD_GENERATED}')
+    where ${conditions.join(' and ')}
     order by 
     case when state = 'PENDING' then 1
     else 2
@@ -64,6 +108,7 @@ setImmediate(async () => {
     id
     limit ${BATCH_SIZE};
     `,
+    params,
   )
 
   let current = 0
@@ -94,7 +139,7 @@ setImmediate(async () => {
       `
       select id
       from "incomingWebhooks"
-      where state in ('PENDING', 'ERROR') and type not in ('${WebhookType.DISCOURSE}', '${WebhookType.CROWD_GENERATED}')
+      where ${conditions.join(' and ')}
       and id > $(lastId)
       order by
       case when state = 'PENDING' then 1
@@ -103,9 +148,9 @@ setImmediate(async () => {
       id
       limit ${BATCH_SIZE};
       `,
-      {
+      Object.assign({}, params, {
         lastId: results[results.length - 1].id,
-      },
+      }),
     )
   }
 
