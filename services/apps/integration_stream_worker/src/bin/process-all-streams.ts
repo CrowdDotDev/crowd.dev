@@ -64,7 +64,7 @@ async function processStream(
   }
 }
 
-if (parameters.help || !(parameters.tenant && parameters.integration)) {
+if (parameters.help || (!parameters.tenant && !parameters.integration)) {
   console.log(usage)
   process.exit(1)
 }

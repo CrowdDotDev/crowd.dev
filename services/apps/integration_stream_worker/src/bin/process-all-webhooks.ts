@@ -26,6 +26,12 @@ const options = [
     description: 'The unique ID of tenant.',
   },
   {
+    name: 'type',
+    alias: 'p',
+    type: String,
+    description: 'Webhook type.',
+  },
+  {
     name: 'help',
     alias: 'h',
     type: Boolean,
@@ -46,7 +52,7 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || !parameters.tenant) {
+if (parameters.help || (!parameters.tenant && !parameters.type)) {
   console.log(usage)
   process.exit(1)
 }
