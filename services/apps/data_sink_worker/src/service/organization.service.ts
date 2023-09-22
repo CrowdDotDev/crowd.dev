@@ -314,7 +314,7 @@ export class OrganizationService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     domain: string,
-  ): Promise<IDbOrganization> {
+  ): Promise<IOrganization> {
     return await this.repo.findOrCreateByDomain(tenantId, segmentId, domain)
   }
 

@@ -296,7 +296,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     segmentId: string,
     domain: string,
-  ): Promise<IDbOrganization> {
+  ): Promise<IOrganization> {
     const results = await this.db().any(
       `
       SELECT
