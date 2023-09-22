@@ -15,11 +15,13 @@ import { getAllCompanies } from './api/companies'
 import { RequestThrottler } from '@crowd/common'
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
-  const throttler = new RequestThrottler(100, 10000, ctx.log)
+  const throttler = new RequestThrottler(9, 1100, ctx.log)
 
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
 
-  if (ctx.stream.identifier === HubspotStream.MEMBERS) {
+  const streams = ctx.stream.data as HubspotStream[]
+
+  if (streams.includes(HubspotStream.MEMBERS)) {
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
       settings.hubspotId,
@@ -66,7 +68,9 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       contactsPage = await contactsGenerator.next()
     }
-  } else if (ctx.stream.identifier === HubspotStream.ORGANIZATIONS) {
+  }
+
+  if (streams.includes(HubspotStream.ORGANIZATIONS)) {
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.ORGANIZATIONS,
       settings.hubspotId,
@@ -96,8 +100,6 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       companyPage = await companyGenerator.next()
     }
-  } else {
-    await ctx.abortWithError(`Unknown root stream identifier: ${ctx.stream.identifier}`)
   }
 }
 

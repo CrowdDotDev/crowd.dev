@@ -80,6 +80,8 @@ export class MemberSyncService extends LoggerBase {
 
     const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)
 
+    this.log.info(`Syncing member ${memberId} to ${integration.platform} remote!`)
+
     if (service.processSyncRemote) {
       const context: IIntegrationProcessRemoteSyncContext = {
         integration,
@@ -150,7 +152,7 @@ export class MemberSyncService extends LoggerBase {
       while (markedMembers.length > 0) {
         const memberToSync = markedMembers.shift()
 
-        this.log.trace(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
+        this.log.info(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
 
         // find member in opensearch
         const query = {
@@ -379,7 +381,7 @@ export class MemberSyncService extends LoggerBase {
         while (translatedMembers.length > 0) {
           const memberToSync = translatedMembers.shift()
 
-          this.log.trace(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
+          this.log.info(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
 
           let syncRemote = await this.memberRepo.findSyncRemote(
             memberToSync.id,
@@ -524,7 +526,7 @@ export class MemberSyncService extends LoggerBase {
       while (organizationMembers.length > 0) {
         const memberToSync = organizationMembers.shift()
 
-        this.log.trace(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
+        this.log.info(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
         const member = await this.memberRepo.findMember(memberToSync.memberId)
 
         let syncRemote = await this.memberRepo.findSyncRemote(

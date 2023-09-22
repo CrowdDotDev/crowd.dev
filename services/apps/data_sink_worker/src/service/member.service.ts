@@ -1,6 +1,11 @@
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
-import { firstArrayContainsSecondArray, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import {
+  firstArrayContainsSecondArray,
+  isObjectEmpty,
+  singleOrDefault,
+  isDomainExcluded,
+} from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -17,6 +22,7 @@ import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '@/repo/integration.repo'
 import { OrganizationService } from './organization.service'
+import uniqby from 'lodash.uniqby'
 
 export default class MemberService extends LoggerBase {
   constructor(
@@ -97,7 +103,9 @@ export default class MemberService extends LoggerBase {
         }
 
         if (organizations.length > 0) {
-          await orgService.addToMember(tenantId, segmentId, id, organizations)
+          // remove dups
+          const uniqOrganizations = uniqby(organizations, 'id')
+          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
         }
 
         return {
@@ -217,7 +225,9 @@ export default class MemberService extends LoggerBase {
         }
 
         if (organizations.length > 0) {
-          await orgService.addToMember(tenantId, segmentId, id, organizations)
+          // remove dups
+          const uniqOrganizations = uniqby(organizations, 'id')
+          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
           updated = true
         }
 
@@ -250,13 +260,15 @@ export default class MemberService extends LoggerBase {
     for (const email of emails) {
       if (email) {
         const domain = email.split('@')[1]
-        emailDomains.add(domain)
+        if (!isDomainExcluded(domain)) {
+          emailDomains.add(domain)
+        }
       }
     }
 
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
-      const org = await orgService.findByDomain(tenantId, segmentId, domain as string)
+      const org = await orgService.findOrCreateByDomain(tenantId, segmentId, domain as string)
       if (org) {
         organizations.push({
           ...org,
