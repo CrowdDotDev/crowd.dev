@@ -202,8 +202,9 @@ const fetch = (page) => {
       [organizationsToMerge.value] = res.rows;
       const { organizations } = organizationsToMerge.value;
       // Set organization with maximum identities and activities as primary
-      if ((organizations[0].identities.length < organizations[1].identities.length)
-        || (organizations[0].activityCount < organizations[1].activityCount)) {
+      const [firstOrganization, secondOrganization] = organizations;
+      if (firstOrganization && secondOrganization && ((firstOrganization.identities.length < secondOrganization.identities.length)
+        || (firstOrganization.activityCount < secondOrganization.activityCount))) {
         primary.value = 1;
       }
     })
