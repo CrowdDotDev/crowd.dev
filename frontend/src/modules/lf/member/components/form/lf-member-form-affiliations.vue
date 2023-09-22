@@ -60,7 +60,7 @@
                       <el-option
                         v-for="organization in availableOrganizations"
                         :key="organization.id"
-                        :label="organization.name"
+                        :label="organization.displayName || organization.name"
                         :value="organization.id"
                         class="!px-3"
                       >
@@ -71,7 +71,7 @@
                             :alt="`${organization.name} Logo`"
                             class="w-5 h-5"
                           />
-                          <div>{{ organization.name }}</div>
+                          <div>{{ organization.displayName || organization.name }}</div>
                         </div>
                       </el-option>
                     </el-select>
