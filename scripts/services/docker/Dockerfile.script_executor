@@ -19,7 +19,7 @@ COPY ./services/libs/redis/package.json ./services/libs/redis/package-lock.json 
 COPY ./services/libs/sentiment/package.json ./services/libs/sentiment/package-lock.json ./services/libs/sentiment/
 COPY ./services/libs/sqs/package.json ./services/libs/sqs/package-lock.json ./services/libs/sqs/
 COPY ./services/libs/types/package.json ./services/libs/types/package-lock.json ./services/libs/types/
-RUN ./services/scripts/install_lib_packages.sh && ./services/scripts/build_libs.sh
+RUN ./services/scripts/install_lib_packages.sh
 
 # prepare new services
 COPY ./services/apps/data_sink_worker/package.json ./services/apps/data_sink_worker/package-lock.json ./services/apps/data_sink_worker/
@@ -37,6 +37,7 @@ RUN (cd backend && npm ci)
 
 COPY ./backend ./backend
 COPY ./services/libs ./services/libs
+RUN ./services/scripts/build_libs.sh
 COPY ./services/apps ./services/apps
 
 RUN npm cache clean --force
