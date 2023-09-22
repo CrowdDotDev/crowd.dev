@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IFailedResultData, IResultData } from './dataSink.data'
-import { IntegrationResultState } from '@crowd/types'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -31,6 +31,28 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   public async getResultInfo(resultId: string): Promise<IResultData | null> {
     const result = await this.db().oneOrNone(this.getResultInfoQuery, { resultId })
     return result
+  }
+
+  public async createResult(
+    tenantId: string,
+    integrationId: string,
+    result: IIntegrationResult,
+  ): Promise<string> {
+    const results = await this.db().one(
+      `
+    insert into integration.results(state, data, "tenantId", "integrationId")
+    values($(state), $(data), $(tenantId), $(integrationId))
+    returning id;
+    `,
+      {
+        tenantId,
+        integrationId,
+        state: IntegrationResultState.PENDING,
+        data: JSON.stringify(result),
+      },
+    )
+
+    return results.id
   }
 
   public async markResultInProgress(resultId: string): Promise<void> {

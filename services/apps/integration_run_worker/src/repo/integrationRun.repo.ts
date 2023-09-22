@@ -247,7 +247,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
 
   public async markIntegration(runId: string, state: string): Promise<void> {
     const result = await this.db().result(
-      `update integrations set status = $(state) where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)`,
+      `update integrations set status = $(state), "updatedAt" = now() where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)`,
       {
         runId,
         state,

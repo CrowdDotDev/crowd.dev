@@ -1164,10 +1164,11 @@ export default class IntegrationService {
       const integrations = await this.findAllByPlatform(PlatformType.GIT)
       return integrations.reduce((acc, integration) => {
         const {
+          id,
           segmentId,
           settings: { remotes },
         } = integration
-        acc[segmentId] = remotes
+        acc[segmentId] = { remotes, integrationId: id }
         return acc
       }, {})
     } catch (err) {
