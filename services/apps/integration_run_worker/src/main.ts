@@ -1,6 +1,6 @@
 import { getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
 import { getServiceTracer } from '@crowd/tracing'
+import { getServiceLogger } from '@crowd/logging'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,

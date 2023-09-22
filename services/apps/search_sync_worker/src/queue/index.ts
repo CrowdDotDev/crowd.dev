@@ -4,6 +4,7 @@ import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { BatchProcessor } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/database'
+import { Tracer } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
@@ -20,6 +21,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     client: SqsClient,
     private readonly dbConn: DbConnection,
     private readonly openSearchService: OpenSearchService,
+    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
@@ -27,6 +29,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       client,
       SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
       maxConcurrentProcessing,
+      tracer,
       parentLog,
       true,
       5 * 60,

@@ -9,7 +9,7 @@ import {
   ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
-import { Tracer } from '@opentelemetry/api'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {

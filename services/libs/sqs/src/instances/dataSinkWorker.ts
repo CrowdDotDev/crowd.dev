@@ -7,7 +7,7 @@ import {
   IActivityData,
   ProcessIntegrationResultQueueMessage,
 } from '@crowd/types'
-import { Tracer } from '@opentelemetry/api'
+import { Tracer } from '@crowd/tracing'
 
 export class DataSinkWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {

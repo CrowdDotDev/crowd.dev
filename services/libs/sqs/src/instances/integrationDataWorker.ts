@@ -3,7 +3,7 @@ import { INTEGRATION_DATA_WORKER_QUEUE_SETTINGS } from '../config'
 import { SqsQueueEmitter } from '../queue'
 import { SqsClient } from '../types'
 import { ProcessStreamDataQueueMessage } from '@crowd/types'
-import { Tracer } from '@opentelemetry/api'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationDataWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {

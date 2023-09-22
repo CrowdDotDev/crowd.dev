@@ -21,6 +21,7 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",
+    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
     "@crowd/opensearch": "file:../../libs/opensearch",
     "@crowd/integrations": "file:../../libs/integrations",

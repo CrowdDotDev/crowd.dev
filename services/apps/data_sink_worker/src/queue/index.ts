@@ -1,4 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/database'
+import { Tracer } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import {
   DATA_SINK_WORKER_QUEUE_SETTINGS,
@@ -23,10 +24,11 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
+    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, tracer, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

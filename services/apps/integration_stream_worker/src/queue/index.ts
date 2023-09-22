@@ -1,4 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/database'
+import { Tracer } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import {
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
@@ -26,10 +27,17 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly dataWorkerEmitter: IntegrationDataWorkerEmitter,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(
+      client,
+      INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
+      maxConcurrentProcessing,
+      tracer,
+      parentLog,
+    )
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

@@ -1,5 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/database'
-import { addTraceToLogFields } from '@crowd/tracing'
+import { addTraceToLogFields, Tracer, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {
@@ -18,7 +18,6 @@ import {
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
-import { Tracer, SpanStatusCode } from '@opentelemetry/api'
 import IntegrationRunService from '../service/integrationRunService'
 
 /* eslint-disable no-case-declarations */

@@ -11,7 +11,7 @@ import { Logger, LoggerBase } from '@crowd/logging'
 import { deleteMessage, receiveMessage, sendMessage, sendMessagesBulk } from './client'
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
 import { IQueueMessage, ISqsQueueEmitter } from '@crowd/types'
-import { Tracer } from '@opentelemetry/api'
+import { Tracer } from '@crowd/tracing'
 
 export abstract class SqsQueueBase extends LoggerBase {
   private readonly queueName: string

@@ -1,7 +1,7 @@
 import { Logger } from '@crowd/logging'
 import { AutomationSyncTrigger, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
 import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
-import { Tracer } from '@opentelemetry/api'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {

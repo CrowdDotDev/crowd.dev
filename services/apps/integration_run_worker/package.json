@@ -29,7 +29,6 @@
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
-    "@opentelemetry/api": "~1.6.0",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
     "config": "^3.3.9",

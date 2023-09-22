@@ -8,7 +8,7 @@ import {
   StartIntegrationRunQueueMessage,
   CheckRunsQueueMessage,
 } from '@crowd/types'
-import { Tracer } from '@opentelemetry/api'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
   constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {

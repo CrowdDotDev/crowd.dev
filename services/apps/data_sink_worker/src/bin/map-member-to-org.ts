@@ -1,5 +1,6 @@
 import { DB_CONFIG, SQS_CONFIG } from '@/conf'
 import { DbStore, getDbConnection } from '@crowd/database'
+import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import {
   DataSinkWorkerEmitter,
@@ -12,6 +13,7 @@ import MemberService from '@/service/member.service'
 import DataSinkRepository from '@/repo/dataSink.repo'
 import { OrganizationService } from '@/service/organization.service'
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -25,7 +27,7 @@ const memberId = processArguments[0]
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new DataSinkWorkerEmitter(sqsClient, log)
+  const emitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
   await emitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())
@@ -34,10 +36,10 @@ setImmediate(async () => {
   const dataSinkRepo = new DataSinkRepository(store, log)
   const memberRepo = new MemberRepository(store, log)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, log)
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
   await nodejsWorkerEmitter.init()
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
   await searchSyncWorkerEmitter.init()
 
   const memberService = new MemberService(store, nodejsWorkerEmitter, searchSyncWorkerEmitter, log)

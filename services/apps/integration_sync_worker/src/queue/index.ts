@@ -2,6 +2,7 @@ import { MemberSyncService } from '@/service/member.sync.service'
 import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { DbConnection, DbStore } from '@crowd/database'
+import { Tracer } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import {
@@ -16,10 +17,17 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     client: SqsClient,
     private readonly dbConn: DbConnection,
     private readonly openSearchClient: Client,
+    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+    super(
+      client,
+      INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
+      maxConcurrentProcessing,
+      tracer,
+      parentLog,
+    )
   }
 
   private initMemberService(): MemberSyncService {
