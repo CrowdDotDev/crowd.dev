@@ -32,6 +32,8 @@
     "@crowd/types": "file:../../libs/types",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
+    "command-line-args": "^5.2.1",
+    "command-line-usage": "^7.0.1",
     "config": "^3.3.9",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
@@ -39,9 +41,9 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "concurrently": "^8.0.1",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
+    "concurrently": "^8.0.1",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
