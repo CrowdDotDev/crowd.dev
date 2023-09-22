@@ -34,7 +34,7 @@ const options = [
   },
   {
     name: 'type',
-    alias: 'tp',
+    alias: 'p',
     typeLabel: '{underline type}',
     type: String,
     description: 'The webhook type to process. Use in combination with tenant.',
@@ -105,28 +105,28 @@ if (parameters.help || (!parameters.webhook && (!parameters.tenant || !parameter
         for (const webhookId of ids) {
           log.info({ webhookId }, 'Webhook found - processing!')
           await integrationProcessorInstance.processWebhook(webhookId, true, true)
-
-          ids = (
-            await seq.query(
-              `
-            select id from "incomingWebhooks"
-            where state in ('PENDING', 'ERROR')
-            and "tenantId" = :tenantId and type = :type
-            and id > :id
-            order by id
-            limit 100
-          `,
-              {
-                type: QueryTypes.SELECT,
-                replacements: {
-                  tenantId: parameters.tenant,
-                  type: parameters.type,
-                  id: ids[ids.length - 1],
-                },
-              },
-            )
-          ).map((r) => (r as any).id)
         }
+
+        ids = (
+          await seq.query(
+            `
+          select id from "incomingWebhooks"
+          where state in ('PENDING', 'ERROR')
+          and "tenantId" = :tenantId and type = :type
+          and id > :id
+          order by id
+          limit 100
+        `,
+            {
+              type: QueryTypes.SELECT,
+              replacements: {
+                tenantId: parameters.tenant,
+                type: parameters.type,
+                id: ids[ids.length - 1],
+              },
+            },
+          )
+        ).map((r) => (r as any).id)
       }
     }
 
