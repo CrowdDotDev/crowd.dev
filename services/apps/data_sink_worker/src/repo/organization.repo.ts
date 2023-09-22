@@ -323,11 +323,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         organizations o
       WHERE
         o."tenantId" = $(tenantId) AND 
-        (
-          o.website ILIKE $(protocolDomain) OR
-          o.website ILIKE $(domainWithWww) OR
-          o.website ILIKE $(domain)
-        ) AND
+        o.website = $(domain) AND
         o.id IN (
           SELECT os."organizationId"
           FROM "organizationSegments" os
@@ -336,8 +332,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `,
       {
         tenantId,
-        protocolDomain: `%://${domain}`,
-        domainWithWww: `%://www.${domain}`,
         domain,
         segmentId,
       },
