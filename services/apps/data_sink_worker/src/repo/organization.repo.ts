@@ -296,11 +296,29 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     segmentId: string,
     domain: string,
-  ): Promise<IOrganization> {
-    let results = await this.db().any(
+  ): Promise<IDbOrganization> {
+    const results = await this.db().any(
       `
       SELECT
         o.id,
+        o.description,
+        o.emails,
+        o.logo,
+        o.tags,
+        o.github,
+        o.twitter,
+        o.linkedin,
+        o.crunchbase,
+        o.employees,
+        o.location,
+        o.website,
+        o.type,
+        o.size,
+        o.headline,
+        o.industry,
+        o.founded,
+        o.attributes,
+        o."weakIdentities"
       FROM
         organizations o
       WHERE
@@ -329,13 +347,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       const data = {
         displayName: domain,
         website: domain,
-        url: null,
         identities: [
           {
             platform: 'email',
             name: domain,
           },
         ],
+        url: null,
         description: null,
         emails: null,
         logo: null,
@@ -354,7 +372,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         attributes: null,
         weakIdentities: [],
       }
-      results = [await this.insert(tenantId, data)]
+
+      const orgId = await this.insert(tenantId, data)
+
+      return {
+        id: orgId,
+        ...data,
+      }
     }
 
     results.sort((a, b) => {

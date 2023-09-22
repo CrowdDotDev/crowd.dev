@@ -22,6 +22,7 @@ import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '@/repo/integration.repo'
 import { OrganizationService } from './organization.service'
+import lodash from 'lodash'
 
 export default class MemberService extends LoggerBase {
   constructor(
@@ -102,7 +103,9 @@ export default class MemberService extends LoggerBase {
         }
 
         if (organizations.length > 0) {
-          await orgService.addToMember(tenantId, segmentId, id, organizations)
+          // remove dups
+          const uniqOrganizations = lodash.uniqBy(organizations, 'id')
+          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
         }
 
         return {

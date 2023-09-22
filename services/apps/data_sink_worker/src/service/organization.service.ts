@@ -1,7 +1,7 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import IntegrationRepository from '@/repo/integration.repo'
-import { IDbInsertOrganizationCacheData } from '@/repo/organization.data'
+import { IDbInsertOrganizationCacheData, IDbOrganization } from '@/repo/organization.data'
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -314,7 +314,7 @@ export class OrganizationService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     domain: string,
-  ): Promise<IOrganization> {
+  ): Promise<IDbOrganization> {
     return await this.repo.findOrCreateByDomain(tenantId, segmentId, domain)
   }
 

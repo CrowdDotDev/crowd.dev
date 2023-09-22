@@ -101,6 +101,8 @@ const excludeDomains = [
   'bigpond.net.au',
   'protonmail.com',
   'proton.me',
+  'pm.me',
+  'duck.com',
   'zoho.com',
 ]
 

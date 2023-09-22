@@ -1296,23 +1296,21 @@ class OrganizationRepository {
     })
 
     if (!organization) {
-      organization = await options.database.organization.create(
-        {
-          displayName: domain,
-          website: domain,
-          identities: [
-            {
-              name: domain,
-              platform: 'email',
-            },
-          ],
-          tenantId: currentTenant.id,
-        },
-        { transaction },
-      )
+      const data = {
+        displayName: domain,
+        website: domain,
+        identities: [
+          {
+            name: domain,
+            platform: 'email',
+          },
+        ],
+        tenantId: currentTenant.id,
+      }
+      organization = await this.create(data, options)
     }
 
-    return organization.get('id')
+    return organization.id
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
