@@ -42,6 +42,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       `${this.selectMemberQuery}
       where "tenantId" = $(tenantId)
       and $(email) = ANY ("emails")
+      limit 1
     `,
       {
         tenantId,
