@@ -24,7 +24,6 @@ import IntegrationRepository from '@/repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
 
-
 export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
