@@ -20,6 +20,7 @@ export const getContacts = async (
   includeOrganizations = false,
   after?: string,
 ): Promise<IPaginatedResponse<IHubspotContact>> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
     url: `https://api.hubapi.com/crm/v3/objects/contacts`,
@@ -70,6 +71,7 @@ export const getContacts = async (
             throttler,
           )
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if ((company?.properties as any)?.name) {
             element.organization = company
           }
