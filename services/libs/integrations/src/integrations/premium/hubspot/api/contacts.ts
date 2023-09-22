@@ -70,6 +70,7 @@ export const getContacts = async (
             throttler,
           )
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if ((company?.properties as any)?.name) {
             element.organization = company
           }
