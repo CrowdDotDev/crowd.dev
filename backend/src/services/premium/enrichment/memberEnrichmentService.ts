@@ -241,6 +241,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(options)
       const member = await memberService.findById(memberId, false, false)
+      console.log('member username one', member.username)
 
       // If the member's GitHub handle or email address is not available, throw an error
       if (!member.username[PlatformType.GITHUB] && member.emails.length === 0) {
@@ -266,10 +267,34 @@ export default class MemberEnrichmentService extends LoggerBase {
         return null
       }
 
+      // To preserve the original member object, creating a deep copy
+      const memberCopy = JSON.parse(JSON.stringify(member))
+      const normalized = await this.normalize(memberCopy, enrichmentData)
+
+      if (normalized.username) {
+        const filteredUsername = Object.keys(normalized.username).reduce((obj, key) => {
+          if (!member.username[key]) {
+            obj[key] = normalized.username[key]
+          }
+          return obj
+        }, {})
+
+        for (const [platform, usernames] of Object.entries(filteredUsername)) {
+          const usernameArray = Array.isArray(usernames) ? usernames : [usernames]
+
+          for (const username of usernameArray) {
+            // Check if a member with this username already exists
+            const existingMember = await memberService.memberExists(username, platform)
+
+            if (existingMember) {
+              await memberService.merge(memberId, existingMember.id)
+            }
+          }
+        }
+      }
+
       // save raw data to cache
       await MemberEnrichmentCacheRepository.upsert(memberId, enrichmentData, options)
-
-      const normalized = await this.normalize(member, enrichmentData)
 
       // We are updating the displayName only if the existing one has one word only
       // And we are using an update here instead of the upsert because
