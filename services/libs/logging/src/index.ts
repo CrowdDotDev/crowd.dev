@@ -5,8 +5,11 @@
 // also allows to leverage automatic instrumentation for other libraries such as
 // Sequelize, Express, and SQS. Details:
 // https://opentelemetry.io/blog/2022/troubleshooting-nodejs/#enable-before-require
+import { IS_TEST_ENV } from '@crowd/common'
 import { getServiceTracer } from '@crowd/tracing'
-getServiceTracer()
+if (!IS_TEST_ENV) {
+  getServiceTracer()
+}
 
 export * from './logError'
 export * from './logger'
