@@ -191,8 +191,14 @@ export default {
 }
 
 .date-picker-popper.custom {
-  .el-date-table td.today .el-date-table-cell .el-date-table-cell__text {
-    @apply text-white;
+  .el-date-table td.today {
+    & .el-date-table-cell .el-date-table-cell__text {
+      @apply text-brand-500;
+    }
+    &.start-date .el-date-table-cell .el-date-table-cell__text,
+    &.end-date .el-date-table-cell .el-date-table-cell__text {
+      @apply text-white;
+    }
   }
 
   .el-picker-panel {
