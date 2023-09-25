@@ -1,6 +1,7 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
+import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
 import {
@@ -39,6 +40,7 @@ import {
 } from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
+import GithubReposRepository from '../database/repositories/githubReposRepository'
 import MemberService from './memberService'
 import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
@@ -321,6 +323,7 @@ export default class IntegrationService {
       const installToken = await IntegrationService.getInstallToken(installId)
 
       const repos = await getInstalledRepositories(installToken)
+      const githubOwner = IntegrationService.extractOwner(repos, this.options)
 
       // TODO: I will do this later. For now they can add it manually.
       // // If the git integration is configured, we add the repos to the git config
@@ -337,14 +340,23 @@ export default class IntegrationService {
       //     remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
       //   })
       // }
+      let orgAvatar
+      try {
+        const response = await request('GET /users/{user}', {
+          user: githubOwner,
+        })
+        orgAvatar = response.data.avatar_url
+      } catch (err) {
+        this.options.log.warn(err, 'Error while fetching GitHub user!')
+      }
 
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GITHUB,
           token,
-          settings: { repos, updateMemberAttributes: true },
+          settings: { repos, updateMemberAttributes: true, orgAvatar },
           integrationIdentifier: installId,
-          status: 'in-progress',
+          status: 'mapping',
         },
         transaction,
       )
@@ -355,19 +367,75 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending GitHub message to int-run-worker!',
-    )
-    const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
-
     return integration
+  }
+
+  static extractOwner(repos, options) {
+    const owners = lodash.countBy(repos, 'owner')
+
+    if (Object.keys(owners).length === 1) {
+      return Object.keys(owners)[0]
+    }
+
+    options.log.warn('Multiple owners found in GitHub repos!', owners)
+
+    // return the owner with the most repos
+    return lodash.maxBy(Object.keys(owners), (owner) => owners[owner])
+  }
+
+  async mapGithubRepos(integrationId, mapping) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+      const integration = await IntegrationRepository.update(
+        integrationId,
+        { status: 'in-progress' },
+        txOptions,
+      )
+
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending GitHub message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
+  async getGithubRepos(integrationId) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      const mapping = await GithubReposRepository.getMapping(integrationId, txOptions)
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return mapping
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
   }
 
   /**
