@@ -30,6 +30,20 @@ export default (sequelize) => {
         isIn: [['member', 'organization', 'activity', 'conversation']],
       },
     },
+    updatedById: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+    deletedById: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+    },
   })
 
   return customView
