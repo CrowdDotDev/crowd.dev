@@ -118,7 +118,7 @@ const platformLabel = computed(() => {
 
 const platformOptions = (platform) => CrowdIntegrations.getConfig(platform);
 if (route.query.selectedPlatforms) {
-  const platformsValues = route.query.selectedPlatforms.split(' ');
+  const platformsValues = route.query.selectedPlatforms.split(',');
   const platforms = platformsValues
     .map((value) => {
       const platform = platformOptions(value);
@@ -148,10 +148,9 @@ const onPlatformChange = (newPlatform) => {
   router.replace({
     query: {
       ...route.query,
-      selectedPlatforms: newPlatform.value.map((v) => v.value).join(' '),
+      selectedPlatforms: newPlatform.value.map((v) => v.value).join(','),
     },
   });
-  console.log({ newPlatform });
   emit('update:platform', newPlatform);
   emit('trackFilters');
 };
