@@ -31,4 +31,7 @@ export default {
       deletions: attributes.deletions,
     }),
   },
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
+  },
 };

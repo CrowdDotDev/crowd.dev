@@ -242,7 +242,7 @@
             <div class="flex gap-3 items-center">
               <app-platform :platform="identity.platform" />
               <span class="text-xs">
-                {{ (identity.url ? identity.url.split('/').at(-1) : identity.name) ?? getPlatformDetails(identity.platform).name }}</span>
+                {{ getPlatformDetails(identity.platform).organization.handle(identity) ?? getPlatformDetails(identity.platform).name }}</span>
             </div>
             <i
               v-if="identity.url"
