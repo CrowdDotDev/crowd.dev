@@ -76,7 +76,7 @@ export class RequestThrottler {
       this.logger.debug(
         `Throttling api requests limit ${this.totalRequests}, waiting ${this.interval}ms`,
       )
-      await new Promise((resolve) => setTimeout(resolve, this.interval))
+      await timeout(this.interval)
       return this.throttle(func)
     }
   }
