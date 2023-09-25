@@ -258,7 +258,7 @@ export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueE
     })
   }
 
-  public async changeMessageVisibility(
+  public async setMessageVisibilityTimeout(
     receiptHandle: string,
     newVisibility: number,
   ): Promise<void> {

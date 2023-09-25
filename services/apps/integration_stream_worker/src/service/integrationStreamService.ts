@@ -508,9 +508,9 @@ export default class IntegrationStreamService extends LoggerBase {
           undefined,
         )
       },
-      changeMessageVisibility: async (newTimeout: number) => {
+      setMessageVisibilityTimeout: async (newTimeout: number) => {
         this.log.trace(`Changing message visibility of ${receiptHandle} to ${newTimeout}!`)
-        await this.streamWorkerEmitter.changeMessageVisibility(receiptHandle, newTimeout)
+        await this.streamWorkerEmitter.setMessageVisibilityTimeout(receiptHandle, newTimeout)
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)
