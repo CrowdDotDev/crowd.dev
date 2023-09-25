@@ -72,6 +72,6 @@ const onSubmit = () => {
 
 <script>
 export default {
-  name: 'AppLfSubProjectsListDropdown',
+  name: 'AppLfSubProjectsListModal',
 };
 </script>
