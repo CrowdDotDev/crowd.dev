@@ -1,5 +1,5 @@
 import { QueryTypes } from 'sequelize'
-import {  getServiceLogger } from '@crowd/logging'
+import { getServiceLogger } from '@crowd/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import OrganizationService from '../../services/organizationService'
 import SegmentRepository from '@/database/repositories/segmentRepository'
@@ -14,13 +14,12 @@ async function mergeOrganizationsWithSameWebsite(): Promise<void> {
 
   const BATCH_SIZE = 500
 
-  let offset 
+  let offset
   let mergeableOrganizations
 
   const seq = SequelizeRepository.getSequelize(dbOptions)
 
   log.info('Querying database for organizations with same website in a tenant..')
-
 
   do {
     offset = mergeableOrganizations ? offset + BATCH_SIZE : 0
@@ -47,18 +46,18 @@ async function mergeOrganizationsWithSameWebsite(): Promise<void> {
       const segmentRepository = new SegmentRepository({
         ...dbOptions,
         currentTenant: {
-          id: orgInfo.tenantId
-        }
+          id: orgInfo.tenantId,
+        },
       })
 
-      const segments  = (await segmentRepository.querySubprojects({ limit: null, offset: 0 })).rows
+      const segments = (await segmentRepository.querySubprojects({ limit: null, offset: 0 })).rows
 
       const service = new OrganizationService({
         ...dbOptions,
         currentTenant: {
-          id: orgInfo.tenantId
+          id: orgInfo.tenantId,
         },
-        currentSegments: segments
+        currentSegments: segments,
       })
 
       const primaryOrganizationId = orgInfo.organizationIds.shift()
@@ -67,9 +66,7 @@ async function mergeOrganizationsWithSameWebsite(): Promise<void> {
         await service.merge(primaryOrganizationId, orgId)
       }
     }
-
   } while (mergeableOrganizations.length > 0)
-
 }
 
 setImmediate(async () => {
