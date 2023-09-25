@@ -171,17 +171,19 @@ export default class IntegrationDataService extends LoggerBase {
         : undefined,
     }
 
-    this.log.debug('Marking data as in progress!')
-    await this.repo.markDataInProgress(dataId)
-    if (dataInfo.runId) {
-      await this.repo.touchRun(dataInfo.runId)
-    }
+    // this.log.debug('Marking data as in progress!')
+    // await this.repo.markDataInProgress(dataId)
+
+    // TODO we might need that later to check for stuck runs
+    // if (dataInfo.runId) {
+    //   await this.repo.touchRun(dataInfo.runId)
+    // }
 
     this.log.debug('Processing data!')
     try {
       await integrationService.processData(context)
       this.log.debug('Finished processing data!')
-      await this.repo.markDataProcessed(dataId)
+      await this.repo.deleteData(dataId)
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
       await this.triggerDataError(
@@ -232,11 +234,14 @@ export default class IntegrationDataService extends LoggerBase {
           frameworkVersion: 'new',
         })
       }
-    } finally {
-      if (dataInfo.runId) {
-        await this.repo.touchRun(dataInfo.runId)
-      }
     }
+
+    // TODO we might need that later to check for stuck runs
+    // finally {
+    //   if (dataInfo.runId) {
+    //     await this.repo.touchRun(dataInfo.runId)
+    //   }
+    // }
   }
 
   private async publishCustom(
@@ -253,7 +258,12 @@ export default class IntegrationDataService extends LoggerBase {
         type,
         data: entity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        resultId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -278,7 +288,12 @@ export default class IntegrationDataService extends LoggerBase {
         type: IntegrationResultType.ACTIVITY,
         data: activity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        activity.sourceId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -326,8 +341,14 @@ export default class IntegrationDataService extends LoggerBase {
       if (streamId) {
         if (runId) {
           await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+        } else if (webhookId) {
+          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
         } else {
-          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, streamId)
+          this.log.error(
+            { tenantId, platform, parentId, identifier, runId, webhookId },
+            'Need either runId or webhookId!',
+          )
+          throw new Error('Need either runId or webhookId!')
         }
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')

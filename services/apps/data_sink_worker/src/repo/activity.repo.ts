@@ -40,7 +40,11 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             channel,
             url,
             sentiment
-    from activities where "tenantId" = $(tenantId) and "segmentId" = $(segmentId) and "sourceId" = $(sourceId)
+    from activities
+    where "tenantId" = $(tenantId)
+      and "segmentId" = $(segmentId)
+      and "sourceId" = $(sourceId)
+      and "deletedAt" is null
   `
   public async findExisting(
     tenantId: string,
@@ -83,7 +87,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       promises.push(
         this.db().none(
           `
-          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) limit 1)
+          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and "deletedAt" IS NULL limit 1)
           where "id" = $(id) and "tenantId" = $(tenantId)
           `,
           {

@@ -3,7 +3,6 @@ import { NODEJS_WORKER_QUEUE_SETTINGS } from '../config'
 import { SqsQueueEmitter } from '../queue'
 import { SqsClient } from '../types'
 import {
-  EnrichMemberOrganizationsQueueMessage,
   IQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
@@ -19,12 +18,6 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
     message: IQueueMessage,
     deduplicationId: string,
   ): Promise<void> {
-    this.log.info(
-      {
-        messageType: message.type,
-      },
-      'Sending nodejs-worker sqs message!',
-    )
     return super.sendMessage(groupId, message, deduplicationId)
   }
 
@@ -34,7 +27,7 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
     segmentId: string,
   ): Promise<void> {
     await this.sendMessage(
-      tenantId,
+      `${activityId}--${segmentId}`,
       new NewActivityAutomationQueueMessage(tenantId, activityId, segmentId),
       `${activityId}--${segmentId}`,
     )
@@ -42,20 +35,9 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
 
   public async processAutomationForNewMember(tenantId: string, memberId: string): Promise<void> {
     await this.sendMessage(
-      tenantId,
+      memberId,
       new NewMemberAutomationQueueMessage(tenantId, memberId),
       memberId,
-    )
-  }
-
-  public async enrichMemberOrganizations(
-    tenantId: string,
-    memberId: string,
-    organizationIds: string[],
-  ): Promise<void> {
-    await super.sendMessage(
-      tenantId,
-      new EnrichMemberOrganizationsQueueMessage(tenantId, memberId, organizationIds),
     )
   }
 }

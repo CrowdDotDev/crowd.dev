@@ -40,25 +40,47 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async getPendingStreams(
     runId: string,
-    page: number,
-    perPage: number,
+    limit: number,
+    lastId?: string,
   ): Promise<IProcessableStream[]> {
-    const results = await this.db().any(
-      `
-        select s.id,
-               s."tenantId",
-               i.platform as "integrationType"
-        from integration.streams s
-        inner join integrations i on i.id = s."integrationId"
-        where s."runId" = $(runId) and s.state = $(state)
-        order by s."createdAt" asc
-        limit ${perPage} offset ${(page - 1) * perPage}
-      `,
-      {
-        runId,
-        state: IntegrationStreamState.PENDING,
-      },
-    )
+    let results: IProcessableStream[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+          select s.id,
+                 s."tenantId",
+                 i.platform as "integrationType"
+          from integration.streams s
+          inner join integrations i on i.id = s."integrationId"
+          where s."runId" = $(runId) and s.state = $(state) and s.id > $(lastId)
+          order by s.id
+          limit ${limit}
+        `,
+        {
+          runId,
+          lastId,
+          state: IntegrationStreamState.PENDING,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+          select s.id,
+                 s."tenantId",
+                 i.platform as "integrationType"
+          from integration.streams s
+          inner join integrations i on i.id = s."integrationId"
+          where s."runId" = $(runId) and s.state = $(state)
+          order by s.id
+          limit ${limit}
+        `,
+        {
+          runId,
+          state: IntegrationStreamState.PENDING,
+        },
+      )
+    }
 
     return results
   }
@@ -132,31 +154,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async markStreamInProgress(streamId: string): Promise<void> {
+  public async deleteStream(streamId: string): Promise<void> {
     const result = await this.db().result(
-      `update integration.streams
-       set  state = $(state),
-            "updatedAt" = now()
-       where id = $(streamId)`,
+      `delete from integration.streams where id = $(streamId)`,
       {
         streamId,
-        state: IntegrationStreamState.PROCESSING,
-      },
-    )
-
-    this.checkUpdateRowCount(result.rowCount, 1)
-  }
-
-  public async markStreamProcessed(streamId: string): Promise<void> {
-    const result = await this.db().result(
-      `update integration.streams
-       set  state = $(state),
-            "processedAt" = now(),
-            "updatedAt" = now()
-       where id = $(streamId)`,
-      {
-        streamId,
-        state: IntegrationStreamState.PROCESSED,
       },
     )
 

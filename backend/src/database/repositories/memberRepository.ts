@@ -5,8 +5,10 @@ import {
   OpenSearchIndex,
   PlatformType,
   SyncStatus,
+  OrganizationSource,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
+import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
@@ -47,6 +49,7 @@ import {
 import Error400 from '../../errors/Error400'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
+import MemberAffiliationRepository from './memberAffiliationRepository'
 
 const { Op } = Sequelize
 
@@ -84,6 +87,7 @@ class MemberRepository {
           'score',
           'reach',
           'joinedAt',
+          'manuallyCreated',
           'importHash',
         ]),
         tenantId: tenant.id,
@@ -134,6 +138,7 @@ class MemberRepository {
     await MemberRepository.updateMemberOrganizations(
       record,
       data.organizations,
+      true,
       transaction,
       options,
     )
@@ -562,12 +567,14 @@ class MemberRepository {
                     'dateEnd', "dateEnd",
                     'createdAt', "createdAt",
                     'updatedAt', "updatedAt",
-                    'title', title
+                    'title', title,
+                    'source', source
                   )
                 )
             ) AS orgs
           from "memberOrganizations"
           where "memberId" = :memberId
+            and "deletedAt" is null
           group by "memberId"
         )
         select m."id",
@@ -684,6 +691,7 @@ class MemberRepository {
     await MemberRepository.updateMemberOrganizations(
       record,
       data.organizations,
+      data.organizationsReplace,
       transaction,
       options,
     )
@@ -861,28 +869,8 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
-
-    const toDeleteAffiliations: string[] = []
-
-    const existingAffiliations = await this.getAffiliations(memberId, options)
-
-    for (const existingAffiliation of existingAffiliations) {
-      if (
-        !data.find(
-          (incomingAffiliation) => incomingAffiliation.segmentId === existingAffiliation.segmentId,
-        )
-      ) {
-        toDeleteAffiliations.push(existingAffiliation.id)
-      }
-    }
-
-    if (toDeleteAffiliations.length > 0) {
-      await affiliationRepository.destroyAll(toDeleteAffiliations)
-    }
-
-    for (const incomingAffiliation of data) {
-      await affiliationRepository.createOrUpdate({ memberId, ...incomingAffiliation })
-    }
+    await affiliationRepository.setForMember(memberId, data)
+    await MemberAffiliationRepository.update(memberId, options)
   }
 
   static async getAffiliations(
@@ -900,8 +888,10 @@ class MemberRepository {
         s.name as "segmentName",
         s."parentName" as "segmentParentName", 
         o.id as "organizationId", 
-        o.name as "organizationName",
-        o.logo as "organizationLogo"
+        o."displayName" as "organizationName",
+        o.logo as "organizationLogo",
+        msa."dateStart" as "dateStart",
+        msa."dateEnd" as "dateEnd"
       from "memberSegmentAffiliations" msa 
       left join organizations o on o.id = msa."organizationId"
       join segments s on s.id = msa."segmentId"
@@ -973,19 +963,14 @@ class MemberRepository {
     const include = [
       {
         model: options.database.organization,
-        attributes: ['id', 'name'],
+        attributes: ['id', 'displayName'],
         as: 'organizations',
         order: [['createdAt', 'ASC']],
         through: {
-          attributes: [
-            'memberId',
-            'organizationId',
-            'createdAt',
-            'updatedAt',
-            'dateStart',
-            'dateEnd',
-            'title',
-          ],
+          attributes: ['memberId', 'organizationId', 'dateStart', 'dateEnd', 'title', 'source'],
+          where: {
+            deletedAt: null,
+          },
         },
       },
       {
@@ -1440,6 +1425,7 @@ class MemberRepository {
                 SELECT mo."memberId", JSON_AGG(ROW_TO_JSON(o.*)) AS organizations
                 FROM "memberOrganizations" mo
                 INNER JOIN organizations o ON mo."organizationId" = o.id
+                WHERE mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             ),
             activity_data AS (
@@ -1615,6 +1601,7 @@ class MemberRepository {
                   AND o."tenantId" = :tenantId
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
+                  AND mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             )
         SELECT
@@ -1806,6 +1793,7 @@ class MemberRepository {
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
                   AND ms."segmentId" = os."segmentId"
+                  AND mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             ),
             aggs AS (
@@ -1999,6 +1987,42 @@ class MemberRepository {
 
     if (customSortFunction) {
       parsed.sort = customSortFunction
+    }
+
+    if (filter.organizations && filter.organizations.length > 0) {
+      parsed.query.bool.must = parsed.query.bool.must.filter(
+        (d) => d.nested?.query?.term?.['nested_organizations.uuid_id'] === undefined,
+      )
+
+      // add organizations filter manually for now
+
+      for (const organizationId of filter.organizations) {
+        parsed.query.bool.must.push({
+          nested: {
+            path: 'nested_organizations',
+            query: {
+              bool: {
+                must: [
+                  {
+                    term: {
+                      'nested_organizations.uuid_id': organizationId,
+                    },
+                  },
+                  {
+                    bool: {
+                      must_not: {
+                        exists: {
+                          field: 'nested_organizations.obj_memberOrganizations.date_dateEnd',
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        })
+      }
     }
 
     const countResponse = await options.opensearch.count({
@@ -2687,7 +2711,7 @@ class MemberRepository {
       include: [
         {
           model: options.database.organization,
-          attributes: ['id', 'name'],
+          attributes: ['id', 'displayName'],
           as: 'organizations',
         },
         {
@@ -3179,7 +3203,12 @@ class MemberRepository {
     output.organizations = await record.getOrganizations({
       transaction,
       order: [['createdAt', 'ASC']],
-      joinTableAttributes: ['dateStart', 'dateEnd', 'title'],
+      joinTableAttributes: ['dateStart', 'dateEnd', 'title', 'source'],
+      through: {
+        where: {
+          deletedAt: null,
+        },
+      },
     })
     MemberRepository.sortOrganizations(output.organizations)
 
@@ -3243,6 +3272,7 @@ class MemberRepository {
   static async updateMemberOrganizations(
     record,
     organizations,
+    replace,
     transaction,
     options: IRepositoryOptions,
   ) {
@@ -3250,7 +3280,32 @@ class MemberRepository {
       return
     }
 
-    await record.setOrganizations([], { transaction })
+    function iso(v) {
+      return moment(v).toISOString()
+    }
+
+    if (replace) {
+      const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+
+      const toDelete = originalOrgs.filter(
+        (originalOrg: any) =>
+          !organizations.find(
+            (newOrg) =>
+              originalOrg.organizationId === newOrg.id &&
+              originalOrg.title === (newOrg.title || null) &&
+              iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
+              iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
+          ),
+      )
+
+      for (const item of toDelete) {
+        await MemberRepository.deleteWorkExperience((item as any).id, {
+          transaction,
+          ...options,
+        })
+      }
+    }
+
     for (const item of organizations) {
       const org = typeof item === 'string' ? { id: item } : item
       await MemberRepository.createOrUpdateWorkExperience(
@@ -3260,6 +3315,7 @@ class MemberRepository {
           title: org.title,
           dateStart: org.startDate,
           dateEnd: org.endDate,
+          source: org.source,
         },
         {
           transaction,
@@ -3274,34 +3330,83 @@ class MemberRepository {
   }
 
   static async createOrUpdateWorkExperience(
-    { memberId, organizationId, title, dateStart, dateEnd },
+    {
+      memberId,
+      organizationId,
+      source,
+      title = null,
+      dateStart = null,
+      dateEnd = null,
+      updateAffiliation = true,
+    },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    await seq.query(
-      `
-        DELETE FROM "memberOrganizations"
-        WHERE "memberId" = :memberId
-        AND "organizationId" = :organizationId
-        AND "dateEnd" IS NULL
-      `,
-      {
-        replacements: {
-          memberId,
-          organizationId,
+    if (dateStart) {
+      // clean up organizations without dates if we're getting ones with dates
+      await seq.query(
+        `
+          UPDATE "memberOrganizations"
+          SET "deletedAt" = NOW()
+          WHERE "memberId" = :memberId
+          AND "organizationId" = :organizationId
+          AND "dateStart" IS NULL
+          AND "dateEnd" IS NULL
+        `,
+        {
+          replacements: {
+            memberId,
+            organizationId,
+          },
+          type: QueryTypes.UPDATE,
+          transaction,
         },
-        type: QueryTypes.DELETE,
-        transaction,
-      },
-    )
+      )
+    } else {
+      const rows = await seq.query(
+        `
+          SELECT COUNT(*) AS count FROM "memberOrganizations"
+          WHERE "memberId" = :memberId
+          AND "organizationId" = :organizationId
+          AND "dateStart" IS NOT NULL
+          AND "deletedAt" IS NULL
+        `,
+        {
+          replacements: {
+            memberId,
+            organizationId,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+      const row = rows[0] as any
+      if (row.count > 0) {
+        // if we're getting organization without dates, but there's already one with dates, don't insert
+        return
+      }
+    }
+
+    let conflictCondition = `("memberId", "organizationId", "dateStart", "dateEnd")`
+    if (!dateEnd) {
+      conflictCondition = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
+    }
+    if (!dateStart) {
+      conflictCondition = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
+    }
+
+    const onConflict =
+      source === OrganizationSource.UI
+        ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd, "deletedAt" = NULL, "source" = :source`
+        : 'ON CONFLICT DO NOTHING'
 
     await seq.query(
       `
-        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
-        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-        ON CONFLICT ("memberId", "organizationId", "dateStart", "dateEnd") DO NOTHING
+        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
+        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
+        ${onConflict}
       `,
       {
         replacements: {
@@ -3310,32 +3415,277 @@ class MemberRepository {
           title: title || null,
           dateStart: dateStart || null,
           dateEnd: dateEnd || null,
+          source: source || null,
         },
         type: QueryTypes.INSERT,
         transaction,
       },
     )
+
+    if (updateAffiliation) {
+      await MemberAffiliationRepository.update(memberId, options)
+    }
+  }
+
+  static async deleteWorkExperience(id, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    await seq.query(
+      `
+        UPDATE "memberOrganizations"
+        SET "deletedAt" = NOW()
+        WHERE "id" = :id
+      `,
+      {
+        replacements: {
+          id,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
+  }
+
+  static async fetchWorkExperiences(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND "deletedAt" IS NULL
+    `
+
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return records
+  }
+
+  static async findWorkExperience(
+    memberId: string,
+    timestamp: string,
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND (
+          ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
+          OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
+        )
+        AND "deletedAt" IS NULL
+      ORDER BY "dateStart" DESC, id
+      LIMIT 1
+    `
+
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+        timestamp,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
+
+  static async findMostRecentOrganization(
+    memberId: string,
+    timestamp: string,
+    options: IRepositoryOptions,
+  ): Promise<any> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND "dateStart" IS NULL
+        AND "dateEnd" IS NULL
+        AND "createdAt" <= :timestamp
+        AND "deletedAt" IS NULL
+      ORDER BY "createdAt" DESC, id
+      LIMIT 1
+    `
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+        timestamp,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
+
+  static async findMostRecentOrganizationEver(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<any> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+      SELECT * FROM "memberOrganizations"
+      WHERE "memberId" = :memberId
+        AND "dateStart" IS NULL
+        AND "dateEnd" IS NULL
+        AND "deletedAt" IS NULL
+      ORDER BY "createdAt", id
+      LIMIT 1
+    `
+    const records = await seq.query(query, {
+      replacements: {
+        memberId,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
   }
 
   static sortOrganizations(organizations) {
     organizations.sort((a, b) => {
       a = a.dataValues ? a.get({ plain: true }) : a
       b = b.dataValues ? b.get({ plain: true }) : b
+      const aStart = a.memberOrganizations?.dateStart
+      const bStart = b.memberOrganizations?.dateStart
+      const aEnd = a.memberOrganizations?.dateEnd
+      const bEnd = b.memberOrganizations?.dateEnd
 
-      const aDate = a.memberOrganizations?.dateStart
-      const bDate = b.memberOrganizations?.dateStart
+      // Sorting:
+      // 1. Those without dateEnd, but with dateStart should be at the top, orderd by dateStart
+      // 2. Those with dateEnd and dateStart should be in the middle, ordered by dateEnd
+      // 3. Those without dateEnd and dateStart should be at the bottom, ordered by name
+      if (!aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return aStart > bStart ? -1 : 1
+        }
+        if (bEnd && bStart) {
+          return -1
+        }
+        return -1
+      }
+      if (aEnd && aStart) {
+        if (!bEnd && bStart) {
+          return 1
+        }
+        if (bEnd && bStart) {
+          return aEnd > bEnd ? -1 : 1
+        }
+        return -1
+      }
 
-      if (aDate && bDate) {
-        return bDate.getTime() - aDate.getTime()
-      }
-      if (!aDate && !bDate) {
-        return a.name.localeCompare(b.name)
-      }
-      if (!bDate) {
+      if (!bEnd && bStart) {
         return 1
       }
-      return -1
+      if (bEnd && bStart) {
+        return 1
+      }
+      return a.name > b.name ? 1 : -1
     })
+  }
+
+  static async getMemberIdsandCount(
+    { limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
+    options: IRepositoryOptions,
+  ) {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      tenantId: tenant.id,
+      segmentIds,
+      limit,
+      offset,
+    }
+
+    let orderByString = ''
+    const orderByParts = orderBy.split('_')
+    const direction = orderByParts[1].toLowerCase()
+    switch (orderByParts[0]) {
+      case 'joinedAt':
+        orderByString = 'm."joinedAt"'
+        break
+      case 'displayName':
+        orderByString = 'm."displayName"'
+        break
+      case 'reach':
+        orderByString = "(m.reach ->> 'total')::int"
+        break
+      case 'score':
+        orderByString = 'm.score'
+        break
+
+      default:
+        throw new Error(`Invalid order by: ${orderBy}!`)
+    }
+    orderByString = `${orderByString} ${direction}`
+
+    const countQuery = `
+    SELECT count(*) FROM (
+      SELECT m.id
+      FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."tenantId" = :tenantId
+      AND ms."segmentId" IN (:segmentIds)
+    ) as count
+    `
+
+    const memberCount = await seq.query(countQuery, {
+      replacements: params,
+      type: QueryTypes.SELECT,
+    })
+
+    if (countOnly) {
+      return {
+        count: (memberCount[0] as any).count,
+        ids: [],
+      }
+    }
+
+    const members = await seq.query(
+      `SELECT m.id FROM members m
+      JOIN "memberSegments" ms ON ms."memberId" = m.id
+      WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds) 
+      ORDER BY ${orderByString} 
+      LIMIT :limit OFFSET :offset`,
+      {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return {
+      count: (memberCount[0] as any).count,
+      ids: members.map((i: any) => i.id),
+    }
   }
 }
 

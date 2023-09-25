@@ -100,9 +100,9 @@
                 label="Member"
                 prop="displayName"
                 width="250"
-                sortable
                 fixed
                 class="-my-2"
+                sortable="custom"
               >
                 <template #default="scope">
                   <router-link
@@ -313,7 +313,7 @@
                       class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
                       <el-tooltip
-                        v-for="email of scope.row.emails"
+                        v-for="email of scope.row.emails.slice(0, 3)"
                         :key="email"
                         :disabled="!email"
                         popper-class="custom-identity-tooltip"
@@ -336,6 +336,45 @@
                           >{{ email }}</a>
                         </div>
                       </el-tooltip>
+                      <el-popover
+                        v-if="scope.row.emails?.length > 3"
+                        placement="top"
+                        :width="400"
+                        trigger="hover"
+                        popper-class="support-popover"
+                      >
+                        <template #reference>
+                          <span
+                            class="badge--interactive hover:text-gray-900"
+                          >+{{ scope.row.emails.length - 3 }}</span>
+                        </template>
+                        <div class="flex flex-wrap gap-3 my-1">
+                          <el-tooltip
+                            v-for="email of scope.row.emails.slice(3)"
+                            :key="email"
+                            :disabled="!email"
+                            popper-class="custom-identity-tooltip flex "
+                            placement="top"
+                          >
+                            <template #content>
+                              <span>Send email
+                                <i
+                                  v-if="email"
+                                  class="ri-external-link-line text-gray-400"
+                                /></span>
+                            </template>
+                            <div @click.prevent>
+                              <a
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="badge--interactive"
+                                :href="`mailto:${email}`"
+                                @click.stop="trackEmailClick"
+                              >{{ email }}</a>
+                            </div>
+                          </el-tooltip>
+                        </div>
+                      </el-popover>
                     </div>
                     <span v-else class="text-gray-500">-</span>
                   </router-link>
@@ -404,6 +443,7 @@ import { useRouter } from 'vue-router';
 import {
   computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
+import { storeToRefs } from 'pinia';
 import { i18n } from '@/i18n';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
@@ -411,10 +451,10 @@ import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdown from '../member-dropdown.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -450,7 +490,16 @@ const props = defineProps({
     type: Boolean,
     default: () => true,
   },
+  pagination: {
+    type: Object,
+    default: () => ({
+      page: 1,
+      perPage: 20,
+    }),
+  },
 });
+
+const emit = defineEmits(['update:pagination']);
 
 const memberStore = useMemberStore();
 const {
@@ -511,7 +560,14 @@ const emailsColumnWidth = computed(() => {
 });
 
 const selectedRows = computed(() => selectedMembers.value);
-const pagination = computed(() => filters.value.pagination);
+const pagination = computed({
+  get() {
+    return props.pagination;
+  },
+  set(value) {
+    emit('update:pagination', value);
+  },
+});
 
 const tableWidth = ref(0);
 
@@ -535,11 +591,17 @@ function doChangeSort(sorter) {
 }
 
 function doChangePaginationCurrentPage(currentPage) {
-  filters.value.pagination.page = currentPage;
+  emit('update:pagination', {
+    ...pagination.value,
+    page: currentPage,
+  });
 }
 
 function doChangePaginationPageSize(pageSize) {
-  filters.value.pagination.perPage = pageSize;
+  emit('update:pagination', {
+    page: 1,
+    perPage: pageSize,
+  });
 }
 
 function translate(key) {

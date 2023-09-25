@@ -1,9 +1,9 @@
-import { FilterObject } from '@/shared/modules/filters/types/FilterConfig';
+import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface SavedView {
   id: string;
   label: string;
-  filter: FilterObject & Record<string, any>
+  filter: Filter & Record<string, any>
 }
 
 export interface SavedViewsSetting<T> {

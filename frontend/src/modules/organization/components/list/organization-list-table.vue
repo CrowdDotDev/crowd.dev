@@ -1,532 +1,531 @@
 <template>
-  <div class="pt-3">
-    <div
-      v-if="isLoading"
-      v-loading="isLoading"
-      class="app-page-spinner h-16 !relative !min-h-5"
-    />
-    <div v-else>
-      <!-- Empty State -->
-      <app-empty-state-cta
-        v-if="!hasOrganizations"
-        icon="ri-community-line"
-        title="No organizations yet"
-        description="We couldn't track any organizations related to your community members."
-        cta-btn="Add organization"
-        @cta-click="onCtaClick"
+  <div>
+    <div class="pt-3">
+      <div
+        v-if="isLoading"
+        v-loading="isLoading"
+        class="app-page-spinner h-16 !relative !min-h-5"
       />
-
-      <app-empty-state-cta
-        v-else-if="hasOrganizations && !totalOrganizations"
-        icon="ri-community-line"
-        title="No organizations found"
-        description="We couldn't find any results that match your search criteria, please try a different query."
-      />
-
       <div v-else>
-        <!-- Sorter -->
-        <div class="mb-2">
-          <app-pagination-sorter
-            :page-size="Number(pagination.perPage)"
-            :total="totalOrganizations"
-            :current-page="pagination.page"
-            :has-page-counter="false"
-            module="organization"
-            position="top"
-            @change-sorter="doChangePaginationPageSize"
-          />
-        </div>
+        <!-- Empty State -->
+        <app-empty-state-cta
+          v-if="!hasOrganizations"
+          icon="ri-community-line"
+          title="No organizations yet"
+          description="We couldn't track any organizations related to your community members."
+          cta-btn="Add organization"
+          @cta-click="onCtaClick"
+        />
 
-        <!-- Organizations list -->
-        <div class="app-list-table panel">
-          <transition name="el-fade-in">
+        <app-empty-state-cta
+          v-else-if="hasOrganizations && !totalOrganizations"
+          icon="ri-community-line"
+          title="No organizations found"
+          description="We couldn't find any results that match your search criteria, please try a different query."
+        />
+
+        <div v-else>
+          <!-- Sorter -->
+          <div class="mb-2">
+            <app-pagination-sorter
+              :page-size="Number(pagination.perPage)"
+              :total="totalOrganizations"
+              :current-page="pagination.page"
+              :has-page-counter="false"
+              module="organization"
+              position="top"
+              @change-sorter="doChangePaginationPageSize"
+            />
+          </div>
+
+          <!-- Organizations list -->
+          <div class="app-list-table panel">
+            <transition name="el-fade-in">
+              <div
+                v-show="isScrollbarVisible"
+                class="absolute z-20 top-0 left-0 w-full"
+                @mouseover="onTableMouseover"
+                @mouseleave="onTableMouseLeft"
+              >
+                <el-scrollbar
+                  id="custom-scrollbar"
+                  ref="scrollbarRef"
+                  height="10px"
+                  always
+                  @scroll="onCustomScrollbarScroll"
+                  @pointerdown="onScrollMousedown"
+                >
+                  <div
+                    :style="{
+                      height: '10px',
+                    }"
+                  />
+                </el-scrollbar>
+              </div>
+            </transition>
+
+            <app-organization-list-toolbar
+              @mouseover="onTableMouseover"
+              @mouseleave="onTableMouseLeft"
+            />
+
             <div
-              v-show="isScrollbarVisible"
-              class="absolute z-20 top-0 left-0 w-full"
+              class="-mx-6 -mt-6"
               @mouseover="onTableMouseover"
               @mouseleave="onTableMouseLeft"
             >
-              <el-scrollbar
-                id="custom-scrollbar"
-                ref="scrollbarRef"
-                height="10px"
-                always
-                @scroll="onCustomScrollbarScroll"
-                @pointerdown="onScrollMousedown"
+              <el-table
+                id="organizations-table"
+                ref="table"
+                :data="organizations"
+                :default-sort="defaultSort"
+                row-key="id"
+                border
+                :row-class-name="rowClass"
+                @sort-change="doChangeSort"
+                @selection-change="selectedOrganizations = $event"
               >
-                <div
-                  :style="{
-                    height: '10px',
-                  }"
+                <!-- Checkbox -->
+                <el-table-column
+                  type="selection"
+                  width="75"
+                  fixed
                 />
-              </el-scrollbar>
-            </div>
-          </transition>
 
-          <app-organization-list-toolbar
-            @mouseover="onTableMouseover"
-            @mouseleave="onTableMouseLeft"
-          />
-
-          <div
-            class="-mx-6 -mt-6"
-            @mouseover="onTableMouseover"
-            @mouseleave="onTableMouseLeft"
-          >
-            <el-table
-              id="organizations-table"
-              ref="table"
-              :data="organizations"
-              :default-sort="defaultSort"
-              row-key="id"
-              border
-              :row-class-name="rowClass"
-              @sort-change="doChangeSort"
-              @selection-change="selectedOrganizations = $event"
-            >
-              <!-- Checkbox -->
-              <el-table-column
-                type="selection"
-                width="75"
-                fixed
-              />
-
-              <!-- Organization logo and name -->
-              <el-table-column
-                label="Organization"
-                prop="name"
-                width="260"
-                sortable
-                fixed
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block mr-4"
-                  >
-                    <app-organization-name
-                      class="w-full"
-                      :organization="scope.row"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Headline -->
-              <el-table-column
-                label="Headline"
-                prop="headline"
-                width="300"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div class="mr-4">
-                      <span
-                        v-if="scope.row.headline"
-                        class="text-sm h-full flex items-center text-gray-900"
-                      >
-                        {{ scope.row.headline }}
-                      </span>
-                      <span
-                        v-else
-                        class="text-gray-500"
-                      >-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Website -->
-              <el-table-column label="Website" width="220">
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-sm h-full flex items-center"
+                <!-- Organization logo and name -->
+                <el-table-column
+                  label="Organization"
+                  prop="displayName"
+                  width="260"
+                  fixed
+                  sortable
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block mr-4"
                     >
-                      <a
-                        v-if="scope.row.website"
-                        class="text-gray-500 hover:!text-brand-500"
-                        :href="withHttp(scope.row.website)"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        @click.stop
-                      >{{ scope.row.website }}</a>
-                      <span
-                        v-else
-                        class="text-gray-500"
-                      >-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Number of members -->
-              <el-table-column
-                label="# Members"
-                width="150"
-                prop="memberCount"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-gray-900 text-sm h-full flex items-center"
-                    >
-                      {{
-                        formatNumberToCompact(
-                          scope.row.memberCount,
-                        )
-                      }}
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Number of activities -->
-              <el-table-column
-                label="# Activities"
-                width="150"
-                prop="activityCount"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-gray-900 text-sm h-full flex items-center"
-                    >
-                      {{
-                        formatNumberToCompact(
-                          scope.row.activityCount,
-                        )
-                      }}
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Joined Date -->
-              <el-table-column
-                label="Joined Date"
-                width="200"
-                prop="joinedAt"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      v-if="scope.row.joinedAt"
-                      class="text-gray-900 text-sm h-full flex items-center"
-                    >
-                      {{
-                        formatDateToTimeAgo(
-                          scope.row.joinedAt,
-                        )
-                      }}
-                    </div>
-                    <span
-                      v-else
-                      class="text-gray-900"
-                    >-</span>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Identities -->
-              <el-table-column
-                label="Identities"
-                width="240"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div class="h-full flex items-center">
-                      <app-organization-identities
-                        v-if="hasIdentities(scope.row)"
+                      <app-organization-name
+                        class="w-full"
                         :organization="scope.row"
                       />
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Headline -->
+                <el-table-column
+                  label="Headline"
+                  prop="headline"
+                  width="300"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div class="mr-4">
+                        <span
+                          v-if="scope.row.headline || scope.row.description"
+                          class="text-sm h-full flex items-center text-gray-900"
+                        >
+                          {{ scope.row.headline || scope.row.description }}
+                        </span>
+                        <span
+                          v-else
+                          class="text-gray-500"
+                        >-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Website -->
+                <el-table-column label="Website" width="220">
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <a
+                          v-if="scope.row.website"
+                          class="text-gray-500 hover:!text-brand-500"
+                          :href="withHttp(scope.row.website)"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          @click.stop
+                        >{{ scope.row.website }}</a>
+                        <span
+                          v-else
+                          class="text-gray-500"
+                        >-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Number of members -->
+                <el-table-column
+                  label="# Members"
+                  width="150"
+                  prop="memberCount"
+                  sortable
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-gray-900 text-sm h-full flex items-center"
+                      >
+                        {{
+                          formatNumberToCompact(
+                            scope.row.memberCount,
+                          )
+                        }}
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Number of activities -->
+                <el-table-column
+                  label="# Activities"
+                  width="150"
+                  prop="activityCount"
+                  sortable
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-gray-900 text-sm h-full flex items-center"
+                      >
+                        {{
+                          formatNumberToCompact(
+                            scope.row.activityCount,
+                          )
+                        }}
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Joined Date -->
+                <el-table-column
+                  label="Joined Date"
+                  width="200"
+                  prop="joinedAt"
+                  sortable
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        v-if="scope.row.joinedAt"
+                        class="text-gray-900 text-sm h-full flex items-center"
+                      >
+                        {{
+                          formatDateToTimeAgo(
+                            scope.row.joinedAt,
+                          )
+                        }}
+                      </div>
                       <span
                         v-else
                         class="text-gray-900"
                       >-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                    </router-link>
+                  </template>
+                </el-table-column>
 
-              <!-- Emails -->
-              <el-table-column
-                label="Emails"
-                :width="emailsColumnWidth"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
-                      class="text-sm cursor-auto flex flex-wrap gap-1"
+                <!-- Identities -->
+                <el-table-column
+                  label="Identities"
+                  width="240"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
                     >
-                      <el-tooltip
-                        v-for="email of scope.row.emails
-                          || []"
-                        :key="email"
-                        :disabled="!email"
-                        popper-class="custom-identity-tooltip"
-                        placement="top"
+                      <div class="h-full flex items-center">
+                        <app-organization-identities
+                          v-if="scope.row.identities.length > 0"
+                          :organization="scope.row"
+                        />
+                        <span
+                          v-else
+                          class="text-gray-900"
+                        >-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Emails -->
+                <el-table-column
+                  label="Emails"
+                  :width="emailsColumnWidth"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
+                        class="text-sm cursor-auto flex flex-wrap gap-1"
                       >
-                        <template #content>
-                          <span>Send email
-                            <i
-                              v-if="email"
-                              class="ri-external-link-line text-gray-400"
-                            /></span>
-                        </template>
-                        <div @click.prevent>
-                          <a
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="badge--interactive"
-                            :href="`mailto:${email}`"
-                            @click.stop="trackEmailClick"
-                          >{{ email }}</a>
-                        </div>
-                      </el-tooltip>
-                    </div>
-                    <span
-                      v-else
-                      class="text-gray-500"
-                    >-</span>
-                  </router-link>
-                </template>
-              </el-table-column>
+                        <el-tooltip
+                          v-for="email of scope.row.emails
+                            || []"
+                          :key="email"
+                          :disabled="!email"
+                          popper-class="custom-identity-tooltip"
+                          placement="top"
+                        >
+                          <template #content>
+                            <span>Send email
+                              <i
+                                v-if="email"
+                                class="ri-external-link-line text-gray-400"
+                              /></span>
+                          </template>
+                          <div @click.prevent>
+                            <a
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="badge--interactive"
+                              :href="`mailto:${email}`"
+                              @click.stop="trackEmailClick"
+                            >{{ email }}</a>
+                          </div>
+                        </el-tooltip>
+                      </div>
+                      <span
+                        v-else
+                        class="text-gray-500"
+                      >-</span>
+                    </router-link>
+                  </template>
+                </el-table-column>
 
-              <!-- Location -->
-              <el-table-column
-                label="Location"
-                width="150"
-                prop="location"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-sm h-full flex items-center"
+                <!-- Location -->
+                <el-table-column
+                  label="Location"
+                  width="150"
+                  prop="location"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
                     >
-                      <span v-if="scope.row.location" class="text-gray-900">
-                        {{
-                          scope.row.location
-                        }}
-                      </span>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.location" class="text-gray-900">
+                          {{
+                            scope.row.location
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
 
-              <!-- Industry -->
-              <el-table-column
-                label="Industry"
-                width="150"
-                prop="industry"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-sm h-full flex items-center"
+                <!-- Industry -->
+                <el-table-column
+                  label="Industry"
+                  width="150"
+                  prop="industry"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
                     >
-                      <span v-if="scope.row.industry" class="text-gray-900">
-                        {{
-                          toSentenceCase(scope.row.industry)
-                        }}
-                      </span>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.industry" class="text-gray-900">
+                          {{
+                            toSentenceCase(scope.row.industry)
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
 
-              <!-- Size -->
-              <el-table-column
-                label="Headcount"
-                width="150"
-                prop="size"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-sm h-full flex items-center"
+                <!-- Size -->
+                <el-table-column
+                  label="Headcount"
+                  width="150"
+                  prop="size"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
                     >
-                      <span v-if="scope.row.size" class="text-gray-900">
-                        {{
-                          scope.row.size
-                        }}
-                      </span>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.size" class="text-gray-900">
+                          {{
+                            scope.row.size
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
 
-              <!-- Type -->
-              <el-table-column
-                label="Type"
-                width="150"
-                prop="type"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-sm h-full flex items-center"
+                <!-- Type -->
+                <el-table-column
+                  label="Type"
+                  width="150"
+                  prop="type"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
                     >
-                      <span v-if="scope.row.type" class="text-gray-900">
-                        {{
-                          toSentenceCase(scope.row.type)
-                        }}
-                      </span>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.type" class="text-gray-900">
+                          {{
+                            toSentenceCase(scope.row.type)
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
 
-              <!-- Founded -->
-              <el-table-column
-                label="Founded"
-                width="150"
-                prop="founded"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      class="text-sm h-full flex items-center"
+                <!-- Founded -->
+                <el-table-column
+                  label="Founded"
+                  width="150"
+                  prop="founded"
+                  sortable
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
                     >
-                      <span v-if="scope.row.founded" class="text-gray-900">
-                        {{
-                          scope.row.founded
-                        }}
-                      </span>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.founded" class="text-gray-900">
+                          {{
+                            scope.row.founded
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
 
-              <!-- Actions -->
-              <el-table-column fixed="right">
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'organizationView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="flex justify-center"
-                  >
-                    <app-organization-dropdown
-                      :organization="scope.row"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
-            </el-table>
+                <!-- Actions -->
+                <el-table-column fixed="right">
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="flex justify-center"
+                    >
+                      <app-organization-dropdown
+                        :organization="scope.row"
+                        @merge="isMergeDialogOpen = scope.row"
+                      />
+                    </router-link>
+                  </template>
+                </el-table-column>
+              </el-table>
 
-            <div
-              v-if="showBottomPagination"
-              class="mt-8 px-6"
-            >
-              <app-pagination
-                :total="totalOrganizations"
-                :page-size="Number(pagination.perPage)"
-                :current-page="pagination.page || 1"
-                module="organization"
-                @change-current-page="
-                  doChangePaginationCurrentPage
-                "
-                @change-page-size="
-                  doChangePaginationPageSize
-                "
-              />
+              <div
+                v-if="showBottomPagination"
+                class="mt-8 px-6"
+              >
+                <app-pagination
+                  :total="totalOrganizations"
+                  :page-size="Number(pagination.perPage)"
+                  :current-page="pagination.page || 1"
+                  module="organization"
+                  @change-current-page="
+                    doChangePaginationCurrentPage
+                  "
+                  @change-page-size="
+                    doChangePaginationPageSize
+                  "
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -544,6 +543,7 @@ import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
+import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -560,13 +560,23 @@ const props = defineProps({
     type: Boolean,
     default: () => true,
   },
+  pagination: {
+    type: Object,
+    default: () => ({
+      page: 1,
+      perPage: 20,
+    }),
+  },
 });
+
+const emit = defineEmits(['update:pagination']);
 
 const organizationStore = useOrganizationStore();
 const {
   organizations, selectedOrganizations, filters, totalOrganizations,
 } = storeToRefs(organizationStore);
 
+const isMergeDialogOpen = ref(null);
 const table = ref(null);
 const scrollbarRef = ref();
 const tableBodyRef = ref();
@@ -575,7 +585,14 @@ const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
-const pagination = computed(() => filters.value.pagination);
+const pagination = computed({
+  get() {
+    return props.pagination;
+  },
+  set(value) {
+    emit('update:pagination', value);
+  },
+});
 
 const defaultSort = computed(() => ({
   field: filters.value.order.prop,
@@ -585,7 +602,7 @@ const defaultSort = computed(() => ({
 const showBottomPagination = computed(() => (
   !!totalOrganizations.value
     && Math.ceil(
-      totalOrganizations.value / Number(filters.value.pagination.perPage),
+      totalOrganizations.value / Number(pagination.value.perPage),
     ) > 1
 ));
 const isLoading = computed(() => props.isPageLoading);
@@ -605,11 +622,17 @@ function doChangeSort(sorter) {
 }
 
 function doChangePaginationCurrentPage(currentPage) {
-  filters.value.pagination.page = currentPage;
+  emit('update:pagination', {
+    ...pagination.value,
+    page: currentPage,
+  });
 }
 
 function doChangePaginationPageSize(pageSize) {
-  filters.value.pagination.perPage = pageSize;
+  emit('update:pagination', {
+    page: 1,
+    perPage: pageSize,
+  });
 }
 
 const onCtaClick = () => {
@@ -624,15 +647,6 @@ const rowClass = ({ row }) => {
 
   return isSelected ? 'is-selected' : '';
 };
-
-const hasIdentities = (row) => (
-  !!row.github
-    || !!row.linkedin
-    || !!row.twitter
-    || !!row.crunchbase
-    || !!row.facebook
-    || !!row.phoneNumbers?.length
-);
 
 // On custom scrollbar scroll, set the table scroll with the same value
 const onCustomScrollbarScroll = ({ scrollLeft }) => {

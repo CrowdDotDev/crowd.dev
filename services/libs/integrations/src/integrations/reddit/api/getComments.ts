@@ -48,7 +48,7 @@ async function getComments(
     const response: RedditCommentsResponse = (await axios(config)).data
     return response
   } catch (err) {
-    ctx.log.error({ err, input }, 'Error while getting posts in subreddit')
+    ctx.log.error({ err, input }, 'Error while getting comments in subreddit')
     throw err
   }
 }

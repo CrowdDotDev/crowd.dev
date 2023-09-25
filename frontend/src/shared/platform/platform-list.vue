@@ -1,18 +1,18 @@
 <template>
   <component
     :is="asLink ? 'a' : 'span'"
-    v-for="username of usernameHandles"
+    v-for="(username, ui) of usernameHandles"
     :key="username"
     class="px-4 py-2 flex justify-between items-center relative group"
     :class="{
-      'hover:bg-gray-50 transition-colors cursor-pointer': asLink && getPlatformUrl({ platform, username }),
+      'hover:bg-gray-50 transition-colors cursor-pointer': asLink && getPlatformUrl({ platform, username, index: ui }),
     }"
-    :href="getPlatformUrl({ platform, username })"
+    :href="getPlatformUrl({ platform, username, index: ui })"
     target="_blank"
     rel="noopener noreferrer"
   >
     <div class="flex gap-3 items-center">
-      <app-platform :platform="platform" :show-tooltip="true" />
+      <app-platform :platform="platform" :show-tooltip="true" :attributes="attributes" />
       <div
         v-if="
           platform === 'linkedin'
@@ -36,7 +36,7 @@
         {{ username }}</span>
     </div>
     <i
-      v-if="asLink && getPlatformUrl({ platform, username })"
+      v-if="asLink && getPlatformUrl({ platform, username, index: ui })"
       class="ri-external-link-line text-gray-300 invisible group-hover:visible"
     />
   </component>
@@ -51,6 +51,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  links: {
+    type: Array,
+    default: () => [],
+  },
   platform: {
     type: String,
     default: null,
@@ -59,11 +63,19 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  attributes: {
+    type: Object,
+    default: null,
+  },
 });
 
 const asLink = computed(() => CrowdIntegrations.getConfig(props.platform)?.showProfileLink);
-const getPlatformUrl = ({ platform, username }) => {
-  const url = CrowdIntegrations.getConfig(platform)?.url(username);
+const getPlatformUrl = ({ platform, username, index }) => {
+  if (props.links && props.links.length > 0 && index < props.links.length) {
+    return props.links[index];
+  }
+
+  const url = CrowdIntegrations.getConfig(platform)?.url({ username, attributes: props.attributes });
   return url ?? props.url;
 };
 </script>

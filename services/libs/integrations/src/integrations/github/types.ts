@@ -67,6 +67,7 @@ export interface GithubWebhookPayload {
   signature: string
   event: any
   data: any
+  date?: string
 }
 
 export enum GithubActivitySubType {
@@ -137,6 +138,7 @@ export interface GithubWebhookData {
   member: GithubPrepareMemberOutput
   objectMember?: GithubPrepareMemberOutput
   sourceParentId?: string
+  date?: string
 }
 
 export interface GithubRootStream {

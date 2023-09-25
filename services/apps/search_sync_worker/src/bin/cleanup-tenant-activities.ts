@@ -1,6 +1,8 @@
-import { SQS_CONFIG } from '@/conf'
+import { DB_CONFIG } from '@/conf'
+import { ActivitySyncService } from '@/service/activity.sync.service'
+import { OpenSearchService } from '@/service/opensearch.service'
+import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
-import { SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
 const log = getServiceLogger()
 
@@ -14,10 +16,14 @@ if (processArguments.length !== 1) {
 const tenantId = processArguments[0]
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new SearchSyncWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  const openSearchService = new OpenSearchService(log)
 
-  await emitter.triggerActivityCleanup(tenantId)
+  const dbConnection = await getDbConnection(DB_CONFIG())
+  const store = new DbStore(log, dbConnection)
+
+  const service = new ActivitySyncService(store, openSearchService, log)
+
+  await service.cleanupActivityIndex(tenantId)
+
   process.exit(0)
 })

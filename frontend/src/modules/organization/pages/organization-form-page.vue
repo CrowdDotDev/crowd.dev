@@ -126,11 +126,12 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
 import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
 import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
-import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
+import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 
 const LoaderIcon = h(
   'i',
@@ -169,12 +170,31 @@ const formSchema = new FormSchema([
   fields.linkedin,
   fields.crunchbase,
   fields.emails,
+  fields.identities,
   fields.phoneNumbers,
   fields.type,
   fields.size,
   fields.industry,
   fields.founded,
   fields.profiles,
+  fields.affiliatedProfiles,
+  fields.allSubsidiaries,
+  fields.alternativeDomains,
+  fields.alternativeNames,
+  fields.averageEmployeeTenure,
+  fields.averageTenureByLevel,
+  fields.averageTenureByRole,
+  fields.directSubsidiaries,
+  fields.employeeChurnRate,
+  fields.employeeCountByCountry,
+  fields.employeeCountByMonth,
+  fields.employeeGrowthRate,
+  fields.gicsSector,
+  fields.grossAdditionsByMonth,
+  fields.grossDeparturesByMonth,
+  fields.immediateParent,
+  fields.tags,
+  fields.ultimateParent,
 ]);
 
 const router = useRouter();
@@ -192,22 +212,12 @@ function getInitialModel(record) {
         employees: record ? record.employees : null,
         location: record ? record.location : null,
         website: record ? record.website : null,
-        github:
-          record && record.github
-            ? record.github.handle
-            : '',
-        twitter:
-          record && record.twitter
-            ? record.twitter.handle
-            : '',
-        linkedin:
-          record && record.linkedin
-            ? record.linkedin.handle
-            : '',
-        crunchbase:
-          record && record.crunchbase
-            ? record.crunchbase.handle
-            : '',
+        identities: record ? [...record.identities.map((i) => ({
+          platform: i.platform,
+          name: i.name,
+          username: i.url ? i.url.split('/').at(-1) : '',
+          url: i.url,
+        }))] : [],
         revenueRange: record ? record.revenueRange : {},
         emails:
           record && record.emails?.length > 0
@@ -222,6 +232,24 @@ function getInitialModel(record) {
         industry: record ? record.industry : null,
         founded: record ? record.founded : null,
         profiles: record ? record.profiles : null,
+        affiliatedProfiles: record ? record.affiliatedProfiles : null,
+        allSubsidiaries: record ? record.allSubsidiaries : null,
+        alternativeDomains: record ? record.alternativeDomains : null,
+        alternativeNames: record ? record.alternativeNames : null,
+        averageEmployeeTenure: record ? record.averageEmployeeTenure : null,
+        averageTenureByLevel: record ? record.averageTenureByLevel : null,
+        averageTenureByRole: record ? record.averageTenureByRole : null,
+        directSubsidiaries: record ? record.directSubsidiaries : null,
+        employeeChurnRate: record ? record.employeeChurnRate : null,
+        employeeCountByCountry: record ? record.employeeCountByCountry : null,
+        employeeCountByMonth: record ? record.employeeCountByMonth : null,
+        employeeGrowthRate: record ? record.employeeGrowthRate : null,
+        gicsSector: record ? record.gicsSector : null,
+        grossAdditionsByMonth: record ? record.grossAdditionsByMonth : null,
+        grossDeparturesByMonth: record ? record.grossDeparturesByMonth : null,
+        immediateParent: record ? record.immediateParent : null,
+        tags: record ? record.tags : null,
+        ultimateParent: record ? record.ultimateParent : null,
       }),
     ),
   );
@@ -260,7 +288,7 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
     return false;
   }
 
-  if (a.type === attributesTypes.multiSelect) {
+  if (a.type === AttributeType.ARRAY) {
     return !!record.value?.[a.name]?.length;
   }
 
@@ -347,19 +375,10 @@ function onCancel() {
   router.push({ name: 'organization' });
 }
 
-function platformPayload(platform, value) {
-  if (value && value !== '') {
-    return {
-      handle: value,
-      url: `https://${platform}.com/${value}`,
-    };
-  }
-  return undefined;
-}
 async function onSubmit() {
   isFormSubmitting.value = true;
   const data = {
-
+    manuallyCreated: true,
     ...formModel.value,
     name: isEditPage.value === false ? formModel.value.displayName : undefined,
     displayName: isEditPage.value === true ? formModel.value.displayName : undefined,
@@ -369,6 +388,11 @@ async function onSubmit() {
       }
       return acc;
     }, []),
+    identities: formModel.value.identities.filter((i) => i.username.length > 0).map((i) => ({
+      platform: i.platform,
+      url: i.url,
+      name: i.name,
+    })),
     phoneNumbers: formModel.value.phoneNumbers.reduce(
       (acc, item) => {
         if (item !== '') {
@@ -378,27 +402,6 @@ async function onSubmit() {
       },
       [],
     ),
-    github: formModel.value.github
-      ? platformPayload('github', formModel.value.github)
-      : null,
-    linkedin: formModel.value.linkedin
-      ? platformPayload(
-        'linkedin',
-        formModel.value.linkedin,
-      )
-      : null,
-    twitter: formModel.value.twitter
-      ? platformPayload(
-        'twitter',
-        formModel.value.twitter,
-      )
-      : null,
-    crunchbase: formModel.value.crunchbase
-      ? platformPayload(
-        'crunchbase',
-        formModel.value.crunchbase,
-      )
-      : null,
   };
 
   const payload = isEditPage.value

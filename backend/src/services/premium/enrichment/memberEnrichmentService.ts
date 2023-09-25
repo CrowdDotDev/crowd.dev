@@ -10,7 +10,7 @@ import {
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
   PlatformType,
-  IOrganization,
+  OrganizationSource,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
@@ -144,6 +144,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -158,6 +159,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberId)
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (
@@ -305,8 +307,13 @@ export default class MemberEnrichmentService extends LoggerBase {
       const organizationService = new OrganizationService(options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
-          const org = await organizationService.findOrCreate({
-            name: workExperience.company,
+          const org = await organizationService.createOrUpdate({
+            identities: [
+              {
+                name: workExperience.company,
+                platform: PlatformType.ENRICHMENT,
+              },
+            ],
           })
 
           const dateEnd = workExperience.endDate
@@ -319,13 +326,14 @@ export default class MemberEnrichmentService extends LoggerBase {
             title: workExperience.title,
             dateStart: workExperience.startDate,
             dateEnd,
+            source: OrganizationSource.ENRICHMENT,
           }
           await MemberRepository.createOrUpdateWorkExperience(data, options)
           await OrganizationRepository.includeOrganizationToSegments(org.id, options)
         }
       }
 
-      await searchSyncEmitter.triggerMemberSync(options.currentTenant.id, result.id, true)
+      await searchSyncEmitter.triggerMemberSync(options.currentTenant.id, result.id)
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)
@@ -348,39 +356,6 @@ export default class MemberEnrichmentService extends LoggerBase {
       )
       member.emails.forEach((email) => emailSet.add(email))
       member.emails = Array.from(emailSet)
-    }
-
-    if (enrichmentData.company) {
-      const organization: IOrganization = {
-        name: enrichmentData.company,
-      }
-
-      // check for more info about the company in work experiences
-      if (enrichmentData.work_experiences && enrichmentData.work_experiences.length > 0) {
-        const organizationsByWorkExperience = enrichmentData.work_experiences.filter(
-          (w) => w.company === enrichmentData.company && w.current,
-        )
-        if (organizationsByWorkExperience.length > 0) {
-          organization.location = organizationsByWorkExperience[0].location
-          const linkedinUrl = organizationsByWorkExperience[0].companyLinkedInUrl
-          if (linkedinUrl) {
-            organization.linkedin = {
-              handle: linkedinUrl.split('/').pop(),
-              // remove https/http if exists
-              url: linkedinUrl.replace(/(^\w+:|^)\/\//, ''),
-            }
-          }
-          organization.url = organizationsByWorkExperience[0].companyUrl
-
-          // fetch jobTitle from most recent work experience
-          member.attributes.jobTitle = {
-            custom: organizationsByWorkExperience[0].title,
-            default: organizationsByWorkExperience[0].title,
-          }
-        }
-      }
-
-      member.organizations = [organization]
     }
 
     member.contributions = enrichmentData.oss_contributions?.map(
@@ -587,7 +562,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
 
-      if (response.error || response.profile === undefined) {
+      if (response.error || response.profile === undefined || !response.profile) {
         this.log.error(githubHandle, `Member not found using github handle.`)
         throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
       }
@@ -623,7 +598,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
-      if (response.error) {
+      if (response.error || !response.profile) {
         this.log.error(email, `Member not found using email.`)
         throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
       }

@@ -102,14 +102,15 @@
       </template>
     </el-dropdown>
 
-    <app-tag-popover v-model="bulkTagsUpdateVisible"
-      @reload="fetchMembers({ reload: true })" />
+    <app-tag-popover
+      v-model="bulkTagsUpdateVisible"
+      @reload="fetchMembers({ reload: true })"
+    />
 
     <app-bulk-edit-attribute-popover
       v-model="bulkAttributesUpdateVisible"
       @reload="fetchMembers({ reload: true })"
     />
-
   </div>
 </template>
 

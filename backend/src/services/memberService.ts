@@ -4,7 +4,8 @@ import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { MemberAttributeType } from '@crowd/types'
+import { IOrganization, MemberAttributeType } from '@crowd/types'
+import { isDomainExcluded } from '@crowd/common'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -303,10 +304,10 @@ export default class MemberService extends LoggerBase {
         }
       }
 
+      // Collect IDs for relation
+      const organizations = []
       // If organizations are sent
       if (data.organizations) {
-        // Collect IDs for relation
-        const organizations = []
         for (const organization of data.organizations) {
           if (typeof organization === 'string' && validator.isUUID(organization)) {
             // If an ID was already sent, we simply push it to the list
@@ -319,43 +320,55 @@ export default class MemberService extends LoggerBase {
             let data = {}
             if (typeof organization === 'string') {
               // If a string was sent, we assume it is the name of the organization
-              data = { name: organization }
+              data = {
+                identities: [
+                  {
+                    name: organization,
+                    platform,
+                  },
+                ],
+              }
             } else {
               // Otherwise, we assume it is an object with the data of the organization
               data = organization
             }
-            // We findOrCreate the organization and add it to the list of IDs
-            const organizationRecord = await organizationService.findOrCreate(data)
+            // We createOrUpdate the organization and add it to the list of IDs
+            const organizationRecord = await organizationService.createOrUpdate(
+              data as IOrganization,
+            )
             organizations.push({ id: organizationRecord.id })
           }
         }
+      }
 
-        // Auto assign member to organization if email domain matches
-        if (data.emails) {
-          const emailDomains = new Set()
+      // Auto assign member to organization if email domain matches
+      if (data.emails) {
+        const emailDomains = new Set()
 
-          // Collect unique domains
-          for (const email of data.emails) {
-            if (!email) {
-              continue
-            }
+        // Collect unique domains
+        for (const email of data.emails) {
+          if (email) {
             const domain = email.split('@')[1]
-            emailDomains.add(domain)
-          }
-
-          // Fetch organization ids for these domains
-          const organizationService = new OrganizationService(this.options)
-          for (const domain of emailDomains) {
-            if (domain) {
-              const organizationRecord = await organizationService.findByUrl(domain)
-              if (organizationRecord) {
-                organizations.push({ id: organizationRecord.id })
-              }
+            if (!isDomainExcluded(domain)) {
+              emailDomains.add(domain)
             }
           }
         }
 
-        // Remove dups
+        // Fetch organization ids for these domains
+        const organizationService = new OrganizationService(this.options)
+        for (const domain of emailDomains) {
+          if (domain) {
+            const orgId = await organizationService.findOrCreateByDomain(domain)
+            if (orgId) {
+              organizations.push({ id: orgId })
+            }
+          }
+        }
+      }
+
+      // Remove dups
+      if (organizations.length > 0) {
         data.organizations = lodash.uniqBy(organizations, 'id')
       }
 
@@ -605,8 +618,8 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(tx)
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId, true)
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId, true)
+      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
@@ -695,32 +708,6 @@ export default class MemberService extends LoggerBase {
         }
 
         return toKeep
-      },
-      organizations: (oldOrganizations, newOrganizations) => {
-        const convertOrgs = (orgs) =>
-          orgs
-            ? orgs
-                .map((o) => (o.dataValues ? o.get({ plain: true }) : o))
-                .map((o) => {
-                  if (typeof o === 'string') {
-                    return {
-                      id: o,
-                    }
-                  }
-                  const memberOrg = o.memberOrganizations
-                  return {
-                    id: o.id,
-                    title: memberOrg?.title,
-                    startDate: memberOrg?.dateStart,
-                    endDate: memberOrg?.dateEnd,
-                  }
-                })
-            : []
-
-        oldOrganizations = convertOrgs(oldOrganizations)
-        newOrganizations = convertOrgs(newOrganizations)
-
-        return lodash.uniqWith([...oldOrganizations, ...newOrganizations], lodash.isEqual)
       },
     })
   }
@@ -908,7 +895,7 @@ export default class MemberService extends LoggerBase {
 
       if (!passedTransaction) {
         await SequelizeRepository.commitTransaction(transaction)
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id, true)
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
       }
 
       return record
@@ -954,7 +941,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id, true)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 
@@ -981,7 +968,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id, true)
+      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 

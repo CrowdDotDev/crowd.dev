@@ -3,6 +3,7 @@ import { BaseError } from './baseError'
 export enum WebhookState {
   PENDING = 'PENDING',
   PROCESSED = 'PROCESSED',
+  PROCESSING = 'PROCESSING',
   ERROR = 'ERROR',
 }
 
@@ -10,6 +11,7 @@ export enum WebhookType {
   GITHUB = 'GITHUB',
   DISCORD = 'DISCORD',
   DISCOURSE = 'DISCOURSE',
+  GROUPSIO = 'GROUPSIO',
 }
 
 export enum DiscordWebsocketEvent {

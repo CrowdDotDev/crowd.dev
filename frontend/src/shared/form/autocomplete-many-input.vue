@@ -86,7 +86,7 @@ export default {
     },
     fetchFn: {
       type: Function,
-      default: () => {},
+      default: null,
     },
     mapperFn: {
       type: Function,
@@ -216,7 +216,9 @@ export default {
   },
 
   async created() {
-    await this.fetchAllResults();
+    if (this.fetchFn) {
+      await this.fetchAllResults();
+    }
   },
 
   methods: {

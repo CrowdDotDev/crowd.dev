@@ -21,7 +21,7 @@
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 

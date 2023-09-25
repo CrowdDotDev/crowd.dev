@@ -21,12 +21,12 @@ setImmediate(async () => {
   const emitter = new DataSinkWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = getDbConnection(DB_CONFIG())
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const repo = new DataSinkRepository(store, log)
 
-  let results = await repo.getFailedResults(runId, 1, 20)
+  let results = await repo.getFailedResultsForRun(runId, 1, 20)
   while (results.length > 0) {
     await repo.resetResults(results.map((r) => r.id))
 
@@ -37,6 +37,6 @@ setImmediate(async () => {
       )
     }
 
-    results = await repo.getFailedResults(runId, 1, 20)
+    results = await repo.getFailedResultsForRun(runId, 1, 20)
   }
 })

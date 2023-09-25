@@ -121,7 +121,7 @@
 
 <script setup>
 import {
-  ref, onMounted, computed,
+  ref, onMounted,
 } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { storeToRefs } from 'pinia';
@@ -130,7 +130,7 @@ import AppAutomationForm from '@/modules/automation/components/automation-form.v
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 
 import { useStore } from 'vuex';

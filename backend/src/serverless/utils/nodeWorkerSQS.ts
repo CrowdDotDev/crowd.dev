@@ -62,16 +62,18 @@ export const sendNodeWorkerMessage = async (
     delayed = true
   }
 
+  const now = moment().valueOf()
+
   const params = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
-    MessageGroupId: delayed ? undefined : tenantId,
-    MessageDeduplicationId: delayed ? undefined : `${tenantId}-${moment().valueOf()}`,
+    MessageGroupId: delayed ? undefined : `${now}`,
+    MessageDeduplicationId: delayed ? undefined : `${tenantId}-${now}`,
     MessageBody: JSON.stringify(body),
     MessageAttributes: attributes,
     DelaySeconds: delay,
   }
 
-  log.info(
+  log.debug(
     {
       messageType: body.type,
       body,

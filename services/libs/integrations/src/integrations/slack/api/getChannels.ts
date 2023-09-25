@@ -22,6 +22,11 @@ async function getChannels(input: SlackGetChannelsInput, ctx: IProcessStreamCont
 
   try {
     const response = await axios(config)
+
+    if (response.data.error) {
+      throw new Error(response.data.error)
+    }
+
     const result: SlackChannels = response.data.channels
 
     return result

@@ -15,6 +15,7 @@ export interface IActivityCreateData {
   title?: string
   channel?: string
   url?: string
+  organizationId?: string
 }
 
 export interface IActivityUpdateData {
@@ -32,4 +33,5 @@ export interface IActivityUpdateData {
   title?: string
   channel?: string
   url?: string
+  organizationId?: string
 }

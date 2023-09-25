@@ -25,6 +25,14 @@ export default (app) => {
     safeWrap(require('./helpers/githubAuthenticate').default),
   )
   app.put(
+    `/tenant/:tenantId/integration/:id/github/repos`,
+    safeWrap(require('./helpers/githubMapRepos').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/:id/github/repos`,
+    safeWrap(require('./helpers/githubMapReposGet').default),
+  )
+  app.put(
     `/discord-authenticate/:tenantId/:guild_id`,
     safeWrap(require('./helpers/discordAuthenticate').default),
   )
@@ -130,6 +138,21 @@ export default (app) => {
     '/tenant/:tenantId/hubspot-stop-sync-organization',
     featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
     safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/groupsio-connect',
+    safeWrap(require('./helpers/groupsioConnectOrUpdate').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/groupsio-get-token',
+    safeWrap(require('./helpers/groupsioGetToken').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/groupsio-verify-group',
+    safeWrap(require('./helpers/groupsioVerifyGroup').default),
   )
 
   // if (TWITTER_CONFIG.clientId) {

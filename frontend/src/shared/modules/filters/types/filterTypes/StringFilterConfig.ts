@@ -7,6 +7,7 @@ export interface StringFilterOptions {}
 export interface StringFilterValue {
   operator: FilterStringOperator,
   value: string,
+  include: boolean
 }
 
 export interface StringFilterConfig extends BaseFilterConfig {

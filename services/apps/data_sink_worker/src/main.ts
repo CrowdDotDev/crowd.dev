@@ -1,20 +1,23 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG } from './conf'
+import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG, REDIS_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
+import { getRedisClient } from '@crowd/redis'
 
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 2
+const MAX_CONCURRENT_PROCESSING = 3
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+
+  const redisClient = await getRedisClient(REDIS_CONFIG())
 
   if (SENTIMENT_CONFIG()) {
     initializeSentimentAnalysis(SENTIMENT_CONFIG())
@@ -28,6 +31,7 @@ setImmediate(async () => {
     dbConnection,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
+    redisClient,
     log,
     MAX_CONCURRENT_PROCESSING,
   )

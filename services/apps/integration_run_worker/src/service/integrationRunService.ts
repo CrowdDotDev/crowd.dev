@@ -66,11 +66,6 @@ export default class IntegrationRunService extends LoggerBase {
       }
     }
 
-    if (count === 0) {
-      this.log.error('This run has no streams!')
-      return
-    }
-
     if (count === finishedCount) {
       const runInfo = await this.repo.getGenerateStreamData(runId)
 
@@ -208,6 +203,7 @@ export default class IntegrationRunService extends LoggerBase {
           this.log.error({ err }, 'Error while starting integration sync remote!')
         }
 
+        this.log.info('Marking run and integration as successfully processed!')
         await this.repo.markRunProcessed(runId)
         await this.repo.markIntegration(runId, 'done')
 
@@ -454,7 +450,8 @@ export default class IntegrationRunService extends LoggerBase {
 
     this.log.debug('Marking run as in progress!')
     await this.repo.markRunInProgress(runId)
-    await this.repo.touchRun(runId)
+    // TODO we might need that later to check for stuck runs
+    // await this.repo.touchRun(runId)
 
     this.log.info('Generating streams!')
     try {
@@ -469,9 +466,11 @@ export default class IntegrationRunService extends LoggerBase {
         undefined,
         err,
       )
-    } finally {
-      await this.repo.touchRun(runId)
     }
+    // TODO we might need that later to check for stuck runs
+    // finally {
+    //   await this.repo.touchRun(runId)
+    // }
   }
 
   private async updateIntegrationSettings(runId: string, settings: unknown): Promise<void> {

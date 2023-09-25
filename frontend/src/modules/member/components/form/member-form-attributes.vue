@@ -63,7 +63,7 @@
               </div>
               <span
                 class="text-2xs text-gray-500 leading-none"
-              >{{ attributesTypes[attribute.type] }}</span>
+              >{{ AttributeType[attribute.type.toUpperCase()] }}</span>
             </div>
             <el-form-item class="grow">
               <el-date-picker
@@ -180,6 +180,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import AppSvg from '@/shared/svg/svg.vue';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 
 const CalendarIcon = h(
   'i', // type
@@ -189,16 +190,6 @@ const CalendarIcon = h(
   }, // props
   [],
 );
-
-const attributesTypes = {
-  string: 'Text',
-  number: 'Number',
-  email: 'E-mail',
-  url: 'URL',
-  date: 'Date',
-  boolean: 'Boolean',
-  multiSelect: 'Multi-select',
-};
 
 const emit = defineEmits([
   'update:modelValue',

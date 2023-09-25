@@ -72,6 +72,34 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     return result.id
   }
 
+  public async getTenantsWithIntegrations(): Promise<string[]> {
+    const results = await this.db().any(
+      `
+      select distinct "tenantId" from integrations where "deletedAt" is null;
+      `,
+    )
+
+    return results.map((r) => r.tenantId)
+  }
+
+  public async getTenantIntegrations(tenantId: string): Promise<IStartIntegrationRunData[]> {
+    const results = await this.db().any(
+      `
+      select id,
+             platform as type,
+             status as state,
+             "integrationIdentifier" as identifier,
+             "tenantId"
+      from integrations where "tenantId" = $(tenantId) and "deletedAt" is null
+    `,
+      {
+        tenantId,
+      },
+    )
+
+    return results
+  }
+
   public async getIntegrationData(integrationId: string): Promise<IStartIntegrationRunData | null> {
     const results = await this.db().oneOrNone(
       `
@@ -219,7 +247,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
 
   public async markIntegration(runId: string, state: string): Promise<void> {
     const result = await this.db().result(
-      `update integrations set status = $(state) where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)`,
+      `update integrations set status = $(state), "updatedAt" = now() where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)`,
       {
         runId,
         state,
@@ -342,5 +370,47 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     )
 
     return result.settings
+  }
+
+  public async findIntegrationRunById(runId: string): Promise<{
+    id: string
+    state: IntegrationRunState
+    tenantId: string
+    integrationId: string
+    platform: string
+  } | null> {
+    const result = await this.db().oneOrNone(
+      `
+      select r.id, r.state, r."tenantId", r."integrationId", i.platform
+      from integration.runs r
+      inner join integrations i on r."integrationId" = i.id
+      where r.id = $(runId)
+    `,
+      {
+        runId,
+      },
+    )
+
+    return result
+  }
+
+  public async restart(runId: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update integration.runs
+         set state = $(state),
+             "processedAt" = null,
+              error = null,
+              "delayedUntil" = null,
+             "updatedAt" = now()
+       where id = $(runId)
+    `,
+      {
+        runId,
+        state: IntegrationRunState.PENDING,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
   }
 }

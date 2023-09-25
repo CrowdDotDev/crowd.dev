@@ -20,6 +20,8 @@ import {
   PlatformType,
   MemberAttributeName,
   IActivityScoringGrid,
+  OrganizationSource,
+  IOrganization,
 } from '@crowd/types'
 import { GITHUB_GRID } from './grid'
 import { generateSourceIdHash } from '../../helpers'
@@ -73,25 +75,56 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
 
   if (memberFromApi.company) {
     if (IS_TEST_ENV) {
-      member.organizations = [{ name: 'crowd.dev' }]
+      member.organizations = [
+        {
+          identities: [{ name: 'crowd.dev', platform: PlatformType.GITHUB }],
+          source: OrganizationSource.GITHUB,
+        },
+      ]
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
 
       if (orgs) {
+        const organizationPayload = {
+          identities: [
+            {
+              platform: PlatformType.GITHUB,
+              name: orgs.name,
+              url: orgs.url ?? null,
+            },
+          ],
+          description: orgs.description ?? null,
+          location: orgs.location ?? null,
+          logo: orgs.avatarUrl ?? null,
+          github: orgs.url ? orgs.url.replace('https://github.com/', '') : null,
+          twitter: orgs.twitterUsername ? orgs.twitterUsername : null,
+          website: orgs.websiteUrl ?? null,
+          source: OrganizationSource.GITHUB,
+        } as IOrganization
+
+        if (orgs.twitterUsername) {
+          organizationPayload.weakIdentities = [
+            {
+              platform: PlatformType.TWITTER,
+              name: orgs.twitterUsername,
+              url: `https://twitter.com/${orgs.twitterUsername}`,
+            },
+          ]
+        }
+
+        member.organizations = [organizationPayload]
+      } else {
         member.organizations = [
           {
-            name: orgs.name,
-            description: orgs.description ?? null,
-            location: orgs.location ?? null,
-            logo: orgs.avatarUrl ?? null,
-            url: orgs.url ?? null,
-            github: orgs.url ? orgs.url.replace('https://github.com/', '') : null,
-            twitter: orgs.twitterUsername ? orgs.twitterUsername : null,
-            website: orgs.websiteUrl ?? null,
+            identities: [
+              {
+                platform: PlatformType.GITHUB,
+                name: company,
+              },
+            ],
+            source: OrganizationSource.GITHUB,
           },
         ]
-      } else {
-        member.organizations = [{ name: company }]
       }
     }
   }
@@ -927,9 +960,7 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
       (type === GithubActivityType.STAR && payload.starred_at !== null))
   ) {
     const starredAt =
-      type === GithubActivityType.STAR
-        ? new Date(payload.starred_at).toISOString()
-        : new Date().toISOString()
+      type === GithubActivityType.STAR ? new Date(payload.starred_at).toISOString() : data.date
 
     const activity: IActivityData = {
       member,
@@ -938,7 +969,7 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
       sourceId: generateSourceIdHash(
         payload.sender.login,
         type,
-        Math.floor(new Date(payload.starred_at).getTime() / 1000).toString(),
+        Math.floor(new Date(starredAt).getTime() / 1000).toString(),
         PlatformType.GITHUB,
       ),
       sourceParentId: null,

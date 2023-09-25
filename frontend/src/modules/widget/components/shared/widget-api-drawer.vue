@@ -94,23 +94,11 @@
       />
 
       <!-- Load more button -->
-      <div
-        v-if="isLoadMoreVisible"
-        class="flex grow justify-center pt-4"
-      >
-        <div
-          v-if="loading"
-          v-loading="loading"
-          class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-        />
-        <el-button
-          v-else
-          class="btn btn-link btn-link--primary"
-          @click="onLoadMore"
-        >
-          <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
-        </el-button>
-      </div>
+      <app-load-more
+        :is-visible="isLoadMoreVisible"
+        :is-loading="loading"
+        :fetch-fn="onLoadMore"
+      />
     </template>
   </app-drawer>
 </template>
@@ -129,6 +117,7 @@ import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue'
 import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import { parseAxisLabel } from '@/utils/reports';
 import { WIDGET_PERIOD_OPTIONS } from '@/modules/widget/widget-constants';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const emit = defineEmits([
   'update:modelValue',

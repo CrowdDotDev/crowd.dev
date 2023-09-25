@@ -6,6 +6,8 @@ export interface IWebhookData {
   integrationId: string
   state: WebhookState
   type: WebhookType
+  platform: string
+  createdAt: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: any
 }

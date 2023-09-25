@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IFailedResultData, IResultData } from './dataSink.data'
-import { IntegrationResultState } from '@crowd/types'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -31,6 +31,28 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   public async getResultInfo(resultId: string): Promise<IResultData | null> {
     const result = await this.db().oneOrNone(this.getResultInfoQuery, { resultId })
     return result
+  }
+
+  public async createResult(
+    tenantId: string,
+    integrationId: string,
+    result: IIntegrationResult,
+  ): Promise<string> {
+    const results = await this.db().one(
+      `
+    insert into integration.results(state, data, "tenantId", "integrationId")
+    values($(state), $(data), $(tenantId), $(integrationId))
+    returning id;
+    `,
+      {
+        tenantId,
+        integrationId,
+        state: IntegrationResultState.PENDING,
+        data: JSON.stringify(result),
+      },
+    )
+
+    return results.id
   }
 
   public async markResultInProgress(resultId: string): Promise<void> {
@@ -87,7 +109,27 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async getFailedResults(
+  public async getFailedResults(page: number, perPage: number): Promise<IFailedResultData[]> {
+    const results = await this.db().any(
+      `select r.id,
+              r."tenantId",
+              i.platform
+        from integration.results r
+         inner join integrations i on i.id = r."integrationId"
+        where r.state = $(state)
+       order by r."createdAt" asc
+       limit $(perPage) offset $(offset)`,
+      {
+        state: IntegrationResultState.ERROR,
+        perPage,
+        offset: (page - 1) * perPage,
+      },
+    )
+
+    return results
+  }
+
+  public async getFailedResultsForRun(
     runId: string,
     page: number,
     perPage: number,
@@ -126,5 +168,13 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     )
 
     this.checkUpdateRowCount(result.rowCount, resultIds.length)
+  }
+
+  public async getSegmentIds(tenantId: string): Promise<string[]> {
+    const result = await this.db().any(`select id from "segments" where "tenantId" = $(tenantId)`, {
+      tenantId,
+    })
+
+    return result.map((r) => r.id)
   }
 }

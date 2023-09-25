@@ -34,6 +34,7 @@ export interface OpensearchField {
   customTranslation?: CustomOpensearchTranslation
   dynamic?: boolean
   realType?: string
+  preventNestedFieldTranslation?: boolean
 }
 
 export interface OpensearchQueryCriteria {

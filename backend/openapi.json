@@ -581,7 +581,7 @@
           {
             "name": "filter[createdAtRange]",
             "in": "query",
-            "description": "Created at lower bound. If you want a range, send this parameter twice with [min] and [max]. If you send it once it will be interpreted as a lower bound.",
+            "description": "Send this parameter twice with [min] and [max].",
             "required": false,
             "schema": { "type": "string" }
           },

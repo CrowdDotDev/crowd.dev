@@ -9,46 +9,52 @@ const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
-const integrationId = processArguments[0]
+const parameter = processArguments[0]
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
   const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = getDbConnection(DB_CONFIG(), 1)
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
   const repo = new IntegrationRunRepository(store, log)
 
-  const integration = await repo.getIntegrationData(integrationId)
+  const integrationIds = parameter.split(',')
 
-  if (integration) {
-    if (integration.state == IntegrationState.IN_PROGRESS) {
-      log.warn(`Integration already running!`)
-      process.exit(1)
+  for (const integrationId of integrationIds) {
+    const integration = await repo.getIntegrationData(integrationId)
+
+    if (integration) {
+      if (integration.state == IntegrationState.IN_PROGRESS) {
+        log.warn(`Integration already running!`)
+        continue
+      }
+
+      if (integration.state == IntegrationState.INACTIVE) {
+        log.warn(`Integration is not active!`)
+        continue
+      }
+
+      if (integration.state == IntegrationState.WAITING_APPROVAL) {
+        log.warn(`Integration is waiting for approval!`)
+        continue
+      }
+
+      log.info(`Triggering integration run for ${integrationId}!`)
+
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.type,
+        integration.id,
+        true,
+      )
+    } else {
+      log.error({ integrationId }, 'Integration not found!')
+      continue
     }
-
-    if (integration.state == IntegrationState.INACTIVE) {
-      log.warn(`Integration is not active!`)
-      process.exit(1)
-    }
-
-    if (integration.state == IntegrationState.WAITING_APPROVAL) {
-      log.warn(`Integration is waiting for approval!`)
-      process.exit(1)
-    }
-
-    log.info(`Triggering integration run for ${integrationId}!`)
-
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.type,
-      integration.id,
-      true,
-    )
-  } else {
-    log.error({ integrationId }, 'Integration not found!')
-    process.exit(1)
   }
+
+  process.exit(0)
 })

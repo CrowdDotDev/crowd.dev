@@ -53,6 +53,7 @@
       <div class="flex items-center">
         <app-organization-dropdown
           :organization="organization"
+          @merge="isMergeDialogOpen = organization"
         />
       </div>
     </div>
@@ -136,9 +137,8 @@
         </p>
         <p class="mt-1 text-gray-900 text-xs">
           {{
-            formattedInformation(
+            revenueRange.displayValue(
               organization.revenueRange,
-              'revenueRange',
             )
           }}
         </p>
@@ -157,13 +157,13 @@
         </p>
       </div>
     </div>
+
+    <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
 <script setup>
-import {
-  defineProps, ref, computed,
-} from 'vue';
+import { ref, computed } from 'vue';
 import moment from 'moment';
 import {
   formatDate,
@@ -172,12 +172,13 @@ import {
 import {
   formatNumber,
   formatNumberToCompact,
-  formatRevenueRange,
 } from '@/utils/number';
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
+import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({
   organization: {
@@ -188,6 +189,7 @@ const props = defineProps({
 
 const showMore = ref(false);
 const descriptionRef = ref(null);
+const isMergeDialogOpen = ref(null);
 const displayShowMore = computed(() => {
   if (!props.organization.description) {
     return false;
@@ -216,12 +218,6 @@ const formattedInformation = (value, type) => {
       && moment(value).isBefore(
         moment().subtract(40, 'years'),
       ))
-    // If range is not set for revenue
-    || (type === 'revenueRange'
-      && (value.min === undefined
-        || value.max === undefined
-        || value.min === null
-        || value.max === null))
   ) {
     return '-';
   }
@@ -235,8 +231,6 @@ const formattedInformation = (value, type) => {
     return formatDateToTimeAgo(value);
   } if (type === 'compact') {
     return formatNumberToCompact(value);
-  } if (type === 'revenueRange') {
-    return formatRevenueRange(value);
   }
 
   return value;

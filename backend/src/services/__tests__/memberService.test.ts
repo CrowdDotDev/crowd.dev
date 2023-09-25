@@ -172,7 +172,20 @@ describe('MemberService tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         tenantId: mockIServiceOptions.currentTenant.id,
         segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
@@ -183,6 +196,7 @@ describe('MemberService tests', () => {
         enrichedBy: [],
         contributions: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -270,12 +284,26 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -313,7 +341,20 @@ describe('MemberService tests', () => {
         attributes: {},
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -328,6 +369,7 @@ describe('MemberService tests', () => {
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -363,7 +405,20 @@ describe('MemberService tests', () => {
         displayName: username,
         attributes: {},
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -379,6 +434,7 @@ describe('MemberService tests', () => {
         reach: { total: 20, [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -416,7 +472,20 @@ describe('MemberService tests', () => {
         emails: member1.emails,
         score: member1.score,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         importHash: null,
@@ -430,6 +499,7 @@ describe('MemberService tests', () => {
         reach: { total: 20, [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -441,7 +511,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -467,14 +537,11 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: null,
         github: null,
         location: null,
         website: null,
         description: null,
-        parentUrl: null,
         emails: null,
         phoneNumbers: null,
         logo: null,
@@ -482,6 +549,7 @@ describe('MemberService tests', () => {
           dateEnd: null,
           dateStart: null,
           title: null,
+          source: null,
         },
         tags: null,
         twitter: null,
@@ -508,6 +576,25 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
+        affiliatedProfiles: null,
+        allSubsidiaries: null,
+        alternativeDomains: null,
+        alternativeNames: null,
+        averageEmployeeTenure: null,
+        averageTenureByLevel: null,
+        averageTenureByRole: null,
+        directSubsidiaries: null,
+        employeeChurnRate: null,
+        employeeCountByMonth: null,
+        employeeGrowthRate: null,
+        employeeCountByMonthByLevel: null,
+        employeeCountByMonthByRole: null,
+        gicsSector: null,
+        grossAdditionsByMonth: null,
+        grossDeparturesByMonth: null,
+        ultimateParent: null,
+        immediateParent: null,
       })
     })
 
@@ -517,7 +604,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -543,14 +630,11 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: 'https://crowd.dev',
         github: null,
         location: null,
         website: null,
         description: 'Here',
-        parentUrl: null,
         emails: null,
         phoneNumbers: null,
         logo: null,
@@ -558,6 +642,7 @@ describe('MemberService tests', () => {
           dateEnd: null,
           dateStart: null,
           title: null,
+          source: null,
         },
         tags: null,
         twitter: null,
@@ -584,20 +669,44 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
+        affiliatedProfiles: null,
+        allSubsidiaries: null,
+        alternativeDomains: null,
+        alternativeNames: null,
+        averageEmployeeTenure: null,
+        averageTenureByLevel: null,
+        averageTenureByRole: null,
+        directSubsidiaries: null,
+        employeeChurnRate: null,
+        employeeCountByMonth: null,
+        employeeGrowthRate: null,
+        employeeCountByMonthByLevel: null,
+        employeeCountByMonthByRole: null,
+        gicsSector: null,
+        grossAdditionsByMonth: null,
+        grossDeparturesByMonth: null,
+        ultimateParent: null,
+        immediateParent: null,
       })
     })
 
     it('Should create non existent member - organization as id, no enrichment', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
-      const oCreated = await new OrganizationService(mockIServiceOptions).findOrCreate({
-        name: 'crowd.dev',
+      const oCreated = await new OrganizationService(mockIServiceOptions).createOrUpdate({
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+          },
+        ],
       })
 
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -623,14 +732,11 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: null,
         github: null,
         location: null,
         website: null,
         description: null,
-        parentUrl: null,
         emails: null,
         phoneNumbers: null,
         logo: null,
@@ -638,6 +744,7 @@ describe('MemberService tests', () => {
           dateEnd: null,
           dateStart: null,
           title: null,
+          source: null,
         },
         tags: null,
         twitter: null,
@@ -664,6 +771,25 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
+        affiliatedProfiles: null,
+        allSubsidiaries: null,
+        alternativeDomains: null,
+        alternativeNames: null,
+        averageEmployeeTenure: null,
+        averageTenureByLevel: null,
+        averageTenureByRole: null,
+        directSubsidiaries: null,
+        employeeChurnRate: null,
+        employeeCountByMonth: null,
+        employeeGrowthRate: null,
+        employeeCountByMonthByLevel: null,
+        employeeCountByMonthByRole: null,
+        gicsSector: null,
+        grossAdditionsByMonth: null,
+        grossDeparturesByMonth: null,
+        ultimateParent: null,
+        immediateParent: null,
       })
     })
 
@@ -676,7 +802,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -702,15 +828,12 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: 'crowd.dev',
         github: null,
         location: null,
         website: null,
         description:
           'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
-        parentUrl: null,
         emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
         phoneNumbers: ['+42 424242'],
         logo: 'https://logo.clearbit.com/crowd.dev',
@@ -718,6 +841,7 @@ describe('MemberService tests', () => {
           dateEnd: null,
           dateStart: null,
           title: null,
+          source: null,
         },
         tags: [],
         twitter: {
@@ -760,6 +884,25 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
+        affiliatedProfiles: null,
+        allSubsidiaries: null,
+        alternativeDomains: null,
+        alternativeNames: null,
+        averageEmployeeTenure: null,
+        averageTenureByLevel: null,
+        averageTenureByRole: null,
+        directSubsidiaries: null,
+        employeeChurnRate: null,
+        employeeCountByMonth: null,
+        employeeGrowthRate: null,
+        employeeCountByMonthByLevel: null,
+        employeeCountByMonthByRole: null,
+        gicsSector: null,
+        grossAdditionsByMonth: null,
+        grossDeparturesByMonth: null,
+        ultimateParent: null,
+        immediateParent: null,
       })
     })
 
@@ -805,7 +948,7 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: 'anil',
-        emails: ['test@email.com', 'test2@email.com'],
+        emails: ['test@gmail.com', 'test2@yahoo.com'],
         platform: PlatformType.GITHUB,
         location: 'Ankara',
       }
@@ -844,10 +987,23 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
-        emails: ['lala@l.com', 'test@email.com', 'test2@email.com'],
+        emails: ['lala@l.com', 'test@gmail.com', 'test2@yahoo.com'],
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -860,6 +1016,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -955,7 +1112,20 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -971,6 +1141,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1062,7 +1233,20 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1077,6 +1261,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1241,7 +1426,20 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1255,6 +1453,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1311,6 +1510,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1368,6 +1568,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1426,6 +1627,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1484,6 +1686,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1606,9 +1809,9 @@ describe('MemberService tests', () => {
       let t2 = await TagRepository.create({ name: 'tag2' }, mockIRepositoryOptions)
       let t3 = await TagRepository.create({ name: 'tag3' }, mockIRepositoryOptions)
 
-      let o1 = await OrganizationRepository.create({ name: 'org1' }, mockIRepositoryOptions)
-      let o2 = await OrganizationRepository.create({ name: 'org2' }, mockIRepositoryOptions)
-      let o3 = await OrganizationRepository.create({ name: 'org3' }, mockIRepositoryOptions)
+      let o1 = await OrganizationRepository.create({ displayName: 'org1' }, mockIRepositoryOptions)
+      let o2 = await OrganizationRepository.create({ displayName: 'org2' }, mockIRepositoryOptions)
+      let o3 = await OrganizationRepository.create({ displayName: 'org3' }, mockIRepositoryOptions)
 
       let task1 = await TaskRepository.create({ name: 'task1' }, mockIRepositoryOptions)
       let task2 = await TaskRepository.create({ name: 'task2' }, mockIRepositoryOptions)
@@ -1865,18 +2068,21 @@ describe('MemberService tests', () => {
             'identities',
             'lastActive',
             'segments',
+            'weakIdentities',
           ]),
           SequelizeTestUtils.objectWithoutKey(o2, [
             'activeOn',
             'identities',
             'lastActive',
             'segments',
+            'weakIdentities',
           ]),
           SequelizeTestUtils.objectWithoutKey(o3, [
             'activeOn',
             'identities',
             'lastActive',
             'segments',
+            'weakIdentities',
           ]),
         ],
         noMerge: [returnedMember3.id],
@@ -1888,6 +2094,7 @@ describe('MemberService tests', () => {
         lastActivity: activityCreated,
         numberOfOpenSourceContributions: 0,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(
@@ -1915,8 +2122,37 @@ describe('MemberService tests', () => {
           return 0
         }),
       )
+
+      expect(
+        mergedMember.organizations.sort((a, b) => {
+          const nameA = a.displayName.toLowerCase()
+          const nameB = b.displayName.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      ).toEqual(
+        expectedMember.organizations.sort((a, b) => {
+          const nameA = a.displayName.toLowerCase()
+          const nameB = b.displayName.toLowerCase()
+          if (nameA < nameB) {
+            return -1
+          }
+          if (nameA > nameB) {
+            return 1
+          }
+          return 0
+        }),
+      )
       delete mergedMember.tasks
       delete expectedMember.tasks
+      delete mergedMember.organizations
+      delete expectedMember.organizations
+
       expect(mergedMember).toStrictEqual(expectedMember)
     })
 
@@ -2128,6 +2364,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
       delete returnedMember1.affiliations
+      delete returnedMember1.manuallyCreated
 
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
@@ -2228,6 +2465,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
       delete returnedMember1.affiliations
+      delete returnedMember1.manuallyCreated
 
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 

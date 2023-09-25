@@ -6,11 +6,14 @@ import OrganizationService from '../organizationService'
 const db = null
 
 const expectedEnriched = {
-  url: 'crowd.dev',
-  name: 'Crowd.dev',
+  identities: [
+    {
+      name: 'crowd.dev',
+      platform: 'crowd',
+    },
+  ],
   description:
     'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
-  parentUrl: null,
   emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
   phoneNumbers: ['+42 424242'],
   logo: 'https://logo.clearbit.com/crowd.dev',
@@ -57,11 +60,16 @@ describe('OrganizationService tests', () => {
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
-        name: 'crowd.dev',
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+          },
+        ],
       }
 
-      const added = await service.findOrCreate(toAdd, false)
-      expect(added.url).toEqual(null)
+      const added = await service.createOrUpdate(toAdd, false)
+      expect(added.identities[0].url).toEqual(null)
     })
 
     it('Should add without enriching when tenant is not growth', async () => {
@@ -69,14 +77,19 @@ describe('OrganizationService tests', () => {
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
-        name: 'crowd.dev',
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+          },
+        ],
       }
 
-      const added = await service.findOrCreate(toAdd, true)
-      expect(added.url).toEqual(null)
+      const added = await service.createOrUpdate(toAdd, true)
+      expect(added.identities[0].url).toEqual(null)
     })
 
-    it('Should enrich and add an organization by name', async () => {
+    it('Should enrich and add an organization by identity name', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
         db,
         Plans.values.growth,
@@ -84,14 +97,19 @@ describe('OrganizationService tests', () => {
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
-        name: 'crowd.dev',
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+            url: 'https://crowd.dev',
+          },
+        ],
       }
 
-      const added = await service.findOrCreate(toAdd)
-      expect(added.url).toEqual('crowd.dev')
-      expect(added.name).toEqual(toAdd.name)
+      const added = await service.createOrUpdate(toAdd)
+      expect(added.identities[0].url).toEqual(toAdd.identities[0].url)
+      expect(added.identities[0].name).toEqual(toAdd.identities[0].name)
       expect(added.description).toEqual(expectedEnriched.description)
-      expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added.emails).toEqual(expectedEnriched.emails)
       expect(added.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(added.logo).toEqual(expectedEnriched.logo)
@@ -109,9 +127,8 @@ describe('OrganizationService tests', () => {
       )
 
       expect(foundCache.url).toEqual('crowd.dev')
-      expect(foundCache.name).toEqual(toAdd.name)
+      expect(foundCache.name).toEqual(toAdd.identities[0].name)
       expect(foundCache.description).toEqual(expectedEnriched.description)
-      expect(foundCache.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(foundCache.emails).toEqual(expectedEnriched.emails)
       expect(foundCache.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(foundCache.logo).toEqual(expectedEnriched.logo)
@@ -137,14 +154,19 @@ describe('OrganizationService tests', () => {
       const service2 = new OrganizationService(mockIServiceOptions2)
 
       const toAdd = {
-        name: 'crowd.dev',
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+            url: 'https://crowd.dev',
+          },
+        ],
       }
 
-      const added = await service.findOrCreate(toAdd)
-      expect(added.url).toEqual('crowd.dev')
-      expect(added.name).toEqual(toAdd.name)
+      const added = await service.createOrUpdate(toAdd)
+      expect(added.identities[0].url).toEqual(toAdd.identities[0].url)
+      expect(added.identities[0].name).toEqual(toAdd.identities[0].name)
       expect(added.description).toEqual(expectedEnriched.description)
-      expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added.emails).toEqual(expectedEnriched.emails)
       expect(added.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(added.logo).toEqual(expectedEnriched.logo)
@@ -163,7 +185,6 @@ describe('OrganizationService tests', () => {
 
       expect(foundCache.name).toEqual('crowd.dev')
       expect(foundCache.description).toEqual(expectedEnriched.description)
-      expect(foundCache.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(foundCache.emails).toEqual(expectedEnriched.emails)
       expect(foundCache.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(foundCache.logo).toEqual(expectedEnriched.logo)
@@ -174,10 +195,9 @@ describe('OrganizationService tests', () => {
       expect(foundCache.employees).toEqual(expectedEnriched.employees)
       expect(foundCache.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
 
-      const added2 = await service2.findOrCreate(toAdd)
-      expect(added2.name).toEqual('crowd.dev')
+      const added2 = await service2.createOrUpdate(toAdd)
+      expect(added2.identities[0].url).toEqual(toAdd.identities[0].url)
       expect(added2.description).toEqual(expectedEnriched.description)
-      expect(added2.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added2.emails).toEqual(expectedEnriched.emails)
       expect(added2.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
       expect(added2.logo).toEqual(expectedEnriched.logo)
@@ -206,8 +226,8 @@ describe('OrganizationService tests', () => {
 
       const toAdd = {}
 
-      await expect(service.findOrCreate(toAdd)).rejects.toThrowError(
-        'Organization Name is required',
+      await expect(service.createOrUpdate(toAdd as any)).rejects.toThrowError(
+        'Missing organization identity while creating/updating organization!',
       )
     })
 
@@ -216,14 +236,19 @@ describe('OrganizationService tests', () => {
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
-        name: 'crowd.dev',
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+          },
+        ],
       }
 
-      await service.findOrCreate(toAdd)
+      await service.createOrUpdate(toAdd)
 
-      const added = await service.findOrCreate(toAdd)
-      expect(added.name).toEqual(toAdd.name)
-      expect(added.url).toBeNull()
+      const added = await service.createOrUpdate(toAdd)
+      expect(added.identities[0].name).toEqual(toAdd.identities[0].name)
+      expect(added.identities[0].url).toBeNull()
 
       const foundAll = await service.findAndCountAll({
         filter: {},

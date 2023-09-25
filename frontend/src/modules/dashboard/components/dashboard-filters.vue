@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center py-4 border-y border-gray-200"
+    class="flex items-center py-4 border-y border-gray-200 justify-between"
   >
     <!-- period filters -->
     <app-widget-period

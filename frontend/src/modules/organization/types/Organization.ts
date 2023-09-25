@@ -29,7 +29,6 @@ export interface Organization{
   memberCount: number;
   naics: any[]
   name: string;
-  parentUrl: string | null;
   phoneNumbers: string[] | null;
   profiles: string[];
   revenueRange: string | null;
