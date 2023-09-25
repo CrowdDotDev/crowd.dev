@@ -8,8 +8,8 @@ source $CLI_HOME/utils.sh
 LIBRARIES=(
   "types"
   "common"
-  "logging"
   "tracing"
+  "logging"
   "database"
   "redis"
   "sqs"

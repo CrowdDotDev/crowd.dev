@@ -24,8 +24,8 @@ declare -A DEPENDENCIES
 DEPENDENCIES=(
   ["common"]="types"
   ["types"]=""
-  ["logging"]="common"
   ["tracing"]="common"
+  ["logging"]="common tracing"
   ["redis"]="common logging types"
   ["database"]="common logging"
   ["sqs"]="common tracing logging types"

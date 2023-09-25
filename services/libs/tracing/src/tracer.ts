@@ -6,6 +6,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
 import { Resource, ResourceAttributes } from '@opentelemetry/resources'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 
+import { BunyanInstrumentation } from '@opentelemetry/instrumentation-bunyan'
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
 import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
@@ -51,6 +52,7 @@ export const getServiceTracer = (): Tracer => {
     resource: new Resource(attrs),
     autoDetectResources: true,
     instrumentations: [
+      new BunyanInstrumentation(),
       new HttpInstrumentation(),
       new ExpressInstrumentation(),
       new AwsInstrumentation(),

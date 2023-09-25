@@ -1,5 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/database'
-import { addTraceToLogFields, Tracer, SpanStatusCode } from '@crowd/tracing'
+import { addTraceToLogFields, Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {
@@ -40,60 +40,58 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
-    const span = this.tracer.startSpan('processMessage')
-    span.setStatus({
-      code: SpanStatusCode.OK,
-    })
-
-    try {
-      this.log.trace(
-        addTraceToLogFields(span, { messageType: message.type }),
-        'Processing message!',
-      )
-
-      const service = new IntegrationRunService(
-        this.redisClient,
-        this.streamWorkerEmitter,
-        this.runWorkerEmitter,
-        this.searchSyncWorkerEmitter,
-        this.integrationSyncWorkerEmitter,
-        this.apiPubSubEmitter,
-        new DbStore(this.log, this.dbConn),
-        this.log,
-      )
-
-      switch (message.type) {
-        case IntegrationRunWorkerQueueMessageType.CHECK_RUNS:
-          await service.checkRuns()
-          break
-        case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN:
-          const msg = message as StartIntegrationRunQueueMessage
-          await service.startIntegrationRun(
-            msg.integrationId,
-            msg.onboarding,
-            msg.isManualRun,
-            msg.manualSettings,
-          )
-          break
-        case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
-          const msg2 = message as GenerateRunStreamsQueueMessage
-          await service.generateStreams(msg2.runId, msg2.isManualRun, msg2.manualSettings)
-          break
-        case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
-          await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
-          break
-        default:
-          throw new Error(`Unknown message type: ${message.type}`)
-      }
-    } catch (err) {
+    this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
       span.setStatus({
-        code: SpanStatusCode.ERROR,
+        code: SpanStatusCode.OK,
       })
 
-      this.log.error(addTraceToLogFields(span, { err }), 'Error while processing message!')
-      throw err
-    } finally {
-      span.end()
-    }
+      try {
+        this.log.trace({ messageType: message.type }, 'Processing message!')
+
+        const service = new IntegrationRunService(
+          this.redisClient,
+          this.streamWorkerEmitter,
+          this.runWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.integrationSyncWorkerEmitter,
+          this.apiPubSubEmitter,
+          new DbStore(this.log, this.dbConn),
+          this.log,
+        )
+
+        switch (message.type) {
+          case IntegrationRunWorkerQueueMessageType.CHECK_RUNS:
+            await service.checkRuns()
+            break
+          case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN:
+            const msg = message as StartIntegrationRunQueueMessage
+            await service.startIntegrationRun(
+              msg.integrationId,
+              msg.onboarding,
+              msg.isManualRun,
+              msg.manualSettings,
+            )
+            break
+          case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
+            const msg2 = message as GenerateRunStreamsQueueMessage
+            await service.generateStreams(msg2.runId, msg2.isManualRun, msg2.manualSettings)
+            break
+          case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
+            await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
+            break
+          default:
+            throw new Error(`Unknown message type: ${message.type}`)
+        }
+      } catch (err) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+        })
+
+        this.log.error(addTraceToLogFields(span, { err }), 'Error while processing message!')
+        throw err
+      } finally {
+        span.end()
+      }
+    })
   }
 }
