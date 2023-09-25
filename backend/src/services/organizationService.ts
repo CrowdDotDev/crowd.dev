@@ -127,7 +127,7 @@ export default class OrganizationService extends LoggerBase {
         currentSegments: secondMemberSegments,
       })
 
-      // Delete toMerge member
+      // Delete toMerge organization
       await OrganizationRepository.destroy(toMergeId, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
