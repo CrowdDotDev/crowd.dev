@@ -22,7 +22,7 @@
     :teleported="false"
     width="255px"
   >
-    <div v-if="projectGroupsList.length > 5" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
+    <div v-if="isSearchVisible" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
       <el-input
         id="filterSearch"
         ref="searchQueryInput"
@@ -104,6 +104,7 @@ const searchQuery = ref('');
 const isPopoverVisible = ref(false);
 const projectGroupsList = ref([]);
 const loading = ref(false);
+const isSearchVisible = ref(false);
 
 const model = computed({
   get() {
@@ -124,6 +125,9 @@ const queryProjectGroups = () => {
     },
   }).then(({ rows }) => {
     projectGroupsList.value = rows;
+    if (searchQuery.value.length === 0 && rows.length > 5) {
+      isSearchVisible.value = true;
+    }
   }).finally(() => {
     loading.value = false;
   });
@@ -151,7 +155,7 @@ const onOptionClick = (id) => {
 
 <script>
 export default {
-  name: 'AppLfSubProjectsListDropdown',
+  name: 'AppLfSubProjectsGroupSelection',
 };
 </script>
 
