@@ -15,9 +15,11 @@ import { getAllCompanies } from './api/companies'
 import { RequestThrottler } from '@crowd/common'
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
-  const throttler = new RequestThrottler(9, 1100, ctx.log)
+  const throttler = new RequestThrottler(99, 11000, ctx.log)
 
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
+
+  await ctx.changeMessageVisibility(60 * 60 * 2)
 
   const streams = ctx.stream.data as HubspotStream[]
 
