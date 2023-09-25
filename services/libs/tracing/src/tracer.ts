@@ -1,10 +1,14 @@
-import fs from 'fs'
-
 import opentelemetry, { Tracer } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
 import { Resource, ResourceAttributes } from '@opentelemetry/resources'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+
+import {
+  awsEc2Detector,
+  awsEcsDetector,
+  awsEksDetector,
+} from '@opentelemetry/resource-detector-aws'
 
 import { BunyanInstrumentation } from '@opentelemetry/instrumentation-bunyan'
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
@@ -29,28 +33,17 @@ export const getServiceTracer = (): Tracer => {
     [SemanticResourceAttributes.SERVICE_NAME]: service,
   }
 
-  // Try to retrieve the Kubernetes namespace from file. If found, we can assume
-  // service is running in Kubernetes so we can set other Kubernetes-related
-  // resources such as pod and deployment names.
-  try {
-    const data = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/namespace')
-    if (data) {
-      attrs[SemanticResourceAttributes.K8S_NAMESPACE_NAME] = data.toString()
-
-      const pod = process.env['HOSTNAME']
-      if (pod) {
-        attrs[SemanticResourceAttributes.K8S_POD_NAME] = pod
-        attrs[SemanticResourceAttributes.K8S_DEPLOYMENT_NAME] = `${service}-dpl`
-      }
-    }
-  } catch (err) {
-    console.log('Ignoring Kubernetes tracing resources...')
+  // Apply specific resource attributes if process is running in Kubernetes.
+  // This is not handled by AWS resource detectors.
+  if (process.env['KUBE_MODE'] == '1') {
+    attrs[SemanticResourceAttributes.K8S_POD_NAME] = process.env['HOSTNAME']
   }
 
   sdk = new NodeSDK({
     traceExporter: new OTLPTraceExporter(),
     resource: new Resource(attrs),
     autoDetectResources: true,
+    resourceDetectors: [awsEc2Detector, awsEcsDetector, awsEksDetector],
     instrumentations: [
       new BunyanInstrumentation(),
       new HttpInstrumentation(),

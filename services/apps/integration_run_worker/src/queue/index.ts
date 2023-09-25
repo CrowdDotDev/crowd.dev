@@ -1,5 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/database'
-import { addTraceToLogFields, Tracer, Span, SpanStatusCode } from '@crowd/tracing'
+import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {
@@ -87,7 +87,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           code: SpanStatusCode.ERROR,
         })
 
-        this.log.error(addTraceToLogFields(span, { err }), 'Error while processing message!')
+        this.log.error({ err }, 'Error while processing message!')
         throw err
       } finally {
         span.end()
