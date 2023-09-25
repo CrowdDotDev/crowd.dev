@@ -25,6 +25,14 @@ export default (app) => {
     safeWrap(require('./helpers/githubAuthenticate').default),
   )
   app.put(
+    `/tenant/:tenantId/integration/:id/github/repos`,
+    safeWrap(require('./helpers/githubMapRepos').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/:id/github/repos`,
+    safeWrap(require('./helpers/githubMapReposGet').default),
+  )
+  app.put(
     `/discord-authenticate/:tenantId/:guild_id`,
     safeWrap(require('./helpers/discordAuthenticate').default),
   )

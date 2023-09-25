@@ -292,7 +292,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return result
   }
 
-  public async findByDomain(
+  public async findOrCreateByDomain(
     tenantId: string,
     segmentId: string,
     domain: string,
@@ -338,7 +338,41 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
 
     if (results.length === 0) {
-      return null
+      const data = {
+        displayName: domain,
+        website: domain,
+        identities: [
+          {
+            platform: 'email',
+            name: domain,
+          },
+        ],
+        url: null,
+        description: null,
+        emails: null,
+        logo: null,
+        tags: null,
+        github: null,
+        twitter: null,
+        linkedin: null,
+        crunchbase: null,
+        employees: null,
+        location: null,
+        type: null,
+        size: null,
+        headline: null,
+        industry: null,
+        founded: null,
+        attributes: null,
+        weakIdentities: [],
+      }
+
+      const orgId = await this.insert(tenantId, data)
+
+      return {
+        id: orgId,
+        ...data,
+      }
     }
 
     results.sort((a, b) => {
