@@ -1,2 +1,2 @@
-ALTER TABLE "organizationSegments" REPLICA IDENTITY USING INDEX 'organizationSegments_organizationId_segmentId_tenantId_key';
-ALTER TABLE "memberSegments" REPLICA IDENTITY USING INDEX 'memberSegments_memberId_segmentId_tenantId_key';
+ALTER TABLE "organizationSegments" REPLICA IDENTITY USING INDEX "organizationSegments_organizationId_segmentId_tenantId_key";
+ALTER TABLE "memberSegments" REPLICA IDENTITY USING INDEX "memberSegments_memberId_segmentId_tenantId_key";
