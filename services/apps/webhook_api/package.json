@@ -19,6 +19,7 @@
     "@crowd/common": "file:../../libs/common",
     "@crowd/database": "file:../../libs/database",
     "@crowd/logging": "file:../../libs/logging",
+    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/types": "file:../../libs/types",
     "@types/config": "^3.3.0",
