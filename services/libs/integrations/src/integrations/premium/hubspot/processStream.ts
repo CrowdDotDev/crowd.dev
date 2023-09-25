@@ -19,7 +19,8 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
 
-  await ctx.changeMessageVisibility(60 * 60 * 2)
+  // hubspot might have long running root stream, change stream queue message visibility to 7 hours
+  await ctx.changeMessageVisibility(60 * 60 * 7)
 
   const streams = ctx.stream.data as HubspotStream[]
 
