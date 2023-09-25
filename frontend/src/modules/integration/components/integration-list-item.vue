@@ -76,6 +76,7 @@
             connected,
             settings,
             hasSettings,
+            settingsComponent,
             hasIntegration,
           }"
         >
@@ -99,8 +100,9 @@
             >
               Disconnect
             </el-button>
+            <component :is="settingsComponent" v-if="connected && hasSettings && settingsComponent" :integration="integration" />
             <el-button
-              v-if="connected && hasSettings"
+              v-else-if="connected && hasSettings"
               class="btn btn-link btn-link--md btn-link--primary"
               @click="settings"
             >
@@ -165,7 +167,7 @@ const isError = computed(
 const isNoData = computed(() => props.integration.status === 'no-data');
 
 const isWaitingForAction = computed(
-  () => props.integration.status === 'pending-action',
+  () => ['pending-action', 'mapping'].includes(props.integration.status),
 );
 
 const isWaitingApproval = computed(

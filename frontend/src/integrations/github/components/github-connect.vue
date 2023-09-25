@@ -1,5 +1,5 @@
 <template>
-  <slot :connect="connect" />
+  <slot :connect="connect" :has-settings="true" :settings-component="GithubSettings" />
 </template>
 
 <script setup>
@@ -7,6 +7,7 @@ import { computed } from 'vue';
 import config from '@/config';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useRouter } from 'vue-router';
+import GithubSettings from './github-settings.vue';
 
 defineProps({
   integration: {

@@ -256,7 +256,7 @@ export default {
     },
 
     async doGithubConnect(
-      { commit },
+      { commit, dispatch },
       { code, installId, setupAction },
     ) {
       // Function to trigger Oauth performance.
@@ -269,20 +269,14 @@ export default {
           setupAction,
         );
 
-        commit('CREATE_SUCCESS', integration);
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> '
-          + '<br /> This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'GitHub integration created successfully',
-          },
-        );
         router.push({
           name: 'integration',
           params: {
             id: integration.segmentId,
           },
         });
+
+        dispatch('doFetch', [integration.segmentId]);
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');

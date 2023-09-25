@@ -135,6 +135,31 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async githubMapRepos(integrationId, mapping, segments) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
+      {
+        mapping,
+        segments,
+      },
+    );
+    return response.data;
+  }
+
+  static async fetchGitHubMappings(integration) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/integration/${integration.id}/github/repos`,
+      {
+        params: {
+          segments: [integration.segmentId],
+        },
+      },
+    );
+    return response.data;
+  }
+
   static async redditOnboard(subreddits) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
