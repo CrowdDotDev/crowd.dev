@@ -1069,7 +1069,10 @@ class OrganizationRepository {
     }
 
     const identityParams = identities
-      .map((identity) => `('${identity.platform.replace(/'/g, "''")}', '${identity.name.replace(/'/g, "''")}')`)
+      .map(
+        (identity) =>
+          `('${identity.platform.replace(/'/g, "''")}', '${identity.name.replace(/'/g, "''")}')`,
+      )
       .join(', ')
 
     const results = (await sequelize.query(
