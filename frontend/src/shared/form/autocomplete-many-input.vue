@@ -270,7 +270,7 @@ export default {
 
     async fetchNotIncludedTags(response) {
       if (this.areOptionsInMemory) {
-        return;
+        return Promise.resolve();
       }
 
       const notIncluded = this.model.filter(
@@ -278,33 +278,33 @@ export default {
       );
 
       if (notIncluded.length) {
-        const notIncludedResponse = await this.fetchFn({
+        return this.fetchFn({
           query: notIncluded,
           limit: this.limit,
-        });
-
-        this.localOptions.unshift(...notIncludedResponse);
+        }).then((notIncludedResponse) => {
+          this.localOptions.unshift(...notIncludedResponse);
+        }).finally(() => Promise.resolve());
       }
+
+      return Promise.resolve();
     },
 
     async fetchAllResults() {
       this.initialLoading = true;
 
-      try {
-        const response = await this.fetchFn({
-          query: this.currentQuery,
-          limit: this.limit,
-        });
-
+      this.fetchFn({
+        query: this.currentQuery,
+        limit: this.limit,
+      }).then((response) => {
         this.localOptions = response;
 
-        await this.fetchNotIncludedTags(response);
-
-        this.initialLoading = false;
-      } catch (error) {
+        this.fetchNotIncludedTags(response).finally(() => {
+          this.initialLoading = false;
+        });
+      }).catch((error) => {
         console.error(error);
         this.initialLoading = false;
-      }
+      });
     },
 
     async handleServerSearch(value) {
