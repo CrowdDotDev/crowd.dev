@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/integration-stream-worker",
+  "name": "@crowdapp/integration-stream-worker",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -35,6 +35,8 @@
     "command-line-args": "^5.2.1",
     "command-line-usage": "^7.0.1",
     "config": "^3.3.9",
+    "inversify": "^6.0.1",
+    "reflect-metadata": "^0.1.13",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4",

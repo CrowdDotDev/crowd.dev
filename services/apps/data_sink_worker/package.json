@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/data-sink-worker",
+  "name": "@crowdapp/data-sink-worker",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -34,12 +34,14 @@
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/types": "file:../../libs/types",
     "@types/config": "^3.3.0",
-    "@types/node": "^18.16.3",
+    "@types/node": "^18.18.0",
     "config": "^3.3.9",
+    "inversify": "^6.0.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isequal": "^4.5.0",
     "lodash.mergewith": "^4.6.2",
     "lodash.uniqby": "^4.7.0",
+    "reflect-metadata": "^0.1.13",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4"

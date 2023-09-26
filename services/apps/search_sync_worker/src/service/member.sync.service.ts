@@ -1,30 +1,38 @@
 import { SERVICE_CONFIG } from '@/conf'
+import { APP_IOC } from '@/ioc_constants'
 import { IDbMemberSyncData } from '@/repo/member.data'
 import { MemberRepository } from '@/repo/member.repo'
+import { IDbSegmentInfo } from '@/repo/segment.data'
+import { SegmentRepository } from '@/repo/segment.repo'
 import { OpenSearchIndex } from '@/types'
 import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/common'
-import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { REDIS_IOC, RedisClient } from '@crowd/redis'
 import { Edition, IMemberAttribute, MemberAttributeType } from '@crowd/types'
+import { inject, injectable } from 'inversify'
+import { IMemberSyncResult } from './member.sync.data'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
-import { SegmentRepository } from '@/repo/segment.repo'
-import { IDbSegmentInfo } from '@/repo/segment.data'
-import { IMemberSyncResult } from './member.sync.data'
 
-export class MemberSyncService extends LoggerBase {
+@injectable()
+export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
+  private log: Logger
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
 
   constructor(
+    @inject(REDIS_IOC.client)
     redisClient: RedisClient,
+    @inject(DATABASE_IOC.store)
     store: DbStore,
+    @inject(APP_IOC.openseachService)
     private readonly openSearchService: OpenSearchService,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('member-sync-service', parentLog)
 
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)

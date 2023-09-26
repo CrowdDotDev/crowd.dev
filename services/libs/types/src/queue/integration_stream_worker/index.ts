@@ -29,3 +29,13 @@ export class ProcessWebhookStreamQueueMessage implements IQueueMessage {
 
   constructor(public readonly webhookId: string) {}
 }
+
+export interface IIntegrationStreamWorkerEmitter {
+  checkStreams(): Promise<void>
+
+  continueProcessingRunStreams(tenantId: string, platform: string, runId: string): Promise<void>
+
+  triggerStreamProcessing(tenantId: string, platform: string, streamId: string): Promise<void>
+
+  triggerWebhookProcessing(tenantId: string, platform: string, webhookId: string): Promise<void>
+}

@@ -7,9 +7,13 @@ import {
   GenerateRunStreamsQueueMessage,
   StartIntegrationRunQueueMessage,
   CheckRunsQueueMessage,
+  IIntegrationRunWorkerEmitter,
 } from '@crowd/types'
 
-export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
+export class IntegrationRunWorkerEmitter
+  extends SqsQueueEmitter
+  implements IIntegrationRunWorkerEmitter
+{
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, parentLog)
   }

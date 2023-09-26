@@ -1,12 +1,12 @@
+import { generateUUIDv1 } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
+  IRedisPubSubBus,
+  IRedisPubSubEmitter,
+  IRedisPubSubPair,
   IRedisPubSubReceiver,
   RedisClient,
-  IRedisPubSubEmitter,
-  IRedisPubSubBus,
-  IRedisPubSubPair,
 } from './types'
-import { generateUUIDv1 } from '@crowd/common'
 
 abstract class RedisPubSubBase extends LoggerBase {
   protected readonly prefix: string

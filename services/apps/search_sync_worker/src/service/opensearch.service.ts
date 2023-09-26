@@ -1,49 +1,34 @@
-import { OPENSEARCH_CONFIG } from '@/conf'
 import {
   IndexVersions,
   OPENSEARCH_INDEX_MAPPINGS,
   OPENSEARCH_INDEX_SETTINGS,
   OpenSearchIndex,
 } from '@/types'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { Client } from '@opensearch-project/opensearch'
-import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
-import { IIndexRequest, ISearchHit } from './opensearch.data'
 import { IS_DEV_ENV } from '@crowd/common'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import { OPENSEARCH_IOC } from '@crowd/opensearch'
+import { Client } from '@opensearch-project/opensearch'
+import { inject, injectable } from 'inversify'
+import { IIndexRequest, ISearchHit } from './opensearch.data'
 
-export class OpenSearchService extends LoggerBase {
-  private readonly client: Client
+@injectable()
+export class OpenSearchService {
+  private log: Logger
   private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
 
-  constructor(parentLog: Logger) {
-    super(parentLog)
+  constructor(
+    @inject(OPENSEARCH_IOC.client)
+    private readonly client: Client,
+    @inject(LOGGING_IOC.logger)
+    parentLog: Logger,
+  ) {
+    this.log = getChildLogger('opensearch-service', parentLog)
 
     const indexNames = Object.values(OpenSearchIndex)
     indexNames.forEach((name) => {
       const version = IndexVersions.get(name)
       this.indexVersionMap.set(name, `${name}_v${version}`)
     })
-
-    const config = OPENSEARCH_CONFIG()
-    if (config.region) {
-      this.client = new Client({
-        node: config.node,
-        ...AwsSigv4Signer({
-          region: config.region,
-          service: 'es',
-          getCredentials: async () => {
-            return {
-              accessKeyId: config.accessKeyId,
-              secretAccessKey: config.secretAccessKey,
-            }
-          },
-        }),
-      })
-    } else {
-      this.client = new Client({
-        node: config.node,
-      })
-    }
   }
 
   private async doesIndexExist(indexName: string): Promise<boolean> {

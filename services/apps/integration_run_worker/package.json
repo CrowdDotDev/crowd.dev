@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/integration-run-worker",
+  "name": "@crowdapp/integration-run-worker",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -20,6 +20,7 @@
     "script:continue-run": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/continue-run.ts"
   },
   "dependencies": {
+    "@crowd/alerting": "file:../../libs/alerting",
     "@crowd/common": "file:../../libs/common",
     "@crowd/database": "file:../../libs/database",
     "@crowd/integrations": "file:../../libs/integrations",
@@ -27,19 +28,20 @@
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/types": "file:../../libs/types",
-    "@crowd/alerting": "file:../../libs/alerting",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
     "config": "^3.3.9",
+    "inversify": "^6.0.1",
+    "reflect-metadata": "^0.1.13",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "concurrently": "^8.0.1",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
+    "concurrently": "^8.0.1",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",

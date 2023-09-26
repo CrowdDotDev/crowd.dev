@@ -1,13 +1,23 @@
-import { Logger, LoggerBase } from '@crowd/logging'
-import { Client } from '@opensearch-project/opensearch'
-import { ISearchHit } from './opensearch.data'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import { OPENSEARCH_IOC } from '@crowd/opensearch'
 import { OpenSearchIndex } from '@crowd/types'
+import { Client } from '@opensearch-project/opensearch'
+import { inject, injectable } from 'inversify'
+import { ISearchHit } from './opensearch.data'
 
-export class OpenSearchService extends LoggerBase {
+@injectable()
+export class OpenSearchService {
+  private log: Logger
+
   public readonly client: Client
 
-  constructor(parentLog: Logger, client: Client) {
-    super(parentLog)
+  constructor(
+    @inject(LOGGING_IOC.logger)
+    parentLog: Logger,
+    @inject(OPENSEARCH_IOC.client)
+    client: Client,
+  ) {
+    this.log = getChildLogger('opensearch-service', parentLog)
     this.client = client
   }
 

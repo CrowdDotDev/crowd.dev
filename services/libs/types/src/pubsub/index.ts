@@ -16,3 +16,7 @@ export class ApiWebsocketMessage extends ApiMessageBase {
     super(ApiMessageType.WEBSOCKET_MESSAGE)
   }
 }
+
+export interface IApiPubSubEmitter {
+  emitIntegrationCompleted(tenantId: string, integrationId: string, status: string): void
+}

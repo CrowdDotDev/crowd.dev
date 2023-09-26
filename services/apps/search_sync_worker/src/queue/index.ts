@@ -1,27 +1,31 @@
+import { APP_IOC } from '@/ioc_constants'
 import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
-import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { BatchProcessor } from '@crowd/common'
-import { DbConnection, DbStore } from '@crowd/database'
-import { Logger } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
-import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
+import { DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SQS_IOC, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
+import { inject, injectable } from 'inversify'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+@injectable()
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
   private readonly organizationBatchProcessor: BatchProcessor<string>
 
   constructor(
-    private readonly redisClient: RedisClient,
+    @inject(SQS_IOC.client)
     client: SqsClient,
-    private readonly dbConn: DbConnection,
-    private readonly openSearchService: OpenSearchService,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
+    @inject(APP_IOC.maxConcurrentProcessing)
     maxConcurrentProcessing: number,
+    @inject(APP_IOC.memberSyncService)
+    memberSyncService: MemberSyncService,
   ) {
     super(
       client,
@@ -79,29 +83,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     )
   }
 
-  private initMemberService(): MemberSyncService {
-    return new MemberSyncService(
-      this.redisClient,
-      new DbStore(this.log, this.dbConn),
-      this.openSearchService,
-      this.log,
-    )
-  }
-
-  private initActivityService(): ActivitySyncService {
-    return new ActivitySyncService(
-      new DbStore(this.log, this.dbConn),
-      this.openSearchService,
-      this.log,
-    )
-  }
-
-  private initOrganizationService(): OrganizationSyncService {
-    return new OrganizationSyncService(
-      new DbStore(this.log, this.dbConn),
-      this.openSearchService,
-      this.log,
-    )
+  public override async start(): Promise<void> {
+    await super.start()
   }
 
   protected override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {

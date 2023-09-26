@@ -1,12 +1,10 @@
-import { DbConnection, DbStore } from '@crowd/database'
-import { Logger } from '@crowd/logging'
-import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
+import { IOC, childIocContainer } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
+import IntegrationRunService from '@/service/integrationRunService'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {
   INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
+  SQS_IOC,
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
@@ -17,46 +15,42 @@ import {
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
-import IntegrationRunService from '../service/integrationRunService'
+import { inject, injectable } from 'inversify'
 
 /* eslint-disable no-case-declarations */
 
+@injectable()
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
-    client: SqsClient,
-    private readonly redisClient: RedisClient,
-    private readonly dbConn: DbConnection,
-    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
-    private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
-    private readonly apiPubSubEmitter: ApiPubSubEmitter,
-    parentLog: Logger,
-    maxConcurrentProcessing: number,
+    @inject(SQS_IOC.client) client: SqsClient,
+    @inject(LOGGING_IOC.logger) parentLog: Logger,
+    @inject(APP_IOC.maxConcurrentProcessing) maxConcurrentProcessing: number,
   ) {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+
+    // just a test of resolution
+    IOC.get<IntegrationRunService>(APP_IOC.runService)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
-      const service = new IntegrationRunService(
-        this.redisClient,
-        this.streamWorkerEmitter,
-        this.runWorkerEmitter,
-        this.searchSyncWorkerEmitter,
-        this.integrationSyncWorkerEmitter,
-        this.apiPubSubEmitter,
-        new DbStore(this.log, this.dbConn),
-        this.log,
-      )
+      const requestContainer = childIocContainer()
+      const childLogger = getChildLogger('message-processing', this.log, {
+        messageType: message.type,
+      })
+
+      requestContainer.bind(LOGGING_IOC.logger).toConstantValue(childLogger)
+      const service = requestContainer.get<IntegrationRunService>(APP_IOC.runService)
 
       switch (message.type) {
-        case IntegrationRunWorkerQueueMessageType.CHECK_RUNS:
+        case IntegrationRunWorkerQueueMessageType.CHECK_RUNS: {
           await service.checkRuns()
           break
-        case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN:
+        }
+
+        case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN: {
           const msg = message as StartIntegrationRunQueueMessage
           await service.startIntegrationRun(
             msg.integrationId,
@@ -65,13 +59,19 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
             msg.manualSettings,
           )
           break
-        case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
-          const msg2 = message as GenerateRunStreamsQueueMessage
-          await service.generateStreams(msg2.runId, msg2.isManualRun, msg2.manualSettings)
+        }
+
+        case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS: {
+          const msg = message as GenerateRunStreamsQueueMessage
+          await service.generateStreams(msg.runId, msg.isManualRun, msg.manualSettings)
           break
-        case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
+        }
+
+        case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED: {
           await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
           break
+        }
+
         default:
           throw new Error(`Unknown message type: ${message.type}`)
       }

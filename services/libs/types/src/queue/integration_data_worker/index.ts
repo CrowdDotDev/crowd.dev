@@ -9,3 +9,7 @@ export class ProcessStreamDataQueueMessage implements IQueueMessage {
 
   constructor(public readonly dataId: string) {}
 }
+
+export interface IIntegrationDataWorkerEmitter {
+  triggerDataProcessing(tenantId: string, platform: string, dataId: string): Promise<void>
+}

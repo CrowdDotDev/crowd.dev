@@ -1,7 +1,8 @@
+import { IOC } from '@/ioc'
 import { asyncWrap } from '@/middleware/error'
 import { WebhooksRepository } from '@/repos/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
-import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import { IntegrationStreamWorkerEmitter, SQS_IOC } from '@crowd/sqs'
 import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'
 
@@ -9,7 +10,7 @@ const SIGNATURE_HEADER = 'x-hub-signature'
 const EVENT_HEADER = 'x-github-event'
 
 export const installGithubRoutes = async (app: express.Express) => {
-  let emitter: IntegrationStreamWorkerEmitter
+  const emitter = IOC.get<IntegrationStreamWorkerEmitter>(SQS_IOC.emitters.integrationStreamWorker)
   app.post(
     '/github',
     asyncWrap(async (req, res) => {
@@ -46,11 +47,6 @@ export const installGithubRoutes = async (app: express.Express) => {
             date: new Date().toISOString(),
           },
         )
-
-        if (!emitter) {
-          emitter = new IntegrationStreamWorkerEmitter(req.sqs, req.log)
-          await emitter.init()
-        }
 
         await emitter.triggerWebhookProcessing(integration.tenantId, integration.platform, id)
 

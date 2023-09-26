@@ -37,3 +37,23 @@ export class StreamProcessedQueueMessage implements IQueueMessage {
 
   constructor(public readonly runId: string) {}
 }
+
+export interface IIntegrationRunWorkerEmitter {
+  checkRuns(): Promise<void>
+  triggerIntegrationRun(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+    onboarding: boolean,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void>
+  triggerRunProcessing(
+    tenantId: string,
+    platform: string,
+    runId: string,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void>
+  streamProcessed(tenantId: string, platform: string, runId: string): Promise<void>
+}

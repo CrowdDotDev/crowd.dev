@@ -1,22 +1,29 @@
-import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
-import { OpenSearchService } from './opensearch.service'
+import { APP_IOC } from '@/ioc_constants'
+import { IDbActivitySyncData } from '@/repo/activity.data'
 import { ActivityRepository } from '@/repo/activity.repo'
 import { OpenSearchIndex } from '@/types'
-import { IDbActivitySyncData } from '@/repo/activity.data'
-import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { inject, injectable } from 'inversify'
+import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
+import { OpenSearchService } from './opensearch.service'
 
-export class ActivitySyncService extends LoggerBase {
+@injectable()
+export class ActivitySyncService {
   private static MAX_BYTE_LENGTH = 25000
+  private log: Logger
   private readonly activityRepo: ActivityRepository
 
   constructor(
+    @inject(DATABASE_IOC.store)
     store: DbStore,
+    @inject(APP_IOC.openseachService)
     private readonly openSearchService: OpenSearchService,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('activity-sync-service', parentLog)
 
     this.activityRepo = new ActivityRepository(store, this.log)
   }

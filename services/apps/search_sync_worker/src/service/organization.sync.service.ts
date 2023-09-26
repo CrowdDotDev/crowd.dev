@@ -4,23 +4,30 @@ import { OrganizationRepository } from '@/repo/organization.repo'
 import { IDbSegmentInfo } from '@/repo/segment.data'
 import { SegmentRepository } from '@/repo/segment.repo'
 import { distinct, groupBy } from '@crowd/common'
-import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
+import { inject, injectable } from 'inversify'
+import { APP_IOC } from '@/ioc_constants'
 
-export class OrganizationSyncService extends LoggerBase {
+@injectable()
+export class OrganizationSyncService {
+  private log: Logger
   private readonly orgRepo: OrganizationRepository
   private readonly segmentRepo: SegmentRepository
 
   constructor(
+    @inject(DATABASE_IOC.store)
     store: DbStore,
+    @inject(APP_IOC.openseachService)
     private readonly openSearchService: OpenSearchService,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('organization-sync-service', parentLog)
 
     this.orgRepo = new OrganizationRepository(store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)

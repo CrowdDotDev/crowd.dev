@@ -1,44 +1,25 @@
-import { getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG, REDIS_CONFIG } from './conf'
-import { WorkerQueueReceiver } from './queue'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
-import { getRedisClient } from '@crowd/redis'
-
-const log = getServiceLogger()
+import { SENTIMENT_CONFIG } from './conf'
+import { APP_IOC_MODULE, IOC } from './ioc'
+import { APP_IOC } from './ioc_constants'
+import { WorkerQueueReceiver } from './queue'
 
 const MAX_CONCURRENT_PROCESSING = 3
 
 setImmediate(async () => {
+  await APP_IOC_MODULE(MAX_CONCURRENT_PROCESSING)
+  const log = IOC.get<Logger>(LOGGING_IOC.logger)
+
   log.info('Starting data sink worker...')
-
-  const sqsClient = getSqsClient(SQS_CONFIG())
-
-  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
-
-  const redisClient = await getRedisClient(REDIS_CONFIG())
 
   if (SENTIMENT_CONFIG()) {
     initializeSentimentAnalysis(SENTIMENT_CONFIG())
   }
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, log)
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
-
-  const queue = new WorkerQueueReceiver(
-    sqsClient,
-    dbConnection,
-    nodejsWorkerEmitter,
-    searchSyncWorkerEmitter,
-    redisClient,
-    log,
-    MAX_CONCURRENT_PROCESSING,
-  )
+  const queue = IOC.get<WorkerQueueReceiver>(APP_IOC.queueWorker)
 
   try {
-    await nodejsWorkerEmitter.init()
-    await searchSyncWorkerEmitter.init()
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')

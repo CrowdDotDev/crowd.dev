@@ -4,11 +4,10 @@ import {
   IntegrationResultType,
   Entity,
   IAutomation,
+  IIntegrationSyncWorkerEmitter,
 } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
-
-import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
 import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
 
 export interface IIntegrationContext {
@@ -27,7 +26,7 @@ export interface IIntegrationContext {
 }
 
 export interface IIntegrationStartRemoteSyncContext {
-  integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
+  integrationSyncWorkerEmitter: IIntegrationSyncWorkerEmitter
   integration: IIntegration
   automations: IAutomation[]
   tenantId: string

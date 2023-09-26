@@ -1,18 +1,19 @@
+import { inject, injectable } from 'inversify'
+import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
+import { IStreamData } from '@/repo/integrationStream.data'
 import { addSeconds, singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
 import {
   INTEGRATION_SERVICES,
   IProcessStreamContext,
   IProcessWebhookStreamContext,
 } from '@crowd/integrations'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient, RateLimiter } from '@crowd/redis'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import { REDIS_IOC, RateLimiter, RedisCache, RedisClient } from '@crowd/redis'
 import {
-  IntegrationDataWorkerEmitter,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-} from '@crowd/sqs'
-import {
+  IIntegrationDataWorkerEmitter,
+  IIntegrationRunWorkerEmitter,
+  IIntegrationStreamWorkerEmitter,
   IntegrationRunState,
   IntegrationState,
   IntegrationStreamType,
@@ -21,22 +22,30 @@ import {
 } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IStreamData } from '@/repo/integrationStream.data'
-import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
+import { SQS_IOC } from '@crowd/sqs'
 
-export default class IntegrationStreamService extends LoggerBase {
+@injectable()
+export default class IntegrationStreamService {
+  private log: Logger
+
   private readonly repo: IntegrationStreamRepository
   private readonly webhookRepo: IncomingWebhookRepository
 
   constructor(
+    @inject(REDIS_IOC.client)
     private readonly redisClient: RedisClient,
-    private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
-    private readonly dataWorkerEmitter: IntegrationDataWorkerEmitter,
-    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    @inject(SQS_IOC.emitters.integrationRunWorker)
+    private readonly runWorkerEmitter: IIntegrationRunWorkerEmitter,
+    @inject(SQS_IOC.emitters.integrationDataWorker)
+    private readonly dataWorkerEmitter: IIntegrationDataWorkerEmitter,
+    @inject(SQS_IOC.emitters.integrationStreamWorker)
+    private readonly streamWorkerEmitter: IIntegrationStreamWorkerEmitter,
+    @inject(DATABASE_IOC.store)
     store: DbStore,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('stream-service', parentLog)
 
     this.repo = new IntegrationStreamRepository(store, this.log)
     this.webhookRepo = new IncomingWebhookRepository(store, this.log)

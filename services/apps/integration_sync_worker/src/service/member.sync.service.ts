@@ -1,36 +1,43 @@
 import { NANGO_CONFIG, SERVICE_CONFIG } from '@/conf'
-import { MemberRepository } from '../repo/member.repo'
-import { Entity, IMember, OpenSearchIndex } from '@crowd/types'
-import { singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { Edition } from '@crowd/types'
-import { ISearchHit } from './opensearch.data'
-import { OpenSearchService } from './opensearch.service'
+import { automationNotFound, integrationNotFound } from '@/errors'
+import { APP_IOC } from '@/ioc_constants'
+import { AutomationRepository } from '@/repo/automation.repo'
+import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
+import { IDbIntegration } from '@/repo/integration.data'
 import { IntegrationRepository } from '@/repo/integration.repo'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { singleOrDefault } from '@crowd/common'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
 import {
   IBatchCreateMemberResult,
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
-import { IDbIntegration } from '@/repo/integration.data'
-import { AutomationRepository } from '@/repo/automation.repo'
-import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
-import { automationNotFound, integrationNotFound } from '@/errors'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { Edition, Entity, IMember, OpenSearchIndex } from '@crowd/types'
+import { inject, injectable } from 'inversify'
+import { MemberRepository } from '../repo/member.repo'
+import { ISearchHit } from './opensearch.data'
+import { OpenSearchService } from './opensearch.service'
 
-export class MemberSyncService extends LoggerBase {
+@injectable()
+export class MemberSyncService {
+  private log: Logger
+
   private readonly memberRepo: MemberRepository
   private readonly integrationRepo: IntegrationRepository
   private readonly automationRepo: AutomationRepository
   private readonly automationExecutionRepo: AutomationExecutionRepository
 
   constructor(
+    @inject(DATABASE_IOC.store)
     store: DbStore,
+    @inject(APP_IOC.openseachService)
     private readonly openSearchService: OpenSearchService,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('member-sync-service', parentLog)
 
     this.memberRepo = new MemberRepository(store, this.log)
     this.integrationRepo = new IntegrationRepository(store, this.log)

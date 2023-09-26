@@ -3,12 +3,13 @@ import { NODEJS_WORKER_QUEUE_SETTINGS } from '../config'
 import { SqsQueueEmitter } from '../queue'
 import { SqsClient } from '../types'
 import {
+  INodejsWorkerEmitter,
   IQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
 } from '@crowd/types'
 
-export class NodejsWorkerEmitter extends SqsQueueEmitter {
+export class NodejsWorkerEmitter extends SqsQueueEmitter implements INodejsWorkerEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, NODEJS_WORKER_QUEUE_SETTINGS, parentLog)
   }

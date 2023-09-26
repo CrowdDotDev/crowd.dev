@@ -21,3 +21,7 @@ export const trimUtf8ToMaxByteLength = (utf8Str: string, maxByteLength: number):
 
   return utf8Str
 }
+
+export const isFlagSet = (flags: number, flagToCheck: number): boolean => {
+  return (flags & flagToCheck) === flagToCheck
+}

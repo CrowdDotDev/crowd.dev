@@ -1,46 +1,19 @@
-import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
-import { getRedisClient } from '@crowd/redis'
-import { getDbConnection } from '@crowd/database'
-import {
-  IntegrationRunWorkerEmitter,
-  IntegrationDataWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { APP_IOC_MODULE, IOC } from './ioc'
 import { WorkerQueueReceiver } from './queue'
-
-const log = getServiceLogger()
+import { APP_IOC } from './ioc_constants'
 
 const MAX_CONCURRENT_PROCESSING = 2
 
 setImmediate(async () => {
+  await APP_IOC_MODULE(MAX_CONCURRENT_PROCESSING)
+
+  const log = IOC.get<Logger>(LOGGING_IOC.logger)
   log.info('Starting integration stream worker...')
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
-
-  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
-  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
-
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, log)
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
-
-  const queue = new WorkerQueueReceiver(
-    sqsClient,
-    redisClient,
-    dbConnection,
-    runWorkerEmiiter,
-    dataWorkerEmitter,
-    streamWorkerEmitter,
-    log,
-    MAX_CONCURRENT_PROCESSING,
-  )
+  const queue = IOC.get<WorkerQueueReceiver>(APP_IOC.queueWorker)
 
   try {
-    await runWorkerEmiiter.init()
-    await dataWorkerEmitter.init()
-    await streamWorkerEmitter.init()
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')

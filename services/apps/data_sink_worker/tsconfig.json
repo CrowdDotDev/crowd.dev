@@ -3,16 +3,17 @@
     "target": "es2017",
     "module": "Node16",
     "declaration": true,
-    "outDir": "./dist",
     "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
+    "types": ["reflect-metadata", "node"],
     "skipLibCheck": true,
     "sourceMap": true,
     "moduleResolution": "node16",
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../../libs/*/dist"],
+      "@crowd/*": ["../../../libs/*/src"],
       "@/*": ["./*"]
     }
   },

@@ -5,10 +5,11 @@ import { SqsClient } from '../types'
 import {
   CreateAndProcessActivityResultQueueMessage,
   IActivityData,
+  IDataSinkWorkerEmitter,
   ProcessIntegrationResultQueueMessage,
 } from '@crowd/types'
 
-export class DataSinkWorkerEmitter extends SqsQueueEmitter {
+export class DataSinkWorkerEmitter extends SqsQueueEmitter implements IDataSinkWorkerEmitter {
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, parentLog)
   }

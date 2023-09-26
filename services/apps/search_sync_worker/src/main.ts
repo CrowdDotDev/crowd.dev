@@ -1,37 +1,19 @@
-import { getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { APP_IOC_MODULE, IOC } from './ioc'
+import { APP_IOC } from './ioc_constants'
 import { WorkerQueueReceiver } from './queue'
 import { InitService } from './service/init.service'
-import { OpenSearchService } from './service/opensearch.service'
-
-const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 2
 
 setImmediate(async () => {
+  await APP_IOC_MODULE(MAX_CONCURRENT_PROCESSING)
+
+  const log = IOC.get<Logger>(LOGGING_IOC.logger)
   log.info('Starting search sync worker...')
 
-  const openSearchService = new OpenSearchService(log)
-
-  const redis = await getRedisClient(REDIS_CONFIG())
-
-  const sqsClient = getSqsClient(SQS_CONFIG())
-
-  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
-
-  const worker = new WorkerQueueReceiver(
-    redis,
-    sqsClient,
-    dbConnection,
-    openSearchService,
-    log,
-    MAX_CONCURRENT_PROCESSING,
-  )
-
-  const initService = new InitService(openSearchService, log)
+  const worker = IOC.get<WorkerQueueReceiver>(APP_IOC.queueWorker)
+  const initService = IOC.get<InitService>(APP_IOC.initService)
 
   try {
     await initService.initialize()

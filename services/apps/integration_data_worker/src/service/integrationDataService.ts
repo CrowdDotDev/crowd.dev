@@ -1,25 +1,39 @@
-import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient } from '@crowd/redis'
-import IntegrationDataRepository from '../repo/integrationData.repo'
-import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
-import { addSeconds, singleOrDefault } from '@crowd/common'
-import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { WORKER_SETTINGS, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '@/conf'
-import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import { PLATFORM_CONFIG, SLACK_ALERTING_CONFIG, WORKER_SETTINGS } from '@/conf'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
+import { addSeconds, singleOrDefault } from '@crowd/common'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import { REDIS_IOC, RedisCache, RedisClient } from '@crowd/redis'
+import { SQS_IOC } from '@crowd/sqs'
+import {
+  IActivityData,
+  IDataSinkWorkerEmitter,
+  IIntegrationStreamWorkerEmitter,
+  IntegrationResultType,
+  IntegrationRunState,
+} from '@crowd/types'
+import { inject, injectable } from 'inversify'
+import IntegrationDataRepository from '../repo/integrationData.repo'
 
-export default class IntegrationDataService extends LoggerBase {
+@injectable()
+export default class IntegrationDataService {
+  private log: Logger
   private readonly repo: IntegrationDataRepository
 
   constructor(
+    @inject(REDIS_IOC.client)
     private readonly redisClient: RedisClient,
-    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
-    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
+    @inject(SQS_IOC.emitters.integrationStreamWorker)
+    private readonly streamWorkerEmitter: IIntegrationStreamWorkerEmitter,
+    @inject(SQS_IOC.emitters.dataSinkWorker)
+    private readonly dataSinkWorkerEmitter: IDataSinkWorkerEmitter,
+    @inject(DATABASE_IOC.store)
     store: DbStore,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('integration-data-service', parentLog)
 
     this.repo = new IntegrationDataRepository(store, this.log)
   }

@@ -29,3 +29,19 @@ export class CreateAndProcessActivityResultQueueMessage implements IQueueMessage
     public readonly activityData: IActivityData,
   ) {}
 }
+
+export interface IDataSinkWorkerEmitter {
+  triggerResultProcessing(
+    tenantId: string,
+    platform: string,
+    resultId: string,
+    sourceId: string,
+  ): Promise<void>
+
+  createAndProcessActivityResult(
+    tenantId: string,
+    segmentId: string,
+    integrationId: string,
+    activity: IActivityData,
+  ): Promise<void>
+}

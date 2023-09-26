@@ -1,9 +1,9 @@
 import { Logger, LoggerBase } from '@crowd/logging'
-import { ApiWebsocketMessage } from '@crowd/types'
+import { ApiWebsocketMessage, IApiPubSubEmitter } from '@crowd/types'
 import { RedisPubSubEmitter } from '../pubsub'
 import { RedisClient } from '../types'
 
-export class ApiPubSubEmitter extends LoggerBase {
+export class ApiPubSubEmitter extends LoggerBase implements IApiPubSubEmitter {
   private readonly pubsub: RedisPubSubEmitter
 
   constructor(redis: RedisClient, parentLog: Logger) {

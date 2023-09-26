@@ -1,34 +1,35 @@
+import IntegrationRepository from '@/repo/integration.repo'
 import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
 import MemberRepository from '@/repo/member.repo'
 import {
   firstArrayContainsSecondArray,
+  isDomainExcluded,
   isObjectEmpty,
   singleOrDefault,
-  isDomainExcluded,
 } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
   IMemberData,
   IMemberIdentity,
-  PlatformType,
+  INodejsWorkerEmitter,
   IOrganization,
+  ISearchSyncWorkerEmitter,
   OrganizationSource,
+  PlatformType,
 } from '@crowd/types'
-import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
+import mergeWith from 'lodash.mergewith'
+import uniqby from 'lodash.uniqby'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
-import IntegrationRepository from '@/repo/integration.repo'
 import { OrganizationService } from './organization.service'
-import uniqby from 'lodash.uniqby'
 
 export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly nodejsWorkerEmitter: INodejsWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: ISearchSyncWorkerEmitter,
     parentLog: Logger,
   ) {
     super(parentLog)

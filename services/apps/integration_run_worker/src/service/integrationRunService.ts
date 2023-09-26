@@ -1,42 +1,57 @@
+import { inject, injectable } from 'inversify'
+import { AutomationRepository } from '@/repo/automation.repo'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
 import {
   IGenerateStreamsContext,
   IIntegrationStartRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import { REDIS_IOC, RedisCache, RedisClient } from '@crowd/redis'
 import {
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
-} from '@crowd/sqs'
-import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+  IApiPubSubEmitter,
+  IIntegrationRunWorkerEmitter,
+  IIntegrationStreamWorkerEmitter,
+  IIntegrationSyncWorkerEmitter,
+  ISearchSyncWorkerEmitter,
+  IntegrationRunState,
+  IntegrationStreamState,
+} from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
-import { AutomationRepository } from '@/repo/automation.repo'
+import { SQS_IOC } from '@crowd/sqs'
 
-export default class IntegrationRunService extends LoggerBase {
+@injectable()
+export default class IntegrationRunService {
+  private log: Logger
+
   private readonly repo: IntegrationRunRepository
   private readonly sampleDataRepo: SampleDataRepository
   private readonly automationRepo: AutomationRepository
 
   constructor(
+    @inject(REDIS_IOC.client)
     private readonly redisClient: RedisClient,
-    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
-    private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
-    private readonly apiPubSubEmitter: ApiPubSubEmitter,
+    @inject(SQS_IOC.emitters.integrationStreamWorker)
+    private readonly streamWorkerEmitter: IIntegrationStreamWorkerEmitter,
+    @inject(SQS_IOC.emitters.integrationRunWorker)
+    private readonly runWorkerEmitter: IIntegrationRunWorkerEmitter,
+    @inject(SQS_IOC.emitters.searchSyncWorker)
+    private readonly searchSyncWorkerEmitter: ISearchSyncWorkerEmitter,
+    @inject(SQS_IOC.emitters.integrationSyncWorker)
+    private readonly integrationSyncWorkerEmitter: IIntegrationSyncWorkerEmitter,
+    @inject(REDIS_IOC.pubsub.apiEmitter)
+    private readonly apiPubSubEmitter: IApiPubSubEmitter,
+    @inject(DATABASE_IOC.store)
     private readonly store: DbStore,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('integration-run-service', parentLog)
 
     this.repo = new IntegrationRunRepository(store, this.log)
     this.sampleDataRepo = new SampleDataRepository(store, this.log)

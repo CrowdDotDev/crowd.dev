@@ -1,30 +1,17 @@
-import { getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, OPENSEARCH_CONFIG, SQS_CONFIG } from './conf'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { APP_IOC_MODULE, IOC } from './ioc'
+import { APP_IOC } from './ioc_constants'
 import { WorkerQueueReceiver } from './queue'
-import { getOpensearchClient } from '@crowd/opensearch'
-
-const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 2
 
 setImmediate(async () => {
+  await APP_IOC_MODULE(MAX_CONCURRENT_PROCESSING)
+  const log = IOC.get<Logger>(LOGGING_IOC.logger)
+
   log.info('Starting integration sync worker...')
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
-
-  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
-
-  const opensearchClient = getOpensearchClient(OPENSEARCH_CONFIG())
-
-  const worker = new WorkerQueueReceiver(
-    sqsClient,
-    dbConnection,
-    opensearchClient,
-    log,
-    MAX_CONCURRENT_PROCESSING,
-  )
+  const worker = IOC.get<WorkerQueueReceiver>(APP_IOC.queueWorker)
 
   try {
     await worker.start()

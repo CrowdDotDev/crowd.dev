@@ -23,3 +23,15 @@ export class NewMemberAutomationQueueMessage implements IQueueMessage {
 
   constructor(public readonly tenant: string, public readonly memberId: string) {}
 }
+
+export interface INodejsWorkerEmitter {
+  sendMessage(groupId: string, message: IQueueMessage, deduplicationId: string): Promise<void>
+
+  processAutomationForNewActivity(
+    tenantId: string,
+    activityId: string,
+    segmentId: string,
+  ): Promise<void>
+
+  processAutomationForNewMember(tenantId: string, memberId: string): Promise<void>
+}

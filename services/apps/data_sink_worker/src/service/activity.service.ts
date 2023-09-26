@@ -1,22 +1,25 @@
 import { IDbActivity, IDbActivityUpdateData } from '@/repo/activity.data'
+import ActivityRepository from '@/repo/activity.repo'
+import IntegrationRepository from '@/repo/integration.repo'
 import MemberRepository from '@/repo/member.repo'
 import { isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { ConversationService } from '@crowd/conversations'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { RedisClient, acquireLock, releaseLock } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { IActivityData, PlatformType } from '@crowd/types'
-import ActivityRepository from '@/repo/activity.repo'
+import {
+  IActivityData,
+  INodejsWorkerEmitter,
+  ISearchSyncWorkerEmitter,
+  PlatformType,
+} from '@crowd/types'
+import isEqual from 'lodash.isequal'
+import mergeWith from 'lodash.mergewith'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
-import mergeWith from 'lodash.mergewith'
-import isEqual from 'lodash.isequal'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
-import SettingsRepository from './settings.repo'
-import { ConversationService } from '@crowd/conversations'
-import IntegrationRepository from '@/repo/integration.repo'
 import MemberAffiliationService from './memberAffiliation.service'
-import { RedisClient } from '@crowd/redis'
-import { acquireLock, releaseLock } from '@crowd/redis'
+import SettingsRepository from '../repo/settings.repo'
 
 const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
 const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
@@ -26,8 +29,8 @@ export default class ActivityService extends LoggerBase {
 
   constructor(
     private readonly store: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly nodejsWorkerEmitter: INodejsWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: ISearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {

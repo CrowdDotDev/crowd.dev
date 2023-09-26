@@ -1,42 +1,47 @@
+import { IOC, childIocContainer } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
 import { MemberSyncService } from '@/service/member.sync.service'
-import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
-import { DbConnection, DbStore } from '@crowd/database'
-import { Logger } from '@crowd/logging'
-import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import {
+  INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
+  SQS_IOC,
+  SqsClient,
+  SqsQueueReceiver,
+} from '@crowd/sqs'
 import {
   AutomationSyncTrigger,
   IQueueMessage,
   IntegrationSyncWorkerQueueMessageType,
 } from '@crowd/types'
-import { Client } from '@opensearch-project/opensearch'
+import { inject, injectable } from 'inversify'
 
+@injectable()
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
+    @inject(SQS_IOC.client)
     client: SqsClient,
-    private readonly dbConn: DbConnection,
-    private readonly openSearchClient: Client,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
+    @inject(APP_IOC.maxConcurrentProcessing)
     maxConcurrentProcessing: number,
   ) {
     super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
-  }
 
-  private initMemberService(): MemberSyncService {
-    return new MemberSyncService(
-      new DbStore(this.log, this.dbConn),
-      new OpenSearchService(this.log, this.openSearchClient),
-      this.log,
-    )
-  }
-
-  private initOrganizationService(): OrganizationSyncService {
-    return new OrganizationSyncService(new DbStore(this.log, this.dbConn), this.log)
+    IOC.get<MemberSyncService>(APP_IOC.memberSyncService)
+    IOC.get<OrganizationSyncService>(APP_IOC.organizationSyncService)
   }
 
   protected override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
+
+      const requestContainer = childIocContainer()
+      const childLogger = getChildLogger('message-processing', this.log, {
+        messageType: message.type,
+      })
+
+      requestContainer.bind(LOGGING_IOC.logger).toConstantValue(childLogger)
 
       const type = message.type as IntegrationSyncWorkerQueueMessageType
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,35 +49,52 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
       switch (type) {
         // members
-        case IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_MEMBERS:
-          await this.initMemberService().syncAllMarkedMembers(data.tenantId, data.integrationId)
+        case IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_MEMBERS: {
+          const service = requestContainer.get<MemberSyncService>(APP_IOC.memberSyncService)
+          await service.syncAllMarkedMembers(data.tenantId, data.integrationId)
 
           break
-        case IntegrationSyncWorkerQueueMessageType.SYNC_MEMBER:
-          await this.initMemberService().syncMember(
+        }
+
+        case IntegrationSyncWorkerQueueMessageType.SYNC_MEMBER: {
+          const service = requestContainer.get<MemberSyncService>(APP_IOC.memberSyncService)
+          await service.syncMember(
             data.tenantId,
             data.integrationId,
             data.memberId,
             data.syncRemoteId,
           )
           break
-        case IntegrationSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
-          await this.initOrganizationService().syncOrganization(
+        }
+
+        case IntegrationSyncWorkerQueueMessageType.SYNC_ORGANIZATION: {
+          const service = requestContainer.get<OrganizationSyncService>(
+            APP_IOC.organizationSyncService,
+          )
+          await service.syncOrganization(
             data.tenantId,
             data.integrationId,
             data.organizationId,
             data.syncRemoteId,
           )
           break
-        case IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS:
-          await this.initOrganizationService().syncAllMarkedOrganizations(
-            data.tenantId,
-            data.integrationId,
+        }
+
+        case IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS: {
+          const service = requestContainer.get<OrganizationSyncService>(
+            APP_IOC.organizationSyncService,
           )
+          await service.syncAllMarkedOrganizations(data.tenantId, data.integrationId)
           break
-        case IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION:
+        }
+
+        case IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION: {
+          const memberSyncService = requestContainer.get<MemberSyncService>(
+            APP_IOC.memberSyncService,
+          )
+
           if (data.automationTrigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH) {
-            await this.initMemberService().syncAllFilteredMembers(
+            await memberSyncService.syncAllFilteredMembers(
               data.tenantId,
               data.integrationId,
               data.automationId,
@@ -80,17 +102,20 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           } else if (
             data.automationTrigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH
           ) {
-            const organizationIds =
-              await this.initOrganizationService().syncAllFilteredOrganizations(
-                data.tenantId,
-                data.integrationId,
-                data.automationId,
-              )
+            const orgSyncService = requestContainer.get<OrganizationSyncService>(
+              APP_IOC.organizationSyncService,
+            )
+
+            const organizationIds = await orgSyncService.syncAllFilteredOrganizations(
+              data.tenantId,
+              data.integrationId,
+              data.automationId,
+            )
 
             // also sync organization members if syncAllFilteredOrganizations return the ids
             while (organizationIds.length > 0) {
               const organizationId = organizationIds.shift()
-              await this.initMemberService().syncOrganizationMembers(
+              await memberSyncService.syncOrganizationMembers(
                 data.tenantId,
                 data.integrationId,
                 data.automationId,
@@ -103,6 +128,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
             throw new Error(errorMessage)
           }
           break
+        }
 
         default:
           throw new Error(`Unknown message type: ${message.type}`)

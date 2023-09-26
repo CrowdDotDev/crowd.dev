@@ -1,14 +1,17 @@
+import { APP_IOC } from '@/ioc_constants'
 import { IDbActivitySyncData } from '@/repo/activity.data'
 import { IDbMemberSyncData } from '@/repo/member.data'
+import { IDbOrganizationSyncData } from '@/repo/organization.data'
 import { OpenSearchIndex } from '@/types'
-import { Logger, LoggerBase } from '@crowd/logging'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
+import { inject, injectable } from 'inversify'
 import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
-import { IDbOrganizationSyncData } from '@/repo/organization.data'
 import { OrganizationSyncService } from './organization.sync.service'
 
-export class InitService extends LoggerBase {
+@injectable()
+export class InitService {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
   public static FAKE_SEGMENT_ID = 'ce36b0b0-1fc4-4637-955d-afb8a6b58e48'
   public static FAKE_MEMBER_ID = '9c19e17c-6a07-4f4c-bc9b-ce1fdce9c126'
@@ -16,8 +19,15 @@ export class InitService extends LoggerBase {
   public static FAKE_CONVERSATION_ID = 'cba1758c-7b1f-4a3c-b6ff-e6f3bdf54c86'
   public static FAKE_ORGANIZATION_ID = 'cba1758c-7b1f-4a3c-b6ff-e6f3bdf54c85'
 
-  constructor(private readonly openSearchService: OpenSearchService, parentLog: Logger) {
-    super(parentLog)
+  private log: Logger
+
+  constructor(
+    @inject(APP_IOC.openseachService)
+    private readonly openSearchService: OpenSearchService,
+    @inject(LOGGING_IOC.logger)
+    parentLog: Logger,
+  ) {
+    this.log = getChildLogger('init-service', parentLog)
   }
 
   public async initialize(): Promise<void> {

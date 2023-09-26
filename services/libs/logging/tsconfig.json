@@ -3,16 +3,17 @@
     "target": "es2017",
     "module": "commonjs",
     "declaration": true,
-    "outDir": "./dist",
     "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise", "ES2017.String"],
+    "types": ["reflect-metadata"],
     "skipLibCheck": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../*/dist"],
+      "@crowd/*": ["../../*/src"],
       "@/*": ["./*"]
     }
   },

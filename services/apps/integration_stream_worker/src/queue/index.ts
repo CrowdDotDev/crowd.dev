@@ -1,10 +1,8 @@
-import { DbConnection, DbStore } from '@crowd/database'
-import { Logger } from '@crowd/logging'
+import { DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
-  IntegrationRunWorkerEmitter,
-  IntegrationDataWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
+  SQS_IOC,
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
@@ -15,35 +13,37 @@ import {
   ProcessStreamQueueMessage,
   ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
-import { RedisClient } from '@crowd/redis'
+import { inject, injectable } from 'inversify'
 import IntegrationStreamService from '../service/integrationStreamService'
+import { APP_IOC } from '@/ioc_constants'
+import { IOC, childIocContainer } from '@/ioc'
 
+@injectable()
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
+    @inject(SQS_IOC.client)
     client: SqsClient,
-    private readonly redisClient: RedisClient,
-    private readonly dbConn: DbConnection,
-    private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
-    private readonly dataWorkerEmitter: IntegrationDataWorkerEmitter,
-    private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
+    @inject(APP_IOC.maxConcurrentProcessing)
     maxConcurrentProcessing: number,
   ) {
     super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
+
+    IOC.get<IntegrationStreamService>(APP_IOC.streamService)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
-      const service = new IntegrationStreamService(
-        this.redisClient,
-        this.runWorkerEmitter,
-        this.dataWorkerEmitter,
-        this.streamWorkerEmitter,
-        new DbStore(this.log, this.dbConn),
-        this.log,
-      )
+      const requestContainer = childIocContainer()
+      const childLogger = getChildLogger('message-processing', this.log, {
+        messageType: message.type,
+      })
+
+      requestContainer.bind(LOGGING_IOC.logger).toConstantValue(childLogger)
+      const service = requestContainer.get<IntegrationStreamService>(APP_IOC.streamService)
 
       switch (message.type) {
         case IntegrationStreamWorkerQueueMessageType.CHECK_STREAMS:

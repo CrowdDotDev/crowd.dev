@@ -5,12 +5,16 @@ import { SqsClient } from '../types'
 import {
   CheckStreamsQueueMessage,
   ContinueProcessingRunStreamsQueueMessage,
+  IIntegrationStreamWorkerEmitter,
   ProcessStreamQueueMessage,
   ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 
-export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
+export class IntegrationStreamWorkerEmitter
+  extends SqsQueueEmitter
+  implements IIntegrationStreamWorkerEmitter
+{
   constructor(client: SqsClient, parentLog: Logger) {
     super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
   }

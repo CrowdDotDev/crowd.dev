@@ -1,9 +1,9 @@
 import { SLACK_ALERTING_CONFIG } from '@/conf'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
-import { DbStore } from '@crowd/database'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { REDIS_IOC, RedisClient } from '@crowd/redis'
+import { NodejsWorkerEmitter, SQS_IOC, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
@@ -16,18 +16,27 @@ import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
+import { inject, injectable } from 'inversify'
 
-export default class DataSinkService extends LoggerBase {
+@injectable()
+export default class DataSinkService {
+  private log: Logger
+
   private readonly repo: DataSinkRepository
 
   constructor(
+    @inject(DATABASE_IOC.store)
     private readonly store: DbStore,
+    @inject(SQS_IOC.emitters.nodejsWorker)
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    @inject(SQS_IOC.emitters.searchSyncWorker)
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    @inject(REDIS_IOC.client)
     private readonly redisClient: RedisClient,
+    @inject(LOGGING_IOC.logger)
     parentLog: Logger,
   ) {
-    super(parentLog)
+    this.log = getChildLogger('data-sink-service', parentLog)
 
     this.repo = new DataSinkRepository(store, this.log)
   }
