@@ -1,0 +1,21 @@
+{
+  "name": "@crowdapp/tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest --clearCache && jest --runInBand --verbose --forceExit"
+  },
+  "dependencies": {
+    "@crowdapp/integration-run-worker": "file:../apps/integration_run_worker",
+    "@crowd/database": "file:../libs/database",
+    "@crowd/logging": "file:../libs/logging",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^18.16.3",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "tsconfig-paths": "^4.2.0",
+    "inversify": "^6.0.1",
+    "reflect-metadata": "^0.1.13",
+    "typescript": "^5.0.4"
+  }
+}

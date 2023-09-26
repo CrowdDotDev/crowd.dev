@@ -2,17 +2,18 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
-    "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise", "ES2017.String"],
-    "types": ["reflect-metadata"],
+    "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
+    "types": ["reflect-metadata", "jest", "node"],
     "skipLibCheck": true,
-    "moduleResolution": "node",
     "sourceMap": true,
+    "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../*/src"],
+      "@crowd/*": ["../../libs/*/src"],
+      "@crowdapp/*": ["../../apps/*/src"],
       "@/*": ["./*"]
     }
   },

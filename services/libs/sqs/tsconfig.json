@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
-    "declaration": true,
     "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
     "types": ["reflect-metadata"],
     "skipLibCheck": true,
