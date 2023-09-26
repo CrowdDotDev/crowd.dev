@@ -61,9 +61,8 @@ i18nInit();
   (app.config as any).productionTip = process.env.NODE_ENV === 'production';
 
   app.config.errorHandler = (err: any) => {
-    if (config.env === 'local') {
-      console.error(err);
-    } else {
+    console.error(err);
+    if (config.env !== 'local') {
       captureException(err);
     }
   };
