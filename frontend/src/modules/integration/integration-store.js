@@ -268,6 +268,15 @@ export default {
           installId,
           setupAction,
         );
+        const repos = integration?.settings?.repos || [];
+        const data = repos.reduce((a, b) => ({
+          ...a,
+          [b.url]: integration.segmentId,
+        }), {});
+
+        await IntegrationService.githubMapRepos(integration.id, data);
+
+        dispatch('doFetch');
 
         router.push({
           name: 'integration',

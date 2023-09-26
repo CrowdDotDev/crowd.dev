@@ -9,6 +9,7 @@
       v-if="widgetDrawer.visible === true"
       v-model:widget="widgetDrawer.model"
       v-model:drawer="widgetDrawer.visible"
+      :action="widgetDrawer.action"
       @submit="handleWidgetFormSubmit"
     />
     <div

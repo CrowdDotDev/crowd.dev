@@ -1,7 +1,7 @@
 <template>
   <app-drawer
     v-model="visible"
-    title="Edit widget"
+    :title="action === 'edit' ? 'Edit widget' : 'Add widget'"
     size="600px"
     custom-class="widget-cube-builder"
   >
@@ -294,6 +294,10 @@ export default {
     widget: {
       type: Object,
       default: () => {},
+    },
+    action: {
+      type: String,
+      default: 'edit',
     },
   },
   emits: ['update:widget', 'update:drawer', 'submit'],

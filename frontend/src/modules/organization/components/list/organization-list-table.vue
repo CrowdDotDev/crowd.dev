@@ -65,6 +65,7 @@
             </transition>
 
             <app-organization-list-toolbar
+              :pagination="pagination"
               @mouseover="onTableMouseover"
               @mouseleave="onTableMouseLeft"
             />

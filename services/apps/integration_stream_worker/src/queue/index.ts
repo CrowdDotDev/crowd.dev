@@ -32,7 +32,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
   }
 
-  override async processMessage(message: IQueueMessage): Promise<void> {
+  override async processMessage(message: IQueueMessage, receiptHandle: string): Promise<void> {
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
@@ -55,7 +55,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           )
           break
         case IntegrationStreamWorkerQueueMessageType.PROCESS_STREAM:
-          await service.processStream((message as ProcessStreamQueueMessage).streamId)
+          await service.processStream(
+            (message as ProcessStreamQueueMessage).streamId,
+            receiptHandle,
+          )
           break
         case IntegrationStreamWorkerQueueMessageType.PROCESS_WEBHOOK_STREAM:
           await service.processWebhookStream(
