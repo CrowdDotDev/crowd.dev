@@ -172,7 +172,6 @@ const isDrawerOpen = computed({
 });
 
 async function onSubmit() {
-  let hasErrorOccurred = false;
   // Handle deleted fields
   if (deletedFields.length) {
     try {
@@ -192,57 +191,53 @@ async function onSubmit() {
       store
         .dispatch('member/doDestroyCustomAttributes', ids)
         .catch(() => {
-          hasErrorOccurred = true;
+          Message.error(i18n('errors.defaultErrorMessage'));
         });
     } catch (e) {
       return;
     }
   }
 
+  const requests = [];
+
   // Handle added fields
   if (addedFields.length) {
-    addedFields.forEach(async ({ type, label }) => {
-      try {
-        await store.dispatch(
-          'member/doCreateCustomAttributes',
-          {
-            type,
-            label,
-          },
-        );
-      } catch (e) {
-        hasErrorOccurred = true;
-      }
+    addedFields.forEach(({ type, label }) => {
+      requests.push(store.dispatch(
+        'member/doCreateCustomAttributes',
+        {
+          type,
+          label,
+        },
+      ));
     });
   }
 
   // Handle edited fields
   if (editedFields.length) {
     editedFields.forEach(async ({ id, label }) => {
-      try {
-        await store.dispatch(
-          'member/doUpdateCustomAttributes',
-          {
-            id,
-            data: {
-              label,
-            },
+      requests.push(store.dispatch(
+        'member/doUpdateCustomAttributes',
+        {
+          id,
+          data: {
+            label,
           },
-        );
-      } catch (e) {
-        hasErrorOccurred = true;
-      }
+        },
+      ));
     });
   }
 
-  if (hasErrorOccurred) {
-    Message.error(i18n('errors.defaultErrorMessage'));
-  } else {
-    Message.success(
-      i18n('entities.member.attributes.success'),
-    );
-    isDrawerOpen.value = false;
-  }
+  Promise.all(requests)
+    .then(() => {
+      Message.success(
+        i18n('entities.member.attributes.success'),
+      );
+      isDrawerOpen.value = false;
+    })
+    .catch(() => {
+      Message.error(i18n('errors.defaultErrorMessage'));
+    });
 }
 
 function onInputChange(newValue, attribute) {

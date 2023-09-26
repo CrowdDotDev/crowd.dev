@@ -342,9 +342,6 @@ onBeforeRouteLeave((to) => {
 });
 
 onMounted(() => {
-  // Fetch custom attributes on mount
-  getMemberCustomAttributes();
-
   if (isEditPage.value) {
     const { id } = route.params;
 
@@ -357,6 +354,9 @@ onMounted(() => {
   } else {
     isPageLoading.value = false;
   }
+
+  // Fetch custom attributes on mount
+  getMemberCustomAttributes();
 });
 
 // Prevent window reload when form has changes
@@ -474,13 +474,13 @@ async function onSubmit() {
     manuallyCreated: true,
   };
 
-  let isRequestSuccessful = false;
+  let request;
 
   // Edit member
   if (isEditPage.value) {
     isFormSubmitting.value = true;
 
-    isRequestSuccessful = await store.dispatch(
+    request = store.dispatch(
       'member/doUpdate',
       {
         id: record.value.id,
@@ -491,7 +491,7 @@ async function onSubmit() {
   } else {
     // Create new member
     isFormSubmitting.value = true;
-    isRequestSuccessful = await store.dispatch(
+    request = store.dispatch(
       'member/doCreate',
       {
         data,
@@ -502,8 +502,10 @@ async function onSubmit() {
 
   isFormSubmitting.value = false;
 
-  if (isRequestSuccessful) {
-    wasFormSubmittedSuccessfuly.value = true;
+  if (request) {
+    request.then(() => {
+      wasFormSubmittedSuccessfuly.value = true;
+    });
   }
 }
 
