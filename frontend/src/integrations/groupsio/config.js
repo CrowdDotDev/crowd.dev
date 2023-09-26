@@ -12,6 +12,7 @@ export default {
   image:
     '/images/integrations/groupsio.svg',
   connectComponent: GroupsioConnect,
+  url: ({ username }) => null,
   chartColor: '#111827',
   showProfileLink: true,
   activityDisplay: {
