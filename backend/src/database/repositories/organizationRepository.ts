@@ -1058,22 +1058,24 @@ class OrganizationRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {
+    const params = {
       tenantId: currentTenant.id,
-    }
+    } as any
 
-    let condition = ''
+    const condition = organizationId ? 'and "organizationId" <> :organizationId' : ''
+
     if (organizationId) {
-      condition = 'and "organizationId" <> :organizationId'
       params.organizationId = organizationId
     }
 
     const identityParams = identities
-      .map(
-        (identity) =>
-          `('${identity.platform.replace(/'/g, "''")}', '${identity.name.replace(/'/g, "''")}')`,
-      )
+      .map((identity, index) => `(:platform${index}, :name${index})`)
       .join(', ')
+
+    identities.forEach((identity, index) => {
+      params[`platform${index}`] = identity.platform
+      params[`name${index}`] = identity.name
+    })
 
     const results = (await sequelize.query(
       `

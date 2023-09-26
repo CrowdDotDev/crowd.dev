@@ -371,7 +371,7 @@ class SegmentRepository extends RepositoryBase<
   }
 
   async findInIds(ids: string[]): Promise<SegmentData[]> {
-    if (ids.length === 0 ) {
+    if (ids.length === 0) {
       return []
     }
 
