@@ -305,6 +305,7 @@ export default class OrganizationService extends LoggerBase {
 
           // overwrite cache with enriched data, but keep the name because it's serving as a unique identifier
           data = {
+            ...data, // to keep uncacheable data (like identities, weakIdentities)
             ...cache,
             ...enrichedData,
             name: cache.name,
@@ -328,8 +329,14 @@ export default class OrganizationService extends LoggerBase {
       }
 
       let record
+      let existing
 
-      const existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
+      // check if organization already exists using website or primary identity
+      if (data.website) {
+        existing = await OrganizationRepository.findOrCreateByDomain(data.website, this.options)
+      } else {
+        existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
+      }
 
       if (existing) {
         await OrganizationRepository.checkIdentities(data, this.options, existing.id)
@@ -367,7 +374,7 @@ export default class OrganizationService extends LoggerBase {
         transaction,
       })
 
-      if (data.identities.length > 0) {
+      if (data.identities && data.identities.length > 0) {
         for (const identity of data.identities) {
           const identityExists = identities.find(
             (i) => i.name === identity.name && i.platform === identity.platform,
@@ -388,7 +395,7 @@ export default class OrganizationService extends LoggerBase {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
       await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
 
-      return record
+      return await this.findById(record.id)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
@@ -502,8 +509,8 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findByUrl(url, this.options)
   }
 
-  async findByDomain(domain) {
-    return OrganizationRepository.findByDomain(domain, this.options)
+  async findOrCreateByDomain(domain) {
+    return OrganizationRepository.findOrCreateByDomain(domain, this.options)
   }
 
   async query(data) {

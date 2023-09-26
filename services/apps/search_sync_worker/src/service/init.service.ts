@@ -78,7 +78,12 @@ export class InitService extends LoggerBase {
       activeOn: ['devto'],
       activityCount: 10,
       memberCount: 10,
-      identities: ['devto:fakeorg'],
+      identities: [
+        {
+          platform: 'devto',
+          name: 'fakeorg',
+        },
+      ],
       manuallyCreated: false,
       immediateParent: 'Fake parent',
       ultimateParent: 'Fake ultimate parent',

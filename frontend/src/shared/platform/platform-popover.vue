@@ -16,6 +16,7 @@
         :username-handles="usernameHandles"
         :platform="platform"
         :links="links"
+        :attributes="attributes"
       />
     </div>
   </el-popover>
@@ -60,6 +61,10 @@ defineProps({
   href: {
     type: String,
     default: () => null,
+  },
+  attributes: {
+    type: Object,
+    default: null,
   },
 });
 </script>

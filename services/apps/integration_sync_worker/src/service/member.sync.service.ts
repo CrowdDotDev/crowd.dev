@@ -17,6 +17,7 @@ import {
 import { IDbIntegration } from '@/repo/integration.data'
 import { AutomationRepository } from '@/repo/automation.repo'
 import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
+import { automationNotFound, integrationNotFound } from '@/errors'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
@@ -45,7 +46,18 @@ export class MemberSyncService extends LoggerBase {
   ): Promise<void> {
     const integration = await this.integrationRepo.findById(integrationId)
 
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
+
     const member = await this.memberRepo.findMember(memberId)
+
+    if (!member) {
+      this.log.warn(`Member ${memberId} is not found for syncing remote!`)
+      return
+    }
 
     const syncRemote = await this.memberRepo.findSyncRemoteById(syncRemoteId)
 
@@ -53,12 +65,22 @@ export class MemberSyncService extends LoggerBase {
     const membersToUpdate = []
 
     if (syncRemote.sourceId) {
+      member.attributes = {
+        ...member.attributes,
+        sourceId: {
+          ...(member.attributes.sourceId || {}),
+          [integration.platform]: syncRemote.sourceId,
+        },
+      }
+
       membersToUpdate.push(member)
     } else {
       membersToCreate.push(member)
     }
 
     const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)
+
+    this.log.info(`Syncing member ${memberId} to ${integration.platform} remote!`)
 
     if (service.processSyncRemote) {
       const context: IIntegrationProcessRemoteSyncContext = {
@@ -96,6 +118,12 @@ export class MemberSyncService extends LoggerBase {
   ): Promise<void> {
     const integration: IDbIntegration = await this.integrationRepo.findById(integrationId)
 
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
+
     const platforms = await this.memberRepo.getExistingPlatforms(tenantId)
 
     const attributes = await this.memberRepo.getTenantMemberAttributes(tenantId)
@@ -124,7 +152,7 @@ export class MemberSyncService extends LoggerBase {
       while (markedMembers.length > 0) {
         const memberToSync = markedMembers.shift()
 
-        this.log.trace(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
+        this.log.info(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
 
         // find member in opensearch
         const query = {
@@ -173,6 +201,7 @@ export class MemberSyncService extends LoggerBase {
           translatedMembers[0].attributes = {
             ...translatedMembers[0].attributes,
             sourceId: {
+              ...(translatedMembers[0].attributes.sourceId || {}),
               [integration.platform]: memberToSync.sourceId,
             },
           }
@@ -228,7 +257,19 @@ export class MemberSyncService extends LoggerBase {
     batchSize = 50,
   ) {
     const integration: IDbIntegration = await this.integrationRepo.findById(integrationId)
+
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
     const automation = await this.automationRepo.findById(automationId)
+
+    if (!automation) {
+      const message = automationNotFound(automationId)
+      this.log.warn(message)
+      return
+    }
 
     const platforms = await this.memberRepo.getExistingPlatforms(tenantId)
 
@@ -340,7 +381,7 @@ export class MemberSyncService extends LoggerBase {
         while (translatedMembers.length > 0) {
           const memberToSync = translatedMembers.shift()
 
-          this.log.trace(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
+          this.log.info(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
 
           let syncRemote = await this.memberRepo.findSyncRemote(
             memberToSync.id,
@@ -362,6 +403,7 @@ export class MemberSyncService extends LoggerBase {
             memberToSync.attributes = {
               ...memberToSync.attributes,
               sourceId: {
+                ...(memberToSync.attributes.sourceId || {}),
                 [integration.platform]: syncRemote.sourceId,
               },
             }
@@ -453,7 +495,19 @@ export class MemberSyncService extends LoggerBase {
   ) {
     const integration: IDbIntegration = await this.integrationRepo.findById(integrationId)
 
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
+
     const automation = await this.automationRepo.findById(automationId)
+
+    if (!automation) {
+      const message = automationNotFound(automationId)
+      this.log.warn(message)
+      return
+    }
 
     let organizationMembers
     let offset
@@ -472,7 +526,7 @@ export class MemberSyncService extends LoggerBase {
       while (organizationMembers.length > 0) {
         const memberToSync = organizationMembers.shift()
 
-        this.log.trace(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
+        this.log.info(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
         const member = await this.memberRepo.findMember(memberToSync.memberId)
 
         let syncRemote = await this.memberRepo.findSyncRemote(
@@ -495,6 +549,7 @@ export class MemberSyncService extends LoggerBase {
           member.attributes = {
             ...member.attributes,
             sourceId: {
+              ...(member.attributes.sourceId || {}),
               [integration.platform]: syncRemote.sourceId,
             },
           }

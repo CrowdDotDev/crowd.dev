@@ -18,9 +18,9 @@
             rel="noopener noreferrer"
           >
             <div class="flex gap-3 items-center">
-              <app-platform :platform="identity.platform" />
+              <app-platform :platform="identity.platform" custom-platform-icon-class="ri-community-fill" />
               <span class="text-gray-900 text-xs">
-                {{ identity.name ?? getPlatformDetails(identity.platform).name }}</span>
+                {{ (identity.url ? identity.url.split('/').at(-1) : identity.name) ?? getPlatformDetails(identity.platform)?.name }}</span>
             </div>
             <i
               v-if="identity.url"

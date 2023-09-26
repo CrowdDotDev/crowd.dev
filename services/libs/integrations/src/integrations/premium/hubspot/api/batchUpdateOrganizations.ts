@@ -26,33 +26,38 @@ export const batchUpdateOrganizations = async (
     const hubspotCompanies = []
 
     for (const organization of organizations) {
-      const hubspotSourceId = organization.attributes?.sourceId?.hubspot
+      if (organization) {
+        const hubspotSourceId = organization.attributes?.sourceId?.hubspot
 
-      if (!hubspotSourceId) {
-        ctx.log.warn(
-          `Organization ${organization.id} can't be updated in hubspot! Organization doesn't have a hubspot sourceId.`,
-        )
-      } else {
-        const hubspotCompany = {
-          id: hubspotSourceId,
-          properties: {},
-        } as any
+        if (!hubspotSourceId) {
+          ctx.log.warn(
+            `Organization ${organization.id} can't be updated in hubspot! Organization doesn't have a hubspot sourceId.`,
+          )
+        } else {
+          const hubspotCompany = {
+            id: hubspotSourceId,
+            properties: {},
+          } as any
 
-        const fields = organizationMapper.getAllCrowdFields()
+          const fields = organizationMapper.getAllCrowdFields()
 
-        for (const crowdField of fields) {
-          const hubspotField = organizationMapper.getHubspotFieldName(crowdField)
-
-          if (hubspotField && organization[crowdField] !== undefined) {
-            hubspotCompany.properties[hubspotField] = organizationMapper.getHubspotValue(
-              organization,
-              crowdField,
-            )
+          for (const crowdField of fields) {
+            const hubspotField = organizationMapper.getHubspotFieldName(crowdField)
+            // if hubspot domain field is mapped to a crowd field, we should ignore it
+            // because we handle this manually above
+            if (hubspotField && hubspotField !== 'domain') {
+              if (organization[crowdField] !== undefined) {
+                hubspotCompany.properties[hubspotField] = organizationMapper.getHubspotValue(
+                  organization,
+                  crowdField,
+                )
+              }
+            }
           }
-        }
 
-        if (Object.keys(hubspotCompany.properties).length > 0) {
-          hubspotCompanies.push(hubspotCompany)
+          if (Object.keys(hubspotCompany.properties).length > 0) {
+            hubspotCompanies.push(hubspotCompany)
+          }
         }
       }
     }
@@ -62,7 +67,7 @@ export const batchUpdateOrganizations = async (
     }
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ nangoId, accessToken, data: config.data }, 'Updating bulk companies in HubSpot')
 

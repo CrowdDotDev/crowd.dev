@@ -29,7 +29,7 @@ export const getCompanies = async (
 
   try {
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ nangoId, accessToken }, 'Fetching contacts from HubSpot')
 

@@ -115,8 +115,14 @@ export class OrganizationService extends LoggerBase {
           }
         }
 
-        // now check if exists in this tenant using the primary identity
-        const existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
+        let existing
+
+        // now check if exists in this tenant using the website or primary identity
+        if (data.website) {
+          existing = await txRepo.findOrCreateByDomain(tenantId, segmentId, data.website)
+        } else {
+          existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
+        }
 
         let attributes = existing?.attributes
 
@@ -136,7 +142,6 @@ export class OrganizationService extends LoggerBase {
           const updateData: Partial<IOrganization> = {}
           const fields = [
             'displayName',
-            'url',
             'description',
             'emails',
             'logo',
@@ -172,7 +177,6 @@ export class OrganizationService extends LoggerBase {
           // if it doesn't exists create it
           id = await this.repo.insert(tenantId, {
             displayName: cached.name,
-            url: cached.url,
             description: cached.description,
             emails: cached.emails,
             logo: cached.logo,
@@ -306,12 +310,12 @@ export class OrganizationService extends LoggerBase {
     await this.repo.addToMember(memberId, orgs)
   }
 
-  public async findByDomain(
+  public async findOrCreateByDomain(
     tenantId: string,
     segmentId: string,
     domain: string,
   ): Promise<IOrganization> {
-    return await this.repo.findByDomain(tenantId, segmentId, domain)
+    return await this.repo.findOrCreateByDomain(tenantId, segmentId, domain)
   }
 
   public async processOrganizationEnrich(
@@ -342,6 +346,8 @@ export class OrganizationService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new OrganizationRepository(txStore, this.log)
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+
+        const txService = new OrganizationService(txStore, this.log)
 
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
@@ -383,7 +389,7 @@ export class OrganizationService extends LoggerBase {
             organization.identities.unshift(...existingIdentities)
           }
 
-          await this.findOrCreate(tenantId, segmentId, integrationId, organization)
+          await txService.findOrCreate(tenantId, segmentId, integrationId, organization)
         } else {
           this.log.debug(
             'No organization found for enriching. This organization enrich process had no affect.',
