@@ -215,9 +215,9 @@ export default {
     },
   },
 
-  async created() {
+  mounted() {
     if (this.fetchFn) {
-      await this.fetchAllResults();
+      this.fetchAllResults();
     }
   },
 
