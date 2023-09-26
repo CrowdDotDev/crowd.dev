@@ -121,7 +121,7 @@ const onLoadMore = () => {
 };
 
 const fetch = ({
-  filter, offset, limit, orderBy, body, append,
+  filter, offset = 0, limit = 20, orderBy, body, append,
 }) => {
   loading.value = true;
   fetchConversation({
