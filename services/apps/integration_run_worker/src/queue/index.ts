@@ -1,6 +1,6 @@
-import { DbConnection, DbStore } from '@crowd/database'
 import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
+import { DbConnection, DbStore } from '@crowd/database'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {
   INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
@@ -41,10 +41,6 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
   override async processMessage(message: IQueueMessage): Promise<void> {
     this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
-      span.setStatus({
-        code: SpanStatusCode.OK,
-      })
-
       try {
         this.log.trace({ messageType: message.type }, 'Processing message!')
 
@@ -82,12 +78,17 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           default:
             throw new Error(`Unknown message type: ${message.type}`)
         }
+
+        span.setStatus({
+          code: SpanStatusCode.OK,
+        })
       } catch (err) {
         span.setStatus({
           code: SpanStatusCode.ERROR,
+          message: err,
         })
 
-        this.log.error({ err }, 'Error while processing message!')
+        this.log.error(err, 'Error while processing message!')
         throw err
       } finally {
         span.end()

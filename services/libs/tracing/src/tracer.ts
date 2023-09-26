@@ -14,6 +14,7 @@ import { BunyanInstrumentation } from '@opentelemetry/instrumentation-bunyan'
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
 import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
+import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis'
 import { SequelizeInstrumentation } from 'opentelemetry-instrumentation-sequelize'
 
 let sdk: NodeSDK | undefined
@@ -49,6 +50,7 @@ export const getServiceTracer = (): Tracer => {
       new HttpInstrumentation(),
       new ExpressInstrumentation(),
       new AwsInstrumentation(),
+      new RedisInstrumentation(),
       new SequelizeInstrumentation(),
     ],
   })
