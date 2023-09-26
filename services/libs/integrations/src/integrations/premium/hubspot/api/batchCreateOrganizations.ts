@@ -70,7 +70,7 @@ export const batchCreateOrganizations = async (
     }
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug(
       { nangoId, accessToken, data: config.data },
