@@ -9,4 +9,7 @@ export default {
   image:
     'https://asset.brandfetch.io/idO6_6uqJ9/id9y5Acqtx.svg',
   connectComponent: N8nConnect,
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
+  },
 };
