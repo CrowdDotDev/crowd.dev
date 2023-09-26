@@ -18,9 +18,12 @@ export const getContactAssociations = async (
     url: `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}/associations/${association}`,
   }
   try {
-    ctx.log.debug({ nangoId }, `Fetching contact associations [${association}] from HubSpot`)
+    ctx.log.debug(
+      { nangoId },
+      `Fetching contact associations [${association}] of contact ${contactId} from HubSpot`,
+    )
 
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
     config.headers = { Authorization: `Bearer ${accessToken}` }
 
     const result = await throttler.throttle(() => axios(config))
