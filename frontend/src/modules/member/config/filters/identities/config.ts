@@ -32,8 +32,19 @@ const identities: MultiSelectFilterConfig = {
   itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Identities', value, options);
   },
-  apiFilterRenderer(value: MultiSelectFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('identities', value);
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
+    const filter = {
+      or: value.map((identity) => ({
+
+        identities: { eq: identity },
+        email: {
+          ne: null,
+        },
+      })),
+    };
+    return [
+      (include ? filter : { not: filter }),
+    ];
   },
 };
 
