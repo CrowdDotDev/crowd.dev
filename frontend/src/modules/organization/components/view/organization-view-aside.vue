@@ -20,7 +20,9 @@
             <div class="flex gap-3 items-center">
               <app-platform :platform="identity.platform" custom-platform-icon-class="ri-community-fill" />
               <span class="text-gray-900 text-xs">
-                {{ getPlatformDetails(identity.platform)?.organization.handle(identity) ?? getPlatformDetails(identity.platform)?.name }}</span>
+                {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
+                  ?? getPlatformDetails(identity.platform)?.name
+                  ?? identity.platform }}</span>
             </div>
             <i
               v-if="identity.url"
