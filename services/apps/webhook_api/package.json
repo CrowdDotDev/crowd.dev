@@ -21,6 +21,7 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/types": "file:../../libs/types",
+    "@crowd/ioc": "file:../../libs/ioc",
     "@types/config": "^3.3.0",
     "@types/express": "^4.17.17",
     "@types/node": "^18.16.3",
