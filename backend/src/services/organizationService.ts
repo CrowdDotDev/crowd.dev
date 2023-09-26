@@ -122,10 +122,12 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
-      await OrganizationRepository.includeOrganizationToSegments(originalId, {
-        ...repoOptions,
-        currentSegments: secondMemberSegments,
-      })
+      if (secondMemberSegments.length > 0) {
+        await OrganizationRepository.includeOrganizationToSegments(originalId, {
+          ...repoOptions,
+          currentSegments: secondMemberSegments,
+        })
+      }
 
       // Delete toMerge organization
       await OrganizationRepository.destroy(toMergeId, repoOptions, true)
