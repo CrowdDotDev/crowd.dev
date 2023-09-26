@@ -127,7 +127,7 @@ export default class OrganizationService extends LoggerBase {
         currentSegments: secondMemberSegments,
       })
 
-      // Delete toMerge member
+      // Delete toMerge organization
       await OrganizationRepository.destroy(toMergeId, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
@@ -422,25 +422,28 @@ export default class OrganizationService extends LoggerBase {
         data.website = websiteNormalizer(data.website)
       }
 
-      const originalIdentities = data.identities
+      if (data.identities) {
+        const originalIdentities = data.identities
 
-      // check identities
-      await OrganizationRepository.checkIdentities(data, { ...this.options, transaction }, id)
+        // check identities
+        await OrganizationRepository.checkIdentities(data, { ...this.options, transaction }, id)
 
-      // if we found any strong identities sent already existing in another organization
-      // instead of making it a weak identity we throw an error here, because this function
-      // is mainly used for doing manual updates through UI and possibly
-      // we don't wanna do an auto-merge here or make strong identities sent by user as weak
-      if (originalIdentities.length !== data.identities.length) {
-        const alreadyExistingStrongIdentities = originalIdentities.filter(
-          (oi) => !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
-        )
+        // if we found any strong identities sent already existing in another organization
+        // instead of making it a weak identity we throw an error here, because this function
+        // is mainly used for doing manual updates through UI and possibly
+        // we don't wanna do an auto-merge here or make strong identities sent by user as weak
+        if (originalIdentities.length !== data.identities.length) {
+          const alreadyExistingStrongIdentities = originalIdentities.filter(
+            (oi) =>
+              !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
+          )
 
-        throw new Error(
-          `Organization identities ${JSON.stringify(
-            alreadyExistingStrongIdentities,
-          )} already exist in another organization!`,
-        )
+          throw new Error(
+            `Organization identities ${JSON.stringify(
+              alreadyExistingStrongIdentities,
+            )} already exist in another organization!`,
+          )
+        }
       }
 
       const record = await OrganizationRepository.update(id, data, {
