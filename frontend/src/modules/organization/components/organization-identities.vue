@@ -67,7 +67,7 @@ const platforms = computed(() => [...new Set(props.organization.identities.map((
 
 const getHandlesByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
-  .map((i) => getPlatformDetails(i.platform).organization.handle(i));
+  .map((i) => getPlatformDetails(i.platform)?.organization.handle(i));
 const getUrlsByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
   .map((i) => getIdentityLink(i));
