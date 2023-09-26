@@ -12,8 +12,10 @@ import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
 import location from './location/config';
 import type from './type/config';
+import organizations from './organizations/config';
 
 export const organizationFilters: Record<string, FilterConfig> = {
+  organizations,
   noOfActivities,
   noOfMembers,
   activeOn,

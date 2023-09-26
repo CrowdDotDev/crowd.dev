@@ -33,6 +33,12 @@
               <span class="el-checkbox__inner" />
             </span>
           </div>
+          <template v-if="config.id === 'organizations'">
+            <span class="border rounded-md p-1 mr-2">
+              <img v-if="option.logo" :src="option.logo" class="h-5 w-5 flex items-center justify-center" :alt="option.label" />
+              <i v-else class="ri-community-line h-5 w-5 flex items-center justify-center" />
+            </span>
+          </template>
           {{ option.label }}
         </el-option>
       </el-select>
