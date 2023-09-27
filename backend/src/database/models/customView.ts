@@ -27,7 +27,7 @@ export default (sequelize) => {
         defaultValue: {},
       },
       placement: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
+        type: DataTypes.ARRAY(DataTypes.TEXT),
         validate: {
           isIn: [['members', 'organizations', 'activities', 'conversations']],
         },

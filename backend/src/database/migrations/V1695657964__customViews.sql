@@ -5,7 +5,7 @@ create table "customViews" (
   name varchar(255) not null check (name <> ''),
   visibility "customViewVisibility" not null,
   config jsonb default '{}',
-  placement varchar(255)[] check (placement <@ ARRAY['members', 'organizations', 'activities', 'conversations']),
+  placement text[] check (placement <@ ARRAY['members', 'organizations', 'activities', 'conversations']),
   "tenantId" uuid references "tenants"(id) on delete cascade,
   "createdById" uuid references "members"(id),
   "updatedById" uuid references "members"(id),
