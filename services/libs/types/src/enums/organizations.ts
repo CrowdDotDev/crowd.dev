@@ -12,3 +12,8 @@ export enum OrganizationSource {
   GITHUB = 'github',
   UI = 'ui',
 }
+
+export enum OrganizationMergeSuggestionType {
+  SAME_IDENTITY = 'same_identity',
+  SIMILAR_IDENTITY = 'similar_identity',
+}

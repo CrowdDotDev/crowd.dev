@@ -95,6 +95,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         o."grossDeparturesByMonth",
         o."ultimateParent",
         o."immediateParent",
+        o."weakIdentities",
         md."joinedAt",
         md."lastActive",
         md."activeOn",

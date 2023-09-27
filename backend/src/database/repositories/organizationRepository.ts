@@ -25,6 +25,22 @@ import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
+interface IOrganizationWithIdentitiesOpensearch {
+  _source: {
+    uuid_organizationId: string
+    nested_identities: {
+      string_platform: string
+      string_name: string
+    }[]
+  }
+}
+
+interface IOrganizationIdOpensearch {
+  _source: {
+    uuid_organizationId: string
+  }
+}
+
 class OrganizationRepository {
   static async filterByPayingTenant(
     tenantId: string,
@@ -268,7 +284,6 @@ class OrganizationRepository {
             strongIdentities.find((s) => s.platform === i.platform && s.name === i.name) ===
             undefined,
         )
-
         // push new strong identities to the payload
         for (const identity of strongIdentities) {
           if (
@@ -806,6 +821,166 @@ class OrganizationRepository {
       type: QueryTypes.UPDATE,
       transaction,
     })
+  }
+
+  static async getMergeSuggestions(
+    numberOfHours: number,
+    options: IRepositoryOptions,
+  ) {
+    const BATCH_SIZE = 100
+
+    console.log("opts:")
+    console.log(options)
+
+    const fuzziness = (text: string): number => {
+      if (text.length < 3){
+        return 0
+      }
+
+      if (text.length >= 3 && text.length <= 6) {
+        return 1
+      }
+
+      if (text.length >= 6 && text.length <= 10) {
+        return 2
+      }
+
+      return 3
+    }
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    console.log("TENANT: ")
+    console.log(tenant)
+
+
+    // const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
+
+    const queryBody = {
+      from: 0,
+      size: BATCH_SIZE,
+      sort: {
+        [`date_createdAt`]: 'desc',
+      },
+      collapse: {
+        field: 'uuid_organizationId',
+      },
+      _source: ['uuid_organizationId', 'nested_identities'],
+    }
+
+    let organizations: IOrganizationWithIdentitiesOpensearch[]
+    let offset: number
+
+    do {
+      offset = organizations ? offset + BATCH_SIZE : 0
+      queryBody.from = offset
+
+      organizations =
+        (
+          await options.opensearch.search({
+            index: OpenSearchIndex.ORGANIZATIONS,
+            body: queryBody,
+          })
+        ).body?.hits?.hits || []
+
+      for (const organization of organizations) {
+        const identitiesPartialQuery = {
+          should: [
+            {
+              nested: {
+                path: 'nested_weakIdentities',
+                query: {
+                  bool: {
+                    should: [],
+                    boost: 10,
+                  },
+                },
+              },
+            },
+            {
+              nested: {
+                path: 'nested_identities',
+                query: {
+                  bool: {
+                    should: [],
+                    boost: 1,
+                  },
+                },
+              },
+            },
+          ],
+          minimum_should_match: 1,
+          must_not: [
+            {
+              term: {
+                uuid_organizationId: organization._source.uuid_organizationId,
+              },
+            },
+          ],
+          must: [
+            {
+              term: {
+                uuid_tenantId: tenant.id,
+              },
+            },
+          ],
+        }
+
+        for (const identity of organization._source.nested_identities) {
+          identitiesPartialQuery.should[0].nested.query.bool.should.push({
+            bool: {
+              must: [
+                { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
+                { match: { [`nested_weakIdentities.string_platform`]: identity.string_platform } },
+              ],
+            },
+          })
+
+          identitiesPartialQuery.should[1].nested.query.bool.should.push({
+            match: {
+              [`nested_identities.string_name`]: {
+                query: identity.string_name,
+                prefix_length: 1,
+                fuzziness: fuzziness(identity.string_name),
+              },
+            },
+          })
+        }
+
+        const sameOrganizationsQueryBody = {
+          query: {
+            bool: identitiesPartialQuery,
+          },
+          collapse: {
+            field: 'uuid_organizationId',
+          },
+          _source: ['uuid_organizationId'],
+        }
+
+        const organizationsWithSameIdentity: IOrganizationIdOpensearch[] =
+          (
+            await options.opensearch.search({
+              index: OpenSearchIndex.ORGANIZATIONS,
+              body: sameOrganizationsQueryBody,
+            })
+          ).body?.hits?.hits || []
+
+        for (const organizationToMerge of organizationsWithSameIdentity) {
+          console.log(
+            `ADD TO MERGE! MAIN: ${organization._source.uuid_organizationId} <-> ${organizationToMerge._source.uuid_organizationId}`,
+          )
+        }
+      }
+
+      // console.log(organizations)
+    } while (organizations.length > 0)
+
+    // get org-identity pairs from opensearch
+
+    // for each org
+    // 1. get no-merges of the org
+    // 2. query opensearch to find same orgs with weakIdentities and orgId <> noMergeId
+    // 3. return payload
   }
 
   static async moveMembersBetweenOrganizations(

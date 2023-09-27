@@ -487,6 +487,18 @@ export class OrganizationSyncService extends LoggerBase {
     }
     p.nested_identities = p_identities
 
+    const p_weakIdentities = []
+    // weak identities
+    for (const identity of data.weakIdentities) {
+      p_weakIdentities.push({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        string_url: identity.url,
+        keyword_name: identity.name,
+      })
+    }
+    p.nested_weakIdentities = p_weakIdentities
+
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
     p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null

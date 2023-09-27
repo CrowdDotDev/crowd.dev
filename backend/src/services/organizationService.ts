@@ -1,4 +1,4 @@
-import { IOrganization, IOrganizationIdentity } from '@crowd/types'
+import { IOrganization, IOrganizationIdentity, IOrganizationMergeSuggestion, OrganizationMergeSuggestionType } from '@crowd/types'
 import { LoggerBase } from '@crowd/logging'
 import { websiteNormalizer } from '@crowd/common'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
@@ -231,6 +231,29 @@ export default class OrganizationService extends LoggerBase {
         return Object.values(uniqueMap)
       },
     })
+  }
+
+  async getMergeSuggestions(
+    type: OrganizationMergeSuggestionType,
+    numberOfHours: number = 1.2,
+  ): Promise<IOrganizationMergeSuggestion[]> {
+    // Adding a transaction so it will use the write database
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      if (type === OrganizationMergeSuggestionType.SAME_IDENTITY) {
+        await OrganizationRepository.getMergeSuggestions(numberOfHours, {
+          ...this.options,
+          transaction,
+        })
+      }
+      await SequelizeRepository.commitTransaction(transaction)
+      return []
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      this.log.error(error)
+      throw error
+    }
   }
 
   async createOrUpdate(data: IOrganization, enrichP = true) {
