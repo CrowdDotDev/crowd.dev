@@ -1,10 +1,5 @@
 <template>
-  <el-input
-    v-if="loading || initialLoading"
-    :disabled="initialLoading"
-  />
   <el-select
-    v-else
     ref="input"
     :disabled="disabled || initialLoading"
     :loading="loading || initialLoading"
