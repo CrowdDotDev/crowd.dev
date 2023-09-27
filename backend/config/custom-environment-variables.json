@@ -101,7 +101,8 @@
   },
   "twitter": {
     "clientId": "CROWD_TWITTER_CLIENT_ID",
-    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET"
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET",
+    "callbackUrl": "CROWD_TWITTER_CALLBACK_URL"
   },
   "slack": {
     "clientId": "CROWD_SLACK_CLIENT_ID",
