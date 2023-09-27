@@ -1,10 +1,8 @@
 <template>
   <el-select
     ref="input"
-    :disabled="disabled || initialLoading"
-    :loading="loading || initialLoading"
     :remote-method="handleSearch"
-    :model-value="initialLoading ? null : model"
+    :model-value="model"
     :clearable="true"
     :default-first-option="true"
     :filterable="true"
@@ -13,8 +11,6 @@
     :remote="true"
     :reserve-keyword="false"
     :allow-create="allowCreate"
-    :suffix-icon="initialLoading ? 'app-loader' : null"
-    :remote-show-suffix="initialLoading"
     :collapse-tags="shouldCollapseTags"
     :collapse-tags-tooltip="shouldCollapseTags"
     value-key="id"
