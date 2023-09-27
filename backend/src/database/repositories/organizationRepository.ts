@@ -1910,7 +1910,25 @@ class OrganizationRepository {
     return { rows, count: count.length, limit: parsed.limit, offset: parsed.offset }
   }
 
-  static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
+  static async findAllAutocompleteExact(query, limit, options: IRepositoryOptions) {
+    return OrganizationRepository.findAllAutocomplete(
+      query,
+      SequelizeFilterUtils.ilikeExact('organization', 'displayName', query),
+      limit,
+      options,
+    )
+  }
+
+  static async findAllAutocompleteLike(query, limit, options: IRepositoryOptions) {
+    return OrganizationRepository.findAllAutocomplete(
+      query,
+      SequelizeFilterUtils.ilikeIncludes('organization', 'displayName', query),
+      limit,
+      options,
+    )
+  }
+
+  static async findAllAutocomplete(query, cond, limit, options: IRepositoryOptions) {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const whereAnd: Array<any> = [
@@ -1924,7 +1942,7 @@ class OrganizationRepository {
         [Op.or]: [
           { id: SequelizeFilterUtils.uuid(query) },
           {
-            [Op.and]: SequelizeFilterUtils.ilikeIncludes('organization', 'displayName', query),
+            [Op.and]: cond,
           },
         ],
       })
