@@ -4,9 +4,10 @@ import { API_CONFIG } from '../../../../../../conf'
 const defaultAvatarUrl =
   'https://uploads-ssl.webflow.com/635150609746eee5c60c4aac/6502afc9d75946873c1efa93_image%20(292).png'
 
-// Which platform identities are displayed as buttons and which ones go to menu
-const buttonPlatforms = ['github', 'twitter', 'linkedin']
 export const newMemberBlocks = (member) => {
+  // Which platform identities are displayed as buttons and which ones go to menu
+  let buttonPlatforms = ['github', 'twitter', 'linkedin']
+
   const platforms = member.activeOn
   const reach =
     platforms && platforms.length > 0 ? member.reach?.[platforms[0]] : member.reach?.total
@@ -42,6 +43,10 @@ export const newMemberBlocks = (member) => {
       }
     })
     .filter((p) => !!p.url)
+
+  if (platforms.length > 0 && !buttonPlatforms.includes(platforms[0])) {
+    buttonPlatforms = [platforms[0], ...buttonPlatforms]
+  }
 
   const buttonProfiles = buttonPlatforms
     .map((platform) => profiles.find((profile) => profile.platform === platform))

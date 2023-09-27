@@ -5,9 +5,6 @@ import { API_CONFIG } from '../../../../../../conf'
 const defaultAvatarUrl =
   'https://uploads-ssl.webflow.com/635150609746eee5c60c4aac/6502afc9d75946873c1efa93_image%20(292).png'
 
-// Which platform identities are displayed as buttons and which ones go to menu
-const buttonPlatforms = ['github', 'twitter', 'linkedin']
-
 const computeEngagementLevel = (score) => {
   if (score <= 1) {
     return 'Silent'
@@ -53,6 +50,9 @@ const truncateText = (text: string, characters: number = 60): string => {
 }
 
 export const newActivityBlocks = (activity) => {
+  // Which platform identities are displayed as buttons and which ones go to menu
+  let buttonPlatforms = ['github', 'twitter', 'linkedin']
+
   const display = htmlToMrkdwn(replaceHeadline(activity.display.default))
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
 
@@ -100,6 +100,10 @@ export const newActivityBlocks = (activity) => {
       }
     })
     .filter((p) => !!p.url)
+
+  if (!buttonPlatforms.includes(activity.platform)) {
+    buttonPlatforms = [activity.platform, ...buttonPlatforms]
+  }
 
   const buttonProfiles = buttonPlatforms
     .map((platform) => profiles.find((profile) => profile.platform === platform))
