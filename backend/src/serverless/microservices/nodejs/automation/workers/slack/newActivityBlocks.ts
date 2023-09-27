@@ -5,9 +5,6 @@ import { API_CONFIG } from '../../../../../../conf'
 const defaultAvatarUrl =
   'https://uploads-ssl.webflow.com/635150609746eee5c60c4aac/6502afc9d75946873c1efa93_image%20(292).png'
 
-// Which platform identities are displayed as buttons and which ones go to menu
-const buttonPlatforms = ['github', 'twitter', 'linkedin']
-
 const computeEngagementLevel = (score) => {
   if (score <= 1) {
     return 'Silent'
@@ -101,12 +98,6 @@ export const newActivityBlocks = (activity) => {
     })
     .filter((p) => !!p.url)
 
-  const buttonProfiles = buttonPlatforms
-    .map((platform) => profiles.find((profile) => profile.platform === platform))
-    .filter((profiles) => !!profiles)
-
-  const menuProfiles = profiles.filter((profile) => !buttonPlatforms.includes(profile.platform))
-
   return {
     blocks: [
       {
@@ -182,22 +173,11 @@ export const newActivityBlocks = (activity) => {
             },
             url: `${API_CONFIG.frontendUrl}/members/${member.id}`,
           },
-          ...(buttonProfiles || [])
-            .map(({ platform, url }) => ({
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: `${integrationLabel[platform] ?? platform} profile`,
-                emoji: true,
-              },
-              url,
-            }))
-            .filter((action) => !!action.url),
-          ...(menuProfiles.length > 0
+          ...(profiles.length > 0
             ? [
                 {
                   type: 'overflow',
-                  options: menuProfiles.map(({ platform, url }) => ({
+                  options: profiles.map(({ platform, url }) => ({
                     text: {
                       type: 'plain_text',
                       text: `${integrationLabel[platform] ?? platform} profile`,
