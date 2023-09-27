@@ -12,12 +12,12 @@ create table "customViews" (
   "deletedById" uuid references "members"(id),
   "createdAt" timestamp with time zone not null default now(),
   "updatedAt" timestamp with time zone,
-  "deletedAt" timestamp with time zone,
+  "deletedAt" timestamp with time zone
 );
 
 create table "customViewOrders" (
   "order" integer not null default 0,
   "customViewId" uuid not null references "customViews"(id) on delete cascade,
   "memberId" uuid not null references "members"(id) on delete cascade,
-  "deletedAt" timestamp with time zone,
+  "deletedAt" timestamp with time zone
 );
