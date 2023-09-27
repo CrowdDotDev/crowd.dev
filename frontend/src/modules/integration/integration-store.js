@@ -247,7 +247,7 @@ export default {
     },
 
     async doGithubConnect(
-      { commit },
+      { commit, dispatch },
       { code, installId, setupAction },
     ) {
       // Function to trigger Oauth performance.
@@ -259,6 +259,15 @@ export default {
           installId,
           setupAction,
         );
+        const repos = integration?.settings?.repos || [];
+        const data = repos.reduce((a, b) => ({
+          ...a,
+          [b.url]: integration.segmentId,
+        }), {});
+
+        await IntegrationService.githubMapRepos(integration.id, data);
+
+        dispatch('doFetch');
 
         commit('CREATE_SUCCESS', integration);
         Message.success(

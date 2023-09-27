@@ -20,6 +20,7 @@ export const getContacts = async (
   includeOrganizations = false,
   after?: string,
 ): Promise<IPaginatedResponse<IHubspotContact>> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
     url: `https://api.hubapi.com/crm/v3/objects/contacts`,
@@ -36,7 +37,7 @@ export const getContacts = async (
     ctx.log.debug({ nangoId }, 'Fetching contacts from HubSpot')
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ accessToken }, `nango token`)
     config.headers.Authorization = `Bearer ${accessToken}`
@@ -57,6 +58,7 @@ export const getContacts = async (
           HubspotAssociationType.CONTACT_TO_COMPANY,
           element.id,
           ctx,
+          throttler,
         )
 
         if (companyAssociations.length > 0) {
@@ -69,7 +71,10 @@ export const getContacts = async (
             throttler,
           )
 
-          element.organization = company
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if ((company?.properties as any)?.name) {
+            element.organization = company
+          }
         }
       }
     }

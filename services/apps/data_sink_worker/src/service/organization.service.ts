@@ -1,12 +1,17 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import IntegrationRepository from '@/repo/integration.repo'
-import { IDbInsertOrganizationData } from '@/repo/organization.data'
+import { IDbInsertOrganizationCacheData } from '@/repo/organization.data'
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
+
+export interface IOrganizationIdSource {
+  id: string
+  source: string
+}
 
 export class OrganizationService extends LoggerBase {
   private readonly repo: OrganizationRepository
@@ -20,138 +25,271 @@ export class OrganizationService extends LoggerBase {
   public async findOrCreate(
     tenantId: string,
     segmentId: string,
+    integrationId: string,
     data: IOrganization,
   ): Promise<string> {
-    data = this.normalizeSocialFields(data)
-
-    // Normalize the website URL if it exists
-    if (data.website) {
-      data.website = websiteNormalizer(data.website)
+    if (
+      !data.identities ||
+      data.identities.length === 0 ||
+      !data.identities[0].name ||
+      !data.identities[0].platform
+    ) {
+      const message = `Missing organization identity while creating/updating organization!`
+      this.log.error(data, message)
+      throw new Error(message)
     }
 
-    // find from cache by name
-    let cached = await this.repo.findCacheByName(data.name)
+    try {
+      const id = await this.store.transactionally(async (txStore) => {
+        const txRepo = new OrganizationRepository(txStore, this.log)
 
-    if (cached) {
-      // if exists in cache update it
-      await this.repo.updateCache(cached.id, {
-        name: data.name,
-        url: data.url || cached.url,
-        description: data.description || cached.description,
-        emails: data.emails || cached.emails,
-        logo: data.logo || cached.logo,
-        tags: data.tags || cached.tags,
-        github: (data.github || cached.github) as IOrganizationSocial,
-        twitter: (data.twitter || cached.twitter) as IOrganizationSocial,
-        linkedin: (data.linkedin || cached.linkedin) as IOrganizationSocial,
-        crunchbase: (data.crunchbase || cached.crunchbase) as IOrganizationSocial,
-        employees: data.employees || cached.employees,
-        location: data.location || cached.location,
-        website: data.website || cached.website,
-        type: data.type || cached.type,
-        size: data.size || cached.size,
-        headline: data.headline || cached.headline,
-        industry: data.industry || cached.industry,
-        founded: data.founded || cached.founded,
-      })
-    } else {
-      // if it doesn't exists in cache create it
-      const insertData: IDbInsertOrganizationData = {
-        name: data.name,
-        url: data.url || null,
-        description: data.description || null,
-        emails: data.emails || null,
-        logo: data.logo || null,
-        tags: data.tags || null,
-        github: (data.github || null) as IOrganizationSocial,
-        twitter: (data.twitter || null) as IOrganizationSocial,
-        linkedin: (data.linkedin || null) as IOrganizationSocial,
-        crunchbase: (data.crunchbase || null) as IOrganizationSocial,
-        employees: data.employees || null,
-        location: data.location || null,
-        website: data.website || null,
-        type: data.type || null,
-        size: data.size || null,
-        headline: data.headline || null,
-        industry: data.industry || null,
-        founded: data.founded || null,
-      }
-      const id = await this.repo.insertCache(insertData)
+        const primaryIdentity = data.identities[0]
 
-      cached = {
-        id,
-        enriched: false,
-        ...insertData,
-        attributes: {},
-      }
-    }
+        data = this.normalizeSocialFields(data) as IOrganization
 
-    // now check if exists in this tenant
-    const existing = await this.repo.findByName(tenantId, segmentId, data.name)
+        // Normalize the website URL if it exists
+        if (data.website) {
+          data.website = websiteNormalizer(data.website)
+        }
 
-    const displayName = existing?.displayName ? existing?.displayName : data?.name
+        this.log.trace(`Checking organization exists in cache..`)
 
-    let attributes = existing?.attributes
+        // find from cache by primary identity
+        let cached = await txRepo.findCacheByName(primaryIdentity.name)
 
-    if (data.attributes) {
-      const temp = mergeWith({}, existing?.attributes, data?.attributes)
-      if (!isEqual(temp, existing?.attributes)) {
-        attributes = temp
-      }
-    }
+        if (cached) {
+          this.log.trace({ cached }, `Organization exists in cache!`)
 
-    if (existing) {
-      // if it does exists update it
-      await this.repo.update(existing.id, {
-        name: cached.name,
-        displayName,
-        url: cached.url,
-        description: cached.description,
-        emails: cached.emails,
-        logo: cached.logo,
-        tags: cached.tags,
-        github: cached.github,
-        twitter: cached.twitter,
-        linkedin: cached.linkedin,
-        crunchbase: cached.crunchbase,
-        employees: cached.employees,
-        location: cached.location,
-        website: cached.website,
-        type: cached.type,
-        size: cached.size,
-        headline: cached.headline,
-        industry: cached.industry,
-        founded: cached.founded,
-        attributes,
-      })
+          // if exists in cache update it
+          const updateData: Partial<IOrganization> = {}
+          // no need to update name since it's aka primary key
+          const fields = [
+            'url',
+            'description',
+            'emails',
+            'logo',
+            'tags',
+            'github',
+            'twitter',
+            'linkedin',
+            'crunchbase',
+            'employees',
+            'location',
+            'website',
+            'type',
+            'size',
+            'headline',
+            'industry',
+            'founded',
+          ]
+          fields.forEach((field) => {
+            if (data[field] && !isEqual(data[field], cached[field])) {
+              updateData[field] = data[field]
+            }
+          })
+          if (Object.keys(updateData).length > 0) {
+            await this.repo.updateCache(cached.id, updateData)
+            cached = { ...cached, ...updateData } // Update the cached data with the new data
+          }
+        } else {
+          this.log.trace({ cached }, `Organization doesn't exist in cache!`)
 
-      return existing.id
-    } else {
-      // if it doesn't exists create it
-      const id = await this.repo.insert(tenantId, {
-        name: cached.name,
-        displayName: cached.name,
-        url: cached.url,
-        description: cached.description,
-        emails: cached.emails,
-        logo: cached.logo,
-        tags: cached.tags,
-        github: cached.github,
-        twitter: cached.twitter,
-        linkedin: cached.linkedin,
-        crunchbase: cached.crunchbase,
-        employees: cached.employees,
-        location: cached.location,
-        website: cached.website,
-        type: cached.type,
-        size: cached.size,
-        headline: cached.headline,
-        industry: cached.industry,
-        founded: cached.founded,
-        attributes,
+          // if it doesn't exists in cache create it
+          const insertData: IDbInsertOrganizationCacheData = {
+            name: primaryIdentity.name,
+            url: data.url || null,
+            description: data.description || null,
+            emails: data.emails || null,
+            logo: data.logo || null,
+            tags: data.tags || null,
+            github: (data.github || null) as IOrganizationSocial,
+            twitter: (data.twitter || null) as IOrganizationSocial,
+            linkedin: (data.linkedin || null) as IOrganizationSocial,
+            crunchbase: (data.crunchbase || null) as IOrganizationSocial,
+            employees: data.employees || null,
+            location: data.location || null,
+            website: data.website || null,
+            type: data.type || null,
+            size: data.size || null,
+            headline: data.headline || null,
+            industry: data.industry || null,
+            founded: data.founded || null,
+          }
+
+          this.log.trace({ insertData }, ` Creating cache entry!`)
+
+          const id = await txRepo.insertCache(insertData)
+
+          cached = {
+            id,
+            enriched: false,
+            ...insertData,
+            attributes: {},
+            weakIdentities: data.weakIdentities,
+          }
+        }
+
+        let existing
+
+        // check organization exists by domain
+        if (cached.website) {
+          existing = await txRepo.findByDomain(tenantId, cached.website)
+        }
+
+        // if domain is not found, check existence by sent identities
+        if (!existing) {
+          existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
+        }
+
+        let attributes = existing?.attributes
+
+        if (data?.attributes) {
+          const temp = mergeWith({}, existing?.attributes, data?.attributes)
+          if (!isEqual(temp, existing?.attributes)) {
+            attributes = temp
+          }
+        }
+
+        let id
+
+        if (existing) {
+          this.log.trace(`Found existing organization, organization will be updated!`)
+          await this.checkForStrongWeakIdentities(txRepo, tenantId, data, existing.id)
+
+          // if it does exists update it
+          const updateData: Partial<IOrganization> = {}
+          const fields = [
+            'displayName',
+            'description',
+            'emails',
+            'logo',
+            'tags',
+            'github',
+            'twitter',
+            'linkedin',
+            'crunchbase',
+            'employees',
+            'location',
+            'website',
+            'type',
+            'size',
+            'headline',
+            'industry',
+            'founded',
+            'attributes',
+            'weakIdentities',
+          ]
+          fields.forEach((field) => {
+            if (cached[field] && !isEqual(cached[field], existing[field])) {
+              updateData[field] = cached[field]
+            }
+          })
+
+          this.log.trace({ updateData }, `Updating organization!`)
+
+          if (Object.keys(updateData).length > 0) {
+            await this.repo.update(existing.id, updateData)
+          }
+
+          id = existing.id
+        } else {
+          this.log.trace(`Organization wasn't found via website or identities.`)
+
+          await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+
+          const payload = {
+            displayName: cached.name,
+            description: cached.description,
+            emails: cached.emails,
+            logo: cached.logo,
+            tags: cached.tags,
+            github: cached.github,
+            twitter: cached.twitter,
+            linkedin: cached.linkedin,
+            crunchbase: cached.crunchbase,
+            employees: cached.employees,
+            location: cached.location,
+            website: cached.website,
+            type: cached.type,
+            size: cached.size,
+            headline: cached.headline,
+            industry: cached.industry,
+            founded: cached.founded,
+            attributes,
+            weakIdentities: cached.weakIdentities,
+          }
+
+          this.log.trace({ payload }, `Creating new organization!`)
+
+          // if it doesn't exists create it
+          id = await this.repo.insert(tenantId, payload)
+        }
+
+        const identities = await txRepo.getIdentities(id, tenantId)
+
+        for (const identity of data.identities) {
+          const identityExists = identities.find(
+            (i) => i.name === identity.name && i.platform === identity.platform,
+          )
+
+          if (!identityExists) {
+            // add the identity
+            await txRepo.addIdentity(id, tenantId, { ...identity, integrationId })
+          }
+        }
+
+        return id
       })
 
       return id
+    } catch (err) {
+      this.log.error(err, 'Error while upserting an organization!')
+      throw err
+    }
+  }
+
+  private async checkForStrongWeakIdentities(
+    repo: OrganizationRepository,
+    tenantId: string,
+    data: IOrganization,
+    organizationId?: string,
+  ): Promise<void> {
+    // convert non-existing weak identities to strong ones
+    if (data.weakIdentities && data.weakIdentities.length > 0) {
+      const strongNotOwnedIdentities = await repo.findIdentities(
+        tenantId,
+        data.weakIdentities,
+        organizationId,
+      )
+
+      const strongIdentities = []
+
+      // find weak identities in the payload that doesn't exist as a strong identity yet
+      for (const weakIdentity of data.weakIdentities) {
+        if (!strongNotOwnedIdentities.has(`${weakIdentity.platform}:${weakIdentity.name}`)) {
+          strongIdentities.push(weakIdentity)
+        }
+      }
+
+      // exclude identities that are converted to a strong one from weakIdentities
+      if (strongIdentities.length > 0) {
+        data.weakIdentities = data.weakIdentities.filter(
+          (i) =>
+            strongIdentities.find((s) => s.platform === i.platform && s.name === i.name) ===
+            undefined,
+        )
+
+        // push new strong identities to the payload
+        for (const identity of strongIdentities) {
+          if (
+            data.identities.find(
+              (i) => i.platform === identity.platform && i.name === identity.name,
+            ) === undefined
+          ) {
+            data.identities.push(identity)
+          }
+        }
+      }
     }
   }
 
@@ -172,7 +310,7 @@ export class OrganizationService extends LoggerBase {
     if (typeof data.crunchbase === 'string') {
       data.crunchbase = {
         handle: data.crunchbase,
-        url: `crunchbase.com/organization/${data.linkedin}`,
+        url: `crunchbase.com/organization/${data.crunchbase}`,
       }
     }
 
@@ -189,7 +327,7 @@ export class OrganizationService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     memberId: string,
-    orgs: IOrganization[],
+    orgs: IOrganizationIdSource[],
   ): Promise<void> {
     await this.repo.addToSegments(
       tenantId,
@@ -197,14 +335,6 @@ export class OrganizationService extends LoggerBase {
       orgs.map((org) => org.id),
     )
     await this.repo.addToMember(memberId, orgs)
-  }
-
-  public async findByDomain(
-    tenantId: string,
-    segmentId: string,
-    domain: string,
-  ): Promise<IOrganization> {
-    return await this.repo.findByDomain(tenantId, segmentId, domain)
   }
 
   public async processOrganizationEnrich(
@@ -221,28 +351,34 @@ export class OrganizationService extends LoggerBase {
     try {
       this.log.debug('Processing organization enrich.')
 
-      if (!organization.name && !organization.attributes?.sourceId?.[platform]) {
-        const errorMessage = `Organization can't be enriched. It is missing both name and attributes.sourceId[${platform}}] fields.`
+      if (
+        organization.identities.length === 0 ||
+        (!organization.identities[0].name && !organization.identities[0].sourceId)
+      ) {
+        const errorMessage = `Organization can't be enriched. It either doesn't have any identity or sent identities are missing name or sourceId fields.`
         this.log.warn(errorMessage)
         return
       }
+
+      const primaryIdentity = organization.identities[0]
 
       await this.store.transactionally(async (txStore) => {
         const txRepo = new OrganizationRepository(txStore, this.log)
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
 
+        const txService = new OrganizationService(txStore, this.log)
+
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId
 
         // first try finding the organization using the remote sourceId
-        const sourceId = organization.attributes?.sourceId?.[platform]
-        let dbOrganization = sourceId
-          ? await txRepo.findBySourceId(tenantId, segmentId, platform, sourceId)
+        let dbOrganization = primaryIdentity.sourceId
+          ? await txRepo.findBySourceId(tenantId, segmentId, platform, primaryIdentity.sourceId)
           : null
 
-        if (!dbOrganization && organization.name) {
+        if (!dbOrganization && primaryIdentity.name) {
           // try finding the organization using name
-          dbOrganization = await txRepo.findByName(tenantId, segmentId, organization.name)
+          dbOrganization = await txRepo.findInIdentityNames(tenantId, primaryIdentity.name)
         }
 
         if (dbOrganization) {
@@ -250,15 +386,29 @@ export class OrganizationService extends LoggerBase {
 
           // set a record in organizationsSyncRemote to save the sourceId
           // we can't use organization.attributes because of segments
-          if (sourceId) {
-            await txRepo.addToSyncRemote(dbOrganization.id, dbIntegration.id, sourceId)
+          if (primaryIdentity.sourceId) {
+            await txRepo.addToSyncRemote(
+              dbOrganization.id,
+              dbIntegration.id,
+              primaryIdentity.sourceId,
+            )
           }
 
-          // send to findOrCreate with found organization's name, since we use the name field as the primary key
-          await this.findOrCreate(tenantId, segmentId, {
-            ...organization,
-            name: dbOrganization.name,
-          })
+          // check if sent primary identity already exists in the org
+          const existingIdentities = await txRepo.getIdentities(dbOrganization.id, tenantId)
+
+          const primaryIdentityExists = existingIdentities.find(
+            (i) => i.name === primaryIdentity.name && i.platform === primaryIdentity.platform,
+          )
+
+          // if it doesn't exist yet, append existing identities to the payload
+          // so that findOrCreate can find the organization to update
+          if (!primaryIdentityExists) {
+            // we add to the start of the array, because findOrCreate checks the first item in identities as primary identity
+            organization.identities.unshift(...existingIdentities)
+          }
+
+          await txService.findOrCreate(tenantId, segmentId, integrationId, organization)
         } else {
           this.log.debug(
             'No organization found for enriching. This organization enrich process had no affect.',

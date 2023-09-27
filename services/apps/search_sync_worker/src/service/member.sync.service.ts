@@ -265,6 +265,50 @@ export class MemberSyncService extends LoggerBase {
     )
   }
 
+  public async syncOrganizationMembers(organizationId: string, batchSize = 200): Promise<void> {
+    this.log.debug({ organizationId }, 'Syncing all organization members!')
+    let docCount = 0
+    let memberCount = 0
+
+    const now = new Date()
+
+    await logExecutionTime(
+      async () => {
+        let memberIds = await this.memberRepo.getOrganizationMembersForSync(
+          organizationId,
+          batchSize,
+        )
+
+        while (memberIds.length > 0) {
+          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+
+          docCount += documentsIndexed
+          memberCount += membersSynced
+
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { organizationId },
+            `Synced ${memberCount} members! Speed: ${Math.round(
+              memberCount / diffInSeconds,
+            )} members/second!`,
+          )
+          memberIds = await this.memberRepo.getOrganizationMembersForSync(
+            organizationId,
+            batchSize,
+            memberIds[memberIds.length - 1],
+          )
+        }
+      },
+      this.log,
+      'sync-organization-members',
+    )
+
+    this.log.info(
+      { organizationId },
+      `Synced total of ${memberCount} members with ${docCount} documents!`,
+    )
+  }
+
   public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
     this.log.debug({ memberIds }, 'Syncing members!')
 
@@ -300,38 +344,38 @@ export class MemberSyncService extends LoggerBase {
               id: `${memberId}-${member.segmentId}`,
               body: prepared,
             })
-          }
 
-          const relevantSegmentInfos = segmentInfos.filter((s) => s.id === memberDocs[0].segmentId)
+            const relevantSegmentInfos = segmentInfos.filter((s) => s.id === member.segmentId)
 
-          // and for each parent and grandparent
-          const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
-          for (const parentId of parentIds) {
-            const aggregated = MemberSyncService.aggregateData(
-              memberDocs,
-              relevantSegmentInfos,
-              parentId,
-            )
-            const prepared = MemberSyncService.prefixData(aggregated, attributes)
-            forSync.push({
-              id: `${memberId}-${parentId}`,
-              body: prepared,
-            })
-          }
+            // and for each parent and grandparent
+            const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
+            for (const parentId of parentIds) {
+              const aggregated = MemberSyncService.aggregateData(
+                memberDocs,
+                relevantSegmentInfos,
+                parentId,
+              )
+              const prepared = MemberSyncService.prefixData(aggregated, attributes)
+              forSync.push({
+                id: `${memberId}-${parentId}`,
+                body: prepared,
+              })
+            }
 
-          const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
-          for (const grandParentId of grandParentIds) {
-            const aggregated = MemberSyncService.aggregateData(
-              memberDocs,
-              relevantSegmentInfos,
-              undefined,
-              grandParentId,
-            )
-            const prepared = MemberSyncService.prefixData(aggregated, attributes)
-            forSync.push({
-              id: `${memberId}-${grandParentId}`,
-              body: prepared,
-            })
+            const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
+            for (const grandParentId of grandParentIds) {
+              const aggregated = MemberSyncService.aggregateData(
+                memberDocs,
+                relevantSegmentInfos,
+                undefined,
+                grandParentId,
+              )
+              const prepared = MemberSyncService.prefixData(aggregated, attributes)
+              forSync.push({
+                id: `${memberId}-${grandParentId}`,
+                body: prepared,
+              })
+            }
           }
         } else {
           if (memberDocs.length > 1) {

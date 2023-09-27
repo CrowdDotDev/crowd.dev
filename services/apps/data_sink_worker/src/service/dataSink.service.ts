@@ -1,18 +1,20 @@
+import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
   IOrganization,
   IntegrationResultState,
   IntegrationResultType,
+  PlatformType,
 } from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import MemberService from './member.service'
-import { SLACK_ALERTING_CONFIG } from '@/conf'
-import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import { OrganizationService } from './organization.service'
 
 export default class DataSinkService extends LoggerBase {
@@ -22,6 +24,7 @@ export default class DataSinkService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -44,6 +47,23 @@ export default class DataSinkService extends LoggerBase {
       errorStack: error?.stack,
       errorString: error ? JSON.stringify(error) : undefined,
     })
+  }
+
+  public async createAndProcessActivityResult(
+    tenantId: string,
+    segmentId: string,
+    integrationId: string,
+    data: IActivityData,
+  ): Promise<void> {
+    this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
+
+    const resultId = await this.repo.createResult(tenantId, integrationId, {
+      type: IntegrationResultType.ACTIVITY,
+      data,
+      segmentId,
+    })
+
+    await this.processResult(resultId)
   }
 
   public async processResult(resultId: string): Promise<void> {
@@ -88,15 +108,19 @@ export default class DataSinkService extends LoggerBase {
             this.store,
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
+            this.redisClient,
             this.log,
           )
           const activityData = data.data as IActivityData
 
+          const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
+
           await service.processActivity(
             resultInfo.tenantId,
             resultInfo.integrationId,
-            resultInfo.platform,
+            platform,
             activityData,
+            data.segmentId,
           )
           break
         }

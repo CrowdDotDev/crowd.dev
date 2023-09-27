@@ -10,7 +10,7 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/25/25231.png',
   connectComponent: GithubConnect,
-  url: (username) => `https://github.com/${username}`,
+  url: ({ username }) => (username ? `https://github.com/${username}` : null),
   chartColor: '#111827',
   showProfileLink: true,
   activityDisplay: {
@@ -41,5 +41,8 @@ export default {
       insertions: attributes.additions,
       deletions: attributes.deletions,
     }),
+  },
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
   },
 };

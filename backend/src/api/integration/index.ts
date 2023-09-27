@@ -1,11 +1,19 @@
 import passport from 'passport'
-import { API_CONFIG, SLACK_CONFIG } from '../../conf'
+import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
 import { FeatureFlag } from '@/types/common'
 import { featureFlagMiddleware } from '@/middlewares/featureFlagMiddleware'
+
+const decodeBase64Url = (data) => {
+  data = data.replaceAll('-', '+').replaceAll('_', '/')
+  while (data.length % 4) {
+    data += '='
+  }
+  return atob(data)
+}
 
 export default (app) => {
   app.post(`/tenant/:tenantId/integration/query`, safeWrap(require('./integrationQuery').default))
@@ -23,6 +31,14 @@ export default (app) => {
   app.put(
     `/authenticate/:tenantId/:code`,
     safeWrap(require('./helpers/githubAuthenticate').default),
+  )
+  app.put(
+    `/tenant/:tenantId/integration/:id/github/repos`,
+    safeWrap(require('./helpers/githubMapRepos').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/:id/github/repos`,
+    safeWrap(require('./helpers/githubMapReposGet').default),
   )
   app.put(
     `/discord-authenticate/:tenantId/:guild_id`,
@@ -147,65 +163,66 @@ export default (app) => {
     safeWrap(require('./helpers/groupsioVerifyGroup').default),
   )
 
-  app.post(
-    '/tenant/:tenantId/youtube-connect',
-    safeWrap(require('./helpers/youtubeConnect').default),
-  )
+  if (TWITTER_CONFIG.clientId) {
+    /**
+     * Using the passport.authenticate this endpoint forces a
+     * redirect to happen to the twitter oauth2 page.
+     * We keep a state of the important variables such as tenantId, redirectUrl, ..
+     * so that after user logs in through the twitter page, these
+     * variables are forwarded back to the callback as well
+     * This state is sent using the authenticator options and
+     * manipulated through twitterStrategy.staticPKCEStore
+     */
+    app.get(
+      '/twitter/:tenantId/connect',
+      safeWrap(require('./helpers/twitterAuthenticate').default),
+      () => {
+        // The request will be redirected for authentication, so this
+        // function will not be called.
+      },
+    )
 
-  // if (TWITTER_CONFIG.clientId) {
-  //   /**
-  //    * Using the passport.authenticate this endpoint forces a
-  //    * redirect to happen to the twitter oauth2 page.
-  //    * We keep a state of the important variables such as tenantId, redirectUrl, ..
-  //    * so that after user logs in through the twitter page, these
-  //    * variables are forwarded back to the callback as well
-  //    * This state is sent using the authenticator options and
-  //    * manipulated through twitterStrategy.staticPKCEStore
-  //    */
-  //   app.get(
-  //     '/twitter/:tenantId/connect',
-  //     safeWrap(require('./helpers/twitterAuthenticate').default),
-  //     () => {
-  //       // The request will be redirected for authentication, so this
-  //       // function will not be called.
-  //     },
-  //   )
-
-  //   /**
-  //    * OAuth2 callback endpoint.  After user successfully
-  //    * logs in through twitter page s/he is redirected to
-  //    * this endpoint. Few middlewares first mimic a proper
-  //    * api request in this order:
-  //    *
-  //    * Set headers-> Auth middleware (currentUser)-> Set currentTenant
-  //    * -> finally we call the project service to update the
-  //    * corresponding project.
-  //    *
-  //    * We have to call these standart middlewares explicitly because
-  //    * the request method is get and tenant id does not exist in the
-  //    * uri as request parameters.
-  //    *
-  //    */
-  //   app.get(
-  //     '/twitter/callback',
-  //     passport.authenticate('twitter', {
-  //       session: false,
-  //       failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
-  //     }),
-  //     (req, _res, next) => {
-  //       const crowdToken = new URLSearchParams(req.query.state).get('crowdToken')
-  //       req.headers.authorization = `Bearer ${crowdToken}`
-  //       next()
-  //     },
-  //     authMiddleware,
-  //     async (req, _res, next) => {
-  //       const tenantId = new URLSearchParams(req.query.state).get('tenantId')
-  //       req.currentTenant = await new TenantService(req).findById(tenantId)
-  //       next()
-  //     },
-  //     safeWrap(require('./helpers/twitterAuthenticateCallback').default),
-  //   )
-  // }
+    /**
+     * OAuth2 callback endpoint.  After user successfully
+     * logs in through twitter page s/he is redirected to
+     * this endpoint. Few middlewares first mimic a proper
+     * api request in this order:
+     *
+     * Set headers-> Auth middleware (currentUser)-> Set currentTenant
+     * -> finally we call the project service to update the
+     * corresponding project.
+     *
+     * We have to call these standart middlewares explicitly because
+     * the request method is get and tenant id does not exist in the
+     * uri as request parameters.
+     *
+     */
+    app.get(
+      '/twitter/callback',
+      // passport.authenticate('twitter', {
+      //   session: false,
+      //   failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
+      // }),
+      (req, _res, next) => {
+        const stateQueryParam = req.query.state
+        const decodedState = decodeBase64Url(stateQueryParam)
+        const stateObject = JSON.parse(decodedState)
+        const { crowdToken } = stateObject
+        req.headers.authorization = `Bearer ${crowdToken}`
+        next()
+      },
+      authMiddleware,
+      async (req, _res, next) => {
+        const stateQueryParam = req.query.state
+        const decodedState = decodeBase64Url(stateQueryParam)
+        const stateObject = JSON.parse(decodedState)
+        const { tenantId } = stateObject
+        req.currentTenant = await new TenantService(req).findById(tenantId)
+        next()
+      },
+      safeWrap(require('./helpers/twitterAuthenticateCallback').default),
+    )
+  }
 
   /**
    * Slack integration endpoints
@@ -246,4 +263,9 @@ export default (app) => {
       safeWrap(require('./helpers/slackAuthenticateCallback').default),
     )
   }
+  
+  app.post(
+    '/tenant/:tenantId/youtube-connect',
+    safeWrap(require('./helpers/youtubeConnect').default),
+  )
 }

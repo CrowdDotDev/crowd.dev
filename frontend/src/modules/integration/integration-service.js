@@ -137,6 +137,17 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async githubMapRepos(integrationId, mapping) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
+      {
+        mapping,
+      },
+    );
+    return response.data;
+  }
+
   static async redditOnboard(subreddits) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.

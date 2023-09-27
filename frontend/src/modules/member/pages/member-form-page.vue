@@ -265,16 +265,19 @@ onBeforeRouteLeave((to) => {
   return true;
 });
 
-onMounted(async () => {
+onMounted(() => {
   // Fetch custom attributes on mount
-  await getMemberCustomAttributes();
+  getMemberCustomAttributes();
 
   if (isEditPage.value) {
     const { id } = route.params;
 
-    record.value = await store.dispatch('member/doFind', id);
-    isPageLoading.value = false;
-    formModel.value = getInitialModel(record.value);
+    store.dispatch('member/doFind', id)
+      .then((res) => {
+        record.value = res;
+        isPageLoading.value = false;
+        formModel.value = getInitialModel(record.value);
+      });
   } else {
     isPageLoading.value = false;
   }
@@ -352,6 +355,7 @@ async function onSubmit() {
       tags: formModel.value.tags.map((t) => t.id),
     },
     ...formModel.value.organizations.length && {
+      organizationsReplace: true,
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,

@@ -89,6 +89,57 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results.map((r) => r.id)
   }
 
+  public async getOrganizationMembersForSync(
+    organizationId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+        select distinct mo."memberId"
+        from "memberOrganizations" mo
+        where mo."organizationId" = $(organizationId) and
+              mo."deletedAt" is null and
+              mo."memberId" > $(lastId) and
+              (
+                exists (select 1 from activities where "memberId" = mo."memberId") or
+                exists (select 1 from members where "memberId" = mo."memberId" and "manuallyCreated")
+              ) and
+              exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
+        order by mo."memberId"
+        limit ${perPage};`,
+        {
+          organizationId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+        select distinct mo."memberId"
+        from "memberOrganizations" mo
+        where mo."organizationId" = $(organizationId) and
+              mo."deletedAt" is null and
+              (
+                exists (select 1 from activities where "memberId" = mo."memberId") or
+                exists (select 1 from members where "memberId" = mo."memberId" and "manuallyCreated")
+              ) and
+              exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
+        order by mo."memberId"
+        limit ${perPage};`,
+        {
+          organizationId,
+        },
+      )
+    }
+
+    return results.map((r) => r.memberId)
+  }
+
   public async getRemainingTenantMembersForSync(
     tenantId: string,
     page: number,
@@ -169,11 +220,12 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                       where mo."memberId" in ($(ids:csv))
                                         and mo."deletedAt" is null
                                         and o."deletedAt" is null
-                                        and exists (select 1
+                                        and (exists (select 1
                                           from activities a
                                           where a."memberId" = mo."memberId"
                                             and a."organizationId" = mo."organizationId"
-                                            and a."segmentId" = os."segmentId")
+                                            and a."segmentId" = os."segmentId") or
+                                            exists (select 1 from members where id = mo."memberId" and "manuallyCreated"))
                                       group by mo."memberId", os."segmentId"),
             identities as (select mi."memberId",
                                   json_agg(

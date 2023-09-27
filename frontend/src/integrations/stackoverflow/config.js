@@ -10,7 +10,7 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/2111/2111628.png',
   connectComponent: StackOverflowConnect,
-  url: (username) => `https://stackoverflow.com/users/${username}`,
+  url: ({ attributes }) => attributes?.url?.stackoverflow,
   chartColor: '#FF9845',
   showProfileLink: true,
   activityDisplay: {
@@ -22,5 +22,8 @@ export default {
       copy: 'reply',
       number: conversation.activityCount - 1,
     }),
+  },
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
   },
 };
