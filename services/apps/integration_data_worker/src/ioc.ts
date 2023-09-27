@@ -1,37 +1,25 @@
-import 'reflect-metadata'
-
-import { Container, ContainerModule } from 'inversify'
-import { LOGGING_IOC, LOGGING_IOC_MODULE, Logger } from '@crowd/logging'
 import { DATABASE_IOC_MODULE } from '@crowd/database'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
-import { Emitters, SQS_IOC_MODULE } from '@crowd/sqs'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, LOGGING_IOC_MODULE, Logger } from '@crowd/logging'
 import { REDIS_IOC_MODULE } from '@crowd/redis'
+import { Emitters, SQS_IOC_MODULE } from '@crowd/sqs'
+import { ContainerModule } from 'inversify'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
 import { APP_IOC } from './ioc_constants'
-import IntegrationDataService from './service/integrationDataService'
 import { WorkerQueueReceiver } from './queue'
-
-export const IOC = new Container({
-  skipBaseClassChecks: true,
-  autoBindInjectable: true,
-})
-
-export const childIocContainer = (): Container => {
-  const child = new Container()
-  child.parent = IOC
-
-  return child
-}
+import IntegrationDataService from './service/integrationDataService'
 
 export const APP_IOC_MODULE = async (maxConcurrentProcessing: number): Promise<void> => {
-  IOC.load(LOGGING_IOC_MODULE())
-  const log = IOC.get<Logger>(LOGGING_IOC.logger)
+  const ioc = IOC()
+  ioc.load(LOGGING_IOC_MODULE())
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
   log.info('Loading IOC container...')
 
-  IOC.load(await DATABASE_IOC_MODULE(IOC, DB_CONFIG(), maxConcurrentProcessing))
-  IOC.load(await REDIS_IOC_MODULE(IOC, REDIS_CONFIG()))
-  IOC.load(
+  ioc.load(await DATABASE_IOC_MODULE(ioc, DB_CONFIG(), maxConcurrentProcessing))
+  ioc.load(await REDIS_IOC_MODULE(ioc, REDIS_CONFIG()))
+  ioc.load(
     await SQS_IOC_MODULE(
-      IOC,
+      ioc,
       SQS_CONFIG(),
       Emitters.DATA_SINK_WORKER | Emitters.INTEGRATION_STREAM_WORKER,
     ),
@@ -45,5 +33,5 @@ export const APP_IOC_MODULE = async (maxConcurrentProcessing: number): Promise<v
     bind(APP_IOC.queueWorker).to(WorkerQueueReceiver).inSingletonScope()
   })
 
-  IOC.load(appModule)
+  ioc.load(appModule)
 }

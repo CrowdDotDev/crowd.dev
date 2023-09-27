@@ -3,7 +3,7 @@
     "target": "es2017",
     "module": "commonjs",
     "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
-    "types": ["reflect-metadata"],
+    "types": ["reflect-metadata", "node"],
     "skipLibCheck": true,
     "moduleResolution": "node",
     "sourceMap": true,
@@ -12,10 +12,8 @@
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../*/src"],
-      "@/*": ["./*"]
+      "@crowd/*": ["../../*/src"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"]
 }

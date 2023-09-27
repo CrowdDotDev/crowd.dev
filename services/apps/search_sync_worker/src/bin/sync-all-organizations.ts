@@ -1,26 +1,27 @@
-import { DB_CONFIG } from '@/conf'
-import { OpenSearchService } from '@/service/opensearch.service'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
+import { APP_IOC_MODULE } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
 import { OrganizationRepository } from '@/repo/organization.repo'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { timeout } from '@crowd/common'
-
-const log = getServiceLogger()
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  await APP_IOC_MODULE(MAX_CONCURRENT)
+  const ioc = IOC()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
 
   const repo = new OrganizationRepository(store, log)
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new OrganizationSyncService(store, openSearchService, log)
+  const service = ioc.get<OrganizationSyncService>(APP_IOC.organizationSyncService)
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {

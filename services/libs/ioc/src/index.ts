@@ -14,6 +14,8 @@ export const IOC = (): Container => {
     skipBaseClassChecks: true,
     autoBindInjectable: true,
   })
+
+  return instance
 }
 
 export const childIocContainer = (): Container => {

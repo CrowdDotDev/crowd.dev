@@ -3,7 +3,7 @@ import {
   IProcessWebhookStreamContext,
   ProcessWebhookStreamHandler,
   IProcessStreamContext,
-} from '@/types'
+} from '../../types'
 import {
   GithubWebhookPayload,
   GithubPlatformSettings,

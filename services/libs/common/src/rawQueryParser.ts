@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { MemberAttributeType } from '@crowd/types'
-import { JsonColumnInfo, Operator, ParsedJsonColumn } from '@crowd/types'
+
+import { JsonColumnInfo, Operator, ParsedJsonColumn, MemberAttributeType } from '@crowd/types'
 import { singleOrDefault } from './array'
 
 export class RawQueryParser {

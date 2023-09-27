@@ -1,4 +1,4 @@
-import { ProcessStreamHandler } from '@/types'
+import { ProcessStreamHandler } from '../../../types'
 import {
   HubspotEntity,
   HubspotStream,

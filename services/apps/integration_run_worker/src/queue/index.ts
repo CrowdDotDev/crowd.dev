@@ -1,6 +1,6 @@
-import { IOC, childIocContainer } from '@/ioc'
 import { APP_IOC } from '@/ioc_constants'
 import IntegrationRunService from '@/service/integrationRunService'
+import { IOC, childIocContainer } from '@crowd/ioc'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {
   INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
@@ -29,7 +29,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
 
     // just a test of resolution
-    IOC.get<IntegrationRunService>(APP_IOC.runService)
+    IOC().get<IntegrationRunService>(APP_IOC.runService)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

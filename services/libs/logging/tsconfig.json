@@ -12,10 +12,8 @@
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../*/src"],
-      "@/*": ["./*"]
+      "@crowd/*": ["../../*/src"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"]
 }

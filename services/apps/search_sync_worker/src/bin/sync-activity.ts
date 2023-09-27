@@ -1,29 +1,29 @@
-import { DB_CONFIG } from '@/conf'
+import { APP_IOC_MODULE } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
 import { ActivityRepository } from '@/repo/activity.repo'
 import { ActivitySyncService } from '@/service/activity.sync.service'
-import { OpenSearchService } from '@/service/opensearch.service'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: activityId')
-  process.exit(1)
-}
-
-const activityId = processArguments[0]
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  await APP_IOC_MODULE(2)
+  const ioc = IOC()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
-  const service = new ActivitySyncService(store, openSearchService, log)
+  const processArguments = process.argv.slice(2)
 
+  if (processArguments.length !== 1) {
+    log.error('Expected 1 argument: activityId')
+    process.exit(1)
+  }
+
+  const activityId = processArguments[0]
+
+  const service = ioc.get<ActivitySyncService>(APP_IOC.activitySyncService)
+
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
   const repo = new ActivityRepository(store, log)
 
   const results = await repo.getActivityData([activityId])

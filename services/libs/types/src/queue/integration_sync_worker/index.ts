@@ -1,4 +1,4 @@
-import { AutomationSyncTrigger } from '@/automations'
+import { AutomationSyncTrigger } from '../../automations'
 
 export enum IntegrationSyncWorkerQueueMessageType {
   SYNC_ALL_MARKED_MEMBERS = 'sync_all_marked_members',

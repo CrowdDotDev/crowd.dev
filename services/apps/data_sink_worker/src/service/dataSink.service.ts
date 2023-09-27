@@ -1,7 +1,7 @@
 import { SLACK_ALERTING_CONFIG } from '@/conf'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
-import { LOGGING_IOC, Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { REDIS_IOC, RedisClient } from '@crowd/redis'
 import { NodejsWorkerEmitter, SQS_IOC, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import {

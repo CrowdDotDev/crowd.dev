@@ -1,15 +1,17 @@
 import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { SENTIMENT_CONFIG } from './conf'
-import { APP_IOC_MODULE, IOC } from './ioc'
+import { APP_IOC_MODULE } from './ioc'
 import { APP_IOC } from './ioc_constants'
 import { WorkerQueueReceiver } from './queue'
+import { IOC } from '@crowd/ioc'
 
 const MAX_CONCURRENT_PROCESSING = 3
 
 setImmediate(async () => {
   await APP_IOC_MODULE(MAX_CONCURRENT_PROCESSING)
-  const log = IOC.get<Logger>(LOGGING_IOC.logger)
+  const ioc = IOC()
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
   log.info('Starting data sink worker...')
 
@@ -17,7 +19,7 @@ setImmediate(async () => {
     initializeSentimentAnalysis(SENTIMENT_CONFIG())
   }
 
-  const queue = IOC.get<WorkerQueueReceiver>(APP_IOC.queueWorker)
+  const queue = ioc.get<WorkerQueueReceiver>(APP_IOC.queueWorker)
 
   try {
     await queue.start()

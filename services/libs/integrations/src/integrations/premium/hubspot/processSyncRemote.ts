@@ -2,7 +2,7 @@ import {
   IGenerateStreamsContext,
   IIntegrationProcessRemoteSyncContext,
   ProcessIntegrationSyncHandler,
-} from '@/types'
+} from '../../../types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
 import { AutomationSyncTrigger, Entity, IMember, IOrganization } from '@crowd/types'
 import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'

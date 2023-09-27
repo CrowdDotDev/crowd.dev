@@ -19,7 +19,6 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/logging": "file:../logging",
     "@crowd/types": "file:../types",
     "psl": "^1.9.0",
     "uuid": "^9.0.0"

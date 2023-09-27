@@ -1,29 +1,29 @@
-import { DB_CONFIG, REDIS_CONFIG } from '@/conf'
+import { APP_IOC_MODULE } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
 import { MemberRepository } from '@/repo/member.repo'
-import { OpenSearchService } from '@/service/opensearch.service'
 import { MemberSyncService } from '@/service/member.sync.service'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
 import { timeout } from '@crowd/common'
-
-const log = getServiceLogger()
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { REDIS_IOC, RedisClient } from '@crowd/redis'
 
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  await APP_IOC_MODULE(MAX_CONCURRENT)
+  const ioc = IOC()
 
-  const redis = await getRedisClient(REDIS_CONFIG(), true)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+  const redis = ioc.get<RedisClient>(REDIS_IOC.client)
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
 
   const repo = new MemberRepository(redis, store, log)
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new MemberSyncService(redis, store, openSearchService, log)
+  const service = ioc.get<MemberSyncService>(APP_IOC.memberSyncService)
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {

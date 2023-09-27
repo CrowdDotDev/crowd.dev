@@ -1,13 +1,13 @@
 import { APP_IOC } from '@/ioc_constants'
 import { ActivitySyncService } from '@/service/activity.sync.service'
 import { MemberSyncService } from '@/service/member.sync.service'
-import { OrganizationSyncService } from '@/service/organization.sync.service'
 import { BatchProcessor } from '@crowd/common'
-import { DbStore } from '@crowd/database'
-import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SQS_IOC, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 import { inject, injectable } from 'inversify'
+import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { childIocContainer } from '@crowd/ioc'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -26,6 +26,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     maxConcurrentProcessing: number,
     @inject(APP_IOC.memberSyncService)
     memberSyncService: MemberSyncService,
+    @inject(APP_IOC.activitySyncService)
+    activitySyncService: ActivitySyncService,
+    @inject(APP_IOC.organizationSyncService)
+    organizationSyncService: OrganizationSyncService,
   ) {
     super(
       client,
@@ -44,7 +48,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         const distinct = Array.from(new Set(memberIds))
         if (distinct.length > 0) {
           this.log.info({ batchSize: distinct.length }, 'Processing batch of members!')
-          await this.initMemberService().syncMembers(distinct)
+          await memberSyncService.syncMembers(distinct)
         }
       },
       async (memberIds, err) => {
@@ -59,7 +63,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         const distinct = Array.from(new Set(activityIds))
         if (distinct.length > 0) {
           this.log.info({ batchSize: distinct.length }, 'Processing batch of activities!')
-          await this.initActivityService().syncActivities(distinct)
+          await activitySyncService.syncActivities(distinct)
         }
       },
       async (activityIds, err) => {
@@ -74,7 +78,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         const distinct = Array.from(new Set(organizationIds))
         if (distinct.length > 0) {
           this.log.info({ batchSize: distinct.length }, 'Processing batch of organizations!')
-          await this.initOrganizationService().syncOrganizations(distinct)
+          await organizationSyncService.syncOrganizations(distinct)
         }
       },
       async (organizationIds, err) => {
@@ -83,16 +87,19 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     )
   }
 
-  public override async start(): Promise<void> {
-    await super.start()
-  }
-
   protected override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
       const type = message.type as SearchSyncWorkerQueueMessageType
       const data = message as any
+
+      const requestContainer = childIocContainer()
+      const childLogger = getChildLogger('message-processing', this.log, {
+        messageType: message.type,
+      })
+
+      requestContainer.bind(LOGGING_IOC.logger).toConstantValue(childLogger)
 
       switch (type) {
         // members
@@ -105,7 +112,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS:
           if (data.tenantId) {
-            this.initMemberService()
+            const service = requestContainer.get<MemberSyncService>(APP_IOC.memberSyncService)
+            service
               .syncTenantMembers(data.tenantId)
               .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
           }
@@ -113,7 +121,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           break
         case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS:
           if (data.organizationId) {
-            this.initMemberService()
+            const service = requestContainer.get<MemberSyncService>(APP_IOC.memberSyncService)
+
+            service
               .syncOrganizationMembers(data.organizationId)
               .catch((err) => this.log.error(err, 'Error while syncing organization members!'))
           }
@@ -122,7 +132,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS:
           if (data.tenantId) {
-            this.initMemberService()
+            const service = requestContainer.get<MemberSyncService>(APP_IOC.memberSyncService)
+            service
               .cleanupMemberIndex(data.tenantId)
               .catch((err) => this.log.error(err, 'Error while cleaning up tenant members!'))
           }
@@ -130,7 +141,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
           if (data.memberId) {
-            await this.initMemberService().removeMember(data.memberId)
+            const service = requestContainer.get<MemberSyncService>(APP_IOC.memberSyncService)
+            await service.removeMember(data.memberId)
           }
           break
 
@@ -142,28 +154,35 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           break
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES:
           if (data.tenantId) {
-            this.initActivityService()
+            const service = requestContainer.get<ActivitySyncService>(APP_IOC.activitySyncService)
+            service
               .syncTenantActivities(data.tenantId)
               .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
           }
           break
         case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES:
           if (data.organizationId) {
-            this.initActivityService()
+            const service = requestContainer.get<ActivitySyncService>(APP_IOC.activitySyncService)
+
+            service
               .syncOrganizationActivities(data.organizationId)
               .catch((err) => this.log.error(err, 'Error while syncing organization activities!'))
           }
           break
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:
           if (data.tenantId) {
-            this.initActivityService()
+            const service = requestContainer.get<ActivitySyncService>(APP_IOC.activitySyncService)
+
+            service
               .cleanupActivityIndex(data.tenantId)
               .catch((err) => this.log.error(err, 'Error while cleaning up tenant activities!'))
           }
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
           if (data.activityId) {
-            await this.initActivityService().removeActivity(data.activityId)
+            const service = requestContainer.get<ActivitySyncService>(APP_IOC.activitySyncService)
+
+            await service.removeActivity(data.activityId)
           }
           break
 
@@ -175,21 +194,31 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           break
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
           if (data.tenantId) {
-            this.initOrganizationService()
+            const service = requestContainer.get<OrganizationSyncService>(
+              APP_IOC.organizationSyncService,
+            )
+            service
               .syncTenantOrganizations(data.tenantId)
               .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
           }
           break
         case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
           if (data.tenantId) {
-            this.initOrganizationService()
+            const service = requestContainer.get<OrganizationSyncService>(
+              APP_IOC.organizationSyncService,
+            )
+
+            service
               .cleanupOrganizationIndex(data.tenantId)
               .catch((err) => this.log.error(err, 'Error while cleaning up tenant organizations!'))
           }
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
           if (data.organizationId) {
-            await this.initOrganizationService().removeOrganization(data.organizationId)
+            const service = requestContainer.get<OrganizationSyncService>(
+              APP_IOC.organizationSyncService,
+            )
+            await service.removeOrganization(data.organizationId)
           }
           break
 

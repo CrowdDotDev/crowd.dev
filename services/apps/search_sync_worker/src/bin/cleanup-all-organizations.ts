@@ -1,19 +1,14 @@
-import { DB_CONFIG } from '@/conf'
+import { APP_IOC_MODULE } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
 import { InitService } from '@/service/init.service'
-import { OpenSearchService } from '@/service/opensearch.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-
-const log = getServiceLogger()
+import { IOC } from '@crowd/ioc'
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  await APP_IOC_MODULE(5)
+  const ioc = IOC()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
-
-  const service = new OrganizationSyncService(store, openSearchService, log)
+  const service = ioc.get<OrganizationSyncService>(APP_IOC.organizationSyncService)
 
   const pageSize = 100
   let results = await service.getAllIndexedTenantIds(pageSize)

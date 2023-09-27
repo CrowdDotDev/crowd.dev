@@ -1,30 +1,25 @@
-import { DB_CONFIG, REDIS_CONFIG } from '@/conf'
+import { APP_IOC_MODULE } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
 import { MemberSyncService } from '@/service/member.sync.service'
-import { OpenSearchService } from '@/service/opensearch.service'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: tenantId')
-  process.exit(1)
-}
-
-const tenantId = processArguments[0]
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  await APP_IOC_MODULE(5)
+  const ioc = IOC()
 
-  const redis = await getRedisClient(REDIS_CONFIG(), true)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const processArguments = process.argv.slice(2)
 
-  const service = new MemberSyncService(redis, store, openSearchService, log)
+  if (processArguments.length !== 1) {
+    log.error('Expected 1 argument: tenantId')
+    process.exit(1)
+  }
+
+  const tenantId = processArguments[0]
+
+  const service = ioc.get<MemberSyncService>(APP_IOC.memberSyncService)
 
   await service.cleanupMemberIndex(tenantId)
 

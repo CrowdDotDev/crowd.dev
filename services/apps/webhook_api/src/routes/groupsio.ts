@@ -1,13 +1,14 @@
-import { IOC } from '@/ioc'
 import { asyncWrap } from '@/middleware/error'
 import { WebhooksRepository } from '@/repos/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
+import { IOC } from '@crowd/ioc'
 import { IntegrationStreamWorkerEmitter, SQS_IOC } from '@crowd/sqs'
 import { WebhookType } from '@crowd/types'
 import express from 'express'
 
 export const installGroupsIoRoutes = async (app: express.Express) => {
-  const emitter = IOC.get<IntegrationStreamWorkerEmitter>(SQS_IOC.emitters.integrationStreamWorker)
+  const ioc = IOC()
+  const emitter = ioc.get<IntegrationStreamWorkerEmitter>(SQS_IOC.emitters.integrationStreamWorker)
   app.post(
     '/groupsio',
     asyncWrap(async (req, res) => {

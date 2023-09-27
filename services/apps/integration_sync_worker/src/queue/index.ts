@@ -1,7 +1,7 @@
-import { IOC, childIocContainer } from '@/ioc'
 import { APP_IOC } from '@/ioc_constants'
 import { MemberSyncService } from '@/service/member.sync.service'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { IOC, childIocContainer } from '@crowd/ioc'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {
   INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
@@ -28,8 +28,9 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
   ) {
     super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
 
-    IOC.get<MemberSyncService>(APP_IOC.memberSyncService)
-    IOC.get<OrganizationSyncService>(APP_IOC.organizationSyncService)
+    const ioc = IOC()
+    ioc.get<MemberSyncService>(APP_IOC.memberSyncService)
+    ioc.get<OrganizationSyncService>(APP_IOC.organizationSyncService)
   }
 
   protected override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {

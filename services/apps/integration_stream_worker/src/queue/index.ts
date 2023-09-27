@@ -1,4 +1,4 @@
-import { DbStore } from '@crowd/database'
+import { APP_IOC } from '@/ioc_constants'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
@@ -15,8 +15,7 @@ import {
 } from '@crowd/types'
 import { inject, injectable } from 'inversify'
 import IntegrationStreamService from '../service/integrationStreamService'
-import { APP_IOC } from '@/ioc_constants'
-import { IOC, childIocContainer } from '@/ioc'
+import { IOC, childIocContainer } from '@crowd/ioc'
 
 @injectable()
 export class WorkerQueueReceiver extends SqsQueueReceiver {
@@ -30,7 +29,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
   ) {
     super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
 
-    IOC.get<IntegrationStreamService>(APP_IOC.streamService)
+    IOC().get<IntegrationStreamService>(APP_IOC.streamService)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

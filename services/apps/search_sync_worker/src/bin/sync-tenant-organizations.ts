@@ -1,27 +1,25 @@
-import { DB_CONFIG } from '@/conf'
-import { OpenSearchService } from '@/service/opensearch.service'
+import { APP_IOC_MODULE } from '@/ioc'
+import { APP_IOC } from '@/ioc_constants'
 import { OrganizationSyncService } from '@/service/organization.sync.service'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: tenantId')
-  process.exit(1)
-}
-
-const tenantId = processArguments[0]
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  await APP_IOC_MODULE(3)
+  const ioc = IOC()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
-  const service = new OrganizationSyncService(store, openSearchService, log)
+  const processArguments = process.argv.slice(2)
+
+  if (processArguments.length !== 1) {
+    log.error('Expected 1 argument: tenantId')
+    process.exit(1)
+  }
+
+  const tenantId = processArguments[0]
+
+  const service = ioc.get<OrganizationSyncService>(APP_IOC.organizationSyncService)
 
   await service.syncTenantOrganizations(tenantId)
 

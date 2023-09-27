@@ -1,29 +1,15 @@
-import 'reflect-metadata';
-
 import { LOGGING_IOC_MODULE } from '@crowd/logging';
 import { DATABASE_IOC_MODULE } from '@crowd/database';
-
-import { Container } from 'inversify';
-
-export const IOC = new Container({
-  skipBaseClassChecks: true,
-  autoBindInjectable: true,
-});
-
-export const childIocContainer = (): Container => {
-  const child = new Container();
-  child.parent = IOC;
-
-  return child;
-};
+import { IOC } from '@crowd/ioc';
 
 export const TEST_IOC_MODULE = async (
   maxConcurrentProcessing: number
 ): Promise<void> => {
-  IOC.load(LOGGING_IOC_MODULE());
-  IOC.load(
+  const ioc = IOC();
+  ioc.load(LOGGING_IOC_MODULE());
+  ioc.load(
     await DATABASE_IOC_MODULE(
-      IOC,
+      ioc,
       {
         host: 'localhost',
         port: 5433,

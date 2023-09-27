@@ -30,6 +30,7 @@
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/types": "file:../../libs/types",
+    "@crowd/ioc": "file:../../libs/ioc",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
     "command-line-args": "^5.2.1",

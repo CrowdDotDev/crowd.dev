@@ -1,4 +1,3 @@
-import { IOC, childIocContainer } from '@/ioc'
 import { APP_IOC } from '@/ioc_constants'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {
@@ -14,6 +13,7 @@ import {
 } from '@crowd/types'
 import { inject, injectable } from 'inversify'
 import { default as IntegrationDataService } from '../service/integrationDataService'
+import { IOC, childIocContainer } from '@crowd/ioc'
 
 @injectable()
 export class WorkerQueueReceiver extends SqsQueueReceiver {
@@ -28,7 +28,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     super(client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
 
     // just a test of resolution
-    IOC.get<IntegrationDataService>(APP_IOC.dataService)
+    IOC().get<IntegrationDataService>(APP_IOC.dataService)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
