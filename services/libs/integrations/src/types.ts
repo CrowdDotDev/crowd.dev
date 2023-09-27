@@ -53,6 +53,8 @@ export interface IProcessStreamContext extends IIntegrationContext {
   serviceSettings: IIntegrationServiceSettings
   platformSettings?: unknown
 
+  setMessageVisibilityTimeout: (newTimeout: number) => Promise<void>
+
   publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>

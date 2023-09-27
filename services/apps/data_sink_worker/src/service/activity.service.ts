@@ -1,7 +1,3 @@
-import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
-import ActivityRepository from '../repo/activity.repo'
-import IntegrationRepository from '../repo/integration.repo'
-import MemberRepository from '../repo/member.repo'
 import { isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { ConversationService } from '@crowd/conversations'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
@@ -16,10 +12,15 @@ import {
 } from '@crowd/types'
 import isEqual from 'lodash.isequal'
 import mergeWith from 'lodash.mergewith'
+import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
+import ActivityRepository from '../repo/activity.repo'
+import GithubReposRepository from '../repo/githubRepos.repo'
+import IntegrationRepository from '../repo/integration.repo'
+import MemberRepository from '../repo/member.repo'
+import SettingsRepository from '../repo/settings.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
-import SettingsRepository from '../repo/settings.repo'
 
 const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
 const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
@@ -395,11 +396,15 @@ export default class ActivityService extends LoggerBase {
           )
           const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
           const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
+          const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
 
           segmentId = providedSegmentId
           if (!segmentId) {
             const dbIntegration = await txIntegrationRepo.findById(integrationId)
-            segmentId = dbIntegration.segmentId
+            segmentId =
+              platform === PlatformType.GITHUB
+                ? await txGithubReposRepo.findSegmentForRepo(tenantId, activity.channel)
+                : dbIntegration.segmentId
           }
 
           // find existing activity

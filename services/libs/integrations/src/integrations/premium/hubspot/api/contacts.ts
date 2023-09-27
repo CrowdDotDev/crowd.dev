@@ -37,7 +37,7 @@ export const getContacts = async (
     ctx.log.debug({ nangoId }, 'Fetching contacts from HubSpot')
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ accessToken }, `nango token`)
     config.headers.Authorization = `Bearer ${accessToken}`

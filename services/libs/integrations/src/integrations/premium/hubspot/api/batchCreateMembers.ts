@@ -86,7 +86,7 @@ export const batchCreateMembers = async (
     }
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ nangoId, accessToken, data: config.data }, 'Creating bulk contacts in HubSpot')
 
