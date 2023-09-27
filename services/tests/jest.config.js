@@ -9,11 +9,11 @@ const fromPairs = (pairs) =>
  * tsconfig の paths の設定から moduleNameMapper を生成する
  * {"@app/*": ["src/*"]} -> {"@app/(.*)": "<rootDir>/src/$1"}
  */
-function moduleNameMapperFromTSPaths(tsconfig) {
+function moduleNameMapperFromTSPaths(tsconf) {
   return fromPairs(
-    Object.entries(tsconfig.compilerOptions.paths).map(([k, [v]]) => [
+    Object.entries(tsconf.compilerOptions.paths).map(([k, [v]]) => [
       k.replace(/\*/, '(.*)'),
-      `<rootDir>/${tsconfig.compilerOptions.baseUrl}/${v.replace(/\*/, '$1')}`,
+      `<rootDir>/${tsconf.compilerOptions.baseUrl}/${v.replace(/\*/, '$1')}`,
     ])
   );
 }
