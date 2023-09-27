@@ -6,7 +6,7 @@ import {
   SearchSyncWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
-import { SQS_CONFIG, DB_CONFIG } from 'conf'
+import { SQS_CONFIG, DB_CONFIG } from '../conf'
 import DataSinkRepository from '../repo/dataSink.repo'
 import MemberRepository from '../repo/member.repo'
 import MemberService from '../service/member.service'
