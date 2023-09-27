@@ -220,7 +220,7 @@ export default {
     },
   },
 
-  created() {
+  mounted() {
     if (this.fetchFn) {
       this.fetchAllResults();
     }
@@ -273,9 +273,9 @@ export default {
       );
     },
 
-    fetchNotIncludedTags(response) {
+    async fetchNotIncludedTags(response) {
       if (this.areOptionsInMemory) {
-        return;
+        return Promise.resolve();
       }
 
       const notIncluded = this.model.filter(
@@ -283,16 +283,18 @@ export default {
       );
 
       if (notIncluded.length) {
-        this.fetchFn({
+        return this.fetchFn({
           query: notIncluded,
           limit: this.limit,
         }).then((notIncludedResponse) => {
           this.localOptions.unshift(...notIncludedResponse);
-        });
+        }).finally(() => Promise.resolve());
       }
+
+      return Promise.resolve();
     },
 
-    fetchAllResults() {
+    async fetchAllResults() {
       this.initialLoading = true;
 
       this.fetchFn({
@@ -300,10 +302,12 @@ export default {
         limit: this.limit,
       }).then((response) => {
         this.localOptions = response;
-        this.fetchNotIncludedTags(response);
+
+        this.fetchNotIncludedTags(response).finally(() => {
+          this.initialLoading = false;
+        });
       }).catch((error) => {
         console.error(error);
-      }).finally(() => {
         this.initialLoading = false;
       });
     },
