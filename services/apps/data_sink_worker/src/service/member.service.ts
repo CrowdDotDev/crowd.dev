@@ -8,7 +8,13 @@ import {
 } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IMemberData, IMemberIdentity, PlatformType, OrganizationSource } from '@crowd/types'
+import {
+  IMemberData,
+  IMemberIdentity,
+  PlatformType,
+  OrganizationSource,
+  IOrganizationIdSource,
+} from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
@@ -17,11 +23,6 @@ import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '@/repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
-
-export interface IOrganizationIdSource {
-  id: string
-  source: string
-}
 
 export default class MemberService extends LoggerBase {
   constructor(

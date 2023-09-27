@@ -13,7 +13,12 @@ import {
   getUpdateOrganizationColumnSet,
 } from './organization.data'
 import { generateUUIDv1 } from '@crowd/common'
-import { IOrganizationIdentity, SyncStatus, IOrganization } from '@crowd/types'
+import {
+  IOrganizationIdentity,
+  SyncStatus,
+  IOrganization,
+  IOrganizationIdSource,
+} from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
@@ -517,7 +522,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     await this.db().none(query, parameters)
   }
 
-  public async addToMember(memberId: string, orgs: IOrganization[]): Promise<void> {
+  public async addToMember(memberId: string, orgs: IOrganizationIdSource[]): Promise<void> {
     const parameters: Record<string, unknown> = {
       memberId,
     }

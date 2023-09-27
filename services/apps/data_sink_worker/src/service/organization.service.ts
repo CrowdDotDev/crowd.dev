@@ -308,7 +308,7 @@ export class OrganizationService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     memberId: string,
-    orgs: IOrganization[],
+    orgs: IOrganizationIdSource[],
   ): Promise<void> {
     await this.repo.addToSegments(
       tenantId,
