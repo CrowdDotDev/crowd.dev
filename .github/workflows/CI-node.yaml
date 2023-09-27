@@ -23,7 +23,7 @@ jobs:
           node-version: 16
 
       - name: Install and build libraries
-        run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
+        run: ../services/scripts/install_lib_packages.sh
 
       - name: Install root dependencies
         run: npm ci
@@ -54,7 +54,7 @@ jobs:
           node-version: 16
 
       - name: Install packages
-        run: ./scripts/install_all_packages.sh && ./scripts/build_libs.sh
+        run: ./scripts/install_all_packages.sh
 
       - name: Check library linting, format and typescript
         run: ./scripts/lint_libs.sh
@@ -80,7 +80,7 @@ jobs:
           node-version: 16
 
       - name: Install and build libraries
-        run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
+        run: ../services/scripts/install_lib_packages.sh
 
       - name: Install root dependencies
         run: npm ci
@@ -107,7 +107,7 @@ jobs:
           node-version: 16
 
       - name: Install and build libraries
-        run: ../services/scripts/install_lib_packages.sh && ../services/scripts/build_libs.sh
+        run: ../services/scripts/install_lib_packages.sh
 
       - name: Install dependencies
         run: npm ci
@@ -115,3 +115,29 @@ jobs:
       - name: Run tests
         working-directory: ./backend
         run: SERVICE=test npm test -- --testPathPattern="serverless\/"
+
+  tests-services:
+    needs: lint-format-services
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./services/tests
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install and build libraries
+        run: ../services/scripts/install_lib_packages.sh
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test

@@ -141,7 +141,7 @@ function restore_db_backup() {
 
 function install_backend_libs() {
     say "Installing services libraries"
-    (cd $CLI_HOME/../services/scripts && ./install_all_packages.sh && ./build_libs.sh)
+    (cd $CLI_HOME/../services/scripts && ./install_all_packages.sh)
 
     say "Installinb backend libraries"
     (cd $CLI_HOME/../backend && npm ci)
@@ -356,7 +356,7 @@ function check_init_premium() {
 }
 
 function install_libs() {
-    (cd $CLI_HOME/../services/scripts && ./install_lib_packages.sh && ./build_libs.sh)
+    (cd $CLI_HOME/../services/scripts && ./install_lib_packages.sh)
 }
 
 function init_unleash() {
