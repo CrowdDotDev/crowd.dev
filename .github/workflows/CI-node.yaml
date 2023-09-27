@@ -134,7 +134,7 @@ jobs:
           node-version: 16
 
       - name: Install and build libraries
-        run: ../services/scripts/install_lib_packages.sh
+        run: ../scripts/install_lib_packages.sh
 
       - name: Install dependencies
         run: npm ci
