@@ -99,8 +99,15 @@ export default class OrganizationService extends LoggerBase {
       // Performs a merge and returns the fields that were changed so we can update
       const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
 
-      // Update original organization
       const txService = new OrganizationService(repoOptions as IServiceOptions)
+
+      // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
+      // because of website unique constraint
+      if (toUpdate.website && toUpdate.website === toMerge.website) {
+        await txService.update(toMergeId, { website: null })
+      }
+
+      // Update original organization
       await txService.update(originalId, toUpdate, repoOptions.transaction)
 
       // update members that belong to source organization to destination org
