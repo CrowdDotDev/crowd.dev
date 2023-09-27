@@ -501,7 +501,10 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(search, limit) {
-    return OrganizationRepository.findAllAutocomplete(search, limit, this.options)
+    return [
+      ...(await OrganizationRepository.findAllAutocompleteExact(search, limit, this.options)),
+      ...(await OrganizationRepository.findAllAutocompleteLike(search, limit, this.options)),
+    ]
   }
 
   async findAndCountAll(args) {
