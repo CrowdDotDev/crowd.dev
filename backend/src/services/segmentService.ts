@@ -14,6 +14,7 @@ import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ReportRepository from '../database/repositories/reportRepository'
+import MemberRepository from '../database/repositories/memberRepository'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -187,24 +188,18 @@ export default class SegmentService extends LoggerBase {
   async queryProjectGroups(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjectGroups(search)
 
-    await this.addMemberCounts(result.rows, SegmentLevel.PROJECT_GROUP)
-
+    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(this.options)
+    this.setMembersCount(result.rows, SegmentLevel.PROJECT_GROUP, membersCountPerSegment)
     return result
   }
 
   async queryProjects(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjects(search)
-
-    await this.addMemberCounts(result.rows, SegmentLevel.PROJECT)
-
     return result
   }
 
   async querySubprojects(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).querySubprojects(search)
-
-    await this.addMemberCounts(result.rows, SegmentLevel.SUB_PROJECT)
-
     return result
   }
 
@@ -460,7 +455,9 @@ export default class SegmentService extends LoggerBase {
     if (!subprojectIds.length) {
       return
     }
-    this.setMembersCount(segments, level, {})
+
+    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(this.options)
+    this.setMembersCount(segments, level, membersCountPerSegment)
   }
 
   static async refreshSegments(options: IRepositoryOptions) {
