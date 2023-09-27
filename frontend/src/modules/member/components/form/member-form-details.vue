@@ -41,15 +41,15 @@
         <el-input v-model="model.location" />
       </el-form-item>
 
-      <!--      <el-form-item :label="fieldsValue.tags.label">-->
-      <!--        <app-tag-autocomplete-input-->
-      <!--          v-model="model[fieldsValue.tags.name]"-->
-      <!--          :fetch-fn="fieldsValue.tags.fetchFn"-->
-      <!--          :mapper-fn="fieldsValue.tags.mapperFn"-->
-      <!--          :create-if-not-found="true"-->
-      <!--          placeholder="Enter tags..."-->
-      <!--        />-->
-      <!--      </el-form-item>-->
+      <el-form-item :label="fieldsValue.tags.label">
+        <app-tag-autocomplete-input
+          v-model="model[fieldsValue.tags.name]"
+          :fetch-fn="fieldsValue.tags.fetchFn"
+          :mapper-fn="fieldsValue.tags.mapperFn"
+          :create-if-not-found="true"
+          placeholder="Enter tags..."
+        />
+      </el-form-item>
     </div>
   </div>
 </template>
@@ -58,7 +58,7 @@
 import {
   defineEmits, defineProps, computed, h,
 } from 'vue';
-// import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue';
+import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue';
 
 const CalendarIcon = h(
   'i', // type
