@@ -1930,10 +1930,25 @@ class OrganizationRepository {
 
   static async findAllAutocomplete(query, cond, limit, options: IRepositoryOptions) {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const whereAnd: Array<any> = [
       {
         tenantId: tenant.id,
+      },
+    ]
+
+    const include = [
+      {
+        model: options.database.segment,
+        as: 'segments',
+        attributes: [],
+        where: {
+          id: segmentIds,
+        },
+        through: {
+          attributes: [],
+        },
       },
     ]
 
@@ -1952,6 +1967,7 @@ class OrganizationRepository {
 
     const records = await options.database.organization.findAll({
       attributes: ['id', 'displayName', 'logo'],
+      include,
       where,
       limit: limit ? Number(limit) : undefined,
       order: [['displayName', 'ASC']],
