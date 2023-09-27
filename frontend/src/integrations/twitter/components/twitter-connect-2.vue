@@ -55,7 +55,7 @@ const connectUrl = computed(() => {
   const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
 
   return `${config.backendUrl}/twitter/${store.getters['auth/currentTenant'].id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}&segments[]=${route.params.id}`;
 });
 
 const connect = () => {
