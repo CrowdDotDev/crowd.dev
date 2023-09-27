@@ -343,7 +343,7 @@ export default class MemberService extends LoggerBase {
 
       // Auto assign member to organization if email domain matches
       if (data.emails) {
-        const emailDomains = new Set()
+        const emailDomains = new Set<string>()
 
         // Collect unique domains
         for (const email of data.emails) {
@@ -359,9 +359,18 @@ export default class MemberService extends LoggerBase {
         const organizationService = new OrganizationService(this.options)
         for (const domain of emailDomains) {
           if (domain) {
-            const orgId = await organizationService.findOrCreateByDomain(domain)
-            if (orgId) {
-              organizations.push({ id: orgId })
+            const org = await organizationService.createOrUpdate({
+              website: domain,
+              identities: [
+                {
+                  name: domain,
+                  platform: 'email',
+                },
+              ],
+            })
+
+            if (org) {
+              organizations.push({ id: org.id })
             }
           }
         }

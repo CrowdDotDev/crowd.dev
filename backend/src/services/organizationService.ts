@@ -99,8 +99,15 @@ export default class OrganizationService extends LoggerBase {
       // Performs a merge and returns the fields that were changed so we can update
       const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
 
-      // Update original organization
       const txService = new OrganizationService(repoOptions as IServiceOptions)
+
+      // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
+      // because of website unique constraint
+      if (toUpdate.website && toUpdate.website === toMerge.website) {
+        await txService.update(toMergeId, { website: null })
+      }
+
+      // Update original organization
       await txService.update(originalId, toUpdate, repoOptions.transaction)
 
       // update members that belong to source organization to destination org
@@ -122,10 +129,12 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
-      await OrganizationRepository.includeOrganizationToSegments(originalId, {
-        ...repoOptions,
-        currentSegments: secondMemberSegments,
-      })
+      if (secondMemberSegments.length > 0) {
+        await OrganizationRepository.includeOrganizationToSegments(originalId, {
+          ...repoOptions,
+          currentSegments: secondMemberSegments,
+        })
+      }
 
       // Delete toMerge organization
       await OrganizationRepository.destroy(toMergeId, repoOptions, true)
@@ -332,9 +341,11 @@ export default class OrganizationService extends LoggerBase {
       let existing
 
       // check if organization already exists using website or primary identity
-      if (data.website) {
-        existing = await OrganizationRepository.findOrCreateByDomain(data.website, this.options)
-      } else {
+      if (cache.website) {
+        existing = await OrganizationRepository.findByDomain(cache.website, this.options)
+      }
+
+      if (!existing) {
         existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
       }
 

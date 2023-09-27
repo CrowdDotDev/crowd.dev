@@ -1048,6 +1048,58 @@ class OrganizationRepository {
     return result
   }
 
+  static async findByDomain(domain: string, options: IRepositoryOptions): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const results = await sequelize.query(
+      `
+      SELECT
+      o.id,
+      o.description,
+      o.emails,
+      o.logo,
+      o.tags,
+      o.github,
+      o.twitter,
+      o.linkedin,
+      o.crunchbase,
+      o.employees,
+      o.location,
+      o.website,
+      o.type,
+      o.size,
+      o.headline,
+      o.industry,
+      o.founded,
+      o.attributes,
+      o."weakIdentities"
+    FROM
+      organizations o
+    WHERE
+      o."tenantId" = :tenantId AND 
+      o.website = :domain
+      `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          domain,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
+  }
+
   static async findIdentities(
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
@@ -1058,22 +1110,24 @@ class OrganizationRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {
+    const params = {
       tenantId: currentTenant.id,
-    }
+    } as any
 
-    let condition = ''
+    const condition = organizationId ? 'and "organizationId" <> :organizationId' : ''
+
     if (organizationId) {
-      condition = 'and "organizationId" <> :organizationId'
       params.organizationId = organizationId
     }
 
     const identityParams = identities
-      .map(
-        (identity) =>
-          `('${identity.platform.replace(/'/g, "''")}', '${identity.name.replace(/'/g, "''")}')`,
-      )
+      .map((identity, index) => `(:platform${index}, :name${index})`)
       .join(', ')
+
+    identities.forEach((identity, index) => {
+      params[`platform${index}`] = identity.platform
+      params[`name${index}`] = identity.name
+    })
 
     const results = (await sequelize.query(
       `
