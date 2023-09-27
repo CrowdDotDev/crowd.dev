@@ -1555,8 +1555,8 @@ class MemberRepository {
     ['emails', 'm.emails'],
   ])
 
-  static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
-    const countResults = await MemberRepository.countMembers(options, segmentIds)
+  static async countMembersPerSegment(options: IRepositoryOptions) {
+    const countResults = await MemberRepository.countMembersForSegments(options)
     return countResults.reduce((acc, curr: any) => {
       acc[curr.segmentId] = parseInt(curr.totalCount, 10)
       return acc
@@ -1625,6 +1625,25 @@ class MemberRepository {
         tenantId: options.currentTenant.id,
         segmentIds,
         ...params,
+      },
+      type: QueryTypes.SELECT,
+    })
+  }
+
+  static async countMembersForSegments(options: IRepositoryOptions) {
+    const countQuery = `
+      SELECT
+          COUNT(ms."memberId") AS "totalCount",
+          ms."segmentId"
+      FROM "memberSegments" ms
+      WHERE ms."tenantId" = :tenantId
+      GROUP BY ms."segmentId"
+    `
+
+    const seq = SequelizeRepository.getSequelize(options)
+    return seq.query(countQuery, {
+      replacements: {
+        tenantId: options.currentTenant.id,
       },
       type: QueryTypes.SELECT,
     })
