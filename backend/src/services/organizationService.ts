@@ -334,9 +334,11 @@ export default class OrganizationService extends LoggerBase {
       let existing
 
       // check if organization already exists using website or primary identity
-      if (data.website) {
-        existing = await OrganizationRepository.findOrCreateByDomain(data.website, this.options)
-      } else {
+      if (cache.website) {
+        existing = await OrganizationRepository.findByDomain(cache.website, this.options)
+      }
+
+      if (!existing) {
         existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
       }
 

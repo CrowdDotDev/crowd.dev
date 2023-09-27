@@ -8,6 +8,11 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
 
+export interface IOrganizationIdSource {
+  id: string
+  source: string
+}
+
 export class OrganizationService extends LoggerBase {
   private readonly repo: OrganizationRepository
 
@@ -117,10 +122,13 @@ export class OrganizationService extends LoggerBase {
 
         let existing
 
-        // now check if exists in this tenant using the website or primary identity
-        if (data.website) {
-          existing = await txRepo.findOrCreateByDomain(tenantId, segmentId, data.website)
-        } else {
+        // check organization exists by domain
+        if (cached.website) {
+          existing = await txRepo.findByDomain(tenantId, cached.website)
+        }
+
+        // if domain is not found, check existence by sent identities
+        if (!existing) {
           existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
         }
 
@@ -308,14 +316,6 @@ export class OrganizationService extends LoggerBase {
       orgs.map((org) => org.id),
     )
     await this.repo.addToMember(memberId, orgs)
-  }
-
-  public async findOrCreateByDomain(
-    tenantId: string,
-    segmentId: string,
-    domain: string,
-  ): Promise<IOrganization> {
-    return await this.repo.findOrCreateByDomain(tenantId, segmentId, domain)
   }
 
   public async processOrganizationEnrich(

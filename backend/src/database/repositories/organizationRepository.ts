@@ -1048,6 +1048,58 @@ class OrganizationRepository {
     return result
   }
 
+  static async findByDomain(domain: string, options: IRepositoryOptions): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const results = await sequelize.query(
+      `
+      SELECT
+      o.id,
+      o.description,
+      o.emails,
+      o.logo,
+      o.tags,
+      o.github,
+      o.twitter,
+      o.linkedin,
+      o.crunchbase,
+      o.employees,
+      o.location,
+      o.website,
+      o.type,
+      o.size,
+      o.headline,
+      o.industry,
+      o.founded,
+      o.attributes,
+      o."weakIdentities"
+    FROM
+      organizations o
+    WHERE
+      o."tenantId" = :tenantId AND 
+      o.website = :domain
+      `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          domain,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
+  }
+
   static async findIdentities(
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,

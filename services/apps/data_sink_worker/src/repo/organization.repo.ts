@@ -384,6 +384,44 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results[0]
   }
 
+  public async findByDomain(tenantId: string, domain: string): Promise<IOrganization> {
+    const result = await this.db().oneOrNone(
+      `
+      SELECT
+        o.id,
+        o.description,
+        o.emails,
+        o.logo,
+        o.tags,
+        o.github,
+        o.twitter,
+        o.linkedin,
+        o.crunchbase,
+        o.employees,
+        o.location,
+        o.website,
+        o.type,
+        o.size,
+        o.headline,
+        o.industry,
+        o.founded,
+        o.attributes,
+        o."weakIdentities"
+      FROM
+        organizations o
+      WHERE
+        o."tenantId" = $(tenantId) AND 
+        o.website = $(domain)
+      `,
+      {
+        tenantId,
+        domain,
+      },
+    )
+
+    return result
+  }
+
   public async insert(tenantId: string, data: IDbInsertOrganizationData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
