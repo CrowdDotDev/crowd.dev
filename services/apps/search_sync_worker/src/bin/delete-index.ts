@@ -1,6 +1,6 @@
-import { APP_IOC_MODULE } from '@/ioc'
-import { APP_IOC } from '@/ioc_constants'
-import { OpenSearchService } from '@/service/opensearch.service'
+import { APP_IOC_MODULE } from '../ioc'
+import { APP_IOC } from '../ioc_constants'
+import { OpenSearchService } from '../service/opensearch.service'
 import { IOC } from '@crowd/ioc'
 import { LOGGING_IOC, Logger } from '@crowd/logging'
 

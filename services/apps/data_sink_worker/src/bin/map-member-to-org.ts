@@ -1,4 +1,3 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import {
@@ -7,10 +6,11 @@ import {
   SearchSyncWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
-import MemberRepository from '@/repo/member.repo'
-import MemberService from '@/service/member.service'
-import DataSinkRepository from '@/repo/dataSink.repo'
-import { OrganizationService } from '@/service/organization.service'
+import { SQS_CONFIG, DB_CONFIG } from 'conf'
+import DataSinkRepository from '../repo/dataSink.repo'
+import MemberRepository from '../repo/member.repo'
+import MemberService from '../service/member.service'
+import { OrganizationService } from '../service/organization.service'
 
 const log = getServiceLogger()
 

@@ -1,4 +1,4 @@
-import { APP_IOC } from '@/ioc_constants'
+import { APP_IOC } from '../ioc_constants'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,

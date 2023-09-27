@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify'
-import { AutomationRepository } from '@/repo/automation.repo'
+import { AutomationRepository } from '../repo/automation.repo'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
 import { DATABASE_IOC, DbStore } from '@crowd/database'

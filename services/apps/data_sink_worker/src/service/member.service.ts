@@ -1,6 +1,6 @@
-import IntegrationRepository from '@/repo/integration.repo'
-import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
-import MemberRepository from '@/repo/member.repo'
+import IntegrationRepository from '../repo/integration.repo'
+import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
+import MemberRepository from '../repo/member.repo'
 import {
   firstArrayContainsSecondArray,
   isDomainExcluded,

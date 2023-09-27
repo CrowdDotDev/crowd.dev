@@ -1,4 +1,4 @@
-import { PLATFORM_CONFIG, SLACK_ALERTING_CONFIG, WORKER_SETTINGS } from '@/conf'
+import { PLATFORM_CONFIG, SLACK_ALERTING_CONFIG, WORKER_SETTINGS } from '../conf'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { DATABASE_IOC, DbStore } from '@crowd/database'

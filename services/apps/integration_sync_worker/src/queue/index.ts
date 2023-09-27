@@ -1,6 +1,6 @@
-import { APP_IOC } from '@/ioc_constants'
-import { MemberSyncService } from '@/service/member.sync.service'
-import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { APP_IOC } from '../ioc_constants'
+import { MemberSyncService } from '../service/member.sync.service'
+import { OrganizationSyncService } from '../service/organization.sync.service'
 import { IOC, childIocContainer } from '@crowd/ioc'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {

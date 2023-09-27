@@ -1,7 +1,7 @@
-import { APP_IOC_MODULE } from '@/ioc'
-import { APP_IOC } from '@/ioc_constants'
-import { InitService } from '@/service/init.service'
-import { MemberSyncService } from '@/service/member.sync.service'
+import { APP_IOC_MODULE } from '../ioc'
+import { APP_IOC } from '../ioc_constants'
+import { InitService } from '../service/init.service'
+import { MemberSyncService } from '../service/member.sync.service'
 import { IOC } from '@crowd/ioc'
 
 setImmediate(async () => {

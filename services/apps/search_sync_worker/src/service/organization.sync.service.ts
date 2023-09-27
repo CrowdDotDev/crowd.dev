@@ -1,8 +1,8 @@
-import { SERVICE_CONFIG } from '@/conf'
-import { IDbOrganizationSyncData } from '@/repo/organization.data'
-import { OrganizationRepository } from '@/repo/organization.repo'
-import { IDbSegmentInfo } from '@/repo/segment.data'
-import { SegmentRepository } from '@/repo/segment.repo'
+import { SERVICE_CONFIG } from '../conf'
+import { IDbOrganizationSyncData } from '../repo/organization.data'
+import { OrganizationRepository } from '../repo/organization.repo'
+import { IDbSegmentInfo } from '../repo/segment.data'
+import { SegmentRepository } from '../repo/segment.repo'
 import { distinct, groupBy } from '@crowd/common'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
 import { LOGGING_IOC, Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
@@ -11,7 +11,7 @@ import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.da
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
 import { inject, injectable } from 'inversify'
-import { APP_IOC } from '@/ioc_constants'
+import { APP_IOC } from '../ioc_constants'
 
 @injectable()
 export class OrganizationSyncService {

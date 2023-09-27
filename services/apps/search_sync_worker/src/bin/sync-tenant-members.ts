@@ -1,6 +1,6 @@
-import { APP_IOC_MODULE } from '@/ioc'
-import { APP_IOC } from '@/ioc_constants'
-import { MemberSyncService } from '@/service/member.sync.service'
+import { APP_IOC_MODULE } from '../ioc'
+import { APP_IOC } from '../ioc_constants'
+import { MemberSyncService } from '../service/member.sync.service'
 import { IOC } from '@crowd/ioc'
 import { LOGGING_IOC, Logger } from '@crowd/logging'
 

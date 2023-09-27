@@ -1,4 +1,4 @@
-import { APP_IOC } from '@/ioc_constants'
+import { APP_IOC } from '../ioc_constants'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { DATA_SINK_WORKER_QUEUE_SETTINGS, SQS_IOC, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import {

@@ -12,8 +12,7 @@
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../../libs/*/src"],
-      "@/*": ["./*"]
+      "@crowd/*": ["../../../libs/*/src"]
     }
   },
   "include": ["src/**/*"]

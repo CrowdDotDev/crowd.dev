@@ -13,7 +13,7 @@
     "baseUrl": "./src",
     "paths": {
       "@crowd/*": ["../../libs/*/src"],
-      "@crowdapp/*": ["../../apps/*/src"],
+      "@crowdapp/*": ["../../apps/*/"],
       "@/*": ["./*"]
     }
   },

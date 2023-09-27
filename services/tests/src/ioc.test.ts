@@ -41,7 +41,7 @@ describe('ioc', () => {
     expect(res.result).toBe(1);
   });
 
-  it('should be overridable', async () => {
+  it('should be overridable in tests', async () => {
     let ioc = IOC();
     const originalLogger = ioc.get<Logger>(LOGGING_IOC.logger);
     expect(originalLogger.fields.testProperty).not.toBeDefined();

@@ -3,7 +3,7 @@ import {
   OPENSEARCH_INDEX_MAPPINGS,
   OPENSEARCH_INDEX_SETTINGS,
   OpenSearchIndex,
-} from '@/types'
+} from '../types'
 import { IS_DEV_ENV } from '@crowd/common'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { OPENSEARCH_IOC } from '@crowd/opensearch'

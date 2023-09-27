@@ -4,6 +4,6 @@ RUN apk add --update --no-cache bash python3 build-base micro git ncurses && ln 
 
 WORKDIR /usr/crowd/app
 
-RUN git clone https://github.com/CrowdDotDev/crowd.dev.git && cd crowd.dev && (cd services/scripts && ./install_all_packages.sh && ./build_libs.sh) && (cd backend && npm ci)
+RUN git clone https://github.com/CrowdDotDev/crowd.dev.git && cd crowd.dev && (cd services/scripts && ./install_all_packages.sh) && (cd backend && npm ci)
 
 WORKDIR /usr/crowd/app/crowd.dev

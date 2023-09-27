@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
-import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
-import { IStreamData } from '@/repo/integrationStream.data'
+import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
+import { IStreamData } from '../repo/integrationStream.data'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
 import {

@@ -6,9 +6,10 @@
     "test": "jest --clearCache && jest --runInBand --verbose --forceExit"
   },
   "dependencies": {
-    "@crowdapp/integration-run-worker": "file:../apps/integration_run_worker",
+    "@crowdapp/integration_run_worker": "file:../apps/integration_run_worker",
     "@crowd/database": "file:../libs/database",
     "@crowd/logging": "file:../libs/logging",
+    "@crowd/sqs": "file:../libs/sqs",
     "@crowd/ioc": "file:../libs/ioc",
     "@types/jest": "^29.5.5",
     "@types/node": "^18.16.3",

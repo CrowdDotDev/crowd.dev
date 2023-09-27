@@ -28,8 +28,6 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.integration_run_worker
-      args:
-        INSTALL_DEV_DEPENDENCIES: 'true'
     command: 'npm run dev'
     working_dir: /usr/crowd/app/services/apps/integration_run_worker
     # user: '${USER_ID}:${GROUP_ID}'
@@ -44,10 +42,14 @@ services:
     networks:
       - crowd-bridge
     volumes:
+      - ../../services/libs/alerting/src:/usr/crowd/app/services/libs/alerting/src
       - ../../services/libs/common/src:/usr/crowd/app/services/libs/common/src
+      - ../../services/libs/conversations/src:/usr/crowd/app/services/libs/conversations/src
       - ../../services/libs/database/src:/usr/crowd/app/services/libs/database/src
       - ../../services/libs/integrations/src:/usr/crowd/app/services/libs/integrations/src
+      - ../../services/libs/ioc/src:/usr/crowd/app/services/libs/ioc/src
       - ../../services/libs/logging/src:/usr/crowd/app/services/libs/logging/src
+      - ../../services/libs/opensearch/src:/usr/crowd/app/services/libs/opensearch/src
       - ../../services/libs/redis/src:/usr/crowd/app/services/libs/redis/src
       - ../../services/libs/sentiment/src:/usr/crowd/app/services/libs/sentiment/src
       - ../../services/libs/sqs/src:/usr/crowd/app/services/libs/sqs/src

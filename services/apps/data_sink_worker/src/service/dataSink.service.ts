@@ -1,22 +1,24 @@
-import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { SLACK_ALERTING_CONFIG } from '../conf'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { REDIS_IOC, RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SQS_IOC, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { SQS_IOC } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
+  INodejsWorkerEmitter,
   IOrganization,
+  ISearchSyncWorkerEmitter,
   IntegrationResultState,
   IntegrationResultType,
   PlatformType,
 } from '@crowd/types'
+import { inject, injectable } from 'inversify'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
-import { inject, injectable } from 'inversify'
 
 @injectable()
 export default class DataSinkService {
@@ -28,9 +30,9 @@ export default class DataSinkService {
     @inject(DATABASE_IOC.store)
     private readonly store: DbStore,
     @inject(SQS_IOC.emitters.nodejsWorker)
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    private readonly nodejsWorkerEmitter: INodejsWorkerEmitter,
     @inject(SQS_IOC.emitters.searchSyncWorker)
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: ISearchSyncWorkerEmitter,
     @inject(REDIS_IOC.client)
     private readonly redisClient: RedisClient,
     @inject(LOGGING_IOC.logger)

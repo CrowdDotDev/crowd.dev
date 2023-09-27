@@ -14,6 +14,7 @@ import {
   HubspotEndpoint,
   IHubspotManualSyncPayload,
   getHubspotLists,
+  IProcessStreamContext,
 } from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
@@ -795,7 +796,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const memberLists = await getHubspotLists(nangoId, context)
 
@@ -869,7 +870,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties = await getHubspotProperties(
       nangoId,
@@ -932,7 +933,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties: IHubspotProperty[] = await getHubspotProperties(
       nangoId,
