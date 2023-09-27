@@ -1,5 +1,5 @@
-import { APP_IOC } from '@/ioc_constants'
-import IntegrationRunService from '@/service/integrationRunService'
+import { APP_IOC } from '../ioc_constants'
+import IntegrationRunService from '../service/integrationRunService'
 import { IOC, childIocContainer } from '@crowd/ioc'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import {

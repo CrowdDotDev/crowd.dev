@@ -1,4 +1,4 @@
-import { IQueueMessage } from '../'
+import { IQueueMessage, ISqsQueueEmitter } from '../'
 
 export enum IntegrationStreamWorkerQueueMessageType {
   CHECK_STREAMS = 'check_streams',
@@ -30,7 +30,7 @@ export class ProcessWebhookStreamQueueMessage implements IQueueMessage {
   constructor(public readonly webhookId: string) {}
 }
 
-export interface IIntegrationStreamWorkerEmitter {
+export interface IIntegrationStreamWorkerEmitter extends ISqsQueueEmitter {
   checkStreams(): Promise<void>
 
   continueProcessingRunStreams(tenantId: string, platform: string, runId: string): Promise<void>

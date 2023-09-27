@@ -1,4 +1,4 @@
-import { IQueueMessage } from '../'
+import { IQueueMessage, ISqsQueueEmitter } from '../'
 
 export enum NodejsWorkerQueueMessageType {
   NODE_MICROSERVICE = 'node_microservice',
@@ -24,7 +24,7 @@ export class NewMemberAutomationQueueMessage implements IQueueMessage {
   constructor(public readonly tenant: string, public readonly memberId: string) {}
 }
 
-export interface INodejsWorkerEmitter {
+export interface INodejsWorkerEmitter extends ISqsQueueEmitter {
   sendMessage(groupId: string, message: IQueueMessage, deduplicationId: string): Promise<void>
 
   processAutomationForNewActivity(

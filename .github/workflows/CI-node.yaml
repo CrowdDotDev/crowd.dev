@@ -140,4 +140,4 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test
+        run: (cd ../../scripts && ./cli scaffold up-test) && npm run test

@@ -1,5 +1,5 @@
 import { IActivityData } from '../../activities'
-import { IQueueMessage } from '../'
+import { IQueueMessage, ISqsQueueEmitter } from '../'
 
 export enum DataSinkWorkerQueueMessageType {
   PROCESS_INTEGRATION_RESULT = 'process_integration_result',
@@ -30,7 +30,7 @@ export class CreateAndProcessActivityResultQueueMessage implements IQueueMessage
   ) {}
 }
 
-export interface IDataSinkWorkerEmitter {
+export interface IDataSinkWorkerEmitter extends ISqsQueueEmitter {
   triggerResultProcessing(
     tenantId: string,
     platform: string,

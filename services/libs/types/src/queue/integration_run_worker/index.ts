@@ -1,4 +1,4 @@
-import { IQueueMessage } from '../'
+import { IQueueMessage, ISqsQueueEmitter } from '../'
 
 export enum IntegrationRunWorkerQueueMessageType {
   START_INTEGRATION_RUN = 'start_integration_run',
@@ -38,7 +38,7 @@ export class StreamProcessedQueueMessage implements IQueueMessage {
   constructor(public readonly runId: string) {}
 }
 
-export interface IIntegrationRunWorkerEmitter {
+export interface IIntegrationRunWorkerEmitter extends ISqsQueueEmitter {
   checkRuns(): Promise<void>
   triggerIntegrationRun(
     tenantId: string,

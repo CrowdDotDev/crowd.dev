@@ -1,3 +1,4 @@
+import { ISqsQueueEmitter } from '../'
 import { AutomationSyncTrigger } from '../../automations'
 
 export enum IntegrationSyncWorkerQueueMessageType {
@@ -8,7 +9,7 @@ export enum IntegrationSyncWorkerQueueMessageType {
   ONBOARD_AUTOMATION = 'onboard_automation',
 }
 
-export interface IIntegrationSyncWorkerEmitter {
+export interface IIntegrationSyncWorkerEmitter extends ISqsQueueEmitter {
   triggerSyncMarkedMembers(tenantId: string, integrationId: string): Promise<void>
   triggerSyncMember(
     tenantId: string,

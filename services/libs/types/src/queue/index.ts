@@ -11,4 +11,5 @@ export interface ISqsQueueReceiver {
 export interface ISqsQueueEmitter {
   init(): Promise<void>
   sendMessage(groupId: string, message: IQueueMessage, deduplicationId?: string): Promise<void>
+  setMessageVisibilityTimeout(receiptHandle: string, newVisibility: number): Promise<void>
 }

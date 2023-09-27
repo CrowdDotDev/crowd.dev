@@ -1,3 +1,5 @@
+import { ISqsQueueEmitter } from '../'
+
 export enum SearchSyncWorkerQueueMessageType {
   SYNC_MEMBER = 'sync_member',
   SYNC_TENANT_MEMBERS = 'sync_tenant_members',
@@ -17,7 +19,7 @@ export enum SearchSyncWorkerQueueMessageType {
   CLEANUP_TENANT_ORGANIZATIONS = 'cleanup_tenant_organizations',
 }
 
-export interface ISearchSyncWorkerEmitter {
+export interface ISearchSyncWorkerEmitter extends ISqsQueueEmitter {
   triggerMemberSync(tenantId: string, memberId: string): Promise<void>
   triggerTenantMembersSync(tenantId: string): Promise<void>
   triggerOrganizationMembersSync(organizationId: string): Promise<void>
