@@ -99,8 +99,15 @@ export default class OrganizationService extends LoggerBase {
       // Performs a merge and returns the fields that were changed so we can update
       const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
 
-      // Update original organization
       const txService = new OrganizationService(repoOptions as IServiceOptions)
+
+      // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
+      // because of website unique constraint
+      if (toUpdate.website && toUpdate.website === toMerge.website) {
+        await txService.update(toMergeId, { website: null })
+      }
+
+      // Update original organization
       await txService.update(originalId, toUpdate, repoOptions.transaction)
 
       // update members that belong to source organization to destination org
@@ -122,12 +129,14 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
-      await OrganizationRepository.includeOrganizationToSegments(originalId, {
-        ...repoOptions,
-        currentSegments: secondMemberSegments,
-      })
+      if (secondMemberSegments.length > 0) {
+        await OrganizationRepository.includeOrganizationToSegments(originalId, {
+          ...repoOptions,
+          currentSegments: secondMemberSegments,
+        })
+      }
 
-      // Delete toMerge member
+      // Delete toMerge organization
       await OrganizationRepository.destroy(toMergeId, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
@@ -332,9 +341,11 @@ export default class OrganizationService extends LoggerBase {
       let existing
 
       // check if organization already exists using website or primary identity
-      if (data.website) {
-        existing = await OrganizationRepository.findOrCreateByDomain(data.website, this.options)
-      } else {
+      if (cache.website) {
+        existing = await OrganizationRepository.findByDomain(cache.website, this.options)
+      }
+
+      if (!existing) {
         existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
       }
 
@@ -422,25 +433,28 @@ export default class OrganizationService extends LoggerBase {
         data.website = websiteNormalizer(data.website)
       }
 
-      const originalIdentities = data.identities
+      if (data.identities) {
+        const originalIdentities = data.identities
 
-      // check identities
-      await OrganizationRepository.checkIdentities(data, { ...this.options, transaction }, id)
+        // check identities
+        await OrganizationRepository.checkIdentities(data, { ...this.options, transaction }, id)
 
-      // if we found any strong identities sent already existing in another organization
-      // instead of making it a weak identity we throw an error here, because this function
-      // is mainly used for doing manual updates through UI and possibly
-      // we don't wanna do an auto-merge here or make strong identities sent by user as weak
-      if (originalIdentities.length !== data.identities.length) {
-        const alreadyExistingStrongIdentities = originalIdentities.filter(
-          (oi) => !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
-        )
+        // if we found any strong identities sent already existing in another organization
+        // instead of making it a weak identity we throw an error here, because this function
+        // is mainly used for doing manual updates through UI and possibly
+        // we don't wanna do an auto-merge here or make strong identities sent by user as weak
+        if (originalIdentities.length !== data.identities.length) {
+          const alreadyExistingStrongIdentities = originalIdentities.filter(
+            (oi) =>
+              !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
+          )
 
-        throw new Error(
-          `Organization identities ${JSON.stringify(
-            alreadyExistingStrongIdentities,
-          )} already exist in another organization!`,
-        )
+          throw new Error(
+            `Organization identities ${JSON.stringify(
+              alreadyExistingStrongIdentities,
+            )} already exist in another organization!`,
+          )
+        }
       }
 
       const record = await OrganizationRepository.update(id, data, {
@@ -498,7 +512,10 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(search, limit) {
-    return OrganizationRepository.findAllAutocomplete(search, limit, this.options)
+    return [
+      ...(await OrganizationRepository.findAllAutocompleteExact(search, limit, this.options)),
+      ...(await OrganizationRepository.findAllAutocompleteLike(search, limit, this.options)),
+    ]
   }
 
   async findAndCountAll(args) {
