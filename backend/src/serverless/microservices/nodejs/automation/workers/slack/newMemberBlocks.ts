@@ -4,6 +4,8 @@ import { API_CONFIG } from '../../../../../../conf'
 const defaultAvatarUrl =
   'https://uploads-ssl.webflow.com/635150609746eee5c60c4aac/6502afc9d75946873c1efa93_image%20(292).png'
 
+// Which platform identities are displayed as buttons and which ones go to menu
+const buttonPlatforms = ['github', 'twitter', 'linkedin']
 export const newMemberBlocks = (member) => {
   const platforms = member.activeOn
   const reach =
@@ -30,7 +32,6 @@ export const newMemberBlocks = (member) => {
     details.push(`*✉️ Email:* <mailto:${email}|${email}>`)
   }
   const profiles = Object.keys(member.username)
-    .filter((p) => !platforms.includes(p))
     .map((p) => {
       const username = (member.username?.[p] || []).length > 0 ? member.username[p][0] : null
       const url =
@@ -41,6 +42,12 @@ export const newMemberBlocks = (member) => {
       }
     })
     .filter((p) => !!p.url)
+
+  const buttonProfiles = buttonPlatforms
+    .map((platform) => profiles.find((profile) => profile.platform === platform))
+    .filter((profiles) => !!profiles)
+
+  const menuProfiles = profiles.filter((profile) => !buttonPlatforms.includes(profile.platform))
 
   return {
     blocks: [
@@ -101,22 +108,22 @@ export const newMemberBlocks = (member) => {
             },
             url: `${API_CONFIG.frontendUrl}/members/${member.id}`,
           },
-          ...(platforms || [])
-            .map((platform) => ({
+          ...(buttonProfiles || [])
+            .map(({ platform, url }) => ({
               type: 'button',
               text: {
                 type: 'plain_text',
                 text: `${integrationLabel[platform] ?? platform} profile`,
                 emoji: true,
               },
-              url: member.attributes?.url?.[platform],
+              url,
             }))
             .filter((action) => !!action.url),
-          ...(profiles.length > 0
+          ...(menuProfiles.length > 0
             ? [
                 {
                   type: 'overflow',
-                  options: profiles.map(({ platform, url }) => ({
+                  options: menuProfiles.map(({ platform, url }) => ({
                     text: {
                       type: 'plain_text',
                       text: `${integrationLabel[platform] ?? platform} profile`,
