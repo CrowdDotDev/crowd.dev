@@ -99,23 +99,23 @@
                 />
               </el-select>
 
-              <!--              <app-autocomplete-many-input-->
-              <!--                v-else-if="attribute.type === 'multiSelect'"-->
-              <!--                v-model="model[attribute.name]"-->
-              <!--                :fetch-fn="-->
-              <!--                  () => fetchCustomAttribute(attribute.id)-->
-              <!--                "-->
-              <!--                :create-fn="-->
-              <!--                  (value) =>-->
-              <!--                    updateCustomAttribute(attribute, value)-->
-              <!--                "-->
-              <!--                placeholder="Select an option or create one"-->
-              <!--                input-class="w-full multi-select-field"-->
-              <!--                :create-if-not-found="true"-->
-              <!--                :collapse-tags="true"-->
-              <!--                :parse-model="true"-->
-              <!--                :are-options-in-memory="true"-->
-              <!--              />-->
+              <app-autocomplete-many-input
+                v-else-if="attribute.type === 'multiSelect'"
+                v-model="model[attribute.name]"
+                :fetch-fn="
+                  () => fetchCustomAttribute(attribute.id)
+                "
+                :create-fn="
+                  (value) =>
+                    updateCustomAttribute(attribute, value)
+                "
+                placeholder="Select an option or create one"
+                input-class="w-full multi-select-field"
+                :create-if-not-found="true"
+                :collapse-tags="true"
+                :parse-model="true"
+                :are-options-in-memory="true"
+              />
               <el-input
                 v-else
                 v-model="model[attribute.name]"
