@@ -18,7 +18,7 @@ import config from '@/config';
 import AppHubspotSettingsDrawer from '@/integrations/hubspot/components/hubspot-settings-drawer.vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRouter } from 'vue-router';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 defineProps({
   integration: {

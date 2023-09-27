@@ -341,8 +341,14 @@ export default class IntegrationDataService extends LoggerBase {
       if (streamId) {
         if (runId) {
           await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+        } else if (webhookId) {
+          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
         } else {
-          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, streamId)
+          this.log.error(
+            { tenantId, platform, parentId, identifier, runId, webhookId },
+            'Need either runId or webhookId!',
+          )
+          throw new Error('Need either runId or webhookId!')
         }
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')

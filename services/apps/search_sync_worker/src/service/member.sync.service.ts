@@ -265,6 +265,50 @@ export class MemberSyncService extends LoggerBase {
     )
   }
 
+  public async syncOrganizationMembers(organizationId: string, batchSize = 200): Promise<void> {
+    this.log.debug({ organizationId }, 'Syncing all organization members!')
+    let docCount = 0
+    let memberCount = 0
+
+    const now = new Date()
+
+    await logExecutionTime(
+      async () => {
+        let memberIds = await this.memberRepo.getOrganizationMembersForSync(
+          organizationId,
+          batchSize,
+        )
+
+        while (memberIds.length > 0) {
+          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+
+          docCount += documentsIndexed
+          memberCount += membersSynced
+
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { organizationId },
+            `Synced ${memberCount} members! Speed: ${Math.round(
+              memberCount / diffInSeconds,
+            )} members/second!`,
+          )
+          memberIds = await this.memberRepo.getOrganizationMembersForSync(
+            organizationId,
+            batchSize,
+            memberIds[memberIds.length - 1],
+          )
+        }
+      },
+      this.log,
+      'sync-organization-members',
+    )
+
+    this.log.info(
+      { organizationId },
+      `Synced total of ${memberCount} members with ${docCount} documents!`,
+    )
+  }
+
   public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
     this.log.debug({ memberIds }, 'Syncing members!')
 

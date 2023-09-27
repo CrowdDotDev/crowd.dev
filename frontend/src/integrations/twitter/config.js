@@ -12,7 +12,7 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/733/733579.png',
   connectComponent: config.isTwitterIntegrationEnabled ? TwitterConnect2 : TwitterConnect,
-  url: (username) => `https://twitter.com/${username}`,
+  url: ({ username }) => (username ? `https://twitter.com/${username}` : null),
   chartColor: '#1D9BF0',
   showProfileLink: true,
   activityDisplay: {
@@ -24,5 +24,8 @@ export default {
       copy: 'reply',
       number: conversation.activityCount - 1,
     }),
+  },
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
   },
 };

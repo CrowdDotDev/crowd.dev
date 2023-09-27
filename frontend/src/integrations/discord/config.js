@@ -10,7 +10,7 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/5968/5968756.png',
   connectComponent: DiscordConnect,
-  url: (username) => `https://discord.com/${username}`,
+  url: ({ username }) => (username ? `https://discord.com/${username}` : null),
   chartColor: '#6875FF',
   showProfileLink: false,
   activityDisplay: {
@@ -22,5 +22,8 @@ export default {
       copy: 'reply',
       number: conversation.activityCount - 1,
     }),
+  },
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
   },
 };

@@ -4,8 +4,8 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { IOrganization, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
-import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
 import { getOrganizationDomain } from './utils/getOrganizationDomain'
+import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
 import { IBatchCreateOrganizationsResult } from './types'
 import { getCompanyById } from './companyById'
 import { batchUpdateOrganizations } from './batchUpdateOrganizations'
@@ -47,12 +47,15 @@ export const batchCreateOrganizations = async (
 
         for (const crowdField of fields) {
           const hubspotField = organizationMapper.getHubspotFieldName(crowdField)
-
-          if (hubspotField && organization[crowdField] !== undefined) {
-            hubspotCompany.properties[hubspotField] = organizationMapper.getHubspotValue(
-              organization,
-              crowdField,
-            )
+          // if hubspot domain field is mapped to a crowd field, we should ignore it
+          // because we handle this manually above
+          if (hubspotField && hubspotField !== 'domain') {
+            if (organization[crowdField] !== undefined) {
+              hubspotCompany.properties[hubspotField] = organizationMapper.getHubspotValue(
+                organization,
+                crowdField,
+              )
+            }
           }
         }
 
@@ -67,7 +70,7 @@ export const batchCreateOrganizations = async (
     }
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug(
       { nangoId, accessToken, data: config.data },
