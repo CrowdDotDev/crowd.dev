@@ -2,49 +2,68 @@ import { DataTypes } from 'sequelize'
 import { CustomViewVisibility } from '@crowd/types'
 
 export default (sequelize) => {
-  const customView = sequelize.define('customView', {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
+  const customView = sequelize.define(
+    'customView',
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
+      },
+      visibility: {
+        type: DataTypes.ENUM,
+        values: Object.values(CustomViewVisibility),
+        allowNull: false,
+      },
+      config: {
+        type: DataTypes.JSONB,
+        defaultValue: {},
+      },
+      placement: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        validate: {
+          isIn: [['members', 'organizations', 'activities', 'conversations']],
+        },
       },
     },
-    visibility: {
-      type: DataTypes.ENUM,
-      values: Object.values(CustomViewVisibility),
-      allowNull: false,
+    {
+      indexes: [
+        {
+          unqiue: true,
+          fields: ['id', 'tenantId'],
+          where: {
+            deletedAt: null,
+          },
+        },
+      ],
+      timestamps: true,
+      paranoid: true,
     },
-    config: {
-      type: DataTypes.JSONB,
-      defaultValue: {},
-    },
-    placement: {
-      type: DataTypes.STRING,
-      validate: {
-        isIn: [['member', 'organization', 'activity', 'conversation']],
+  )
+
+  customView.associate = (models) => {
+    models.customView.belongsTo(models.tenant, {
+      as: 'tenantId',
+      foreignKey: {
+        allowNull: false,
       },
-    },
-    updatedById: {
-      type: DataTypes.UUID,
-      allowNull: true,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-    deletedById: {
-      type: DataTypes.UUID,
-      allowNull: true,
-    },
-    deletedAt: {
-      type: DataTypes.DATE,
-    },
-  })
+    })
+
+    models.customView.belongsTo(models.member, {
+      as: 'createdById',
+    })
+
+    models.customView.belongsTo(models.member, {
+      as: 'updatedById',
+    })
+  }
 
   return customView
 }
