@@ -16,15 +16,20 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   public async getOldStreamsToProcess(limit: number): Promise<string[]> {
     const results = await this.db().any(
       `
-            select  s.id
-              from integration.streams s
-              where s.state in ($(errorState), $(pendingState), $(delayedState))
-                and (s.state <> $(errorState) or s.retries <= $(maxRetries))
-                and s."updatedAt" < now() - interval '1 hour'
-              order by case when s."webhookId" is not null then 0 else 1 end, -- Prioritize non-null webhookId
-                      s."webhookId" asc,                                     -- Order non-null webhookId in ascending order
-                      s."updatedAt" desc
-              limit ${limit};
+      select id
+      from integration.streams s
+      where (
+              (state = $(errorState) and retries <= $(maxRetries))
+              or
+              (state = $(pendingState))
+              or
+              (state = $(delayedState) and "delayedUntil" < now())
+          )
+        and "updatedAt" < now() - interval '1 hour'
+      order by case when "webhookId" is not null then 0 else 1 end, -- Prioritize non-null webhookId
+               "webhookId" asc,                                     -- Order non-null webhookId in ascending order
+               "updatedAt" desc
+      limit ${limit};
       `,
       {
         errorState: IntegrationStreamState.ERROR,

@@ -14,34 +14,36 @@ export const processOldDataJob = async (
 ): Promise<void> => {
   const store = new DbStore(log, dbConn)
   const repo = new IntegrationDataRepository(store, log)
-
-  // load 5 oldest streams and try process them
-  const dataToProcess = await processWithLock(
+  const service = new IntegrationDataService(
     redis,
-    'process-old-data',
-    5 * 60,
-    3 * 60,
-    async () => {
+    streamWorkerEmitter,
+    dataSinkWorkerEmitter,
+    store,
+    log,
+  )
+
+  const loadNextBatch = async (): Promise<string[]> => {
+    return await processWithLock(redis, 'process-old-data', 5 * 60, 3 * 60, async () => {
       const dataIds = await repo.getOldDataToProcess(5)
       await repo.touchUpdatedAt(dataIds)
       return dataIds
-    },
-  )
+    })
+  }
 
-  if (dataToProcess.length > 0) {
+  // load 5 oldest apiData and try process them
+  let dataToProcess = await loadNextBatch()
+
+  while (dataToProcess.length > 0) {
     log.info(`Detected ${dataToProcess.length} old data rows to process!`)
-    const service = new IntegrationDataService(
-      redis,
-      streamWorkerEmitter,
-      dataSinkWorkerEmitter,
-      store,
-      log,
-    )
 
     for (const dataId of dataToProcess) {
-      await service.processData(dataId)
+      try {
+        await service.processData(dataId)
+      } catch (err) {
+        log.error(err, 'Failed to process data!')
+      }
     }
-  } else {
-    log.info('No old streams to process!')
+
+    dataToProcess = await loadNextBatch()
   }
 }

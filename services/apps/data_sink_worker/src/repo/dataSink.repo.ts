@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IFailedResultData, IResultData } from './dataSink.data'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
+import { IFailedResultData, IResultData } from './dataSink.data'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -53,6 +53,40 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     )
 
     return results.id
+  }
+
+  public async getOldResultsToProcess(limit: number): Promise<string[]> {
+    const results = await this.db().any(
+      `
+      select id
+      from integration.results
+      where state in ($(pendingState), $(processingState))
+        and "updatedAt" < now() - interval '1 hour'
+      order by case when "webhookId" is not null then 0 else 1 end, -- Prioritize non-null webhookId
+              "webhookId" asc,                                     -- Order non-null webhookId in ascending order
+              "updatedAt" desc
+      limit ${limit};
+      `,
+      {
+        pendingState: IntegrationResultState.PENDING,
+        processingState: IntegrationResultState.PROCESSING,
+        maxRetries: 5,
+      },
+    )
+
+    return results.map((s) => s.id)
+  }
+
+  public async touchUpdatedAt(resultIds: string[]): Promise<void> {
+    await this.db().none(
+      `
+      update integration.results set "updatedAt" = now()
+      where id in ($(resultIds:csv))
+    `,
+      {
+        resultIds,
+      },
+    )
   }
 
   public async markResultInProgress(resultId: string): Promise<void> {

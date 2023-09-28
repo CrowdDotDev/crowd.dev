@@ -62,14 +62,19 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   public async getOldDataToProcess(limit: number): Promise<string[]> {
     const results = await this.db().any(
       `
-      select d.id
-      from integration."apiData" d
-      where d.state in ($(errorState), $(pendingState), $(delayedState))
-        and (d.state <> $(errorState) or d.retries <= $(maxRetries))
-        and d."updatedAt" < now() - interval '1 hour'
-      order by case when d."webhookId" is not null then 0 else 1 end, -- Prioritize non-null webhookId
-              d."webhookId" asc,                                     -- Order non-null webhookId in ascending order
-              d."updatedAt" desc
+      select id
+      from integration."apiData"
+      where (
+              (state = $(errorState) and retries <= $(maxRetries))
+              or
+              (state = $(pendingState))
+              or
+              (state = $(delayedState) and "delayedUntil" < now())
+          )
+        and "updatedAt" < now() - interval '1 hour'
+      order by case when "webhookId" is not null then 0 else 1 end, -- Prioritize non-null webhookId
+              "webhookId" asc,                                     -- Order non-null webhookId in ascending order
+              "updatedAt" desc
       limit ${limit};
       `,
       {
