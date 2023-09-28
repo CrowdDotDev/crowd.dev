@@ -12,7 +12,7 @@ import { IIndexRequest, ISearchHit } from './opensearch.data'
 import { IS_DEV_ENV } from '@crowd/common'
 
 export class OpenSearchService extends LoggerBase {
-  private readonly client: Client
+  public readonly client: Client
   private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
 
   constructor(parentLog: Logger) {
