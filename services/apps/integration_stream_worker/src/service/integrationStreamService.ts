@@ -382,7 +382,7 @@ export default class IntegrationStreamService extends LoggerBase {
     }
   }
 
-  public async processStream(streamId: string): Promise<boolean> {
+  public async processStream(streamId: string, receiptHandle?: string): Promise<boolean> {
     this.log.debug({ streamId }, 'Trying to process stream!')
 
     const streamInfo = await this.repo.getStreamData(streamId)
@@ -507,6 +507,10 @@ export default class IntegrationStreamService extends LoggerBase {
           undefined,
           undefined,
         )
+      },
+      setMessageVisibilityTimeout: async (newTimeout: number) => {
+        this.log.trace(`Changing message visibility of ${receiptHandle} to ${newTimeout}!`)
+        await this.streamWorkerEmitter.setMessageVisibilityTimeout(receiptHandle, newTimeout)
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)

@@ -8,6 +8,11 @@ import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
 
+export interface IOrganizationIdSource {
+  id: string
+  source: string
+}
+
 export class OrganizationService extends LoggerBase {
   private readonly repo: OrganizationRepository
 
@@ -47,10 +52,14 @@ export class OrganizationService extends LoggerBase {
           data.website = websiteNormalizer(data.website)
         }
 
+        this.log.trace(`Checking organization exists in cache..`)
+
         // find from cache by primary identity
         let cached = await txRepo.findCacheByName(primaryIdentity.name)
 
         if (cached) {
+          this.log.trace({ cached }, `Organization exists in cache!`)
+
           // if exists in cache update it
           const updateData: Partial<IOrganization> = {}
           // no need to update name since it's aka primary key
@@ -83,6 +92,8 @@ export class OrganizationService extends LoggerBase {
             cached = { ...cached, ...updateData } // Update the cached data with the new data
           }
         } else {
+          this.log.trace({ cached }, `Organization doesn't exist in cache!`)
+
           // if it doesn't exists in cache create it
           const insertData: IDbInsertOrganizationCacheData = {
             name: primaryIdentity.name,
@@ -104,6 +115,9 @@ export class OrganizationService extends LoggerBase {
             industry: data.industry || null,
             founded: data.founded || null,
           }
+
+          this.log.trace({ insertData }, ` Creating cache entry!`)
+
           const id = await txRepo.insertCache(insertData)
 
           cached = {
@@ -117,10 +131,13 @@ export class OrganizationService extends LoggerBase {
 
         let existing
 
-        // now check if exists in this tenant using the website or primary identity
-        if (data.website) {
-          existing = await txRepo.findByDomain(tenantId, segmentId, data.website)
-        } else {
+        // check organization exists by domain
+        if (cached.website) {
+          existing = await txRepo.findByDomain(tenantId, cached.website)
+        }
+
+        // if domain is not found, check existence by sent identities
+        if (!existing) {
           existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
         }
 
@@ -136,6 +153,7 @@ export class OrganizationService extends LoggerBase {
         let id
 
         if (existing) {
+          this.log.trace(`Found existing organization, organization will be updated!`)
           await this.checkForStrongWeakIdentities(txRepo, tenantId, data, existing.id)
 
           // if it does exists update it
@@ -166,16 +184,20 @@ export class OrganizationService extends LoggerBase {
               updateData[field] = cached[field]
             }
           })
+
+          this.log.trace({ updateData }, `Updating organization!`)
+
           if (Object.keys(updateData).length > 0) {
             await this.repo.update(existing.id, updateData)
           }
 
           id = existing.id
         } else {
+          this.log.trace(`Organization wasn't found via website or identities.`)
+
           await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
 
-          // if it doesn't exists create it
-          id = await this.repo.insert(tenantId, {
+          const payload = {
             displayName: cached.name,
             description: cached.description,
             emails: cached.emails,
@@ -195,7 +217,12 @@ export class OrganizationService extends LoggerBase {
             founded: cached.founded,
             attributes,
             weakIdentities: cached.weakIdentities,
-          })
+          }
+
+          this.log.trace({ payload }, `Creating new organization!`)
+
+          // if it doesn't exists create it
+          id = await this.repo.insert(tenantId, payload)
         }
 
         const identities = await txRepo.getIdentities(id, tenantId)
@@ -300,7 +327,7 @@ export class OrganizationService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     memberId: string,
-    orgs: IOrganization[],
+    orgs: IOrganizationIdSource[],
   ): Promise<void> {
     await this.repo.addToSegments(
       tenantId,
@@ -308,14 +335,6 @@ export class OrganizationService extends LoggerBase {
       orgs.map((org) => org.id),
     )
     await this.repo.addToMember(memberId, orgs)
-  }
-
-  public async findByDomain(
-    tenantId: string,
-    segmentId: string,
-    domain: string,
-  ): Promise<IOrganization> {
-    return await this.repo.findByDomain(tenantId, segmentId, domain)
   }
 
   public async processOrganizationEnrich(

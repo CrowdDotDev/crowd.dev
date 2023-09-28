@@ -60,6 +60,8 @@ export class OrganizationSyncService extends LoggerBase {
 
     const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)
 
+    this.log.info(`Syncing organization ${organizationId} to ${integration.platform} remote!`)
+
     if (service.processSyncRemote) {
       const context: IIntegrationProcessRemoteSyncContext = {
         integration,
@@ -112,7 +114,7 @@ export class OrganizationSyncService extends LoggerBase {
       )
 
       for (const organizationToSync of markedOrganizations) {
-        this.log.trace(
+        this.log.info(
           `Syncing organization ${organizationToSync.organizationId} to ${integration.platform} remote!`,
         )
 
@@ -214,7 +216,7 @@ export class OrganizationSyncService extends LoggerBase {
         )
 
         for (const organizationToSync of filteredOrganizations) {
-          this.log.trace(
+          this.log.info(
             `Syncing organization ${organizationToSync.id} to ${integration.platform} remote!`,
           )
 

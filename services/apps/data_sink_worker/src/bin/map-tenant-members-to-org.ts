@@ -76,6 +76,7 @@ setImmediate(async () => {
           const orgs = await memberService.assignOrganizationByEmailDomain(
             tenantId,
             segmentId,
+            null,
             member.emails,
           )
 

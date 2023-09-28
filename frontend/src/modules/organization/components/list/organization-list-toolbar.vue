@@ -95,6 +95,16 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
+const props = defineProps({
+  pagination: {
+    type: Object,
+    default: () => ({
+      page: 1,
+      perPage: 20,
+    }),
+  },
+});
+
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();
@@ -185,8 +195,8 @@ const handleDoExport = async () => {
     const response = await OrganizationService.query({
       filter,
       orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      limit: null,
-      offset: null,
+      offset: (props.pagination.page - 1) * props.pagination.perPage || 0,
+      limit: props.pagination.perPage || 20,
     });
 
     Excel.exportAsExcelFile(
