@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { generateUUIDv1 as uuid } from '@crowd/common'
 
@@ -83,28 +85,37 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async setLastSyncedAtBySyncRemoteId(syncRemoteId: string): Promise<void> {
+  public async setLastSyncedAtBySyncRemoteId(
+    syncRemoteId: string,
+    lastSyncedPayload: any,
+  ): Promise<void> {
     this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
 
     await this.db().none(
-      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where id = $(syncRemoteId)`,
+      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where id = $(syncRemoteId)`,
       {
         syncRemoteId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
       },
     )
   }
 
-  public async setLastSyncedAt(memberId: string, integrationId: string): Promise<void> {
+  public async setLastSyncedAt(
+    memberId: string,
+    integrationId: string,
+    lastSyncedPayload: any,
+  ): Promise<void> {
     this.log.debug(
       `Setting lastSyncedAt for member ${memberId} and integration ${integrationId} to now!`,
     )
 
     await this.db().none(
-      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where "memberId" = $(memberId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
+      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where "memberId" = $(memberId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
       {
         memberId,
         integrationId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
         neverStatus: SyncStatus.NEVER,
       },

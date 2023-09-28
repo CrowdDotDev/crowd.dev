@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { generateUUIDv1 as uuid } from '@crowd/common'
@@ -158,12 +160,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     segmentIds: string[],
     platform: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     filter: any,
     limit: number,
     offset: number,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: any = {
       tenantId,
       segmentIds,
@@ -234,28 +234,37 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async setLastSyncedAtBySyncRemoteId(syncRemoteId: string): Promise<void> {
+  public async setLastSyncedAtBySyncRemoteId(
+    syncRemoteId: string,
+    lastSyncedPayload: any,
+  ): Promise<void> {
     this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
 
     await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where id = $(syncRemoteId)`,
+      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where id = $(syncRemoteId)`,
       {
         syncRemoteId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
       },
     )
   }
 
-  public async setLastSyncedAt(organizationId: string, integrationId: string): Promise<void> {
+  public async setLastSyncedAt(
+    organizationId: string,
+    integrationId: string,
+    lastSyncedPayload: any,
+  ): Promise<void> {
     this.log.debug(
       `Setting lastSyncedAt for organization ${organizationId} and integration ${integrationId} to now!`,
     )
 
     await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
+      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
       {
         organizationId,
         integrationId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
         neverStatus: SyncStatus.NEVER,
       },

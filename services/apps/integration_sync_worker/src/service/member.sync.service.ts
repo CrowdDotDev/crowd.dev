@@ -10,7 +10,8 @@ import { OpenSearchService } from './opensearch.service'
 import { IntegrationRepository } from '@/repo/integration.repo'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
-  IBatchCreateMemberResult,
+  IBatchCreateMembersResult,
+  IBatchUpdateMembersResult,
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
@@ -94,18 +95,29 @@ export class MemberSyncService extends LoggerBase {
         tenantId,
       }
 
-      const newMembers = await service.processSyncRemote<IMember>(
+      const { created, updated } = await service.processSyncRemote<IMember>(
         membersToCreate,
         membersToUpdate,
         Entity.MEMBERS,
         context,
       )
 
-      if (newMembers.length > 0) {
-        const memberCreated = newMembers[0] as IBatchCreateMemberResult
+      if (created.length > 0) {
+        const memberCreated = created[0] as IBatchCreateMembersResult
         await this.memberRepo.setSyncRemoteSourceId(syncRemoteId, memberCreated.sourceId)
+        await this.memberRepo.setLastSyncedAtBySyncRemoteId(
+          syncRemoteId,
+          memberCreated.lastSyncedPayload,
+        )
       }
-      await this.memberRepo.setLastSyncedAtBySyncRemoteId(syncRemoteId)
+
+      if (updated.length > 0) {
+        const memberUpdated = updated[0] as IBatchUpdateMembersResult
+        await this.memberRepo.setLastSyncedAtBySyncRemoteId(
+          syncRemoteId,
+          memberUpdated.lastSyncedPayload,
+        )
+      }
     } else {
       this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
     }
@@ -225,24 +237,32 @@ export class MemberSyncService extends LoggerBase {
           tenantId,
         }
 
-        const newMembers = await service.processSyncRemote<IMember>(
+        const { created, updated } = await service.processSyncRemote<IMember>(
           membersToCreate,
           membersToUpdate,
           Entity.MEMBERS,
           context,
         )
 
-        for (const newMember of newMembers as IBatchCreateMemberResult[]) {
+        for (const newMember of created as IBatchCreateMembersResult[]) {
           await this.memberRepo.setIntegrationSourceId(
             newMember.memberId,
             integration.id,
             newMember.sourceId,
           )
-          await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+          await this.memberRepo.setLastSyncedAt(
+            newMember.memberId,
+            integration.id,
+            newMember.lastSyncedPayload,
+          )
         }
 
-        for (const updatedMember of membersToUpdate) {
-          await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+        for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setLastSyncedAt(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.lastSyncedPayload,
+          )
         }
       } else {
         this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
@@ -431,25 +451,33 @@ export class MemberSyncService extends LoggerBase {
             automation,
           }
 
-          const newMembers = await service.processSyncRemote<IMember>(
+          const { created, updated } = await service.processSyncRemote<IMember>(
             membersToCreate,
             membersToUpdate,
             Entity.MEMBERS,
             context,
           )
 
-          for (const newMember of newMembers as IBatchCreateMemberResult[]) {
+          for (const newMember of created as IBatchCreateMembersResult[]) {
             await this.memberRepo.setIntegrationSourceId(
               newMember.memberId,
               integration.id,
               newMember.sourceId,
             )
 
-            await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+            await this.memberRepo.setLastSyncedAt(
+              newMember.memberId,
+              integration.id,
+              newMember.lastSyncedPayload,
+            )
           }
 
-          for (const updatedMember of membersToUpdate) {
-            await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+          for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+            await this.memberRepo.setLastSyncedAt(
+              updatedMember.memberId,
+              integration.id,
+              updatedMember.lastSyncedPayload,
+            )
           }
         } else {
           this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
@@ -573,24 +601,32 @@ export class MemberSyncService extends LoggerBase {
           tenantId,
         }
 
-        const newMembers = await service.processSyncRemote<IMember>(
+        const { created, updated } = await service.processSyncRemote<IMember>(
           membersToCreate,
           membersToUpdate,
           Entity.MEMBERS,
           context,
         )
 
-        for (const newMember of newMembers as IBatchCreateMemberResult[]) {
+        for (const newMember of created as IBatchCreateMembersResult[]) {
           await this.memberRepo.setIntegrationSourceId(
             newMember.memberId,
             integration.id,
             newMember.sourceId,
           )
-          await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+          await this.memberRepo.setLastSyncedAt(
+            newMember.memberId,
+            integration.id,
+            newMember.lastSyncedPayload,
+          )
         }
 
-        for (const updatedMember of membersToUpdate) {
-          await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+        for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setLastSyncedAt(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.lastSyncedPayload,
+          )
         }
       } else {
         this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
