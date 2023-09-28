@@ -57,7 +57,7 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
   // processing next page stream
   if (response?.next_page_token) {
     await ctx.publishStream<GroupsioGroupStreamMetadata>(
-      `${GroupsioStreamType.GROUP}-${data.group}-${response.next_page_token}`,
+      `${GroupsioStreamType.GROUP}:${data.group}-${response.next_page_token}`,
       {
         group: data.group,
         page: response.next_page_token.toString(),
@@ -92,7 +92,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
   // processing next page stream
   if (response?.next_page_token) {
     await ctx.publishStream<GroupsioTopicStreamMetadata>(
-      `${GroupsioStreamType.TOPIC}-${data.topic.id}-${response.next_page_token}`,
+      `${GroupsioStreamType.TOPIC}:${data.topic.id}-${response.next_page_token}`,
       {
         group: data.group,
         topic: data.topic,
@@ -157,7 +157,7 @@ const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
   // processing next page stream
   if (response?.next_page_token) {
     await ctx.publishStream<GroupsioGroupMembersStreamMetadata>(
-      `${GroupsioStreamType.GROUP_MEMBERS}-${data.group}-${response.next_page_token}`,
+      `${GroupsioStreamType.GROUP_MEMBERS}:${data.group}-${response.next_page_token}`,
       {
         group: data.group,
         page: response.next_page_token.toString(),
