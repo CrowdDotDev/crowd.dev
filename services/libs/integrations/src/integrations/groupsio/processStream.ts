@@ -9,6 +9,7 @@ import {
   GroupsioPublishData,
   GroupsioPublishDataType,
   MemberInfo,
+  MemberInfoMinimal,
   ListMembers,
   ListMessages,
   ListTopics,
@@ -104,14 +105,24 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
   // publishing messages
   for (let i = 0; i < response.data.length; i++) {
     const message = response.data[i]
-    const userId = message.user_id.toString()
+    const userId = message.user_id
     // getting member from cache
     // it should be there already because we process members first
-    const member = await getMemberFromCache(ctx, userId)
+    let member: MemberInfo | MemberInfoMinimal = await getMemberFromCache(ctx, userId.toString())
 
     if (!member) {
-      await ctx.abortRunWithError(
-        `Member ${userId} not found in cache, we can't process the message!`,
+      // we didn't find a member in cache, so it's an anonymous user
+      // we need to create a fake member object
+      member = {
+        user_id: userId,
+        full_name: message.name || 'Anonymous User',
+        email: 'anonymous+fake+email@groups.io',
+        group_id: message.group_id,
+      } as MemberInfoMinimal
+
+      ctx.log.warn(
+        { userId, messageId: message.id },
+        'Member not found in cache, using anonymous member!',
       )
     }
 
