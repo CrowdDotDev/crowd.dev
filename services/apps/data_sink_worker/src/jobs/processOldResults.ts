@@ -33,12 +33,27 @@ export const processOldResultsJob = async (
   // load 5 oldest results and try process them
   let resultsToProcess = await loadNextBatch()
 
+  let successCount = 0
+  let errorCount = 0
+
   while (resultsToProcess.length > 0) {
     log.info(`Detected ${resultsToProcess.length} old results rows to process!`)
 
     for (const resultId of resultsToProcess) {
-      await service.processResult(resultId)
+      try {
+        const result = await service.processResult(resultId)
+        if (result) {
+          successCount++
+        } else {
+          errorCount++
+        }
+      } catch (err) {
+        log.error(err, 'Failed to process result!')
+        errorCount++
+      }
     }
+
+    log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
 
     resultsToProcess = await loadNextBatch()
   }

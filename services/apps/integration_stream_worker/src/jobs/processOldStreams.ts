@@ -39,15 +39,26 @@ export const processOldStreamsJob = async (
   // load 5 oldest streams and try process them
   let streamsToProcess = await loadNextBatch()
 
+  let successCount = 0
+  let errorCount = 0
+
   while (streamsToProcess.length > 0) {
-    log.info(`Detected ${streamsToProcess.length} old streams to process!`)
     for (const streamId of streamsToProcess) {
       try {
-        await service.processStream(streamId)
+        const result = await service.processStream(streamId)
+
+        if (result) {
+          successCount++
+        } else {
+          errorCount++
+        }
       } catch (err) {
         log.error(err, 'Failed to process stream!')
+        errorCount++
       }
     }
+
+    log.info(`Processed ${successCount} old streams successfully and ${errorCount} with errors.`)
 
     streamsToProcess = await loadNextBatch()
   }

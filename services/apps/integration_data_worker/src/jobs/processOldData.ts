@@ -33,16 +33,25 @@ export const processOldDataJob = async (
   // load 5 oldest apiData and try process them
   let dataToProcess = await loadNextBatch()
 
-  while (dataToProcess.length > 0) {
-    log.info(`Detected ${dataToProcess.length} old data rows to process!`)
+  let successCount = 0
+  let errorCount = 0
 
+  while (dataToProcess.length > 0) {
     for (const dataId of dataToProcess) {
       try {
-        await service.processData(dataId)
+        const result = await service.processData(dataId)
+        if (result) {
+          successCount++
+        } else {
+          errorCount++
+        }
       } catch (err) {
         log.error(err, 'Failed to process data!')
+        errorCount++
       }
     }
+
+    log.info(`Processed ${successCount} old data successfully and ${errorCount} with errors.`)
 
     dataToProcess = await loadNextBatch()
   }
