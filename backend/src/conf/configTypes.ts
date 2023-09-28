@@ -99,6 +99,7 @@ export interface DevtoConfiguration {
 export interface TwitterConfiguration {
   clientId: string
   clientSecret: string
+  callbackUrl: string
   globalLimit?: number
   maxRetrospectInSeconds: number
   limitResetFrequencyDays: number

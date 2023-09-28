@@ -21,6 +21,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     ['size', 'org.size'],
     ['industry', 'org.industry'],
     ['revenueRange', `(org."revenueRange" -> 'max')::integer`],
+    ['revenueRangeMin', `nullif(org."revenueRange" -> 'min', 'null')::integer`],
+    ['revenueRangeMax', `nullif(org."revenueRange" -> 'max', 'null')::integer`],
+    ['employeeChurnRate12Month', `nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal`],
+    ['employeeGrowthRate12Month', `nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal`],
   ])
 
   public static replaceParametersWithDollarSign(inputString) {
@@ -131,6 +135,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       )
   SELECT
       o.*,
+      nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal as "employeeChurnRate12Month",
+      nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal as "employeeGrowthRate12Month",
+      nullif(o."revenueRange" -> 'min', 'null')::integer as "revenueRangeMin",
+      nullif(o."revenueRange" -> 'max', 'null')::integer as "revenueRangeMax",
       COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",
       COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
       COALESCE(ao."activeOn", '{}') AS "activeOn",
@@ -158,13 +166,11 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     segmentIds: string[],
     platform: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filter: any,
+    filter: unknown,
     limit: number,
     offset: number,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {
+    const params: unknown = {
       tenantId,
       segmentIds,
       limit,
@@ -234,28 +240,37 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async setLastSyncedAtBySyncRemoteId(syncRemoteId: string): Promise<void> {
+  public async setLastSyncedAtBySyncRemoteId(
+    syncRemoteId: string,
+    lastSyncedPayload: unknown,
+  ): Promise<void> {
     this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
 
     await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where id = $(syncRemoteId)`,
+      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where id = $(syncRemoteId)`,
       {
         syncRemoteId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
       },
     )
   }
 
-  public async setLastSyncedAt(organizationId: string, integrationId: string): Promise<void> {
+  public async setLastSyncedAt(
+    organizationId: string,
+    integrationId: string,
+    lastSyncedPayload: unknown,
+  ): Promise<void> {
     this.log.debug(
       `Setting lastSyncedAt for organization ${organizationId} and integration ${integrationId} to now!`,
     )
 
     await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
+      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
       {
         organizationId,
         integrationId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
         neverStatus: SyncStatus.NEVER,
       },
