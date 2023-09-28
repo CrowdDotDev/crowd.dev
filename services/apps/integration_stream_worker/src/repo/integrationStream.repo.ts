@@ -13,6 +13,47 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     super(dbStore, parentLog)
   }
 
+  public async getOldStreamsToProcess(limit: number): Promise<IProcessableStream[]> {
+    const results = await this.db().any(
+      `
+            select  s.id,
+                    s."tenantId",
+                    i.platform as "integrationType",
+                    s."runId",
+                    s."webhookId"
+              from integration.streams s
+                      inner join integrations i on s."integrationId" = i.id
+              where s.state in ($(errorState), $(pendingState), $(delayedState))
+                and (s.state <> $(errorState) or s.retries <= $(maxRetries))
+                and s."updatedAt" < now() - interval '1 hour'
+              order by case when s."webhookId" is not null then 0 else 1 end, -- Prioritize non-null webhookId
+                      s."webhookId" asc,                                     -- Order non-null webhookId in ascending order
+                      s."updatedAt" desc
+              limit ${limit};
+      `,
+      {
+        errorState: IntegrationStreamState.ERROR,
+        pendingState: IntegrationStreamState.PENDING,
+        delayedState: IntegrationStreamState.DELAYED,
+        maxRetries: 5,
+      },
+    )
+
+    return results
+  }
+
+  public async touchUpdatedAt(streamIds: string[]): Promise<void> {
+    await this.db().none(
+      `
+      update integration.streams set "updatedAt" = now()
+      where id in ($(streamIds:csv))
+    `,
+      {
+        streamIds,
+      },
+    )
+  }
+
   public async getPendingDelayedStreams(
     page: number,
     perPage: number,
