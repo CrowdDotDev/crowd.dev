@@ -66,7 +66,7 @@ export class IntegrationService {
   }
 
   static async list(filter, orderBy, limit, offset, segments) {
-    const params = {
+    const body = {
       filter,
       orderBy,
       limit,
@@ -76,9 +76,7 @@ export class IntegrationService {
 
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.get(`/tenant/${tenantId}/integration`, {
-      params,
-    });
+    const response = await authAxios.post(`/tenant/${tenantId}/integration/query`, body);
 
     return response.data;
   }
