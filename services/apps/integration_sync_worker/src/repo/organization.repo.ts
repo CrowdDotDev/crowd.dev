@@ -21,6 +21,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     ['size', 'org.size'],
     ['industry', 'org.industry'],
     ['revenueRange', `(org."revenueRange" -> 'max')::integer`],
+    ['revenueRangeMin', `nullif(org."revenueRange" -> 'min', 'null')::integer`],
+    ['revenueRangeMax', `nullif(org."revenueRange" -> 'max', 'null')::integer`],
+    ['employeeChurnRate12Month', `nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal`],
+    ['employeeGrowthRate12Month', `nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal`],
   ])
 
   public static replaceParametersWithDollarSign(inputString) {
@@ -131,6 +135,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       )
   SELECT
       o.*,
+      nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal as "employeeChurnRate12Month",
+      nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal as "employeeGrowthRate12Month",
+      nullif(o."revenueRange" -> 'min', 'null')::integer as "revenueRangeMin",
+      nullif(o."revenueRange" -> 'max', 'null')::integer as "revenueRangeMax",
       COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",
       COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
       COALESCE(ao."activeOn", '{}') AS "activeOn",
