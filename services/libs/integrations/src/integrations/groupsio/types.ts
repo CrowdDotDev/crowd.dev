@@ -23,7 +23,7 @@ export interface GroupsioMessageData {
   group: GroupName
   topic: Topic
   message: Message
-  member: MemberInfo
+  member: MemberInfo | MemberInfoMinimal
   sourceParentId: string | null
 }
 
@@ -309,6 +309,13 @@ export interface MemberInfo {
   most_recent_message: string
   perms: Perms
   extra_member_data: ExtraMemberData[]
+}
+
+export interface MemberInfoMinimal {
+  user_id: number
+  full_name: string
+  email: string
+  group_id: number
 }
 
 export interface ListMembers {
