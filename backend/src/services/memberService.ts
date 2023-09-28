@@ -5,6 +5,7 @@ import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
 import { IOrganization, MemberAttributeType } from '@crowd/types'
+import { isDomainExcluded } from '@crowd/common'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -342,24 +343,34 @@ export default class MemberService extends LoggerBase {
 
       // Auto assign member to organization if email domain matches
       if (data.emails) {
-        const emailDomains = new Set()
+        const emailDomains = new Set<string>()
 
         // Collect unique domains
         for (const email of data.emails) {
-          if (!email) {
-            continue
+          if (email) {
+            const domain = email.split('@')[1]
+            if (!isDomainExcluded(domain)) {
+              emailDomains.add(domain)
+            }
           }
-          const domain = email.split('@')[1]
-          emailDomains.add(domain)
         }
 
         // Fetch organization ids for these domains
         const organizationService = new OrganizationService(this.options)
         for (const domain of emailDomains) {
           if (domain) {
-            const organizationRecord = await organizationService.findByDomain(domain)
-            if (organizationRecord) {
-              organizations.push({ id: organizationRecord.id })
+            const org = await organizationService.createOrUpdate({
+              website: domain,
+              identities: [
+                {
+                  name: domain,
+                  platform: 'email',
+                },
+              ],
+            })
+
+            if (org) {
+              organizations.push({ id: org.id })
             }
           }
         }

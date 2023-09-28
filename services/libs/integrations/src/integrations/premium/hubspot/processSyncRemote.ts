@@ -87,6 +87,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
           ctx.automation.settings.contactList,
           vids,
           integrationContext,
+          throttler,
         )
       }
 

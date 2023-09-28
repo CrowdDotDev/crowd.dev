@@ -4,8 +4,8 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { IOrganization, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
-import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
 import { getOrganizationDomain } from './utils/getOrganizationDomain'
+import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
 import { IBatchCreateOrganizationsResult } from './types'
 import { getCompanyById } from './companyById'
 import { batchUpdateOrganizations } from './batchUpdateOrganizations'
@@ -70,7 +70,7 @@ export const batchCreateOrganizations = async (
     }
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug(
       { nangoId, accessToken, data: config.data },

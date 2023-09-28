@@ -487,6 +487,12 @@ export class OrganizationSyncService extends LoggerBase {
 
     // identities
     const p_identities = []
+
+    // handle organizations without identities
+    if (!data.identities) {
+      data.identities = []
+    }
+
     for (const identity of data.identities) {
       p_identities.push({
         string_platform: identity.platform,

@@ -23,9 +23,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                   max(a.timestamp)                                                           as "lastActive",
                                   min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z') as "joinedAt"
                           from organization_segments os
-                                    join activities a
-                                        on a."organizationId" = os."organizationId"
-                                            and a."segmentId" = os."segmentId" and a."deletedAt" is null
+                                    left join activities a
+                                              on a."organizationId" = os."organizationId"
+                                                  and a."segmentId" = os."segmentId" and a."deletedAt" is null
                                     join members m on a."memberId" = m.id and m."deletedAt" is null
                                     join "memberOrganizations" mo
                                         on m.id = mo."memberId"

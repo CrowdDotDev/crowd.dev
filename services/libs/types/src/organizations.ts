@@ -156,3 +156,8 @@ export interface IOrganizationIdentity {
 export interface IEnrichableOrganization extends IOrganization {
   orgActivityCount: number
 }
+
+export interface IOrganizationIdSource {
+  id: string
+  source: string
+}

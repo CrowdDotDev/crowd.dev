@@ -1,5 +1,5 @@
 import { UnleashClient } from 'unleash-proxy-client';
-import LogRocket from 'logrocket';
+import { useLogRocket } from '@/utils/logRocket';
 import config from '@/config';
 import { store } from '@/store';
 
@@ -11,6 +11,7 @@ export const FEATURE_FLAGS = {
   memberEnrichment: 'member-enrichment',
   csvExport: 'csv-export',
   hubspot: 'hubspot',
+  logRocket: 'log-rocket',
 };
 
 class FeatureFlagService {
@@ -34,21 +35,27 @@ class FeatureFlagService {
       return;
     }
 
+    const { init: initLogRocket, captureException } = useLogRocket();
+
     this.unleash.start();
 
     const context = this.getContextFromTenant(tenant);
+
     if (context) {
       this.updateContext(context);
     }
 
     this.unleash.on('ready', () => {
+      initLogRocket();
+
       store.dispatch('tenant/doUpdateFeatureFlag', {
         isReady: true,
       });
     });
 
     this.unleash.on('error', (error) => {
-      LogRocket.captureException(error);
+      captureException(error);
+
       store.dispatch('tenant/doUpdateFeatureFlag', {
         hasError: true,
       });

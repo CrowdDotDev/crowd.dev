@@ -5,7 +5,7 @@
 <script setup>
 import { computed, defineAsyncComponent } from 'vue';
 import AppPageLoader from '@/shared/loading/page-loader.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const { currentUser, currentTenant } = mapGetters('auth');

@@ -102,7 +102,7 @@ import { useRouter } from 'vue-router';
 import config from '@/config';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import { pageContent } from '@/modules/layout/layout-page-content';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 const router = useRouter();
 
