@@ -3,7 +3,15 @@
     v-model="model"
     class="filter-input-field"
     :placeholder="placeholder"
-  />
+  >
+    <template v-if="prefix" #prefix>
+      <span class="text-gray-600">{{ prefix }}</span>
+    </template>
+
+    <template v-if="suffix" #suffix>
+      <span class="text-gray-600">{{ suffix }}</span>
+    </template>
+  </el-input>
 </template>
 
 <script setup lang="ts">
@@ -12,6 +20,8 @@ import { computed } from 'vue';
 const props = defineProps<{
   modelValue: string,
   placeholder?: string,
+  suffix?: string,
+  prefix?: string,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
