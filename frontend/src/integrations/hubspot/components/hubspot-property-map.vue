@@ -76,11 +76,20 @@ const enabled = computed<boolean>({
 });
 
 const getLabel = (field: string) => {
-  const label = field
+  const is12MonthPresent = field.includes('12Month');
+  let sentence = field
     .replace('attributes.', '')
+    .replace('12Month', '')
     .replace('_', ' ')
-    .replace(/([A-Z])/g, ' $1');
-  return label.at(0).toUpperCase() + label.substring(1).toLowerCase();
+    .replace(/([A-Z])/g, ' $1')
+    .trim();
+
+  if (is12MonthPresent) {
+    sentence = sentence
+      .replace(/^/, 'Annual ');
+  }
+
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase();
 };
 </script>
 

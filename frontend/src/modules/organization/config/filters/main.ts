@@ -12,12 +12,21 @@ import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
 import location from './location/config';
 import projects from './projects/config';
+import annualRevenue from './annualRevenue/config';
+import annualEmployeeChurnRate from './annualEmployeeChurnRate/config';
+import annualEmployeeGrowthRate from './annualEmployeeGrowthRate/config';
+import employeeCount from './employeeCount/config';
+import tags from './tags/config';
 import type from './type/config';
 
 export const organizationFilters: Record<string, FilterConfig> = {
   noOfActivities,
   noOfMembers,
   activeOn,
+  annualEmployeeChurnRate,
+  annualEmployeeGrowthRate,
+  annualRevenue,
+  employeeCount,
   enrichedOrganization,
   founded,
   headcount,
@@ -27,6 +36,7 @@ export const organizationFilters: Record<string, FilterConfig> = {
   lastActivityDate,
   location,
   projects,
+  tags,
   type,
 };
 
