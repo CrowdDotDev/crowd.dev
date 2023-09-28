@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { generateUUIDv1 as uuid } from '@crowd/common'
 
@@ -87,7 +85,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async setLastSyncedAtBySyncRemoteId(
     syncRemoteId: string,
-    lastSyncedPayload: any,
+    lastSyncedPayload: unknown,
   ): Promise<void> {
     this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
 
@@ -104,7 +102,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
   public async setLastSyncedAt(
     memberId: string,
     integrationId: string,
-    lastSyncedPayload: any,
+    lastSyncedPayload: unknown,
   ): Promise<void> {
     this.log.debug(
       `Setting lastSyncedAt for member ${memberId} and integration ${integrationId} to now!`,

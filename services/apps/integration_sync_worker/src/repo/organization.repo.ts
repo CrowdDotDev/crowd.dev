@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { generateUUIDv1 as uuid } from '@crowd/common'
@@ -160,11 +158,11 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     segmentIds: string[],
     platform: string,
-    filter: any,
+    filter: unknown,
     limit: number,
     offset: number,
   ) {
-    const params: any = {
+    const params: unknown = {
       tenantId,
       segmentIds,
       limit,
@@ -236,7 +234,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
   public async setLastSyncedAtBySyncRemoteId(
     syncRemoteId: string,
-    lastSyncedPayload: any,
+    lastSyncedPayload: unknown,
   ): Promise<void> {
     this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
 
@@ -253,7 +251,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async setLastSyncedAt(
     organizationId: string,
     integrationId: string,
-    lastSyncedPayload: any,
+    lastSyncedPayload: unknown,
   ): Promise<void> {
     this.log.debug(
       `Setting lastSyncedAt for organization ${organizationId} and integration ${integrationId} to now!`,

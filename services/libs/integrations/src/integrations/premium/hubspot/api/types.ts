@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export interface IPaginatedResponse<T> {
   elements: T[]
   after?: string
@@ -8,7 +6,7 @@ export interface IPaginatedResponse<T> {
 export interface IBatchCreateOrganizationsResult {
   organizationId: string
   sourceId: string
-  lastSyncedPayload: any
+  lastSyncedPayload: unknown
 }
 
 export type IBatchUpdateOrganizationsResult = IBatchCreateOrganizationsResult
@@ -16,7 +14,7 @@ export type IBatchUpdateOrganizationsResult = IBatchCreateOrganizationsResult
 export interface IBatchCreateMembersResult {
   memberId: string
   sourceId: string
-  lastSyncedPayload: any
+  lastSyncedPayload: unknown
 }
 
 export type IBatchUpdateMembersResult = IBatchCreateMembersResult
