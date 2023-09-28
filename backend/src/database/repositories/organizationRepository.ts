@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
 import {
@@ -1964,74 +1965,43 @@ class OrganizationRepository {
     return { rows, count: count.length, limit: parsed.limit, offset: parsed.offset }
   }
 
-  static async findAllAutocompleteExact(query, limit, options: IRepositoryOptions) {
-    return OrganizationRepository.findAllAutocomplete(
-      query,
-      SequelizeFilterUtils.ilikeExact('organization', 'displayName', query),
-      limit,
-      options,
-    )
-  }
-
-  static async findAllAutocompleteLike(query, limit, options: IRepositoryOptions) {
-    return OrganizationRepository.findAllAutocomplete(
-      query,
-      SequelizeFilterUtils.ilikeIncludes('organization', 'displayName', query),
-      limit,
-      options,
-    )
-  }
-
-  static async findAllAutocomplete(query, cond, limit, options: IRepositoryOptions) {
+  static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
     const tenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    const whereAnd: Array<any> = [
+    const records = await options.database.sequelize.query(
+      `
+        SELECT
+            DISTINCT
+            o."id",
+            o."displayName" AS label,
+            o."logo",
+            o."displayName" ILIKE :queryExact AS exact
+        FROM "organizations" AS o
+        JOIN "organizationSegments" os ON os."organizationId" = o.id
+        WHERE o."deletedAt" IS NULL
+          AND o."tenantId" = :tenantId
+          AND (o."displayName" ILIKE :queryLike OR o.id = :uuid)
+          AND os."segmentId" IN (:segmentIds)
+          AND os."tenantId" = :tenantId
+        ORDER BY o."displayName" ILIKE :queryExact DESC, o."displayName"
+        LIMIT :limit;
+      `,
       {
-        tenantId: tenant.id,
-      },
-    ]
-
-    const include = [
-      {
-        model: options.database.segment,
-        as: 'segments',
-        attributes: [],
-        where: {
-          id: segmentIds,
+        replacements: {
+          limit: limit ? Number(limit) : 20,
+          tenantId: tenant.id,
+          segmentIds,
+          queryLike: `%${query}%`,
+          queryExact: query,
+          uuid: validator.isUUID(query) ? query : null,
         },
-        through: {
-          attributes: [],
-        },
+        type: QueryTypes.SELECT,
+        raw: true,
       },
-    ]
+    )
 
-    if (query) {
-      whereAnd.push({
-        [Op.or]: [
-          { id: SequelizeFilterUtils.uuid(query) },
-          {
-            [Op.and]: cond,
-          },
-        ],
-      })
-    }
-
-    const where = { [Op.and]: whereAnd }
-
-    const records = await options.database.organization.findAll({
-      attributes: ['id', 'displayName', 'logo'],
-      include,
-      where,
-      limit: limit ? Number(limit) : undefined,
-      order: [['displayName', 'ASC']],
-    })
-
-    return records.map((record) => ({
-      id: record.id,
-      label: record.displayName,
-      logo: record.logo,
-    }))
+    return records
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
