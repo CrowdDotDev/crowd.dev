@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface IPaginatedResponse<T> {
   elements: T[]
   after?: string
