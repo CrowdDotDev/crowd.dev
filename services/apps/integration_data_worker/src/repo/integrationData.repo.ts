@@ -59,6 +59,42 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     return results
   }
 
+  public async getOldDataToProcess(limit: number): Promise<string[]> {
+    const results = await this.db().any(
+      `
+      select d.id
+      from integration."apiData" d
+      where d.state in ($(errorState), $(pendingState), $(delayedState))
+        and (d.state <> $(errorState) or d.retries <= $(maxRetries))
+        and d."updatedAt" < now() - interval '1 hour'
+      order by case when d."webhookId" is not null then 0 else 1 end, -- Prioritize non-null webhookId
+              d."webhookId" asc,                                     -- Order non-null webhookId in ascending order
+              d."updatedAt" desc
+      limit ${limit};
+      `,
+      {
+        errorState: IntegrationStreamDataState.ERROR,
+        pendingState: IntegrationStreamDataState.PENDING,
+        delayedState: IntegrationStreamDataState.DELAYED,
+        maxRetries: 5,
+      },
+    )
+
+    return results.map((s) => s.id)
+  }
+
+  public async touchUpdatedAt(dataIds: string[]): Promise<void> {
+    await this.db().none(
+      `
+      update integration."apiData" set "updatedAt" = now()
+      where id in ($(dataIds:csv))
+    `,
+      {
+        dataIds,
+      },
+    )
+  }
+
   public async markRunError(runId: string, error: unknown): Promise<void> {
     const result = await this.db().result(
       `update integration.runs

@@ -28,7 +28,7 @@ export const processOldStreamsJob = async (
     3 * 60,
     async () => {
       const streams = await repo.getOldStreamsToProcess(5)
-      await repo.touchUpdatedAt(streams.map((s) => s.id))
+      await repo.touchUpdatedAt(streams)
       return streams
     },
   )
@@ -44,8 +44,8 @@ export const processOldStreamsJob = async (
       log,
     )
 
-    for (const stream of streamsToProcess) {
-      await service.processStream(stream.id)
+    for (const streamId of streamsToProcess) {
+      await service.processStream(streamId)
     }
   } else {
     log.info('No old streams to process!')

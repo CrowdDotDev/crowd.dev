@@ -13,16 +13,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     super(dbStore, parentLog)
   }
 
-  public async getOldStreamsToProcess(limit: number): Promise<IProcessableStream[]> {
+  public async getOldStreamsToProcess(limit: number): Promise<string[]> {
     const results = await this.db().any(
       `
-            select  s.id,
-                    s."tenantId",
-                    i.platform as "integrationType",
-                    s."runId",
-                    s."webhookId"
+            select  s.id
               from integration.streams s
-                      inner join integrations i on s."integrationId" = i.id
               where s.state in ($(errorState), $(pendingState), $(delayedState))
                 and (s.state <> $(errorState) or s.retries <= $(maxRetries))
                 and s."updatedAt" < now() - interval '1 hour'
@@ -39,7 +34,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       },
     )
 
-    return results
+    return results.map((s) => s.id)
   }
 
   public async touchUpdatedAt(streamIds: string[]): Promise<void> {
