@@ -64,7 +64,7 @@
 
 <script setup>
 import {
-  computed, defineEmits, defineProps, reactive,
+  computed, defineEmits, defineProps,
 } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue';
