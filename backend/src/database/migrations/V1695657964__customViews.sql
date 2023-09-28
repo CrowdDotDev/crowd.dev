@@ -1,4 +1,4 @@
-create type "customViewVisibility" as enum ('user', 'tenant');
+create type "customViewVisibility" as enum ('member', 'tenant');
 
 create table "customViews" (
   id uuid not null primary key,
