@@ -149,6 +149,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       )
       select 
         o.*,
+        nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal as "employeeChurnRate12Month",
+        nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal as "employeeGrowthRate12Month",
+        nullif(o."revenueRange" -> 'min', 'null')::integer as "revenueRangeMin",
+        nullif(o."revenueRange" -> 'max', 'null')::integer as "revenueRangeMax",
         coalesce(md."activityCount", 0)::integer as "activityCount",
         coalesce(md."memberCount", 0)::integer   as "memberCount",
         coalesce(md."activeOn", '{}')            as "activeOn",
