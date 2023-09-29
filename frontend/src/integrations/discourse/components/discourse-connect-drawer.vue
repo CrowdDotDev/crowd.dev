@@ -286,7 +286,7 @@ const rules = {
 
 const $externalResults = ref({});
 
-const $v = useVuelidate(rules, form, { $externalResults });
+const $v = useVuelidate(rules, form, { $externalResults, $stopPropagation: true });
 
 // validate method
 async function validate() {

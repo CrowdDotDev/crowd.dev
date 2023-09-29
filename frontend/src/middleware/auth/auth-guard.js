@@ -71,6 +71,14 @@ export default async function ({ to, store, router }) {
     )
     && !tenantSubdomain.isSubdomain
   ) {
+    if (to.path === '/onboard' && (!permissionChecker.isEmptyTenant && store.getters['auth/currentTenant'].onboardedAt)) {
+      router.push('/');
+    }
+
+    if (to.path === '/onboard/demo' && (permissionChecker.isEmptyTenant || !store.getters['auth/currentTenant'].onboardedAt)) {
+      router.push('/onboard');
+    }
+
     if (
       to.path !== '/onboard'
       && permissionChecker.isEmailVerified
@@ -80,10 +88,7 @@ export default async function ({ to, store, router }) {
       router.push({
         path: '/onboard',
         query: isGoingToIntegrationsPage(to)
-          ? {
-            selectedDataType: 'real',
-            ...to.query,
-          }
+          ? to.query
           : undefined,
       });
     }

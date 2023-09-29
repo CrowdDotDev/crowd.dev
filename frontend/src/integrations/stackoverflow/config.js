@@ -7,6 +7,8 @@ export default {
   borderColor: '#FFFFFF',
   description:
     'Connect Stack Overflow to sync questions and answers based on selected tags.',
+  onboardDescription:
+    'Sync questions and answers based on selected tags.',
   image:
     'https://cdn-icons-png.flaticon.com/512/2111/2111628.png',
   connectComponent: StackOverflowConnect,

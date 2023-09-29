@@ -48,13 +48,9 @@
       </div>
     </template>
     <template #footer>
-      <router-link
-        :to="{ name: 'onboard', query: { action: 'new' } }"
-      >
-        <el-button class="btn btn--md btn--primary">
-          Add workspace
-        </el-button>
-      </router-link>
+      <el-button class="btn btn--md btn--primary" @click="onAddWorkspace">
+        Add workspace
+      </el-button>
     </template>
   </app-drawer>
 
@@ -72,6 +68,10 @@
       />
     </template>
   </app-dialog>
+
+  <app-tenant-new-form
+    v-model="showAddWorkspaceModal"
+  />
 </template>
 
 <script setup>
@@ -86,6 +86,7 @@ import {
 import config from '@/config';
 import { getTrialDate } from '@/utils/date';
 import AppTenantForm from '@/modules/tenant/components/tenant-form.vue';
+import AppTenantNewForm from '@/modules/tenant/components/tenant-new-form.vue';
 
 const store = useStore();
 
@@ -98,6 +99,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
+const showAddWorkspaceModal = ref(false);
 const editing = ref(false);
 const model = reactive({});
 
@@ -130,6 +132,12 @@ const getPlan = (plan) => {
   }
 
   return plan;
+};
+
+const onAddWorkspace = () => {
+  // Close Tenants drawer once new workspace modal is opened
+  emit('update:modelValue', false);
+  showAddWorkspaceModal.value = true;
 };
 </script>
 
