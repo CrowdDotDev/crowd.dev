@@ -57,7 +57,7 @@ const fields = {
   dueDate: new DateTimeField('dueDate', 'Due date'),
   relatedMembers: new RelationToManyField(
     'members',
-    'Related member(s)',
+    'Related Contact(s)',
     '/member',
     Permissions.values.memberRead,
     fetchMembers,

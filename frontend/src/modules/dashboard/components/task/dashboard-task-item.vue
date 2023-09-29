@@ -99,7 +99,7 @@
           <p
             class="text-2xs font-medium leading-4.5 text-gray-500 pb-2"
           >
-            Related member(s):
+            Related Contact(s):
           </p>
           <div class="flex flex-wrap">
             <router-link

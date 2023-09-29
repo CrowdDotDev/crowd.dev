@@ -111,7 +111,7 @@
           <p
             class="text-2xs font-semibold leading-5 text-gray-400 pr-3 mb-1"
           >
-            Related member(s):
+            Related Contact(s):
           </p>
           <router-link
             v-for="member of props.task.members"

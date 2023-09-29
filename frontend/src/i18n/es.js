@@ -151,7 +151,7 @@ const es = {
         success: 'Member eliminado con éxito',
       },
       destroyAll: {
-        success: 'Member(s) eliminado con éxito',
+        success: 'Contact(s) eliminado con éxito',
       },
       edit: {
         title: 'Editar Member',

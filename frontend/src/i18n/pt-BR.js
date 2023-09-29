@@ -151,7 +151,7 @@ const ptBR = {
         success: 'Member deletado com sucesso',
       },
       destroyAll: {
-        success: 'Member(s) deletado com sucesso',
+        success: 'Contact(s) deletado com sucesso',
       },
       edit: {
         title: 'Editar Member',
