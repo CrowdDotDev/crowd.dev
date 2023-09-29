@@ -1,5 +1,5 @@
 <template>
-  <app-dialog v-model="isOpened" :title="isEdit ? 'Edit organization' : 'Add organization'">
+  <app-dialog v-model="isOpened" :title="isEdit ? 'Edit config' : 'Add config'">
     <template #content>
       <div class="px-6">
         <app-form-item
@@ -15,8 +15,8 @@
             v-model="form.organization"
             :fetch-fn="fetchOrganizationsFn"
             :create-fn="createOrganizationFn"
-            placeholder="Select or create an organization"
-            input-class="organization-input"
+            placeholder="Select or create an config"
+            input-class="config-input"
             store-key="memberOrganizations"
             :create-if-not-found="true"
             :in-memory-filter="false"
@@ -113,7 +113,7 @@
           @click="submit()"
         >
           <span v-if="isEdit">Update</span>
-          <span v-else>Add organization</span>
+          <span v-else>Add config</span>
         </el-button>
       </footer>
     </template>
@@ -135,7 +135,7 @@ import moment from 'moment';
 type SelectOrganization = Organization & { label: string };
 
 interface MemberOrganizationForm {
-  organization: Organization | '',
+  config: Organization | '',
   jobTitle: string;
   dateStart: string;
   dateEnd: string;
@@ -143,7 +143,7 @@ interface MemberOrganizationForm {
 
 const props = defineProps<{
   modelValue: boolean,
-  organization?: Organization | null,
+  config?: Organization | null,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean), (e: 'add', value: Organization), (e: 'edit', value: Organization),}>();
@@ -218,7 +218,7 @@ const createOrganizationFn = (value: string) => OrganizationService.create({
   }))
   .catch(() => null);
 
-const fillForm = (organization: Organization) => {
+const fillForm = (config: Organization) => {
   form.organization = {
     ...organization,
     label: organization.displayName || organization.name,

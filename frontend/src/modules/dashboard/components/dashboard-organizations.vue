@@ -58,7 +58,7 @@
           </div>
           <div v-else>
             <app-dashboard-organization-item
-              v-for="organization of recentOrganizations"
+              v-for="config of recentOrganizations"
               :key="organization.id"
               :show-badge="false"
               class="mb-4"
@@ -139,7 +139,7 @@
           </div>
           <div v-else>
             <app-dashboard-organization-item
-              v-for="organization of activeOrganizations"
+              v-for="config of activeOrganizations"
               :key="organization.id"
               class="mb-4"
               :organization="organization"

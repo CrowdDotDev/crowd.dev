@@ -159,7 +159,7 @@ const identitiesForm = reactive({
     enabled:
       props.modelValue.identities?.some((el) => el.platform === 'crunchbase')
       || false,
-    urlPrefix: 'crunchbase.com/organization/',
+    urlPrefix: 'crunchbase.com/config/',
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase',
   },

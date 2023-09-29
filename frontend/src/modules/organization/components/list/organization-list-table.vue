@@ -13,7 +13,7 @@
           icon="ri-community-line"
           title="No organizations yet"
           description="We couldn't track any organizations related to your community members."
-          cta-btn="Add organization"
+          cta-btn="Add config"
           @cta-click="onCtaClick"
         />
 
@@ -32,7 +32,7 @@
               :total="totalOrganizations"
               :current-page="pagination.page"
               :has-page-counter="false"
-              module="organization"
+              module="config"
               position="top"
               @change-sorter="doChangePaginationPageSize"
             />
@@ -512,7 +512,7 @@
                   :total="totalOrganizations"
                   :page-size="Number(pagination.perPage)"
                   :current-page="pagination.page || 1"
-                  module="organization"
+                  module="config"
                   @change-current-page="
                     doChangePaginationCurrentPage
                   "

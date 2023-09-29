@@ -17,11 +17,11 @@
     <template #content>
       <el-form class="form integration-devto-form">
         <div class="flex flex-col gap-2 items-start">
-          <span class="text-sm font-medium">Track organization articles</span>
+          <span class="text-sm font-medium">Track config articles</span>
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
-            Monitor all articles from organization accounts
+            Monitor all articles from config accounts
           </span>
           <el-form-item
             v-for="org in organizations"
@@ -40,7 +40,7 @@
                 v-model="org.username"
                 class="text-green-500"
                 spellcheck="false"
-                placeholder="Enter organization slug"
+                placeholder="Enter config slug"
                 @blur="handleOrganizationValidation(org.id)"
               >
                 <template #prepend>
@@ -73,7 +73,7 @@
             class="btn btn-link btn-link--primary"
             @click="addNewOrganization"
           >
-            + Add organization link
+            + Add config link
           </el-button>
           <span class="text-sm font-medium mt-8">Track user articles</span>
           <span
@@ -389,7 +389,7 @@ export default {
     },
 
     async handleOrganizationValidation(id) {
-      const organization = this.organizations.find(
+      const config = this.organizations.find(
         (o) => o.id === id,
       );
 

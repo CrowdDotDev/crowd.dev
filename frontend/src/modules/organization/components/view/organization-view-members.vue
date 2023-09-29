@@ -10,7 +10,7 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        No members are currently working in this organization.
+        No members are currently working in this config.
       </p>
     </div>
     <div v-else>

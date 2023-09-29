@@ -32,7 +32,7 @@
                 <span class="flex gap-2">
                   <span>Current members</span>
                   <el-tooltip
-                    content="Members that are currently a part of this organization."
+                    content="Members that are currently a part of this config."
                     placement="top"
                   >
                     <i class="ri-information-line" />
@@ -51,7 +51,7 @@
             >
               <app-activity-timeline
                 :entity-id="props.id"
-                entity-type="organization"
+                entity-type="config"
               />
             </el-tab-pane>
           </el-tabs>

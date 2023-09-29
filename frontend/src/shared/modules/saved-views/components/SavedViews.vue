@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-end justify-between mb-6 h-8">
-    <div class="tabs flex-grow">
+    <div class="tabs flex-grow " :class="{ 'is-shrink': hasChanged }">
       <el-tabs v-model="selectedTab" @tab-change="onTabChange($event)">
         <el-tab-pane
           :label="props.config.defaultView.label"
@@ -14,12 +14,41 @@
         />
       </el-tabs>
     </div>
-    <div v-if="hasChanged" class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px">
-      <el-button class="btn btn-brand btn-brand--transparent btn--md inset-y-0" @click="reset()">
+    <div class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
+      <el-button v-if="hasChanged" class="btn btn-brand btn-brand--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
         Reset view
       </el-button>
+      <el-dropdown placement="bottom-end">
+        <el-button v-if="hasChanged" class="btn btn-brand btn-brand--transparent btn--sm !h-8 !leading-5 mr-2">
+          Save as...
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-item>
+            <div class="w-40">
+              <i class="ri-loop-left-line text-gray-400 text-base mr-2" />Update view
+            </div>
+          </el-dropdown-item>
+          <el-dropdown-item>
+            <div class="w-40">
+              <i class="ri-add-line text-gray-400 text-base mr-2" />Create new view
+            </div>
+          </el-dropdown-item>
+        </template>
+      </el-dropdown>
+
+      <el-tooltip content="Add view" placement="top">
+        <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0 mr-2" @click="isFormOpen = true">
+          <i class="ri-add-line text-lg text-gray-400 h-5 flex items-center" />
+        </el-button>
+      </el-tooltip>
+      <el-tooltip content="Manage views" placement="top">
+        <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0">
+          <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
+        </el-button>
+      </el-tooltip>
     </div>
   </div>
+  <cr-saved-views-form v-model="isFormOpen" :config="props.config" :filters="props.filters" />
 </template>
 
 <script setup lang="ts">
@@ -27,17 +56,21 @@ import {
   computed,
   defineProps, ref, watch,
 } from 'vue';
-import { Filter } from '@/shared/modules/filters/types/FilterConfig';
+import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { isEqual } from 'lodash';
+import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
 
 const props = defineProps<{
   modelValue: Filter,
   config: SavedViewsConfig,
-  views: SavedView[]
+  views: SavedView[],
+  filters: Record<string, FilterConfig>
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: Filter)}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
+
+const isFormOpen = ref<boolean>(false);
 
 const filters = computed<Filter>({
   get() {
@@ -115,6 +148,10 @@ export default {
 
 <style lang="scss" scoped>
 .tabs {
-  width: calc(100% - 100px)
+  width: calc(100% - 72px);
+
+  &.is-shrink{
+    width: calc(100% - 262px);
+  }
 }
 </style>

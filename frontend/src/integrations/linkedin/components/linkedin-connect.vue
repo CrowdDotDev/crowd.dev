@@ -65,7 +65,7 @@ const upgradePlan = () => {
 const drawerVisible = ref(false);
 const isLinkedinEnabled = ref(false);
 
-// Only render linkedin drawer and settings button, if integration has settings and more than 1 organization
+// Only render linkedin drawer and settings button, if integration has settings and more than 1 config
 const hasSettings = computed(
   () => !!props.integration.settings
     && props.integration.settings.organizations.length > 1,

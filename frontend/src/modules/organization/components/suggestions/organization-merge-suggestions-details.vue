@@ -29,7 +29,7 @@
           v-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
-          Primary organization
+          Primary config
         </div>
         <button
           v-else
@@ -97,7 +97,7 @@
             target="_blank"
             rel="noopener noreferrer"
             class="text-xs text-gray-900 text-right"
-          >{{ props.organization.website || '-' }}</a>
+          >{{ props.config.website || '-' }}</a>
         </article>
         <article
           v-if="
@@ -110,7 +110,7 @@
             Location
           </p>
           <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.location || '-' }}
+            {{ props.config.location || '-' }}
           </p>
         </article>
         <article
@@ -124,7 +124,7 @@
             Number of employees
           </p>
           <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.employees || '-' }}
+            {{ props.config.employees || '-' }}
           </p>
         </article>
         <article
@@ -139,7 +139,7 @@
           </p>
           <p class="text-xs text-gray-900 text-right">
             {{ revenueRange.displayValue(
-              props.organization.revenueRange,
+              props.config.revenueRange,
             ) || '-' }}
           </p>
         </article>
@@ -154,7 +154,7 @@
             Industry
           </p>
           <p class="text-xs text-gray-900 text-right first-letter:uppercase">
-            {{ props.organization.industry || '-' }}
+            {{ props.config.industry || '-' }}
           </p>
         </article>
         <article
@@ -168,7 +168,7 @@
             Industry
           </p>
           <p class="text-xs text-gray-900 text-right first-letter:uppercase">
-            {{ props.organization.type || '-' }}
+            {{ props.config.type || '-' }}
           </p>
         </article>
         <article
@@ -182,7 +182,7 @@
             Industry
           </p>
           <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.founded || '-' }}
+            {{ props.config.founded || '-' }}
           </p>
         </article>
         <article
@@ -196,7 +196,7 @@
             Joined date
           </p>
           <p class="text-xs text-gray-900 text-right">
-            {{ formatDateToTimeAgo(props.organization.joinedAt) || '-' }}
+            {{ formatDateToTimeAgo(props.config.joinedAt) || '-' }}
           </p>
         </article>
         <article
@@ -210,7 +210,7 @@
             # of members
           </p>
           <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.memberCount || '-' }}
+            {{ props.config.memberCount || '-' }}
           </p>
         </article>
         <article
@@ -224,7 +224,7 @@
             # of Activities
           </p>
           <p class="text-xs text-gray-900 text-right">
-            {{ props.organization.activityCount || '-' }}
+            {{ props.config.activityCount || '-' }}
           </p>
         </article>
       </div>
@@ -242,7 +242,7 @@
             <div class="flex gap-3 items-center">
               <app-platform :platform="identity.platform" />
               <span class="text-xs">
-                {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
+                {{ getPlatformDetails(identity.platform)?.config.handle(identity)
                   ?? getPlatformDetails(identity.platform)?.name
                   ?? identity.platform }}</span>
             </div>

@@ -30,7 +30,7 @@ export const plans = {
       features: [
         'Eagle Eye',
         '1,000 member enrichments per month (manual)',
-        '200 organization enrichments per month (automated)',
+        '200 config enrichments per month (automated)',
         '10 active workflows & CSV exports per month',
         'Slack connect support',
         'LinkedIn integration',
@@ -47,7 +47,7 @@ export const plans = {
       features: [
         'Activity categorization & topic analysis',
         'Integrations with CRMs & CDPs',
-        'Unlimited member & organization enrichment (automated)',
+        'Unlimited member & config enrichment (automated)',
         'Unlimited active workflows & CSV exports per month',
         'Dedicated community expert',
       ],

@@ -6,15 +6,15 @@ import mostEngaged from './views/most-engaged';
 import influential from './views/influential';
 import teamMembers from './views/team-members';
 
-import bot from './settings/bot';
-import teamMember from './settings/teamMember';
-import organization from './settings/organization';
+import bot from './settings/bot/config';
+import teamMember from './settings/teamMember/config';
+import organization from './settings/organization/config';
 
 export const memberSavedViews: SavedViewsConfig = {
   defaultView: allMembers,
   settings: {
-    bot,
     teamMember,
+    bot,
     organization,
   },
 };

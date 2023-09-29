@@ -125,14 +125,14 @@ export default {
             vertical: true,
             type: 'custom',
             icon: '<img src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="h-8 w-8" alt="slack logo" />',
-            title: `<span class="flex items-start gap-1">Connect Slack bot 
+            title: `<span class="flex items-start gap-1">Connect Slack config
               <span class="text-brand-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
             titleClass: 'text-lg',
             message: `
-            <img src="/images/integrations/slack-bot.png" class="mb-6" alt="slack bot installation" />
-            To fetch data from Slack, you need to install the crowd.dev Slack bot and add it to all channels you want to track. <br><br>
-            You can either add the Slack bot directly from a channel, or add the app via channel Integrations.`,
-            confirmButtonText: 'How to connect Slack bot',
+            <img src="/images/integrations/slack-config.png" class="mb-6" alt="slack config installation" />
+            To fetch data from Slack, you need to install the crowd.dev Slack config and add it to all channels you want to track. <br><br>
+            You can either add the Slack config directly from a channel, or add the app via channel Integrations.`,
+            confirmButtonText: 'How to connect Slack config',
             showCancelButton: false,
             messageClass: 'text-xs !leading-5 !mt-1 text-gray-600',
             verticalCustomClass: 'custom-slack-message-box',

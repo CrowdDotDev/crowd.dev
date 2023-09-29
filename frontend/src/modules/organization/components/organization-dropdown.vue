@@ -25,10 +25,10 @@
         >
           <i class="ri-pencil-line text-base mr-2" /><span
             class="text-xs"
-          >Edit organization</span>
+          >Edit config</span>
         </el-dropdown-item>
 
-        <!-- Merge organization -->
+        <!-- Merge config -->
         <el-dropdown-item
           class="h-10"
           :command="{
@@ -39,7 +39,7 @@
         >
           <i class="ri-shuffle-line text-base mr-2" /><span
             class="text-xs"
-          >Merge organization</span>
+          >Merge config</span>
         </el-dropdown-item>
 
         <!-- Hubspot -->
@@ -85,7 +85,7 @@
         >
           <i
             class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs">Mark as team organization</span>
+          /><span class="text-xs">Mark as team config</span>
         </el-dropdown-item>
 
         <!-- Unmark as Team Organization -->
@@ -101,7 +101,7 @@
         >
           <i
             class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs">Unmark as team organization</span>
+          /><span class="text-xs">Unmark as team config</span>
         </el-dropdown-item>
 
         <el-divider class="border-gray-200 my-2" />
@@ -125,7 +125,7 @@
             :class="{
               'text-red-500': !isDeleteLockedForSampleData,
             }"
-          >Delete organization</span>
+          >Delete config</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -190,7 +190,7 @@ const isDeleteLockedForSampleData = computed(
   ).destroyLockedForSampleData,
 );
 
-const isSyncingWithHubspot = (organization) => organization.attributes?.syncRemote?.hubspot || false;
+const isSyncingWithHubspot = (config) => organization.attributes?.syncRemote?.hubspot || false;
 
 const isHubspotConnected = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
@@ -202,7 +202,7 @@ const doDestroyWithConfirm = async (id) => {
   try {
     await ConfirmDialog({
       type: 'danger',
-      title: 'Delete organization',
+      title: 'Delete config',
       message:
         "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
@@ -213,7 +213,7 @@ const doDestroyWithConfirm = async (id) => {
     await OrganizationService.destroyAll([id]);
 
     Message.success(
-      i18n('entities.organization.destroy.success'),
+      i18n('entities.config.destroy.success'),
     );
     await fetchOrganizations({
       reload: true,

@@ -39,7 +39,7 @@
           :filter-value="attribute.filterValue"
         />
         <div v-else class="mt-1 text-gray-900 text-xs">
-          {{ attribute.displayValue(organization[attribute.name]) }}
+          {{ attribute.displayValue(config[attribute.name]) }}
         </div>
       </div>
     </div>

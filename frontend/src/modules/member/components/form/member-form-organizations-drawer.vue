@@ -6,7 +6,7 @@
   >
     <template #content>
       <div class="border-t border-gray-200 p-6 -mx-6 -mt-5">
-        <article v-for="(organization, oi) in organizations" :key="organization.id" class="flex items-center justify-between w-full pb-5">
+        <article v-for="(config, oi) in organizations" :key="organization.id" class="flex items-center justify-between w-full pb-5">
           <div class="flex">
             <div class="h-6 w-6 border border-gray-200 rounded flex items-center justify-center mr-2.5">
               <app-avatar
@@ -19,21 +19,21 @@
             </div>
             <div>
               <h6 class="text-xs leading-5 font-medium">
-                {{ organization.displayName || organization.name }}
+                {{ config.displayName || config.name }}
               </h6>
               <p class="text-2xs leading-5 text-gray-500">
-                <span v-if="organization.memberOrganizations.title">{{ organization.memberOrganizations.title }}</span>
+                <span v-if="organization.memberOrganizations.title">{{ config.memberOrganizations.title }}</span>
                 <span v-if="organization.memberOrganizations.title" class="mx-1">•</span>
                 <span>
-                  {{ organization.memberOrganizations.dateStart
-                    ? moment(organization.memberOrganizations.dateStart).utc().format('MMMM YYYY')
+                  {{ config.memberOrganizations.dateStart
+                    ? moment(config.memberOrganizations.dateStart).utc().format('MMMM YYYY')
                     : 'Unknown' }}
                 </span>
                 <span class="mx-1 whitespace-nowrap">-></span>
                 <span>
-                  {{ organization.memberOrganizations.dateEnd
-                    ? moment(organization.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
-                    : organization.memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
+                  {{ config.memberOrganizations.dateEnd
+                    ? moment(config.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+                    : config.memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
                 </span>
               </p>
             </div>
@@ -50,7 +50,7 @@
         </article>
         <div class="flex justify-start pt-5">
           <el-button class="btn btn-link btn-link--primary" @click="isOrganizationFormModalOpen = true">
-            + Add organization
+            + Add config
           </el-button>
         </div>
       </div>
@@ -130,13 +130,13 @@ const edit = (organizationIndex: number) => {
   isOrganizationFormModalOpen.value = true;
 };
 
-const update = (organization: Organization) => {
+const update = (config: Organization) => {
   organizations.value[editOrganization.value] = organization;
   editOrganization.value = null;
   save();
 };
 
-const add = (organization: Organization) => {
+const add = (config: Organization) => {
   organizations.value.push(organization);
   save();
 };

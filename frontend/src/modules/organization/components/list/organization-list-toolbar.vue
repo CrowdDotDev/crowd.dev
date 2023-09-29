@@ -5,7 +5,7 @@
   >
     <span class="block text-sm font-semibold mr-4">
       {{
-        pluralize('organization', selectedOrganizations.length, true)
+        pluralize('config', selectedOrganizations.length, true)
       }}
       selected
     </span>

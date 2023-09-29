@@ -55,6 +55,7 @@
         v-model="filters"
         :config="memberSavedViews"
         :views="memberViews"
+        :filters="memberFilters"
         @update:model-value="memberFilter.alignFilterList($event)"
       />
       <cr-filter

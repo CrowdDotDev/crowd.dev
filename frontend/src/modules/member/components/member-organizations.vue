@@ -116,13 +116,13 @@ const props = defineProps({
 const activeOrganization = computed(() => {
   const { organizations } = props.member;
 
-  // No active organization
+  // No active config
   if (!organizations?.length) {
     return null;
   }
 
-  // Only one organization that doesn't have either start or end date
-  // We assume it's the active organization
+  // Only one config that doesn't have either start or end date
+  // We assume it's the active config
   if (organizations.length === 1
     && !organizations[0].memberOrganizations?.dateStart
     && !organizations[0].memberOrganizations?.dateEnd) {
@@ -133,7 +133,7 @@ const activeOrganization = computed(() => {
   const completeOrganizations = organizations
     .filter((organization) => !!organization.memberOrganizations?.dateStart && !organization.memberOrganizations?.dateEnd);
 
-  // Return the most recent organization, comparing the startDate
+  // Return the most recent config, comparing the startDate
   return completeOrganizations.reduce((mostRecent, organization) => {
     const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
     const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);

@@ -24,7 +24,7 @@
               :src="activity.organization.logo"
               :alt="`${activity.organization.displayName} logo`"
             />
-            <span class="text-gray-900 group-hover:text-brand-500 transition">{{ activity.organization.displayName }}</span>
+            <span class="text-gray-900 group-hover:text-brand-500 transition">{{ activity.config.displayName }}</span>
           </div>
         </router-link>
       </div>

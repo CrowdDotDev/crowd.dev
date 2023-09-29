@@ -28,13 +28,13 @@
         <h6
           class="text-xs leading-5 font-medium text-gray-900 hover:text-brand-500 transition"
         >
-          {{ organization.displayName || organization.name }}
+          {{ config.displayName || config.name }}
         </h6>
       </div>
       <div>
         <p class="text-2xs leading-4.5 !text-gray-400">
-          {{ organization.memberCount }} member{{
-            organization.memberCount > 1 ? 's' : ''
+          {{ config.memberCount }} member{{
+            config.memberCount > 1 ? 's' : ''
           }}
         </p>
       </div>

@@ -358,7 +358,7 @@ export default {
 
     async doDiscordConnect({ commit }, { guildId }) {
       // Function to connect to Discord. We just need to store the
-      // guildId to be able to match bot events to users.
+      // guildId to be able to match config events to users.
       try {
         commit('CREATE_STARTED');
 

@@ -32,7 +32,7 @@ export interface OrganizationEnrichmentConfig {
   showInForm: boolean; // Display in Organization Form
   showInAttributes: boolean; // Display in Organization Profile
   isLink?: boolean; // If attribute is a url
-  component?: any; // Component that will render attribute in organization profile
+  component?: any; // Component that will render attribute in config profile
   displayValue?: (value: any) => string; // Formatter for displaying attribute value
   keyParser?: (key: string) => string; // Formatter for keys of jsons if attribute is json
   valueParser?: (value: any) => string; // Formatter for values of jsons if attribute is json

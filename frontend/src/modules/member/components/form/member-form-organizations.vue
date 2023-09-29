@@ -5,7 +5,7 @@
       <p class="text-gray-500 text-2xs leading-normal mt-1">
         Organizations’ data is automatically obtained via enrichement (work experience).<br>
         <br>
-        The organization period will define each activity affiliation.
+        The config period will define each activity affiliation.
       </p>
     </div>
     <div
@@ -26,7 +26,7 @@
         <div class="w-18" />
       </div>
 
-      <div v-for="(organization, oi) in organizations" :key="organization.id" class="flex gap-3 border-b h-8 items-center min-h-17">
+      <div v-for="(config, oi) in organizations" :key="organization.id" class="flex gap-3 border-b h-8 items-center min-h-17">
         <div class="flex items-center w-full">
           <div class="w-1/3 flex items-center">
             <app-avatar
@@ -38,26 +38,26 @@
               class="mr-2"
             />
             <p class="text-xs leading-5 pl-2">
-              {{ organization.displayName || organization.name }}
+              {{ config.displayName || config.name }}
             </p>
           </div>
           <div class="w-1/3">
             <p class="text-xs leading-5 pl-2">
-              {{ organization.memberOrganizations.title }}
+              {{ config.memberOrganizations.title }}
             </p>
           </div>
           <div class="w-1/3">
             <p class="text-xs leading-5 pl-2">
               <span>
-                {{ organization.memberOrganizations.dateStart
-                  ? moment(organization.memberOrganizations.dateStart).utc().format('MMMM YYYY')
+                {{ config.memberOrganizations.dateStart
+                  ? moment(config.memberOrganizations.dateStart).utc().format('MMMM YYYY')
                   : 'Unknown' }}
               </span>
               <span class="mx-1 whitespace-nowrap">-></span>
               <span>
-                {{ organization.memberOrganizations.dateEnd
-                  ? moment(organization.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
-                  : organization.memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
+                {{ config.memberOrganizations.dateEnd
+                  ? moment(config.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+                  : config.memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
               </span>
             </p>
           </div>
@@ -74,7 +74,7 @@
 
       <div class="flex justify-start">
         <el-button class="btn btn-link btn-link--primary mt-5" @click="isOrganizationFormModalOpen = true">
-          + Add organization
+          + Add config
         </el-button>
       </div>
     </div>
@@ -124,7 +124,7 @@ const edit = (organizationIndex: number) => {
   isOrganizationFormModalOpen.value = true;
 };
 
-const update = (organization: Organization) => {
+const update = (config: Organization) => {
   organizations.value[editOrganization.value] = organization;
   editOrganization.value = null;
 };

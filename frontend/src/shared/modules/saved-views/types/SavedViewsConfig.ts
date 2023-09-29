@@ -7,10 +7,11 @@ export interface SavedView {
 }
 
 export interface SavedViewsSetting<T> {
-  component?: any;
   defaultValue: T,
   queryUrlParser: (value: string) => T;
   apiFilterRenderer: (value: T) => any[];
+  inSettings: boolean;
+  settingsComponent?: any;
 }
 
 export interface SavedViewsConfig {
