@@ -199,11 +199,6 @@ export default class IntegrationStreamService extends LoggerBase {
         webhookInfo.tenantId,
       )
 
-      if (!streamId) {
-        this.log.error({ webhookId }, 'Could not create webhook stream!')
-        return false
-      }
-
       this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
     } else {
       this.log.debug({ webhookId, streamId }, 'Found existing webhook stream, using it!')
