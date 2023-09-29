@@ -38,7 +38,11 @@ export class OrganizationSyncService extends LoggerBase {
   ): Promise<void> {
     const integration = await this.integrationRepo.findById(integrationId)
 
-    const organization = await this.organizationRepo.findOrganization(organizationId, tenantId)
+    const organization = await this.organizationRepo.findOrganization(
+      organizationId,
+      tenantId,
+      integration.segmentId,
+    )
 
     const syncRemote = await this.organizationRepo.findSyncRemoteById(syncRemoteId)
 
@@ -132,6 +136,7 @@ export class OrganizationSyncService extends LoggerBase {
         const organization = await this.organizationRepo.findOrganization(
           organizationToSync.organizationId,
           tenantId,
+          integration.segmentId,
         )
 
         if (organizationToSync.sourceId) {
@@ -255,6 +260,7 @@ export class OrganizationSyncService extends LoggerBase {
           const organization = await this.organizationRepo.findOrganization(
             organizationToSync.id,
             tenantId,
+            integration.segmentId,
           )
 
           if (syncRemote.sourceId) {
