@@ -177,7 +177,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!webhookInfo) {
       this.log.error({ webhookId }, 'Webhook not found!')
-      return
+      return false
     }
 
     let streamId: string | undefined
@@ -199,11 +199,6 @@ export default class IntegrationStreamService extends LoggerBase {
         webhookInfo.tenantId,
       )
 
-      if (!streamId) {
-        this.log.error({ webhookId }, 'Could not create webhook stream!')
-        return
-      }
-
       this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
     } else {
       this.log.debug({ webhookId, streamId }, 'Found existing webhook stream, using it!')
@@ -214,20 +209,19 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ webhookStreamId: streamId }, 'Webhook stream not found!')
-      return
+      return false
     }
 
     if (streamInfo.runId) {
       this.log.warn({ streamId }, 'Stream is a regular stream! Processing as such!')
-      await this.processStream(streamId)
-      return
+      return await this.processStream(streamId)
     }
 
     if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
       this.log.warn('Integration is not correctly connected! Deleting the stream and webhook!')
       await this.repo.deleteStream(streamId)
       await this.webhookRepo.deleteWebhook(webhookId)
-      return
+      return false
     }
 
     this.log = getChildLogger('webhook-stream-processor', this.log, {
@@ -251,7 +245,7 @@ export default class IntegrationStreamService extends LoggerBase {
           type: streamInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     if (!integrationService.processWebhookStream) {
@@ -267,7 +261,7 @@ export default class IntegrationStreamService extends LoggerBase {
           type: streamInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     const cache = new RedisCache(
@@ -389,30 +383,29 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ streamId }, 'Stream not found!')
-      return
+      return false
     }
 
     if (streamInfo.webhookId) {
       this.log.warn({ streamId }, 'Stream is a webhook stream! Processing as such!')
-      await this.processWebhookStream(streamInfo.webhookId)
-      return
+      return await this.processWebhookStream(streamInfo.webhookId)
     }
 
     if (streamInfo.runState === IntegrationRunState.DELAYED) {
       this.log.warn('Run is delayed! Skipping stream processing!')
-      return
+      return false
     }
 
     if (streamInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
       this.log.warn('Integration was deleted! Skipping stream processing! Deleting the stream!')
       await this.repo.deleteStream(streamId)
-      return
+      return false
     }
 
     if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
       this.log.warn('Integration is not correctly connected! Deleting the stream!')
       await this.repo.deleteStream(streamId)
-      return
+      return false
     }
 
     this.log = getChildLogger('stream-processor', this.log, {
@@ -438,7 +431,7 @@ export default class IntegrationStreamService extends LoggerBase {
           type: streamInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     const cache = new RedisCache(
