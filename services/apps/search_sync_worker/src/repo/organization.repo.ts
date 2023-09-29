@@ -17,6 +17,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             FROM "organizationSegments"
             WHERE "organizationId" IN ($(ids:csv))
         ),
+        activities_1 AS (
+            SELECT
+                a.id,
+                a."segmentId",
+                a."organizationId",
+                a."memberId",
+                a.timestamp,
+                a.platform::TEXT
+            FROM mv_activities_cube a
+            JOIN members m ON a."memberId" = m.id
+                AND m."deletedAt" IS NULL
+            JOIN "memberOrganizations" mo ON m.id = mo."memberId"
+                AND a."organizationId" = mo."organizationId"
+                AND mo."deletedAt" IS NULL
+                AND mo."dateEnd" IS NULL
+            WHERE a."organizationId" IN ($(ids:csv))
+        ),
         member_data AS (
             SELECT
                 os."segmentId",
@@ -31,15 +48,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                 max(a.timestamp) AS "lastActive",
                 min(a.timestamp) FILTER (WHERE a.timestamp <> '1970-01-01T00:00:00.000Z') AS "joinedAt"
             FROM organization_segments os
-            LEFT JOIN activities a ON a."organizationId" = os."organizationId"
-                AND a."segmentId" = os."segmentId"
-                AND a."deletedAt" IS NULL
-            JOIN members m ON a."memberId" = m.id
-                AND m."deletedAt" IS NULL
-            JOIN "memberOrganizations" mo ON m.id = mo."memberId"
-                AND a."organizationId" = mo."organizationId"
-                AND mo."deletedAt" IS NULL
-                AND mo."dateEnd" IS NULL
+            LEFT JOIN activities_1 a ON a."organizationId" = os."organizationId"
+              AND a."segmentId" = os."segmentId"
             GROUP BY os."segmentId", os."organizationId"
         ),
         identities AS (
