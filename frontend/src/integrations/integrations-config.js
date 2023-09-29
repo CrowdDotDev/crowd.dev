@@ -99,7 +99,7 @@ class IntegrationsConfig {
     return {
       lfx,
       cvent,
-      tnc
+      tnc,
     };
   }
 }
