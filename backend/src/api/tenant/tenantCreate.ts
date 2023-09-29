@@ -16,7 +16,7 @@ export default async (req, res) => {
     {
       id: payload.id,
       name: payload.name,
-      onboard: !!payload.onboard
+      onboard: !!payload.onboard,
     },
     { ...req },
   )

@@ -28,6 +28,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable */ 
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
