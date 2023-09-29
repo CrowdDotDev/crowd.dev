@@ -18,7 +18,7 @@ import n8n from './n8n';
 import lfx from './custom/lfx';
 import groupsio from './groupsio';
 import cvent from './custom/cvent';
-import tnc from './custom/tnc'
+import tnc from './custom/tnc';
 
 class IntegrationsConfig {
   get integrations() {
