@@ -84,6 +84,13 @@ export class InitService extends LoggerBase {
           name: 'fakeorg',
         },
       ],
+      weakIdentities: [
+        {
+          name: 'fakeWeakIdentity',
+          platform: 'github',
+          url: 'https://fakeUrl.com',
+        },
+      ],
       manuallyCreated: false,
       immediateParent: 'Fake parent',
       ultimateParent: 'Fake ultimate parent',

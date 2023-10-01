@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import lodash, { chunk } from 'lodash'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
 import {
@@ -6,6 +6,7 @@ import {
   IMemberOrganization,
   IOrganization,
   IOrganizationIdentity,
+  IOrganizationMergeSuggestion,
   OpenSearchIndex,
   SyncStatus,
 } from '@crowd/types'
@@ -756,6 +757,73 @@ class OrganizationRepository {
     }
   }
 
+  static async addToMerge(
+    suggestions: IOrganizationMergeSuggestion[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    // Remove possible duplicates
+    suggestions = lodash.uniqWith(suggestions, (a, b) =>
+      lodash.isEqual(lodash.sortBy(a.organizations), lodash.sortBy(b.organizations)),
+    )
+
+    // Process suggestions in chunks of 100 or less
+    const suggestionChunks:IOrganizationMergeSuggestion[][] = chunk(suggestions, 100)
+
+    const insertValues = (
+      organizationId: string,
+      toMergeId: string,
+      similarity: number | null,
+      index: number,
+    ) => {
+      const idPlaceholder = (key: string) => `${key}${index}`
+      return {
+        query: `(:${idPlaceholder('organizationId')}, :${idPlaceholder('toMergeId')}, :${idPlaceholder(
+          'similarity',
+        )}, NOW(), NOW())`,
+        replacements: {
+          [idPlaceholder('organizationId')]: organizationId,
+          [idPlaceholder('toMergeId')]: toMergeId,
+          [idPlaceholder('similarity')]: similarity === null ? null : similarity,
+        },
+      }
+    }
+
+    for (const suggestionChunk of suggestionChunks) {
+      const placeholders: string[] = []
+      let replacements: Record<string, unknown> = {}
+
+      suggestionChunk.forEach((suggestion, index) => {
+        const { query, replacements: chunkReplacements } = insertValues(
+          suggestion.organizations[0],
+          suggestion.organizations[1],
+          suggestion.similarity,
+          index,
+        )
+        placeholders.push(query)
+        replacements = { ...replacements, ...chunkReplacements }
+      })
+
+      const query = `
+        INSERT INTO "organizationToMerge" ("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
+        VALUES ${placeholders.join(', ')}
+        on conflict do nothing;
+      `
+      try {
+        await seq.query(query, {
+          replacements,
+          type: QueryTypes.INSERT,
+          transaction,
+        })
+      } catch (error) {
+        options.log.error('error adding organizations to merge', error)
+        throw error
+      }
+    }
+  }
+
   static async findMembersBelongToBothOrganizations(
     organizationId1: string,
     organizationId2: string,
@@ -823,14 +891,14 @@ class OrganizationRepository {
     })
   }
 
-  static async getMergeSuggestions(
-    numberOfHours: number,
+  static async* getMergeSuggestions(
     options: IRepositoryOptions,
-  ) {
+  ): AsyncGenerator<IOrganizationMergeSuggestion[], void, undefined> {
     const BATCH_SIZE = 100
 
-    console.log("opts:")
-    console.log(options)
+    const YIELD_CHUNK_SIZE = 1
+
+    let yieldChunk: IOrganizationMergeSuggestion[] = []
 
     const fuzziness = (text: string): number => {
       if (text.length < 3){
@@ -841,20 +909,10 @@ class OrganizationRepository {
         return 1
       }
 
-      if (text.length >= 6 && text.length <= 10) {
-        return 2
-      }
-
-      return 3
+      return 2
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    console.log("TENANT: ")
-    console.log(tenant)
-
-
-    // const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
 
     const queryBody = {
       from: 0,
@@ -875,6 +933,9 @@ class OrganizationRepository {
       offset = organizations ? offset + BATCH_SIZE : 0
       queryBody.from = offset
 
+      console.log("current offset: ")
+      console.log(offset)
+
       organizations =
         (
           await options.opensearch.search({
@@ -893,6 +954,7 @@ class OrganizationRepository {
                   bool: {
                     should: [],
                     boost: 10,
+                    minimum_should_match: 1,
                   },
                 },
               },
@@ -904,12 +966,13 @@ class OrganizationRepository {
                   bool: {
                     should: [],
                     boost: 1,
+                    minimum_should_match: 1,
                   },
                 },
               },
             },
           ],
-          minimum_should_match: 1,
+          // minimum_should_match: 1,
           must_not: [
             {
               term: {
@@ -957,7 +1020,9 @@ class OrganizationRepository {
           _source: ['uuid_organizationId'],
         }
 
-        const organizationsWithSameIdentity: IOrganizationIdOpensearch[] =
+        console.log(sameOrganizationsQueryBody)
+
+        const organizationsToMerge: IOrganizationIdOpensearch[] =
           (
             await options.opensearch.search({
               index: OpenSearchIndex.ORGANIZATIONS,
@@ -965,15 +1030,31 @@ class OrganizationRepository {
             })
           ).body?.hits?.hits || []
 
-        for (const organizationToMerge of organizationsWithSameIdentity) {
+        for (const organizationToMerge of organizationsToMerge) {
           console.log(
             `ADD TO MERGE! MAIN: ${organization._source.uuid_organizationId} <-> ${organizationToMerge._source.uuid_organizationId}`,
           )
+          yieldChunk.push({
+            similarity: 50,
+            organizations: [organization._source.uuid_organizationId, organizationToMerge._source.uuid_organizationId]
+          })
+        }
+
+        if (yieldChunk.length >= YIELD_CHUNK_SIZE) {
+          yield yieldChunk
+          console.log("CHUNK YIELDED EMPTYING !")
+          yieldChunk = []
+          console.log("CURRENT OFFSET: ")
+          console.log(offset)
         }
       }
 
       // console.log(organizations)
     } while (organizations.length > 0)
+
+    if (yieldChunk.length > 0) {
+      yield yieldChunk
+    }
 
     // get org-identity pairs from opensearch
 

@@ -235,17 +235,30 @@ export default class OrganizationService extends LoggerBase {
 
   async getMergeSuggestions(
     type: OrganizationMergeSuggestionType,
-    numberOfHours: number = 1.2,
   ): Promise<IOrganizationMergeSuggestion[]> {
     // Adding a transaction so it will use the write database
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (type === OrganizationMergeSuggestionType.SAME_IDENTITY) {
-        await OrganizationRepository.getMergeSuggestions(numberOfHours, {
+
+        let mergeSuggestions
+
+        const generator = OrganizationRepository.getMergeSuggestions({
           ...this.options,
           transaction,
         })
+        do {
+
+
+          mergeSuggestions = await generator.next()
+
+          console.log("MERGE SUGGS: ")
+          console.log(mergeSuggestions.value)
+
+          await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
+        } while(mergeSuggestions.value)
+
       }
       await SequelizeRepository.commitTransaction(transaction)
       return []
