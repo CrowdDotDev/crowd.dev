@@ -47,19 +47,23 @@ export class ConcurrentRequestLimiter implements IConcurrentRequestLimiter {
 
   public async checkConcurrentRequestLimit(integrationId: string, retries = 200, sleepTimeMs = 50) {
     const key = this.getRequestKey(integrationId)
-    const value = await this.cache.get(key)
-    const currentRequests = value === null ? 0 : parseInt(value)
-    const canMakeRequest = currentRequests < this.maxConcurrentRequests
+    let currentRequests: number
+    let canMakeRequest: boolean
 
-    if (!canMakeRequest) {
-      if (retries > 0) {
+    for (let i = 0; i < retries; i++) {
+      const value = await this.cache.get(key)
+      currentRequests = value === null ? 0 : parseInt(value)
+      canMakeRequest = currentRequests < this.maxConcurrentRequests
+
+      if (!canMakeRequest) {
         const randomizedSleepTime = sleepTimeMs + Math.floor(Math.random() * sleepTimeMs)
         await timeout(randomizedSleepTime)
-        return this.checkConcurrentRequestLimit(integrationId, retries - 1, sleepTimeMs)
       } else {
-        throw new Error(`Too many concurrent requests for integration ${integrationId}`)
+        return
       }
     }
+
+    throw new Error(`Too many concurrent requests for integration ${integrationId}`)
   }
 
   public async incrementConcurrentRequest(integrationId: string) {
