@@ -20,7 +20,11 @@ import getMember from './api/graphql/members'
 import { prepareMember } from './processStream'
 import TeamsQuery from './api/graphql/teams'
 import { GithubWebhookTeam } from './api/graphql/types'
-import { processPullCommitsStream, getGithubToken } from './processStream'
+import {
+  processPullCommitsStream,
+  getGithubToken,
+  getConcurrentRequestLimiter,
+} from './processStream'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
@@ -198,7 +202,10 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
     // a team sent as reviewer, first we need to find members in this team
     const team: GithubWebhookTeam = payload.requested_team
     const token = await getGithubToken(ctx as IProcessStreamContext)
-    const teamMembers = await new TeamsQuery(team.node_id, token).getSinglePage('')
+    const teamMembers = await new TeamsQuery(team.node_id, token).getSinglePage('', {
+      concurrentRequestLimiter: getConcurrentRequestLimiter(ctx as IProcessStreamContext),
+      integrationId: ctx.integration.id,
+    })
 
     for (const teamMember of teamMembers.data) {
       await parseWebhookPullRequestEvents({ ...payload, requested_reviewer: teamMember }, ctx)
