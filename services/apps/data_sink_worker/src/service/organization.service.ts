@@ -115,8 +115,14 @@ export class OrganizationService extends LoggerBase {
           }
         }
 
-        // now check if exists in this tenant using the primary identity
-        const existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
+        let existing
+
+        // now check if exists in this tenant using the website or primary identity
+        if (data.website) {
+          existing = await txRepo.findByDomain(tenantId, segmentId, data.website)
+        } else {
+          existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
+        }
 
         let attributes = existing?.attributes
 
