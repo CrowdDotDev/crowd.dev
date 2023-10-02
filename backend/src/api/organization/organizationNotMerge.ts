@@ -10,7 +10,7 @@ export default async (req, res) => {
     req.body.organizationToNotMerge,
   )
 
-  track('Ignore merge members', {}, { ...req })
+  track('Ignore merge organizations', {}, { ...req })
 
   await req.responseHandler.success(req, res, { status: 200 })
 }
