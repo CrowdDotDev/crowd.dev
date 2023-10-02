@@ -778,21 +778,19 @@ class OrganizationRepository {
     on conflict do nothing;
   `
 
-  try {
-    await seq.query(query, {
-      replacements: {
-        organizationId,
-        noMergeId,
-
-      },
-      type: QueryTypes.INSERT,
-      transaction,
-    })
-  } catch (error) {
-    options.log.error('Error adding organizations no merge!', error)
-    throw error
-  }
-
+    try {
+      await seq.query(query, {
+        replacements: {
+          organizationId,
+          noMergeId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    } catch (error) {
+      options.log.error('Error adding organizations no merge!', error)
+      throw error
+    }
   }
 
   static async removeToMerge(
@@ -808,21 +806,19 @@ class OrganizationRepository {
     where ("organizationId" = :organizationId and "toMergeId" = :toMergeId) or ("organizationId" = :toMergeId and "toMergeId" = :organizationId);
   `
 
-  try {
-    await seq.query(query, {
-      replacements: {
-        organizationId,
-        toMergeId,
-
-      },
-      type: QueryTypes.DELETE,
-      transaction,
-    })
-  } catch (error) {
-    options.log.error('Error while removing organizations to merge!', error)
-    throw error
-  }
-
+    try {
+      await seq.query(query, {
+        replacements: {
+          organizationId,
+          toMergeId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    } catch (error) {
+      options.log.error('Error while removing organizations to merge!', error)
+      throw error
+    }
   }
 
   static async addToMerge(
@@ -977,7 +973,7 @@ class OrganizationRepository {
         return (70 + Math.floor(Math.random() * 26) - 10) / 100
       }
 
-      return ((score - min) / (max - min))
+      return (score - min) / (max - min)
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -1070,7 +1066,6 @@ class OrganizationRepository {
           }
 
           for (const identity of organization._source.nested_identities) {
-            
             // weak identity search
             identitiesPartialQuery.should[0].nested.query.bool.should.push({
               bool: {
@@ -1098,22 +1093,21 @@ class OrganizationRepository {
             identitiesPartialQuery.should[1].nested.query.bool.should.push({
               wildcard: {
                 [`nested_identities.string_name`]: {
-                  value: `${identity.string_name}*`
+                  value: `${identity.string_name}*`,
                 },
               },
             })
 
             // also check for prefix of 5 if identity is longer then 5 characters
-            if (identity.string_name.length > 5 ) {
+            if (identity.string_name.length > 5) {
               identitiesPartialQuery.should[1].nested.query.bool.should.push({
                 prefix: {
                   [`nested_identities.string_name`]: {
-                    value: identity.string_name.slice(0, 5)
+                    value: identity.string_name.slice(0, 5),
                   },
                 },
               })
             }
-
           }
 
           for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
@@ -1173,13 +1167,11 @@ class OrganizationRepository {
           }
         }
       }
-
     } while (organizations.length > 0)
 
     if (yieldChunk.length > 0) {
       yield yieldChunk
     }
-
   }
 
   static async findOrganizationsWithMergeSuggestions(

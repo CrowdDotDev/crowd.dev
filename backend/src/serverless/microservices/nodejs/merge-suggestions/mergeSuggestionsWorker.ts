@@ -35,7 +35,6 @@ async function mergeSuggestionsWorker(tenantId): Promise<void> {
 
   const organizationService = new OrganizationService(userContext)
   await organizationService.generateMergeSuggestions(OrganizationMergeSuggestionType.BY_IDENTITY)
-
 }
 
 export { mergeSuggestionsWorker }

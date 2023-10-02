@@ -242,14 +242,11 @@ export default class OrganizationService extends LoggerBase {
     })
   }
 
-  async generateMergeSuggestions(
-    type: OrganizationMergeSuggestionType,
-  ): Promise<void> {
+  async generateMergeSuggestions(type: OrganizationMergeSuggestionType): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (type === OrganizationMergeSuggestionType.BY_IDENTITY) {
-
         let mergeSuggestions
 
         const generator = OrganizationRepository.getMergeSuggestions({
@@ -257,12 +254,10 @@ export default class OrganizationService extends LoggerBase {
           transaction,
         })
         do {
-
           mergeSuggestions = await generator.next()
 
           await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
-        } while(!mergeSuggestions.done)
-
+        } while (!mergeSuggestions.done)
       }
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
@@ -272,7 +267,7 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async addToNoMerge(organizationId:string, noMergeId: string): Promise<void> {
+  async addToNoMerge(organizationId: string, noMergeId: string): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
@@ -286,12 +281,10 @@ export default class OrganizationService extends LoggerBase {
         transaction,
       })
 
-
       await SequelizeRepository.commitTransaction(transaction)
 
       await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
       await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
-
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
@@ -476,7 +469,6 @@ export default class OrganizationService extends LoggerBase {
   async findOrganizationsWithMergeSuggestions(args) {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
-
 
   async update(id, data, passedTransaction?) {
     const transaction =
