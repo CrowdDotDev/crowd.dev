@@ -49,7 +49,8 @@ export class ConcurrentRequestLimiter implements IConcurrentRequestLimiter {
 
     if (!canMakeRequest) {
       if (retries > 0) {
-        await timeout(sleepTimeMs)
+        const randomizedSleepTime = sleepTimeMs + Math.floor(Math.random() * sleepTimeMs)
+        await timeout(randomizedSleepTime)
         return this.checkConcurrentRequestLimit(integrationId, retries - 1, sleepTimeMs)
       } else {
         throw new Error(`Too many concurrent requests for integration ${integrationId}`)
