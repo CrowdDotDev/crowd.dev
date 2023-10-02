@@ -74,17 +74,15 @@ const onBtnClick = () => {
   TenantService.create({
     name: tenantName.value,
     integrationsRequired: [],
-  }).then((tenant) => {
-    TenantService.update(tenant.id, {
-      onboardedAt: new Date(),
-    });
-
+  }).then((tenant) => TenantService.update(tenant.id, {
+    onboardedAt: new Date(),
+  }).then(() => {
     // Close add workspace modal
     emit('update:modelValue', false);
 
     // Select tenant in app
     store.dispatch('auth/doSelectTenant', { tenant });
-  }).finally(() => {
+  })).finally(() => {
     loading.value = false;
   });
 };
