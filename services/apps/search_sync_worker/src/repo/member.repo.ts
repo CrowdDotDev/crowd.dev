@@ -227,18 +227,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
             WHERE mo."memberId" IN ($(ids:csv))
               AND mo."deletedAt" IS NULL
               AND o."deletedAt" IS NULL
-              AND (EXISTS (
-                  SELECT 1
-                  FROM activities a
-                  WHERE a."memberId" = mo."memberId"
-                    AND a."organizationId" = mo."organizationId"
-                    AND a."segmentId" = os."segmentId"
-              ) OR EXISTS (
-                  SELECT 1
-                  FROM members
-                  WHERE id = mo."memberId"
-                    AND "manuallyCreated"
-              ))
             GROUP BY mo."memberId", os."segmentId"
         ),
         identities AS (
