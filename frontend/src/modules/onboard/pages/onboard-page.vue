@@ -124,15 +124,19 @@ onUnmounted(() => {
 });
 
 // If currentTenant, fetch integrations
-watch(currentTenant, (tenant) => {
+watch(currentTenant, (tenant, oldTenant) => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
+
+  if (tenant?.id === oldTenant?.id) {
+    return;
+  }
 
   if (tenant) {
     form.tenantName = tenant.name;
     store.dispatch('integration/doFetch');
 
-    if (code) { currentStep.value = 2; }
+    currentStep.value = 2;
   } else if (code) {
     router.replace({ query: {} });
   }

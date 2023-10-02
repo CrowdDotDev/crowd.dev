@@ -22,7 +22,9 @@ function isGoingToIntegrationsPage(to) {
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({ to, store, router }) {
+export default async function ({
+  to, from, store, router,
+}) {
   if (!to.meta || !to.meta.auth) {
     return;
   }
@@ -71,7 +73,8 @@ export default async function ({ to, store, router }) {
     )
     && !tenantSubdomain.isSubdomain
   ) {
-    if (to.path === '/onboard' && (!permissionChecker.isEmptyTenant && store.getters['auth/currentTenant'].onboardedAt)) {
+    if ((to.path === '/onboard' || (from.path !== '/onboard' && to.path === '/onboard/demo'))
+      && (!permissionChecker.isEmptyTenant && store.getters['auth/currentTenant'].onboardedAt)) {
       router.push('/');
     }
 
