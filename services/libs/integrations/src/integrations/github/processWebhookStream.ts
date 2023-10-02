@@ -203,7 +203,7 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
     const team: GithubWebhookTeam = payload.requested_team
     const token = await getGithubToken(ctx as IProcessStreamContext)
     const teamMembers = await new TeamsQuery(team.node_id, token).getSinglePage('', {
-      concurrentRequestLimiter: getConcurrentRequestLimiter(ctx as IProcessStreamContext),
+      concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
       integrationId: ctx.integration.id,
     })
 

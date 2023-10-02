@@ -1,10 +1,14 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 // processStream.ts content
 import { singleOrDefault, timeout } from '@crowd/common'
-import { GraphQlQueryResponse } from '@crowd/types'
+import { GraphQlQueryResponse, IConcurrentRequestLimiter } from '@crowd/types'
 import { createAppAuth } from '@octokit/auth-app'
 import { AuthInterface } from '@octokit/auth-app/dist-types/types'
-import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
+import {
+  IProcessStreamContext,
+  ProcessStreamHandler,
+  IProcessWebhookStreamContext,
+} from '../../types'
 import DiscussionCommentsQuery from './api/graphql/discussionComments'
 import DiscussionsQuery from './api/graphql/discussions'
 import ForksQuery from './api/graphql/forks'
@@ -36,12 +40,11 @@ import {
   Repo,
   Repos,
 } from './types'
-import { ConcurrentRequestLimiter } from '@crowd/redis'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
 let githubAuthenticator: AuthInterface | undefined = undefined
-let concurrentRequestLimiter: ConcurrentRequestLimiter | undefined = undefined
+let concurrentRequestLimiter: IConcurrentRequestLimiter | undefined = undefined
 
 function getAuth(ctx: IProcessStreamContext): AuthInterface | undefined {
   const GITHUB_CONFIG = ctx.platformSettings as GithubPlatformSettings
@@ -62,10 +65,11 @@ function getAuth(ctx: IProcessStreamContext): AuthInterface | undefined {
   return githubAuthenticator
 }
 
-export function getConcurrentRequestLimiter(ctx: IProcessStreamContext): ConcurrentRequestLimiter {
+export function getConcurrentRequestLimiter(
+  ctx: IProcessStreamContext | IProcessWebhookStreamContext,
+): IConcurrentRequestLimiter {
   if (concurrentRequestLimiter === undefined) {
-    concurrentRequestLimiter = new ConcurrentRequestLimiter(
-      ctx.cache,
+    concurrentRequestLimiter = ctx.getConcurrentRequestLimiter(
       2, // max 2 concurrent requests
       'github-concurrent-request-limiter',
     )
