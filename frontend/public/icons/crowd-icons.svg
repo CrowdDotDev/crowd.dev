@@ -79,6 +79,35 @@
             </defs>
         </svg>
     </symbol>
+    <symbol id="tnc">
+        <svg width="16" height="16" viewBox="0 0 225 225" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="45" height="45" fill="#9DD0CB"/>
+            <rect width="45" height="45" transform="translate(45)" fill="#9DD0CB"/>
+            <rect width="45" height="45" transform="translate(90)" fill="#9DD0CB"/>
+            <rect width="45" height="45" transform="translate(135)" fill="#9DD0CB"/>
+            <rect width="45" height="45" transform="translate(180)" fill="white"/>
+            <rect width="45" height="45" transform="translate(0 45)" fill="#9DD0CB"/>
+            <rect width="45" height="45" transform="translate(45 45)" fill="white"/>
+            <rect width="45" height="45" transform="translate(90 45)" fill="white"/>
+            <rect width="45" height="45" transform="translate(135 45)" fill="white"/>
+            <rect width="45" height="45" transform="translate(180 45)" fill="#A4BAC3"/>
+            <rect width="45" height="45" transform="translate(0 90)" fill="white"/>
+            <rect width="45" height="45" transform="translate(45 90)" fill="#E7D220"/>
+            <rect width="45" height="45" transform="translate(90 90)" fill="white"/>
+            <rect width="45" height="45" transform="translate(135 90)" fill="#E7D220"/>
+            <rect width="45" height="45" transform="translate(180 90)" fill="white"/>
+            <rect width="45" height="45" transform="translate(0 135)" fill="white"/>
+            <rect width="45" height="45" transform="translate(45 135)" fill="#E7D220"/>
+            <rect width="45" height="45" transform="translate(90 135)" fill="white"/>
+            <rect width="45" height="45" transform="translate(135 135)" fill="#E7D220"/>
+            <rect width="45" height="45" transform="translate(180 135)" fill="white"/>
+            <rect width="45" height="45" transform="translate(0 180)" fill="white"/>
+            <rect width="45" height="45" transform="translate(45 180)" fill="#E7D220"/>
+            <rect width="45" height="45" transform="translate(90 180)" fill="white"/>
+            <rect width="45" height="45" transform="translate(135 180)" fill="white"/>
+            <rect width="45" height="45" transform="translate(180 180)" fill="white"/>
+        </svg>
+    </symbol>
     <symbol id="config">
         <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <path
