@@ -6,7 +6,7 @@ import {
   IProcessWebhookStreamContext,
 } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient, RateLimiter } from '@crowd/redis'
+import { RedisCache, RedisClient, RateLimiter, ConcurrentRequestLimiter } from '@crowd/redis'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
@@ -349,6 +349,9 @@ export default class IntegrationStreamService extends LoggerBase {
       getRateLimiter: (maxRequests: number, timeWindowSeconds: number, counterKey: string) => {
         return new RateLimiter(globalCache, maxRequests, timeWindowSeconds, counterKey)
       },
+      getConcurrentRequestLimiter: (maxConcurrentRequests: number, counterKey: string) => {
+        return new ConcurrentRequestLimiter(globalCache, maxConcurrentRequests, counterKey)
+      },
     }
 
     this.log.debug('Processing webhook stream!')
@@ -519,6 +522,9 @@ export default class IntegrationStreamService extends LoggerBase {
       },
       getRateLimiter: (maxRequests: number, timeWindowSeconds: number, counterKey: string) => {
         return new RateLimiter(globalCache, maxRequests, timeWindowSeconds, counterKey)
+      },
+      getConcurrentRequestLimiter: (maxConcurrentRequests: number, counterKey: string) => {
+        return new ConcurrentRequestLimiter(globalCache, maxConcurrentRequests, counterKey)
       },
     }
 
