@@ -16,5 +16,6 @@ export interface SavedViewsSetting<T> {
 
 export interface SavedViewsConfig {
   defaultView: SavedView;
-  settings: Record<string, SavedViewsSetting<any>>
+  settings: Record<string, SavedViewsSetting<any>>,
+  sorting: Record<string, string> // Object with property and label for sorting
 }

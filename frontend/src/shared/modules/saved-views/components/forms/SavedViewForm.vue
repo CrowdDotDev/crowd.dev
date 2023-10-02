@@ -100,8 +100,40 @@
               Sorting
             </h6>
           </div>
-          <div />
+          <div class="flex items-center">
+            <div class="w-2/3">
+              <el-select v-model="form.sorting.prop" class="w-full sort-property-select">
+                <el-option
+                  v-for="(label, key) in props.config.sorting"
+                  :key="key"
+                  :value="key"
+                  :label="label"
+                />
+              </el-select>
+            </div>
+            <div class="w-1/3 -ml-px">
+              <el-select v-model="form.sorting.order" class="w-full sort-order-select">
+                <el-option value="ascending" label="Ascending" />
+                <el-option value="descending" label="Descending" />
+              </el-select>
+            </div>
+          </div>
         </section>
+      </div>
+    </template>
+    <template #footer>
+      <div style="flex: auto">
+        <el-button
+          class="btn btn--md btn--bordered mr-3"
+        >
+          Cancel
+        </el-button>
+        <el-button
+          type="primary"
+          class="btn btn--md btn--primary"
+        >
+          Add view
+        </el-button>
       </div>
     </template>
   </app-drawer>
@@ -154,8 +186,8 @@ const form = reactive({
   filters: {},
   settings: { ...settingsDefaultValue.value },
   sorting: {
-    property: '',
-    direction: 'asc',
+    prop: props.config.defaultView.filter.order.prop,
+    order: props.config.defaultView.filter.order.order,
   },
 });
 
@@ -200,3 +232,16 @@ export default {
   name: 'CrSavedViewsForm',
 };
 </script>
+
+<style lang="scss">
+.sort-property-select{
+  .el-input .el-input__wrapper, .el-input .el-textarea__inner{
+    @apply rounded-r-none;
+  }
+}
+.sort-order-select{
+  .el-input .el-input__wrapper, .el-input .el-textarea__inner{
+    @apply rounded-l-none;
+  }
+}
+</style>

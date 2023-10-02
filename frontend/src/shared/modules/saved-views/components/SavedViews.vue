@@ -7,7 +7,7 @@
           name=""
         />
         <el-tab-pane
-          v-for="view of props.views"
+          v-for="view of views"
           :key="view.id"
           :label="view.label"
           :name="view.id"
@@ -23,8 +23,8 @@
           Save as...
         </el-button>
         <template #dropdown>
-          <el-dropdown-item>
-            <div class="w-40">
+          <el-dropdown-item v-if="selectedTab.length > 0 && selectedTab !== props.config.defaultView.id">
+            <div class="w-40" @click="update()">
               <i class="ri-loop-left-line text-gray-400 text-base mr-2" />Update view
             </div>
           </el-dropdown-item>
@@ -41,11 +41,14 @@
           <i class="ri-add-line text-lg text-gray-400 h-5 flex items-center" />
         </el-button>
       </el-tooltip>
-      <el-tooltip content="Manage views" placement="top">
-        <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0">
-          <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
-        </el-button>
-      </el-tooltip>
+      <el-popover trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
+        <template #reference>
+          <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0">
+            <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
+          </el-button>
+        </template>
+        <cr-saved-views-management :config="props.config" :views="[]" />
+      </el-popover>
     </div>
   </div>
   <cr-saved-views-form v-model="isFormOpen" :config="props.config" :filters="props.filters" />
@@ -60,15 +63,20 @@ import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfi
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { isEqual } from 'lodash';
 import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { formatNumber } from '@/utils/number';
+import { router } from '@/router';
+import CrSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
 
 const props = defineProps<{
   modelValue: Filter,
   config: SavedViewsConfig,
-  views: SavedView[],
   filters: Record<string, FilterConfig>
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
+
+const views = ref<SavedView[]>([]);
 
 const isFormOpen = ref<boolean>(false);
 
@@ -85,7 +93,7 @@ const selectedTab = ref<string>('');
 
 const getView = (id: string): SavedView => {
   if (id.length > 0) {
-    const view = props.views.find((v) => v.id === id);
+    const view = views.value.find((v) => v.id === id);
     if (view) {
       return view;
     }
@@ -127,13 +135,28 @@ const reset = () => {
   };
 };
 
+// Update current view
+const update = () => {
+  ConfirmDialog({
+    type: 'danger',
+    title: 'Update shared view',
+    message:
+        'This view is shared with all workspace users, any changes will reflected in each user account.',
+    icon: 'ri-loop-left-line',
+    confirmButtonText: 'Update shared view',
+    showCancelButton: true,
+    cancelButtonText: 'Cancel',
+  } as any).then(() => {
+  });
+};
+
 // Change tab if filters match
 watch(() => props.modelValue, (filter: Filter) => {
   if (compareFilterToCurrentValues(props.config.defaultView.filter)) {
     selectedTab.value = '';
     return;
   }
-  const matchingView = props.views.find((view) => compareFilterToCurrentValues(view.filter));
+  const matchingView = views.value.find((view) => compareFilterToCurrentValues(view.filter));
   if (matchingView) {
     selectedTab.value = matchingView.id;
   }
