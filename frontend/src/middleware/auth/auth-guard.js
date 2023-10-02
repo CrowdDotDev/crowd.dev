@@ -73,6 +73,7 @@ export default async function ({
     )
     && !tenantSubdomain.isSubdomain
   ) {
+    // Protect onboard routes if user is already onboarded
     if ((to.path === '/onboard' || (from.path !== '/onboard' && to.path === '/onboard/demo'))
       && (!permissionChecker.isEmptyTenant && store.getters['auth/currentTenant'].onboardedAt)) {
       router.push('/');
