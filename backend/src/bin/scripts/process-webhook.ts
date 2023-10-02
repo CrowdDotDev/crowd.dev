@@ -1,17 +1,13 @@
+import { getServiceLogger } from '@crowd/logging'
+import { getRedisClient } from '@crowd/redis'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { getServiceLogger } from '@crowd/logging'
-import { timeout } from '@crowd/common'
+import { QueryTypes } from 'sequelize'
+import { IntegrationProcessor } from '@/serverless/integrations/services/integrationProcessor'
+import { REDIS_CONFIG } from '../../conf'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
-import { WebhookState, WebhookType } from '../../types/webhooks'
-import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
-import { sqs, getCurrentQueueSize } from '../../services/aws'
-import { WebhookProcessor } from '../../serverless/integrations/services/webhookProcessor'
-import { SQS_CONFIG } from '../../conf'
 
 /* eslint-disable no-console */
 
@@ -29,20 +25,19 @@ const options = [
       'The unique ID of webhook that you would like to process. Use comma delimiter when sending multiple webhooks.',
   },
   {
-    name: 'force',
-    alias: 'f',
-    typeLabel: '{underline force}',
-    type: Boolean,
-    defaultOption: false,
-    description: 'Force processing of webhooks.',
+    name: 'tenant',
+    alias: 't',
+    typeLabel: '{underline tenantId}',
+    type: String,
+    description:
+      'The unique ID of tenant that you would like to process. Use in combination with type.',
   },
   {
-    name: 'processPlatformErrors',
+    name: 'type',
     alias: 'p',
-    typeLabel: '{underline processPlatformErrors}',
+    typeLabel: '{underline type}',
     type: String,
-    defaultOption: false,
-    description: `Retry error state webhooks in specified platform. Currently supported: ['github', 'discord'].`,
+    description: 'The webhook type to process. Use in combination with tenant.',
   },
   {
     name: 'help',
@@ -69,96 +64,69 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || (!parameters.webhook && !parameters.processPlatformErrors)) {
+if (parameters.help || (!parameters.webhook && (!parameters.tenant || !parameters.type))) {
   console.log(usage)
 } else {
   setImmediate(async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-    const repo = new IncomingWebhookRepository(options)
-    let currentPage = 1
-    const PROCESS_QUEUE_THRESHOLD = 100
-    const PAGE_SIZE = 1000
+    const redisEmitter = await getRedisClient(REDIS_CONFIG)
+    const integrationProcessorInstance = new IntegrationProcessor(options, redisEmitter)
 
-    if (parameters.processPlatformErrors) {
-      let webhookType: WebhookType
-
-      if (parameters.processPlatformErrors === 'github') {
-        webhookType = WebhookType.GITHUB
-      } else if (parameters.processPlatformErrors === 'discord') {
-        webhookType = WebhookType.DISCORD
-      } else {
-        console.log(usage)
-        process.exit(0)
-      }
-
-      log.debug('Processing error state webhooks!')
-      let webhooks = await repo.findError(
-        currentPage,
-        PAGE_SIZE,
-        WebhookProcessor.MAX_RETRY_LIMIT,
-        webhookType,
-      )
-
-      log.info(webhooks.map((w) => w.id))
-
-      while (webhooks.length > 0) {
-        for (const webhook of webhooks) {
-          log.info({ webhook }, 'Webhook found - triggering SQS message!')
-          await sendNodeWorkerMessage(
-            webhook.tenantId,
-            new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id, true, false),
-          )
-        }
-
-        // no need to process further if result isn't same as page size
-        if (webhooks.length < PAGE_SIZE) {
-          log.info('Finished processing.')
-          break
-        }
-
-        let queueSize = await getCurrentQueueSize(sqs, SQS_CONFIG.nodejsWorkerQueue)
-
-        // ensure queueSize before sending new page message
-        while (queueSize > PROCESS_QUEUE_THRESHOLD) {
-          log.info(
-            `Queue size(${queueSize}) is bigger than threshold(${PROCESS_QUEUE_THRESHOLD}), waiting 30 seconds before retrying.`,
-          )
-          await timeout(30000)
-          queueSize = await getCurrentQueueSize(sqs, SQS_CONFIG.nodejsWorkerQueue)
-        }
-
-        currentPage += 1
-
-        log.info(
-          `Queue size(${queueSize}) below threshold(${PROCESS_QUEUE_THRESHOLD}) - Continuing with page${currentPage}`,
-        )
-
-        webhooks = await repo.findError(
-          currentPage,
-          PAGE_SIZE,
-          WebhookProcessor.MAX_RETRY_LIMIT,
-          webhookType,
-        )
-      }
-    } else {
+    if (parameters.webhook) {
       const webhookIds = parameters.webhook.split(',')
 
       for (const webhookId of webhookIds) {
-        const webhook = await repo.findById(webhookId)
+        log.info({ webhookId }, 'Webhook found - processing!')
+        await integrationProcessorInstance.processWebhook(webhookId, true, true)
+      }
+    } else if (parameters.tenant && parameters.type) {
+      const seq = SequelizeRepository.getSequelize(options)
 
-        if (!webhook) {
-          log.error({ webhookId }, 'Webhook not found!')
-          process.exit(1)
-        } else if (!parameters.force && webhook.state !== WebhookState.PENDING) {
-          log.error({ webhookId }, 'Webhook is not in pending state!')
-          process.exit(1)
-        } else {
-          log.info({ webhookId }, 'Webhook found - triggering SQS message!')
-          await sendNodeWorkerMessage(
-            webhook.tenantId,
-            new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id, parameters.force),
-          )
+      let ids = (
+        await seq.query(
+          `
+        select id from "incomingWebhooks"
+        where state in ('PENDING', 'ERROR')
+        and "tenantId" = :tenantId and type = :type
+        order by id
+        limit 100
+      `,
+          {
+            type: QueryTypes.SELECT,
+            replacements: {
+              tenantId: parameters.tenant,
+              type: parameters.type,
+            },
+          },
+        )
+      ).map((r) => (r as any).id)
+
+      while (ids.length > 0) {
+        for (const webhookId of ids) {
+          log.info({ webhookId }, 'Webhook found - processing!')
+          await integrationProcessorInstance.processWebhook(webhookId, true, true)
         }
+
+        ids = (
+          await seq.query(
+            `
+          select id from "incomingWebhooks"
+          where state in ('PENDING', 'ERROR')
+          and "tenantId" = :tenantId and type = :type
+          and id > :id
+          order by id
+          limit 100
+        `,
+            {
+              type: QueryTypes.SELECT,
+              replacements: {
+                tenantId: parameters.tenant,
+                type: parameters.type,
+                id: ids[ids.length - 1],
+              },
+            },
+          )
+        ).map((r) => (r as any).id)
       }
     }
 
