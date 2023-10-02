@@ -1,5 +1,5 @@
 import { AutomationTypeConfig } from '@/modules/automation/config/automation-types';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import noOfActivities from '@/modules/member/config/filters/noOfActivities/config';
 import activityType from '@/modules/member/config/filters/activityType/config';
@@ -14,9 +14,13 @@ import {
   HubspotAutomationTrigger,
 } from '@/modules/automation/config/automation-types/hubspot/types/HubspotAutomationTrigger';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
-import AutomationsHubspotPaywall from './hubspot-paywall.vue';
-import AutomationsHubspotTrigger from './hubspot-trigger.vue';
+import annualEmployeeChurnRate from '@/modules/organization/config/filters/annualEmployeeChurnRate/config';
+import annualEmployeeGrowthRate from '@/modules/organization/config/filters/annualEmployeeGrowthRate/config';
+import employeeCount from '@/modules/organization/config/filters/employeeCount/config';
+import organizationTags from '@/modules/organization/config/filters/tags/config';
 import AutomationsHubspotAction from './hubspot-action.vue';
+import AutomationsHubspotTrigger from './hubspot-trigger.vue';
+import AutomationsHubspotPaywall from './hubspot-paywall.vue';
 
 export const hubspotMemberFilters: Record<string, FilterConfig> = {
   noOfActivities,
@@ -31,6 +35,10 @@ export const hubspotOrganizationFilters: Record<string, FilterConfig> = {
   headcount,
   industry,
   annualRevenue,
+  annualEmployeeChurnRate,
+  annualEmployeeGrowthRate,
+  employeeCount,
+  organizationTags,
 };
 
 export const hubspot: AutomationTypeConfig = {

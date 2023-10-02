@@ -31,8 +31,10 @@ export interface IOrganization {
   averageTenureByLevel?: Record<string, number>
   averageTenureByRole?: Record<string, number>
   employeeChurnRate?: Record<string, number>
+  employeeChurnRate12Month?: number
   employeeCountByMonth?: Record<string, number>
   employeeGrowthRate?: Record<string, number>
+  employeeGrowthRate12Month?: number
   employeeCountByMonthByLevel?: Record<string, number>
   employeeCountByMonthByRole?: Record<string, number>
   directSubsidiaries?: string[]
@@ -43,6 +45,9 @@ export interface IOrganization {
   weakIdentities?: IOrganizationIdentity[]
   members?: string[]
   source?: OrganizationSource
+  revenueRange?: Record<string, number>
+  revenueRangeMin?: number
+  revenueRangeMax?: number
   lastEnrichedAt?: string | Date
   tenantId?: string
 }
@@ -155,4 +160,8 @@ export interface IEnrichableOrganization extends IOrganization {
 export interface IOrganizationMergeSuggestion {
   similarity: number
   organizations: [string, string]
+}
+export interface IOrganizationIdSource {
+  id: string
+  source: string
 }

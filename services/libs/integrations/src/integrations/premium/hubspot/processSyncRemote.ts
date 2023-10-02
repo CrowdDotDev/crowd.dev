@@ -40,6 +40,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
   switch (entity) {
     case Entity.MEMBERS: {
       let membersCreatedInHubspot = []
+      let membersUpdatedInHubspot = []
 
       const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.MEMBERS,
@@ -63,7 +64,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       }
 
       if (toUpdate.length > 0) {
-        await batchUpdateMembers(
+        membersUpdatedInHubspot = await batchUpdateMembers(
           nangoId,
           toUpdate as IMember[],
           memberMapper,
@@ -87,13 +88,15 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
           ctx.automation.settings.contactList,
           vids,
           integrationContext,
+          throttler,
         )
       }
 
-      return membersCreatedInHubspot || []
+      return { created: membersCreatedInHubspot, updated: membersUpdatedInHubspot }
     }
     case Entity.ORGANIZATIONS: {
-      let companiesCreatedInHubspot
+      let companiesCreatedInHubspot = []
+      let companiesUpdatedInHubspot = []
 
       const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.ORGANIZATIONS,
@@ -115,7 +118,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       }
 
       if (toUpdate.length > 0) {
-        await batchUpdateOrganizations(
+        companiesUpdatedInHubspot = await batchUpdateOrganizations(
           nangoId,
           toUpdate as IOrganization[],
           organizationMapper,
@@ -124,7 +127,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
         )
       }
 
-      return companiesCreatedInHubspot || []
+      return { created: companiesCreatedInHubspot, updated: companiesUpdatedInHubspot }
     }
     default: {
       const message = `Unsupported entity ${entity} while processing HubSpot sync remote!`

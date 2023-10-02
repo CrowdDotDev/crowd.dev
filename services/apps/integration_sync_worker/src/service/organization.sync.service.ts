@@ -5,8 +5,8 @@ import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IntegrationRepository } from '@/repo/integration.repo'
 import {
-  IBatchCreateMemberResult,
   IBatchCreateOrganizationsResult,
+  IBatchUpdateOrganizationsResult,
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
@@ -38,7 +38,11 @@ export class OrganizationSyncService extends LoggerBase {
   ): Promise<void> {
     const integration = await this.integrationRepo.findById(integrationId)
 
-    const organization = await this.organizationRepo.findOrganization(organizationId, tenantId)
+    const organization = await this.organizationRepo.findOrganization(
+      organizationId,
+      tenantId,
+      integration.segmentId,
+    )
 
     const syncRemote = await this.organizationRepo.findSyncRemoteById(syncRemoteId)
 
@@ -60,6 +64,8 @@ export class OrganizationSyncService extends LoggerBase {
 
     const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)
 
+    this.log.info(`Syncing organization ${organizationId} to ${integration.platform} remote!`)
+
     if (service.processSyncRemote) {
       const context: IIntegrationProcessRemoteSyncContext = {
         integration,
@@ -72,18 +78,29 @@ export class OrganizationSyncService extends LoggerBase {
         tenantId,
       }
 
-      const newOrganizations = await service.processSyncRemote<IOrganization>(
+      const { created, updated } = await service.processSyncRemote<IOrganization>(
         oranizationsToCreate,
         organizationsToUpdate,
         Entity.ORGANIZATIONS,
         context,
       )
 
-      if (newOrganizations.length > 0) {
-        const orgCreated = newOrganizations[0] as IBatchCreateMemberResult
+      if (created.length > 0) {
+        const orgCreated = created[0] as IBatchCreateOrganizationsResult
         await this.organizationRepo.setSyncRemoteSourceId(syncRemoteId, orgCreated.sourceId)
+        await this.organizationRepo.setLastSyncedAtBySyncRemoteId(
+          syncRemoteId,
+          orgCreated.lastSyncedPayload,
+        )
       }
-      await this.organizationRepo.setLastSyncedAtBySyncRemoteId(syncRemoteId)
+
+      if (updated.length > 0) {
+        const orgUpdated = updated[0] as IBatchUpdateOrganizationsResult
+        await this.organizationRepo.setLastSyncedAtBySyncRemoteId(
+          syncRemoteId,
+          orgUpdated.lastSyncedPayload,
+        )
+      }
     } else {
       this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
     }
@@ -112,13 +129,14 @@ export class OrganizationSyncService extends LoggerBase {
       )
 
       for (const organizationToSync of markedOrganizations) {
-        this.log.trace(
+        this.log.info(
           `Syncing organization ${organizationToSync.organizationId} to ${integration.platform} remote!`,
         )
 
         const organization = await this.organizationRepo.findOrganization(
           organizationToSync.organizationId,
           tenantId,
+          integration.segmentId,
         )
 
         if (organizationToSync.sourceId) {
@@ -152,14 +170,14 @@ export class OrganizationSyncService extends LoggerBase {
           tenantId,
         }
 
-        const newOrganizations = await service.processSyncRemote<IOrganization>(
+        const { created, updated } = await service.processSyncRemote<IOrganization>(
           organizationsToCreate,
           organizationsToUpdate,
           Entity.ORGANIZATIONS,
           context,
         )
 
-        for (const newOrganization of newOrganizations as IBatchCreateOrganizationsResult[]) {
+        for (const newOrganization of created as IBatchCreateOrganizationsResult[]) {
           await this.organizationRepo.setIntegrationSourceId(
             newOrganization.organizationId,
             integration.id,
@@ -169,11 +187,16 @@ export class OrganizationSyncService extends LoggerBase {
           await this.organizationRepo.setLastSyncedAt(
             newOrganization.organizationId,
             integration.id,
+            newOrganization.lastSyncedPayload,
           )
         }
 
-        for (const updatedOrganization of organizationsToUpdate) {
-          await this.organizationRepo.setLastSyncedAt(updatedOrganization.id, integration.id)
+        for (const updatedOrganization of updated as IBatchUpdateOrganizationsResult[]) {
+          await this.organizationRepo.setLastSyncedAt(
+            updatedOrganization.organizationId,
+            integration.id,
+            updatedOrganization.lastSyncedPayload,
+          )
         }
       } else {
         this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
@@ -214,7 +237,7 @@ export class OrganizationSyncService extends LoggerBase {
         )
 
         for (const organizationToSync of filteredOrganizations) {
-          this.log.trace(
+          this.log.info(
             `Syncing organization ${organizationToSync.id} to ${integration.platform} remote!`,
           )
 
@@ -237,6 +260,7 @@ export class OrganizationSyncService extends LoggerBase {
           const organization = await this.organizationRepo.findOrganization(
             organizationToSync.id,
             tenantId,
+            integration.segmentId,
           )
 
           if (syncRemote.sourceId) {
@@ -270,14 +294,14 @@ export class OrganizationSyncService extends LoggerBase {
             tenantId,
           }
 
-          const newOrganizations = await service.processSyncRemote<IOrganization>(
+          const { created, updated } = await service.processSyncRemote<IOrganization>(
             organizationsToCreate,
             organizationsToUpdate,
             Entity.ORGANIZATIONS,
             context,
           )
 
-          for (const newOrganization of newOrganizations as IBatchCreateOrganizationsResult[]) {
+          for (const newOrganization of created as IBatchCreateOrganizationsResult[]) {
             await this.organizationRepo.setIntegrationSourceId(
               newOrganization.organizationId,
               integration.id,
@@ -287,11 +311,16 @@ export class OrganizationSyncService extends LoggerBase {
             await this.organizationRepo.setLastSyncedAt(
               newOrganization.organizationId,
               integration.id,
+              newOrganization.lastSyncedPayload,
             )
           }
 
-          for (const updatedOrganization of organizationsToUpdate) {
-            await this.organizationRepo.setLastSyncedAt(updatedOrganization.id, integration.id)
+          for (const updatedOrganization of updated as IBatchUpdateOrganizationsResult[]) {
+            await this.organizationRepo.setLastSyncedAt(
+              updatedOrganization.organizationId,
+              integration.id,
+              updatedOrganization.lastSyncedPayload,
+            )
           }
 
           if (syncOrganizationMembers) {

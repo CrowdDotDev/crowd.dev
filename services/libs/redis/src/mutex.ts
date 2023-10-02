@@ -50,13 +50,13 @@ export const releaseLock = async (
   })
 }
 
-export const processWithLock = async <T = void>(
+export const processWithLock = async <T>(
   client: RedisClient,
   key: string,
   expireAfterSeconds: number,
   timeoutAfterSeconds: number,
   process: () => Promise<T>,
-): Promise<T | void> => {
+): Promise<T> => {
   const value = generateUUIDv4()
 
   await acquireLock(client, key, value, expireAfterSeconds, timeoutAfterSeconds)

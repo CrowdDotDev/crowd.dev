@@ -100,6 +100,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import Message from '@/shared/message/message';
 import AppIntegrationList from './integration-list.vue';
 
 export default {
@@ -141,6 +142,14 @@ export default {
             window.open('https://docs.crowd.dev/docs/slack-integration#how-to-install', '_blank');
             this.$router.replace({ query: null });
           });
+        }
+      },
+    },
+    '$route.query.twitter-error': {
+      immediate: true,
+      handler(value) {
+        if (value) {
+          Message.error('Something went wrong during Twitter OAuth. Please try again later.');
         }
       },
     },
