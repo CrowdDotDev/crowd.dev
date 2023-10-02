@@ -49,7 +49,7 @@ export class OrganizationService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${organizationA.id}/no-merge`,
       {
-        organizationToNotMerge: organizationA.id,
+        organizationToNotMerge: organizationB.id,
       },
     );
 

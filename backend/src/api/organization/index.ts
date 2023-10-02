@@ -25,8 +25,8 @@ export default (app) => {
     `/tenant/:tenantId/org/organization-merge-suggestions`,
     safeWrap(require('./organizationGenerateMergeMembers').default),
   )
-  // app.put(
-  //   `/tenant/:tenantId/organization/:organizationId/no-merge`,
-  //   safeWrap(require('./organizationNoMerge').default),
-  // )
+  app.put(
+    `/tenant/:tenantId/organization/:organizationId/no-merge`,
+    safeWrap(require('./organizationNotMerge').default),
+  )
 }

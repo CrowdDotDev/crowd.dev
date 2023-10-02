@@ -14,6 +14,5 @@ export enum OrganizationSource {
 }
 
 export enum OrganizationMergeSuggestionType {
-  SAME_IDENTITY = 'same_identity',
-  SIMILAR_IDENTITY = 'similar_identity',
+  BY_IDENTITY = 'by_identity',
 }

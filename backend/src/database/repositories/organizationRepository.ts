@@ -27,21 +27,25 @@ import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
-interface IOrganizationWithIdentitiesOpensearch {
+interface IOrganizationPartialAggregatesOpensearch {
   _source: {
     uuid_organizationId: string
     nested_identities: {
       string_platform: string
       string_name: string
     }[]
+    uuid_arr_noMergeIds: string[]
   }
 }
 
 interface IOrganizationIdOpensearch {
+  _score: number
   _source: {
     uuid_organizationId: string
   }
 }
+
+type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
   static async filterByPayingTenant(
@@ -758,6 +762,69 @@ class OrganizationRepository {
     }
   }
 
+  static async addNoMerge(
+    organizationId: string,
+    noMergeId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+    insert into "organizationNoMerge" ("organizationId", "noMergeId", "createdAt", "updatedAt")
+    values 
+    (:organizationId, :noMergeId, now(), now()),
+    (:noMergeId, :organizationId, now(), now())
+    on conflict do nothing;
+  `
+
+  try {
+    await seq.query(query, {
+      replacements: {
+        organizationId,
+        noMergeId,
+
+      },
+      type: QueryTypes.INSERT,
+      transaction,
+    })
+  } catch (error) {
+    options.log.error('Error adding organizations no merge!', error)
+    throw error
+  }
+
+  }
+
+  static async removeToMerge(
+    organizationId: string,
+    toMergeId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+    delete from "organizationToMerge"
+    where ("organizationId" = :organizationId and "toMergeId" = :toMergeId) or ("organizationId" = :toMergeId and "toMergeId" = :organizationId);
+  `
+
+  try {
+    await seq.query(query, {
+      replacements: {
+        organizationId,
+        toMergeId,
+
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  } catch (error) {
+    options.log.error('Error while removing organizations to merge!', error)
+    throw error
+  }
+
+  }
+
   static async addToMerge(
     suggestions: IOrganizationMergeSuggestion[],
     options: IRepositoryOptions,
@@ -771,7 +838,7 @@ class OrganizationRepository {
     )
 
     // Process suggestions in chunks of 100 or less
-    const suggestionChunks:IOrganizationMergeSuggestion[][] = chunk(suggestions, 100)
+    const suggestionChunks: IOrganizationMergeSuggestion[][] = chunk(suggestions, 100)
 
     const insertValues = (
       organizationId: string,
@@ -781,9 +848,9 @@ class OrganizationRepository {
     ) => {
       const idPlaceholder = (key: string) => `${key}${index}`
       return {
-        query: `(:${idPlaceholder('organizationId')}, :${idPlaceholder('toMergeId')}, :${idPlaceholder(
-          'similarity',
-        )}, NOW(), NOW())`,
+        query: `(:${idPlaceholder('organizationId')}, :${idPlaceholder(
+          'toMergeId',
+        )}, :${idPlaceholder('similarity')}, NOW(), NOW())`,
         replacements: {
           [idPlaceholder('organizationId')]: organizationId,
           [idPlaceholder('toMergeId')]: toMergeId,
@@ -892,25 +959,25 @@ class OrganizationRepository {
     })
   }
 
-  static async* getMergeSuggestions(
+  static async *getMergeSuggestions(
     options: IRepositoryOptions,
   ): AsyncGenerator<IOrganizationMergeSuggestion[], void, undefined> {
     const BATCH_SIZE = 100
 
-    const YIELD_CHUNK_SIZE = 1
+    const YIELD_CHUNK_SIZE = 100
 
     let yieldChunk: IOrganizationMergeSuggestion[] = []
 
-    const fuzziness = (text: string): number => {
-      if (text.length < 3){
-        return 0
-      }
-
-      if (text.length >= 3 && text.length <= 6) {
+    const normalizeScore = (max: number, min: number, score: number): number => {
+      if (score > 100) {
         return 1
       }
 
-      return 2
+      if (max === min) {
+        return (70 + Math.floor(Math.random() * 26) - 10) / 100
+      }
+
+      return ((score - min) / (max - min))
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -918,24 +985,32 @@ class OrganizationRepository {
     const queryBody = {
       from: 0,
       size: BATCH_SIZE,
+      query: {
+        bool: {
+          must: [
+            {
+              term: {
+                uuid_tenantId: tenant.id,
+              },
+            },
+          ],
+        },
+      },
       sort: {
         [`date_createdAt`]: 'desc',
       },
       collapse: {
         field: 'uuid_organizationId',
       },
-      _source: ['uuid_organizationId', 'nested_identities'],
+      _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds'],
     }
 
-    let organizations: IOrganizationWithIdentitiesOpensearch[]
+    let organizations: IOrganizationPartialAggregatesOpensearch[]
     let offset: number
 
     do {
       offset = organizations ? offset + BATCH_SIZE : 0
       queryBody.from = offset
-
-      console.log("current offset: ")
-      console.log(offset)
 
       organizations =
         (
@@ -946,123 +1021,229 @@ class OrganizationRepository {
         ).body?.hits?.hits || []
 
       for (const organization of organizations) {
-        const identitiesPartialQuery = {
-          should: [
-            {
-              nested: {
-                path: 'nested_weakIdentities',
-                query: {
-                  bool: {
-                    should: [],
-                    boost: 10,
-                    minimum_should_match: 1,
+        if (
+          organization._source.nested_identities &&
+          organization._source.nested_identities.length > 0
+        ) {
+          const identitiesPartialQuery = {
+            should: [
+              {
+                nested: {
+                  path: 'nested_weakIdentities',
+                  query: {
+                    bool: {
+                      should: [],
+                      boost: 1000,
+                      minimum_should_match: 1,
+                    },
                   },
                 },
               },
-            },
-            {
-              nested: {
-                path: 'nested_identities',
-                query: {
-                  bool: {
-                    should: [],
-                    boost: 1,
-                    minimum_should_match: 1,
+              {
+                nested: {
+                  path: 'nested_identities',
+                  query: {
+                    bool: {
+                      should: [],
+                      boost: 1,
+                      minimum_should_match: 1,
+                    },
                   },
                 },
               },
-            },
-          ],
-          // minimum_should_match: 1,
-          must_not: [
-            {
-              term: {
-                uuid_organizationId: organization._source.uuid_organizationId,
+            ],
+            minimum_should_match: 1,
+            must_not: [
+              {
+                term: {
+                  uuid_organizationId: organization._source.uuid_organizationId,
+                },
               },
-            },
-          ],
-          must: [
-            {
-              term: {
-                uuid_tenantId: tenant.id,
+            ],
+            must: [
+              {
+                term: {
+                  uuid_tenantId: tenant.id,
+                },
               },
-            },
-          ],
-        }
+            ],
+          }
 
-        for (const identity of organization._source.nested_identities) {
-          identitiesPartialQuery.should[0].nested.query.bool.should.push({
-            bool: {
-              must: [
-                { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
-                { match: { [`nested_weakIdentities.string_platform`]: identity.string_platform } },
-              ],
-            },
-          })
-
-          identitiesPartialQuery.should[1].nested.query.bool.should.push({
-            match: {
-              [`nested_identities.string_name`]: {
-                query: identity.string_name,
-                prefix_length: 1,
-                fuzziness: fuzziness(identity.string_name),
+          for (const identity of organization._source.nested_identities) {
+            
+            // weak identity search
+            identitiesPartialQuery.should[0].nested.query.bool.should.push({
+              bool: {
+                must: [
+                  { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
+                  {
+                    match: { [`nested_weakIdentities.string_platform`]: identity.string_platform },
+                  },
+                ],
               },
-            },
-          })
-        }
-
-        const sameOrganizationsQueryBody = {
-          query: {
-            bool: identitiesPartialQuery,
-          },
-          collapse: {
-            field: 'uuid_organizationId',
-          },
-          _source: ['uuid_organizationId'],
-        }
-
-        console.log(sameOrganizationsQueryBody)
-
-        const organizationsToMerge: IOrganizationIdOpensearch[] =
-          (
-            await options.opensearch.search({
-              index: OpenSearchIndex.ORGANIZATIONS,
-              body: sameOrganizationsQueryBody,
             })
-          ).body?.hits?.hits || []
 
-        for (const organizationToMerge of organizationsToMerge) {
-          console.log(
-            `ADD TO MERGE! MAIN: ${organization._source.uuid_organizationId} <-> ${organizationToMerge._source.uuid_organizationId}`,
+            // fuzzy search for identities
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              match: {
+                [`nested_identities.string_name`]: {
+                  query: identity.string_name,
+                  prefix_length: 1,
+                  fuzziness: 'auto',
+                },
+              },
+            })
+
+            // wildcard search for identities
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              wildcard: {
+                [`nested_identities.string_name`]: {
+                  value: `${identity.string_name}*`
+                },
+              },
+            })
+
+            // also check for prefix of 5 if identity is longer then 5 characters
+            if (identity.string_name.length > 5 ) {
+              identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                prefix: {
+                  [`nested_identities.string_name`]: {
+                    value: identity.string_name.slice(0, 5)
+                  },
+                },
+              })
+            }
+
+          }
+
+          for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
+            identitiesPartialQuery.must_not.push({
+              term: {
+                uuid_organizationId: noMergeId,
+              },
+            })
+          }
+
+          const sameOrganizationsQueryBody = {
+            query: {
+              bool: identitiesPartialQuery,
+            },
+            collapse: {
+              field: 'uuid_organizationId',
+            },
+            _source: ['uuid_organizationId'],
+          }
+
+          const organizationsToMerge: IOrganizationIdOpensearch[] =
+            (
+              await options.opensearch.search({
+                index: OpenSearchIndex.ORGANIZATIONS,
+                body: sameOrganizationsQueryBody,
+              })
+            ).body?.hits?.hits || []
+
+          const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
+            (acc, organizationToMerge) => {
+              if (!acc.minScore || organizationToMerge._score < acc.minScore) {
+                acc.minScore = organizationToMerge._score
+              }
+
+              if (!acc.maxScore || organizationToMerge._score > acc.maxScore) {
+                acc.maxScore = organizationToMerge._score
+              }
+
+              return acc
+            },
+            { maxScore: null, minScore: null },
           )
-          yieldChunk.push({
-            similarity: 50,
-            organizations: [organization._source.uuid_organizationId, organizationToMerge._source.uuid_organizationId]
-          })
-        }
 
-        if (yieldChunk.length >= YIELD_CHUNK_SIZE) {
-          yield yieldChunk
-          console.log("CHUNK YIELDED EMPTYING !")
-          yieldChunk = []
-          console.log("CURRENT OFFSET: ")
-          console.log(offset)
+          for (const organizationToMerge of organizationsToMerge) {
+            yieldChunk.push({
+              similarity: normalizeScore(maxScore, minScore, organizationToMerge._score),
+              organizations: [
+                organization._source.uuid_organizationId,
+                organizationToMerge._source.uuid_organizationId,
+              ],
+            })
+          }
+
+          if (yieldChunk.length >= YIELD_CHUNK_SIZE) {
+            yield yieldChunk
+            yieldChunk = []
+          }
         }
       }
 
-      // console.log(organizations)
     } while (organizations.length > 0)
 
     if (yieldChunk.length > 0) {
       yield yieldChunk
     }
 
-    // get org-identity pairs from opensearch
+  }
 
-    // for each org
-    // 1. get no-merges of the org
-    // 2. query opensearch to find same orgs with weakIdentities and orgId <> noMergeId
-    // 3. return payload
+  static async findOrganizationsWithMergeSuggestions(
+    { limit = 20, offset = 0 },
+    options: IRepositoryOptions,
+  ) {
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
+
+    const orgs = await options.database.sequelize.query(
+      `SELECT 
+      "organizationsToMerge".id, 
+      "organizationsToMerge"."toMergeId",
+      "organizationsToMerge"."total_count",
+      "organizationsToMerge"."similarity"
+    FROM 
+    (
+      SELECT DISTINCT ON (Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id)))) 
+          org.id, 
+          otm."toMergeId", 
+          org."createdAt", 
+          COUNT(*) OVER() AS total_count,
+          otm."similarity"
+        FROM organizations org
+        INNER JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
+        JOIN "organizationSegments" os ON os."organizationId" = org.id
+        WHERE org."tenantId" = :tenantId
+          AND os."segmentId" IN (:segmentIds)
+      ) AS "organizationsToMerge" 
+    ORDER BY 
+      "organizationsToMerge"."createdAt" DESC 
+    LIMIT :limit OFFSET :offset
+    `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          segmentIds,
+          limit,
+          offset,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    if (orgs.length > 0) {
+      const organizationPromises = []
+      const toMergePromises = []
+
+      for (const org of orgs) {
+        organizationPromises.push(OrganizationRepository.findById(org.id, options))
+        toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options))
+      }
+
+      const organizationResults = await Promise.all(organizationPromises)
+      const organizationToMergeResults = await Promise.all(toMergePromises)
+
+      const result = organizationResults.map((i, idx) => ({
+        organizations: [i, organizationToMergeResults[idx]],
+        similarity: orgs[idx].similarity,
+      }))
+      return { rows: result, count: orgs[0].total_count / 2, limit, offset }
+    }
+
+    return { rows: [{ organizations: [], similarity: 0 }], count: 0, limit, offset }
   }
 
   static async moveMembersBetweenOrganizations(

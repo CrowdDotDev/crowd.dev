@@ -502,6 +502,10 @@ export class OrganizationSyncService extends LoggerBase {
     }
     p.nested_identities = p_identities
 
+    if (!data.weakIdentities) {
+      data.weakIdentities = []
+    }
+
     const p_weakIdentities = []
     // weak identities
     for (const identity of data.weakIdentities) {
@@ -520,6 +524,9 @@ export class OrganizationSyncService extends LoggerBase {
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
+
+    p.uuid_arr_toMergeIds = data.toMergeIds
+    p.uuid_arr_noMergeIds = data.noMergeIds
 
     return p
   }

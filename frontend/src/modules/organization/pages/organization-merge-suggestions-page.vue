@@ -243,8 +243,8 @@ const mergeSuggestion = () => {
   sendingMerge.value = true;
   primary.value = 0;
   OrganizationService.mergeOrganizations(
-    organizationsToMerge.value.organizations[primary.value],
-    organizationsToMerge.value.organizations[(primary.value + 1) % 2],
+    organizationsToMerge.value.organizations[primary.value].id,
+    organizationsToMerge.value.organizations[(primary.value + 1) % 2].id,
   )
     .then(() => {
       Message.success('Organizations merged successfuly');

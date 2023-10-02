@@ -1,4 +1,4 @@
-import { IOrganization, IOrganizationIdentity, IOrganizationMergeSuggestion, OrganizationMergeSuggestionType } from '@crowd/types'
+import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
 import { LoggerBase } from '@crowd/logging'
 import { websiteNormalizer } from '@crowd/common'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
@@ -242,14 +242,13 @@ export default class OrganizationService extends LoggerBase {
     })
   }
 
-  async getMergeSuggestions(
+  async generateMergeSuggestions(
     type: OrganizationMergeSuggestionType,
-  ): Promise<IOrganizationMergeSuggestion[]> {
-    // Adding a transaction so it will use the write database
+  ): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (type === OrganizationMergeSuggestionType.SAME_IDENTITY) {
+      if (type === OrganizationMergeSuggestionType.BY_IDENTITY) {
 
         let mergeSuggestions
 
@@ -259,21 +258,43 @@ export default class OrganizationService extends LoggerBase {
         })
         do {
 
-
           mergeSuggestions = await generator.next()
 
-          console.log("MERGE SUGGS: ")
-          console.log(mergeSuggestions.value)
-
           await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
-        } while(mergeSuggestions.value)
+        } while(!mergeSuggestions.done)
 
       }
       await SequelizeRepository.commitTransaction(transaction)
-      return []
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       this.log.error(error)
+      throw error
+    }
+  }
+
+  async addToNoMerge(organizationId:string, noMergeId: string): Promise<void> {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
+    try {
+      await OrganizationRepository.addNoMerge(organizationId, noMergeId, {
+        ...this.options,
+        transaction,
+      })
+      await OrganizationRepository.removeToMerge(organizationId, noMergeId, {
+        ...this.options,
+        transaction,
+      })
+
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
+
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+
       throw error
     }
   }
@@ -451,6 +472,11 @@ export default class OrganizationService extends LoggerBase {
       throw error
     }
   }
+
+  async findOrganizationsWithMergeSuggestions(args) {
+    return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
+  }
+
 
   async update(id, data, passedTransaction?) {
     const transaction =

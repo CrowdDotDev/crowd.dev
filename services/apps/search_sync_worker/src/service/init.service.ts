@@ -137,6 +137,8 @@ export class InitService extends LoggerBase {
       grossAdditionsByMonth: { '2022-05': 7, '2022-06': 6, '2022-07': 1, '2022-08': 1 },
       grossDeparturesByMonth: { '2022-06': 2, '2022-07': 1, '2022-08': 2, '2022-09': 2 },
       directSubsidiaries: ['Fake direct subsidiary 1', 'Fake direct subsidiary 2'],
+      toMergeIds: ['0ab4c62a-8dd4-4ecf-9c61-cf4c49311d49'],
+      noMergeIds: ['7cb770ab-0d6c-411f-b1e1-259ae6ade057'],
     }
 
     const prepared = OrganizationSyncService.prefixData(fakeOrg)
