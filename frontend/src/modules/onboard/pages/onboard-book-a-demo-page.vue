@@ -1,28 +1,30 @@
 <template>
-  <div class="flex justify-center py-16">
-    <div class="flex gap-6 items-center">
-      <span class="text-5xl"> 🙌 </span>
-      <div class="flex flex-col gap-1">
-        <h4 class="text-xl font-semibold leading-8">
-          Workspace created successfully
-        </h4>
-        <p class="text-sm text-gray-600 leading-5">
-          Feel free to book a demo call to learn more about our product.
-        </p>
+  <div class="overflow-auto mb-20">
+    <div class="flex justify-center py-16">
+      <div class="flex gap-6 items-center">
+        <span class="text-5xl"> 🙌 </span>
+        <div class="flex flex-col gap-1">
+          <h4 class="text-xl font-semibold leading-8">
+            Get personalized onboarding
+          </h4>
+          <p class="text-sm text-gray-600 leading-5">
+            Learn how to use crowd.dev to accelerate your growth.
+          </p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="embbeded-script" class="w-full" />
+    <div id="embbeded-script" class="w-full" />
 
-  <div class="fixed bottom-0 w-full bg-white flex justify-center py-4 px-8 border-t border-gray-200">
-    <div class="limit-width">
-      <el-button
-        class="btn btn--primary btn--md btn--full"
-        @click="onBtnClick"
-      >
-        <span class="text-base">Get started</span>
-      </el-button>
+    <div class="fixed bottom-0 w-full bg-white flex justify-center py-4 px-8 border-t border-gray-200">
+      <div class="limit-width">
+        <el-button
+          class="btn btn--primary btn--md btn--full"
+          @click="onBtnClick"
+        >
+          <span class="text-base">Get started</span>
+        </el-button>
+      </div>
     </div>
   </div>
 </template>

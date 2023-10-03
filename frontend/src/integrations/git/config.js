@@ -9,8 +9,9 @@ export default {
   borderColor: '#FFFFFF',
   description:
     'Connect Git to sync commit activities from your repos.',
-  onboardDescription:
-    'Sync commit activities from your repos.',
+  onboard: {
+    description: 'Sync commit activities from your repos.',
+  },
   image:
     '/images/integrations/git.png',
   connectComponent: GitConnect,

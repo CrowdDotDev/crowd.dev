@@ -53,6 +53,7 @@
         :is="stepConfig.component"
         v-else
         @allow-redirect="onConnect"
+        @invite-colleagues="onInviteColleagues"
       />
     </main>
   </div>
@@ -61,7 +62,7 @@
     <div class="limit-width">
       <el-button
         class="btn btn--primary btn--md btn--full"
-        :disabled="$v.$invalid"
+        :disabled="$v.$invalid || loadingSubmitAction"
         @click="onBtnClick"
       >
         <span class="text-base">{{ stepConfig.cta(!!activeIntegrations?.length) }}</span>
@@ -89,6 +90,7 @@ const store = useStore();
 
 const { currentUser, currentTenant } = mapGetters('auth');
 
+const loadingSubmitAction = ref(false);
 const allowRedirect = ref(false);
 const currentStep = ref(1);
 const form = reactive({
@@ -156,6 +158,8 @@ const $v = useVuelidate({}, form);
 
 // Steps Submit action
 const onBtnClick = () => {
+  loadingSubmitAction.value = true;
+
   if (currentStep.value === 3) {
     allowRedirect.value = true;
   }
@@ -164,6 +168,8 @@ const onBtnClick = () => {
     if (currentStep.value < Object.values(onboardingSteps).length) {
       currentStep.value += 1;
     }
+  }).finally(() => {
+    loadingSubmitAction.value = false;
   });
 };
 
@@ -178,6 +184,10 @@ const onStepClick = (index: number) => {
 
 const onConnect = (val: boolean) => {
   allowRedirect.value = val;
+};
+
+const onInviteColleagues = () => {
+  currentStep.value = 3;
 };
 </script>
 

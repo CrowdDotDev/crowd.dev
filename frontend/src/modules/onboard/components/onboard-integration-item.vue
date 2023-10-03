@@ -1,7 +1,7 @@
 <template>
   <div
     :class="{
-      'border-b border-gray-100 p-6': !integration.onboardHighlight,
+      'border-b border-gray-100 p-6': !integration.onboard?.highlight,
     }"
   >
     <div class="flex gap-16">
@@ -9,7 +9,7 @@
         <img :alt="integration.name" :src="integration.image" class="h-5" />
         <div class="flex flex-col gap-1">
           <span class="text-black text-sm font-semibold">{{ integration.name }}</span>
-          <span class="text-gray-500 text-xs">{{ integration.onboardDescription }}</span>
+          <span class="text-gray-500 text-xs">{{ integration.onboard?.description }}</span>
         </div>
       </div>
 
@@ -46,7 +46,10 @@
           </el-button>
         </div>
 
-        <app-integration-connect :integration="integration">
+        <app-integration-connect
+          :integration="integration"
+          @invite-colleagues="emit('inviteColleagues')"
+        >
           <template
             #default="{
               connect,
@@ -90,9 +93,9 @@
     </div>
 
     <img
-      v-if="integration.onboardImage"
+      v-if="integration.onboard?.image"
       :alt="integration.name"
-      :src="integration.onboardImage"
+      :src="integration.onboard.image"
       class="-mb-6 -ml-3 mt-4"
     />
   </div>
@@ -102,7 +105,7 @@
 import { ref, computed } from 'vue';
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
 
-const emit = defineEmits(['allowRedirect']);
+const emit = defineEmits(['allowRedirect', 'inviteColleagues']);
 const props = defineProps({
   integration: {
     type: Object,

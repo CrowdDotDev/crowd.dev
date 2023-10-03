@@ -18,6 +18,7 @@
         <app-onboard-integration-item
           :integration="highlightedIntegration"
           @allow-redirect="onConnect"
+          @invite-colleagues="emit('inviteColleagues')"
         />
       </div>
       <div class="panel !p-0">
@@ -55,7 +56,7 @@ import {
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppOnboardIntegrationItem from '@/modules/onboard/components/onboard-integration-item.vue';
 
-const emit = defineEmits(['allowRedirect']);
+const emit = defineEmits(['allowRedirect', 'inviteColleagues']);
 
 const store = useStore();
 
@@ -63,9 +64,9 @@ const loading = computed(
   () => store.getters['integration/loadingFetch'],
 );
 const integrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
-  .filter((i) => !i.onboardHighlight && !(i.scale || i.premium || i.hideAsIntegration)));
+  .filter((i) => !i.onboard?.highlight && !(i.scale || i.premium || i.hideAsIntegration)));
 const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
-  .filter((i) => i.onboardHighlight && !(i.scale || i.premium)));
+  .filter((i) => i.onboard?.highlight && !(i.scale || i.premium)));
 const showGithubDialog = ref(false);
 
 onMounted(async () => {

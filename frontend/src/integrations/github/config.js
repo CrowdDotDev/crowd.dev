@@ -7,10 +7,12 @@ export default {
   borderColor: '#E5E7EB',
   description:
     'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
-  onboardDescription: `GitHub is one of the richest places for developer activity and information. 
-  Connect GitHub to track all relevant activities with no historical import limitations like repo stars, discussions, comments, and more.`,
-  onboardImage: '/images/integrations/onboard/onboard-github-preview.png',
-  onboardHighlight: true,
+  onboard: {
+    description: `GitHub is one of the richest places for developer activity and information. 
+      Connect GitHub to track all relevant activities with no historical import limitations like repo stars, discussions, comments, and more.`,
+    image: '/images/integrations/onboard/onboard-github-preview.png',
+    highlight: true,
+  },
   image:
     'https://cdn-icons-png.flaticon.com/512/25/25231.png',
   connectComponent: GithubConnect,
