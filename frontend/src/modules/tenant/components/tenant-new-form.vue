@@ -22,7 +22,7 @@
             @change="$v.tenantName.$touch"
           />
         </app-form-item>
-        <el-button class="btn btn--primary btn--md btn--full" :disabled="loading" @click="onBtnClick">
+        <el-button class="btn btn--primary btn--md btn--full" :disabled="$v.$invalid || loading" @click="onBtnClick">
           <i v-if="loading" class="ri-loader-4-line animate-spin w-5 text-white" />
           <span>{{ buttonCta }}</span>
         </el-button>
@@ -35,14 +35,16 @@
 import AppFormItem from '@/shared/form/form-item.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import { computed, ref } from 'vue';
+import {
+  computed, ref,
+} from 'vue';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import { useStore } from 'vuex';
 
 const props = defineProps<{
   modelValue: boolean,
 }>();
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'createdTenant', value: boolean): void}>();
 
 const store = useStore();
 
@@ -82,6 +84,7 @@ const onBtnClick = () => {
       .then(() => {
         // Close add workspace modal
         emit('update:modelValue', false);
+        emit('createdTenant', true);
 
         // Select tenant in app
         store.dispatch('auth/doSelectTenant', { tenant });

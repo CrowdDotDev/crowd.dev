@@ -70,7 +70,13 @@
   </app-dialog>
 
   <app-tenant-new-form
+    v-if="showAddWorkspaceModal"
     v-model="showAddWorkspaceModal"
+    @created-tenant="showTenantCreatedModal = true"
+  />
+  <app-tenant-created-modal
+    v-if="showTenantCreatedModal"
+    v-model="showTenantCreatedModal"
   />
 </template>
 
@@ -87,6 +93,7 @@ import config from '@/config';
 import { getTrialDate } from '@/utils/date';
 import AppTenantForm from '@/modules/tenant/components/tenant-form.vue';
 import AppTenantNewForm from '@/modules/tenant/components/tenant-new-form.vue';
+import AppTenantCreatedModal from '@/modules/tenant/components/tenant-created-modal.vue';
 
 const store = useStore();
 
@@ -99,6 +106,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
+const showTenantCreatedModal = ref(false);
 const showAddWorkspaceModal = ref(false);
 const editing = ref(false);
 const model = reactive({});
