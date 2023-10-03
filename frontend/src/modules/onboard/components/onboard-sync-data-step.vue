@@ -64,9 +64,9 @@ const loading = computed(
   () => store.getters['integration/loadingFetch'],
 );
 const integrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
-  .filter((i) => !i.onboard?.highlight && !(i.scale || i.premium || i.hideAsIntegration)));
+  .filter((i) => !i.onboard?.highlight && !!i.onboard));
 const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
-  .filter((i) => i.onboard?.highlight && !(i.scale || i.premium)));
+  .filter((i) => i.onboard?.highlight && !!i.onboard));
 const showGithubDialog = ref(false);
 
 onMounted(async () => {
