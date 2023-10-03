@@ -25,7 +25,6 @@ import PullRequestReviewThreadCommentsQuery from './api/graphql/pullRequestRevie
 import PullRequestReviewThreadsQuery from './api/graphql/pullRequestReviewThreads'
 import PullRequestsQuery from './api/graphql/pullRequests'
 import StargazersQuery from './api/graphql/stargazers'
-import { getAppToken, AppTokenResponse } from './api/rest/getAppToken'
 import {
   GithubActivitySubType,
   GithubActivityType,
@@ -77,48 +76,17 @@ export function getConcurrentRequestLimiter(
   return concurrentRequestLimiter
 }
 
-const getTokenFromCache = async (ctx: IProcessStreamContext) => {
-  const key = 'github-token-cache'
-  const cache = ctx.integrationCache // this cache is tied up with integrationId
-
-  const token = await cache.get(key)
-
-  if (token) {
-    return JSON.parse(token)
-  } else {
-    return null
-  }
-}
-
-const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenResponse) => {
-  const key = 'github-token-cache'
-  const cache = ctx.integrationCache // this cache is tied up with integrationId
-
-  // cache for 5 minutes
-  await cache.set(key, JSON.stringify(token), 5 * 60)
-}
-
 export async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
   const auth = getAuth(ctx)
   if (auth) {
-    let appToken: AppTokenResponse
-    const tokenFromCache = await getTokenFromCache(ctx)
-    if (tokenFromCache) {
-      appToken = tokenFromCache
-    } else {
-      // no token or it expired (more 5 minutes)
-      const authResponse = await auth({ type: 'app' })
-      const jwtToken = authResponse.token
-      appToken = await getAppToken(jwtToken, ctx.integration.identifier)
-    }
-
-    await setTokenToCache(ctx, appToken)
-
-    const authResponse = await auth({ type: 'app' })
-    const jwtToken = authResponse.token
-    appToken = await getAppToken(jwtToken, ctx.integration.identifier)
-
-    return appToken.token
+    const authResponse = await auth({
+      type: 'installation',
+      installationId: ctx.integration.identifier,
+    })
+    const token = authResponse.token
+    // this is a real token, not a JWT token
+    // OctoKit automatically caches it for 1 hour and renews it when needed
+    return token
   }
 
   throw new Error('GitHub integration is not configured!')
@@ -235,7 +203,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   for (const repo of data.reposToCheck) {
     try {
       // we don't need to get default 100 item per page, just 1 is enough to check if repo is available
-      const stargazersQuery = new StargazersQuery(repo, ctx.integration.token, 1)
+      const stargazersQuery = new StargazersQuery(repo, await getGithubToken(ctx), 1)
       await stargazersQuery.getSinglePage('', {
         concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
         integrationId: ctx.integration.id,
@@ -282,7 +250,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
 const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
-  const stargazersQuery = new StargazersQuery(data.repo, ctx.integration.token)
+  const stargazersQuery = new StargazersQuery(data.repo, await getGithubToken(ctx))
   const result = await stargazersQuery.getSinglePage(data.page, {
     concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
     integrationId: ctx.integration.id,
@@ -307,7 +275,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
 
 const processForksStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
-  const forksQuery = new ForksQuery(data.repo, ctx.integration.token)
+  const forksQuery = new ForksQuery(data.repo, await getGithubToken(ctx))
   const result = await forksQuery.getSinglePage(data.page, {
     concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
     integrationId: ctx.integration.id,
@@ -334,7 +302,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
 
 const processPullsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
-  const forksQuery = new PullRequestsQuery(data.repo, ctx.integration.token)
+  const forksQuery = new PullRequestsQuery(data.repo, await getGithubToken(ctx))
   const result = await forksQuery.getSinglePage(data.page, {
     concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
     integrationId: ctx.integration.id,
@@ -510,7 +478,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
   const pullRequestCommentsQuery = new PullRequestCommentsQuery(
     data.repo,
     pullRequestNumber,
-    ctx.integration.token,
+    await getGithubToken(ctx),
   )
 
   const result = await pullRequestCommentsQuery.getSinglePage(data.page, {
@@ -542,7 +510,7 @@ const processPullReviewThreadsStream: ProcessStreamHandler = async (ctx) => {
   const pullRequestReviewThreadsQuery = new PullRequestReviewThreadsQuery(
     data.repo,
     pullRequestNumber,
-    ctx.integration.token,
+    await getGithubToken(ctx),
   )
 
   const result = await pullRequestReviewThreadsQuery.getSinglePage(data.page, {
@@ -573,7 +541,7 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
   const pullRequestReviewThreadCommentsQuery = new PullRequestReviewThreadCommentsQuery(
     data.repo,
     reviewThreadId,
-    ctx.integration.token,
+    await getGithubToken(ctx),
   )
 
   const result = await pullRequestReviewThreadCommentsQuery.getSinglePage(data.page, {
@@ -628,7 +596,7 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
     const pullRequestCommitsQueryNoAdditions = new PullRequestCommitsQueryNoAdditions(
       data.repo,
       pullRequestNumber,
-      ctx.integration.token,
+      await getGithubToken(ctx),
     )
     result = await pullRequestCommitsQueryNoAdditions.getSinglePage(data.page, {
       concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
@@ -667,7 +635,7 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
 
 const processIssuesStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
-  const issuesQuery = new IssuesQuery(data.repo, ctx.integration.token)
+  const issuesQuery = new IssuesQuery(data.repo, await getGithubToken(ctx))
   const result = await issuesQuery.getSinglePage(data.page, {
     concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
     integrationId: ctx.integration.id,
@@ -729,7 +697,11 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
 const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const issueNumber = data.issueNumber
-  const issueCommentsQuery = new IssueCommentsQuery(data.repo, issueNumber, ctx.integration.token)
+  const issueCommentsQuery = new IssueCommentsQuery(
+    data.repo,
+    issueNumber,
+    await getGithubToken(ctx),
+  )
   const result = await issueCommentsQuery.getSinglePage(data.page, {
     concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
     integrationId: ctx.integration.id,
@@ -755,7 +727,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
 
 const processDiscussionsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
-  const discussionsQuery = new DiscussionsQuery(data.repo, ctx.integration.token)
+  const discussionsQuery = new DiscussionsQuery(data.repo, await getGithubToken(ctx))
   const result = await discussionsQuery.getSinglePage(data.page, {
     concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
     integrationId: ctx.integration.id,
@@ -797,7 +769,7 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
   const discussionCommentsQuery = new DiscussionCommentsQuery(
     data.repo,
     data.discussionNumber,
-    ctx.integration.token,
+    await getGithubToken(ctx),
   )
   const result = await discussionCommentsQuery.getSinglePage(data.page, {
     concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
