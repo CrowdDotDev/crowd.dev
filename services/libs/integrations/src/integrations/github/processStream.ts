@@ -25,7 +25,7 @@ import PullRequestReviewThreadCommentsQuery from './api/graphql/pullRequestRevie
 import PullRequestReviewThreadsQuery from './api/graphql/pullRequestReviewThreads'
 import PullRequestsQuery from './api/graphql/pullRequests'
 import StargazersQuery from './api/graphql/stargazers'
-import { getAppToken } from './api/rest/getAppToken'
+import { getAppToken, AppTokenResponse } from './api/rest/getAppToken'
 import {
   GithubActivitySubType,
   GithubActivityType,
@@ -77,46 +77,46 @@ export function getConcurrentRequestLimiter(
   return concurrentRequestLimiter
 }
 
-// const getTokenFromCache = async (ctx: IProcessStreamContext) => {
-//   const key = 'github-token-cache'
-//   const cache = ctx.integrationCache // this cache is tied up with integrationId
+const getTokenFromCache = async (ctx: IProcessStreamContext) => {
+  const key = 'github-token-cache'
+  const cache = ctx.integrationCache // this cache is tied up with integrationId
 
-//   const token = await cache.get(key)
+  const token = await cache.get(key)
 
-//   if (token) {
-//     return JSON.parse(token)
-//   } else {
-//     return null
-//   }
-// }
+  if (token) {
+    return JSON.parse(token)
+  } else {
+    return null
+  }
+}
 
-// const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenResponse) => {
-//   const key = 'github-token-cache'
-//   const cache = ctx.integrationCache // this cache is tied up with integrationId
+const setTokenToCache = async (ctx: IProcessStreamContext, token: AppTokenResponse) => {
+  const key = 'github-token-cache'
+  const cache = ctx.integrationCache // this cache is tied up with integrationId
 
-//   // cache for 5 minutes
-//   await cache.set(key, JSON.stringify(token), 5 * 60)
-// }
+  // cache for 5 minutes
+  await cache.set(key, JSON.stringify(token), 5 * 60)
+}
 
 export async function getGithubToken(ctx: IProcessStreamContext): Promise<string> {
   const auth = getAuth(ctx)
   if (auth) {
-    // let appToken: AppTokenResponse
-    // const tokenFromCache = await getTokenFromCache(ctx)
-    // if (tokenFromCache) {
-    //   appToken = tokenFromCache
-    // } else {
-    //   // no token or it expired (more 5 minutes)
-    //   const authResponse = await auth({ type: 'app' })
-    //   const jwtToken = authResponse.token
-    //   appToken = await getAppToken(jwtToken, ctx.integration.identifier)
-    // }
+    let appToken: AppTokenResponse
+    const tokenFromCache = await getTokenFromCache(ctx)
+    if (tokenFromCache) {
+      appToken = tokenFromCache
+    } else {
+      // no token or it expired (more 5 minutes)
+      const authResponse = await auth({ type: 'app' })
+      const jwtToken = authResponse.token
+      appToken = await getAppToken(jwtToken, ctx.integration.identifier)
+    }
 
-    // await setTokenToCache(ctx, appToken)
+    await setTokenToCache(ctx, appToken)
 
     const authResponse = await auth({ type: 'app' })
     const jwtToken = authResponse.token
-    const appToken = await getAppToken(jwtToken, ctx.integration.identifier)
+    appToken = await getAppToken(jwtToken, ctx.integration.identifier)
 
     return appToken.token
   }
