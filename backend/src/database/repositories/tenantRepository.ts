@@ -1,5 +1,4 @@
 import lodash from 'lodash'
-import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { getCleanString } from '@crowd/common'
 import { Edition } from '@crowd/types'
