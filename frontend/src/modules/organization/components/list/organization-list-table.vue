@@ -136,7 +136,7 @@
                           v-if="scope.row.headline || scope.row.description"
                           class="text-sm h-full flex items-center text-gray-900"
                         >
-                          {{ scope.row.headline || scope.row.description }}
+                          {{ truncateText((scope.row.headline || scope.row.description)) }}
                         </span>
                         <span
                           v-else
@@ -837,6 +837,13 @@ const onTableMouseLeft = () => {
   isTableHovered.value = false;
   isScrollbarVisible.value = isCursorDown.value;
 };
+
+const truncateText = (text, characters = 200, suffix = '') => {
+  if (text.length > characters) {
+    return `${text.substring(0, characters)}` + suffix;
+  }
+  return text;
+}
 
 const emailsColumnWidth = computed(() => {
   let maxTabWidth = 0;
