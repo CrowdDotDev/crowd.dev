@@ -63,10 +63,6 @@ class TenantRepository {
       throw new Error400(options.language, 'tenant.url.exists')
     }
 
-    const trialEndsAt = moment().add(14, 'days').isAfter('2023-01-15')
-      ? moment().add(14, 'days').toISOString()
-      : '2023-01-15'
-
     const record = await options.database.tenant.create(
       {
         ...lodash.pick(data, [
@@ -78,9 +74,7 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.growth,
-        isTrialPlan: API_CONFIG.edition !== Edition.LFX,
-        trialEndsAt: API_CONFIG.edition !== Edition.LFX ? trialEndsAt : null,
+        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.essential,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
