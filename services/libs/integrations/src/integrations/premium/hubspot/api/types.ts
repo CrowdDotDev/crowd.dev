@@ -6,11 +6,20 @@ export interface IPaginatedResponse<T> {
 export interface IBatchCreateOrganizationsResult {
   organizationId: string
   sourceId: string
+  lastSyncedPayload: unknown
 }
 
-export interface IBatchCreateMemberResult {
+export type IBatchUpdateOrganizationsResult = IBatchCreateOrganizationsResult
+
+export interface IBatchCreateMembersResult {
   memberId: string
   sourceId: string
+  lastSyncedPayload: unknown
 }
 
-export type IBatchOperationResult = IBatchCreateMemberResult[] | IBatchCreateOrganizationsResult[]
+export type IBatchUpdateMembersResult = IBatchCreateMembersResult
+
+export interface IBatchOperationResult {
+  created: IBatchCreateMembersResult[] | IBatchCreateOrganizationsResult[]
+  updated: IBatchCreateMembersResult[] | IBatchCreateOrganizationsResult[]
+}

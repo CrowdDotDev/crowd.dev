@@ -33,6 +33,24 @@ export const getContacts = async (
     },
   }
 
+  // If we're not onboarding, only get data that was updated in last 8 hours
+  if (!ctx.onboarding) {
+    const date = new Date()
+    date.setHours(date.getHours() - 8)
+
+    config.params.filterGroups = JSON.stringify([
+      {
+        filters: [
+          {
+            value: date.getTime(),
+            propertyName: 'hs_lastmodifieddate',
+            operator: 'GT',
+          },
+        ],
+      },
+    ])
+  }
+
   try {
     ctx.log.debug({ nangoId }, 'Fetching contacts from HubSpot')
 

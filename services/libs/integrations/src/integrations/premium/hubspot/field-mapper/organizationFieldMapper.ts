@@ -63,12 +63,20 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         return crunchbase.handle
       },
     },
-    revenueRange: {
-      hubspotType: HubspotPropertyType.STRING,
+    // revenueRange: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (revenueRange: any) => {
+    //     return JSON.stringify(revenueRange)
+    //   },
+    // },
+    revenueRangeMin: {
+      hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
-      serialize: (revenueRange: any) => {
-        return JSON.stringify(revenueRange)
-      },
+    },
+    revenueRangeMax: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
     },
     employeeCountByCountry: {
       hubspotType: HubspotPropertyType.STRING,
@@ -152,13 +160,13 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       readonly: true,
       serialize: serializeArray,
     },
-    employeeChurnRate: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (employeeChurnRate: any) => {
-        return JSON.stringify(employeeChurnRate)
-      },
-    },
+    // employeeChurnRate: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (employeeChurnRate: any) => {
+    //     return JSON.stringify(employeeChurnRate)
+    //   },
+    // },
     employeeCountByMonth: {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
@@ -166,12 +174,20 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         return JSON.stringify(employeeCountByMonth)
       },
     },
-    employeeGrowthRate: {
-      hubspotType: HubspotPropertyType.STRING,
+    employeeChurnRate12Month: {
+      hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
-      serialize: (employeeGrowthRate: any) => {
-        return JSON.stringify(employeeGrowthRate)
-      },
+    },
+    // employeeGrowthRate: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (employeeGrowthRate: any) => {
+    //     return JSON.stringify(employeeGrowthRate)
+    //   },
+    // },
+    employeeGrowthRate12Month: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
     },
     employeeCountByMonthByLevel: {
       hubspotType: HubspotPropertyType.STRING,

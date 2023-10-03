@@ -88,10 +88,17 @@ export const batchCreateOrganizations = async (
           crowdOrganization.website &&
           getOrganizationDomain(crowdOrganization.website) === o.properties.domain,
       )
+
+      const hubspotPayload = hubspotCompanies.find(
+        (hubspotCompany) => hubspotCompany.properties.domain === o.properties.domain,
+      )
+
       acc.push({
         organizationId: organization.id,
         sourceId: o.id,
+        lastSyncedPayload: hubspotPayload,
       })
+
       return acc
     }, [])
   } catch (err) {
