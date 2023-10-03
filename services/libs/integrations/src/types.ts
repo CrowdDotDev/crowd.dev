@@ -1,13 +1,18 @@
-import {
-  IMemberAttribute,
-  IActivityData,
-  IntegrationResultType,
-  Entity,
-  IAutomation,
-  IIntegrationSyncWorkerEmitter,
-} from '@crowd/types'
 import { Logger } from '@crowd/logging'
-import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
+import {
+  Entity,
+  IActivityData,
+  IAutomation,
+  ICache,
+  IConcurrentRequestLimiter,
+  IIntegration,
+  IIntegrationStream,
+  IIntegrationSyncWorkerEmitter,
+  IMemberAttribute,
+  IRateLimiter,
+  IntegrationResultType,
+} from '@crowd/types'
+
 import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
 
 export interface IIntegrationContext {
@@ -70,6 +75,10 @@ export interface IProcessStreamContext extends IIntegrationContext {
   integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+  getConcurrentRequestLimiter: (
+    maxConcurrentRequests: number,
+    cacheKey: string,
+  ) => IConcurrentRequestLimiter
 }
 
 export interface IProcessWebhookStreamContext {
@@ -98,6 +107,10 @@ export interface IProcessWebhookStreamContext {
   integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+  getConcurrentRequestLimiter: (
+    maxConcurrentRequests: number,
+    cacheKey: string,
+  ) => IConcurrentRequestLimiter
 }
 
 export interface IProcessDataContext extends IIntegrationContext {

@@ -441,6 +441,7 @@ export class OrganizationSyncService {
     p.string_displayName = data.displayName
     p.keyword_displayName = data.displayName
     p.string_arr_emails = data.emails
+    p.string_arr_tags = data.tags
     p.obj_employeeCountByCountry = data.employeeCountByCountry
     p.int_employees = data.employees
     p.int_founded = data.founded
@@ -452,6 +453,12 @@ export class OrganizationSyncService {
     p.string_arr_phoneNumbers = data.phoneNumbers
     p.string_arr_profiles = data.profiles
     p.obj_revenueRange = data.revenueRange
+    if (data.revenueRange?.min) {
+      p.int_revenueRangeMin = data.revenueRange.min
+    }
+    if (data.revenueRange?.max) {
+      p.int_revenueRangeMax = data.revenueRange.max
+    }
     p.string_size = data.size
     p.string_type = data.type
     p.string_url = data.url
@@ -474,6 +481,8 @@ export class OrganizationSyncService {
     p.obj_averageTenureByLevel = data.averageTenureByLevel
     p.obj_averageTenureByRole = data.averageTenureByRole
     p.string_arr_directSubsidiaries = data.directSubsidiaries
+    p.float_employeeChurnRate12Month = data.employeeChurnRate12Month
+    p.float_employeeGrowthRate12Month = data.employeeGrowthRate12Month
     p.obj_employeeChurnRate = data.employeeChurnRate
     p.obj_employeeCountByMonth = data.employeeCountByMonth
     p.obj_employeeGrowthRate = data.employeeGrowthRate
@@ -485,6 +494,12 @@ export class OrganizationSyncService {
 
     // identities
     const p_identities = []
+
+    // handle organizations without identities
+    if (!data.identities) {
+      data.identities = []
+    }
+
     for (const identity of data.identities) {
       p_identities.push({
         string_platform: identity.platform,
@@ -494,12 +509,31 @@ export class OrganizationSyncService {
     }
     p.nested_identities = p_identities
 
+    if (!data.weakIdentities) {
+      data.weakIdentities = []
+    }
+
+    const p_weakIdentities = []
+    // weak identities
+    for (const identity of data.weakIdentities) {
+      p_weakIdentities.push({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        string_url: identity.url,
+        keyword_name: identity.name,
+      })
+    }
+    p.nested_weakIdentities = p_weakIdentities
+
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
     p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
+
+    p.uuid_arr_toMergeIds = data.toMergeIds
+    p.uuid_arr_noMergeIds = data.noMergeIds
 
     return p
   }
