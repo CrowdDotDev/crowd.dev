@@ -13,6 +13,22 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       with organization_segments as (select "segmentId", "organizationId"
                                     from "organizationSegments"
                                     where "organizationId" in ($(ids:csv))),
+        to_merge_data as (
+            select otm."organizationId",
+                    array_agg(distinct otm."toMergeId"::text) as to_merge_ids
+            from "organizationToMerge" otm
+            inner join organizations o2 on otm."toMergeId" = o2.id
+            where otm."organizationId" in ($(ids:csv))
+                  and o2."deletedAt" is null
+            group by otm."organizationId"),
+        no_merge_data as (
+            select onm."organizationId",
+                    array_agg(distinct onm."noMergeId"::text) as no_merge_ids
+            from "organizationNoMerge" onm
+            inner join organizations o2 on onm."noMergeId" = o2.id
+            where onm."organizationId" in ($(ids:csv))
+                  and o2."deletedAt" is null
+            group by onm."organizationId"),
           member_data as (select os."segmentId",
                                   os."organizationId",
                                   count(distinct a."memberId")                                               as "memberCount",
@@ -95,10 +111,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             md."activeOn",
             md."activityCount",
             md."memberCount",
-            i.identities
+            i.identities,
+            coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
+            coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
       from organizations o
               left join member_data md on o.id = md."organizationId"
               left join identities i on o.id = i."organizationId"
+              left join to_merge_data tmd on o.id = tmd."organizationId"
+              left join no_merge_data nmd on o.id = nmd."organizationId"
       where o.id in ($(ids:csv))
         and o."deletedAt" is null
         and (md."organizationId" is not null or o."manuallyCreated");

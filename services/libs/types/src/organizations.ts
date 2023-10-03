@@ -157,6 +157,10 @@ export interface IEnrichableOrganization extends IOrganization {
   orgActivityCount: number
 }
 
+export interface IOrganizationMergeSuggestion {
+  similarity: number
+  organizations: [string, string]
+}
 export interface IOrganizationIdSource {
   id: string
   source: string
