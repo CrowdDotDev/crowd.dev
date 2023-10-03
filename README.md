@@ -5,7 +5,7 @@
   <img src="https://github.com/CrowdDotDev/crowd.dev/assets/41432658/e5970c3a-095c-46ea-b93b-eb517bcd8a4f" alt="crowd.dev icon" width="120px">
 
 
-  <h2 align="center">Effortlessly centralize community, product, and customer data in one database</h2>
+  <h2 align="center">Effortlessly centralize community, product, and customer data</h2>
   
   <p align="center">
     <br>
