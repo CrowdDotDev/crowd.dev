@@ -2,7 +2,7 @@
   <div>
     <app-form-item
       class="pb-4"
-      label="Matching member platform(s)"
+      label="Matching contact platform(s)"
     >
       <el-select
         v-model="form.platforms"

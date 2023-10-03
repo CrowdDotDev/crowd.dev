@@ -209,7 +209,7 @@ const datasets = computed(() => [
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contacts',
     }),
     showLegend: false,
   },

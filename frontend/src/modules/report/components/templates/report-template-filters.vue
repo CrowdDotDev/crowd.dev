@@ -50,7 +50,7 @@
           class="switch-filter !ml-0"
           :model-value="teamMembers"
           size="small"
-          active-text="Include team members"
+          active-text="Include team contacts"
           @change="onTeamMembersChange"
         />
       </div>
