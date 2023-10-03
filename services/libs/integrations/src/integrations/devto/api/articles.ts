@@ -20,6 +20,12 @@ export const getArticle = async (id: number): Promise<IDevToArticle> => {
   try {
     const result = await axios.get(
       `https://dev.to/api/articles/${encodeURIComponent(id.toString())}`,
+      {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        },
+      },
     )
 
     return result.data
@@ -52,6 +58,10 @@ export const getOrganizationArticles = async (
         params: {
           page,
           per_page: perPage,
+        },
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         },
       },
     )
@@ -87,6 +97,10 @@ export const getUserArticles = async (
         username,
         page,
         per_page: perPage,
+      },
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
       },
     })
     return result.data

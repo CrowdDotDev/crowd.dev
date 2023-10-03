@@ -16,7 +16,12 @@ export interface IDevToUser {
 
 export const getUser = async (userId: number): Promise<IDevToUser | null> => {
   try {
-    const result = await axios.get(`https://dev.to/api/users/${userId}`)
+    const result = await axios.get(`https://dev.to/api/users/${userId}`, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+      },
+    })
     return result.data
   } catch (err) {
     // rate limit?
