@@ -166,15 +166,14 @@ describe('TenantService tests', () => {
 
       tenantCreatedPlain.createdAt = tenantCreatedPlain.createdAt.toISOString().split('T')[0]
       tenantCreatedPlain.updatedAt = tenantCreatedPlain.updatedAt.toISOString().split('T')[0]
-      tenantCreatedPlain.trialEndsAt = tenantCreatedPlain.trialEndsAt.toISOString().split('T')[0]
 
       const tenantExpected = {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: Plans.values.growth,
-        isTrialPlan: true,
-        trialEndsAt: moment().add(14, 'days').toISOString().split('T')[0],
+        plan: Plans.values.essential,
+        isTrialPlan: false,
+        trialEndsAt: null,
         onboardedAt: null,
         integrationsRequired: ['github', 'discord'],
         hasSampleData: false,
