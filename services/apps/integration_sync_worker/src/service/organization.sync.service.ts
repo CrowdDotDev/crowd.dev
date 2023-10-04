@@ -1,19 +1,19 @@
-import { NANGO_CONFIG } from '@/conf'
+import { NANGO_CONFIG } from '../conf'
 import { Entity, IOrganization, IOrganizationSyncRemoteData } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { IntegrationRepository } from '@/repo/integration.repo'
+import { IntegrationRepository } from '../repo/integration.repo'
 import {
   IBatchCreateOrganizationsResult,
   IBatchUpdateOrganizationsResult,
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
-import { OrganizationRepository } from '@/repo/organization.repo'
-import { IDbIntegration } from '@/repo/integration.data'
-import { AutomationRepository } from '@/repo/automation.repo'
-import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
+import { OrganizationRepository } from '../repo/organization.repo'
+import { IDbIntegration } from '../repo/integration.data'
+import { AutomationRepository } from '../repo/automation.repo'
+import { AutomationExecutionRepository } from '../repo/automationExecution.repo'
 
 export class OrganizationSyncService extends LoggerBase {
   private readonly organizationRepo: OrganizationRepository

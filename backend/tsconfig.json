@@ -13,7 +13,7 @@
     "types": ["node", "jest"],
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../services/libs/*/dist"],
+      "@crowd/*": ["../../services/libs/*/src"],
       "@/*": ["./*"]
     },
     "skipLibCheck": true
