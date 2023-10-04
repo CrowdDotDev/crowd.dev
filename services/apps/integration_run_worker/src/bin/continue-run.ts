@@ -1,23 +1,23 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import IntegrationRunRepository from '../repo/integrationRun.repo'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationStreamWorkerEmitter, SQS_IOC } from '@crowd/sqs'
 import { IntegrationRunState } from '@crowd/types'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-const runId = processArguments[0]
+import { APP_IOC_MODULE } from 'ioc'
+import IntegrationRunRepository from '../repo/integrationRun.repo'
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  await APP_IOC_MODULE(3)
+  const ioc = IOC()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const processArguments = process.argv.slice(2)
+
+  const runId = processArguments[0]
+  const emitter = ioc.get<IntegrationStreamWorkerEmitter>(SQS_IOC.emitters.integrationStreamWorker)
+
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
 
   const repo = new IntegrationRunRepository(store, log)
 

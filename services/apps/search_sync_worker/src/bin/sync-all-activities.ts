@@ -1,11 +1,11 @@
-import { APP_IOC_MODULE } from '../ioc'
-import { APP_IOC } from '../ioc_constants'
-import { ActivityRepository } from '../repo/activity.repo'
-import { ActivitySyncService } from '../service/activity.sync.service'
 import { timeout } from '@crowd/common'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
 import { IOC } from '@crowd/ioc'
 import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { APP_IOC_MODULE } from '../ioc'
+import { APP_IOC } from '../ioc_constants'
+import { ActivityRepository } from '../repo/activity.repo'
+import { ActivitySyncService } from '../service/activity.sync.service'
 
 const MAX_CONCURRENT = 3
 

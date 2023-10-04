@@ -1,14 +1,15 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import IntegrationRunRepository from '../repo/integrationRun.repo'
-import { IntegrationState } from '@crowd/types'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
 import {
   GithubIntegrationSettings,
   GithubManualIntegrationSettings,
   GithubManualStreamType,
 } from '@crowd/integrations'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationRunWorkerEmitter, SQS_IOC } from '@crowd/sqs'
+import { IntegrationState } from '@crowd/types'
+import { APP_IOC_MODULE } from 'ioc'
+import IntegrationRunRepository from '../repo/integrationRun.repo'
 
 const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
   switch (stream) {
@@ -33,22 +34,24 @@ const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
 // example call
 // npm run script:process-repo 5f8b1a3a-0b0a-4c0a-8b0a-4c0a8b0a4c0a  CrowdDotDev/crowd.dev stars
 
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-const integrationId = processArguments[0]
-const repoFullName = processArguments[1] // it should be in format of owner/repo
-
-// this is optional, if not provided we will trigger all streams
-// if provided we will trigger only this stream type
-// possible values are: stars, forks, pulls, issues, discussions, all
-const streamString = processArguments.length > 2 ? processArguments[2] : null
-const streamType = streamString ? mapStreamTypeToEnum(streamString) : GithubManualStreamType.ALL
-
-const repoURL = `https://github.com/${repoFullName}`
-
 setImmediate(async () => {
+  await APP_IOC_MODULE(3)
+  const ioc = IOC()
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const processArguments = process.argv.slice(2)
+
+  const integrationId = processArguments[0]
+  const repoFullName = processArguments[1] // it should be in format of owner/repo
+
+  // this is optional, if not provided we will trigger all streams
+  // if provided we will trigger only this stream type
+  // possible values are: stars, forks, pulls, issues, discussions, all
+  const streamString = processArguments.length > 2 ? processArguments[2] : null
+  const streamType = streamString ? mapStreamTypeToEnum(streamString) : GithubManualStreamType.ALL
+
+  const repoURL = `https://github.com/${repoFullName}`
+
   if (!integrationId) {
     log.error(`Integration id is required!`)
     process.exit(1)
@@ -64,12 +67,9 @@ setImmediate(async () => {
     process.exit(1)
   }
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  const emitter = ioc.get<IntegrationRunWorkerEmitter>(SQS_IOC.emitters.integrationRunWorker)
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
 
   const repo = new IntegrationRunRepository(store, log)
 

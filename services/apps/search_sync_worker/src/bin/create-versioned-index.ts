@@ -1,9 +1,9 @@
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { APP_IOC_MODULE } from '../ioc'
 import { APP_IOC } from '../ioc_constants'
 import { OpenSearchService } from '../service/opensearch.service'
 import { OpenSearchIndex } from '../types'
-import { IOC } from '@crowd/ioc'
-import { LOGGING_IOC, Logger } from '@crowd/logging'
 
 setImmediate(async () => {
   await APP_IOC_MODULE(2)

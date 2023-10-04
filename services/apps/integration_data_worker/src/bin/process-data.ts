@@ -1,28 +1,31 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
-import IntegrationDataRepository from '../repo/integrationData.repo'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { IntegrationDataWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationDataWorkerEmitter, SQS_IOC, SqsClient } from '@crowd/sqs'
 import { IntegrationStreamDataState } from '@crowd/types'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: dataId')
-  process.exit(1)
-}
-
-const dataIds = processArguments[0].split(',')
+import { APP_IOC_MODULE } from 'ioc'
+import IntegrationDataRepository from '../repo/integrationData.repo'
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  await APP_IOC_MODULE(3)
+  const ioc = IOC()
+
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const processArguments = process.argv.slice(2)
+
+  if (processArguments.length !== 1) {
+    log.error('Expected 1 argument: dataId')
+    process.exit(1)
+  }
+
+  const dataIds = processArguments[0].split(',')
+
+  const sqsClient = ioc.get<SqsClient>(SQS_IOC.client)
   const emitter = new IntegrationDataWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
   const repo = new IntegrationDataRepository(store, log)
 
   for (const dataId of dataIds) {

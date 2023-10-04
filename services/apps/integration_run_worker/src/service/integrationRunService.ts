@@ -1,5 +1,3 @@
-import { inject, injectable } from 'inversify'
-import { AutomationRepository } from '../repo/automation.repo'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
@@ -10,6 +8,7 @@ import {
 } from '@crowd/integrations'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { REDIS_IOC, RedisCache, RedisClient } from '@crowd/redis'
+import { SQS_IOC } from '@crowd/sqs'
 import {
   IApiPubSubEmitter,
   IIntegrationRunWorkerEmitter,
@@ -19,11 +18,12 @@ import {
   IntegrationRunState,
   IntegrationStreamState,
 } from '@crowd/types'
+import { inject, injectable } from 'inversify'
 import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
+import { AutomationRepository } from '../repo/automation.repo'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
-import { SQS_IOC } from '@crowd/sqs'
 
 @injectable()
 export default class IntegrationRunService {

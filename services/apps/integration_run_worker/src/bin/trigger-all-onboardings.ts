@@ -1,20 +1,21 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
-import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { singleOrDefault, timeout } from '@crowd/common'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
-import { getServiceLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
-
-const log = getServiceLogger()
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationRunWorkerEmitter, SQS_IOC } from '@crowd/sqs'
+import { APP_IOC_MODULE } from 'ioc'
+import IntegrationRunRepository from '../repo/integrationRun.repo'
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  await APP_IOC_MODULE(3)
+  const ioc = IOC()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const emitter = ioc.get<IntegrationRunWorkerEmitter>(SQS_IOC.emitters.integrationRunWorker)
+
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
 
   const repo = new IntegrationRunRepository(store, log)
 

@@ -36,6 +36,8 @@ export enum Emitters {
   SEARCH_SYNC_WORKER = 1 << 4,
   INTEGRATION_SYNC_WORKER = 1 << 5,
   NODEJS_WORKER = 1 << 6,
+
+  ALL_EMITTERS = 0b11111111,
 }
 
 export const SQS_IOC_MODULE = async (

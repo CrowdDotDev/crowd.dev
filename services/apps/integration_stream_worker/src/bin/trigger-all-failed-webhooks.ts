@@ -1,20 +1,19 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationStreamWorkerEmitter, SQS_IOC } from '@crowd/sqs'
+import { APP_IOC_MODULE } from 'ioc'
 import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
 const batchSize = 500
 
-const log = getServiceLogger()
-
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  const ioc = await APP_IOC_MODULE(3)
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const emitter = ioc.get<IntegrationStreamWorkerEmitter>(SQS_IOC.emitters.integrationStreamWorker)
+
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
 
   const repo = new IncomingWebhookRepository(store, log)
   let count = 0

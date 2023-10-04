@@ -1,52 +1,28 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '../conf'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationStreamState } from '@crowd/types'
+import { APP_IOC_MODULE } from 'ioc'
+import { APP_IOC } from 'ioc_constants'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import IntegrationStreamService from '../service/integrationStreamService'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-import {
-  IntegrationDataWorkerEmitter,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
-import { IntegrationStreamState } from '@crowd/types'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: streamId')
-  process.exit(1)
-}
-
-const streamIds = processArguments[0].split(',')
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const ioc = await APP_IOC_MODULE(3)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
-  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, log)
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
+  const processArguments = process.argv.slice(2)
 
-  await runWorkerEmiiter.init()
-  await dataWorkerEmitter.init()
-  await streamWorkerEmitter.init()
+  if (processArguments.length !== 1) {
+    log.error('Expected 1 argument: streamId')
+    process.exit(1)
+  }
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const streamIds = processArguments[0].split(',')
+
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
   const repo = new IntegrationStreamRepository(store, log)
 
-  const service = new IntegrationStreamService(
-    redisClient,
-    runWorkerEmiiter,
-    dataWorkerEmitter,
-    streamWorkerEmitter,
-    store,
-    log,
-  )
+  const service = ioc.get<IntegrationStreamService>(APP_IOC.streamService)
   for (const streamId of streamIds) {
     const info = await repo.getStreamData(streamId)
 

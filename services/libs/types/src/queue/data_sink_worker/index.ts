@@ -1,5 +1,5 @@
-import { IActivityData } from '../../activities'
 import { IQueueMessage, ISqsQueueEmitter } from '../'
+import { IActivityData } from '../../activities'
 
 export enum DataSinkWorkerQueueMessageType {
   PROCESS_INTEGRATION_RESULT = 'process_integration_result',

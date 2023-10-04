@@ -1,13 +1,13 @@
-import { APP_IOC } from '../ioc_constants'
-import { ActivitySyncService } from '../service/activity.sync.service'
-import { MemberSyncService } from '../service/member.sync.service'
 import { BatchProcessor } from '@crowd/common'
+import { childIocContainer } from '@crowd/ioc'
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SQS_IOC, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 import { inject, injectable } from 'inversify'
+import { APP_IOC } from '../ioc_constants'
+import { ActivitySyncService } from '../service/activity.sync.service'
+import { MemberSyncService } from '../service/member.sync.service'
 import { OrganizationSyncService } from '../service/organization.sync.service'
-import { childIocContainer } from '@crowd/ioc'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

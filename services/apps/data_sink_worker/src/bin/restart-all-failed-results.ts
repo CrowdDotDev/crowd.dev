@@ -1,22 +1,25 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
-import DataSinkRepository from '../repo/dataSink.repo'
 import { partition } from '@crowd/common'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { DataSinkWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { DataSinkWorkerEmitter, SQS_IOC, SqsClient } from '@crowd/sqs'
 import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
+import { APP_IOC_MODULE } from 'ioc'
+import DataSinkRepository from '../repo/dataSink.repo'
 
 const batchSize = 500
 
-const log = getServiceLogger()
-
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  await APP_IOC_MODULE(3)
+  const ioc = IOC()
+
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const sqsClient = ioc.get<SqsClient>(SQS_IOC.client)
   const emitter = new DataSinkWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
 
   const repo = new DataSinkRepository(store, log)
   let count = 0

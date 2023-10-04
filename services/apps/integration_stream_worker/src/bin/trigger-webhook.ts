@@ -1,28 +1,29 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
-import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationStreamWorkerEmitter, SQS_IOC } from '@crowd/sqs'
 import { WebhookState, WebhookType } from '@crowd/types'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: webhookId')
-  process.exit(1)
-}
-
-const webhookIds = processArguments[0].split(',')
+import { APP_IOC_MODULE } from 'ioc'
+import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  await APP_IOC_MODULE(3)
+  const ioc = IOC()
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
+
+  const processArguments = process.argv.slice(2)
+
+  if (processArguments.length !== 1) {
+    log.error('Expected 1 argument: webhookId')
+    process.exit(1)
+  }
+
+  const webhookIds = processArguments[0].split(',')
+
+  const emitter = ioc.get<IntegrationStreamWorkerEmitter>(SQS_IOC.emitters.integrationStreamWorker)
+
+  const store = ioc.get<DbStore>(DATABASE_IOC.store)
   const repo = new IncomingWebhookRepository(store, log)
 
   for (const webhookId of webhookIds) {

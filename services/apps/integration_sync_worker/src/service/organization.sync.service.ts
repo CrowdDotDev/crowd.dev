@@ -1,9 +1,3 @@
-import { NANGO_CONFIG } from '../conf'
-import { AutomationRepository } from '../repo/automation.repo'
-import { AutomationExecutionRepository } from '../repo/automationExecution.repo'
-import { IDbIntegration } from '../repo/integration.data'
-import { IntegrationRepository } from '../repo/integration.repo'
-import { OrganizationRepository } from '../repo/organization.repo'
 import { singleOrDefault } from '@crowd/common'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
 import {
@@ -15,6 +9,12 @@ import {
 import { LOGGING_IOC, Logger, getChildLogger } from '@crowd/logging'
 import { Entity, IOrganization, IOrganizationSyncRemoteData } from '@crowd/types'
 import { inject, injectable } from 'inversify'
+import { NANGO_CONFIG } from '../conf'
+import { AutomationRepository } from '../repo/automation.repo'
+import { AutomationExecutionRepository } from '../repo/automationExecution.repo'
+import { IDbIntegration } from '../repo/integration.data'
+import { IntegrationRepository } from '../repo/integration.repo'
+import { OrganizationRepository } from '../repo/organization.repo'
 
 @injectable()
 export class OrganizationSyncService {

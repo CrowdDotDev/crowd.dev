@@ -1,11 +1,11 @@
-import { IInsertableWebhookStream } from '../repo/integrationStream.data'
-import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import IntegrationStreamService from '../service/integrationStreamService'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
 import { IOC } from '@crowd/ioc'
 import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { REDIS_IOC, RedisClient, processWithLock } from '@crowd/redis'
 import { APP_IOC } from 'ioc_constants'
+import { IInsertableWebhookStream } from '../repo/integrationStream.data'
+import IntegrationStreamRepository from '../repo/integrationStream.repo'
+import IntegrationStreamService from '../service/integrationStreamService'
 
 export const processOldStreamsJob = async (): Promise<void> => {
   const ioc = IOC()

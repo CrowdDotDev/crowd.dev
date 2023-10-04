@@ -1,10 +1,10 @@
+import { DATABASE_IOC, DbStore } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { APP_IOC_MODULE } from '../ioc'
 import { APP_IOC } from '../ioc_constants'
 import { ActivityRepository } from '../repo/activity.repo'
 import { ActivitySyncService } from '../service/activity.sync.service'
-import { DATABASE_IOC, DbStore } from '@crowd/database'
-import { IOC } from '@crowd/ioc'
-import { LOGGING_IOC, Logger } from '@crowd/logging'
 
 setImmediate(async () => {
   await APP_IOC_MODULE(2)

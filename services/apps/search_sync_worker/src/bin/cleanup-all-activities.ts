@@ -1,8 +1,8 @@
+import { IOC } from '@crowd/ioc'
 import { APP_IOC_MODULE } from '../ioc'
 import { APP_IOC } from '../ioc_constants'
 import { ActivitySyncService } from '../service/activity.sync.service'
 import { InitService } from '../service/init.service'
-import { IOC } from '@crowd/ioc'
 
 setImmediate(async () => {
   await APP_IOC_MODULE(5)

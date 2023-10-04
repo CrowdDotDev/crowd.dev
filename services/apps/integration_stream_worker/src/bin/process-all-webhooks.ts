@@ -1,22 +1,15 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '../conf'
-import IntegrationStreamService from '../service/integrationStreamService'
 import { timeout } from '@crowd/common'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-import {
-  IntegrationDataWorkerEmitter,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
+import { DATABASE_IOC, DbConnection } from '@crowd/database'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { WebhookType } from '@crowd/types'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
+import { APP_IOC_MODULE } from 'ioc'
+import { APP_IOC } from 'ioc_constants'
+import IntegrationStreamService from '../service/integrationStreamService'
+
 const BATCH_SIZE = 100
 const MAX_CONCURRENT = 3
-
-const log = getServiceLogger()
 
 const options = [
   {
@@ -69,28 +62,11 @@ async function processWebhook(
 }
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const ioc = await APP_IOC_MODULE(MAX_CONCURRENT)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
-  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, log)
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
-
-  await runWorkerEmiiter.init()
-  await dataWorkerEmitter.init()
-  await streamWorkerEmitter.init()
-
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
-
-  const service = new IntegrationStreamService(
-    redisClient,
-    runWorkerEmiiter,
-    dataWorkerEmitter,
-    streamWorkerEmitter,
-    store,
-    log,
-  )
+  const dbConnection = ioc.get<DbConnection>(DATABASE_IOC.connection)
+  const service = ioc.get<IntegrationStreamService>(APP_IOC.streamService)
 
   const conditions = [
     `state in ('PENDING', 'ERROR') and type not in ('${WebhookType.DISCOURSE}', '${WebhookType.CROWD_GENERATED}')`,

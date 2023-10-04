@@ -1,49 +1,23 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '../conf'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { APP_IOC_MODULE } from 'ioc'
+import { APP_IOC } from 'ioc_constants'
 import IntegrationStreamService from '../service/integrationStreamService'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-import {
-  IntegrationDataWorkerEmitter,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
-
-const log = getServiceLogger()
-
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: webhookIds')
-  process.exit(1)
-}
-
-const webhookIds = processArguments[0].split(',')
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const ioc = await APP_IOC_MODULE(3)
 
-  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, log)
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
-  await runWorkerEmiiter.init()
-  await dataWorkerEmitter.init()
-  await streamWorkerEmitter.init()
+  const processArguments = process.argv.slice(2)
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  if (processArguments.length !== 1) {
+    log.error('Expected 1 argument: webhookIds')
+    process.exit(1)
+  }
 
-  const service = new IntegrationStreamService(
-    redisClient,
-    runWorkerEmiiter,
-    dataWorkerEmitter,
-    streamWorkerEmitter,
-    store,
-    log,
-  )
+  const webhookIds = processArguments[0].split(',')
+
+  const service = ioc.get<IntegrationStreamService>(APP_IOC.streamService)
 
   for (const webhookId of webhookIds) {
     try {

@@ -1,19 +1,18 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
-import { getDbConnection } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { DATABASE_IOC, DbConnection } from '@crowd/database'
+import { LOGGING_IOC, Logger } from '@crowd/logging'
+import { IntegrationStreamWorkerEmitter, SQS_IOC } from '@crowd/sqs'
+import { APP_IOC_MODULE } from 'ioc'
 
 const BATCH_SIZE = 100
 
-const log = getServiceLogger()
-
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const ioc = await APP_IOC_MODULE(3)
 
-  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
-  await emitter.init()
+  const log = ioc.get<Logger>(LOGGING_IOC.logger)
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
+  const emitter = ioc.get<IntegrationStreamWorkerEmitter>(SQS_IOC.emitters.integrationStreamWorker)
+
+  const dbConnection = ioc.get<DbConnection>(DATABASE_IOC.connection)
 
   let results = await dbConnection.any(
     `

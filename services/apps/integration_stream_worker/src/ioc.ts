@@ -3,13 +3,13 @@ import { IOC } from '@crowd/ioc'
 import { LOGGING_IOC, LOGGING_IOC_MODULE, Logger } from '@crowd/logging'
 import { REDIS_IOC_MODULE } from '@crowd/redis'
 import { Emitters, SQS_IOC_MODULE } from '@crowd/sqs'
-import { ContainerModule } from 'inversify'
+import { Container, ContainerModule } from 'inversify'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
 import { APP_IOC } from './ioc_constants'
 import { WorkerQueueReceiver } from './queue'
 import IntegrationStreamService from './service/integrationStreamService'
 
-export const APP_IOC_MODULE = async (maxConcurrentProcessing: number): Promise<void> => {
+export const APP_IOC_MODULE = async (maxConcurrentProcessing: number): Promise<Container> => {
   const ioc = IOC()
   ioc.load(LOGGING_IOC_MODULE())
   const log = ioc.get<Logger>(LOGGING_IOC.logger)
@@ -36,4 +36,6 @@ export const APP_IOC_MODULE = async (maxConcurrentProcessing: number): Promise<v
   })
 
   ioc.load(appModule)
+
+  return ioc
 }

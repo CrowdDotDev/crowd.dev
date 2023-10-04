@@ -1,11 +1,11 @@
-import { APP_IOC_MODULE } from '../ioc'
-import { APP_IOC } from '../ioc_constants'
-import { MemberRepository } from '../repo/member.repo'
-import { MemberSyncService } from '../service/member.sync.service'
 import { DATABASE_IOC, DbStore } from '@crowd/database'
 import { IOC } from '@crowd/ioc'
 import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { REDIS_IOC, RedisClient } from '@crowd/redis'
+import { APP_IOC_MODULE } from '../ioc'
+import { APP_IOC } from '../ioc_constants'
+import { MemberRepository } from '../repo/member.repo'
+import { MemberSyncService } from '../service/member.sync.service'
 
 setImmediate(async () => {
   await APP_IOC_MODULE(3)
