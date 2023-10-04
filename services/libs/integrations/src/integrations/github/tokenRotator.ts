@@ -73,8 +73,8 @@ export class GithubTokenRotator {
         headers: { Authorization: `token ${token}` },
       })
 
-      const remaining = parseInt(response.data.resources.core.remaining)
-      const reset = parseInt(response.data.resources.core.reset)
+      const remaining = parseInt(response.data.resources.graphql.remaining)
+      const reset = parseInt(response.data.resources.graphql.reset)
       await this.updateTokenInfo(token, remaining, reset)
     }
   }
