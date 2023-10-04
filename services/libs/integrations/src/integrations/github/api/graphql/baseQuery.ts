@@ -4,6 +4,9 @@ import { GraphQlQueryResponseData } from '@octokit/graphql/dist-types/types'
 import { GraphQlQueryResponse } from '@crowd/types'
 import { RateLimitError, IConcurrentRequestLimiter } from '@crowd/types'
 import { GithubTokenRotator } from '../../tokenRotator'
+import { getServiceChildLogger } from '@crowd/logging'
+
+const logger = getServiceChildLogger('integrations:github:api:graphql:baseQuery')
 
 interface Limiter {
   integrationId: string
@@ -116,17 +119,20 @@ class BaseQuery {
         return await process()
       }
     } catch (err) {
+      logger.error('Error in getSinglePage')
       if (
         (err.status === 403 &&
           err.message &&
           (err.message as string).toLowerCase().includes('secondary rate limit')) ||
         (err.errors && err.errors[0].type === 'RATE_LIMITED')
       ) {
+        logger.error('Error in getSinglePage: rate limit error. Trying token rotation')
         // this is rate limit, let's try token rotation
         if (tokenRotator) {
           return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator)
         }
       } else {
+        logger.error('Error in getSinglePage: other error')
         throw BaseQuery.processGraphQLError(err)
       }
     }
@@ -136,6 +142,8 @@ class BaseQuery {
     beforeCursor: string,
     tokenRotator: GithubTokenRotator,
   ): Promise<GraphQlQueryResponse> {
+    logger.info('getSinglePageWithTokenRotation')
+
     const paginatedQuery = BaseQuery.interpolate(this.query, {
       beforeCursor: BaseQuery.getPagination(beforeCursor),
     })
@@ -157,6 +165,7 @@ class BaseQuery {
     try {
       return await process()
     } catch (err) {
+      logger.error('Error in getSinglePageWithTokenRotation')
       // we might have exhausted one token, but we let another streams to continue
       if (err.headers && err.headers['x-ratelimit-remaining'] && err.headers['x-ratelimit-reset']) {
         const remaining = parseInt(err.headers['x-ratelimit-remaining'])
