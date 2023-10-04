@@ -163,6 +163,7 @@ export interface GithubPlatformSettings {
   isCommitDataEnabled: string
   globalLimit?: number
   callbackUrl: string
+  personalAccessTokens: string
 }
 
 export interface GithubIntegrationSettings {

@@ -3,6 +3,7 @@ import { graphql } from '@octokit/graphql'
 import { GraphQlQueryResponseData } from '@octokit/graphql/dist-types/types'
 import { GraphQlQueryResponse } from '@crowd/types'
 import { RateLimitError, IConcurrentRequestLimiter } from '@crowd/types'
+import { GithubTokenRotator } from '../../tokenRotator'
 
 interface Limiter {
   integrationId: string
@@ -89,26 +90,84 @@ class BaseQuery {
    * @param beforeCursor Cursor to paginate records before it
    * @returns parsed graphQl result
    */
-  async getSinglePage(beforeCursor: string, limiter?: Limiter): Promise<GraphQlQueryResponse> {
+  async getSinglePage(
+    beforeCursor: string,
+    limiter?: Limiter,
+    tokenRotator?: GithubTokenRotator,
+  ): Promise<GraphQlQueryResponse> {
     const paginatedQuery = BaseQuery.interpolate(this.query, {
       beforeCursor: BaseQuery.getPagination(beforeCursor),
     })
+
+    const process = async () => {
+      const result = await this.graphQL(paginatedQuery)
+      return this.getEventData(result)
+    }
 
     try {
       if (limiter) {
         return limiter.concurrentRequestLimiter.processWithLimit(
           limiter.integrationId,
           async () => {
-            const result = await this.graphQL(paginatedQuery)
-            return this.getEventData(result)
+            return await process()
           },
         )
       } else {
-        const result = await this.graphQL(paginatedQuery)
-        return this.getEventData(result)
+        return await process()
       }
     } catch (err) {
+      if (
+        (err.status === 403 &&
+          err.message &&
+          (err.message as string).toLowerCase().includes('secondary rate limit')) ||
+        (err.errors && err.errors[0].type === 'RATE_LIMITED')
+      ) {
+        // this is rate limit, let's try token rotation
+        if (tokenRotator) {
+          return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator)
+        }
+      } else {
+        throw BaseQuery.processGraphQLError(err)
+      }
+    }
+  }
+
+  private async getSinglePageWithTokenRotation(
+    beforeCursor: string,
+    tokenRotator: GithubTokenRotator,
+  ): Promise<GraphQlQueryResponse> {
+    const paginatedQuery = BaseQuery.interpolate(this.query, {
+      beforeCursor: BaseQuery.getPagination(beforeCursor),
+    })
+
+    const token = await tokenRotator.getToken()
+
+    const process = async () => {
+      const graphqlWithTokenRotation = graphql.defaults({
+        headers: {
+          authorization: `token ${token}`,
+        },
+      })
+      const result = await graphqlWithTokenRotation(paginatedQuery)
+      await tokenRotator.updateRateLimitInfoFromApi(token)
+      await tokenRotator.returnToken(token)
+      return this.getEventData(result)
+    }
+
+    try {
+      return await process()
+    } catch (err) {
+      // we might have exhausted one token, but we let another streams to continue
+      if (err.headers && err.headers['x-ratelimit-remaining'] && err.headers['x-ratelimit-reset']) {
+        const remaining = parseInt(err.headers['x-ratelimit-remaining'])
+        const reset = parseInt(err.headers['x-ratelimit-reset'])
+        await tokenRotator.updateTokenInfo(token, remaining, reset)
+      } else {
+        await tokenRotator.updateRateLimitInfoFromApi(token)
+      }
       throw BaseQuery.processGraphQLError(err)
+    } finally {
+      await tokenRotator.returnToken(token)
     }
   }
 
