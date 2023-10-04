@@ -2029,17 +2029,12 @@ class OrganizationRepository {
             count(distinct a."memberId")                                                        as "memberCount",
             count(distinct a.id)                                                        as "activityCount",
             case
-                when array_agg(distinct a.platform) = array [null] then array []::text[]
-                else array_agg(distinct a.platform) end                                 as "activeOn",
+                when array_agg(distinct a.platform::TEXT) = array [null] then array []::text[]
+                else array_agg(distinct a.platform::TEXT) end                                 as "activeOn",
             max(a.timestamp)                                                            as "lastActive",
             min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
           from leaf_segment_ids ls
-          join activities a
-                    on a."segmentId" = ls.id and a."organizationId" = :id and
-                      a."deletedAt" is null
-          join "organizationSegments" os on a."segmentId" = os."segmentId" and os."organizationId" = :id
-          join members m on a."memberId" = m.id and m."deletedAt" is null
-          join "memberOrganizations" mo on m.id = mo."memberId" and mo."organizationId" = :id and mo."dateEnd" is null
+          join mv_activities_cube a on a."segmentId" = ls.id and a."organizationId" = :id
           group by a."organizationId"
         ),
         organization_segments as (
