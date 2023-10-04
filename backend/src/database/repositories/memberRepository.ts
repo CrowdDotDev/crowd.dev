@@ -3168,6 +3168,7 @@ class MemberRepository {
 
     output.activities = await record.getActivities({
       order: [['timestamp', 'DESC']],
+      limit: 20,
       transaction,
     })
 
