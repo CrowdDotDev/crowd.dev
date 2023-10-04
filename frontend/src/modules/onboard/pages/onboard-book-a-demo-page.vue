@@ -70,7 +70,7 @@ onMounted(() => {
 
   Cal('inline', {
     elementOrSelector: '#embbeded-script',
-    calLink: 'team/crowddotdev/intro-to-crowd-dev',
+    calLink: 'team/crowddotdev/get-personalised-onboarding',
     layout: 'month_view',
   });
 
