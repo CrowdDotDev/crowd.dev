@@ -1,6 +1,8 @@
 <template>
   <div class="widget-total-members">
-    <div class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100">
+    <div
+      class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100"
+    >
       <app-widget-title
         text-size="text-base"
         :description="TOTAL_MEMBERS_WIDGET.description"
@@ -11,17 +13,11 @@
         :widget="TOTAL_MEMBERS_WIDGET.name"
         :period="period"
         module="report"
-        @on-update="
-          (updatedPeriod) => (period = updatedPeriod)
-        "
+        @on-update="onUpdatePeriod"
       />
     </div>
     <div>
-      <query-renderer
-        v-if="cubejsApi"
-        :cubejs-api="cubejsApi"
-        :query="query"
-      >
+      <query-renderer v-if="cubejsApi" :cubejs-api="cubejsApi" :query="query">
         <template #default="{ resultSet, loading, error }">
           <!-- Loading -->
           <app-widget-loading
@@ -37,9 +33,7 @@
             <div class="col-span-5">
               <app-widget-kpi
                 :current-value="kpiCurrentValue(resultSet)"
-                :previous-value="
-                  kpiPreviousValue(resultSet)
-                "
+                :previous-value="kpiPreviousValue(resultSet)"
                 :vs-label="`vs. last ${period.extendedLabel}`"
                 class="col-span-5"
               />
@@ -82,6 +76,7 @@
 import { ref, computed, defineProps } from 'vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { getSelectedPeriodFromLabel } from '@/modules/widget/widget-utility';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 
 import AppWidgetKpi from '@/modules/widget/components/shared/widget-kpi.vue';
@@ -91,10 +86,7 @@ import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 
-import {
-  mapGetters,
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
+import { mapGetters, mapActions } from '@/shared/vuex/vuex.helpers';
 import { getTimeGranularityFromPeriod, parseAxisLabel } from '@/utils/reports';
 import {
   TOTAL_MEMBERS_QUERY,
@@ -102,8 +94,11 @@ import {
 } from '@/modules/widget/widget-queries';
 import { MemberService } from '@/modules/member/member-service';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
-import MEMBERS_REPORT, { TOTAL_MEMBERS_WIDGET } from '@/modules/report/templates/config/members';
+import MEMBERS_REPORT, {
+  TOTAL_MEMBERS_WIDGET,
+} from '@/modules/report/templates/config/members';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   filters: {
@@ -116,7 +111,15 @@ const props = defineProps({
   },
 });
 
-const period = ref(SEVEN_DAYS_PERIOD_FILTER);
+const route = useRoute();
+const router = useRouter();
+const period = ref(
+  getSelectedPeriodFromLabel(
+    route.query.totalMembersPeriod,
+    SEVEN_DAYS_PERIOD_FILTER,
+  ),
+);
+
 const drawerExpanded = ref();
 const drawerDate = ref();
 const drawerTitle = ref();
@@ -124,9 +127,7 @@ const drawerTitle = ref();
 const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const widgetChartOptions = chartOptions('area', {
   legendPlugin: false,
-  xTicksCallback: (
-    value,
-  ) => parseAxisLabel(value, granularity.value),
+  xTicksCallback: (value) => parseAxisLabel(value, granularity.value),
 });
 
 const datasets = computed(() => [
@@ -153,9 +154,7 @@ const query = computed(() => TOTAL_MEMBERS_QUERY({
 
 const kpiCurrentValue = (resultSet) => {
   const data = resultSet.chartPivot();
-  return Number(
-    data[data.length - 1]['Members.cumulativeCount'],
-  ) || 0;
+  return Number(data[data.length - 1]['Members.cumulativeCount']) || 0;
 };
 
 const kpiPreviousValue = (resultSet) => {
@@ -200,6 +199,16 @@ const onViewMoreClick = (date) => {
   } else {
     drawerTitle.value = 'Daily total members';
   }
+};
+
+const onUpdatePeriod = (updatedPeriod) => {
+  period.value = updatedPeriod;
+  router.replace({
+    query: {
+      ...route.query,
+      totalMembersPeriod: updatedPeriod.label,
+    },
+  });
 };
 
 const onExport = async ({ count }) => {
