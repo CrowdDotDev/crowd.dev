@@ -5,7 +5,6 @@ interface TokenInfo {
   token: string
   remaining: number
   reset: number
-  inUse: boolean
 }
 
 export class GithubTokenRotator {
@@ -26,7 +25,6 @@ export class GithubTokenRotator {
           token,
           remaining: 0,
           reset: 0,
-          inUse: false,
         }
         await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(newTokenInfo))
       }
@@ -37,11 +35,7 @@ export class GithubTokenRotator {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     for (const token in tokens) {
       const tokenInfo: TokenInfo = JSON.parse(tokens[token])
-      if (
-        !tokenInfo.inUse &&
-        (tokenInfo.remaining > 0 || tokenInfo.reset < Math.floor(Date.now() / 1000))
-      ) {
-        tokenInfo.inUse = true
+      if (tokenInfo.remaining > 0 || tokenInfo.reset < Math.floor(Date.now() / 1000)) {
         await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
         return token
       }
@@ -54,7 +48,6 @@ export class GithubTokenRotator {
       (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
     )
     if (tokenInfo) {
-      tokenInfo.inUse = false
       await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
     }
   }
