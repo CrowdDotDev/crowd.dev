@@ -107,7 +107,7 @@ export async function getGithubToken(ctx: IProcessStreamContext): Promise<string
 
 async function getMemberData(ctx: IProcessStreamContext, login: string): Promise<any> {
   const appToken = await getGithubToken(ctx)
-  return getMember(login, appToken)
+  return getMember(login, appToken, getTokenRotator(ctx))
 }
 
 async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promise<string> {
@@ -170,7 +170,7 @@ export const prepareMember = async (
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
       const token = await getGithubToken(ctx)
-      const fromAPI = await getOrganization(company, token)
+      const fromAPI = await getOrganization(company, token, getTokenRotator(ctx))
 
       orgs = fromAPI
     }
