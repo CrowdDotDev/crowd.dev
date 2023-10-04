@@ -5,7 +5,7 @@
         <span class="text-5xl"> 🙌 </span>
         <div class="flex flex-col gap-1">
           <h4 class="text-xl font-semibold leading-8">
-            Get personalized onboarding
+            Get personalised onboarding
           </h4>
           <p class="text-sm text-gray-600 leading-5">
             Learn how to use crowd.dev to accelerate your growth.
