@@ -13,3 +13,10 @@ export const extractRepoNameFromUrl = (url) => {
 };
 
 export const snakeToSentenceCase = (string) => string.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+export const truncateText = (text, characters = 200, suffix = '') => {
+  if (text.length > characters) {
+    return `${text.substring(0, characters)}${suffix}`;
+  }
+  return text;
+};
