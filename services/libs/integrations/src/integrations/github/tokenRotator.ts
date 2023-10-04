@@ -9,6 +9,7 @@ interface TokenInfo {
 }
 
 export class GithubTokenRotator {
+  static CACHE_KEY = 'integration-cache:github-token-rotator:tokens'
   constructor(private cache: ICache, private tokens: string[]) {
     this.cache = cache
     this.tokens = [...new Set(tokens)]
@@ -17,7 +18,9 @@ export class GithubTokenRotator {
 
   private async initializeTokens(): Promise<void> {
     for (const token of this.tokens) {
-      const tokenInfo: TokenInfo = JSON.parse(await this.cache.hget('github:tokens', token))
+      const tokenInfo: TokenInfo = JSON.parse(
+        await this.cache.hget(GithubTokenRotator.CACHE_KEY, token),
+      )
       if (!tokenInfo) {
         const newTokenInfo: TokenInfo = {
           token,
@@ -25,13 +28,13 @@ export class GithubTokenRotator {
           reset: 0,
           inUse: false,
         }
-        await this.cache.hset('github:tokens', token, JSON.stringify(newTokenInfo))
+        await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(newTokenInfo))
       }
     }
   }
 
   public async getToken(): Promise<string | null> {
-    const tokens = await this.cache.hgetall('github:tokens')
+    const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     for (const token in tokens) {
       const tokenInfo: TokenInfo = JSON.parse(tokens[token])
       if (
@@ -39,7 +42,7 @@ export class GithubTokenRotator {
         (tokenInfo.remaining > 0 || tokenInfo.reset < Math.floor(Date.now() / 1000))
       ) {
         tokenInfo.inUse = true
-        await this.cache.hset('github:tokens', token, JSON.stringify(tokenInfo))
+        await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
         return token
       }
     }
@@ -47,25 +50,31 @@ export class GithubTokenRotator {
   }
 
   public async returnToken(token: string): Promise<void> {
-    const tokenInfo: TokenInfo = JSON.parse((await this.cache.hget('github:tokens', token)) || '')
+    const tokenInfo: TokenInfo = JSON.parse(
+      (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
+    )
     if (tokenInfo) {
       tokenInfo.inUse = false
-      await this.cache.hset('github:tokens', token, JSON.stringify(tokenInfo))
+      await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
     }
   }
 
   public async updateTokenInfo(token: string, remaining: number, reset: number): Promise<void> {
-    const tokenInfo: TokenInfo = JSON.parse((await this.cache.hget('github:tokens', token)) || '')
+    const tokenInfo: TokenInfo = JSON.parse(
+      (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
+    )
     if (tokenInfo) {
       tokenInfo.remaining = remaining
       tokenInfo.reset = reset
-      await this.cache.hset('github:tokens', token, JSON.stringify(tokenInfo))
+      await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
     }
   }
 
   public async updateRateLimitInfoFromApi(token: string): Promise<void> {
     // let's make API call to get the latest rate limit info
-    const tokenInfo: TokenInfo = JSON.parse((await this.cache.hget('github:tokens', token)) || '')
+    const tokenInfo: TokenInfo = JSON.parse(
+      (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
+    )
     if (tokenInfo) {
       const response = await axios({
         url: 'https://api.github.com/rate_limit',
