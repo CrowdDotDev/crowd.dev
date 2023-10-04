@@ -43,34 +43,43 @@
         </el-dropdown-item>
 
         <!-- Hubspot -->
-        <el-dropdown-item
-          v-if="!isSyncingWithHubspot(organization)"
-          class="h-10"
-          :command="{
-            action: 'syncHubspot',
-            organization,
-          }"
-          :disabled="!isHubspotConnected || (!organization.website && !organization.attributes?.sourceId?.hubspot)"
+        <el-tooltip
+          placement="top"
+          content="Upgrade your plan to create a 2-way sync with HubSpot"
+          :disabled="isHubspotEnabled"
+          popper-class="max-w-[260px]"
         >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Sync with HubSpot</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-else
-          class="h-10"
-          :command="{
-            action: 'stopSyncHubspot',
-            organization,
-          }"
-          :disabled="!isHubspotConnected"
-        >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Stop sync with HubSpot</span>
-        </el-dropdown-item>
+          <span>
+            <el-dropdown-item
+              v-if="!isSyncingWithHubspot(organization)"
+              class="h-10"
+              :command="{
+                action: 'syncHubspot',
+                organization,
+              }"
+              :disabled="!isHubspotConnected || (!organization.website && !organization.attributes?.sourceId?.hubspot) || !isHubspotEnabled"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Sync with HubSpot</span>
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-else
+              class="h-10"
+              :command="{
+                action: 'stopSyncHubspot',
+                organization,
+              }"
+              :disabled="!isHubspotConnected"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Stop sync with HubSpot</span>
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
 
         <!-- Mark as Team Organization -->
         <el-dropdown-item
@@ -133,10 +142,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   mapGetters,
+  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
@@ -147,6 +157,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
+import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -166,6 +177,7 @@ const emit = defineEmits([
 const store = useStore();
 
 const { currentUser, currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
 
 const organizationStore = useOrganizationStore();
 const { fetchOrganizations, fetchOrganization } = organizationStore;
@@ -190,7 +202,15 @@ const isDeleteLockedForSampleData = computed(
   ).destroyLockedForSampleData,
 );
 
+const isHubspotEnabled = computed(() => FeatureFlag.isFlagEnabled(
+  FEATURE_FLAGS.hubspot,
+));
+
 const isSyncingWithHubspot = (organization) => organization.attributes?.syncRemote?.hubspot || false;
+
+onMounted(() => {
+  doRefreshCurrentUser({});
+});
 
 const isHubspotConnected = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
