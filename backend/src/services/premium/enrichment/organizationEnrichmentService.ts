@@ -17,6 +17,7 @@ import { IServiceOptions } from '../../IServiceOptions'
 import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import OrganizationService from '@/services/organizationService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
@@ -163,6 +164,16 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         }
 
         delete org.identities
+
+        // Check for an organization with the same website exists
+        const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+        const orgService = new OrganizationService(this.options)
+
+        if (existingOrg) {
+          await orgService.merge(existingOrg.id, org.id)
+          // remove the merged org from the list
+          orgs = orgs.filter((o) => o.id !== org.id)
+        }
       }
 
       // TODO: Update cache
