@@ -230,3 +230,11 @@ class BaseQuery {
 }
 
 export default BaseQuery
+
+export const process = async () => {
+  try {
+    return process()
+  } catch (err) {
+    // some logic here
+  }
+}
