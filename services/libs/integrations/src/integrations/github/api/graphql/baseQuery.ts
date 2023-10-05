@@ -130,6 +130,8 @@ class BaseQuery {
         // this is rate limit, let's try token rotation
         if (tokenRotator) {
           return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator, limiter)
+        } else {
+          throw BaseQuery.processGraphQLError(err)
         }
       } else {
         logger.error('Error in getSinglePage: other error')
