@@ -3,6 +3,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { graphql } from '@octokit/graphql'
 import BaseQuery from './baseQuery'
 import { GithubTokenRotator } from '../../tokenRotator'
+import { Limiter } from './baseQuery'
 
 const logger = getServiceChildLogger('github.getOrganization')
 
@@ -16,6 +17,7 @@ const getOrganization = async (
   name: string,
   token: string,
   tokenRotator?: GithubTokenRotator,
+  limiter?: Limiter,
 ): Promise<any> => {
   let organization: string | null
   try {
@@ -41,10 +43,20 @@ const getOrganization = async (
         }
       }`
 
-    organization = (await graphqlWithAuth(organizationsQuery)) as any
+    const process = async () => {
+      organization = (await graphqlWithAuth(organizationsQuery)) as any
 
-    organization =
-      (organization as any).search.nodes.length > 0 ? (organization as any).search.nodes[0] : null
+      organization =
+        (organization as any).search.nodes.length > 0 ? (organization as any).search.nodes[0] : null
+    }
+
+    if (limiter) {
+      await limiter.concurrentRequestLimiter.processWithLimit(limiter.integrationId, async () => {
+        await process()
+      })
+    } else {
+      await process()
+    }
   } catch (err) {
     logger.error(err, { name }, 'Error getting organization!')
     // It may be that the organization was not found, if for example it is a bot
@@ -59,7 +71,7 @@ const getOrganization = async (
     ) {
       // this is rate limit, let's try token rotation
       if (tokenRotator) {
-        organization = await getOrganizationWithTokenRotation(name, tokenRotator)
+        organization = await getOrganizationWithTokenRotation(name, tokenRotator, limiter)
       }
     } else {
       throw BaseQuery.processGraphQLError(err)
@@ -71,6 +83,7 @@ const getOrganization = async (
 const getOrganizationWithTokenRotation = async (
   name: string,
   tokenRotator: GithubTokenRotator,
+  limiter?: Limiter,
 ): Promise<any> => {
   const token = await tokenRotator.getToken()
   try {
@@ -96,11 +109,24 @@ const getOrganizationWithTokenRotation = async (
         }
       }`
 
-    const organization = (await graphqlWithTokenRotation(organizationsQuery)) as any
+    const process = async () => {
+      const organization = (await graphqlWithTokenRotation(organizationsQuery)) as any
 
-    return (organization as any).search.nodes.length > 0
-      ? (organization as any).search.nodes[0]
-      : null
+      return (organization as any).search.nodes.length > 0
+        ? (organization as any).search.nodes[0]
+        : null
+    }
+
+    if (limiter) {
+      return await limiter.concurrentRequestLimiter.processWithLimit(
+        limiter.integrationId,
+        async () => {
+          return await process()
+        },
+      )
+    } else {
+      return await process()
+    }
   } catch (err) {
     if (err.errors && err.errors[0].type === 'NOT_FOUND') {
       return null

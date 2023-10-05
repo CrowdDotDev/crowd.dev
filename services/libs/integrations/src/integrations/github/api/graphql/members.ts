@@ -2,6 +2,7 @@
 import { graphql } from '@octokit/graphql'
 import BaseQuery from './baseQuery'
 import { GithubTokenRotator } from '../../tokenRotator'
+import { Limiter } from './baseQuery'
 
 /**
  * Get information from a member using the GitHub GraphQL API.
@@ -13,6 +14,7 @@ const getMember = async (
   username: string,
   token: string,
   tokenRotator?: GithubTokenRotator,
+  limiter?: Limiter,
 ): Promise<any> => {
   let user: string | null
   try {
@@ -22,12 +24,22 @@ const getMember = async (
       },
     })
 
-    user = (
-      (await graphqlWithAuth(`{ 
+    const process = async () => {
+      user = (
+        (await graphqlWithAuth(`{ 
             user(login: "${username}") ${BaseQuery.USER_SELECT}
           }
       `)) as any
-    ).user
+      ).user
+    }
+
+    if (limiter) {
+      await limiter.concurrentRequestLimiter.processWithLimit(limiter.integrationId, async () => {
+        await process()
+      })
+    } else {
+      await process()
+    }
   } catch (err) {
     // It may be that the user was not found, if for example it is a bot
     // In that case we want to return null instead of throwing an error
@@ -41,7 +53,7 @@ const getMember = async (
     ) {
       // this is rate limit, let's try token rotation
       if (tokenRotator) {
-        user = await getMemberWithTokenRotation(username, tokenRotator)
+        user = await getMemberWithTokenRotation(username, tokenRotator, limiter)
       }
     } else {
       throw BaseQuery.processGraphQLError(err)
@@ -53,6 +65,7 @@ const getMember = async (
 const getMemberWithTokenRotation = async (
   username: string,
   tokenRotator: GithubTokenRotator,
+  limiter?: Limiter,
 ): Promise<any> => {
   let user: string | null
   const token = await tokenRotator.getToken()
@@ -63,12 +76,22 @@ const getMemberWithTokenRotation = async (
       },
     })
 
-    user = (
-      (await graphqlWithTokenRotation(`{ 
-          user(login: "${username}") ${BaseQuery.USER_SELECT}
-        }
-    `)) as any
-    ).user
+    const process = async () => {
+      user = (
+        (await graphqlWithTokenRotation(`{ 
+            user(login: "${username}") ${BaseQuery.USER_SELECT}
+          }
+      `)) as any
+      ).user
+    }
+
+    if (limiter) {
+      await limiter.concurrentRequestLimiter.processWithLimit(limiter.integrationId, async () => {
+        await process()
+      })
+    } else {
+      await process()
+    }
 
     await tokenRotator.updateRateLimitInfoFromApi(token)
     await tokenRotator.returnToken(token)

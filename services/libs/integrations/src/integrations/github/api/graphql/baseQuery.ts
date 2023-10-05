@@ -8,7 +8,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 
 const logger = getServiceChildLogger('integrations:github:api:graphql:baseQuery')
 
-interface Limiter {
+export interface Limiter {
   integrationId: string
   concurrentRequestLimiter: IConcurrentRequestLimiter
 }
@@ -129,7 +129,7 @@ class BaseQuery {
         logger.error('Error in getSinglePage: rate limit error. Trying token rotation')
         // this is rate limit, let's try token rotation
         if (tokenRotator) {
-          return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator)
+          return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator, limiter)
         }
       } else {
         logger.error('Error in getSinglePage: other error')
@@ -141,6 +141,7 @@ class BaseQuery {
   private async getSinglePageWithTokenRotation(
     beforeCursor: string,
     tokenRotator: GithubTokenRotator,
+    limiter?: Limiter,
   ): Promise<GraphQlQueryResponse> {
     logger.info('getSinglePageWithTokenRotation')
 
@@ -163,7 +164,16 @@ class BaseQuery {
     }
 
     try {
-      return await process()
+      if (limiter) {
+        return await limiter.concurrentRequestLimiter.processWithLimit(
+          limiter.integrationId,
+          async () => {
+            return await process()
+          },
+        )
+      } else {
+        return await process()
+      }
     } catch (err) {
       logger.error('Error in getSinglePageWithTokenRotation')
       // we might have exhausted one token, but we let another streams to continue
