@@ -1,5 +1,6 @@
 import { ICache } from '@crowd/types'
 import axios from 'axios'
+import { RateLimitError } from '@crowd/types'
 
 interface TokenInfo {
   token: string
@@ -33,14 +34,34 @@ export class GithubTokenRotator {
 
   public async getToken(): Promise<string | null> {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
+    let minResetTime = Infinity
+
     for (const token in tokens) {
       const tokenInfo: TokenInfo = JSON.parse(tokens[token])
       if (tokenInfo.remaining > 0 || tokenInfo.reset < Math.floor(Date.now() / 1000)) {
         await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
         return token
       }
+      minResetTime = Math.min(minResetTime, tokenInfo.reset)
     }
-    throw new Error('No available tokens in GitHubTokenRotator')
+
+    const waitTime =
+      minResetTime - Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 120) + 60
+
+    // if we have to wait less than 60 seconds, let's wait and try again
+    if (waitTime <= 60) {
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          resolve(await this.getToken())
+        }, waitTime * 1000)
+      })
+    }
+
+    throw new RateLimitError(
+      waitTime + Math.floor(Math.random() * 120) + 60,
+      'token-rotator',
+      `No available tokens in GitHubTokenRotator. Please wait for ${waitTime} seconds`,
+    )
   }
 
   public async returnToken(token: string): Promise<void> {
