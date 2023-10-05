@@ -109,7 +109,7 @@ class BaseQuery {
 
     try {
       if (limiter) {
-        return limiter.concurrentRequestLimiter.processWithLimit(
+        return await limiter.concurrentRequestLimiter.processWithLimit(
           limiter.integrationId,
           async () => {
             return await process()
