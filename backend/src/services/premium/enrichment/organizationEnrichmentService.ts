@@ -70,6 +70,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
   }
 
   public async enrichOrganizationsAndSignalDone(
+    includeOrgsActiveLastYear: boolean = false,
     verbose: boolean = false,
   ): Promise<IOrganization[]> {
     const enrichmentPlatformPriority = [
@@ -80,7 +81,12 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const enrichedOrganizations: IOrganization[] = []
     const enrichedCacheOrganizations: IOrganizationCache[] = []
     let count = 0
-    for (const instance of await OrganizationRepository.filterByPayingTenant(
+
+    const organizationFilterMethod = includeOrgsActiveLastYear
+      ? OrganizationRepository.filterByActiveLastYear
+      : OrganizationRepository.filterByPayingTenant
+
+    for (const instance of await organizationFilterMethod(
       this.tenantId,
       this.maxOrganizationsLimit,
       this.options,

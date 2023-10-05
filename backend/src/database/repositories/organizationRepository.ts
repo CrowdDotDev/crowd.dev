@@ -131,6 +131,89 @@ class OrganizationRepository {
     return orgs
   }
 
+  static async filterByActiveLastYear(
+    tenantId: string,
+    limit: number,
+    options: IRepositoryOptions,
+  ): Promise<IEnrichableOrganization[]> {
+    const database = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+    const query = `
+    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
+                        from activities a
+                        where a."tenantId" = :tenantId
+                          and a."deletedAt" is null
+                          and a."isContribution" = true
+                          and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
+                        group by a."organizationId"
+                        having count(id) > 0),
+     identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
+                    from "organizationIdentities" oi
+                    where oi."tenantId" = :tenantId
+                    group by oi."organizationId")
+    select org.id,
+          i.identities,
+          org."displayName",
+          org."location",
+          org."website",
+          org."lastEnrichedAt",
+          org."twitter",
+          org."employees",
+          org."size",
+          org."founded",
+          org."industry",
+          org."naics",
+          org."profiles",
+          org."headline",
+          org."ticker",
+          org."type",
+          org."address",
+          org."geoLocation",
+          org."employeeCountByCountry",
+          org."twitter",
+          org."linkedin",
+          org."crunchbase",
+          org."github",
+          org."description",
+          org."revenueRange",
+          org."tags",
+          org."affiliatedProfiles",
+          org."allSubsidiaries",
+          org."alternativeDomains",
+          org."alternativeNames",
+          org."averageEmployeeTenure",
+          org."averageTenureByLevel",
+          org."averageTenureByRole",
+          org."directSubsidiaries",
+          org."employeeChurnRate",
+          org."employeeCountByMonth",
+          org."employeeGrowthRate",
+          org."employeeCountByMonthByLevel",
+          org."employeeCountByMonthByRole",
+          org."gicsSector",
+          org."grossAdditionsByMonth",
+          org."grossDeparturesByMonth",
+          org."ultimateParent",
+          org."immediateParent",
+          activity."orgActivityCount"
+    from "organizations" as org
+            join org_activities activity on activity."organizationId" = org."id"
+            join identities i on i."organizationId" = org.id
+    where :tenantId = org."tenantId"
+    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    limit :limit
+    `
+    const orgs: IEnrichableOrganization[] = await database.query(query, {
+      type: QueryTypes.SELECT,
+      transaction,
+      replacements: {
+        tenantId,
+        limit,
+      },
+    })
+    return orgs
+  }
+
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
