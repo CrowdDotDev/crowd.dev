@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import {
   computed,
-  defineProps, ref, watch,
+  defineProps, onMounted, ref, watch,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
@@ -65,11 +65,13 @@ import { isEqual } from 'lodash';
 import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import CrSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
+import { SavecViewsService } from '@/shared/modules/saved-views/services/savec-views.service';
 
 const props = defineProps<{
   modelValue: Filter,
   config: SavedViewsConfig,
-  filters: Record<string, FilterConfig>
+  filters: Record<string, FilterConfig>,
+  placement: string,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
@@ -159,6 +161,20 @@ watch(() => props.modelValue, (filter: Filter) => {
     selectedTab.value = matchingView.id;
   }
 }, { deep: true });
+
+// View management
+const getViews = () => {
+  SavecViewsService.query({
+    placement: props.placement,
+  })
+    .then((res) => {
+      console.log(res);
+    });
+};
+
+onMounted(() => {
+  getViews();
+});
 </script>
 
 <script lang="ts">
