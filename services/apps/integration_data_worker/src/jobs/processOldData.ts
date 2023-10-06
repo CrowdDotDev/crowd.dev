@@ -1,5 +1,5 @@
-import IntegrationDataRepository from '@/repo/integrationData.repo'
-import IntegrationDataService from '@/service/integrationDataService'
+import IntegrationDataRepository from '../repo/integrationData.repo'
+import IntegrationDataService from '../service/integrationDataService'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient, processWithLock } from '@crowd/redis'
