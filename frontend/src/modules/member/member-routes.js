@@ -72,6 +72,48 @@ export default [
         },
         props: true,
       },
+      {
+        path: '/members',
+        redirect: (to) => ({
+          path: '/contacts',
+          query: to.query,
+        }),
+      },
+      {
+        path: '/members/new',
+        redirect: (to) => ({
+          path: '/contacts/new',
+          query: to.query,
+        }),
+      },
+      {
+        path: '/members/:id/edit',
+        redirect: (to) => ({
+          path: `/contacts/${to.params.id}/edit`,
+          query: to.query,
+        }),
+      },
+      {
+        path: '/members/merge-suggestions',
+        redirect: (to) => ({
+          path: '/contacts/merge-suggestions',
+          query: to.query,
+        }),
+      },
+      {
+        path: '/members/:id',
+        redirect: (to) => ({
+          path: `/contacts/${to.params.id}`,
+          query: to.query,
+        }),
+      },
+      {
+        path: '/members/:id/merge',
+        redirect: (to) => ({
+          path: `/contacts/${to.params.id}/merge`,
+          query: to.query,
+        }),
+      },
     ],
   },
 ];

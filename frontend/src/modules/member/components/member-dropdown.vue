@@ -292,15 +292,11 @@ export default {
       return !this.isHubspotConnected || this.isHubspotDisabledForMember || !this.isHubspotFeatureEnabled;
     },
   },
-  created() {
-    this.doRefreshCurrentUser({});
-  },
   methods: {
     ...mapActions({
       doFind: 'member/doFind',
       doDestroy: 'member/doDestroy',
       doEnrich: 'member/doEnrich',
-      doRefreshCurrentUser: 'auth/doRefreshCurrentUser',
     }),
     ...piniaMapActions(useMemberStore, ['fetchMembers']),
     async doDestroyWithConfirm(id) {
