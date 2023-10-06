@@ -41,13 +41,13 @@
           <i class="ri-add-line text-lg text-gray-400 h-5 flex items-center" />
         </el-button>
       </el-tooltip>
-      <el-popover trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
+      <el-popover v-if="views.length > 0" trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
         <template #reference>
           <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0">
             <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
           </el-button>
         </template>
-        <cr-saved-views-management :config="props.config" :views="[]" />
+        <cr-saved-views-management :config="props.config" :views="views" />
       </el-popover>
     </div>
   </div>
@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import {
   computed,
-  defineProps, onMounted, ref, watch,
+  onMounted, ref, watch,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
@@ -65,7 +65,7 @@ import { isEqual } from 'lodash';
 import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import CrSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
-import { SavecViewsService } from '@/shared/modules/saved-views/services/savec-views.service';
+import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -75,8 +75,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
-
-const views = ref<SavedView[]>([]);
 
 const isFormOpen = ref<boolean>(false);
 
@@ -163,12 +161,17 @@ watch(() => props.modelValue, (filter: Filter) => {
 }, { deep: true });
 
 // View management
+const views = ref<SavedView[]>([]);
+
 const getViews = () => {
-  SavecViewsService.query({
+  SavedViewsService.query({
     placement: props.placement,
   })
-    .then((res) => {
-      console.log(res);
+    .then((res: SavedView[]) => {
+      views.value = res;
+    })
+    .catch(() => {
+      views.value = [];
     });
 };
 

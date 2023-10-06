@@ -19,3 +19,11 @@ export interface SavedViewsConfig {
   settings: Record<string, SavedViewsSetting<any>>,
   sorting: Record<string, string> // Object with property and label for sorting
 }
+
+
+export interface SavedViewCreate {
+  label: string;
+  visibility: string;
+  placement: string;
+  filter: Filter & Record<string, any>
+}

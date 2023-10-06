@@ -14,7 +14,7 @@
     <div class="py-2">
       <vue-draggable-next :list="list">
         <article
-          v-for="view of list"
+          v-for="view of props.views"
           :key="view.id"
           class="p-2 rounded flex items-center justify-between flex-grow transition hover:bg-gray-50 cursor-grab"
         >
