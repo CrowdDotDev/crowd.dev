@@ -13,11 +13,11 @@ export default [
     name: '',
     path: '',
     component: Layout,
-    meta: { auth: true, title: 'Members' },
+    meta: { auth: true, title: 'Contacts' },
     children: [
       {
         name: 'member',
-        path: '/members',
+        path: '/contacts',
         component: MemberListPage,
         meta: {
           auth: true,
@@ -26,7 +26,7 @@ export default [
       },
       {
         name: 'memberCreate',
-        path: '/members/new',
+        path: '/contacts/new',
         component: MemberCreatePage,
         meta: {
           auth: true,
@@ -35,7 +35,7 @@ export default [
       },
       {
         name: 'memberEdit',
-        path: '/members/:id/edit',
+        path: '/contacts/:id/edit',
         component: MemberCreatePage,
         meta: {
           auth: true,
@@ -45,7 +45,7 @@ export default [
       },
       {
         name: 'memberMergeSuggestions',
-        path: '/members/merge-suggestions',
+        path: '/contacts/merge-suggestions',
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
@@ -54,7 +54,7 @@ export default [
       },
       {
         name: 'memberView',
-        path: '/members/:id',
+        path: '/contacts/:id',
         component: MemberViewPage,
         meta: {
           auth: true,
@@ -64,7 +64,7 @@ export default [
       },
       {
         name: 'memberMerge',
-        path: '/members/:id/merge',
+        path: '/contacts/:id/merge',
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,

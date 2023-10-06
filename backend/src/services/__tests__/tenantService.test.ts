@@ -220,8 +220,8 @@ describe('TenantService tests', () => {
       expect(suggestedTasks.rows.map((i) => i.name).sort()).toStrictEqual([
         'Check for negative reactions',
         'Engage with relevant content',
-        'Reach out to influential members',
-        'Reach out to poorly engaged members',
+        'Reach out to influential contacts',
+        'Reach out to poorly engaged contacts',
         'Setup your team',
         'Setup your workpace integrations',
       ])
