@@ -9,7 +9,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 
 const memberName: StringFilterConfig = {
   id: 'memberName',
-  label: 'Member name',
+  label: 'Contact name',
   iconClass: 'ri-account-circle-line',
   type: FilterConfigType.STRING,
   options: {},
@@ -18,7 +18,7 @@ const memberName: StringFilterConfig = {
     options: StringFilterOptions,
   ): string {
     return itemLabelRendererByType[FilterConfigType.STRING](
-      'Member name',
+      'Contact name',
       value,
       options,
     );

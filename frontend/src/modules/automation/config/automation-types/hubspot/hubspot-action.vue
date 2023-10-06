@@ -122,8 +122,8 @@ watch(() => props.trigger, () => {
 
 const memberOptions: HubspotActionOption[] = [
   {
-    label: 'Add member to a HubSpot contacts list',
-    description: 'Send member to HubSpot and add it to a contacts list.',
+    label: 'Add contact to a HubSpot contacts list',
+    description: 'Send contact to HubSpot and add it to a contacts list.',
     value: HubspotAutomationAction.ADD_TO_CONTACT_LIST,
   },
 ];
