@@ -1,4 +1,4 @@
-import MemberAttributeSettingsRepository from '@/repo/memberAttributeSettings.repo'
+import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { MemberAttributeType } from '@crowd/types'

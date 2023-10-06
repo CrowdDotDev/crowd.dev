@@ -1,4 +1,4 @@
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 const REDDIT_RATE_LIMIT = 100
 const REDDIT_RATE_LIMIT_TIME = 60

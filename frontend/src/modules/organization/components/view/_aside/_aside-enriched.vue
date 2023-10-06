@@ -34,7 +34,6 @@
           v-else-if="attribute.component && attribute.type === AttributeType.JSON"
           :attribute-value="organization[attribute.name]"
           :key-parser="attribute.keyParser"
-          :nested-key-parser="attribute.nestedKeyParser"
           :value-parser="attribute.valueParser"
           :filter-value="attribute.filterValue"
         />

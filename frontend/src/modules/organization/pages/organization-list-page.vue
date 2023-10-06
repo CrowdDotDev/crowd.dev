@@ -8,6 +8,22 @@
           </div>
           <div class="flex items-center">
             <router-link
+              class=" mr-4 "
+              :class="{ 'pointer-events-none': isEditLockedForSampleData }"
+              :to="{
+                name: 'organizationMergeSuggestions',
+              }"
+            >
+              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
+                <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                <span class="text-gray-900">Merge suggestions</span>
+                <span
+                  v-if="organizationsToMergeCount > 0"
+                  class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                >{{ Math.ceil(organizationsToMergeCount) }}</span>
+              </button>
+            </router-link>
+            <router-link
               v-if="hasPermissionToCreate"
               :to="{
                 name: 'organizationCreate',
@@ -90,11 +106,19 @@ const hasPermissionToCreate = computed(
     currentUser.value,
   ).create,
 );
+
 const isCreateLockedForSampleData = computed(
   () => new OrganizationPermissions(
     currentTenant.value,
     currentUser.value,
   ).createLockedForSampleData,
+);
+
+const isEditLockedForSampleData = computed(
+  () => new OrganizationPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).editLockedForSampleData,
 );
 
 const pagination = ref({
@@ -156,7 +180,16 @@ const onPaginationChange = ({
   });
 };
 
+const organizationsToMergeCount = ref(0);
+const fetchOrganizationsToMergeCount = () => {
+  OrganizationService.fetchMergeSuggestions(1, 0)
+    .then(({ count }: any) => {
+      organizationsToMergeCount.value = count;
+    });
+};
+
 onMounted(async () => {
+  fetchOrganizationsToMergeCount();
   doGetOrganizationCount();
   (window as any).analytics.page('Organization');
 });

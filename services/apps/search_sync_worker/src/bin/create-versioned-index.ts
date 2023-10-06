@@ -1,5 +1,5 @@
-import { OpenSearchService } from '@/service/opensearch.service'
-import { OpenSearchIndex } from '@/types'
+import { OpenSearchService } from '../service/opensearch.service'
+import { OpenSearchIndex } from '../types'
 import { getServiceLogger } from '@crowd/logging'
 
 const log = getServiceLogger()

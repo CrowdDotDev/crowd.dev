@@ -27,7 +27,7 @@ export interface IDbOrganizationSyncData {
   name: string
   phoneNumbers: string[] | null
   profiles: string[] | null
-  revenueRange: unknown | null
+  revenueRange: { min?: number; max?: number } | null
   size: string | null
   type: string | null
   url: string | null
@@ -54,6 +54,10 @@ export interface IDbOrganizationSyncData {
   gicsSector: string | null
   grossAdditionsByMonth: unknown | null
   grossDeparturesByMonth: unknown | null
+  weakIdentities: IOrganizationIdentity[]
+  employeeChurnRate12Month: number | null
+  employeeGrowthRate12Month: number | null
+  tags: string[] | null
 
   // aggregate data
   joinedAt: string
@@ -62,4 +66,6 @@ export interface IDbOrganizationSyncData {
   activityCount: number
   memberCount: number
   identities: IOrganizationIdentity[]
+  toMergeIds: string[]
+  noMergeIds: string[]
 }
