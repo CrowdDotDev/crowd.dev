@@ -111,7 +111,7 @@ export default class QuickstartGuideService extends LoggerBase {
       if (enrichableMembers.count > 0) {
         guides[
           QuickstartGuideType.ENRICH_MEMBER
-        ].buttonLink = `/members/${enrichableMembers.rows[0].id}`
+        ].buttonLink = `/contacts/${enrichableMembers.rows[0].id}`
       }
     }
 
