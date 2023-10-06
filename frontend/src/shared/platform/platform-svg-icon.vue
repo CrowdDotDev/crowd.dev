@@ -3,6 +3,7 @@
     :username-handles="usernameHandles"
     :tooltip-label="tooltipLabel"
     :platform="platform"
+    :attributes="attributes"
     :href="asLink ? href : null"
   >
     <template #platform>
@@ -41,7 +42,7 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue';
+import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppPlatformPopover from './platform-popover.vue';
@@ -67,10 +68,16 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  attributes: {
+    type: Object,
+    default: null,
+  },
 });
 
 const platformConfig = computed(() => CrowdIntegrations.getConfig(props.platform));
-const href = computed(() => (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null));
+const href = computed(() => (props.usernameHandles.length === 1 || props.attributes?.url?.[props.platform]
+  ? CrowdIntegrations.getConfig(props.platform)?.url({ username: props.usernameHandles[0], attributes: props.attributes })
+  : null));
 </script>
 
 <script>

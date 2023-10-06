@@ -10,10 +10,10 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
+        title="No community contacts yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
         cta-btn="Connect integrations"
-        secondary-btn="Add member"
+        secondary-btn="Add contacts"
         @cta-click="onCtaClick"
         @secondary-click="onSecondaryBtnClick"
       />
@@ -21,15 +21,15 @@
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community members yet"
-        description="Please consider that the first members may take a couple of minutes to be displayed"
+        title="No community contacts yet"
+        description="Please consider that the first contacts may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
 
       <app-empty-state-cta
         v-else-if="hasMembers && !totalMembers"
         icon="ri-contacts-line"
-        title="No members found"
+        title="No contacts found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
 
@@ -42,7 +42,7 @@
             :current-page="pagination.page"
             :has-page-counter="false"
             :export="doExport"
-            module="member"
+            module="contact"
             position="top"
             @change-sorter="doChangePaginationPageSize"
           />
@@ -97,7 +97,7 @@
               <el-table-column type="selection" width="75" fixed />
 
               <el-table-column
-                label="Member"
+                label="Contact"
                 prop="displayName"
                 width="250"
                 fixed
@@ -260,8 +260,8 @@
                 <template #header>
                   <el-tooltip placement="top">
                     <template #content>
-                      This refers to the total # of open source contributions a member did on GitHub.<br />
-                      To receive this attribute you have to enrich your members.
+                      This refers to the total # of open source contributions a contact did on GitHub.<br />
+                      To receive this attribute you have to enrich your contacts.
                     </template>
                     # of open source contributions
                   </el-tooltip>
@@ -313,7 +313,7 @@
                       class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
                       <el-tooltip
-                        v-for="email of scope.row.emails"
+                        v-for="email of scope.row.emails.slice(0, 3)"
                         :key="email"
                         :disabled="!email"
                         popper-class="custom-identity-tooltip"
@@ -336,6 +336,45 @@
                           >{{ email }}</a>
                         </div>
                       </el-tooltip>
+                      <el-popover
+                        v-if="scope.row.emails?.length > 3"
+                        placement="top"
+                        :width="400"
+                        trigger="hover"
+                        popper-class="support-popover"
+                      >
+                        <template #reference>
+                          <span
+                            class="badge--interactive hover:text-gray-900"
+                          >+{{ scope.row.emails.length - 3 }}</span>
+                        </template>
+                        <div class="flex flex-wrap gap-3 my-1">
+                          <el-tooltip
+                            v-for="email of scope.row.emails.slice(3)"
+                            :key="email"
+                            :disabled="!email"
+                            popper-class="custom-identity-tooltip flex "
+                            placement="top"
+                          >
+                            <template #content>
+                              <span>Send email
+                                <i
+                                  v-if="email"
+                                  class="ri-external-link-line text-gray-400"
+                                /></span>
+                            </template>
+                            <div @click.prevent>
+                              <a
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="badge--interactive"
+                                :href="`mailto:${email}`"
+                                @click.stop="trackEmailClick"
+                              >{{ email }}</a>
+                            </div>
+                          </el-tooltip>
+                        </div>
+                      </el-popover>
                     </div>
                     <span v-else class="text-gray-500">-</span>
                   </router-link>
@@ -384,7 +423,7 @@
                 :total="totalMembers"
                 :page-size="Number(pagination.perPage)"
                 :current-page="pagination.page || 1"
-                module="member"
+                module="contact"
                 @change-current-page="doChangePaginationCurrentPage"
                 @change-page-size="doChangePaginationPageSize"
               />
@@ -404,6 +443,7 @@ import { useRouter } from 'vue-router';
 import {
   computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
+import { storeToRefs } from 'pinia';
 import { i18n } from '@/i18n';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
@@ -411,7 +451,6 @@ import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';

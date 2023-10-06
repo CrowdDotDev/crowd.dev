@@ -2,7 +2,7 @@ import {
   ProcessWebhookStreamHandler,
   IProcessWebhookStreamContext,
   IProcessStreamContext,
-} from '@/types'
+} from '../../types'
 import { DiscordWebsocketPayload, DiscordWebsocketEvent } from '@crowd/types'
 import { getMessage } from './api/getMessage'
 import { getDiscordToken } from './processStream'
@@ -25,6 +25,11 @@ const parseWebhookMessage = async (payload: any, ctx: IProcessWebhookStreamConte
     getDiscordToken(ctx as IProcessStreamContext),
     ctx as IProcessStreamContext,
   )
+
+  if (!record) {
+    // skipping 404 errors, they are most likely due to the message / channel being deleted
+    return
+  }
 
   let parent: string | undefined
   let parentChannel: string | undefined

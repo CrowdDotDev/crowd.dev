@@ -41,7 +41,7 @@ const fields = {
   ),
   members: new OrganizationMemberCountField(
     'memberCount',
-    '# of members',
+    '# of contacts',
     { filterable: true },
   ),
   employees: new OrganizationEmployeesField(
@@ -80,6 +80,10 @@ const fields = {
   crunchbase: new JsonField(
     'crunchbase',
     label('crunchbase'),
+  ),
+  identities: new JsonField(
+    'identities',
+    'Identities',
   ),
   emails: new StringArrayField('emails', 'E-mail address'),
   phoneNumbers: new StringArrayField(

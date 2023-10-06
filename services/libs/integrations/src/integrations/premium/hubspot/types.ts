@@ -30,6 +30,7 @@ export enum HubspotEntity {
 export enum HubspotStream {
   MEMBERS = 'members',
   ORGANIZATIONS = 'organizations',
+  ROOT = 'root',
 }
 
 export enum HubspotAssociationType {

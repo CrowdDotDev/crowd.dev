@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { DiscordApiMember, DiscordGetMembersInput, DiscordGetMembersOutput } from '../types'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 async function getMembers(
   input: DiscordGetMembersInput,

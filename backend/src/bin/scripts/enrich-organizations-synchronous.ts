@@ -57,7 +57,7 @@ if (parameters.help || !parameters.tenant || !parameters.limit) {
     const limit = parameters.limit
 
     for (const tenantId of tenantIds) {
-      await BulkorganizationEnrichmentWorker(tenantId, limit, true)
+      await BulkorganizationEnrichmentWorker(tenantId, limit, true, true)
       log.info(`Done for tenant ${tenantId}`)
     }
 

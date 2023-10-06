@@ -30,6 +30,45 @@ export class OrganizationService {
     return response.data;
   }
 
+  static async mergeOrganizations(organizationToKeepId, organizationToMergeId) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/organization/${organizationToKeepId}/merge`,
+      {
+        organizationToMerge: organizationToMergeId,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async addToNoMerge(organizationA, organizationB) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/organization/${organizationA.id}/no-merge`,
+      {
+        organizationToNotMerge: organizationB.id,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async noMergeOrganizations(organizationAId, organizationBId) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/organization/${organizationAId}/no-merge`,
+      {
+        organizationToNotMerge: organizationBId,
+      },
+    );
+
+    return response.data;
+  }
+
   static async create(data) {
     const tenantId = AuthCurrentTenant.get();
 
@@ -92,5 +131,26 @@ export class OrganizationService {
     );
 
     return response.data;
+  }
+
+  static async fetchMergeSuggestions(limit, offset) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const params = {
+      limit,
+      offset,
+    };
+
+    return authAxios.get(
+      `/tenant/${tenantId}/organizationsToMerge`,
+      {
+        params,
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    )
+      .then(({ data }) => Promise.resolve(data));
   }
 }

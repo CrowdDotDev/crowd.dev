@@ -1,5 +1,5 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
-import IntegrationDataRepository from '@/repo/integrationData.repo'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import IntegrationDataRepository from '../repo/integrationData.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationDataWorkerEmitter, getSqsClient } from '@crowd/sqs'
@@ -21,7 +21,7 @@ setImmediate(async () => {
   const emitter = new IntegrationDataWorkerEmitter(sqsClient, log)
   await emitter.init()
 
-  const dbConnection = await getDbConnection(DB_CONFIG(), 1)
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
   const repo = new IntegrationDataRepository(store, log)
 

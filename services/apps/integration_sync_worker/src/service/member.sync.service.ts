@@ -1,4 +1,4 @@
-import { NANGO_CONFIG, SERVICE_CONFIG } from '@/conf'
+import { NANGO_CONFIG, SERVICE_CONFIG } from '../conf'
 import { MemberRepository } from '../repo/member.repo'
 import { Entity, IMember, OpenSearchIndex } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
@@ -7,16 +7,18 @@ import { Logger, LoggerBase } from '@crowd/logging'
 import { Edition } from '@crowd/types'
 import { ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
-import { IntegrationRepository } from '@/repo/integration.repo'
+import { IntegrationRepository } from '../repo/integration.repo'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
-  IBatchCreateMemberResult,
+  IBatchCreateMembersResult,
+  IBatchUpdateMembersResult,
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
-import { IDbIntegration } from '@/repo/integration.data'
-import { AutomationRepository } from '@/repo/automation.repo'
-import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
+import { IDbIntegration } from '../repo/integration.data'
+import { AutomationRepository } from '../repo/automation.repo'
+import { AutomationExecutionRepository } from '../repo/automationExecution.repo'
+import { automationNotFound, integrationNotFound } from '../errors'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository
@@ -45,7 +47,18 @@ export class MemberSyncService extends LoggerBase {
   ): Promise<void> {
     const integration = await this.integrationRepo.findById(integrationId)
 
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
+
     const member = await this.memberRepo.findMember(memberId)
+
+    if (!member) {
+      this.log.warn(`Member ${memberId} is not found for syncing remote!`)
+      return
+    }
 
     const syncRemote = await this.memberRepo.findSyncRemoteById(syncRemoteId)
 
@@ -53,12 +66,22 @@ export class MemberSyncService extends LoggerBase {
     const membersToUpdate = []
 
     if (syncRemote.sourceId) {
+      member.attributes = {
+        ...member.attributes,
+        sourceId: {
+          ...(member.attributes.sourceId || {}),
+          [integration.platform]: syncRemote.sourceId,
+        },
+      }
+
       membersToUpdate.push(member)
     } else {
       membersToCreate.push(member)
     }
 
     const service = singleOrDefault(INTEGRATION_SERVICES, (s) => s.type === integration.platform)
+
+    this.log.info(`Syncing member ${memberId} to ${integration.platform} remote!`)
 
     if (service.processSyncRemote) {
       const context: IIntegrationProcessRemoteSyncContext = {
@@ -72,18 +95,29 @@ export class MemberSyncService extends LoggerBase {
         tenantId,
       }
 
-      const newMembers = await service.processSyncRemote<IMember>(
+      const { created, updated } = await service.processSyncRemote<IMember>(
         membersToCreate,
         membersToUpdate,
         Entity.MEMBERS,
         context,
       )
 
-      if (newMembers.length > 0) {
-        const memberCreated = newMembers[0] as IBatchCreateMemberResult
+      if (created.length > 0) {
+        const memberCreated = created[0] as IBatchCreateMembersResult
         await this.memberRepo.setSyncRemoteSourceId(syncRemoteId, memberCreated.sourceId)
+        await this.memberRepo.setLastSyncedAtBySyncRemoteId(
+          syncRemoteId,
+          memberCreated.lastSyncedPayload,
+        )
       }
-      await this.memberRepo.setLastSyncedAtBySyncRemoteId(syncRemoteId)
+
+      if (updated.length > 0) {
+        const memberUpdated = updated[0] as IBatchUpdateMembersResult
+        await this.memberRepo.setLastSyncedAtBySyncRemoteId(
+          syncRemoteId,
+          memberUpdated.lastSyncedPayload,
+        )
+      }
     } else {
       this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
     }
@@ -95,6 +129,12 @@ export class MemberSyncService extends LoggerBase {
     batchSize = 100,
   ): Promise<void> {
     const integration: IDbIntegration = await this.integrationRepo.findById(integrationId)
+
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
 
     const platforms = await this.memberRepo.getExistingPlatforms(tenantId)
 
@@ -124,7 +164,7 @@ export class MemberSyncService extends LoggerBase {
       while (markedMembers.length > 0) {
         const memberToSync = markedMembers.shift()
 
-        this.log.trace(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
+        this.log.info(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
 
         // find member in opensearch
         const query = {
@@ -173,6 +213,7 @@ export class MemberSyncService extends LoggerBase {
           translatedMembers[0].attributes = {
             ...translatedMembers[0].attributes,
             sourceId: {
+              ...(translatedMembers[0].attributes.sourceId || {}),
               [integration.platform]: memberToSync.sourceId,
             },
           }
@@ -196,24 +237,32 @@ export class MemberSyncService extends LoggerBase {
           tenantId,
         }
 
-        const newMembers = await service.processSyncRemote<IMember>(
+        const { created, updated } = await service.processSyncRemote<IMember>(
           membersToCreate,
           membersToUpdate,
           Entity.MEMBERS,
           context,
         )
 
-        for (const newMember of newMembers as IBatchCreateMemberResult[]) {
+        for (const newMember of created as IBatchCreateMembersResult[]) {
           await this.memberRepo.setIntegrationSourceId(
             newMember.memberId,
             integration.id,
             newMember.sourceId,
           )
-          await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+          await this.memberRepo.setLastSyncedAt(
+            newMember.memberId,
+            integration.id,
+            newMember.lastSyncedPayload,
+          )
         }
 
-        for (const updatedMember of membersToUpdate) {
-          await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+        for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setLastSyncedAt(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.lastSyncedPayload,
+          )
         }
       } else {
         this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
@@ -228,7 +277,19 @@ export class MemberSyncService extends LoggerBase {
     batchSize = 50,
   ) {
     const integration: IDbIntegration = await this.integrationRepo.findById(integrationId)
+
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
     const automation = await this.automationRepo.findById(automationId)
+
+    if (!automation) {
+      const message = automationNotFound(automationId)
+      this.log.warn(message)
+      return
+    }
 
     const platforms = await this.memberRepo.getExistingPlatforms(tenantId)
 
@@ -340,7 +401,7 @@ export class MemberSyncService extends LoggerBase {
         while (translatedMembers.length > 0) {
           const memberToSync = translatedMembers.shift()
 
-          this.log.trace(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
+          this.log.info(`Syncing member ${memberToSync.id} to ${integration.platform} remote!`)
 
           let syncRemote = await this.memberRepo.findSyncRemote(
             memberToSync.id,
@@ -362,6 +423,7 @@ export class MemberSyncService extends LoggerBase {
             memberToSync.attributes = {
               ...memberToSync.attributes,
               sourceId: {
+                ...(memberToSync.attributes.sourceId || {}),
                 [integration.platform]: syncRemote.sourceId,
               },
             }
@@ -389,25 +451,33 @@ export class MemberSyncService extends LoggerBase {
             automation,
           }
 
-          const newMembers = await service.processSyncRemote<IMember>(
+          const { created, updated } = await service.processSyncRemote<IMember>(
             membersToCreate,
             membersToUpdate,
             Entity.MEMBERS,
             context,
           )
 
-          for (const newMember of newMembers as IBatchCreateMemberResult[]) {
+          for (const newMember of created as IBatchCreateMembersResult[]) {
             await this.memberRepo.setIntegrationSourceId(
               newMember.memberId,
               integration.id,
               newMember.sourceId,
             )
 
-            await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+            await this.memberRepo.setLastSyncedAt(
+              newMember.memberId,
+              integration.id,
+              newMember.lastSyncedPayload,
+            )
           }
 
-          for (const updatedMember of membersToUpdate) {
-            await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+          for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+            await this.memberRepo.setLastSyncedAt(
+              updatedMember.memberId,
+              integration.id,
+              updatedMember.lastSyncedPayload,
+            )
           }
         } else {
           this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)
@@ -453,7 +523,19 @@ export class MemberSyncService extends LoggerBase {
   ) {
     const integration: IDbIntegration = await this.integrationRepo.findById(integrationId)
 
+    if (!integration) {
+      const message = integrationNotFound(integrationId)
+      this.log.warn(message)
+      return
+    }
+
     const automation = await this.automationRepo.findById(automationId)
+
+    if (!automation) {
+      const message = automationNotFound(automationId)
+      this.log.warn(message)
+      return
+    }
 
     let organizationMembers
     let offset
@@ -472,7 +554,7 @@ export class MemberSyncService extends LoggerBase {
       while (organizationMembers.length > 0) {
         const memberToSync = organizationMembers.shift()
 
-        this.log.trace(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
+        this.log.info(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
         const member = await this.memberRepo.findMember(memberToSync.memberId)
 
         let syncRemote = await this.memberRepo.findSyncRemote(
@@ -495,6 +577,7 @@ export class MemberSyncService extends LoggerBase {
           member.attributes = {
             ...member.attributes,
             sourceId: {
+              ...(member.attributes.sourceId || {}),
               [integration.platform]: syncRemote.sourceId,
             },
           }
@@ -518,24 +601,32 @@ export class MemberSyncService extends LoggerBase {
           tenantId,
         }
 
-        const newMembers = await service.processSyncRemote<IMember>(
+        const { created, updated } = await service.processSyncRemote<IMember>(
           membersToCreate,
           membersToUpdate,
           Entity.MEMBERS,
           context,
         )
 
-        for (const newMember of newMembers as IBatchCreateMemberResult[]) {
+        for (const newMember of created as IBatchCreateMembersResult[]) {
           await this.memberRepo.setIntegrationSourceId(
             newMember.memberId,
             integration.id,
             newMember.sourceId,
           )
-          await this.memberRepo.setLastSyncedAt(newMember.memberId, integration.id)
+          await this.memberRepo.setLastSyncedAt(
+            newMember.memberId,
+            integration.id,
+            newMember.lastSyncedPayload,
+          )
         }
 
-        for (const updatedMember of membersToUpdate) {
-          await this.memberRepo.setLastSyncedAt(updatedMember.id, integration.id)
+        for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setLastSyncedAt(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.lastSyncedPayload,
+          )
         }
       } else {
         this.log.warn(`Integration ${integration.platform} has no processSyncRemote function!`)

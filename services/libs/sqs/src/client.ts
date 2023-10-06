@@ -1,4 +1,7 @@
 import {
+  ChangeMessageVisibilityCommand,
+  ChangeMessageVisibilityCommandOutput,
+  ChangeMessageVisibilityRequest,
   DeleteMessageCommand,
   DeleteMessageRequest,
   ReceiveMessageCommand,
@@ -13,6 +16,7 @@ import {
 } from '@aws-sdk/client-sqs'
 import { IS_DEV_ENV, IS_STAGING_ENV, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
+import { ConfiguredRetryStrategy } from '@smithy/util-retry'
 import { ISqsClientConfig, SqsClient, SqsMessage } from './types'
 
 const log = getServiceChildLogger('sqs.client')
@@ -32,6 +36,7 @@ export const getSqsClient = (config: ISqsClientConfig): SqsClient => {
       accessKeyId: config.accessKeyId,
       secretAccessKey: config.secretAccessKey,
     },
+    retryStrategy: new ConfiguredRetryStrategy(10, 1000),
   })
   return client
 }
@@ -66,7 +71,8 @@ export const receiveMessage = async (
     if (
       err.message === 'We encountered an internal error. Please try again.' ||
       err.message === 'Request is throttled.' ||
-      err.message === 'Queue Throttled'
+      err.message === 'Queue Throttled' ||
+      (err.code === 'EAI_AGAIN' && err.syscall === 'getaddrinfo')
     ) {
       return []
     }
@@ -84,8 +90,10 @@ export const deleteMessage = async (
     await client.send(new DeleteMessageCommand(params))
   } catch (err) {
     if (
-      (err.message === 'Request is throttled.' || err.message === 'Queue Throttled') &&
-      retry < 5
+      (err.message === 'Request is throttled.' ||
+        err.message === 'Queue Throttled' ||
+        (err.code === 'EAI_AGAIN' && err.syscall === 'getaddrinfo')) &&
+      retry < 10
     ) {
       await timeout(1000)
       return await deleteMessage(client, params, retry + 1)
@@ -104,8 +112,10 @@ export const sendMessage = async (
     return client.send(new SendMessageCommand(params))
   } catch (err) {
     if (
-      (err.message === 'Request is throttled.' || err.message === 'Queue Throttled') &&
-      retry < 5
+      (err.message === 'Request is throttled.' ||
+        err.message === 'Queue Throttled' ||
+        (err.code === 'EAI_AGAIN' && err.syscall === 'getaddrinfo')) &&
+      retry < 10
     ) {
       await timeout(1000)
       return await sendMessage(client, params, retry + 1)
@@ -124,11 +134,35 @@ export const sendMessagesBulk = async (
     return client.send(new SendMessageBatchCommand(params))
   } catch (err) {
     if (
-      (err.message === 'Request is throttled.' || err.message === 'Queue Throttled') &&
-      retry < 5
+      (err.message === 'Request is throttled.' ||
+        err.message === 'Queue Throttled' ||
+        (err.code === 'EAI_AGAIN' && err.syscall === 'getaddrinfo')) &&
+      retry < 10
     ) {
       await timeout(1000)
       return await sendMessagesBulk(client, params, retry + 1)
+    }
+
+    throw err
+  }
+}
+
+export const changeMessageVisibility = async (
+  client: SqsClient,
+  params: ChangeMessageVisibilityRequest,
+  retry = 0,
+): Promise<ChangeMessageVisibilityCommandOutput> => {
+  try {
+    return client.send(new ChangeMessageVisibilityCommand(params))
+  } catch (err) {
+    if (
+      (err.message === 'Request is throttled.' ||
+        err.message === 'Queue Throttled' ||
+        (err.code === 'EAI_AGAIN' && err.syscall === 'getaddrinfo')) &&
+      retry < 10
+    ) {
+      await timeout(1000)
+      return await changeMessageVisibility(client, params, retry + 1)
     }
 
     throw err

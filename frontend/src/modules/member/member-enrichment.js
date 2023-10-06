@@ -5,64 +5,21 @@ import { router } from '@/router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { formatNumber } from '@/utils/number';
 import Message from '@/shared/message/message';
-import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
-
-const scaleEnrichmentMax = 10000;
-const growthEnrichmentMax = 1000;
-const essentialEnrichmentMax = 5;
+import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
+import { planLimits } from '@/security/plans-limits';
 
 /**
  * @param {*} plan tenant plan (Essential | Growth | Enterprise)
  * @returns maximum number of enrichments
  */
-export const getEnrichmentMax = (plan) => {
-  if (
-    plan === Plans.values.scale
-  ) {
-    return scaleEnrichmentMax;
-  }
-  if (
-    plan === Plans.values.growth
-    || plan === Plans.values.enterprise
-  ) {
-    return growthEnrichmentMax;
-  }
-
-  return essentialEnrichmentMax;
-};
+export const getEnrichmentMax = (plan) => planLimits.enrichment[plan];
 
 /**
- * @param {*} planEnrichmentCountMax maximum plan enrichment count
- * @returns if enrichment has reached limit
+ * @returns if enrichment is enabled
  */
-export const checkEnrichmentLimit = (
-  planEnrichmentCountMax,
-) => {
-  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-    FEATURE_FLAGS.memberEnrichment,
-  );
-
-  if (!isFeatureEnabled) {
-    ConfirmDialog({
-      vertical: true,
-      type: 'danger',
-      title: `You have reached the limit of ${formatNumber(
-        planEnrichmentCountMax,
-      )} enrichments per month on your current plan`,
-      message:
-        'Upgrade your plan in order to increase your quota of available member enrichments.',
-      icon: 'ri-error-warning-line',
-      confirmButtonText: 'Upgrade plan',
-      showCancelButton: false,
-    }).then(() => {
-      router.push('/settings?activeTab=plans');
-    });
-
-    return true;
-  }
-
-  return false;
-};
+export const isEnrichmentFeatureEnabled = () => FeatureFlag.isFlagEnabled(
+  FEATURE_FLAGS.memberEnrichment,
+);
 
 export const checkEnrichmentPlan = ({
   enrichmentCount,
@@ -72,11 +29,11 @@ export const checkEnrichmentPlan = ({
     ConfirmDialog({
       vertical: true,
       type: 'danger',
-      title: `You are trying to enrich a number of members above the limit of ${formatNumber(
+      title: `You are trying to enrich a number of contacts above the limit of ${formatNumber(
         planEnrichmentCountMax,
       )} enrichments available in your current plan`,
       message:
-        'Upgrade your plan in order to increase your quota of available member enrichments.',
+        'Upgrade your plan in order to increase your quota of available contact enrichments.',
       icon: 'ri-error-warning-line',
       confirmButtonText: 'Upgrade plan',
       showCancelButton: false,
@@ -115,7 +72,7 @@ export const showEnrichmentSuccessMessage = ({
     h(
       'span',
       `to increase your quota to ${formatNumber(
-        growthEnrichmentMax,
+        planLimits.enrichment[Plans.values.growth],
       )} enrichments.`,
     ),
   ]);
@@ -127,7 +84,7 @@ export const showEnrichmentSuccessMessage = ({
   Message.closeAll();
   Message.success(message, {
     title: `Successfully enriched ${pluralize(
-      'member',
+      'contact',
       enrichedMembers,
       isBulk,
     )}`,
@@ -141,7 +98,7 @@ export const showEnrichmentLoadingMessage = ({
     "We'll let you know when the process is done.",
     {
       title: `${
-        isBulk ? 'Members are' : 'Member is'
+        isBulk ? 'Contacts are' : 'Contact is'
       } being enriched`,
     },
   );

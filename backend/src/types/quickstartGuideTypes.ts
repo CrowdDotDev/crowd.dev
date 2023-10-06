@@ -36,10 +36,10 @@ const connectIntegrationGuide: QuickstartGuide = {
 }
 
 const enrichMemberGuide: QuickstartGuide = {
-  title: 'Enrich a member',
-  body: 'Get more insights about members by enriching them with attributes such as emails, seniority, OSS contributions and much more.',
+  title: 'Enrich a contact',
+  body: 'Get more insights about contacts by enriching them with attributes such as emails, seniority, OSS contributions and much more.',
   videoLink: 'https://www.loom.com/share/8fdbdd2c0d4c4ab59ae845248b1db04f',
-  buttonLink: '/members',
+  buttonLink: '/contacts',
   buttonText: 'Try enrichment',
   completed: false,
   disabledInSampleData: true,

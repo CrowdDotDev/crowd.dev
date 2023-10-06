@@ -1,9 +1,5 @@
 <template>
-  <query-renderer
-    v-if="cubejsApi"
-    :cubejs-api="cubejsApi"
-    :query="query"
-  >
+  <query-renderer v-if="cubejsApi" :cubejs-api="cubejsApi" :query="query">
     <template #default="{ resultSet, loading, error }">
       <div class="bg-white px-6 py-5 rounded-lg shadow">
         <!-- Widget Header -->
@@ -16,10 +12,7 @@
               :template="MEMBERS_REPORT.nameAsId"
               :widget="ACTIVE_MEMBERS_KPI_WIDGET.name"
               :granularity="granularity"
-              @on-update="
-                (updatedGranularity) =>
-                  (granularity = updatedGranularity)
-              "
+              @on-update="onUpdateGranularity"
             />
             <app-widget-title
               :title="ACTIVE_MEMBERS_KPI_WIDGET.name"
@@ -28,13 +21,11 @@
           </div>
           <app-widget-period
             template="Members"
-            widget="Active members"
+            widget="Active contacts"
             :period="period"
             :granularity="granularity"
             module="reports"
-            @on-update="
-              (updatedPeriod) => (period = updatedPeriod)
-            "
+            @on-update="onUpdatePeriod"
           />
         </div>
 
@@ -84,13 +75,14 @@ import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vu
 import AppWidgetGranularity from '@/modules/widget/components/shared/widget-granularity.vue';
 import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 import {
-  DAILY_GRANULARITY_FILTER,
   SEVEN_DAYS_PERIOD_FILTER,
+  DAILY_GRANULARITY_FILTER,
 } from '@/modules/widget/widget-constants';
 import {
-  mapGetters,
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
+  getSelectedPeriodFromLabel,
+  getSelectedGranularityFromLabel,
+} from '@/modules/widget/widget-utility';
+import { mapGetters, mapActions } from '@/shared/vuex/vuex.helpers';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import {
   TOTAL_ACTIVE_MEMBERS_QUERY,
@@ -100,9 +92,12 @@ import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
-import MEMBERS_REPORT, { ACTIVE_MEMBERS_KPI_WIDGET } from '@/modules/report/templates/config/members';
+import MEMBERS_REPORT, {
+  ACTIVE_MEMBERS_KPI_WIDGET,
+} from '@/modules/report/templates/config/members';
 import { parseAxisLabel } from '@/utils/reports';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   filters: {
@@ -115,16 +110,30 @@ const props = defineProps({
   },
 });
 
-const period = ref(SEVEN_DAYS_PERIOD_FILTER);
-const granularity = ref(DAILY_GRANULARITY_FILTER);
+const route = useRoute();
+const router = useRouter();
+const granularity = ref(
+  getSelectedGranularityFromLabel(
+    route.query.activeMembersGranularity,
+    DAILY_GRANULARITY_FILTER,
+  ),
+);
+const period = ref(
+  getSelectedPeriodFromLabel(
+    route.query.activeMembersPeriod,
+    SEVEN_DAYS_PERIOD_FILTER,
+    getSelectedGranularityFromLabel(
+      route.query.activeMembersGranularity,
+      DAILY_GRANULARITY_FILTER,
+    ),
+  ),
+);
 const drawerExpanded = ref();
 const drawerDate = ref();
 const drawerTitle = ref();
 
 const widgetChartOptions = chartOptions('area', {
-  xTicksCallback: (
-    value,
-  ) => parseAxisLabel(value, granularity.value.value),
+  xTicksCallback: (value) => parseAxisLabel(value, granularity.value.value),
 });
 
 const { doExport } = mapActions('member');
@@ -132,22 +141,22 @@ const { cubejsApi } = mapGetters('widget');
 
 const datasets = computed(() => [
   {
-    name: 'Total active members',
+    name: 'Total active contacts',
     borderColor: '#E94F2E',
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contacts',
     }),
   },
   {
-    name: 'Returning members',
+    name: 'Returning contacts',
     borderDash: [4, 4],
     borderColor: '#E94F2E',
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contacts',
     }),
   },
 ]);
@@ -190,9 +199,7 @@ const getActiveMembers = async ({ pagination }) => {
     offset: !pagination.count
       ? (pagination.currentPage - 1) * pagination.pageSize
       : 0,
-    limit: !pagination.count
-      ? pagination.pageSize
-      : pagination.count,
+    limit: !pagination.count ? pagination.pageSize : pagination.count,
   });
 
   return res;
@@ -202,7 +209,7 @@ const getActiveMembers = async ({ pagination }) => {
 const onViewMoreClick = (date) => {
   window.analytics.track('Open report drawer', {
     template: MEMBERS_REPORT.nameAsId,
-    widget: 'Active members',
+    widget: 'Active contacts',
     date,
     granularity: granularity.value,
   });
@@ -212,12 +219,32 @@ const onViewMoreClick = (date) => {
 
   // Title
   if (granularity.value.value === 'week') {
-    drawerTitle.value = 'Weekly active members';
+    drawerTitle.value = 'Weekly active contacts';
   } else if (granularity.value.value === 'month') {
-    drawerTitle.value = 'Monthly active members';
+    drawerTitle.value = 'Monthly active contacts';
   } else {
-    drawerTitle.value = 'Daily active members';
+    drawerTitle.value = 'Daily active contacts';
   }
+};
+
+const onUpdatePeriod = (updatedPeriod) => {
+  period.value = updatedPeriod;
+  router.replace({
+    query: {
+      ...route.query,
+      activeMembersPeriod: updatedPeriod.label,
+    },
+  });
+};
+
+const onUpdateGranularity = (updatedGranularity) => {
+  granularity.value = updatedGranularity;
+  router.replace({
+    query: {
+      ...route.query,
+      activeMembersGranularity: updatedGranularity.label,
+    },
+  });
 };
 
 const onExport = async ({ ids, count }) => {

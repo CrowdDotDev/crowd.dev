@@ -1,18 +1,20 @@
+import { SLACK_ALERTING_CONFIG } from '../conf'
+import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
   IOrganization,
   IntegrationResultState,
   IntegrationResultType,
+  PlatformType,
 } from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import MemberService from './member.service'
-import { SLACK_ALERTING_CONFIG } from '@/conf'
-import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import { OrganizationService } from './organization.service'
 
 export default class DataSinkService extends LoggerBase {
@@ -22,6 +24,7 @@ export default class DataSinkService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -46,14 +49,31 @@ export default class DataSinkService extends LoggerBase {
     })
   }
 
-  public async processResult(resultId: string): Promise<void> {
+  public async createAndProcessActivityResult(
+    tenantId: string,
+    segmentId: string,
+    integrationId: string,
+    data: IActivityData,
+  ): Promise<void> {
+    this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
+
+    const resultId = await this.repo.createResult(tenantId, integrationId, {
+      type: IntegrationResultType.ACTIVITY,
+      data,
+      segmentId,
+    })
+
+    await this.processResult(resultId)
+  }
+
+  public async processResult(resultId: string): Promise<boolean> {
     this.log.debug({ resultId }, 'Processing result.')
 
     const resultInfo = await this.repo.getResultInfo(resultId)
 
     if (!resultInfo) {
       this.log.error({ resultId }, 'Result not found.')
-      return
+      return false
     }
 
     this.log = getChildLogger('result-processor', this.log, {
@@ -70,11 +90,11 @@ export default class DataSinkService extends LoggerBase {
       this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
       if (resultInfo.state === IntegrationResultState.PROCESSED) {
         this.log.warn('Result has already been processed. Skipping...')
-        return
+        return false
       }
 
       await this.repo.resetResults([resultId])
-      return
+      return false
     }
 
     // this.log.debug('Marking result as in progress.')
@@ -88,15 +108,19 @@ export default class DataSinkService extends LoggerBase {
             this.store,
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
+            this.redisClient,
             this.log,
           )
           const activityData = data.data as IActivityData
 
+          const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
+
           await service.processActivity(
             resultInfo.tenantId,
             resultInfo.integrationId,
-            resultInfo.platform,
+            platform,
             activityData,
+            data.segmentId,
           )
           break
         }
@@ -137,36 +161,43 @@ export default class DataSinkService extends LoggerBase {
         }
       }
       await this.repo.deleteResult(resultId)
+      return true
     } catch (err) {
       this.log.error(err, 'Error processing result.')
-      await this.triggerResultError(
-        resultId,
-        'process-result',
-        'Error processing result.',
-        undefined,
-        err,
-      )
+      try {
+        await this.triggerResultError(
+          resultId,
+          'process-result',
+          'Error processing result.',
+          undefined,
+          err,
+        )
 
-      await sendSlackAlert({
-        slackURL: SLACK_ALERTING_CONFIG().url,
-        alertType: SlackAlertTypes.SINK_WORKER_ERROR,
-        integration: {
-          id: resultInfo.integrationId,
-          platform: resultInfo.platform,
-          tenantId: resultInfo.tenantId,
-          resultId: resultInfo.id,
-          apiDataId: resultInfo.apiDataId,
-        },
-        userContext: {
-          currentTenant: {
-            name: resultInfo.name,
-            plan: resultInfo.plan,
-            isTrial: resultInfo.isTrialPlan,
+        await sendSlackAlert({
+          slackURL: SLACK_ALERTING_CONFIG().url,
+          alertType: SlackAlertTypes.SINK_WORKER_ERROR,
+          integration: {
+            id: resultInfo.integrationId,
+            platform: resultInfo.platform,
+            tenantId: resultInfo.tenantId,
+            resultId: resultInfo.id,
+            apiDataId: resultInfo.apiDataId,
           },
-        },
-        log: this.log,
-        frameworkVersion: 'new',
-      })
+          userContext: {
+            currentTenant: {
+              name: resultInfo.name,
+              plan: resultInfo.plan,
+              isTrial: resultInfo.isTrialPlan,
+            },
+          },
+          log: this.log,
+          frameworkVersion: 'new',
+        })
+      } catch (err2) {
+        this.log.error(err2, 'Error sending slack alert.')
+      }
+
+      return false
     }
   }
 }

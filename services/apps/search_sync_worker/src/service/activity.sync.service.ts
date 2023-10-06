@@ -1,9 +1,9 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { OpenSearchService } from './opensearch.service'
-import { ActivityRepository } from '@/repo/activity.repo'
-import { OpenSearchIndex } from '@/types'
-import { IDbActivitySyncData } from '@/repo/activity.data'
+import { ActivityRepository } from '../repo/activity.repo'
+import { OpenSearchIndex } from '../types'
+import { IDbActivitySyncData } from '../repo/activity.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
 
@@ -192,6 +192,43 @@ export class ActivitySyncService extends LoggerBase {
     )
 
     this.log.info({ tenantId }, `Synced total of ${count} activities!`)
+  }
+
+  public async syncOrganizationActivities(organizationId: string, batchSize = 200): Promise<void> {
+    this.log.debug({ organizationId }, 'Syncing all organization activities!')
+    let count = 0
+    const now = new Date()
+
+    await logExecutionTime(
+      async () => {
+        let activityIds = await this.activityRepo.getOrganizationActivitiesForSync(
+          organizationId,
+          batchSize,
+        )
+
+        while (activityIds.length > 0) {
+          count += await this.syncActivities(activityIds)
+
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          this.log.info(
+            { organizationId },
+            `Synced ${count} activities! Speed: ${Math.round(
+              count / diffInSeconds,
+            )} activities/second!`,
+          )
+
+          activityIds = await this.activityRepo.getOrganizationActivitiesForSync(
+            organizationId,
+            batchSize,
+            activityIds[activityIds.length - 1],
+          )
+        }
+      },
+      this.log,
+      'sync-organization-activities',
+    )
+
+    this.log.info({ organizationId }, `Synced total of ${count} activities!`)
   }
 
   public async removeActivity(activityId: string): Promise<void> {

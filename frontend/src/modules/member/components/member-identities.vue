@@ -17,7 +17,8 @@
           :tooltip-label="platformContent(platform).tooltipLabel"
           :as-link="platformContent(platform).asLink"
           :show-handles-badge="true"
-          :backup-url="props.member.attributes.url?.[platform]"
+          :backup-url="member.attributes.url?.[platform]"
+          :attributes="member.attributes"
         />
       </div>
     </div>
@@ -46,7 +47,7 @@ const platformContent = (platform) => {
   const config = CrowdIntegrations.getConfig(platform) || {};
 
   return {
-    trackEventName: 'Click Member Contact',
+    trackEventName: 'Click Contact Contact',
     trackEventChannel: config.name || platform,
     tooltipLabel: `${config.name || platform} profile`,
     asLink: config.showProfileLink,

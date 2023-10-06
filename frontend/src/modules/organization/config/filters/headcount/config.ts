@@ -1,25 +1,25 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import {
-  SelectFilterConfig, SelectFilterOptions,
-  SelectFilterValue,
-} from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+  MultiSelectFilterConfig, MultiSelectFilterOptions,
+  MultiSelectFilterValue,
+} from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import options from './options';
 
-const headcount: SelectFilterConfig = {
+const headcount: MultiSelectFilterConfig = {
   id: 'headcount',
   label: 'Headcount',
   iconClass: 'ri-group-2-line',
-  type: FilterConfigType.SELECT,
+  type: FilterConfigType.MULTISELECT,
   options: {
     options,
   },
-  itemLabelRenderer(value: SelectFilterValue, options: SelectFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT]('Headcount', value, options);
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Headcount', value, options);
   },
-  apiFilterRenderer({ value, include }: SelectFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {
-      size: { eq: value },
+      or: value.map((count) => ({ size: { eq: count } })),
     };
     return [
       (include ? filter : { not: filter }),

@@ -21,7 +21,7 @@
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 
@@ -64,15 +64,6 @@ export default {
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
-  },
-
-  mounted() {
-    this.$router.isReady().then(() => {
-      const { ref } = this.$route.query;
-      if (ref && ref === 'eagle-eye') {
-        localStorage.setItem('onboardType', 'eagle-eye');
-      }
-    });
   },
 
   unmounted() {

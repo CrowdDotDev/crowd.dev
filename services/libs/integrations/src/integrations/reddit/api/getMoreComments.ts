@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from '../../nango'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 import { PlatformType } from '@crowd/types'
 import { RedditMoreCommentsInput, RedditMoreCommentsResponse } from '../types'
 import { timeout } from '@crowd/common'
@@ -51,7 +51,7 @@ async function getMoreComments(
     const response: RedditMoreCommentsResponse = (await axios(config)).data
     return response
   } catch (err) {
-    ctx.log.error({ err, input }, 'Error while getting posts in subreddit')
+    ctx.log.error({ err, input }, 'Error while getting more comments in subreddit')
     throw err
   }
 }

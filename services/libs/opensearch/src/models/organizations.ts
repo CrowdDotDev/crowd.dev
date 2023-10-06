@@ -38,6 +38,9 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     emails: {
       type: OpensearchFieldType.STRING_ARR,
     },
+    tags: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
     employeeCountByCountry: {
       type: OpensearchFieldType.OBJECT,
     },
@@ -69,13 +72,16 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.OBJECT,
       preventNestedFieldTranslation: true,
     },
+    revenueRangeMin: {
+      type: OpensearchFieldType.INT,
+    },
+    revenueRangeMax: {
+      type: OpensearchFieldType.INT,
+    },
     size: {
       type: OpensearchFieldType.STRING,
     },
     type: {
-      type: OpensearchFieldType.STRING,
-    },
-    url: {
       type: OpensearchFieldType.STRING,
     },
     website: {
@@ -113,7 +119,11 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.INT,
     },
     identities: {
-      type: OpensearchFieldType.STRING_ARR,
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_identities.string_name',
+        fromOpensearch: 'nested_identities',
+      },
     },
     isTeamOrganization: {
       type: OpensearchFieldType.BOOL,
@@ -153,12 +163,14 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     },
     employeeChurnRate: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employeeCountByMonth: {
       type: OpensearchFieldType.OBJECT,
     },
     employeeGrowthRate: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employeeCountByMonthByLevel: {
       type: OpensearchFieldType.OBJECT,
@@ -174,6 +186,12 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     },
     grossDeparturesByMonth: {
       type: OpensearchFieldType.OBJECT,
+    },
+    employeeChurnRate12Month: {
+      type: OpensearchFieldType.FLOAT,
+    },
+    employeeGrowthRate12Month: {
+      type: OpensearchFieldType.FLOAT,
     },
   }
 }

@@ -9,22 +9,11 @@
     >
       <span
         v-if="parsedValue(value) !== null && parsedValue(value) !== ''"
-        class="font-medium mr-1"
-        :class="{
-          'text-gray-500': !!nestedKeyParser,
-        }"
-      >{{ keyParser(key) }}{{ !!nestedKeyParser ? '' : ':' }}</span>
-      <div v-if="nestedKeyParser">
-        <div
-          v-for="[nestedKey, nestedValue] of Object.entries(value)"
-          :key="nestedKey"
-          class="last:mb-2"
-        >
-          <span class="font-medium mr-1">{{ nestedKeyParser(nestedKey) }}:</span>
-          <span>{{ parsedValue(nestedValue) }}</span>
-        </div>
-      </div>
-      <span v-else>{{ parsedValue(value) }}</span>
+        class="flex flex-grow items-center justify-between"
+      >
+        <span class="font-medium mr-1 text-gray-900">{{ keyParser(key) }}</span>
+        <span class="text-gray-600">{{ parsedValue(value) }}</span>
+      </span>
     </div>
   </div>
   <div
@@ -49,10 +38,6 @@ const props = defineProps({
     type: Function,
     required: true,
   },
-  nestedKeyParser: {
-    type: Function,
-    default: null,
-  },
   valueParser: {
     type: Function,
     default: null,
@@ -73,10 +58,10 @@ const parsedAttributeValue = computed(() => {
   return props.attributeValue;
 });
 
-const displayShowMore = computed(() => Object.entries(parsedAttributeValue.value).length > 10);
+const displayShowMore = computed(() => Object.entries(parsedAttributeValue.value).length > 5);
 const valueSegment = computed(() => {
   if (displayShowMore.value && !showMore.value) {
-    return Object.entries(parsedAttributeValue.value).slice(0, 10);
+    return Object.entries(parsedAttributeValue.value).slice(0, 5);
   }
 
   return Object.entries(parsedAttributeValue.value);

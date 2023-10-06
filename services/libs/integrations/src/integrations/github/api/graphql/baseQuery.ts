@@ -2,7 +2,12 @@
 import { graphql } from '@octokit/graphql'
 import { GraphQlQueryResponseData } from '@octokit/graphql/dist-types/types'
 import { GraphQlQueryResponse } from '@crowd/types'
-import { RateLimitError } from '@crowd/types'
+import { RateLimitError, IConcurrentRequestLimiter } from '@crowd/types'
+
+interface Limiter {
+  integrationId: string
+  concurrentRequestLimiter: IConcurrentRequestLimiter
+}
 
 class BaseQuery {
   static BASE_URL = 'https://api.github.com/graphql'
@@ -84,14 +89,24 @@ class BaseQuery {
    * @param beforeCursor Cursor to paginate records before it
    * @returns parsed graphQl result
    */
-  async getSinglePage(beforeCursor: string): Promise<GraphQlQueryResponse> {
+  async getSinglePage(beforeCursor: string, limiter?: Limiter): Promise<GraphQlQueryResponse> {
     const paginatedQuery = BaseQuery.interpolate(this.query, {
       beforeCursor: BaseQuery.getPagination(beforeCursor),
     })
 
     try {
-      const result = await this.graphQL(paginatedQuery)
-      return this.getEventData(result)
+      if (limiter) {
+        return limiter.concurrentRequestLimiter.processWithLimit(
+          limiter.integrationId,
+          async () => {
+            const result = await this.graphQL(paginatedQuery)
+            return this.getEventData(result)
+          },
+        )
+      } else {
+        const result = await this.graphQL(paginatedQuery)
+        return this.getEventData(result)
+      }
     } catch (err) {
       throw BaseQuery.processGraphQLError(err)
     }
@@ -124,7 +139,12 @@ class BaseQuery {
   }
 
   static processGraphQLError(err: any): any {
-    if (err.errors && err.errors[0].type === 'RATE_LIMITED') {
+    if (
+      (err.status === 403 &&
+        err.message &&
+        (err.message as string).toLowerCase().includes('secondary rate limit')) ||
+      (err.errors && err.errors[0].type === 'RATE_LIMITED')
+    ) {
       if (err.headers && err.headers['x-ratelimit-reset']) {
         const query =
           err.request && err.request.query ? err.request.query : 'Unknown GraphQL query!'

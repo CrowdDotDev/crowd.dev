@@ -137,6 +137,17 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async githubMapRepos(integrationId, mapping) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
+      {
+        mapping,
+      },
+    );
+    return response.data;
+  }
+
   static async redditOnboard(subreddits) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
@@ -347,5 +358,49 @@ export class IntegrationService {
     );
 
     return response.data.isWebhooksReceived;
+  }
+
+  static async groupsioConnect(email, token, groupNames) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-connect`,
+      {
+        email,
+        token,
+        groupNames,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async groupsioGetToken(email, password, twoFactorCode = null) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-get-token`,
+      {
+        email,
+        password,
+        twoFactorCode,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async groupsioVerifyGroup(groupName, cookie) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-verify-group`,
+      {
+        groupName,
+        cookie,
+      },
+    );
+
+    return response.data;
   }
 }

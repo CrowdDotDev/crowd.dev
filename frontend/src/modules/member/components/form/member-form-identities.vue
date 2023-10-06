@@ -5,7 +5,7 @@
         Identities <span class="text-brand-500">*</span>
       </h6>
       <p class="text-gray-500 text-2xs leading-normal mt-1">
-        Connect with members' external data sources or
+        Connect with contacts' external data sources or
         profiles
       </p>
     </div>
@@ -303,7 +303,7 @@ const removeUsername = (platform, index) => {
       ...props.modelValue.attributes,
       url: {
         ...props.modelValue.attributes?.url,
-        [platform]: CrowdIntegrations.getConfig(platform)?.url(model.value.username[platform][0]),
+        [platform]: CrowdIntegrations.getConfig(platform)?.url({ username: model.value.username[platform][0], attributes: model.value.attributes }),
       },
     };
   }

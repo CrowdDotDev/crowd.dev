@@ -15,4 +15,14 @@ export default (app) => {
   )
   app.get(`/tenant/:tenantId/organization`, safeWrap(require('./organizationList').default))
   app.get(`/tenant/:tenantId/organization/:id`, safeWrap(require('./organizationFind').default))
+
+  app.put(
+    `/tenant/:tenantId/organization/:organizationId/merge`,
+    safeWrap(require('./organizationMerge').default),
+  )
+
+  app.put(
+    `/tenant/:tenantId/organization/:organizationId/no-merge`,
+    safeWrap(require('./organizationNotMerge').default),
+  )
 }
