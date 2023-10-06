@@ -196,6 +196,7 @@ setImmediate(async () => {
   require('./slack').default(routes)
   require('./segment').default(routes)
   require('./eventTracking').default(routes)
+  require('./customViews').default(routes)
   require('./premium/enrichment').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
