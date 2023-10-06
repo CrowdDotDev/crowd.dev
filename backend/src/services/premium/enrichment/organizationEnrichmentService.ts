@@ -149,6 +149,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
     try {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      const unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -169,17 +170,17 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
         const orgService = new OrganizationService(this.options)
 
-        if (existingOrg) {
+        if (existingOrg && existingOrg.id !== org.id) {
           await orgService.merge(existingOrg.id, org.id)
-          // remove the merged org from the list
-          orgs = orgs.filter((o) => o.id !== org.id)
+        } else {
+          unmergedOrgs.push(org)
         }
       }
 
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
       const records = await OrganizationRepository.bulkUpdate(
-        orgs,
+        unmergedOrgs,
         [...this.fields],
         { ...this.options, transaction },
         true,
