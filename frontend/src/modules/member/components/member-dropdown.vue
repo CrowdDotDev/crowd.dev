@@ -37,8 +37,10 @@
         </router-link>
         <el-tooltip
           placement="top"
-          content="Contact enrichment requires an associated GitHub profile or Email"
-          :disabled="!isEnrichmentDisabled"
+          :content="!isEnrichmentFeatureEnabled()
+            ? 'Upgrade your plan to increase your quota of available contact enrichments'
+            : 'Contact enrichment requires an associated GitHub profile or Email'"
+          :disabled="isEnrichmentDisabledForMember || isEnrichmentFeatureEnabled()"
           popper-class="max-w-[260px]"
         >
           <span>
@@ -48,10 +50,7 @@
                 member,
               }"
               class="h-10 mb-1"
-              :disabled="
-                isEnrichmentDisabled
-                  || isEditLockedForSampleData
-              "
+              :disabled="isEnrichmentActionDisabled"
             >
               <app-svg
                 name="enrichment"
@@ -61,7 +60,7 @@
               <span
                 class="ml-2 text-xs"
                 :class="{
-                  'text-gray-400': isEnrichmentDisabled,
+                  'text-gray-400': isEnrichmentDisabledForMember,
                 }"
               >{{
                 member.lastEnriched
@@ -85,34 +84,43 @@
         </el-dropdown-item>
 
         <!-- Hubspot -->
-        <el-dropdown-item
-          v-if="!isSyncingWithHubspot"
-          class="h-10"
-          :command="{
-            action: 'syncHubspot',
-            member: member,
-          }"
-          :disabled="!isHubspotConnected || member.emails.length === 0"
+        <el-tooltip
+          placement="top"
+          content="Upgrade your plan to create a 2-way sync with HubSpot"
+          :disabled="isHubspotFeatureEnabled"
+          popper-class="max-w-[260px]"
         >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Sync with HubSpot</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-else
-          class="h-10"
-          :command="{
-            action: 'stopSyncHubspot',
-            member: member,
-          }"
-          :disabled="!isHubspotConnected || member.emails.length === 0"
-        >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Stop sync with HubSpot</span>
-        </el-dropdown-item>
+          <span>
+            <el-dropdown-item
+              v-if="!isSyncingWithHubspot"
+              class="h-10"
+              :command="{
+                action: 'syncHubspot',
+                member: member,
+              }"
+              :disabled="isHubspotActionDisabled"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Sync with HubSpot</span>
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-else
+              class="h-10"
+              :command="{
+                action: 'stopSyncHubspot',
+                member: member,
+              }"
+              :disabled="isHubspotActionDisabled"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Stop sync with HubSpot</span>
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
 
         <el-dropdown-item
           v-if="!member.attributes.isTeamMember?.default"
@@ -206,6 +214,8 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
+import { isEnrichmentFeatureEnabled } from '@/modules/member/member-enrichment';
+import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 
 export default {
   name: 'AppMemberDropdown',
@@ -227,6 +237,7 @@ export default {
       pair: [],
     };
   },
+
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
@@ -238,12 +249,6 @@ export default {
           this.currentTenant,
           this.currentUser,
         ).edit === false
-      );
-    },
-    isEnrichmentDisabled() {
-      return (
-        !this.member.username?.github?.length
-        && !this.member.emails?.length
       );
     },
     isEditLockedForSampleData() {
@@ -258,6 +263,15 @@ export default {
         this.currentUser,
       ).destroyLockedForSampleData;
     },
+    isEnrichmentDisabledForMember() {
+      return (
+        !this.member.username?.github?.length
+            && !this.member.emails?.length
+      );
+    },
+    isEnrichmentActionDisabled() {
+      return this.isEnrichmentDisabledForMember || this.isEditLockedForSampleData || !this.isEnrichmentFeatureEnabled();
+    },
     isSyncingWithHubspot() {
       return this.member.attributes?.syncRemote?.hubspot || false;
     },
@@ -266,12 +280,27 @@ export default {
       const enabledFor = hubspot.settings?.enabledFor || [];
       return hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS);
     },
+    isHubspotDisabledForMember() {
+      return props.member.emails.length === 0;
+    },
+    isHubspotFeatureEnabled() {
+      return FeatureFlag.isFlagEnabled(
+        FEATURE_FLAGS.hubspot,
+      );
+    },
+    isHubspotActionDisabled() {
+      return !this.isHubspotConnected || this.isHubspotDisabledForMember || !this.isHubspotFeatureEnabled;
+    },
+  },
+  created() {
+    this.doRefreshCurrentUser({});
   },
   methods: {
     ...mapActions({
       doFind: 'member/doFind',
       doDestroy: 'member/doDestroy',
       doEnrich: 'member/doEnrich',
+      doRefreshCurrentUser: 'auth/doRefreshCurrentUser',
     }),
     ...piniaMapActions(useMemberStore, ['fetchMembers']),
     async doDestroyWithConfirm(id) {
@@ -362,6 +391,7 @@ export default {
 
       return null;
     },
+    isEnrichmentFeatureEnabled,
   },
 };
 </script>

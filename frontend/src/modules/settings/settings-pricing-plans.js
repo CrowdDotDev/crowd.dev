@@ -1,8 +1,15 @@
 import Plans from '@/security/plans';
+import config from '@/config';
 
 const crowdHostedPlans = Plans.values;
 const communityPlans = Plans.communityValues;
 
+/**
+ * ctaLabel: Copy shown in the CTA dependent on the active plan.
+ * Key of ctaLabel represents the active plan, value represents the copy that should appear on the corresponding column plan
+ * ctaAction: Action triggered by CTA click dependent on the active plan.
+ * Key of ctaAction represents the acttive plan, value represents the set of actions trigerred when the corresponding column plan button is clicked.
+ */
 export const plans = {
   crowdHosted: [
     {
@@ -11,46 +18,131 @@ export const plans = {
       description: 'Understand & manage your community',
       price: 'Free',
       features: [
-        '5 seats',
-        'Unlimited community contacts, organizations & activities',
-        'Community management',
-        'Community intelligence',
-        'Full API access & native integrations with GitHub, Discord, Slack, Twitter, DEV, Reddit, and Hacker News',
-        '5 contact enrichments per month (manual)',
-        '2 active workflows & CSV exports per month',
-        'Community & email support',
+        'Unlimited seats',
+        'Unlimited contacts, organizations & activities',
+        '1K monthly active contacts',
+        'Get data from GitHub, Discord, Slack, Discourse, DEV, Reddit, Stack Overflow, Hacker News, Zapier, n8n & more',
+        '2 active automations & CSV exports',
+        'Sentiment analysis',
+        'Full API access',
+        'Community & in-app support',
       ],
-    },
-    {
-      key: crowdHostedPlans.growth,
-      title: 'Growth',
-      description: 'Grow your community',
-      price: '$150/month',
-      featuresNote: 'Everything in Essential, plus:',
-      features: [
-        'Eagle Eye',
-        '1,000 contact enrichments per month (manual)',
-        '200 organization enrichments per month (automated)',
-        '10 active workflows & CSV exports per month',
-        'Slack connect support',
-        'LinkedIn integration',
-      ],
-      sale: '🐦 Early bird offer',
+      ctaLabel: {
+        [Plans.values.eagleEye]: 'Downgrade to Essential',
+        [Plans.values.growth]: 'Downgrade to Essential',
+        [Plans.values.scale]: 'Downgrade to Essential',
+        [Plans.values.enterprise]: 'Downgrade to Essential',
+      },
+      ctaAction: {
+        [Plans.values.eagleEye]: () => {
+          window.open(config.stripe.customerPortalLink, '_blank');
+        },
+        [Plans.values.growth]: () => {
+          window.open(config.stripe.customerPortalLink, '_blank');
+        },
+        [Plans.values.scale]: () => {
+          window.open(config.stripe.customerPortalLink, '_blank');
+        },
+        [Plans.values.enterprise]: () => {
+          window.open(config.stripe.customerPortalLink, '_blank');
+        },
+      },
     },
     {
       key: crowdHostedPlans.scale,
       title: 'Scale',
       description:
-        'Unlock community-led growth for your company',
-      price: 'Custom price',
-      featuresNote: 'Everything in Growth, plus:',
+        'Commercialize your open source product',
+      price: '$950/year',
+      priceInfo: 'annual payment',
+      featuresNote: 'Everything in Essential, plus:',
       features: [
+        '10k monthly active contacts',
+        'LinkedIn & HubSpot',
+        'Smart enrichment of all active contacts & organizations',
+        '20 active automations & CSV exports',
+        'Slack connect support',
+      ],
+      featuresSpecial: [
+        '90$ for each additional 1K MAC',
+      ],
+      ctaLabel: {
+        [Plans.values.eagleEye]: 'Start 30-days trial',
+        [Plans.values.essential]: 'Start 30-days trial',
+        [Plans.values.growth]: 'Start 30-days trial',
+        [Plans.values.enterprise]: 'Downgrade to Scale',
+      },
+      ctaAction: {
+        [Plans.values.eagleEye]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/intro-to-crowd-dev',
+            '_blank',
+          );
+        },
+        [Plans.values.essential]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/intro-to-crowd-dev',
+            '_blank',
+          );
+        },
+        [Plans.values.growth]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/intro-to-crowd-dev',
+            '_blank',
+          );
+        },
+        [Plans.values.enterprise]: () => {
+          window.open(config.stripe.customerPortalLink, '_blank');
+        },
+      },
+    },
+    {
+      key: crowdHostedPlans.enterprise,
+      title: 'Enterprise',
+      description:
+        'Tailored to your needs',
+      price: 'Custom price',
+      featuresNote: 'Everything in Scale, plus:',
+      features: [
+        'Self hosting with enterprise support',
+        'Custom integrations',
         'Activity categorization & topic analysis',
-        'Integrations with CRMs & CDPs',
-        'Unlimited contact & organization enrichment (automated)',
-        'Unlimited active workflows & CSV exports per month',
+        'Unlimited active automations & CSV exports',
+        'Custom RBAC & SAML-based SSO',
         'Dedicated community expert',
       ],
+      ctaLabel: {
+        [Plans.values.eagleEye]: 'Get a quote',
+        [Plans.values.essential]: 'Get a quote',
+        [Plans.values.growth]: 'Get a quote',
+        [Plans.values.scale]: 'Get a quote',
+      },
+      ctaAction: {
+        [Plans.values.eagleEye]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/custom-plan',
+            '_blank',
+          );
+        },
+        [Plans.values.essential]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/custom-plan',
+            '_blank',
+          );
+        },
+        [Plans.values.growth]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/custom-plan',
+            '_blank',
+          );
+        },
+        [Plans.values.scale]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/custom-plan',
+            '_blank',
+          );
+        },
+      },
     },
   ],
   community: [
@@ -62,12 +154,20 @@ export const plans = {
       price: 'Free',
       features: [
         'Unlimited seats',
-        'Unlimited community contact & activities',
+        'Unlimited community contacts & activities',
         'Community management',
         'Community intelligence',
         'Integrations with GitHub, Discord, Slack, Twitter, DEV, Hacker News',
         'Community support',
       ],
+      ctaLabel: {
+        [Plans.communityValues.custom]: 'Downgrage to Community',
+      },
+      ctaAction: {
+        [Plans.communityValues.custom]: () => {
+          window.open(config.stripe.customerPortalLink, '_blank');
+        },
+      },
     },
     {
       key: communityPlans.custom,
@@ -84,6 +184,17 @@ export const plans = {
         'LinkedIn integration',
         'Unlimited contact enrichments (automated)',
       ],
+      ctaLabel: {
+        [Plans.communityValues.community]: 'Book a call',
+      },
+      ctaAction: {
+        [Plans.communityValues.community]: () => {
+          window.open(
+            'https://cal.com/team/CrowdDotDev/custom-plan',
+            '_blank',
+          );
+        },
+      },
     },
   ],
 };

@@ -29,18 +29,18 @@
     <el-tooltip
       placement="top"
       content="Contact enrichment requires an associated GitHub profile or Email"
-      :disabled="!isEnrichmentDisabled"
+      :disabled="!isEnrichmentDisabled || !isEnrichmentFeatureEnabled()"
       popper-class="max-w-[260px]"
     >
       <span>
         <el-button
           class="btn btn--primary btn--full !h-8"
-          :disabled="
-            isEnrichmentDisabled
-              || isEditLockedForSampleData
-          "
+          :disabled="isEnrichmentActionDisabled"
           @click="onEnrichmentClick"
-        >Enrich contact</el-button>
+        >
+          <span v-if="isEnrichmentFeatureEnabled()">Enrich contact</span>
+          <span v-else>Upgrade plan</span>
+        </el-button>
       </span>
     </el-tooltip>
 
@@ -53,14 +53,17 @@
 </template>
 
 <script setup>
-import { computed, defineProps } from 'vue';
+import { computed, defineProps, onMounted } from 'vue';
 import {
   mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
+import { isEnrichmentFeatureEnabled } from '@/modules/member/member-enrichment';
+import { useRouter } from 'vue-router';
 import { MemberPermissions } from '../member-permissions';
 
+const router = useRouter();
 const props = defineProps({
   member: {
     type: Object,
@@ -69,6 +72,7 @@ const props = defineProps({
 });
 
 const { doEnrich } = mapActions('member');
+const { doRefreshCurrentUser } = mapActions('auth');
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const isEnrichmentDisabled = computed(
@@ -81,7 +85,17 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentUser.value,
 ).editLockedForSampleData);
 
+const isEnrichmentActionDisabled = computed(() => isEnrichmentDisabled.value || isEditLockedForSampleData.value);
+
+onMounted(() => {
+  doRefreshCurrentUser({});
+});
+
 const onEnrichmentClick = async () => {
+  if (!isEnrichmentFeatureEnabled()) {
+    router.push('/settings?activeTab=plans');
+    return;
+  }
   await doEnrich(props.member.id);
 };
 </script>

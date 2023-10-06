@@ -26,20 +26,19 @@
         </el-dropdown-item>
         <el-tooltip
           placement="top"
-          content="Selected contacts lack an associated GitHub profile or Email"
+          :content="!isEnrichmentFeatureEnabled()
+            ? 'Upgrade your plan to increase your quota of available contact enrichments'
+            : 'Selected contacts lack an associated GitHub profile or Email'"
           :disabled="
-            elegibleEnrichmentMembersIds.length
-              || isEditLockedForSampleData
+            !elegibleEnrichmentMembersIds.length
+              || isEditLockedForSampleData || isEnrichmentFeatureEnabled()
           "
           popper-class="max-w-[260px]"
         >
           <span>
             <el-dropdown-item
               :command="{ action: 'enrichMember' }"
-              :disabled="
-                !elegibleEnrichmentMembersIds.length
-                  || isEditLockedForSampleData
-              "
+              :disabled="isEnrichmentActionDisabled"
               class="mb-1"
             >
               <app-svg
@@ -116,7 +115,7 @@
 
 <script setup>
 
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
@@ -127,7 +126,7 @@ import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
 import {
-  checkEnrichmentLimit,
+  isEnrichmentFeatureEnabled,
   checkEnrichmentPlan,
   getEnrichmentMax,
   showEnrichmentLoadingMessage,
@@ -220,6 +219,9 @@ const markAsTeamMemberOptions = computed(() => {
   };
 });
 
+const isEnrichmentActionDisabled = computed(() => !elegibleEnrichmentMembersIds.value.length
+  || isEditLockedForSampleData.value || !isEnrichmentFeatureEnabled());
+
 const handleMergeMembers = () => {
   const [firstMember, secondMember] = selectedMembers.value;
   return MemberService.merge(firstMember, secondMember)
@@ -231,6 +233,10 @@ const handleMergeMembers = () => {
       Message.error('Error merging contacts');
     });
 };
+
+onMounted(() => {
+  doRefreshCurrentUser({});
+});
 
 const doDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
@@ -421,7 +427,7 @@ const handleCommand = async (command) => {
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
-      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
+      if (!isEnrichmentFeatureEnabled()) {
         return;
       }
 
