@@ -2,7 +2,7 @@ import sanitizeHtml from 'sanitize-html'
 import { REDDIT_GRID } from './grid'
 import { RedditPost, RedditActivityType, RedditComment, IRedditPublishData } from './types'
 import he from 'he'
-import { IProcessDataContext, ProcessDataHandler } from '@/types'
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
 import { randomUUID } from 'crypto'
 import { IMemberData, MemberAttributeName, PlatformType, IActivityData } from '@crowd/types'
 

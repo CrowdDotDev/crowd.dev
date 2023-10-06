@@ -2,8 +2,6 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "Node16",
-    "declaration": true,
-    "outDir": "./dist",
     "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
     "skipLibCheck": true,
     "sourceMap": true,
@@ -12,8 +10,7 @@
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../../libs/*/dist"],
-      "@/*": ["./*"]
+      "@crowd/*": ["../../../libs/*/src"]
     }
   },
   "include": ["src/**/*"]

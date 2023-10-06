@@ -1,4 +1,4 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import { getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'

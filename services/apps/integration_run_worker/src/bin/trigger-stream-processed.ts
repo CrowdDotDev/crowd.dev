@@ -1,4 +1,4 @@
-import { SQS_CONFIG } from '@/conf'
+import { SQS_CONFIG } from '../conf'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { StreamProcessedQueueMessage } from '@crowd/types'
