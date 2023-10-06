@@ -5689,7 +5689,7 @@
             "devto": {
               "comment": {
                 "default": "commented on <a href=\"{attributes.articleUrl}\" class=\"truncate max-w-2xs\">{attributes.articleTitle}</a>",
-                "short": "commented",
+                "short": "commented on your article",
                 "channel": "<a href=\"{attributes.articleUrl}\" class=\"truncate max-w-2xs\">{attributes.articleTitle}</a>"
               }
             },
@@ -5718,19 +5718,19 @@
             "hackernews": {
               "comment": {
                 "default": "commented on <a href=\"{attributes.parentUrl}\" target=\"_blank\">{attributes.parentTitle}</a>",
-                "short": "commented",
+                "short": "commented on a post mentioning you",
                 "channel": "{channel}"
               },
               "post": {
                 "default": "posted mentioning {channel}",
-                "short": "posted",
+                "short": "posted about you",
                 "channel": "{channel}"
               }
             },
             "linkedin": {
               "comment": {
                 "default": "commented on a post <a href=\"{attributes.postUrl}\" target=\"_blank\">{attributes.postBody}</a>",
-                "short": "commented",
+                "short": "commented on your post",
                 "channel": "<a href=\"{attributes.postUrl}\" target=\"_blank\">{attributes.postBody}</a>"
               },
               "message": { "default": "sent a message", "short": "sent a message", "channel": "" },
@@ -5743,12 +5743,12 @@
             "reddit": {
               "comment": {
                 "default": "commented in subreddit <a href=\"https://reddit.com/r/{channel}\" target=\"_blank\">r/{channel}</a>",
-                "short": "commented on a post",
+                "short": "commented on a post in your sgiubreddit",
                 "channel": "<a href=\"https://reddit.com/r/{channel}\" target=\"_blank\">r/{channel}</a>"
               },
               "post": {
-                "default": "posted in subreddit <a href=\"https://reddit.com/r/{channel}\" target=\"_blank\">r/{channel}</a>",
-                "short": "posted in subreddit",
+                "default": "posted in your subreddit <a href=\"https://reddit.com/r/{channel}\" target=\"_blank\">r/{channel}</a>",
+                "short": "posted in your subreddit",
                 "channel": "<a href=\"https://reddit.com/r/{channel}\" target=\"_blank\">r/{channel}</a>"
               }
             },
@@ -5765,7 +5765,7 @@
               }
             },
             "twitter": {
-              "hashtag": { "default": "posted a tweet", "short": "posted a tweet", "channel": "" },
+              "hashtag": { "default": "Posted a Tweet with your hashtag", "short": "Posted a Tweet with your hashtag", "channel": "" },
               "follow": { "default": "followed you", "short": "followed you", "channel": "" },
               "mention": {
                 "default": "mentioned you in a tweet",
