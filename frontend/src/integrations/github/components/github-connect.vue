@@ -6,8 +6,9 @@
 import { computed } from 'vue';
 import config from '@/config';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
+const emit = defineEmits(['inviteColleagues']);
 defineProps({
   integration: {
     type: Object,
@@ -15,6 +16,7 @@ defineProps({
   },
 });
 
+const route = useRoute();
 const router = useRouter();
 
 // We have 3 GitHub apps: test, test-local and prod
@@ -42,9 +44,13 @@ const connect = () => {
     window.open(githubConnectUrl.value, '_self');
   }).catch((action) => {
     if (action === 'cancel') {
-      router.push({
-        name: 'settings',
-      });
+      if (route.name === 'onboard') {
+        emit('inviteColleagues');
+      } else {
+        router.push({
+          name: 'settings',
+        });
+      }
     }
   });
 };
