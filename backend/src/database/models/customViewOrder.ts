@@ -4,6 +4,11 @@ export default (sequelize) => {
   const customViewOrder = sequelize.define(
     'customViewOrder',
     {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
       order: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -13,18 +18,21 @@ export default (sequelize) => {
     {
       indexes: [
         {
+          fields: ['id'],
           where: {
             deletedAt: null,
           },
         },
       ],
+      createdAt: false,
+      updatedAt: false,
       paranoid: true,
     },
   )
 
   customViewOrder.associate = (models) => {
     customViewOrder.belongsTo(models.customView, {
-      as: 'customViewId',
+      as: 'customView',
       onDelete: 'CASCADE',
       foreignKey: {
         allowNull: false,
@@ -32,7 +40,7 @@ export default (sequelize) => {
     })
 
     customViewOrder.belongsTo(models.member, {
-      as: 'memberId',
+      as: 'member',
       onDelete: 'CASCADE',
       foreignKey: {
         allowNull: false,

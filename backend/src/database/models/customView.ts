@@ -32,6 +32,10 @@ export default (sequelize) => {
           isIn: [['members', 'organizations', 'activities', 'conversations']],
         },
       },
+      tenantId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
     },
     {
       indexes: [
@@ -50,18 +54,18 @@ export default (sequelize) => {
 
   customView.associate = (models) => {
     models.customView.belongsTo(models.tenant, {
-      as: 'tenantId',
+      as: 'tenant',
       foreignKey: {
         allowNull: false,
       },
     })
 
-    models.customView.belongsTo(models.member, {
-      as: 'createdById',
+    models.customView.belongsTo(models.user, {
+      as: 'createdBy',
     })
 
-    models.customView.belongsTo(models.member, {
-      as: 'updatedById',
+    models.customView.belongsTo(models.user, {
+      as: 'updatedBy',
     })
   }
 

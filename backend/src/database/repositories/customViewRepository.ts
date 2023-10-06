@@ -15,9 +15,9 @@ class CustomViewRepository {
     const record = await options.database.customView.create(
       {
         ...lodash.pick(data, ['name', 'visibility', 'config', 'placement']),
+
         tenantId: tenant.id,
         createdById: currentUser.id,
-        updatedById: currentUser.id,
       },
       {
         transaction,
