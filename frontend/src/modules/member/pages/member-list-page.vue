@@ -88,7 +88,7 @@ import {
 } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapGetters, mapActions } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
@@ -104,6 +104,7 @@ const membersToMergeCount = ref(0);
 
 const { listByPlatform } = mapGetters('integration');
 const { currentUser, currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
 
 const memberFilter = ref<CrFilter | null>(null);
 
@@ -193,6 +194,7 @@ const onPaginationChange = ({
 };
 
 onMounted(() => {
+  doRefreshCurrentUser({});
   fetchMembersToMergeCount();
   doGetMembersCount();
   getMemberCustomAttributes();

@@ -142,11 +142,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
@@ -177,7 +176,6 @@ const emit = defineEmits([
 const store = useStore();
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doRefreshCurrentUser } = mapActions('auth');
 
 const organizationStore = useOrganizationStore();
 const { fetchOrganizations, fetchOrganization } = organizationStore;
@@ -207,10 +205,6 @@ const isHubspotEnabled = computed(() => FeatureFlag.isFlagEnabled(
 ));
 
 const isSyncingWithHubspot = (organization) => organization.attributes?.syncRemote?.hubspot || false;
-
-onMounted(() => {
-  doRefreshCurrentUser({});
-});
 
 const isHubspotConnected = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);

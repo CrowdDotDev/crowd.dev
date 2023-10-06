@@ -74,11 +74,17 @@ export default [
       },
       {
         path: '/members',
-        redirect: '/contacts',
+        redirect: (to) => ({
+          path: '/contacts',
+          query: to.query,
+        }),
       },
       {
         path: '/members/new',
-        redirect: '/contacts/new',
+        redirect: (to) => ({
+          path: '/contacts/new',
+          query: to.query,
+        }),
       },
       {
         path: '/members/:id/edit',
@@ -89,7 +95,10 @@ export default [
       },
       {
         path: '/members/merge-suggestions',
-        redirect: '/contacts/merge-suggestions',
+        redirect: (to) => ({
+          path: '/contacts/merge-suggestions',
+          query: to.query,
+        }),
       },
       {
         path: '/members/:id',
