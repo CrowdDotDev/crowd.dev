@@ -222,7 +222,7 @@ function doManageWorkspaces() {
 
 async function doSwitchTenant(tenant) {
   isDropdownOpen.value = false;
-  await store.dispatch('auth/doSelectTenant', tenant);
+  await store.dispatch('auth/doSelectTenant', { tenant });
 }
 </script>
 

@@ -7,6 +7,9 @@ export default {
   borderColor: '#ffd8ca',
   description:
     'Connect Reddit to sync posts and comments from selected subreddits.',
+  onboard: {
+    description: 'Sync posts and comments from selected subreddits.',
+  },
   image: '/images/integrations/reddit.svg',
   connectComponent: RedditConnect,
   url: ({ username }) => (username ? `https://reddit.com/user/${username}` : null),
