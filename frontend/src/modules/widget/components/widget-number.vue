@@ -148,7 +148,7 @@ export default {
         if (measure) {
           iconKey = measure.toLowerCase().includes('activit')
             ? 'activities'
-            : 'members';
+            : 'contacts';
         } else {
           iconKey = null;
         }

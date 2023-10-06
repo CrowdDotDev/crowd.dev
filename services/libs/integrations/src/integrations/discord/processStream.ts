@@ -1,4 +1,4 @@
-import { ProcessStreamHandler, IProcessStreamContext } from '@/types'
+import { ProcessStreamHandler, IProcessStreamContext } from '../../types'
 import {
   DiscordStreamType,
   DiscordRootStreamData,

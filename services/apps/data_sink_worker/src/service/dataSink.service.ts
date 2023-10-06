@@ -1,4 +1,4 @@
-import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { SLACK_ALERTING_CONFIG } from '../conf'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'

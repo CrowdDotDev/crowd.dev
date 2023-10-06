@@ -1,5 +1,5 @@
-import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
-import MemberRepository from '@/repo/member.repo'
+import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
+import MemberRepository from '../repo/member.repo'
 import {
   firstArrayContainsSecondArray,
   isObjectEmpty,
@@ -20,7 +20,7 @@ import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
-import IntegrationRepository from '@/repo/integration.repo'
+import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
 
@@ -271,8 +271,11 @@ export default class MemberService extends LoggerBase {
     for (const email of emails) {
       if (email) {
         const domain = email.split('@')[1]
-        if (!isDomainExcluded(domain)) {
-          emailDomains.add(domain)
+        // domain can be undefined if email is invalid
+        if (domain) {
+          if (!isDomainExcluded(domain)) {
+            emailDomains.add(domain)
+          }
         }
       }
     }

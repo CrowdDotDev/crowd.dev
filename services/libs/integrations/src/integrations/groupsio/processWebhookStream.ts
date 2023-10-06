@@ -1,4 +1,4 @@
-import { ProcessWebhookStreamHandler } from '@/types'
+import { ProcessWebhookStreamHandler } from '../../types'
 import {
   GroupsioWebhookEventType,
   GroupsioWebhookPayload,
