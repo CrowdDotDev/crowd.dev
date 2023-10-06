@@ -32,14 +32,14 @@
           >
             <i
               class="ri-pencil-line text-base mr-2"
-            /><span class="text-xs">Edit member</span>
+            /><span class="text-xs">Edit contact</span>
           </el-dropdown-item>
         </router-link>
         <el-tooltip
           placement="top"
           :content="!isEnrichmentFeatureEnabled()
-            ? 'Upgrade your plan to increase your quota of available member enrichments'
-            : 'Member enrichment requires an associated GitHub profile or Email'"
+            ? 'Upgrade your plan to increase your quota of available contact enrichments'
+            : 'Contact enrichment requires an associated GitHub profile or Email'"
           :disabled="isEnrichmentDisabledForMember || isEnrichmentFeatureEnabled()"
           popper-class="max-w-[260px]"
         >
@@ -64,8 +64,8 @@
                 }"
               >{{
                 member.lastEnriched
-                  ? 'Re-enrich member'
-                  : 'Enrich member'
+                  ? 'Re-enrich contact'
+                  : 'Enrich contact'
               }}</span>
             </el-dropdown-item>
           </span>
@@ -80,7 +80,7 @@
         >
           <i class="ri-group-line text-base mr-2" /><span
             class="text-xs"
-          >Merge member</span>
+          >Merge contact</span>
         </el-dropdown-item>
 
         <!-- Hubspot -->
@@ -134,7 +134,7 @@
         >
           <i
             class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs">Mark as team member</span>
+          /><span class="text-xs">Mark as team contact</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="member.attributes.isTeamMember?.default"
@@ -148,7 +148,7 @@
         >
           <i
             class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs">Unmark as team member</span>
+          /><span class="text-xs">Unmark as team contact</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="!member.attributes.isBot?.default"
@@ -195,7 +195,7 @@
             :class="{
               'text-red-500': !isDeleteLockedForSampleData,
             }"
-          >Delete member</span>
+          >Delete contact</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -307,7 +307,7 @@ export default {
       try {
         await ConfirmDialog({
           type: 'danger',
-          title: 'Delete member',
+          title: 'Delete contact',
           message:
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
@@ -338,9 +338,9 @@ export default {
               this.doFind(command.member.id);
             }
             if (sync) {
-              Message.success('Member is now syncing with HubSpot');
+              Message.success('Contact is now syncing with HubSpot');
             } else {
-              Message.success('Member syncing stopped');
+              Message.success('Contact syncing stopped');
             }
           })
           .catch(() => {
@@ -359,7 +359,7 @@ export default {
         });
         await this.fetchMembers({ reload: true });
 
-        Message.success('Member updated successfully');
+        Message.success('Contact updated successfully');
 
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
@@ -376,7 +376,7 @@ export default {
           },
         });
         await this.fetchMembers({ reload: true });
-        Message.success('Member updated successfully');
+        Message.success('Contact updated successfully');
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
         } else {

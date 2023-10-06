@@ -7,7 +7,7 @@
           class="w-5 h-5 enrichment-icon"
           color="#111827"
         />
-        <span class="text-gray-900 font-semibold text-sm">Member enrichment</span>
+        <span class="text-gray-900 font-semibold text-sm">Contact enrichment</span>
       </div>
       <el-tooltip placement="top" content="Learn more">
         <a
@@ -21,14 +21,14 @@
     </div>
 
     <div class="mt-4 mb-5 text-2xs text-gray-600">
-      Get more insights about this member by enriching it
+      Get more insights about this contact by enriching it
       with attributes such as emails, seniority, OSS
       contributions and much more.
     </div>
 
     <el-tooltip
       placement="top"
-      content="Member enrichment requires an associated GitHub profile or Email"
+      content="Contact enrichment requires an associated GitHub profile or Email"
       :disabled="!isEnrichmentDisabled || !isEnrichmentFeatureEnabled()"
       popper-class="max-w-[260px]"
     >
@@ -38,7 +38,7 @@
           :disabled="isEnrichmentActionDisabled"
           @click="onEnrichmentClick"
         >
-          <span v-if="isEnrichmentFeatureEnabled()">Enrich member</span>
+          <span v-if="isEnrichmentFeatureEnabled()">Enrich contact</span>
           <span v-else>Upgrade plan</span>
         </el-button>
       </span>

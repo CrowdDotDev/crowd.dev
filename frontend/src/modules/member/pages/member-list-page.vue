@@ -4,7 +4,7 @@
       <div class="mb-10">
         <div class="flex items-center justify-between">
           <h4>
-            Members
+            Contacts
           </h4>
           <div class="flex items-center">
             <router-link
@@ -41,13 +41,13 @@
                 class="btn btn--primary btn--md"
                 :disabled="isCreateLockedForSampleData"
               >
-                Add member
+                Add contact
               </el-button>
             </router-link>
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all members from your community
+          Overview of all contacts from your community
         </div>
       </div>
 

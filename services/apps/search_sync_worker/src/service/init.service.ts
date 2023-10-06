@@ -1,11 +1,11 @@
-import { IDbActivitySyncData } from '@/repo/activity.data'
-import { IDbMemberSyncData } from '@/repo/member.data'
-import { OpenSearchIndex } from '@/types'
+import { IDbActivitySyncData } from '../repo/activity.data'
+import { IDbMemberSyncData } from '../repo/member.data'
+import { OpenSearchIndex } from '../types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
-import { IDbOrganizationSyncData } from '@/repo/organization.data'
+import { IDbOrganizationSyncData } from '../repo/organization.data'
 import { OrganizationSyncService } from './organization.sync.service'
 
 export class InitService extends LoggerBase {

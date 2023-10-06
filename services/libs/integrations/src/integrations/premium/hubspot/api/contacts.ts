@@ -1,4 +1,4 @@
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotAssociationType, HubspotEndpoint, IHubspotContact, IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
