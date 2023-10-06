@@ -43,13 +43,13 @@ export const hubspotOrganizationFilters: Record<string, FilterConfig> = {
 
 export const hubspot: AutomationTypeConfig = {
   name: 'HubSpot',
-  description: 'Send members or organizations to HubSpot',
+  description: 'Send contacts or organizations to HubSpot',
   icon: '/images/integrations/hubspot.png',
   plan: 'Scale',
   featureFlag: FeatureFlag.flags.hubspot,
   emptyScreen: {
     title: 'No HubSpot automations yet',
-    body: 'Send members or organizations to HubSpot based on certain conditions.',
+    body: 'Send contacts or organizations to HubSpot based on certain conditions.',
   },
   triggerText: 'Define the conditions that will trigger your HubSpot action.',
   actionText: 'Define which action will take place in HubSpot based on the defined conditions.',

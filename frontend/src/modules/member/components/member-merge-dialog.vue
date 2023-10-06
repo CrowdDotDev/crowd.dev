@@ -2,7 +2,7 @@
   <app-dialog
     v-if="isModalOpen"
     v-model="isModalOpen"
-    title="Merge member"
+    title="Merge contact"
     size="2extra-large"
   >
     <template #content>
@@ -38,7 +38,7 @@
                   @click="changeMember()"
                 >
                   <span class="ri-refresh-line text-base text-brand-500 mr-2" />
-                  <span class="text-brand-500">Change member</span>
+                  <span class="text-brand-500">Change contact</span>
                 </button>
               </template>
             </app-member-suggestions-details>
@@ -54,7 +54,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge members
+            Merge contacts
           </el-button>
         </div>
       </div>
@@ -130,7 +130,7 @@ const mergeSuggestion = () => {
       }
     })
     .catch(() => {
-      Message.error('There was an error merging members');
+      Message.error('There was an error merging contacts');
     })
     .finally(() => {
       sendingMerge.value = false;
