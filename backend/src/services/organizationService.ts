@@ -54,23 +54,44 @@ export default class OrganizationService extends LoggerBase {
 
     try {
       let original = await OrganizationRepository.findById(originalId, this.options)
-      let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
 
+      this.options.log.debug('Fetched original organization', { original })
+  
+      this.options.log.debug('Fetching toMerge organization')
+      
+      let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+      
+      this.options.log.debug('Fetched toMerge organization', { toMerge })
+  
       if (original.id === toMerge.id) {
+      
+        this.options.log.debug('Original and toMerge organizations are the same. Exiting merge process')
+      
         return {
           status: 203,
           mergedId: originalId,
         }
       }
-
+  
+      this.options.log.debug('Creating transaction')
+      
       tx = await SequelizeRepository.createTransaction(this.options)
+      
+      this.options.log.debug('Created transaction', { tx })
+  
       const repoOptions: IRepositoryOptions = { ...this.options }
+      
       repoOptions.transaction = tx
-
+  
+      this.options.log.debug('Fetching all identities')
+      
       const allIdentities = await OrganizationRepository.getIdentities(
         [originalId, toMergeId],
         repoOptions,
       )
+      
+      this.options.log.debug('Fetched all identities', { allIdentities })
+  
 
       const originalIdentities = allIdentities.filter((i) => i.organizationId === originalId)
       const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
