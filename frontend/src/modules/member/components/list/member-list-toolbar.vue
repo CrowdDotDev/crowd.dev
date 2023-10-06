@@ -30,7 +30,7 @@
             ? 'Upgrade your plan to increase your quota of available member enrichments'
             : 'Selected members lack an associated GitHub profile or Email'"
           :disabled="
-            elegibleEnrichmentMembersIds.length
+            !elegibleEnrichmentMembersIds.length
               || isEditLockedForSampleData || isEnrichmentFeatureEnabled()
           "
           popper-class="max-w-[260px]"
