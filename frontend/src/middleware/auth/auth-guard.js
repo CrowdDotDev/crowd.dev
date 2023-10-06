@@ -22,7 +22,9 @@ function isGoingToIntegrationsPage(to) {
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({ to, store, router }) {
+export default async function ({
+  to, from, store, router,
+}) {
   if (!to.meta || !to.meta.auth) {
     return;
   }
@@ -71,6 +73,16 @@ export default async function ({ to, store, router }) {
     )
     && !tenantSubdomain.isSubdomain
   ) {
+    // Protect onboard routes if user is already onboarded
+    if ((to.path === '/onboard' || (from.path !== '/onboard' && to.path === '/onboard/demo'))
+      && (!permissionChecker.isEmptyTenant && store.getters['auth/currentTenant'].onboardedAt)) {
+      router.push('/');
+    }
+
+    if (to.path === '/onboard/demo' && (permissionChecker.isEmptyTenant || !store.getters['auth/currentTenant'].onboardedAt)) {
+      router.push('/onboard');
+    }
+
     if (
       to.path !== '/onboard'
       && permissionChecker.isEmailVerified
@@ -80,10 +92,7 @@ export default async function ({ to, store, router }) {
       router.push({
         path: '/onboard',
         query: isGoingToIntegrationsPage(to)
-          ? {
-            selectedDataType: 'real',
-            ...to.query,
-          }
+          ? to.query
           : undefined,
       });
     }
