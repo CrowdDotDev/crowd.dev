@@ -115,11 +115,11 @@
 
 <script setup>
 
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
@@ -136,7 +136,6 @@ import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doRefreshCurrentUser } = mapActions('auth');
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
 const { fetchMembers, getMemberCustomAttributes } = memberStore;
@@ -233,10 +232,6 @@ const handleMergeMembers = () => {
       Message.error('Error merging contacts');
     });
 };
-
-onMounted(() => {
-  doRefreshCurrentUser({});
-});
 
 const doDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
