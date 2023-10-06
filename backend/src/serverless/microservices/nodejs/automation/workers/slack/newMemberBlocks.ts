@@ -111,7 +111,7 @@ export const newMemberBlocks = (member) => {
               text: 'View in crowd.dev',
               emoji: true,
             },
-            url: `${API_CONFIG.frontendUrl}/members/${member.id}`,
+            url: `${API_CONFIG.frontendUrl}/contacts/${member.id}`,
           },
           ...(buttonProfiles || [])
             .map(({ platform, url }) => ({
