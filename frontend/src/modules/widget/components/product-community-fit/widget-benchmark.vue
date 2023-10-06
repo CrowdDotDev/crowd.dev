@@ -1,10 +1,6 @@
 <template>
   <div class="bg-white pt-5 rounded-lg shadow">
-    <query-renderer
-      v-if="cubejsApi"
-      :cubejs-api="cubejsApi"
-      :query="query"
-    >
+    <query-renderer v-if="cubejsApi" :cubejs-api="cubejsApi" :query="query">
       <template #default="{ resultSet, loading, error }">
         <div class="px-6">
           <div
@@ -19,9 +15,7 @@
             </div>
 
             <app-widget-period
-              :template="
-                PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
-              "
+              :template="PRODUCT_COMMUNITY_FIT_REPORT.nameAsId"
               :widget="BENCHMARK_WIDGET.name"
               :period="period"
               :granularity="granularity"
@@ -58,10 +52,16 @@
         </div>
         <app-widget-insight v-if="!loading">
           <template #description>
-            <span>Considering the contribution history of over
-              150,000 open-source repositories, we come to the
-              conclusion that you {{ average < 20 ? 'didn\'t achieve Early signals of Product-Community Fit' : 'had' }}
-              <span v-if="average >= 20" class="font-medium">{{ getInsightContent }}</span>{{
+            <span>Considering the contribution history of over 150,000 open-source
+              repositories, we come to the conclusion that you
+              {{
+                average < 20
+                  ? "didn't achieve Early signals of Product-Community Fit"
+                  : 'had'
+              }}
+              <span v-if="average >= 20" class="font-medium">{{
+                getInsightContent
+              }}</span>{{
                 period.label === 'All time'
                   ? ' since the beginning of your community.'
                   : ` during the past ${pluralize(
@@ -93,10 +93,14 @@ import {
   SIX_MONTHS_PERIOD_FILTER,
   MONTHLY_WIDGET_PERIOD_OPTIONS,
 } from '@/modules/widget/widget-constants';
+import { getSelectedPeriodFromLabel } from '@/modules/widget/widget-utility';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
-import PRODUCT_COMMUNITY_FIT_REPORT, { BENCHMARK_WIDGET } from '@/modules/report/templates/config/productCommunityFit';
+import PRODUCT_COMMUNITY_FIT_REPORT, {
+  BENCHMARK_WIDGET,
+} from '@/modules/report/templates/config/productCommunityFit';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   filters: {
@@ -113,16 +117,25 @@ const props = defineProps({
   },
 });
 
-const period = ref(SIX_MONTHS_PERIOD_FILTER);
+const route = useRoute();
+const router = useRouter();
+const period = ref(
+  getSelectedPeriodFromLabel(
+    route.query.benchmarkPeriod,
+    SIX_MONTHS_PERIOD_FILTER,
+  ),
+);
 const granularity = ref(MONTHLY_GRANULARITY_FILTER);
 const average = ref(0);
 
 const getInsightContent = computed(() => {
   if (average.value >= 20 && average.value <= 50) {
     return 'Early signals of Product-Community Fit';
-  } if (average.value > 50 && average.value <= 100) {
+  }
+  if (average.value > 50 && average.value <= 100) {
     return 'Strong emerging signals of Product-Community Fit';
-  } if (average.value > 100 && average.value <= 200) {
+  }
+  if (average.value > 100 && average.value <= 200) {
     return 'Great Product-Community Fit';
   }
 
@@ -184,7 +197,9 @@ const benchmarkChartOptions = computed(() => chartOptions('bar', {
         fontWeight: 400,
       };
 
-      const getMatch = (min, max) => (average.value >= min && (!max || average.value <= max) ? match : unmatch);
+      const getMatch = (min, max) => (average.value >= min && (!max || average.value <= max)
+        ? match
+        : unmatch);
 
       const labels = [
         { text: '' },
@@ -245,17 +260,20 @@ const benchmarkChartOptions = computed(() => chartOptions('bar', {
               min: 0,
               max: 20,
             };
-          } if (average.value >= 20 && average.value <= 50) {
+          }
+          if (average.value >= 20 && average.value <= 50) {
             return {
               min: 20,
               max: 50,
             };
-          } if (average.value > 50 && average.value <= 100) {
+          }
+          if (average.value > 50 && average.value <= 100) {
             return {
               min: 51,
               max: 100,
             };
-          } if (average.value > 100 && average.value <= 200) {
+          }
+          if (average.value > 100 && average.value <= 200) {
             return {
               min: 101,
               max: 200,
@@ -306,6 +324,12 @@ const query = computed(() => TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;
   granularity.value = MONTHLY_GRANULARITY_FILTER;
+  router.replace({
+    query: {
+      ...route.query,
+      benchmarkPeriod: updatedPeriod.label,
+    },
+  });
 };
 
 const onAverageCalculation = (calculatedAverage) => {

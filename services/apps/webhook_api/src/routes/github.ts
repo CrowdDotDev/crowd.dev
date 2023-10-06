@@ -1,5 +1,5 @@
-import { asyncWrap } from '@/middleware/error'
-import { WebhooksRepository } from '@/repos/webhooks.repo'
+import { asyncWrap } from '../middleware/error'
+import { WebhooksRepository } from '../repos/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
 import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { PlatformType, WebhookType } from '@crowd/types'

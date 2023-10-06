@@ -1,4 +1,4 @@
-import { IActivityData } from '@/activities'
+import { IActivityData } from '../../activities'
 import { IQueueMessage } from '../'
 
 export enum DataSinkWorkerQueueMessageType {

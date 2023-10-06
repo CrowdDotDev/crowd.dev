@@ -10,6 +10,7 @@ export async function BulkorganizationEnrichmentWorker(
   tenantId: string,
   maxEnrichLimit: number = 0,
   verbose: boolean = false,
+  includeOrgsActiveLastYear: boolean = false,
 ) {
   const userContext = await getUserContext(tenantId)
   const redis = await getRedisClient(REDIS_CONFIG, true)
@@ -39,7 +40,10 @@ export async function BulkorganizationEnrichmentWorker(
       tenantId,
       limit: remainderEnrichmentLimit,
     })
-    enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone(verbose)
+    enrichedOrgs = await enrichmentService.enrichOrganizationsAndSignalDone(
+      includeOrgsActiveLastYear,
+      verbose,
+    )
   }
 
   if (!skipCredits) {
