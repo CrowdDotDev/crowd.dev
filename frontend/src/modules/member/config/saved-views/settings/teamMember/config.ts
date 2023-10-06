@@ -1,7 +1,7 @@
 import { SavedViewsSetting } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { includeFilterRenderer } from '@/modules/member/config/saved-views/settings/common/includeFilterRenderer';
 import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common/types/IncludeEnum';
-import MemberTeamMemberSetting from './MemberTeamMemberSetting.vue'
+import MemberTeamMemberSetting from './MemberTeamMemberSetting.vue';
 
 const config: SavedViewsSetting<IncludeEnum> = {
   inSettings: true,

@@ -26,7 +26,7 @@
         <div class="w-18" />
       </div>
 
-      <div v-for="(config, oi) in organizations" :key="organization.id" class="flex gap-3 border-b h-8 items-center min-h-17">
+      <div v-for="(organization, oi) in organizations" :key="organization.id" class="flex gap-3 border-b h-8 items-center min-h-17">
         <div class="flex items-center w-full">
           <div class="w-1/3 flex items-center">
             <app-avatar
@@ -124,7 +124,7 @@ const edit = (organizationIndex: number) => {
   isOrganizationFormModalOpen.value = true;
 };
 
-const update = (config: Organization) => {
+const update = (organization: Organization) => {
   organizations.value[editOrganization.value] = organization;
   editOrganization.value = null;
 };

@@ -39,7 +39,7 @@
             placeholder="Select option"
           >
             <el-option
-              v-for="config of organizations"
+              v-for="organization of organizations"
               :key="organization.id"
               :label="organization.vanityName"
               :value="organization.id"

@@ -389,7 +389,7 @@ export default {
     },
 
     async handleOrganizationValidation(id) {
-      const config = this.organizations.find(
+      const organization = this.organizations.find(
         (o) => o.id === id,
       );
 

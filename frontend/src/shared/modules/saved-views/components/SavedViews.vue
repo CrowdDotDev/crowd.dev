@@ -64,8 +64,6 @@ import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/
 import { isEqual } from 'lodash';
 import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { formatNumber } from '@/utils/number';
-import { router } from '@/router';
 import CrSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
 
 const props = defineProps<{

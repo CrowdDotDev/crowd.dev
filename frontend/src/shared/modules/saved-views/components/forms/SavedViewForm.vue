@@ -75,19 +75,36 @@
           <div
             class="flex pb-10 border-b border-gray-200 pt-1"
           >
-            <el-dropdown placement="bottom-start" trigger="click">
+            <el-dropdown placement="bottom-start" trigger="click" popper-class="!p-0">
               <p class="text-xs font-medium leading-5 text-brand-500">
                 + Add filter
               </p>
               <template #dropdown>
-                <el-dropdown-item
-                  v-for="(filterConfig, key) in props.filters"
-                  :key="key"
-                  :disabled="filterList.includes(key)"
-                  @click="addFilter(key)"
-                >
-                  {{ filterConfig.label }}
-                </el-dropdown-item>
+                <div class="-m-2">
+                  <div class="border-b border-gray-100 p-2">
+                    <el-input
+                      ref="queryInput"
+                      v-model="dropdownSearch"
+                      placeholder="Search..."
+                      class="filter-dropdown-search"
+                      data-qa="filter-list-search"
+                    >
+                      <template #prefix>
+                        <i class="ri-search-line" />
+                      </template>
+                    </el-input>
+                  </div>
+                  <div class="m-2">
+                    <el-dropdown-item
+                      v-for="[key, filterConfig] of filteredFilters"
+                      :key="key"
+                      :disabled="filterList.includes(key)"
+                      @click="addFilter(key)"
+                    >
+                      {{ filterConfig.label }}
+                    </el-dropdown-item>
+                  </div>
+                </div>
               </template>
             </el-dropdown>
           </div>
@@ -180,7 +197,18 @@ const settingsDefaultValue = computed<Record<string, any>>(() => {
   return settingsObject;
 });
 
-const form = reactive({
+interface SavedViewForm {
+  shared: boolean;
+  name: string;
+  filters: Record<string, any>;
+  settings: Record<string, any>;
+  sorting: {
+    prop: string;
+    order: string;
+  }
+}
+
+const form = reactive<SavedViewForm>({
   shared: false,
   name: '',
   filters: {},
@@ -209,6 +237,13 @@ const settings = computed<Record<string, any>>(() => {
   return settingsObject;
 });
 
+// Filter dropdown
+const dropdownSearch = ref<string>('');
+
+const filteredFilters = computed(() => Object.entries(props.filters)
+  .filter(([_, config]: [string, FilterConfig]) => config.label.toLowerCase().includes(dropdownSearch.value.toLowerCase())));
+
+// Filter list management
 const filterList = ref<string[]>([]);
 const openedFilter = ref<string>('');
 
@@ -218,12 +253,14 @@ const addFilter = (key: string) => {
   }
   filterList.value.push(key);
   openedFilter.value = key;
+  dropdownSearch.value = '';
 };
 
 const removeFilter = (key: any) => {
   openedFilter.value = '';
   filterList.value = filterList.value.filter((el) => el !== key);
   delete form.filters[key];
+  dropdownSearch.value = '';
 };
 </script>
 
