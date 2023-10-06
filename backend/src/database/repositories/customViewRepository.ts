@@ -12,7 +12,7 @@ class CustomViewRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const record = await options.database.tag.create(
+    const record = await options.database.customView.create(
       {
         ...lodash.pick(data, ['name', 'visibility', 'config', 'placement']),
         tenantId: tenant.id,
@@ -48,7 +48,7 @@ class CustomViewRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    let record = await options.database.tag.findOne({
+    let record = await options.database.customView.findOne({
       where: {
         id,
         tenantId: tenant.id,
