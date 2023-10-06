@@ -106,10 +106,10 @@ export const plans = {
         'Dedicated community expert',
       ],
       ctaLabel: {
-        [Plans.values.eagleEye]: 'Book a call',
-        [Plans.values.essential]: 'Book a call',
-        [Plans.values.growth]: 'Book a call',
-        [Plans.values.scale]: 'Book a call',
+        [Plans.values.eagleEye]: 'Get a quote',
+        [Plans.values.essential]: 'Get a quote',
+        [Plans.values.growth]: 'Get a quote',
+        [Plans.values.scale]: 'Get a quote',
       },
       ctaAction: {
         [Plans.values.eagleEye]: () => {
