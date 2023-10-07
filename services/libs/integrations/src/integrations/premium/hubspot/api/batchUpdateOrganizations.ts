@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { IOrganization, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
+import { IBatchUpdateOrganizationsResult } from './types'
 
 export const batchUpdateOrganizations = async (
   nangoId: string,
@@ -12,7 +13,7 @@ export const batchUpdateOrganizations = async (
   organizationMapper: HubspotOrganizationFieldMapper,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
   throttler: RequestThrottler,
-): Promise<any> => {
+): Promise<IBatchUpdateOrganizationsResult[]> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'post',
     url: `https://api.hubapi.com/crm/v3/objects/companies/batch/update`,
@@ -67,7 +68,7 @@ export const batchUpdateOrganizations = async (
     }
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ nangoId, accessToken, data: config.data }, 'Updating bulk companies in HubSpot')
 
@@ -75,7 +76,21 @@ export const batchUpdateOrganizations = async (
 
     const result = await throttler.throttle(() => axios(config))
 
-    return result.data?.results || []
+    return result.data.results.reduce((acc, o) => {
+      const organization = organizations.find(
+        (crowdOrganization) => crowdOrganization.attributes?.sourceId?.hubspot === o.id,
+      )
+
+      const hubspotPayload = hubspotCompanies.find((hubspotCompany) => hubspotCompany.id === o.id)
+
+      acc.push({
+        organizationId: organization.id,
+        sourceId: o.id,
+        lastSyncedPayload: hubspotPayload,
+      })
+
+      return acc
+    }, [])
   } catch (err) {
     ctx.log.error({ err }, 'Error while batch update companies in HubSpot')
     throw err

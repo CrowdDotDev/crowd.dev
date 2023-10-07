@@ -102,7 +102,7 @@ const handleSubmit = async () => {
     emails: memberModel.emails,
   }).then(() => {
     store.dispatch('member/doFind', props.member.id).then(() => {
-      Message.success('Member identities updated successfully');
+      Message.success('Contact identities updated successfully');
     });
   }).catch((err) => {
     Message.error(err.response.data);

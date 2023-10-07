@@ -1,22 +1,28 @@
-import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
-import MemberRepository from '@/repo/member.repo'
-import { firstArrayContainsSecondArray, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
+import MemberRepository from '../repo/member.repo'
+import {
+  firstArrayContainsSecondArray,
+  isObjectEmpty,
+  singleOrDefault,
+  isDomainExcluded,
+} from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
   IMemberData,
   IMemberIdentity,
   PlatformType,
-  IOrganization,
   OrganizationSource,
+  IOrganizationIdSource,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
-import IntegrationRepository from '@/repo/integration.repo'
+import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
+import uniqby from 'lodash.uniqby'
 
 export default class MemberService extends LoggerBase {
   constructor(
@@ -90,14 +96,21 @@ export default class MemberService extends LoggerBase {
         }
 
         if (data.emails) {
-          const orgs = await this.assignOrganizationByEmailDomain(tenantId, segmentId, data.emails)
+          const orgs = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            integrationId,
+            data.emails,
+          )
           if (orgs.length > 0) {
             organizations.push(...orgs)
           }
         }
 
         if (organizations.length > 0) {
-          await orgService.addToMember(tenantId, segmentId, id, organizations)
+          // remove dups
+          const uniqOrganizations = uniqby(organizations, 'id')
+          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
         }
 
         return {
@@ -210,14 +223,21 @@ export default class MemberService extends LoggerBase {
         }
 
         if (data.emails) {
-          const orgs = await this.assignOrganizationByEmailDomain(tenantId, segmentId, data.emails)
+          const orgs = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            integrationId,
+            data.emails,
+          )
           if (orgs.length > 0) {
             organizations.push(...orgs)
           }
         }
 
         if (organizations.length > 0) {
-          await orgService.addToMember(tenantId, segmentId, id, organizations)
+          // remove dups
+          const uniqOrganizations = uniqby(organizations, 'id')
+          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
           updated = true
         }
 
@@ -240,26 +260,40 @@ export default class MemberService extends LoggerBase {
   public async assignOrganizationByEmailDomain(
     tenantId: string,
     segmentId: string,
+    integrationId: string,
     emails: string[],
-  ): Promise<IOrganization[]> {
+  ): Promise<IOrganizationIdSource[]> {
     const orgService = new OrganizationService(this.store, this.log)
-    const organizations: IOrganization[] = []
+    const organizations: IOrganizationIdSource[] = []
     const emailDomains = new Set<string>()
 
     // Collect unique domains
     for (const email of emails) {
       if (email) {
         const domain = email.split('@')[1]
-        emailDomains.add(domain)
+        // domain can be undefined if email is invalid
+        if (domain) {
+          if (!isDomainExcluded(domain)) {
+            emailDomains.add(domain)
+          }
+        }
       }
     }
 
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
-      const org = await orgService.findByDomain(tenantId, segmentId, domain as string)
-      if (org) {
+      const orgId = await orgService.findOrCreate(tenantId, segmentId, integrationId, {
+        website: domain,
+        identities: [
+          {
+            name: domain,
+            platform: 'email',
+          },
+        ],
+      })
+      if (orgId) {
         organizations.push({
-          ...org,
+          id: orgId,
           source: OrganizationSource.EMAIL_DOMAIN,
         })
       }

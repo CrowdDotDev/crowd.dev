@@ -7,7 +7,7 @@ import {
   ISlackPlatformSettings,
 } from '../types'
 import { handleSlackError } from './errorHandler'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 async function getMessages(
   input: SlackGetMessagesInput,

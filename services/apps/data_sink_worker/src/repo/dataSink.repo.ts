@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IFailedResultData, IResultData } from './dataSink.data'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
+import { IFailedResultData, IResultData } from './dataSink.data'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -53,6 +53,54 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     )
 
     return results.id
+  }
+
+  public async getOldResultsToProcess(limit: number): Promise<string[]> {
+    try {
+      const results = await this.db().any(
+        `
+        select id
+        from integration.results
+        where state in ($(pendingState), $(processingState))
+          and "updatedAt" < now() - interval '1 hour'
+        order by case when "webhookId" is not null then 0 else 1 end,
+                "webhookId" asc,
+                "updatedAt" desc
+        limit ${limit};
+        `,
+        {
+          pendingState: IntegrationResultState.PENDING,
+          processingState: IntegrationResultState.PROCESSING,
+          maxRetries: 5,
+        },
+      )
+
+      return results.map((s) => s.id)
+    } catch (err) {
+      this.log.error(err, 'Failed to get old results to process!')
+      throw err
+    }
+  }
+
+  public async touchUpdatedAt(resultIds: string[]): Promise<void> {
+    if (resultIds.length === 0) {
+      return
+    }
+
+    try {
+      await this.db().none(
+        `
+        update integration.results set "updatedAt" = now()
+        where id in ($(resultIds:csv))
+      `,
+        {
+          resultIds,
+        },
+      )
+    } catch (err) {
+      this.log.error(err, 'Failed to touch updatedAt for results!')
+      throw err
+    }
   }
 
   public async markResultInProgress(resultId: string): Promise<void> {

@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from '../../nango'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 import { PlatformType } from '@crowd/types'
 import { RedditGetCommentsInput, RedditCommentsResponse } from '../types'
 import { timeout } from '@crowd/common'

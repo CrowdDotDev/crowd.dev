@@ -207,7 +207,7 @@
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
-            # of members
+            # of contacts
           </p>
           <p class="text-xs text-gray-900 text-right">
             {{ props.organization.memberCount || '-' }}
@@ -242,7 +242,9 @@
             <div class="flex gap-3 items-center">
               <app-platform :platform="identity.platform" />
               <span class="text-xs">
-                {{ (identity.url ? identity.url.split('/').at(-1) : identity.name) ?? getPlatformDetails(identity.platform).name }}</span>
+                {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
+                  ?? getPlatformDetails(identity.platform)?.name
+                  ?? identity.platform }}</span>
             </div>
             <i
               v-if="identity.url"

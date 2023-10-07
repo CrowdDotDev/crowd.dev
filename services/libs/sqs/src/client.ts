@@ -1,4 +1,7 @@
 import {
+  ChangeMessageVisibilityCommand,
+  ChangeMessageVisibilityCommandOutput,
+  ChangeMessageVisibilityRequest,
   DeleteMessageCommand,
   DeleteMessageRequest,
   ReceiveMessageCommand,
@@ -138,6 +141,28 @@ export const sendMessagesBulk = async (
     ) {
       await timeout(1000)
       return await sendMessagesBulk(client, params, retry + 1)
+    }
+
+    throw err
+  }
+}
+
+export const changeMessageVisibility = async (
+  client: SqsClient,
+  params: ChangeMessageVisibilityRequest,
+  retry = 0,
+): Promise<ChangeMessageVisibilityCommandOutput> => {
+  try {
+    return client.send(new ChangeMessageVisibilityCommand(params))
+  } catch (err) {
+    if (
+      (err.message === 'Request is throttled.' ||
+        err.message === 'Queue Throttled' ||
+        (err.code === 'EAI_AGAIN' && err.syscall === 'getaddrinfo')) &&
+      retry < 10
+    ) {
+      await timeout(1000)
+      return await changeMessageVisibility(client, params, retry + 1)
     }
 
     throw err
