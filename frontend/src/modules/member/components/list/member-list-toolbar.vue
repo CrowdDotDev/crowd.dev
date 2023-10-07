@@ -22,24 +22,23 @@
           :disabled="isEditLockedForSampleData"
         >
           <i class="ri-lg ri-group-line mr-1" />
-          Merge members
+          Merge contacts
         </el-dropdown-item>
         <el-tooltip
           placement="top"
-          content="Selected members lack an associated GitHub profile or Email"
+          :content="!isEnrichmentFeatureEnabled()
+            ? 'Upgrade your plan to increase your quota of available contact enrichments'
+            : 'Selected contacts lack an associated GitHub profile or Email'"
           :disabled="
-            elegibleEnrichmentMembersIds.length
-              || isEditLockedForSampleData
+            !elegibleEnrichmentMembersIds.length
+              || isEditLockedForSampleData || isEnrichmentFeatureEnabled()
           "
           popper-class="max-w-[260px]"
         >
           <span>
             <el-dropdown-item
               :command="{ action: 'enrichMember' }"
-              :disabled="
-                !elegibleEnrichmentMembersIds.length
-                  || isEditLockedForSampleData
-              "
+              :disabled="isEnrichmentActionDisabled"
               class="mb-1"
             >
               <app-svg
@@ -120,14 +119,14 @@ import { computed, ref } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
 import {
-  checkEnrichmentLimit,
+  isEnrichmentFeatureEnabled,
   checkEnrichmentPlan,
   getEnrichmentMax,
   showEnrichmentLoadingMessage,
@@ -137,7 +136,6 @@ import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doRefreshCurrentUser } = mapActions('auth');
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
 const { fetchMembers, getMemberCustomAttributes } = memberStore;
@@ -182,14 +180,14 @@ const enrichmentLabel = computed(() => {
     === elegibleEnrichmentMembersIds.value.length
   ) {
     return `Re-enrich ${pluralize(
-      'member',
+      'contact',
       selectedIds.value.length,
       false,
     )}`;
   }
 
   return `Enrich ${pluralize(
-    'member',
+    'contact',
     selectedIds.value.length,
     false,
   )}`;
@@ -200,7 +198,7 @@ const selectedIds = computed(() => selectedMembers.value.map((item) => item.id))
 const markAsTeamMemberOptions = computed(() => {
   const isTeamView = filters.value.settings.teamMember === 'filter';
   const membersCopy = pluralize(
-    'member',
+    'contact',
     selectedMembers.value.length,
     false,
   );
@@ -220,21 +218,24 @@ const markAsTeamMemberOptions = computed(() => {
   };
 });
 
+const isEnrichmentActionDisabled = computed(() => !elegibleEnrichmentMembersIds.value.length
+  || isEditLockedForSampleData.value || !isEnrichmentFeatureEnabled());
+
 const handleMergeMembers = () => {
   const [firstMember, secondMember] = selectedMembers.value;
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
-      Message.success('Members merged successfuly');
+      Message.success('Contacts merged successfuly');
       fetchMembers({ reload: true });
     })
     .catch(() => {
-      Message.error('Error merging members');
+      Message.error('Error merging contacts');
     });
 };
 
 const doDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
-  title: 'Delete members',
+  title: 'Delete contacts',
   message:
         "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
@@ -265,7 +266,7 @@ const handleDoExport = async () => {
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
-      badgeContent: pluralize('member', selectedMembers.value.length, true),
+      badgeContent: pluralize('contact', selectedMembers.value.length, true),
     });
 
     await MemberService.export({
@@ -320,7 +321,7 @@ const doMarkAsTeamMember = (value) => {
     .then(() => {
       fetchMembers({ reload: true });
       Message.success(
-        `Member${
+        `Contact${
           selectedMembers.value.length > 1 ? 's' : ''
         } updated successfully`,
       );
@@ -347,9 +348,9 @@ const handleCommand = async (command) => {
 
     if (enrichedMembers.value) {
       reEnrichmentMessage = enrichedMembers.value === 1
-        ? 'You selected 1 member that was already enriched. If you proceed, this member will be re-enriched and counted towards your quota.'
-        : `You selected ${enrichedMembers.value} members that were already enriched. If you proceed,
-            these members will be re-enriched and counted towards your quota.`;
+        ? 'You selected 1 contact that was already enriched. If you proceed, this contact will be re-enriched and counted towards your quota.'
+        : `You selected ${enrichedMembers.value} contacts that were already enriched. If you proceed,
+            these contacts will be re-enriched and counted towards your quota.`;
     }
 
     // All members are elegible for enrichment
@@ -363,7 +364,7 @@ const handleCommand = async (command) => {
             title: 'Some members were already enriched',
             message: reEnrichmentMessage,
             confirmButtonText: `Proceed with enrichment (${pluralize(
-              'member',
+              'contact',
               enrichments,
               true,
             )})`,
@@ -383,10 +384,10 @@ const handleCommand = async (command) => {
           title:
             'Some members lack an associated GitHub profile or Email',
           message:
-            'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill '
+            'Contact enrichment requires an associated GitHub profile or Email. If you proceed, only the contacts who fulfill '
             + 'this requirement will be enriched and counted towards your quota.',
           confirmButtonText: `Proceed with enrichment (${pluralize(
-            'member',
+            'contact',
             enrichments,
             true,
           )})`,
@@ -421,7 +422,7 @@ const handleCommand = async (command) => {
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
-      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
+      if (!isEnrichmentFeatureEnabled()) {
         return;
       }
 

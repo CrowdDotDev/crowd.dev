@@ -1,5 +1,5 @@
-import { IDbMember, IDbMemberUpdateData } from '@/repo/member.data'
-import MemberRepository from '@/repo/member.repo'
+import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
+import MemberRepository from '../repo/member.repo'
 import {
   firstArrayContainsSecondArray,
   isObjectEmpty,
@@ -12,15 +12,15 @@ import {
   IMemberData,
   IMemberIdentity,
   PlatformType,
-  IOrganization,
   OrganizationSource,
+  IOrganizationIdSource,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
-import IntegrationRepository from '@/repo/integration.repo'
+import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
 
@@ -96,7 +96,12 @@ export default class MemberService extends LoggerBase {
         }
 
         if (data.emails) {
-          const orgs = await this.assignOrganizationByEmailDomain(tenantId, segmentId, data.emails)
+          const orgs = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            integrationId,
+            data.emails,
+          )
           if (orgs.length > 0) {
             organizations.push(...orgs)
           }
@@ -218,7 +223,12 @@ export default class MemberService extends LoggerBase {
         }
 
         if (data.emails) {
-          const orgs = await this.assignOrganizationByEmailDomain(tenantId, segmentId, data.emails)
+          const orgs = await this.assignOrganizationByEmailDomain(
+            tenantId,
+            segmentId,
+            integrationId,
+            data.emails,
+          )
           if (orgs.length > 0) {
             organizations.push(...orgs)
           }
@@ -250,28 +260,40 @@ export default class MemberService extends LoggerBase {
   public async assignOrganizationByEmailDomain(
     tenantId: string,
     segmentId: string,
+    integrationId: string,
     emails: string[],
-  ): Promise<IOrganization[]> {
+  ): Promise<IOrganizationIdSource[]> {
     const orgService = new OrganizationService(this.store, this.log)
-    const organizations: IOrganization[] = []
+    const organizations: IOrganizationIdSource[] = []
     const emailDomains = new Set<string>()
 
     // Collect unique domains
     for (const email of emails) {
       if (email) {
         const domain = email.split('@')[1]
-        if (!isDomainExcluded(domain)) {
-          emailDomains.add(domain)
+        // domain can be undefined if email is invalid
+        if (domain) {
+          if (!isDomainExcluded(domain)) {
+            emailDomains.add(domain)
+          }
         }
       }
     }
 
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
-      const org = await orgService.findOrCreateByDomain(tenantId, segmentId, domain as string)
-      if (org) {
+      const orgId = await orgService.findOrCreate(tenantId, segmentId, integrationId, {
+        website: domain,
+        identities: [
+          {
+            name: domain,
+            platform: 'email',
+          },
+        ],
+      })
+      if (orgId) {
         organizations.push({
-          ...org,
+          id: orgId,
           source: OrganizationSource.EMAIL_DOMAIN,
         })
       }

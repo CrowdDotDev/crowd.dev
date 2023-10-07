@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { timeout } from '@crowd/common'
 import { SlackGetMemberInput, SlackGetMemberOutput } from '../types'
 import { handleSlackError } from './errorHandler'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 async function getMembers(
   input: SlackGetMemberInput,

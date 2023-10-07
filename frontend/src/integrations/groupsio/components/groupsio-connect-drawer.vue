@@ -241,7 +241,7 @@ const removeGroup = (index) => {
   form.groups.splice(index, 1);
 };
 
-const $v = useVuelidate(rules, form);
+const $v = useVuelidate(rules, form, { $stopPropagation: true });
 
 const validateAccount = async () => {
   isVerifyingAccount.value = true;

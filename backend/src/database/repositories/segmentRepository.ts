@@ -371,6 +371,10 @@ class SegmentRepository extends RepositoryBase<
   }
 
   async findInIds(ids: string[]): Promise<SegmentData[]> {
+    if (ids.length === 0) {
+      return []
+    }
+
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(

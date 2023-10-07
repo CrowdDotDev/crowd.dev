@@ -1,8 +1,8 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import IntegrationRunRepository from '@/repo/integrationRun.repo'
+import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { IntegrationState } from '@crowd/types'
 import {
   GithubIntegrationSettings,

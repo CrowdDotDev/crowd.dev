@@ -33,7 +33,7 @@
       </div>
       <div>
         <p class="text-2xs leading-4.5 !text-gray-400">
-          {{ organization.memberCount }} member{{
+          {{ organization.memberCount }} contact{{
             organization.memberCount > 1 ? 's' : ''
           }}
         </p>

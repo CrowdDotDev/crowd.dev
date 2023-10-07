@@ -1,11 +1,11 @@
-import { IDbActivity, IDbActivityUpdateData } from '@/repo/activity.data'
-import MemberRepository from '@/repo/member.repo'
+import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
+import MemberRepository from '../repo/member.repo'
 import { isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
 import { IActivityData, PlatformType } from '@crowd/types'
-import ActivityRepository from '@/repo/activity.repo'
+import ActivityRepository from '../repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
@@ -13,8 +13,8 @@ import isEqual from 'lodash.isequal'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
-import IntegrationRepository from '@/repo/integration.repo'
-import GithubReposRepository from '@/repo/githubRepos.repo'
+import IntegrationRepository from '../repo/integration.repo'
+import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
 import { acquireLock, releaseLock } from '@crowd/redis'
@@ -398,9 +398,13 @@ export default class ActivityService extends LoggerBase {
           segmentId = providedSegmentId
           if (!segmentId) {
             const dbIntegration = await txIntegrationRepo.findById(integrationId)
+            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
             segmentId =
-              platform === PlatformType.GITHUB
-                ? await txGithubReposRepo.findSegmentForRepo(tenantId, activity.channel)
+              platform === PlatformType.GITHUB && repoSegmentId
+                ? repoSegmentId
                 : dbIntegration.segmentId
           }
 

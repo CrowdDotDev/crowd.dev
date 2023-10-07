@@ -1,4 +1,5 @@
-import lodash from 'lodash'
+import lodash, { chunk } from 'lodash'
+import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
 import {
@@ -6,6 +7,7 @@ import {
   IMemberOrganization,
   IOrganization,
   IOrganizationIdentity,
+  IOrganizationMergeSuggestion,
   OpenSearchIndex,
   SyncStatus,
 } from '@crowd/types'
@@ -24,6 +26,26 @@ import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
+
+interface IOrganizationPartialAggregatesOpensearch {
+  _source: {
+    uuid_organizationId: string
+    nested_identities: {
+      string_platform: string
+      string_name: string
+    }[]
+    uuid_arr_noMergeIds: string[]
+  }
+}
+
+interface IOrganizationIdOpensearch {
+  _score: number
+  _source: {
+    uuid_organizationId: string
+  }
+}
+
+type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
   static async filterByPayingTenant(
@@ -95,6 +117,89 @@ class OrganizationRepository {
             join identities i on i."organizationId" = org.id
     where :tenantId = org."tenantId"
       and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
+    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    limit :limit
+    `
+    const orgs: IEnrichableOrganization[] = await database.query(query, {
+      type: QueryTypes.SELECT,
+      transaction,
+      replacements: {
+        tenantId,
+        limit,
+      },
+    })
+    return orgs
+  }
+
+  static async filterByActiveLastYear(
+    tenantId: string,
+    limit: number,
+    options: IRepositoryOptions,
+  ): Promise<IEnrichableOrganization[]> {
+    const database = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+    const query = `
+    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
+                        from activities a
+                        where a."tenantId" = :tenantId
+                          and a."deletedAt" is null
+                          and a."isContribution" = true
+                          and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
+                        group by a."organizationId"
+                        having count(id) > 0),
+     identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
+                    from "organizationIdentities" oi
+                    where oi."tenantId" = :tenantId
+                    group by oi."organizationId")
+    select org.id,
+          i.identities,
+          org."displayName",
+          org."location",
+          org."website",
+          org."lastEnrichedAt",
+          org."twitter",
+          org."employees",
+          org."size",
+          org."founded",
+          org."industry",
+          org."naics",
+          org."profiles",
+          org."headline",
+          org."ticker",
+          org."type",
+          org."address",
+          org."geoLocation",
+          org."employeeCountByCountry",
+          org."twitter",
+          org."linkedin",
+          org."crunchbase",
+          org."github",
+          org."description",
+          org."revenueRange",
+          org."tags",
+          org."affiliatedProfiles",
+          org."allSubsidiaries",
+          org."alternativeDomains",
+          org."alternativeNames",
+          org."averageEmployeeTenure",
+          org."averageTenureByLevel",
+          org."averageTenureByRole",
+          org."directSubsidiaries",
+          org."employeeChurnRate",
+          org."employeeCountByMonth",
+          org."employeeGrowthRate",
+          org."employeeCountByMonthByLevel",
+          org."employeeCountByMonthByRole",
+          org."gicsSector",
+          org."grossAdditionsByMonth",
+          org."grossDeparturesByMonth",
+          org."ultimateParent",
+          org."immediateParent",
+          activity."orgActivityCount"
+    from "organizations" as org
+            join org_activities activity on activity."organizationId" = org."id"
+            join identities i on i."organizationId" = org.id
+    where :tenantId = org."tenantId"
     order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
     limit :limit
     `
@@ -268,7 +373,6 @@ class OrganizationRepository {
             strongIdentities.find((s) => s.platform === i.platform && s.name === i.name) ===
             undefined,
         )
-
         // push new strong identities to the payload
         for (const identity of strongIdentities) {
           if (
@@ -741,6 +845,132 @@ class OrganizationRepository {
     }
   }
 
+  static async addNoMerge(
+    organizationId: string,
+    noMergeId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+    insert into "organizationNoMerge" ("organizationId", "noMergeId", "createdAt", "updatedAt")
+    values 
+    (:organizationId, :noMergeId, now(), now()),
+    (:noMergeId, :organizationId, now(), now())
+    on conflict do nothing;
+  `
+
+    try {
+      await seq.query(query, {
+        replacements: {
+          organizationId,
+          noMergeId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    } catch (error) {
+      options.log.error('Error adding organizations no merge!', error)
+      throw error
+    }
+  }
+
+  static async removeToMerge(
+    organizationId: string,
+    toMergeId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+    delete from "organizationToMerge"
+    where ("organizationId" = :organizationId and "toMergeId" = :toMergeId) or ("organizationId" = :toMergeId and "toMergeId" = :organizationId);
+  `
+
+    try {
+      await seq.query(query, {
+        replacements: {
+          organizationId,
+          toMergeId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    } catch (error) {
+      options.log.error('Error while removing organizations to merge!', error)
+      throw error
+    }
+  }
+
+  static async addToMerge(
+    suggestions: IOrganizationMergeSuggestion[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    // Remove possible duplicates
+    suggestions = lodash.uniqWith(suggestions, (a, b) =>
+      lodash.isEqual(lodash.sortBy(a.organizations), lodash.sortBy(b.organizations)),
+    )
+
+    // Process suggestions in chunks of 100 or less
+    const suggestionChunks: IOrganizationMergeSuggestion[][] = chunk(suggestions, 100)
+
+    const insertValues = (
+      organizationId: string,
+      toMergeId: string,
+      similarity: number | null,
+      index: number,
+    ) => {
+      const idPlaceholder = (key: string) => `${key}${index}`
+      return {
+        query: `(:${idPlaceholder('organizationId')}, :${idPlaceholder(
+          'toMergeId',
+        )}, :${idPlaceholder('similarity')}, NOW(), NOW())`,
+        replacements: {
+          [idPlaceholder('organizationId')]: organizationId,
+          [idPlaceholder('toMergeId')]: toMergeId,
+          [idPlaceholder('similarity')]: similarity === null ? null : similarity,
+        },
+      }
+    }
+
+    for (const suggestionChunk of suggestionChunks) {
+      const placeholders: string[] = []
+      let replacements: Record<string, unknown> = {}
+
+      suggestionChunk.forEach((suggestion, index) => {
+        const { query, replacements: chunkReplacements } = insertValues(
+          suggestion.organizations[0],
+          suggestion.organizations[1],
+          suggestion.similarity,
+          index,
+        )
+        placeholders.push(query)
+        replacements = { ...replacements, ...chunkReplacements }
+      })
+
+      const query = `
+        INSERT INTO "organizationToMerge" ("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
+        VALUES ${placeholders.join(', ')}
+        on conflict do nothing;
+      `
+      try {
+        await seq.query(query, {
+          replacements,
+          type: QueryTypes.INSERT,
+          transaction,
+        })
+      } catch (error) {
+        options.log.error('error adding organizations to merge', error)
+        throw error
+      }
+    }
+  }
+
   static async findMembersBelongToBothOrganizations(
     organizationId1: string,
     organizationId2: string,
@@ -806,6 +1036,289 @@ class OrganizationRepository {
       type: QueryTypes.UPDATE,
       transaction,
     })
+  }
+
+  static async *getMergeSuggestions(
+    options: IRepositoryOptions,
+  ): AsyncGenerator<IOrganizationMergeSuggestion[], void, undefined> {
+    const BATCH_SIZE = 100
+
+    const YIELD_CHUNK_SIZE = 100
+
+    let yieldChunk: IOrganizationMergeSuggestion[] = []
+
+    const normalizeScore = (max: number, min: number, score: number): number => {
+      if (score > 100) {
+        return 1
+      }
+
+      if (max === min) {
+        return (70 + Math.floor(Math.random() * 26) - 10) / 100
+      }
+
+      return (score - min) / (max - min)
+    }
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const queryBody = {
+      from: 0,
+      size: BATCH_SIZE,
+      query: {
+        bool: {
+          must: [
+            {
+              term: {
+                uuid_tenantId: tenant.id,
+              },
+            },
+          ],
+        },
+      },
+      sort: {
+        [`date_createdAt`]: 'desc',
+      },
+      collapse: {
+        field: 'uuid_organizationId',
+      },
+      _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds'],
+    }
+
+    let organizations: IOrganizationPartialAggregatesOpensearch[]
+    let offset: number
+
+    do {
+      offset = organizations ? offset + BATCH_SIZE : 0
+      queryBody.from = offset
+
+      organizations =
+        (
+          await options.opensearch.search({
+            index: OpenSearchIndex.ORGANIZATIONS,
+            body: queryBody,
+          })
+        ).body?.hits?.hits || []
+
+      for (const organization of organizations) {
+        if (
+          organization._source.nested_identities &&
+          organization._source.nested_identities.length > 0
+        ) {
+          const identitiesPartialQuery = {
+            should: [
+              {
+                nested: {
+                  path: 'nested_weakIdentities',
+                  query: {
+                    bool: {
+                      should: [],
+                      boost: 1000,
+                      minimum_should_match: 1,
+                    },
+                  },
+                },
+              },
+              {
+                nested: {
+                  path: 'nested_identities',
+                  query: {
+                    bool: {
+                      should: [],
+                      boost: 1,
+                      minimum_should_match: 1,
+                    },
+                  },
+                },
+              },
+            ],
+            minimum_should_match: 1,
+            must_not: [
+              {
+                term: {
+                  uuid_organizationId: organization._source.uuid_organizationId,
+                },
+              },
+            ],
+            must: [
+              {
+                term: {
+                  uuid_tenantId: tenant.id,
+                },
+              },
+            ],
+          }
+
+          for (const identity of organization._source.nested_identities) {
+            // weak identity search
+            identitiesPartialQuery.should[0].nested.query.bool.should.push({
+              bool: {
+                must: [
+                  { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
+                  {
+                    match: { [`nested_weakIdentities.string_platform`]: identity.string_platform },
+                  },
+                ],
+              },
+            })
+
+            // fuzzy search for identities
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              match: {
+                [`nested_identities.string_name`]: {
+                  query: identity.string_name,
+                  prefix_length: 1,
+                  fuzziness: 'auto',
+                },
+              },
+            })
+
+            // wildcard search for identities
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              wildcard: {
+                [`nested_identities.string_name`]: {
+                  value: `${identity.string_name}*`,
+                },
+              },
+            })
+
+            // also check for prefix of 5 if identity is longer then 5 characters
+            if (identity.string_name.length > 5) {
+              identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                prefix: {
+                  [`nested_identities.string_name`]: {
+                    value: identity.string_name.slice(0, 5),
+                  },
+                },
+              })
+            }
+          }
+
+          for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
+            identitiesPartialQuery.must_not.push({
+              term: {
+                uuid_organizationId: noMergeId,
+              },
+            })
+          }
+
+          const sameOrganizationsQueryBody = {
+            query: {
+              bool: identitiesPartialQuery,
+            },
+            collapse: {
+              field: 'uuid_organizationId',
+            },
+            _source: ['uuid_organizationId'],
+          }
+
+          const organizationsToMerge: IOrganizationIdOpensearch[] =
+            (
+              await options.opensearch.search({
+                index: OpenSearchIndex.ORGANIZATIONS,
+                body: sameOrganizationsQueryBody,
+              })
+            ).body?.hits?.hits || []
+
+          const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
+            (acc, organizationToMerge) => {
+              if (!acc.minScore || organizationToMerge._score < acc.minScore) {
+                acc.minScore = organizationToMerge._score
+              }
+
+              if (!acc.maxScore || organizationToMerge._score > acc.maxScore) {
+                acc.maxScore = organizationToMerge._score
+              }
+
+              return acc
+            },
+            { maxScore: null, minScore: null },
+          )
+
+          for (const organizationToMerge of organizationsToMerge) {
+            yieldChunk.push({
+              similarity: normalizeScore(maxScore, minScore, organizationToMerge._score),
+              organizations: [
+                organization._source.uuid_organizationId,
+                organizationToMerge._source.uuid_organizationId,
+              ],
+            })
+          }
+
+          if (yieldChunk.length >= YIELD_CHUNK_SIZE) {
+            yield yieldChunk
+            yieldChunk = []
+          }
+        }
+      }
+    } while (organizations.length > 0)
+
+    if (yieldChunk.length > 0) {
+      yield yieldChunk
+    }
+  }
+
+  static async findOrganizationsWithMergeSuggestions(
+    { limit = 20, offset = 0 },
+    options: IRepositoryOptions,
+  ) {
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
+
+    const orgs = await options.database.sequelize.query(
+      `SELECT 
+      "organizationsToMerge".id, 
+      "organizationsToMerge"."toMergeId",
+      "organizationsToMerge"."total_count",
+      "organizationsToMerge"."similarity"
+    FROM 
+    (
+      SELECT DISTINCT ON (Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id)))) 
+          org.id, 
+          otm."toMergeId", 
+          org."createdAt", 
+          COUNT(*) OVER() AS total_count,
+          otm."similarity"
+        FROM organizations org
+        INNER JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
+        JOIN "organizationSegments" os ON os."organizationId" = org.id
+        WHERE org."tenantId" = :tenantId
+          AND os."segmentId" IN (:segmentIds)
+      ) AS "organizationsToMerge" 
+    ORDER BY 
+      "organizationsToMerge"."createdAt" DESC 
+    LIMIT :limit OFFSET :offset
+    `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          segmentIds,
+          limit,
+          offset,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    if (orgs.length > 0) {
+      const organizationPromises = []
+      const toMergePromises = []
+
+      for (const org of orgs) {
+        organizationPromises.push(OrganizationRepository.findById(org.id, options))
+        toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options))
+      }
+
+      const organizationResults = await Promise.all(organizationPromises)
+      const organizationToMergeResults = await Promise.all(toMergePromises)
+
+      const result = organizationResults.map((i, idx) => ({
+        organizations: [i, organizationToMergeResults[idx]],
+        similarity: orgs[idx].similarity,
+      }))
+      return { rows: result, count: orgs[0].total_count / 2, limit, offset }
+    }
+
+    return { rows: [{ organizations: [], similarity: 0 }], count: 0, limit, offset }
   }
 
   static async moveMembersBetweenOrganizations(
@@ -1048,6 +1561,58 @@ class OrganizationRepository {
     return result
   }
 
+  static async findByDomain(domain: string, options: IRepositoryOptions): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const results = await sequelize.query(
+      `
+      SELECT
+      o.id,
+      o.description,
+      o.emails,
+      o.logo,
+      o.tags,
+      o.github,
+      o.twitter,
+      o.linkedin,
+      o.crunchbase,
+      o.employees,
+      o.location,
+      o.website,
+      o.type,
+      o.size,
+      o.headline,
+      o.industry,
+      o.founded,
+      o.attributes,
+      o."weakIdentities"
+    FROM
+      organizations o
+    WHERE
+      o."tenantId" = :tenantId AND 
+      o.website = :domain
+      `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          domain,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
+  }
+
   static async findIdentities(
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
@@ -1058,22 +1623,24 @@ class OrganizationRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {
+    const params = {
       tenantId: currentTenant.id,
-    }
+    } as any
 
-    let condition = ''
+    const condition = organizationId ? 'and "organizationId" <> :organizationId' : ''
+
     if (organizationId) {
-      condition = 'and "organizationId" <> :organizationId'
       params.organizationId = organizationId
     }
 
     const identityParams = identities
-      .map(
-        (identity) =>
-          `('${identity.platform.replace(/'/g, "''")}', '${identity.name.replace(/'/g, "''")}')`,
-      )
+      .map((identity, index) => `(:platform${index}, :name${index})`)
       .join(', ')
+
+    identities.forEach((identity, index) => {
+      params[`platform${index}`] = identity.platform
+      params[`name${index}`] = identity.name
+    })
 
     const results = (await sequelize.query(
       `
@@ -1912,38 +2479,41 @@ class OrganizationRepository {
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    const whereAnd: Array<any> = [
+    const records = await options.database.sequelize.query(
+      `
+        SELECT
+            DISTINCT
+            o."id",
+            o."displayName" AS label,
+            o."logo",
+            o."displayName" ILIKE :queryExact AS exact
+        FROM "organizations" AS o
+        JOIN "organizationSegments" os ON os."organizationId" = o.id
+        WHERE o."deletedAt" IS NULL
+          AND o."tenantId" = :tenantId
+          AND (o."displayName" ILIKE :queryLike OR o.id = :uuid)
+          AND os."segmentId" IN (:segmentIds)
+          AND os."tenantId" = :tenantId
+        ORDER BY o."displayName" ILIKE :queryExact DESC, o."displayName"
+        LIMIT :limit;
+      `,
       {
-        tenantId: tenant.id,
+        replacements: {
+          limit: limit ? Number(limit) : 20,
+          tenantId: tenant.id,
+          segmentIds,
+          queryLike: `%${query}%`,
+          queryExact: query,
+          uuid: validator.isUUID(query) ? query : null,
+        },
+        type: QueryTypes.SELECT,
+        raw: true,
       },
-    ]
+    )
 
-    if (query) {
-      whereAnd.push({
-        [Op.or]: [
-          { id: SequelizeFilterUtils.uuid(query) },
-          {
-            [Op.and]: SequelizeFilterUtils.ilikeIncludes('organization', 'displayName', query),
-          },
-        ],
-      })
-    }
-
-    const where = { [Op.and]: whereAnd }
-
-    const records = await options.database.organization.findAll({
-      attributes: ['id', 'displayName', 'logo'],
-      where,
-      limit: limit ? Number(limit) : undefined,
-      order: [['displayName', 'ASC']],
-    })
-
-    return records.map((record) => ({
-      id: record.id,
-      label: record.displayName,
-      logo: record.logo,
-    }))
+    return records
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
