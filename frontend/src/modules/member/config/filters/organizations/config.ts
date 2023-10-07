@@ -9,7 +9,7 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 
 const organizations: MultiSelectAsyncFilterConfig = {
   id: 'organizations',
-  label: 'Organizations',
+  label: 'Organization',
   iconClass: 'ri-community-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
@@ -39,7 +39,7 @@ const organizations: MultiSelectAsyncFilterConfig = {
       }))),
   },
   itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Organizations', value, options, data);
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Organization', value, options, data);
   },
   apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
     const filter = {
