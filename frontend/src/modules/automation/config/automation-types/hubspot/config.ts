@@ -14,9 +14,13 @@ import {
   HubspotAutomationTrigger,
 } from '@/modules/automation/config/automation-types/hubspot/types/HubspotAutomationTrigger';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
-import AutomationsHubspotPaywall from './hubspot-paywall.vue';
-import AutomationsHubspotTrigger from './hubspot-trigger.vue';
+import annualEmployeeChurnRate from '@/modules/organization/config/filters/annualEmployeeChurnRate/config';
+import annualEmployeeGrowthRate from '@/modules/organization/config/filters/annualEmployeeGrowthRate/config';
+import employeeCount from '@/modules/organization/config/filters/employeeCount/config';
+import organizationTags from '@/modules/organization/config/filters/tags/config';
 import AutomationsHubspotAction from './hubspot-action.vue';
+import AutomationsHubspotTrigger from './hubspot-trigger.vue';
+import AutomationsHubspotPaywall from './hubspot-paywall.vue';
 
 export const hubspotMemberFilters: Record<string, FilterConfig> = {
   noOfActivities,
@@ -31,17 +35,21 @@ export const hubspotOrganizationFilters: Record<string, FilterConfig> = {
   headcount,
   industry,
   annualRevenue,
+  annualEmployeeChurnRate,
+  annualEmployeeGrowthRate,
+  employeeCount,
+  organizationTags,
 };
 
 export const hubspot: AutomationTypeConfig = {
   name: 'HubSpot',
-  description: 'Send members or organizations to HubSpot',
+  description: 'Send contacts or organizations to HubSpot',
   icon: '/images/integrations/hubspot.png',
   plan: 'Scale',
   featureFlag: FeatureFlag.flags.hubspot,
   emptyScreen: {
     title: 'No HubSpot automations yet',
-    body: 'Send members or organizations to HubSpot based on certain conditions.',
+    body: 'Send contacts or organizations to HubSpot based on certain conditions.',
   },
   triggerText: 'Define the conditions that will trigger your HubSpot action.',
   actionText: 'Define which action will take place in HubSpot based on the defined conditions.',

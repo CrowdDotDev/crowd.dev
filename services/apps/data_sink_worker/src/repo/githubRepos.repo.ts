@@ -7,7 +7,7 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
   }
 
   public async findSegmentForRepo(tenantId: string, url: string): Promise<string | null> {
-    const results = await this.db().one(
+    const results = await this.db().oneOrNone(
       `
         SELECT "segmentId"
         FROM "githubRepos"

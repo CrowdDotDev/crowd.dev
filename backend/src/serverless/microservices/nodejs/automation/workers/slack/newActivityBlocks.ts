@@ -50,6 +50,9 @@ const truncateText = (text: string, characters: number = 60): string => {
 }
 
 export const newActivityBlocks = (activity) => {
+  // Which platform identities are displayed as buttons and which ones go to menu
+  let buttonPlatforms = ['github', 'twitter', 'linkedin']
+
   const display = htmlToMrkdwn(replaceHeadline(activity.display.default))
   const reach = activity.member.reach?.[activity.platform] || activity.member.reach?.total
 
@@ -98,13 +101,23 @@ export const newActivityBlocks = (activity) => {
     })
     .filter((p) => !!p.url)
 
+  if (!buttonPlatforms.includes(activity.platform)) {
+    buttonPlatforms = [activity.platform, ...buttonPlatforms]
+  }
+
+  const buttonProfiles = buttonPlatforms
+    .map((platform) => profiles.find((profile) => profile.platform === platform))
+    .filter((profiles) => !!profiles)
+
+  const menuProfiles = profiles.filter((profile) => !buttonPlatforms.includes(profile.platform))
+
   return {
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${activity.member.displayName}>* *${display.text}*`,
+          text: `*<${API_CONFIG.frontendUrl}/contacts/${activity.member.id}|${activity.member.displayName}>* *${display.text}*`,
         },
         ...(activity.url
           ? {
@@ -171,13 +184,24 @@ export const newActivityBlocks = (activity) => {
               text: 'View in crowd.dev',
               emoji: true,
             },
-            url: `${API_CONFIG.frontendUrl}/members/${member.id}`,
+            url: `${API_CONFIG.frontendUrl}/contacts/${member.id}`,
           },
-          ...(profiles.length > 0
+          ...(buttonProfiles || [])
+            .map(({ platform, url }) => ({
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: `${integrationLabel[platform] ?? platform} profile`,
+                emoji: true,
+              },
+              url,
+            }))
+            .filter((action) => !!action.url),
+          ...(menuProfiles.length > 0
             ? [
                 {
                   type: 'overflow',
-                  options: profiles.map(({ platform, url }) => ({
+                  options: menuProfiles.map(({ platform, url }) => ({
                     text: {
                       type: 'plain_text',
                       text: `${integrationLabel[platform] ?? platform} profile`,

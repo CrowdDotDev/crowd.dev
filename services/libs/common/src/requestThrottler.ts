@@ -60,7 +60,7 @@ export class RequestThrottler {
           )
 
           if (this.backoffRetries < this.MAX_BACKOFF_RETRIES) {
-            await timeout(this.backoff)
+            await timeout(this.backoff * 1000)
             this.advanceBackoff()
             return this.throttle(func)
           } else {

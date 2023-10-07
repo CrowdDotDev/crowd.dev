@@ -1,8 +1,8 @@
 import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const allMembers: SavedView = {
-  id: 'all-members',
-  label: 'All members',
+  id: 'all-contacts',
+  label: 'All contacts',
   filter: {
     search: '',
     relation: 'and',

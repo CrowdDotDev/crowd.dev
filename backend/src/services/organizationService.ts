@@ -1,4 +1,4 @@
-import { IOrganization, IOrganizationIdentity } from '@crowd/types'
+import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
 import { LoggerBase } from '@crowd/logging'
 import { websiteNormalizer } from '@crowd/common'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
@@ -99,8 +99,15 @@ export default class OrganizationService extends LoggerBase {
       // Performs a merge and returns the fields that were changed so we can update
       const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
 
-      // Update original organization
       const txService = new OrganizationService(repoOptions as IServiceOptions)
+
+      // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
+      // because of website unique constraint
+      if (toUpdate.website && toUpdate.website === toMerge.website) {
+        await txService.update(toMergeId, { website: null })
+      }
+
+      // Update original organization
       await txService.update(originalId, toUpdate, repoOptions.transaction)
 
       // update members that belong to source organization to destination org
@@ -122,10 +129,12 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
-      await OrganizationRepository.includeOrganizationToSegments(originalId, {
-        ...repoOptions,
-        currentSegments: secondMemberSegments,
-      })
+      if (secondMemberSegments.length > 0) {
+        await OrganizationRepository.includeOrganizationToSegments(originalId, {
+          ...repoOptions,
+          currentSegments: secondMemberSegments,
+        })
+      }
 
       // Delete toMerge organization
       await OrganizationRepository.destroy(toMergeId, repoOptions, true)
@@ -233,6 +242,56 @@ export default class OrganizationService extends LoggerBase {
     })
   }
 
+  async generateMergeSuggestions(type: OrganizationMergeSuggestionType): Promise<void> {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      if (type === OrganizationMergeSuggestionType.BY_IDENTITY) {
+        let mergeSuggestions
+
+        const generator = OrganizationRepository.getMergeSuggestions({
+          ...this.options,
+          transaction,
+        })
+        do {
+          mergeSuggestions = await generator.next()
+
+          await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
+        } while (!mergeSuggestions.done)
+      }
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      this.log.error(error)
+      throw error
+    }
+  }
+
+  async addToNoMerge(organizationId: string, noMergeId: string): Promise<void> {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+
+    try {
+      await OrganizationRepository.addNoMerge(organizationId, noMergeId, {
+        ...this.options,
+        transaction,
+      })
+      await OrganizationRepository.removeToMerge(organizationId, noMergeId, {
+        ...this.options,
+        transaction,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
+      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+
+      throw error
+    }
+  }
+
   async createOrUpdate(data: IOrganization, enrichP = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
@@ -332,9 +391,11 @@ export default class OrganizationService extends LoggerBase {
       let existing
 
       // check if organization already exists using website or primary identity
-      if (data.website) {
-        existing = await OrganizationRepository.findOrCreateByDomain(data.website, this.options)
-      } else {
+      if (cache.website) {
+        existing = await OrganizationRepository.findByDomain(cache.website, this.options)
+      }
+
+      if (!existing) {
         existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
       }
 
@@ -403,6 +464,10 @@ export default class OrganizationService extends LoggerBase {
 
       throw error
     }
+  }
+
+  async findOrganizationsWithMergeSuggestions(args) {
+    return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
   async update(id, data, passedTransaction?) {

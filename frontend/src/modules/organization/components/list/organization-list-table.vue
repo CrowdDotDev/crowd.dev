@@ -12,7 +12,7 @@
           v-if="!hasOrganizations"
           icon="ri-community-line"
           title="No organizations yet"
-          description="We couldn't track any organizations related to your community members."
+          description="We couldn't track any organizations related to your community contacts."
           cta-btn="Add organization"
           @cta-click="onCtaClick"
         />
@@ -179,7 +179,7 @@
 
                 <!-- Number of members -->
                 <el-table-column
-                  label="# Members"
+                  label="# Contacts"
                   width="150"
                   prop="memberCount"
                   sortable
@@ -485,6 +485,140 @@
                   </template>
                 </el-table-column>
 
+                <!-- Employee Churn Rate -->
+                <el-table-column
+                  label="Ann. Employee Churn Rate"
+                  width="220"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.employeeChurnRate?.['12_month']" class="text-gray-900">
+                          {{
+                            employeeChurnRate.valueParser(scope.row.employeeChurnRate['12_month'])
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Employee Growth Rate -->
+                <el-table-column
+                  label="Ann. Employee Growth Rate"
+                  width="230"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
+                          {{
+                            employeeGrowthRate.valueParser(scope.row.employeeGrowthRate['12_month'])
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Employee Count -->
+                <el-table-column
+                  label="Employee Count"
+                  width="150"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.employees" class="text-gray-900">
+                          {{
+                            scope.row.employees
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Inferred Revenue -->
+                <el-table-column
+                  label="Annual Revenue"
+                  width="150"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <span v-if="scope.row.revenueRange" class="text-gray-900">
+                          {{
+                            revenueRange.displayValue(scope.row.revenueRange)
+                          }}
+                        </span>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
+                <!-- Tags -->
+                <el-table-column
+                  label="Tags"
+                  :width="tagsColumnWidth"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <app-tag-list
+                        v-if="scope.row.tags?.length"
+                        :member="{
+                          ...scope.row,
+                          tags: scope.row.tags.map((t) => ({ id: t, name: t })),
+                        }"
+                        :editable="false"
+                      />
+                      <span v-else class="text-gray-500">-</span>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
                 <!-- Actions -->
                 <el-table-column fixed="right">
                   <template #default="scope">
@@ -533,7 +667,6 @@
 <script setup>
 import {
   computed,
-  defineProps,
   ref,
   watch,
   onUnmounted,
@@ -545,6 +678,10 @@ import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+import employeeChurnRate from '@/modules/organization/config/enrichment/employeeChurnRate';
+import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
+import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
+import AppTagList from '@/modules/tag/components/tag-list.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -607,6 +744,24 @@ const showBottomPagination = computed(() => (
     ) > 1
 ));
 const isLoading = computed(() => props.isPageLoading);
+
+const tagsColumnWidth = computed(() => {
+  let maxTabWidth = 0;
+
+  organizations.value.forEach((row) => {
+    if (row.tags) {
+      const tabWidth = row.tags
+        .map((tag) => tag.length * 20)
+        .reduce((a, b) => a + b, 0);
+
+      if (tabWidth > maxTabWidth) {
+        maxTabWidth = tabWidth;
+      }
+    }
+  });
+
+  return Math.min(maxTabWidth + 100, 500);
+});
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
