@@ -1,4 +1,4 @@
 export enum CustomViewVisibility {
-  member = 'member',
+  USER = 'user',
   TENANT = 'tenant',
 }

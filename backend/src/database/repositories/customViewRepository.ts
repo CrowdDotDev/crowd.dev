@@ -1,8 +1,11 @@
 import lodash from 'lodash'
+import Sequelize from 'sequelize'
 import Error404 from '../../errors/Error404'
 import SequelizeRepository from './sequelizeRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
+
+const Op = Sequelize.Op
 
 class CustomViewRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -26,9 +29,9 @@ class CustomViewRepository {
 
     await options.database.customViewOrder.create(
       {
-        memberId: currentUser.id,
+        userId: currentUser.id,
         customViewId: record.id,
-        order: data.order || 0,
+        order: data.order,
       },
       {
         transaction,
@@ -71,16 +74,15 @@ class CustomViewRepository {
       },
     )
 
-    // update order if it was sent
+    // upsert user's order for the custom view
     if (data.order) {
-      await options.database.customViewOrder.update(
+      await options.database.customViewOrder.upsert(
         {
+          userId: currentUser.id,
+          customViewId: record.id,
           order: data.order,
         },
         {
-          where: {
-            customViewId: record.id,
-          },
           transaction,
         },
       )
@@ -113,7 +115,7 @@ class CustomViewRepository {
     // update who deleted the custom view
     await record.update(
       {
-        deletedById: currentUser.id,
+        updatedById: currentUser.id,
       },
       { transaction },
     )
@@ -124,7 +126,7 @@ class CustomViewRepository {
       force,
     })
 
-    // delete the order
+    // delete the order of the custom view
     await options.database.customViewOrder.destroy({
       where: {
         customViewId: record.id,
@@ -138,8 +140,6 @@ class CustomViewRepository {
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = []
-
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const record = await options.database.customView.findOne({
@@ -147,7 +147,6 @@ class CustomViewRepository {
         id,
         tenantId: currentTenant.id,
       },
-      include,
       transaction,
     })
 
@@ -166,29 +165,33 @@ class CustomViewRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const where = {
-      ...lodash.pick(filter, ['visibility', 'placement']),
+      ...lodash.pick(filter, ['visibility']),
       tenantId: tenant.id,
     }
 
-    const customViewrecords = await options.database.customView.findAll({
+    if (filter.placement) {
+      where.placement = {
+        [Op.contains]: filter.placement,
+      }
+    }
+
+    const customViewRecords = await options.database.customView.findAll({
+      attributes: ['id', 'name', 'visibility', 'config', 'placement'],
       where,
+      include: [
+        {
+          model: options.database.customViewOrder,
+          as: 'customViewOrders',
+          where: {
+            userId: currentUser.id,
+          },
+          order: [['order', 'ASC']],
+        },
+      ],
       transaction,
     })
 
-    const customViewIds = customViewrecords.map((customView) => customView.id)
-
-    const customViewOrders = await options.database.customViewOrder.findAll({
-      where: {
-        memberId: currentUser.id,
-        customViewId: customViewIds,
-      },
-      transaction,
-    })
-
-    // sort custom views by order
-    const result = customViewOrders.sort((a, b) => a.order - b.order)
-
-    return result
+    return customViewRecords
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

@@ -29,8 +29,14 @@ export default (sequelize) => {
       placement: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         validate: {
-          isIn: [['members', 'organizations', 'activities', 'conversations']],
+          isInArray(value) {
+            const allowed = ['member', 'organization', 'activity', 'conversation']
+            if (!value.every((val) => allowed.includes(val))) {
+              throw new Error('Invalid placement value')
+            }
+          },
         },
+        allowNull: false,
       },
       tenantId: {
         type: DataTypes.UUID,
@@ -66,6 +72,11 @@ export default (sequelize) => {
 
     models.customView.belongsTo(models.user, {
       as: 'updatedBy',
+    })
+
+    models.customView.hasMany(models.customViewOrder, {
+      as: 'customViewOrders',
+      foreignKey: 'customViewId',
     })
   }
 

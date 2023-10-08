@@ -1,5 +1,8 @@
-DROP TABLE "customViewOrders";
+drop trigger if exists "customViewOrders_update_order" on "customViewOrders";
 
-DROP TABLE "customViews";
+drop function if exists "customViewOrders_update_order"();
 
-DROP TYPE "customViewVisibility";
+drop table "customViewOrders";
+drop table "customViews";
+
+drop type "customViewVisibility";

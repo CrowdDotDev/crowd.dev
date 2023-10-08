@@ -12,7 +12,6 @@ export default (sequelize) => {
       order: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 0,
       },
     },
     {
@@ -23,9 +22,12 @@ export default (sequelize) => {
             deletedAt: null,
           },
         },
+        {
+          name: 'customViewOrder_unique',
+          unique: true,
+          fields: ['userId', 'customViewId'],
+        },
       ],
-      createdAt: false,
-      updatedAt: false,
       paranoid: true,
     },
   )
@@ -39,8 +41,8 @@ export default (sequelize) => {
       },
     })
 
-    customViewOrder.belongsTo(models.member, {
-      as: 'member',
+    customViewOrder.belongsTo(models.user, {
+      as: 'user',
       onDelete: 'CASCADE',
       foreignKey: {
         allowNull: false,
