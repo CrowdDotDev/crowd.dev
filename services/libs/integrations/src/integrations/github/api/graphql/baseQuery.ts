@@ -129,7 +129,7 @@ class BaseQuery {
         logger.error('Error in getSinglePage: rate limit error. Trying token rotation')
         // this is rate limit, let's try token rotation
         if (tokenRotator && limiter) {
-          return await this.getSinglePageWithTokenRotation(beforeCursor, err, tokenRotator, limiter)
+          return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator, err, limiter)
         } else {
           throw BaseQuery.processGraphQLError(err)
         }
@@ -152,7 +152,7 @@ class BaseQuery {
       beforeCursor: BaseQuery.getPagination(beforeCursor),
     })
 
-    const token = await tokenRotator.getToken(limiter.integrationId)
+    const token = await tokenRotator.getToken(limiter.integrationId, err)
 
     const process = async () => {
       const graphqlWithTokenRotation = graphql.defaults({
