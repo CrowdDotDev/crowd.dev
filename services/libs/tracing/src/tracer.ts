@@ -74,7 +74,5 @@ async function gracefulShutdown() {
     console.log('Tracing successfully finished')
   } catch (err) {
     console.log('Error terminating tracing', err)
-  } finally {
-    process.exit(0)
   }
 }
