@@ -166,15 +166,14 @@ describe('TenantService tests', () => {
 
       tenantCreatedPlain.createdAt = tenantCreatedPlain.createdAt.toISOString().split('T')[0]
       tenantCreatedPlain.updatedAt = tenantCreatedPlain.updatedAt.toISOString().split('T')[0]
-      tenantCreatedPlain.trialEndsAt = tenantCreatedPlain.trialEndsAt.toISOString().split('T')[0]
 
       const tenantExpected = {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: Plans.values.growth,
-        isTrialPlan: true,
-        trialEndsAt: moment().add(14, 'days').toISOString().split('T')[0],
+        plan: Plans.values.essential,
+        isTrialPlan: false,
+        trialEndsAt: null,
         onboardedAt: null,
         integrationsRequired: ['github', 'discord'],
         hasSampleData: false,
@@ -221,8 +220,8 @@ describe('TenantService tests', () => {
       expect(suggestedTasks.rows.map((i) => i.name).sort()).toStrictEqual([
         'Check for negative reactions',
         'Engage with relevant content',
-        'Reach out to influential members',
-        'Reach out to poorly engaged members',
+        'Reach out to influential contacts',
+        'Reach out to poorly engaged contacts',
         'Setup your team',
         'Setup your workpace integrations',
       ])

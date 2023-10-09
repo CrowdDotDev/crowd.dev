@@ -1,4 +1,4 @@
-import { NANGO_CONFIG, SERVICE_CONFIG } from '@/conf'
+import { NANGO_CONFIG, SERVICE_CONFIG } from '../conf'
 import { MemberRepository } from '../repo/member.repo'
 import { Entity, IMember, OpenSearchIndex } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
@@ -7,7 +7,7 @@ import { Logger, LoggerBase } from '@crowd/logging'
 import { Edition } from '@crowd/types'
 import { ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
-import { IntegrationRepository } from '@/repo/integration.repo'
+import { IntegrationRepository } from '../repo/integration.repo'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   IBatchCreateMembersResult,
@@ -15,10 +15,10 @@ import {
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
-import { IDbIntegration } from '@/repo/integration.data'
-import { AutomationRepository } from '@/repo/automation.repo'
-import { AutomationExecutionRepository } from '@/repo/automationExecution.repo'
-import { automationNotFound, integrationNotFound } from '@/errors'
+import { IDbIntegration } from '../repo/integration.data'
+import { AutomationRepository } from '../repo/automation.repo'
+import { AutomationExecutionRepository } from '../repo/automationExecution.repo'
+import { automationNotFound, integrationNotFound } from '../errors'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository

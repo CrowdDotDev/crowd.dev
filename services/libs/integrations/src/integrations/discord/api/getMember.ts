@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { DiscordApiMember } from '../types'
 import { handleDiscordError } from './errorHandler'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 export const getMember = async (
   guildId: string,

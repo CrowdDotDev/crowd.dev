@@ -54,6 +54,7 @@ export interface IDbOrganizationSyncData {
   gicsSector: string | null
   grossAdditionsByMonth: unknown | null
   grossDeparturesByMonth: unknown | null
+  weakIdentities: IOrganizationIdentity[]
   employeeChurnRate12Month: number | null
   employeeGrowthRate12Month: number | null
   tags: string[] | null
@@ -65,4 +66,6 @@ export interface IDbOrganizationSyncData {
   activityCount: number
   memberCount: number
   identities: IOrganizationIdentity[]
+  toMergeIds: string[]
+  noMergeIds: string[]
 }

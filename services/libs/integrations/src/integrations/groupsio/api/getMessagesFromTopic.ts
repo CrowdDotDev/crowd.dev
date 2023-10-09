@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 export const getMessagesFromTopic = async (
   topicId: string,

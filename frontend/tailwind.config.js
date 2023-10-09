@@ -756,6 +756,7 @@ module.exports = {
       relaxed: '1.625em',
       loose: '1.75em',
       3: '.75rem',
+      3.5: '.875rem',
       4: '1rem',
       4.5: '1.125rem',
       5: '1.25rem',

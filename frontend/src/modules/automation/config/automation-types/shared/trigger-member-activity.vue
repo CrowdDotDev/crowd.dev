@@ -65,7 +65,7 @@ const triggerOptions = ref([
     value: 'new_activity',
   },
   {
-    label: 'New member joined your community',
+    label: 'New contributor joined your community',
     value: 'new_member',
   },
 ]);

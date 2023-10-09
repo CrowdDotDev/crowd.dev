@@ -1,9 +1,9 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
 import { OpenSearchService } from './opensearch.service'
-import { ActivityRepository } from '@/repo/activity.repo'
-import { OpenSearchIndex } from '@/types'
-import { IDbActivitySyncData } from '@/repo/activity.data'
+import { ActivityRepository } from '../repo/activity.repo'
+import { OpenSearchIndex } from '../types'
+import { IDbActivitySyncData } from '../repo/activity.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
 
