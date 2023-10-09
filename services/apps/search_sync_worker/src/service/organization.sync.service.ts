@@ -1,8 +1,8 @@
-import { SERVICE_CONFIG } from '@/conf'
-import { IDbOrganizationSyncData } from '@/repo/organization.data'
-import { OrganizationRepository } from '@/repo/organization.repo'
-import { IDbSegmentInfo } from '@/repo/segment.data'
-import { SegmentRepository } from '@/repo/segment.repo'
+import { SERVICE_CONFIG } from '../conf'
+import { IDbOrganizationSyncData } from '../repo/organization.data'
+import { OrganizationRepository } from '../repo/organization.repo'
+import { IDbSegmentInfo } from '../repo/segment.data'
+import { SegmentRepository } from '../repo/segment.repo'
 import { distinct, groupBy } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, logExecutionTime } from '@crowd/logging'
@@ -502,12 +502,31 @@ export class OrganizationSyncService extends LoggerBase {
     }
     p.nested_identities = p_identities
 
+    if (!data.weakIdentities) {
+      data.weakIdentities = []
+    }
+
+    const p_weakIdentities = []
+    // weak identities
+    for (const identity of data.weakIdentities) {
+      p_weakIdentities.push({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        string_url: identity.url,
+        keyword_name: identity.name,
+      })
+    }
+    p.nested_weakIdentities = p_weakIdentities
+
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
     p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
     p.int_memberCount = data.memberCount
+
+    p.uuid_arr_toMergeIds = data.toMergeIds
+    p.uuid_arr_noMergeIds = data.noMergeIds
 
     return p
   }

@@ -1,4 +1,4 @@
-import { ProcessDataHandler, IProcessDataContext } from '@/types'
+import { ProcessDataHandler, IProcessDataContext } from '../../types'
 import { ISlackAPIData, SlackActivityType, SlackMember, SlackMessage } from './types'
 import { SLACK_GRID } from './grid'
 import { IActivityData, IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'

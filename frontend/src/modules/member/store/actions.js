@@ -8,7 +8,6 @@ import { FormSchema } from '@/shared/form/form-schema';
 import sharedActions from '@/shared/store/actions';
 import {
   getEnrichmentMax,
-  checkEnrichmentLimit,
   showEnrichmentSuccessMessage,
   showEnrichmentLoadingMessage,
   checkEnrichmentPlan,
@@ -73,7 +72,7 @@ export default {
       await MemberService.merge(memberToKeep, memberToMerge);
 
       Message.success(i18n('entities.member.merge.success'));
-      router.push(`/members/${memberToKeep.id}`);
+      router.push(`/contacts/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);
     }
@@ -191,12 +190,6 @@ export default {
       const currentTenant = rootGetters['auth/currentTenant'];
 
       const planEnrichmentCountMax = getEnrichmentMax(currentTenant.plan);
-
-      // Check if it has reached enrichment maximum
-      // If so, show dialog to upgrade plan
-      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
-        return;
-      }
 
       // Start member enrichment
       commit('UPDATE_STARTED');

@@ -228,7 +228,7 @@ export default {
       });
   },
 
-  async doSelectTenant({ dispatch }, tenant) {
+  async doSelectTenant({ dispatch }, { tenant, redirect = true }) {
     if (tenantSubdomain.isEnabled) {
       tenantSubdomain.redirectAuthenticatedTo(tenant.url);
       return;
@@ -241,7 +241,9 @@ export default {
 
     store.replaceState(initialState);
 
-    router.push('/');
+    if (redirect) {
+      router.push('/');
+    }
   },
 
   clearTenant({ commit }) {

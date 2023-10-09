@@ -13,6 +13,10 @@ const OrganizationFormPage = () => import(
   '@/modules/organization/pages/organization-form-page.vue'
 );
 
+const OrganizationMergeSuggestionsPage = () => import(
+  '@/modules/organization/pages/organization-merge-suggestions-page.vue'
+);
+
 const OrganizationsMainPage = async () => OrganizationListPage();
 export default [
   {
@@ -65,6 +69,16 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.organizationRead,
+        },
+        props: true,
+      },
+      {
+        name: 'organizationMergeSuggestions',
+        path: '/organizations/merge-suggestions',
+        component: OrganizationMergeSuggestionsPage,
+        meta: {
+          auth: true,
+          permission: Permissions.values.organizationEdit,
         },
         props: true,
       },

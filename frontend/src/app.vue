@@ -59,15 +59,6 @@ export default {
     this.handleResize();
   },
 
-  mounted() {
-    this.$router.isReady().then(() => {
-      const { ref } = this.$route.query;
-      if (ref && ref === 'eagle-eye') {
-        localStorage.setItem('onboardType', 'eagle-eye');
-      }
-    });
-  },
-
   unmounted() {
     window.removeEventListener('resize', this.handleResize);
   },

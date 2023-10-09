@@ -48,14 +48,14 @@ class FeatureFlagService {
 
   premiumFeatureCopy() {
     if (config.isCommunityVersion) {
-      return 'Premium';
+      return 'Enterprise';
     }
-    return 'Growth';
+    return 'Scale';
   }
 
   scaleFeatureCopy() {
     if (config.isCommunityVersion) {
-      return 'Premium';
+      return 'Enterprise';
     }
     return 'Scale';
   }
