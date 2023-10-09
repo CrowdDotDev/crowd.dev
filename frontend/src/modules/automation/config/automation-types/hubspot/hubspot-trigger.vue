@@ -156,7 +156,7 @@ const triggerOptions = computed(() => {
   const enabledFor = hubspot.settings?.enabledFor || [];
   return [
     {
-      label: 'Contact attributes match condition(s)',
+      label: 'Contributor attributes match condition(s)',
       value: HubspotAutomationTrigger.MEMBER_ATTRIBUTE_MATCH,
       display: enabledFor.includes(HubspotEntity.MEMBERS),
     },

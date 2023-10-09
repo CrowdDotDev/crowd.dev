@@ -2,7 +2,7 @@
   <div>
     <el-tooltip
       :disabled="canSyncMembers"
-      content="Please enable Contacts syncing in HubSpot integration settings to use this feature"
+      content="Please enable Contributor syncing in HubSpot integration settings to use this feature"
       placement="bottom"
     >
       <el-checkbox
@@ -11,7 +11,7 @@
         :disabled="!canSyncMembers"
       >
         <span class="text-xs" :class="canSyncMembers ? 'text-gray-900' : 'text-gray-400'">
-          Sync all contacts from the organisations matching your conditions criteria
+          Sync all contributors from the organisations matching your conditions criteria
         </span>
       </el-checkbox>
     </el-tooltip>

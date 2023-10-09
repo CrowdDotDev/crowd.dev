@@ -29,14 +29,14 @@
           <article class="border border-gray-200 rounded-t py-4 px-5 flex justify-between">
             <div>
               <h5 class="text-sm font-semibold pb-1">
-                Contacts
+                Contributors
               </h5>
               <p class="text-2xs text-gray-500 leading-4.5">
-                <span class="font-semibold">Data-in</span>: Existing contacts will automatically be enriched with data
+                <span class="font-semibold">Data-in</span>: Existing contributors will automatically be enriched with data
                 points
-                from HubSpot contacts every 8 hours.
-                <span class="font-semibold">Data-out</span>: To send contacts to HubSpot, use Automations or select
-                contacts manually.
+                from HubSpot contributors every 8 hours.
+                <span class="font-semibold">Data-out</span>: To send contributors to HubSpot, use Automations or select
+                contributors manually.
               </p>
             </div>
             <div>
@@ -102,7 +102,7 @@
                       class="ri-arrow-down-s-line text-lg text-gray-500 mr-3 h-5 flex items-center transition-all transform"
                       :class="{ 'rotate-180': activeView === 'member' }"
                     />
-                    <span class="text-xs font-medium">Contact attributes</span>
+                    <span class="text-xs font-medium">Contributor attributes</span>
                   </div>
                   <div
                     v-if="form.members"
