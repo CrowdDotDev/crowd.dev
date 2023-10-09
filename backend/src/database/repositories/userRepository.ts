@@ -545,7 +545,7 @@ export default class UserRepository {
     record = await this._populateRelations(record, options, {
       where: {
         status: 'active',
-      }
+      },
     })
     record = {
       ...record,
