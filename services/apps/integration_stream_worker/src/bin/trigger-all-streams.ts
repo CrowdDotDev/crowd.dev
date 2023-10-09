@@ -1,4 +1,4 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import { getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'

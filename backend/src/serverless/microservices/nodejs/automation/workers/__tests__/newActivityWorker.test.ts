@@ -65,6 +65,9 @@ describe('New Activity Automation Worker tests', () => {
             default: true,
             custom: true,
           },
+          isBot: {
+            default: false,
+          },
         },
       },
 
@@ -86,7 +89,6 @@ describe('New Activity Automation Worker tests', () => {
       id: '1234',
       type: 'comment',
       platform: PlatformType.DISCORD,
-
       body: 'Crowd.dev is awesome!',
     }
 
@@ -129,6 +131,35 @@ describe('New Activity Automation Worker tests', () => {
     expect(await shouldProcessActivity(activity, automation)).toBeFalsy()
   })
 
+  it("Shouldn't process an activity that belongs to a bot", async () => {
+    const automation = createAutomationData({
+      platforms: [PlatformType.DEVTO],
+      types: ['comment'],
+      keywords: ['Crowd.dev'],
+      teamMemberActivities: false,
+    })
+
+    const activity = {
+      id: '1234',
+      type: 'comment',
+      platform: PlatformType.DEVTO,
+      member: {
+        attributes: {
+          isTeamMember: {
+            default: false,
+            custom: true,
+          },
+          isBot: {
+            default: true,
+          },
+        },
+      },
+      body: 'Crowd.dev all awesome!',
+    }
+
+    expect(await shouldProcessActivity(activity, automation)).toBeFalsy()
+  })
+
   it("Shouldn't process an activity that belongs to a team member", async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
@@ -146,6 +177,9 @@ describe('New Activity Automation Worker tests', () => {
           isTeamMember: {
             default: true,
             custom: true,
+          },
+          isBot: {
+            default: false,
           },
         },
       },

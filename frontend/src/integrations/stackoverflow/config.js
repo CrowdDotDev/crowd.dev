@@ -7,6 +7,9 @@ export default {
   borderColor: '#FFFFFF',
   description:
     'Connect Stack Overflow to sync questions and answers based on selected tags.',
+  onboard: {
+    description: 'Sync questions and answers based on selected tags.',
+  },
   image:
     'https://cdn-icons-png.flaticon.com/512/2111/2111628.png',
   connectComponent: StackOverflowConnect,
@@ -22,5 +25,8 @@ export default {
       copy: 'reply',
       number: conversation.activityCount - 1,
     }),
+  },
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
   },
 };

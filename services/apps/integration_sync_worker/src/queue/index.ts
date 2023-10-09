@@ -1,9 +1,9 @@
 import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { DbConnection, DbStore } from '@crowd/database'
-import { MemberSyncService } from '@/service/member.sync.service'
-import { OpenSearchService } from '@/service/opensearch.service'
-import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { MemberSyncService } from '../service/member.sync.service'
+import { OpenSearchService } from '../service/opensearch.service'
+import { OrganizationSyncService } from '../service/organization.sync.service'
 import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import {
   AutomationSyncTrigger,

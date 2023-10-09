@@ -59,6 +59,61 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     return results
   }
 
+  public async getOldDataToProcess(limit: number): Promise<string[]> {
+    try {
+      const results = await this.db().any(
+        `
+        select id
+        from integration."apiData"
+        where (
+                (state = $(errorState) and retries <= $(maxRetries))
+                or
+                (state = $(pendingState))
+                or
+                (state = $(delayedState) and "delayedUntil" < now())
+            )
+          and "updatedAt" < now() - interval '1 hour'
+        order by case when "webhookId" is not null then 0 else 1 end,
+                "webhookId" asc,
+                "updatedAt" desc
+        limit ${limit};
+        `,
+        {
+          errorState: IntegrationStreamDataState.ERROR,
+          pendingState: IntegrationStreamDataState.PENDING,
+          delayedState: IntegrationStreamDataState.DELAYED,
+          maxRetries: 5,
+        },
+      )
+
+      return results.map((s) => s.id)
+    } catch (err) {
+      this.log.error(err, 'Error getting old data to process')
+      throw err
+    }
+  }
+
+  public async touchUpdatedAt(dataIds: string[]): Promise<void> {
+    if (dataIds.length === 0) {
+      return
+    }
+
+    try {
+      await this.db().none(
+        `
+        update integration."apiData" set "updatedAt" = now()
+        where id in ($(dataIds:csv))
+      `,
+        {
+          dataIds,
+        },
+      )
+    } catch (err) {
+      this.log.error(err, 'Failed to touch updatedAt for data!')
+      throw err
+    }
+  }
+
   public async markRunError(runId: string, error: unknown): Promise<void> {
     const result = await this.db().result(
       `update integration.runs

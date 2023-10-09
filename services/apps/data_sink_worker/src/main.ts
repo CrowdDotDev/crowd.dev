@@ -6,11 +6,13 @@ import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG, REDIS_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getRedisClient } from '@crowd/redis'
+import { processOldResultsJob } from './jobs/processOldResults'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 3
+const PROCESSING_INTERVAL_MINUTES = 5
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
@@ -42,6 +44,26 @@ setImmediate(async () => {
   try {
     await nodejsWorkerEmitter.init()
     await searchSyncWorkerEmitter.init()
+
+    let processing = false
+    setInterval(async () => {
+      try {
+        if (!processing) {
+          processing = true
+          await processOldResultsJob(
+            dbConnection,
+            redisClient,
+            nodejsWorkerEmitter,
+            searchSyncWorkerEmitter,
+            log,
+          )
+        }
+      } catch (err) {
+        log.error(err, 'Failed to process old results!')
+      } finally {
+        processing = false
+      }
+    }, PROCESSING_INTERVAL_MINUTES * 60 * 1000)
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')

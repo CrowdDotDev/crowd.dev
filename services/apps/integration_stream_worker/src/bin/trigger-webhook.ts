@@ -1,5 +1,5 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
-import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'

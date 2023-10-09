@@ -8,9 +8,9 @@
     <div v-else>
       <router-link
         class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{ path: '/members' }"
+        :to="{ path: '/contacts' }"
       >
-        <i class="ri-arrow-left-s-line mr-2" />Members
+        <i class="ri-arrow-left-s-line mr-2" />Contacts
       </router-link>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header

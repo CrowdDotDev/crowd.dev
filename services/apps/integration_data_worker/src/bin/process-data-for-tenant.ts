@@ -1,5 +1,5 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
-import IntegrationDataRepository from '@/repo/integrationData.repo'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import IntegrationDataRepository from '../repo/integrationData.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'

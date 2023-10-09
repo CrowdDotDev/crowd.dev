@@ -1,4 +1,4 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
@@ -8,10 +8,10 @@ import {
   SearchSyncWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
-import MemberRepository from '@/repo/member.repo'
-import DataSinkRepository from '@/repo/dataSink.repo'
-import MemberService from '@/service/member.service'
-import { OrganizationService } from '@/service/organization.service'
+import MemberRepository from '../repo/member.repo'
+import DataSinkRepository from '../repo/dataSink.repo'
+import MemberService from '../service/member.service'
+import { OrganizationService } from '../service/organization.service'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -78,6 +78,7 @@ setImmediate(async () => {
           const orgs = await memberService.assignOrganizationByEmailDomain(
             tenantId,
             segmentId,
+            null,
             member.emails,
           )
 

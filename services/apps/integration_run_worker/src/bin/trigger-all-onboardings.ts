@@ -1,5 +1,5 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
-import IntegrationRunRepository from '@/repo/integrationRun.repo'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { singleOrDefault, timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'

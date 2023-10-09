@@ -1,5 +1,5 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '@/conf'
-import IntegrationStreamService from '@/service/integrationStreamService'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '../conf'
+import IntegrationStreamService from '../service/integrationStreamService'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'

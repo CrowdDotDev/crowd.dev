@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { DiscordApiChannel, DiscordGetChannelsInput } from '../types'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 async function getThreads(
   input: DiscordGetChannelsInput,
