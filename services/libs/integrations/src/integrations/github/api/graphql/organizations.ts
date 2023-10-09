@@ -70,8 +70,8 @@ const getOrganization = async (
       (err.errors && err.errors[0].type === 'RATE_LIMITED')
     ) {
       // this is rate limit, let's try token rotation
-      if (tokenRotator) {
-        organization = await getOrganizationWithTokenRotation(name, tokenRotator, limiter)
+      if (tokenRotator && limiter) {
+        organization = await getOrganizationWithTokenRotation(name, tokenRotator, err, limiter)
       }
     } else {
       throw BaseQuery.processGraphQLError(err)
@@ -83,9 +83,10 @@ const getOrganization = async (
 const getOrganizationWithTokenRotation = async (
   name: string,
   tokenRotator: GithubTokenRotator,
+  err: any,
   limiter?: Limiter,
 ): Promise<any> => {
-  const token = await tokenRotator.getToken()
+  const token = await tokenRotator.getToken(limiter.integrationId, err)
   try {
     const graphqlWithTokenRotation = graphql.defaults({
       headers: {

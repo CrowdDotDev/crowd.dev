@@ -8,6 +8,17 @@ interface TokenInfo {
   reset: number
 }
 
+const highPrioiryIntegrations = [
+  // tiptap
+  'e9d270e3-9425-4d9c-9f01-f8edfa4c52d4',
+  // plane
+  'a3caf6bd-02bb-461e-b067-3f2331b591f0',
+  // superset
+  '638918cf-b112-4397-b8da-038de434b173',
+  // qdrant
+  '38e57e57-a3b0-4b22-a858-b01aca9fcfa7',
+]
+
 export class GithubTokenRotator {
   static CACHE_KEY = 'integration-cache:github-token-rotator:tokens'
   constructor(private cache: ICache, private tokens: string[]) {
@@ -32,9 +43,17 @@ export class GithubTokenRotator {
     }
   }
 
-  public async getToken(): Promise<string | null> {
+  public async getToken(integrationId: string, err?: any): Promise<string | null> {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     let minResetTime = Infinity
+
+    if (!highPrioiryIntegrations.includes(integrationId)) {
+      if (err) {
+        throw err
+      } else {
+        throw new Error('No available tokens for low priority integration')
+      }
+    }
 
     for (const token in tokens) {
       const tokenInfo: TokenInfo = JSON.parse(tokens[token])
@@ -52,7 +71,7 @@ export class GithubTokenRotator {
     if (waitTime <= 60) {
       return new Promise((resolve) => {
         setTimeout(async () => {
-          resolve(await this.getToken())
+          resolve(await this.getToken(integrationId))
         }, waitTime * 1000)
       })
     }
