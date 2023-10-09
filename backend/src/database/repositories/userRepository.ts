@@ -542,7 +542,11 @@ export default class UserRepository {
     )
     record = record[0]
 
-    record = await this._populateRelations(record, options)
+    record = await this._populateRelations(record, options, {
+      where: {
+        status: 'active',
+      }
+    })
     record = {
       ...record,
       ...record.json,
@@ -780,7 +784,7 @@ export default class UserRepository {
     return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record, options: IRepositoryOptions) {
+  static async _populateRelations(record, options: IRepositoryOptions, filter = {}) {
     if (!record) {
       return record
     }
@@ -788,6 +792,7 @@ export default class UserRepository {
     const output = record.get({ plain: true })
 
     output.tenants = await record.getTenants({
+      ...filter,
       include: [
         {
           model: options.database.tenant,
