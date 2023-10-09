@@ -33,6 +33,9 @@ setImmediate(async () => {
     order by s.id
     limit ${BATCH_SIZE};
     `,
+    {
+      integrationId,
+    },
   )
 
   let count = 0
@@ -55,6 +58,7 @@ setImmediate(async () => {
         `,
       {
         lastId: results[results.length - 1].id,
+        integrationId,
       },
     )
   }
