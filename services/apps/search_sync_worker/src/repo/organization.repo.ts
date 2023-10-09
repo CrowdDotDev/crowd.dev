@@ -34,6 +34,26 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                 AND mo."dateEnd" IS NULL
             WHERE a."organizationId" IN ($(ids:csv))
         ),
+        to_merge_data AS (
+          SELECT
+              otm."organizationId",
+              array_agg(DISTINCT otm."toMergeId"::text) AS to_merge_ids
+          FROM "organizationToMerge" otm
+          INNER JOIN organizations o2 ON otm."toMergeId" = o2.id
+          WHERE otm."organizationId" IN ($(ids:csv))
+            AND o2."deletedAt" IS NULL
+          GROUP BY otm."organizationId"
+        ),
+        no_merge_data AS (
+          SELECT
+              onm."organizationId",
+              array_agg(DISTINCT onm."noMergeId"::text) AS no_merge_ids
+          FROM "organizationNoMerge" onm
+          INNER JOIN organizations o2 ON onm."noMergeId" = o2.id
+          WHERE onm."organizationId" IN ($(ids:csv))
+            AND o2."deletedAt" IS NULL
+          GROUP BY onm."organizationId"
+        ),
         member_data AS (
             SELECT
                 os."segmentId",
@@ -119,10 +139,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             md."activeOn",
             md."activityCount",
             md."memberCount",
-            i.identities
+            i.identities,
+            coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
+            coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
         FROM organizations o
         LEFT JOIN member_data md ON o.id = md."organizationId"
         LEFT JOIN identities i ON o.id = i."organizationId"
+        LEFT JOIN to_merge_data tmd ON o.id = tmd."organizationId"
+        LEFT JOIN no_merge_data nmd ON o.id = nmd."organizationId"
         WHERE o.id IN ($(ids:csv))
           AND o."deletedAt" IS NULL
           AND (md."organizationId" IS NOT NULL
