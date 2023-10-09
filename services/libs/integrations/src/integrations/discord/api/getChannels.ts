@@ -2,7 +2,7 @@ import axios from 'axios'
 import { timeout } from '@crowd/common'
 import { DiscordApiChannel, DiscordGetChannelsInput, DiscordGetMessagesInput } from '../types'
 import getMessages from './getMessages'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 /**
  * Try if a channel is readable

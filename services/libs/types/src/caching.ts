@@ -4,6 +4,9 @@ export interface ICache {
   delete(key: string): Promise<number>
   increment(key: string, incrementBy?: number, ttlSeconds?: number): Promise<number>
   decrement(key: string, decrementBy?: number, ttlSeconds?: number): Promise<number>
+  hget(key: string, field: string): Promise<string | null>
+  hgetall(key: string): Promise<{ [key: string]: string }>
+  hset(key: string, field: string, value: string): Promise<number>
 }
 
 export interface IRateLimiter {

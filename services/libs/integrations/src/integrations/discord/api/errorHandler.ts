@@ -1,6 +1,6 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
 import { RateLimitError } from '@crowd/types'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 export const handleDiscordError = (
   err: AxiosError,

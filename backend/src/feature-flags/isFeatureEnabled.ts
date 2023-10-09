@@ -9,8 +9,6 @@ export const PLAN_LIMITS = {
   [Plans.values.essential]: {
     [FeatureFlag.AUTOMATIONS]: 2,
     [FeatureFlag.CSV_EXPORT]: 2,
-    [FeatureFlag.MEMBER_ENRICHMENT]: 5,
-    [FeatureFlag.ORGANIZATION_ENRICHMENT]: 5,
   },
   [Plans.values.growth]: {
     [FeatureFlag.AUTOMATIONS]: 10,
@@ -19,10 +17,10 @@ export const PLAN_LIMITS = {
     [FeatureFlag.ORGANIZATION_ENRICHMENT]: 200,
   },
   [Plans.values.scale]: {
-    [FeatureFlag.AUTOMATIONS]: 100,
-    [FeatureFlag.CSV_EXPORT]: 100,
-    [FeatureFlag.MEMBER_ENRICHMENT]: 10000,
-    [FeatureFlag.ORGANIZATION_ENRICHMENT]: 2000,
+    [FeatureFlag.AUTOMATIONS]: 20,
+    [FeatureFlag.CSV_EXPORT]: 20,
+    [FeatureFlag.MEMBER_ENRICHMENT]: Infinity,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: Infinity,
   },
   [Plans.values.enterprise]: {
     [FeatureFlag.AUTOMATIONS]: Infinity,

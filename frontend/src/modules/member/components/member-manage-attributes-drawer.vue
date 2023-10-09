@@ -186,7 +186,7 @@ const handleSubmit = async () => {
     attributes: formattedAttributes,
   });
   await store.dispatch('member/doFind', props.member.id);
-  Message.success('Member attributes updated successfully');
+  Message.success('Contact attributes updated successfully');
   emit('update:modelValue', false);
 };
 

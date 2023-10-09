@@ -2,7 +2,7 @@ import {
   ProcessWebhookStreamHandler,
   IProcessWebhookStreamContext,
   IProcessStreamContext,
-} from '@/types'
+} from '../../types'
 import { DiscordWebsocketPayload, DiscordWebsocketEvent } from '@crowd/types'
 import { getMessage } from './api/getMessage'
 import { getDiscordToken } from './processStream'
