@@ -15,7 +15,8 @@ const options = [
     name: 'tenant',
     alias: 't',
     type: String,
-    description: 'The unique ID of that tenant that you would like to generate merge suggestions for.',
+    description:
+      'The unique ID of that tenant that you would like to generate merge suggestions for.',
   },
   {
     name: 'help',

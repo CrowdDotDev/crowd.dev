@@ -1102,15 +1102,14 @@ class OrganizationRepository {
               {
                 range: {
                   uuid_organizationId: {
-                    gt: lastUuid
-                  }
-                }
-              }
+                    gt: lastUuid,
+                  },
+                },
+              },
             ],
           },
         }
-      }
-      else {
+      } else {
         queryBody.query = {
           bool: {
             filter: [
@@ -1132,8 +1131,8 @@ class OrganizationRepository {
           })
         ).body?.hits?.hits || []
 
-        if (organizations.length > 0) {
-          lastUuid = organizations[organizations.length - 1]._source.uuid_organizationId
+      if (organizations.length > 0) {
+        lastUuid = organizations[organizations.length - 1]._source.uuid_organizationId
       }
 
       for (const organization of organizations) {
@@ -1200,7 +1199,7 @@ class OrganizationRepository {
 
             // some identities have https? in the beginning, resulting in false positive suggestions
             // remove these when making fuzzy, wildcard and prefix searches
-            const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '') 
+            const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
 
             // fuzzy search for identities
             identitiesPartialQuery.should[1].nested.query.bool.should.push({
