@@ -17,14 +17,14 @@ const identities: MultiSelectFilterConfig = {
     options: [
       {
         options: [
+          {
+            label: 'Email',
+            value: 'emails',
+          },
           ...(CrowdIntegrations.enabledConfigs.map((platform) => ({
             label: (platform as any).name,
             value: platform.platform,
           }))),
-          {
-            label: 'Email',
-            value: 'email',
-          },
         ],
       },
     ],
@@ -33,15 +33,46 @@ const identities: MultiSelectFilterConfig = {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Identities', value, options);
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
-    const filter = {
-      or: value.map((identity) => ({
+    const platformIdentities = value.filter((identity) => identity !== 'emails');
 
-        identities: { eq: identity },
-        email: {
-          ne: null,
-        },
-      })),
-    };
+    const emailFilter = value.filter((identity) => identity === 'emails');
+
+    // Initialize an empty filter
+    let filter = {};
+
+    // Handle the conditions
+    if (platformIdentities.length > 0 && emailFilter.length === 0) {
+      console.log('ONLY PLATFORMS RANNN!!!!');
+      // Only platforms selected
+      filter = {
+        or: platformIdentities.map((identity) => ({
+          identities: { eq: identity },
+        })),
+      };
+    } else if (platformIdentities.length === 0 && emailFilter.length > 0) {
+      // Only emails selected
+      console.log('ONLY EMAILSSS RANNN!!!!');
+      filter = {
+        emails: { ne: null },
+      };
+    } else if (platformIdentities.length > 0 && emailFilter.length > 0) {
+      console.log('BOTH RANNN!!!!');
+      // Both platforms and emails selected
+      filter = {
+        // [
+        or: [
+          {
+            or:
+          platformIdentities.map((identity) => ({
+            identities: { eq: identity },
+          })),
+          },
+
+          { emails: { ne: null } },
+        ],
+      };
+    }
+
     return [
       (include ? filter : { not: filter }),
     ];
