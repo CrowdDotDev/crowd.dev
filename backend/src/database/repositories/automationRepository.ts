@@ -1,12 +1,13 @@
 import Sequelize, { QueryTypes } from 'sequelize'
-import { AutomationSyncTrigger, IAutomation } from '@crowd/types'
+import { AutomationState, AutomationSyncTrigger, IAutomation } from '@crowd/types'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import Error404 from '../../errors/Error404'
 import { AutomationCriteria, AutomationData } from '../../types/automationTypes'
 import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
-import { PageData } from '../../types/common'
+import { FeatureFlag, PageData } from '../../types/common'
 import { RepositoryBase } from './repositoryBase'
+import { PLAN_LIMITS } from '@/feature-flags/isFeatureEnabled'
 
 const { Op } = Sequelize
 
@@ -28,13 +29,20 @@ export default class AutomationRepository extends RepositoryBase<
 
     const transaction = this.transaction
 
+    const existingActiveAutomations = await this.findAndCountAll({
+      state: AutomationState.ACTIVE,
+    })
+
     const record = await this.database.automation.create(
       {
         name: data.name,
         type: data.type,
         trigger: data.trigger,
         settings: data.settings,
-        state: data.state,
+        state:
+          existingActiveAutomations.count >= PLAN_LIMITS[tenant.plan][FeatureFlag.AUTOMATIONS]
+            ? AutomationState.DISABLED
+            : data.state,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -55,6 +63,17 @@ export default class AutomationRepository extends RepositoryBase<
     const currentTenant = this.currentTenant
 
     const transaction = this.transaction
+
+    const existingActiveAutomations = await this.findAndCountAll({
+      state: AutomationState.ACTIVE,
+    })
+
+    if (
+      data.state === AutomationState.ACTIVE &&
+      existingActiveAutomations.count >= PLAN_LIMITS[currentTenant.plan][FeatureFlag.AUTOMATIONS]
+    ) {
+      throw new Error(`Maximum number of active automations reached for the plan!`)
+    }
 
     let record = await this.database.automation.findOne({
       where: {
