@@ -10,13 +10,13 @@ interface TokenInfo {
 
 const highPrioiryIntegrations = [
   // tiptap
-  'e9d270e3-9425-4d9c-9f01-f8edfa4c52d4',
+  '20147429-c1b7-4ff6-a19b-8306527e7ae3',
   // plane
-  'a3caf6bd-02bb-461e-b067-3f2331b591f0',
+  'f2b2c42e-76aa-4b0f-a70c-ecc3745d4f15',
   // superset
-  '638918cf-b112-4397-b8da-038de434b173',
+  '2c6283c2-0a79-4d87-b62b-334a4876fe1c',
   // qdrant
-  '38e57e57-a3b0-4b22-a858-b01aca9fcfa7',
+  '2c79e053-2578-434f-92df-35b5e76a18a8',
 ]
 
 export class GithubTokenRotator {
