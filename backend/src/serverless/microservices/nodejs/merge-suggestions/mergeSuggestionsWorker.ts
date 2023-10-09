@@ -33,8 +33,8 @@ async function mergeSuggestionsWorker(tenantId): Promise<void> {
   )
   await memberService.addToMerge(bySimilarity)
 
-  const organizationService = new OrganizationService(userContext)
-  await organizationService.generateMergeSuggestions(OrganizationMergeSuggestionType.BY_IDENTITY)
+  // const organizationService = new OrganizationService(userContext)
+  // await organizationService.generateMergeSuggestions(OrganizationMergeSuggestionType.BY_IDENTITY)
 }
 
 export { mergeSuggestionsWorker }
