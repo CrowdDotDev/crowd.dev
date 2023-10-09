@@ -4,6 +4,7 @@ import { processPaginated, timeout } from '@crowd/common'
 import { RedisCache, getRedisClient } from '@crowd/redis'
 import { getChildLogger, getServiceLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
+import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
@@ -14,6 +15,7 @@ import {
   getIntegrationStreamWorkerEmitter,
 } from '@/serverless/utils/serviceSQS'
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 async function executeIfNotExists(
@@ -56,40 +58,51 @@ async function spawnClient(
 
     logger.info({ payload }, 'Processing Discord WS Message!')
 
-    try {
-      const integration = (await IntegrationRepository.findByIdentifier(
-        guildId,
-        PlatformType.DISCORD,
-      )) as any
+    tracer.startActiveSpan('ProcessDiscordWSMessage', async (span) => {
+      try {
+        const integration = (await IntegrationRepository.findByIdentifier(
+          guildId,
+          PlatformType.DISCORD,
+        )) as any
 
-      const result = await repo.create({
-        tenantId: integration.tenantId,
-        integrationId: integration.id,
-        type: WebhookType.DISCORD,
-        payload,
-      })
+        const result = await repo.create({
+          tenantId: integration.tenantId,
+          integrationId: integration.id,
+          type: WebhookType.DISCORD,
+          payload,
+        })
 
-      const streamEmitter = await getIntegrationStreamWorkerEmitter()
+        const streamEmitter = await getIntegrationStreamWorkerEmitter()
 
-      await streamEmitter.triggerWebhookProcessing(
-        integration.tenantId,
-        integration.platform,
-        result.id,
-      )
-    } catch (err) {
-      if (err.code === 404) {
-        logger.warn({ guildId }, 'No integration found for incoming Discord WS Message!')
-      } else {
-        logger.error(
-          err,
-          {
-            discordPayload: JSON.stringify(payload),
-            guildId,
-          },
-          'Error processing Discord WS Message!',
+        await streamEmitter.triggerWebhookProcessing(
+          integration.tenantId,
+          integration.platform,
+          result.id,
         )
+        span.setStatus({
+          code: SpanStatusCode.OK,
+        })
+      } catch (err) {
+        if (err.code === 404) {
+          logger.warn({ guildId }, 'No integration found for incoming Discord WS Message!')
+        } else {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: err,
+          })
+          logger.error(
+            err,
+            {
+              discordPayload: JSON.stringify(payload),
+              guildId,
+            },
+            'Error processing Discord WS Message!',
+          )
+        }
+      } finally {
+        span.end()
       }
-    }
+    })
   }
 
   const client = new Client({
