@@ -32,7 +32,7 @@ export default (sequelize) => {
           isInArray(value) {
             const allowed = ['member', 'organization', 'activity', 'conversation']
             if (!value.every((val) => allowed.includes(val))) {
-              throw new Error('Invalid placement value')
+              throw new Error('Placement value is not allowed!')
             }
           },
         },

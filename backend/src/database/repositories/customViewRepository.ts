@@ -31,7 +31,6 @@ class CustomViewRepository {
       {
         userId: currentUser.id,
         customViewId: record.id,
-        order: data.order,
       },
       {
         transaction,
@@ -169,27 +168,34 @@ class CustomViewRepository {
       tenantId: tenant.id,
     }
 
-    if (filter.placement) {
+    if (filter?.placement) {
       where.placement = {
         [Op.contains]: filter.placement,
       }
     }
 
     const customViewRecords = await options.database.customView.findAll({
-      attributes: ['id', 'name', 'visibility', 'config', 'placement'],
       where,
-      include: [
-        {
-          model: options.database.customViewOrder,
-          as: 'customViewOrders',
-          where: {
-            userId: currentUser.id,
-          },
-          order: [['order', 'ASC']],
-        },
-      ],
       transaction,
     })
+
+    const customViewOrders = await options.database.customViewOrder.findAll({
+      where: {
+        userId: currentUser.id,
+      },
+      order: [['order', 'ASC']],
+      transaction,
+    })
+
+    // sort custom views by user's order
+    if (customViewOrders.length > 0) {
+      const orderMap = customViewOrders.reduce((map, order) => {
+        map[order.customViewId] = order.order
+        return map
+      }, {})
+
+      customViewRecords.sort((a, b) => orderMap[a.id] - orderMap[b.id])
+    }
 
     return customViewRecords
   }

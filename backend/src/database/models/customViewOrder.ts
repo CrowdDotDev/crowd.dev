@@ -11,13 +11,18 @@ export default (sequelize) => {
       },
       order: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        // allowNull is set to false in the migration.
+        // Keeping it here causes an error as Sequelize validation happens before triggers.
+        // allowNull: false,
+        validate: {
+          min: 0,
+        },
       },
     },
     {
       indexes: [
         {
-          fields: ['id'],
+          fields: ['id', 'userId', 'customViewId'],
           where: {
             deletedAt: null,
           },
