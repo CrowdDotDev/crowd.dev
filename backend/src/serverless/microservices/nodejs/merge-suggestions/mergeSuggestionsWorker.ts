@@ -1,5 +1,5 @@
 import { getOpensearchClient } from '@crowd/opensearch'
-import { OrganizationMergeSuggestionType } from '@crowd/types'
+// import { OrganizationMergeSuggestionType } from '@crowd/types'
 import getUserContext from '../../../../database/utils/getUserContext'
 import MemberService from '../../../../services/memberService'
 import { IRepositoryOptions } from '../../../../database/repositories/IRepositoryOptions'
@@ -8,7 +8,7 @@ import {
   IMemberMergeSuggestion,
 } from '../../../../database/repositories/types/memberTypes'
 import SegmentService from '../../../../services/segmentService'
-import OrganizationService from '@/services/organizationService'
+// import OrganizationService from '@/services/organizationService'
 import { OPENSEARCH_CONFIG } from '@/conf'
 
 async function mergeSuggestionsWorker(tenantId): Promise<void> {
