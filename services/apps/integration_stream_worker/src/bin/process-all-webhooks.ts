@@ -1,5 +1,5 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '@/conf'
-import IntegrationStreamService from '@/service/integrationStreamService'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '../conf'
+import IntegrationStreamService from '../service/integrationStreamService'
 import { timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'

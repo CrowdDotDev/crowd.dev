@@ -1,4 +1,4 @@
-import { StartIntegrationSyncHandler } from '@/types'
+import { StartIntegrationSyncHandler } from '../../../types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
 import { AutomationState, AutomationSyncTrigger } from '@crowd/types'
 

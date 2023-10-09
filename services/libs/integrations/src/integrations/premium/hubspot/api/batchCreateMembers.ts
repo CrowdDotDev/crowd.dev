@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { IMember, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
-import { IBatchCreateMemberResult } from './types'
+import { IBatchCreateMembersResult } from './types'
 import { batchUpdateMembers } from './batchUpdateMembers'
 import { getContactById } from './contactById'
 
@@ -15,7 +15,7 @@ export const batchCreateMembers = async (
   memberMapper: HubspotMemberFieldMapper,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
   throttler: RequestThrottler,
-): Promise<IBatchCreateMemberResult[]> => {
+): Promise<IBatchCreateMembersResult[]> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'post',
     url: `https://api.hubapi.com/crm/v3/objects/contacts/batch/create`,
@@ -100,9 +100,15 @@ export const batchCreateMembers = async (
         (crowdMember) =>
           crowdMember.emails.length > 0 && crowdMember.emails[0] === m.properties.email,
       )
+
+      const hubspotPayload = hubspotMembers.find(
+        (hubspotMember) => hubspotMember.properties.email === m.properties.email,
+      )
+
       acc.push({
         memberId: member.id,
         sourceId: m.id,
+        lastSyncedPayload: hubspotPayload,
       })
       return acc
     }, [])

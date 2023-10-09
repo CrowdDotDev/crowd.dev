@@ -2,15 +2,15 @@
   <app-page-wrapper size="narrow">
     <router-link
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mt-1 mb-4"
-      :to="{ path: '/members' }"
+      :to="{ path: '/contacts' }"
     >
-      <i class="ri-arrow-left-s-line mr-2" />Members
+      <i class="ri-arrow-left-s-line mr-2" />Contacts
     </router-link>
     <h4 class="text-xl font-semibold leading-9 mb-1">
       Merging suggestions
     </h4>
     <div class="text-xs text-gray-600 pb-6">
-      crowd.dev is constantly checking your community for duplicate members.
+      crowd.dev is constantly checking your community for duplicate contacts.
       Here you can check all the merging suggestions.
     </div>
 
@@ -113,7 +113,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge members
+            Merge contacts
           </el-button>
         </div>
       </div>
@@ -127,7 +127,7 @@
         No merge suggestions
       </h5>
       <p class="text-sm text-center text-gray-600 leading-5">
-        We couldn’t find any duplicated members
+        We couldn’t find any duplicated contacts
       </p>
     </div>
   </app-page-wrapper>
@@ -246,11 +246,11 @@ const mergeSuggestion = () => {
     membersToMerge.value.members[(primary.value + 1) % 2],
   )
     .then(() => {
-      Message.success('Members merged successfuly');
+      Message.success('Contacts merged successfuly');
       fetch();
     })
     .catch(() => {
-      Message.error('There was an error merging members');
+      Message.error('There was an error merging contacts');
     })
     .finally(() => {
       sendingMerge.value = false;

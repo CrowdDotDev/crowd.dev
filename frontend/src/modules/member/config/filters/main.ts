@@ -33,7 +33,7 @@ export const memberFilters: Record<string, FilterConfig> = {
 };
 
 export const memberSearchFilter: SearchFilterConfig = {
-  placeholder: 'Search member\'s name or email',
+  placeholder: 'Search contact\'s name or email',
   apiFilterRenderer(value: string): any[] {
     return [
       {

@@ -1,9 +1,9 @@
-import { DB_CONFIG } from '@/conf'
-import { OpenSearchService } from '@/service/opensearch.service'
+import { DB_CONFIG } from '../conf'
+import { OpenSearchService } from '../service/opensearch.service'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
-import { OrganizationRepository } from '@/repo/organization.repo'
-import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { OrganizationRepository } from '../repo/organization.repo'
+import { OrganizationSyncService } from '../service/organization.sync.service'
 import { timeout } from '@crowd/common'
 
 const log = getServiceLogger()

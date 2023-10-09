@@ -221,6 +221,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
             context.logger,
           )
 
+          if (!user) {
+            return {
+              operations: [],
+            }
+          }
+
           const member = DiscourseIntegrationService.parseUserIntoMember(
             user,
             context.pipelineData.forumHostname,
@@ -412,6 +418,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       context.logger,
     )
 
+    if (!user) {
+      return {
+        operations: [],
+      }
+    }
+
     const member = DiscourseIntegrationService.parseUserIntoMember(
       user,
       context.integration.settings.forumHostname,
@@ -529,6 +541,12 @@ export class DiscourseIntegrationService extends IntegrationServiceBase {
       { username },
       context.logger,
     )
+
+    if (!user) {
+      return {
+        operations: [],
+      }
+    }
 
     const member = DiscourseIntegrationService.parseUserIntoMember(
       user,

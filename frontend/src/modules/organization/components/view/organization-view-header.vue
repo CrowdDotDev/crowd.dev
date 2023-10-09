@@ -81,7 +81,7 @@
     <div class="grid grid-rows-2 grid-flow-col gap-4">
       <div>
         <p class="text-gray-400 font-medium text-2xs">
-          # of members
+          # of contacts
         </p>
         <p class="mt-1 text-gray-900 text-xs">
           {{

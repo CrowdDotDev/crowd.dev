@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { handleDiscordError } from './errorHandler'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 export const getMessage = async (
   channelId: string,

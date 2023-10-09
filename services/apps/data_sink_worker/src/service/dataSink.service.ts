@@ -1,4 +1,4 @@
-import { SLACK_ALERTING_CONFIG } from '@/conf'
+import { SLACK_ALERTING_CONFIG } from '../conf'
 import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -66,14 +66,14 @@ export default class DataSinkService extends LoggerBase {
     await this.processResult(resultId)
   }
 
-  public async processResult(resultId: string): Promise<void> {
+  public async processResult(resultId: string): Promise<boolean> {
     this.log.debug({ resultId }, 'Processing result.')
 
     const resultInfo = await this.repo.getResultInfo(resultId)
 
     if (!resultInfo) {
       this.log.error({ resultId }, 'Result not found.')
-      return
+      return false
     }
 
     this.log = getChildLogger('result-processor', this.log, {
@@ -90,11 +90,11 @@ export default class DataSinkService extends LoggerBase {
       this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
       if (resultInfo.state === IntegrationResultState.PROCESSED) {
         this.log.warn('Result has already been processed. Skipping...')
-        return
+        return false
       }
 
       await this.repo.resetResults([resultId])
-      return
+      return false
     }
 
     // this.log.debug('Marking result as in progress.')
@@ -161,36 +161,43 @@ export default class DataSinkService extends LoggerBase {
         }
       }
       await this.repo.deleteResult(resultId)
+      return true
     } catch (err) {
       this.log.error(err, 'Error processing result.')
-      await this.triggerResultError(
-        resultId,
-        'process-result',
-        'Error processing result.',
-        undefined,
-        err,
-      )
+      try {
+        await this.triggerResultError(
+          resultId,
+          'process-result',
+          'Error processing result.',
+          undefined,
+          err,
+        )
 
-      await sendSlackAlert({
-        slackURL: SLACK_ALERTING_CONFIG().url,
-        alertType: SlackAlertTypes.SINK_WORKER_ERROR,
-        integration: {
-          id: resultInfo.integrationId,
-          platform: resultInfo.platform,
-          tenantId: resultInfo.tenantId,
-          resultId: resultInfo.id,
-          apiDataId: resultInfo.apiDataId,
-        },
-        userContext: {
-          currentTenant: {
-            name: resultInfo.name,
-            plan: resultInfo.plan,
-            isTrial: resultInfo.isTrialPlan,
+        await sendSlackAlert({
+          slackURL: SLACK_ALERTING_CONFIG().url,
+          alertType: SlackAlertTypes.SINK_WORKER_ERROR,
+          integration: {
+            id: resultInfo.integrationId,
+            platform: resultInfo.platform,
+            tenantId: resultInfo.tenantId,
+            resultId: resultInfo.id,
+            apiDataId: resultInfo.apiDataId,
           },
-        },
-        log: this.log,
-        frameworkVersion: 'new',
-      })
+          userContext: {
+            currentTenant: {
+              name: resultInfo.name,
+              plan: resultInfo.plan,
+              isTrial: resultInfo.isTrialPlan,
+            },
+          },
+          log: this.log,
+          frameworkVersion: 'new',
+        })
+      } catch (err2) {
+        this.log.error(err2, 'Error sending slack alert.')
+      }
+
+      return false
     }
   }
 }
