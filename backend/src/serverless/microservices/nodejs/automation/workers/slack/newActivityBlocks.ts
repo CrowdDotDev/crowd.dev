@@ -117,7 +117,7 @@ export const newActivityBlocks = (activity) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*<${API_CONFIG.frontendUrl}/members/${activity.member.id}|${activity.member.displayName}>* *${display.text}*`,
+          text: `*<${API_CONFIG.frontendUrl}/contacts/${activity.member.id}|${activity.member.displayName}>* *${display.text}*`,
         },
         ...(activity.url
           ? {
@@ -184,7 +184,7 @@ export const newActivityBlocks = (activity) => {
               text: 'View in crowd.dev',
               emoji: true,
             },
-            url: `${API_CONFIG.frontendUrl}/members/${member.id}`,
+            url: `${API_CONFIG.frontendUrl}/contacts/${member.id}`,
           },
           ...(buttonProfiles || [])
             .map(({ platform, url }) => ({

@@ -10,14 +10,14 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        No members are currently working in this organization.
+        No contacts are currently working in this organization.
       </p>
     </div>
     <div v-else>
       <div class="my-6">
         <el-input
           v-model="query"
-          placeholder="Search members"
+          placeholder="Search contacts"
           :prefix-icon="SearchIcon"
           clearable
           class="organization-view-members-search"

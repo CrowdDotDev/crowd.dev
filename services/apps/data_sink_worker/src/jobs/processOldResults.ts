@@ -1,5 +1,5 @@
-import DataSinkRepository from '@/repo/dataSink.repo'
-import DataSinkService from '@/service/dataSink.service'
+import DataSinkRepository from '../repo/dataSink.repo'
+import DataSinkService from '../service/dataSink.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient, processWithLock } from '@crowd/redis'

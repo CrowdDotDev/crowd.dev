@@ -128,9 +128,9 @@
                 || isCommunityMemberLocked
             "
             id="menu-members"
-            :to="{ path: '/members' }"
+            :to="{ path: '/contacts' }"
             class="el-menu-item"
-            :class="classFor('/members')"
+            :class="classFor('/contacts')"
             :disabled="isCommunityMemberLocked"
           >
             <i class="ri-contacts-line" />

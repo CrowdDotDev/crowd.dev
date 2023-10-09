@@ -1,48 +1,59 @@
 <template>
   <div
-    class="flex grow items-center justify-end my-8"
-    :class="{
-      'justify-between': showEagleEyePricing,
-    }"
+    class="flex grow my-8 bg-white panel"
   >
-    <div v-if="showEagleEyePricing">
-      <div v-if="!isEagleEyeEnabled">
-        <div class="font-medium text-sm">
-          Only interested in Eagle Eye?
-        </div>
-        <div clasS="text-xs">
-          <a
-            :href="eagleEyeStripeLink"
-            target="_blank"
-            rel="noopener noreferrer"
-          >Add Eagle Eye</a><span class="text-gray-500">
-            for only $50 per month.</span>
-        </div>
+    <div class="flex flex-col justify-between gap-3 basis-3/5">
+      <div>
+        <span class="text-xs text-gray-400 font-medium">Current plan</span>
+        <h5 class="text-gray-900">
+          {{ activePlan }}
+        </h5>
+        <span class="text-2xs text-gray-500">Active since {{ moment(currentTenant.createdAt).format('MMMM DD, YYYY') }}</span>
       </div>
-      <div v-else>
-        <div class="flex gap-3">
-          <div class="font-medium text-sm">
-            Eagle Eye
-          </div>
-          <div
-            class="text-green-600 flex items-center gap-1"
-          >
-            <i class="ri-check-line text-base" /><span
-              class="text-2xs"
-            >Subscribed</span>
-          </div>
-        </div>
-        <div class="text-xs text-gray-500">
-          Enabled on top of your current Essential plan.
-        </div>
+      <el-button
+        class="btn btn--bordered flex items-center gap-2 w-fit !shadow !border-gray-100"
+        @click="onManageBillingClick"
+      >
+        <i class="ri-external-link-line" /><span>Manage billing & payments</span>
+      </el-button>
+    </div>
+    <div
+      v-if="planLimits.automation[activePlan] || planLimits.export[activePlan]"
+      class="flex flex-col basis-2/5 justify-start"
+    >
+      <div
+        v-if="planLimits.automation[activePlan]"
+        class="flex justify-between items-center py-4 border-b border-gray-200"
+      >
+        <span class="text-2xs text-gray-400 font-medium">Active automations:</span>
+        <span
+          v-if="planLimits.automation[activePlan] !== 'unlimited'"
+          class="text-sm text-gray-900 leading-[18px]"
+        >
+          {{ currentTenant.automationCount }}/{{ planLimits.automation[activePlan] }}
+        </span>
+        <span v-else class="text-sm text-gray-900 leading-[18px] flex items-center gap-2">
+          <i class="ri-infinity-line text-base w-4" />
+          <span>Unlimited</span>
+        </span>
+      </div>
+      <div
+        v-if="planLimits.export[activePlan]"
+        class="flex justify-between items-center py-4"
+      >
+        <span class="text-2xs text-gray-400 font-medium">CSV exports:</span>
+        <span
+          v-if="planLimits.export[activePlan] !== 'unlimited'"
+          class="text-sm text-gray-900 leading-[18px]"
+        >
+          {{ currentTenant.csvExportCount }}/{{ planLimits.export[activePlan] }}
+        </span>
+        <span v-else class="text-sm text-gray-900 leading-[18px] flex items-center gap-2">
+          <i class="ri-infinity-line text-base w-4" />
+          <span>Unlimited</span>
+        </span>
       </div>
     </div>
-    <el-button
-      class="btn btn--bordered btn--md flex items-center gap-2"
-      @click="onManageBillingClick"
-    >
-      <i class="ri-external-link-line" /><span>Manage billing & payments</span>
-    </el-button>
   </div>
   <div class="panel mt-6">
     <div class="flex gap-4">
@@ -51,58 +62,57 @@
         :key="plan.key"
         class="flex flex-1 flex-col"
       >
-        <!-- Sale banner -->
-        <div v-if="plan.sale" class="sale-banner">
-          {{ plan.sale }}
-        </div>
         <!-- Pricing plan block -->
         <div
           class="pricing-plan"
           :class="{
             active: plan.key === activePlan,
-            sale: plan.sale,
-            'mt-6': !isCommunityVersion && !plan.sale,
+            'mt-6': !isCommunityVersion,
           }"
         >
           <div>
-            <div class="flex flex-col gap-4 mb-8">
+            <div class="flex flex-col mb-8">
               <div
-                class="flex flex-wrap justify-between items-center gap-2"
+                class="flex flex-wrap justify-between items-center gap-2  mb-3.5"
               >
                 <!-- Title -->
-                <h5 class="text-gray-900">
+                <h6 class="text-gray-900">
                   {{ plan.title }}
-                </h5>
+                </h6>
                 <!-- Badge -->
                 <span
-                  v-if="
-                    plan.key === activePlan
-                      || (plan.key === crowdHostedPlans.growth
-                        && activePlan
-                          === crowdHostedPlans.essential)
-                  "
-                  class="badge badge--sm"
+                  v-if="getBadge(plan.key)"
+                  class="h-5 rounded-full text-2xs font-medium px-2 flex items-center"
                   :class="getBadge(plan.key).class"
                 >{{ getBadge(plan.key).content }}</span>
               </div>
               <!-- Description -->
-              <div class="text-gray-600 text-xs">
+              <div class="text-gray-600 text-2xs mb-4">
                 {{ plan.description }}
               </div>
               <!-- Price -->
-              <div class="text-brand-500 text-sm">
-                {{ plan.price }}
+              <div class="flex items-start gap-1">
+                <span class="text-brand-500 text-base">{{ plan.price }}</span>
+                <span class="text-2xs text-gray-400 font-medium">{{ plan.priceInfo }}</span>
               </div>
+
+              <el-button
+                v-if="plan.ctaLabel[activePlan]"
+                class="btn btn--md btn--full btn--primary mt-6"
+                @click="() => handleOnCtaClick(plan)"
+              >
+                {{ plan.ctaLabel[activePlan] }}
+              </el-button>
             </div>
 
             <div
-              class="flex flex-col gap-4 text-gray-900 text-xs mb-10"
+              class="flex flex-col gap-4 mb-10"
             >
-              <div v-if="plan.featuresNote">
+              <div v-if="plan.featuresNote" class="text-2xs text-gray-600">
                 {{ plan.featuresNote }}
               </div>
 
-              <ul class="flex flex-col gap-4">
+              <ul class="flex flex-col gap-4 text-xs text-gray-900">
                 <li
                   v-for="feature in plan.features"
                   :key="feature"
@@ -113,65 +123,34 @@
                   />
                   <span>{{ feature }}</span>
                 </li>
+                <li
+                  v-for="feature in plan.featuresSpecial"
+                  :key="feature"
+                  class="flex items-start gap-3 leading-5"
+                >
+                  <i
+                    class="ri-information-line text-lg"
+                  />
+                  <span>{{ feature }}</span>
+                </li>
               </ul>
             </div>
-          </div>
-
-          <div
-            class="text-center flex flex-col justify-end"
-            :class="{
-              'min-h-10': !isGrowthTrialPlan,
-              'min-h-[110px]': isGrowthTrialPlan,
-            }"
-          >
-            <div
-              v-if="
-                plan.key === crowdHostedPlans.growth
-                  && isGrowthTrialPlan
-              "
-              class="text-gray-500 text-xs italic mb-3"
-            >
-              <span class="font-medium">{{
-                getTrialDate()
-              }}</span><br />
-              <span>If you don't take action, you will be
-                automatically downgraded to Essential.</span>
-            </div>
-            <el-button
-              v-if="
-                (plan.key !== activePlan
-                  || isGrowthTrialPlan)
-                  && !(
-                    plan.key === crowdHostedPlans.essential
-                    && isGrowthTrialPlan
-                  )
-              "
-              class="btn btn--md btn--full btn--primary"
-              @click="() => handleOnCtaClick(plan.key)"
-            >
-              {{ getCtaContent(plan.key) }}
-            </el-button>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <AppPlanModal
-    v-if="isPlanModalOpen"
-    v-model="isPlanModalOpen"
-    :title="planModalTitle"
-  />
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import moment from 'moment';
 import config from '@/config';
 import Plans from '@/security/plans';
+import { planLimits } from '@/security/plans-limits';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import moment from 'moment';
 import { plans } from '../settings-pricing-plans';
-import AppPlanModal from '../components/plan-modal.vue';
 
 const crowdHostedPlans = Plans.values;
 const communityPlans = Plans.communityValues;
@@ -179,17 +158,12 @@ const communityPlans = Plans.communityValues;
 const { isCommunityVersion } = config;
 const isCommunitPremiumVersion = config.communityPremium === 'true';
 
-const store = useStore();
+const { doRefreshCurrentUser } = mapActions('auth');
 
-const isPlanModalOpen = ref(false);
-const planModalTitle = ref(null);
+const store = useStore();
 
 const currentTenant = computed(
   () => store.getters['auth/currentTenant'],
-);
-
-const currentUser = computed(
-  () => store.getters['auth/currentUser'],
 );
 
 const plansList = computed(() => {
@@ -199,9 +173,6 @@ const plansList = computed(() => {
 
   return plans.crowdHosted;
 });
-
-// eslint-disable-next-line vue/max-len
-const eagleEyeStripeLink = computed(() => `${config.stripe.eagleEyePlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`);
 
 const activePlan = computed(() => {
   // Community Versions
@@ -214,122 +185,41 @@ const activePlan = computed(() => {
   return currentTenant.value.plan;
 });
 
-const isGrowthTrialPlan = computed(
-  () => activePlan.value === crowdHostedPlans.growth
-    && currentTenant.value.isTrialPlan,
-);
-
-const isEssentialPlanActive = computed(
-  () => activePlan.value === crowdHostedPlans.essential,
-);
-
-const isEagleEyeEnabled = computed(
-  () => activePlan.value === crowdHostedPlans.eagleEye,
-);
-
-const showEagleEyePricing = computed(
-  () => isEssentialPlanActive.value
-    || isGrowthTrialPlan.value
-    || isEagleEyeEnabled.value,
-);
+onMounted(() => {
+  doRefreshCurrentUser({});
+});
 
 const getBadge = (plan) => {
-  if (plan === crowdHostedPlans.growth) {
-    // Growth Trial plans
-    if (currentTenant.value.isTrialPlan) {
-      return {
-        class: 'badge--yellow',
-        content: 'Active plan (Trial)',
-      };
-    } if (
-      // Recommended plans
-      activePlan.value === crowdHostedPlans.essential
-    ) {
-      return {
-        class: 'badge--light-brand',
-        content: 'Recommended',
-      };
-    }
+  if (plan === crowdHostedPlans.scale && [crowdHostedPlans.essential, crowdHostedPlans.eagleEye].includes(activePlan.value)) {
+    // Recommended plan
+    return {
+      class: 'text-brand-600 bg-brand-50',
+      content: 'Recommended',
+    };
+  } if (plan === activePlan.value) {
+    // Active plans
+    return {
+      class: 'text-white bg-brand-500',
+      content: 'Current plan',
+    };
   }
 
-  // Active plans
-  return {
-    class: 'badge--brand',
-    content: 'Active plan',
-  };
-};
-
-const getCtaContent = (plan) => {
-  const { title } = plansList.value.find(
-    (p) => p.key === plan,
-  );
-
-  // Custom plans
-  if (
-    plan === crowdHostedPlans.enterprise
-    || plan === crowdHostedPlans.scale
-    || plan === communityPlans.custom
-  ) {
-    return 'Book a call';
-    // Growth Trial Plans
-  } if (
-    plan === crowdHostedPlans.growth
-    && isGrowthTrialPlan.value
-  ) {
-    return 'Subscribe Growth';
-  } if (
-    // Essential, Community and Growth
-    plan === crowdHostedPlans.essential
-    || plan === communityPlans.community
-    || (plan === crowdHostedPlans.growth
-      && activePlan.value === crowdHostedPlans.enterprise)
-  ) {
-    return `Downgrade to ${title}`;
-  }
-  return `Upgrade to ${title}`;
+  return null;
 };
 
 const onManageBillingClick = () => {
   window.open(config.stripe.customerPortalLink, '_blank');
 };
 
-const handleOnCtaClick = (plan) => {
+const handleOnCtaClick = ({ key, ctaAction }) => {
   // Send an event with plan request
   window.analytics.track('Change Plan Request', {
     tenantId: currentTenant.value.id,
     tenantName: currentTenant.value.name,
-    requestedPlan: plan,
+    requestedPlan: key,
   });
 
-  // Custom plans
-  if (
-    plan === crowdHostedPlans.scale
-    || plan === crowdHostedPlans.enterprise
-    || plan === communityPlans.custom
-  ) {
-    window.open(
-      'https://cal.com/team/CrowdDotDev/custom-plan',
-      '_blank',
-    );
-    // Growth plan
-  } else if (plan === crowdHostedPlans.growth) {
-    window.open(
-      `${config.stripe.growthPlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`,
-      '_blank',
-    );
-  } else {
-    onManageBillingClick();
-  }
-};
-
-const getTrialDate = () => {
-  const daysLeft = moment(
-    currentTenant.value.trialEndsAt,
-  ).diff(moment(), 'days');
-
-  return `Growth Trial ends in ${
-    daysLeft < 0 ? 0 : daysLeft
-  } days.`;
+  ctaAction[activePlan.value]();
 };
 </script>
 
@@ -340,19 +230,12 @@ export default {
 </script>
 
 <style lang="scss">
-.sale-banner {
-  @apply text-2xs font-medium text-purple-900 bg-purple-50 rounded-t-lg min-h-6 flex items-center justify-center px-4 py-0.5;
-}
 
 .pricing-plan {
-  @apply flex flex-col flex-1 rounded-lg bg-white border border-solid border-gray-200 p-6 grow justify-between;
+  @apply flex flex-col flex-1 rounded-lg bg-white border border-solid border-gray-100 p-5 grow justify-between shadow;
 
   &.active {
-    @apply border-gray-50 bg-gray-50;
-  }
-
-  &.sale {
-    @apply rounded-t-none;
+    @apply border-gray-50 bg-gray-50 shadow-none;
   }
 }
 </style>

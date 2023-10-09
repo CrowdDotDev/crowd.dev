@@ -21,8 +21,8 @@ import {
 } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IStreamData } from '@/repo/integrationStream.data'
-import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
+import { IStreamData } from '../repo/integrationStream.data'
+import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
