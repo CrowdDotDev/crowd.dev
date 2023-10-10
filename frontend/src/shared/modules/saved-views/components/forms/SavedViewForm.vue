@@ -148,6 +148,7 @@
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
+          @click="submit()"
         >
           Add view
         </el-button>
@@ -167,11 +168,13 @@ import useVuelidate from '@vuelidate/core';
 import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 
 const props = defineProps<{
   modelValue: boolean,
   config: SavedViewsConfig,
-  filters: Record<string, FilterConfig>
+  filters: Record<string, FilterConfig>,
+  placement: string,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any}>();
@@ -204,7 +207,7 @@ interface SavedViewForm {
   settings: Record<string, any>;
   sorting: {
     prop: string;
-    order: string;
+    order: 'descending' | 'ascending';
   }
 }
 
@@ -261,6 +264,27 @@ const removeFilter = (key: any) => {
   filterList.value = filterList.value.filter((el) => el !== key);
   delete form.filters[key];
   dropdownSearch.value = '';
+};
+
+const submit = (): void => {
+  if ($v.value.$invalid) {
+return;
+  }
+  SavedViewsService.create({
+    name: form.name,
+    config: {
+      search: '',
+      relation: 'and',
+      order: {
+        prop: form.sorting.prop,
+        order: form.sorting.order
+      },
+      settings: form.settings,
+      ...form.filters,
+    },
+    placement: [props.placement],
+    visibility: form.shared ? 'tenant' : 'user',
+  })
 };
 </script>
 

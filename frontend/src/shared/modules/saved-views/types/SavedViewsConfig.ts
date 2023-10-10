@@ -22,8 +22,8 @@ export interface SavedViewsConfig {
 
 
 export interface SavedViewCreate {
-  label: string;
+  name: string;
   visibility: string;
-  placement: string;
-  filter: Filter & Record<string, any>
+  placement: [string];
+  config: Filter & Record<string, any>
 }

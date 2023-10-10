@@ -51,7 +51,7 @@
       </el-popover>
     </div>
   </div>
-  <cr-saved-views-form v-model="isFormOpen" :config="props.config" :filters="props.filters" />
+  <cr-saved-views-form v-model="isFormOpen" :config="props.config" :filters="props.filters" :placement="props.placement" />
 </template>
 
 <script setup lang="ts">
