@@ -71,7 +71,7 @@ export function getConcurrentRequestLimiter(
 ): IConcurrentRequestLimiter {
   if (concurrentRequestLimiter === undefined) {
     concurrentRequestLimiter = ctx.getConcurrentRequestLimiter(
-      1, // max 2 concurrent requests
+      2, // max 2 concurrent requests
       'github-concurrent-request-limiter',
     )
   }
