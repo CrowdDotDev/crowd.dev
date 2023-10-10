@@ -99,6 +99,7 @@
           <template #default="scope">
             <div class="table-actions">
               <app-user-dropdown
+                v-if="scope.row.id !== currentUser.id"
                 :user="scope.row"
               />
             </div>

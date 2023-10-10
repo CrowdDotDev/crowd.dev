@@ -24,6 +24,7 @@ import AppResizePage from '@/modules/layout/pages/resize-page.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
+import identify from '@/shared/monitoring/identify';
 
 export default {
   name: 'App',
@@ -36,6 +37,7 @@ export default {
     ...mapGetters({
       loadingInit: 'auth/loadingInit',
       currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser',
     }),
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
@@ -47,6 +49,16 @@ export default {
           && !this.featureFlag.hasError
           && !config.isCommunityVersion)
       );
+    },
+  },
+
+  watch: {
+    currentUser: {
+      handler(user, oldUser) {
+        if (user?.id && user.id !== oldUser?.id) {
+          identify(this.currentUser);
+        }
+      },
     },
   },
 
@@ -64,15 +76,6 @@ export default {
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
-  },
-
-  mounted() {
-    this.$router.isReady().then(() => {
-      const { ref } = this.$route.query;
-      if (ref && ref === 'eagle-eye') {
-        localStorage.setItem('onboardType', 'eagle-eye');
-      }
-    });
   },
 
   unmounted() {

@@ -7,6 +7,8 @@ import { store } from '@/store';
 import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
+import authGuard from '@/middleware/auth/auth-guard';
+import unauthGuard from '@/middleware/auth/unauth-guard';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -62,22 +64,18 @@ export const createRouter = () => {
         (m) => m.meta.middleware,
       );
       if (matchedRoute !== undefined) {
-        const middlewareArray = Array.isArray(
-          matchedRoute.meta.middleware,
-        )
-          ? matchedRoute.meta.middleware
-          : [matchedRoute.meta.middleware];
-
         const context = {
           from,
           router,
           to,
           store,
+          next,
         };
 
-        middlewareArray.forEach((middleware) => {
-          middleware(context);
-        });
+        await authGuard(context);
+        await unauthGuard(context);
+
+        next();
       }
     });
 

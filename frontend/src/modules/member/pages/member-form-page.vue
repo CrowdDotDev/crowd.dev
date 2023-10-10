@@ -10,10 +10,10 @@
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
       >
-        Members
+        Contacts
       </el-button>
       <h4 class="mt-4 mb-6">
-        {{ isEditPage ? 'Edit member' : 'New member' }}
+        {{ isEditPage ? 'Edit contact' : 'New contact' }}
       </h4>
       <el-container
         v-if="!isPageLoading"
@@ -88,7 +88,7 @@
               @click="onSubmit"
             >
               {{
-                isEditPage ? 'Update member' : 'Add member'
+                isEditPage ? 'Update contact' : 'Add contact'
               }}
             </el-button>
           </div>

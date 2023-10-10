@@ -1,4 +1,4 @@
-import { OpenSearchService } from '@/service/opensearch.service'
+import { OpenSearchService } from '../service/opensearch.service'
 import { getServiceLogger } from '@crowd/logging'
 
 const log = getServiceLogger()

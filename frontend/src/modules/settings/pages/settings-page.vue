@@ -26,7 +26,7 @@
             v-if="activeTab === 'api-keys'"
           />
         </el-tab-pane>
-        <el-tab-pane label="Plans & pricing" name="plans">
+        <el-tab-pane label="Plans & billing" name="plans">
           <app-plans-page v-if="activeTab === 'plans'" />
         </el-tab-pane>
       </el-tabs>
