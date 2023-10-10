@@ -18,6 +18,9 @@ async function mergeSuggestionsWorker(tenantId): Promise<void> {
   userContext.currentSegments = segments
   userContext.opensearch = getOpensearchClient(OPENSEARCH_CONFIG)
 
+  const organizationService = new OrganizationService(userContext)
+  await organizationService.generateMergeSuggestions(OrganizationMergeSuggestionType.BY_IDENTITY)
+
   const memberService = new MemberService(userContext)
   // Splitting these because in the near future we will be treating them differently
   const byUsername: IMemberMergeSuggestion[] = await memberService.getMergeSuggestions(
@@ -32,9 +35,6 @@ async function mergeSuggestionsWorker(tenantId): Promise<void> {
     IMemberMergeSuggestionsType.SIMILARITY,
   )
   await memberService.addToMerge(bySimilarity)
-
-  const organizationService = new OrganizationService(userContext)
-  await organizationService.generateMergeSuggestions(OrganizationMergeSuggestionType.BY_IDENTITY)
 }
 
 export { mergeSuggestionsWorker }
