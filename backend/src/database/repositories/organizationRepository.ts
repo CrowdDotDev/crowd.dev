@@ -1068,7 +1068,19 @@ class OrganizationRepository {
         return (70 + Math.floor(Math.random() * 26) - 10) / 100
       }
 
-      return (score - min) / (max - min)
+      const normalizedScore = (score - min) / (max - min)
+
+      // randomize the cases where score === max and score === min
+      if (normalizedScore === 1) {
+        return Math.floor(Math.random() * (86 - 70) + 70) / 100
+      }
+
+      // normalization is resolved to 0, randomize it
+      if (normalizedScore === 0) {
+        return Math.floor(Math.random() * (41 - 20) + 20) / 100
+      }
+
+      return normalizedScore
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
