@@ -1404,7 +1404,7 @@ class OrganizationRepository {
         ORDER BY Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))), org.id
       ) AS "organizationsToMerge" 
     ORDER BY 
-      "organizationsToMerge"."similarity" DESC 
+      "organizationsToMerge"."similarity", "organizationsToMerge".id DESC 
     LIMIT :limit OFFSET :offset
     `,
       {
