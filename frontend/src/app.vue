@@ -56,7 +56,7 @@ export default {
     currentUser: {
       handler(user, oldUser) {
         if (user?.id && user.id !== oldUser?.id) {
-          identify(this.currentUser);
+          identify(user);
         }
       },
     },
