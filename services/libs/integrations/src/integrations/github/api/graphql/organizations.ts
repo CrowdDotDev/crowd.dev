@@ -67,7 +67,8 @@ const getOrganization = async (
       (err.status === 403 &&
         err.message &&
         (err.message as string).toLowerCase().includes('secondary rate limit')) ||
-      (err.errors && err.errors[0].type === 'RATE_LIMITED')
+      (err.errors && err.errors[0].type === 'RATE_LIMITED') ||
+      err?.message?.toLowerCase().includes('rate limit exceeded')
     ) {
       // this is rate limit, let's try token rotation
       if (tokenRotator && limiter) {
