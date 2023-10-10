@@ -1061,14 +1061,14 @@ class OrganizationRepository {
       }
 
       if (max === min) {
-        return (60 + Math.floor(Math.random() * 26) - 10) / 100
+        return (40 + Math.floor(Math.random() * 26) - 10) / 100
       }
 
       const normalizedScore = (score - min) / (max - min)
 
       // randomize the cases where score === max and score === min
       if (normalizedScore === 1) {
-        return Math.floor(Math.random() * (86 - 70) + 70) / 100
+        return Math.floor(Math.random() * (76 - 50) + 50)
       }
 
       // normalization is resolved to 0, randomize it
