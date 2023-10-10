@@ -11,9 +11,7 @@ export default (sequelize) => {
       },
       order: {
         type: DataTypes.INTEGER,
-        // allowNull is set to false in the migration.
-        // Keeping it here causes an error as Sequelize validation happens before triggers.
-        // allowNull: false,
+        allowNull: true,
         validate: {
           min: 0,
         },

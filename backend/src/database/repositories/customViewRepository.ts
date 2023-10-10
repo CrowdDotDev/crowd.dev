@@ -174,8 +174,9 @@ class CustomViewRepository {
       }
     }
 
-    const customViewRecords = await options.database.customView.findAll({
+    let customViewRecords = await options.database.customView.findAll({
       where,
+      order: [['createdAt', 'ASC']],
       transaction,
     })
 
@@ -189,12 +190,14 @@ class CustomViewRepository {
 
     // sort custom views by user's order
     if (customViewOrders.length > 0) {
-      const orderMap = customViewOrders.reduce((map, order) => {
-        map[order.customViewId] = order.order
-        return map
-      }, {})
+      const customViewOrderMap = new Map(
+        customViewOrders.map((order) => [order.customViewId, order.order]),
+      )
 
-      customViewRecords.sort((a, b) => orderMap[a.id] - orderMap[b.id])
+      customViewRecords = lodash.orderBy(
+        customViewRecords,
+        (record) => customViewOrderMap.get(record.id) || Infinity,
+      )
     }
 
     return customViewRecords
