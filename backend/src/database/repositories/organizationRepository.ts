@@ -1237,7 +1237,10 @@ class OrganizationRepository {
             }
           }
 
-          if (organization._source.uuid_arr_noMergeIds && organization._source.uuid_arr_noMergeIds.length > 0) {
+          if (
+            organization._source.uuid_arr_noMergeIds &&
+            organization._source.uuid_arr_noMergeIds.length > 0
+          ) {
             for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
               identitiesPartialQuery.must_not.push({
                 term: {
