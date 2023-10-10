@@ -1068,7 +1068,7 @@ class OrganizationRepository {
 
       // randomize the cases where score === max and score === min
       if (normalizedScore === 1) {
-        return Math.floor(Math.random() * (76 - 50) + 50)
+        return Math.floor(Math.random() * (76 - 50) + 50) / 100
       }
 
       // normalization is resolved to 0, randomize it
