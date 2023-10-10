@@ -1065,7 +1065,7 @@ class OrganizationRepository {
       }
 
       if (max === min) {
-        return (70 + Math.floor(Math.random() * 26) - 10) / 100
+        return (60 + Math.floor(Math.random() * 26) - 10) / 100
       }
 
       const normalizedScore = (score - min) / (max - min)
@@ -1273,35 +1273,29 @@ class OrganizationRepository {
               // remove these when making fuzzy, wildcard and prefix searches
               const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
 
-              // fuzzy search for identities
-              identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                match: {
-                  [`nested_identities.string_name`]: {
-                    query: cleanedIdentityName,
-                    prefix_length: 1,
-                    fuzziness: 'auto',
-                  },
-                },
-              })
-
-              // wildcard search for identities
-              identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                wildcard: {
-                  [`nested_identities.string_name`]: {
-                    value: `${cleanedIdentityName}*`,
-                  },
-                },
-              })
-
-              // also check for prefix for identities that has more than 5 characters
-              if (identity.string_name.length > 5) {
+              // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
+              if (Number.isNaN(Number(identity.string_name))) {
+                // fuzzy search for identities
                 identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                  prefix: {
+                  match: {
                     [`nested_identities.string_name`]: {
-                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                      query: cleanedIdentityName,
+                      prefix_length: 1,
+                      fuzziness: 'auto',
                     },
                   },
                 })
+
+                // also check for prefix for identities that has more than 5 characters
+                if (identity.string_name.length > 5) {
+                  identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                    prefix: {
+                      [`nested_identities.string_name`]: {
+                        value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                      },
+                    },
+                  })
+                }
               }
             }
           }
