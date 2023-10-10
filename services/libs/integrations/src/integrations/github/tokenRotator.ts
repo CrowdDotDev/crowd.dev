@@ -12,8 +12,10 @@ export class GithubTokenRotator {
   static CACHE_KEY = 'integration-cache:github-token-rotator:tokens'
   constructor(private cache: ICache, private tokens: string[]) {
     this.cache = cache
-    this.tokens = [...new Set(tokens)]
-    this.initializeTokens()
+    this.tokens = tokens ? [...new Set(tokens)] : []
+    if (this.tokens.length > 0) {
+      this.initializeTokens()
+    }
   }
 
   private async initializeTokens(): Promise<void> {
@@ -33,6 +35,10 @@ export class GithubTokenRotator {
   }
 
   public async getToken(): Promise<string | null> {
+    if (this.tokens.length === 0) {
+      throw new Error('No tokens configured in token rotator')
+    }
+
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     let minResetTime = Infinity
 
@@ -65,6 +71,10 @@ export class GithubTokenRotator {
   }
 
   public async returnToken(token: string): Promise<void> {
+    if (this.tokens.length === 0) {
+      throw new Error('No tokens configured in token rotator')
+    }
+
     const tokenInfo: TokenInfo = JSON.parse(
       (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
     )
@@ -74,6 +84,10 @@ export class GithubTokenRotator {
   }
 
   public async updateTokenInfo(token: string, remaining: number, reset: number): Promise<void> {
+    if (this.tokens.length === 0) {
+      throw new Error('No tokens configured in token rotator')
+    }
+
     const tokenInfo: TokenInfo = JSON.parse(
       (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
     )
@@ -85,6 +99,10 @@ export class GithubTokenRotator {
   }
 
   public async updateRateLimitInfoFromApi(token: string): Promise<void> {
+    if (this.tokens.length === 0) {
+      throw new Error('No tokens configured in token rotator')
+    }
+
     // let's make API call to get the latest rate limit info
     const tokenInfo: TokenInfo = JSON.parse(
       (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
