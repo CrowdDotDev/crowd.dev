@@ -1052,10 +1052,6 @@ class OrganizationRepository {
         return 6
       }
 
-      if (string.length > 8 && string.length < 12) {
-        return 9
-      }
-
       return 10
     }
 
@@ -1286,8 +1282,8 @@ class OrganizationRepository {
                   },
                 })
 
-                // also check for prefix for identities that has more than 5 characters
-                if (identity.string_name.length > 5) {
+                // also check for prefix for identities that has more than 5 characters and no whitespace
+                if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
                   identitiesPartialQuery.should[1].nested.query.bool.should.push({
                     prefix: {
                       [`nested_identities.keyword_name`]: {
