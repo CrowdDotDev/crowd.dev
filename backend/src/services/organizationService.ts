@@ -243,11 +243,13 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async generateMergeSuggestions(type: OrganizationMergeSuggestionType): Promise<void> {
+    this.log.trace(`Generating merge suggestions for: ${this.options.currentTenant.id}`)
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (type === OrganizationMergeSuggestionType.BY_IDENTITY) {
         let mergeSuggestions
+        let hasSuggestions = false
 
         const generator = OrganizationRepository.getMergeSuggestions({
           ...this.options,
@@ -255,6 +257,17 @@ export default class OrganizationService extends LoggerBase {
         })
         do {
           mergeSuggestions = await generator.next()
+
+          if (mergeSuggestions.value) {
+            this.log.trace(
+              `Tenant: ${this.options.currentTenant.id}, adding ${mergeSuggestions.value.length} organizations to suggestions!`,
+            )
+            hasSuggestions = true
+          } else if (!hasSuggestions) {
+            this.log.trace(`Tenant doesn't have any merge suggestions`)
+          } else {
+            this.log.trace(`Finished going tru all suggestions!`)
+          }
 
           await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
         } while (!mergeSuggestions.done)

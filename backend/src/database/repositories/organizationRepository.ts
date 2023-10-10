@@ -1047,6 +1047,18 @@ class OrganizationRepository {
 
     let yieldChunk: IOrganizationMergeSuggestion[] = []
 
+    const prefixLength = (string: string) => {
+      if (string.length > 5 && string.length < 8) {
+        return 6
+      }
+
+      if (string.length > 8 && string.length < 12) {
+        return 9
+      }
+
+      return 10
+    }
+
     const normalizeScore = (max: number, min: number, score: number): number => {
       if (score > 100) {
         return 1
@@ -1064,19 +1076,9 @@ class OrganizationRepository {
     const queryBody = {
       from: 0,
       size: BATCH_SIZE,
-      query: {
-        bool: {
-          must: [
-            {
-              term: {
-                uuid_tenantId: tenant.id,
-              },
-            },
-          ],
-        },
-      },
+      query: {},
       sort: {
-        [`date_createdAt`]: 'desc',
+        [`uuid_organizationId`]: 'asc',
       },
       collapse: {
         field: 'uuid_organizationId',
@@ -1084,12 +1086,42 @@ class OrganizationRepository {
       _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds'],
     }
 
-    let organizations: IOrganizationPartialAggregatesOpensearch[]
-    let offset: number
+    let organizations: IOrganizationPartialAggregatesOpensearch[] = []
+    let lastUuid: string
 
     do {
-      offset = organizations ? offset + BATCH_SIZE : 0
-      queryBody.from = offset
+      if (organizations.length > 0) {
+        queryBody.query = {
+          bool: {
+            filter: [
+              {
+                term: {
+                  uuid_tenantId: tenant.id,
+                },
+              },
+              {
+                range: {
+                  uuid_organizationId: {
+                    gt: lastUuid,
+                  },
+                },
+              },
+            ],
+          },
+        }
+      } else {
+        queryBody.query = {
+          bool: {
+            filter: [
+              {
+                term: {
+                  uuid_tenantId: tenant.id,
+                },
+              },
+            ],
+          },
+        }
+      }
 
       organizations =
         (
@@ -1098,6 +1130,10 @@ class OrganizationRepository {
             body: queryBody,
           })
         ).body?.hits?.hits || []
+
+      if (organizations.length > 0) {
+        lastUuid = organizations[organizations.length - 1]._source.uuid_organizationId
+      }
 
       for (const organization of organizations) {
         if (
@@ -1149,47 +1185,55 @@ class OrganizationRepository {
           }
 
           for (const identity of organization._source.nested_identities) {
-            // weak identity search
-            identitiesPartialQuery.should[0].nested.query.bool.should.push({
-              bool: {
-                must: [
-                  { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
-                  {
-                    match: { [`nested_weakIdentities.string_platform`]: identity.string_platform },
-                  },
-                ],
-              },
-            })
-
-            // fuzzy search for identities
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              match: {
-                [`nested_identities.string_name`]: {
-                  query: identity.string_name,
-                  prefix_length: 1,
-                  fuzziness: 'auto',
+            if (identity.string_name.length > 0) {
+              // weak identity search
+              identitiesPartialQuery.should[0].nested.query.bool.should.push({
+                bool: {
+                  must: [
+                    { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
+                    {
+                      match: {
+                        [`nested_weakIdentities.string_platform`]: identity.string_platform,
+                      },
+                    },
+                  ],
                 },
-              },
-            })
+              })
 
-            // wildcard search for identities
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              wildcard: {
-                [`nested_identities.string_name`]: {
-                  value: `${identity.string_name}*`,
-                },
-              },
-            })
+              // some identities have https? in the beginning, resulting in false positive suggestions
+              // remove these when making fuzzy, wildcard and prefix searches
+              const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
 
-            // also check for prefix of 5 if identity is longer then 5 characters
-            if (identity.string_name.length > 5) {
+              // fuzzy search for identities
               identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                prefix: {
+                match: {
                   [`nested_identities.string_name`]: {
-                    value: identity.string_name.slice(0, 5),
+                    query: cleanedIdentityName,
+                    prefix_length: 1,
+                    fuzziness: 'auto',
                   },
                 },
               })
+
+              // wildcard search for identities
+              identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                wildcard: {
+                  [`nested_identities.string_name`]: {
+                    value: `${cleanedIdentityName}*`,
+                  },
+                },
+              })
+
+              // also check for prefix for identities that has more than 5 characters
+              if (identity.string_name.length > 5) {
+                identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                  prefix: {
+                    [`nested_identities.string_name`]: {
+                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                    },
+                  },
+                })
+              }
             }
           }
 
@@ -1285,7 +1329,7 @@ class OrganizationRepository {
           AND os."segmentId" IN (:segmentIds)
       ) AS "organizationsToMerge" 
     ORDER BY 
-      "organizationsToMerge"."createdAt" DESC 
+      "organizationsToMerge"."similarity" DESC 
     LIMIT :limit OFFSET :offset
     `,
       {
