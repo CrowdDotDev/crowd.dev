@@ -1107,6 +1107,25 @@ class OrganizationRepository {
           bool: {
             filter: [
               {
+                bool: {
+                  should: [
+                    {
+                      range: {
+                        int_activityCount: {
+                          gt: 0,
+                        },
+                      },
+                    },
+                    {
+                      term: {
+                        bool_manuallyCreated: true,
+                      },
+                    },
+                  ],
+                  minimum_should_match: 1,
+                },
+              },
+              {
                 term: {
                   uuid_tenantId: tenant.id,
                 },
@@ -1125,6 +1144,25 @@ class OrganizationRepository {
         queryBody.query = {
           bool: {
             filter: [
+              {
+                bool: {
+                  should: [
+                    {
+                      range: {
+                        int_activityCount: {
+                          gt: 0,
+                        },
+                      },
+                    },
+                    {
+                      term: {
+                        bool_manuallyCreated: true,
+                      },
+                    },
+                  ],
+                  minimum_should_match: 1,
+                },
+              },
               {
                 term: {
                   uuid_tenantId: tenant.id,
@@ -1191,6 +1229,25 @@ class OrganizationRepository {
               {
                 term: {
                   uuid_tenantId: tenant.id,
+                },
+              },
+              {
+                bool: {
+                  should: [
+                    {
+                      range: {
+                        int_activityCount: {
+                          gt: 0,
+                        },
+                      },
+                    },
+                    {
+                      term: {
+                        bool_manuallyCreated: true,
+                      },
+                    },
+                  ],
+                  minimum_should_match: 1,
                 },
               },
             ],
