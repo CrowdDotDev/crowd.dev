@@ -1185,51 +1185,55 @@ class OrganizationRepository {
           }
 
           for (const identity of organization._source.nested_identities) {
-            // weak identity search
-            identitiesPartialQuery.should[0].nested.query.bool.should.push({
-              bool: {
-                must: [
-                  { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
-                  {
-                    match: { [`nested_weakIdentities.string_platform`]: identity.string_platform },
-                  },
-                ],
-              },
-            })
-
-            // some identities have https? in the beginning, resulting in false positive suggestions
-            // remove these when making fuzzy, wildcard and prefix searches
-            const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
-
-            // fuzzy search for identities
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              match: {
-                [`nested_identities.string_name`]: {
-                  query: cleanedIdentityName,
-                  prefix_length: 1,
-                  fuzziness: 'auto',
+            if (identity.string_name.length > 0) {
+              // weak identity search
+              identitiesPartialQuery.should[0].nested.query.bool.should.push({
+                bool: {
+                  must: [
+                    { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
+                    {
+                      match: {
+                        [`nested_weakIdentities.string_platform`]: identity.string_platform,
+                      },
+                    },
+                  ],
                 },
-              },
-            })
+              })
 
-            // wildcard search for identities
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              wildcard: {
-                [`nested_identities.string_name`]: {
-                  value: `${cleanedIdentityName}*`,
-                },
-              },
-            })
+              // some identities have https? in the beginning, resulting in false positive suggestions
+              // remove these when making fuzzy, wildcard and prefix searches
+              const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
 
-            // also check for prefix for identities that has more than 5 characters
-            if (identity.string_name.length > 5) {
+              // fuzzy search for identities
               identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                prefix: {
+                match: {
                   [`nested_identities.string_name`]: {
-                    value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                    query: cleanedIdentityName,
+                    prefix_length: 1,
+                    fuzziness: 'auto',
                   },
                 },
               })
+
+              // wildcard search for identities
+              identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                wildcard: {
+                  [`nested_identities.string_name`]: {
+                    value: `${cleanedIdentityName}*`,
+                  },
+                },
+              })
+
+              // also check for prefix for identities that has more than 5 characters
+              if (identity.string_name.length > 5) {
+                identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                  prefix: {
+                    [`nested_identities.string_name`]: {
+                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                    },
+                  },
+                })
+              }
             }
           }
 
