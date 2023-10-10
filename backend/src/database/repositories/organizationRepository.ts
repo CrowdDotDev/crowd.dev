@@ -1259,7 +1259,7 @@ class OrganizationRepository {
               identitiesPartialQuery.should[0].nested.query.bool.should.push({
                 bool: {
                   must: [
-                    { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
+                    { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
                     {
                       match: {
                         [`nested_weakIdentities.string_platform`]: identity.string_platform,
@@ -1278,7 +1278,7 @@ class OrganizationRepository {
                 // fuzzy search for identities
                 identitiesPartialQuery.should[1].nested.query.bool.should.push({
                   match: {
-                    [`nested_identities.string_name`]: {
+                    [`nested_identities.keyword_name`]: {
                       query: cleanedIdentityName,
                       prefix_length: 1,
                       fuzziness: 'auto',
@@ -1290,7 +1290,7 @@ class OrganizationRepository {
                 if (identity.string_name.length > 5) {
                   identitiesPartialQuery.should[1].nested.query.bool.should.push({
                     prefix: {
-                      [`nested_identities.string_name`]: {
+                      [`nested_identities.keyword_name`]: {
                         value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
                       },
                     },
