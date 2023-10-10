@@ -27,15 +27,8 @@ export default (sequelize) => {
         defaultValue: {},
       },
       placement: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        validate: {
-          isInArray(value) {
-            const allowed = ['member', 'organization', 'activity', 'conversation']
-            if (!value.every((val) => allowed.includes(val))) {
-              throw new Error('Placement value is not allowed!')
-            }
-          },
-        },
+        type: DataTypes.TEXT,
+        isIn: [['member', 'organization', 'activity', 'conversation']],
         allowNull: false,
       },
       tenantId: {

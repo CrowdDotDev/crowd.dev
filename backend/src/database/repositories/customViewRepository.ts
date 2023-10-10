@@ -170,7 +170,7 @@ class CustomViewRepository {
 
     if (filter?.placement) {
       where.placement = {
-        [Op.contains]: filter.placement,
+        [Op.in]: filter.placement,
       }
     }
 
