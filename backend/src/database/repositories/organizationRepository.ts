@@ -1329,7 +1329,7 @@ class OrganizationRepository {
           AND os."segmentId" IN (:segmentIds)
       ) AS "organizationsToMerge" 
     ORDER BY 
-      "organizationsToMerge"."createdAt" DESC 
+      "organizationsToMerge"."similarity" DESC 
     LIMIT :limit OFFSET :offset
     `,
       {
