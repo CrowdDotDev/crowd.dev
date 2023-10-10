@@ -1,4 +1,5 @@
 import { getOpensearchClient } from '@crowd/opensearch'
+import { getServiceChildLogger } from '@crowd/logging'
 import { OrganizationMergeSuggestionType } from '@crowd/types'
 import getUserContext from '../../../../database/utils/getUserContext'
 import MemberService from '../../../../services/memberService'
@@ -10,7 +11,6 @@ import {
 import SegmentService from '../../../../services/segmentService'
 import OrganizationService from '@/services/organizationService'
 import { OPENSEARCH_CONFIG } from '@/conf'
-import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('mergeSuggestionsWorker')
 
