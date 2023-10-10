@@ -1401,6 +1401,7 @@ class OrganizationRepository {
         JOIN "organizationSegments" os ON os."organizationId" = org.id
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
+        ORDER BY Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))), org.id
       ) AS "organizationsToMerge" 
     ORDER BY 
       "organizationsToMerge"."similarity" DESC 
