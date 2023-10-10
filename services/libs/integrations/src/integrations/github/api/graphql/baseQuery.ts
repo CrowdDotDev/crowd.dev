@@ -3,8 +3,12 @@ import { graphql } from '@octokit/graphql'
 import { GraphQlQueryResponseData } from '@octokit/graphql/dist-types/types'
 import { GraphQlQueryResponse } from '@crowd/types'
 import { RateLimitError, IConcurrentRequestLimiter } from '@crowd/types'
+import { GithubTokenRotator } from '../../tokenRotator'
+import { getServiceChildLogger } from '@crowd/logging'
 
-interface Limiter {
+const logger = getServiceChildLogger('integrations:github:api:graphql:baseQuery')
+
+export interface Limiter {
   integrationId: string
   concurrentRequestLimiter: IConcurrentRequestLimiter
 }
@@ -89,26 +93,102 @@ class BaseQuery {
    * @param beforeCursor Cursor to paginate records before it
    * @returns parsed graphQl result
    */
-  async getSinglePage(beforeCursor: string, limiter?: Limiter): Promise<GraphQlQueryResponse> {
+  async getSinglePage(
+    beforeCursor: string,
+    limiter?: Limiter,
+    tokenRotator?: GithubTokenRotator,
+  ): Promise<GraphQlQueryResponse> {
     const paginatedQuery = BaseQuery.interpolate(this.query, {
       beforeCursor: BaseQuery.getPagination(beforeCursor),
     })
 
+    const process = async () => {
+      const result = await this.graphQL(paginatedQuery)
+      return this.getEventData(result)
+    }
+
     try {
       if (limiter) {
-        return limiter.concurrentRequestLimiter.processWithLimit(
+        return await limiter.concurrentRequestLimiter.processWithLimit(
           limiter.integrationId,
           async () => {
-            const result = await this.graphQL(paginatedQuery)
-            return this.getEventData(result)
+            return await process()
           },
         )
       } else {
-        const result = await this.graphQL(paginatedQuery)
-        return this.getEventData(result)
+        return await process()
       }
     } catch (err) {
+      logger.error('Error in getSinglePage')
+      if (
+        (err.status === 403 &&
+          err.message &&
+          (err.message as string).toLowerCase().includes('secondary rate limit')) ||
+        (err.errors && err.errors[0].type === 'RATE_LIMITED')
+      ) {
+        logger.error('Error in getSinglePage: rate limit error. Trying token rotation')
+        // this is rate limit, let's try token rotation
+        if (tokenRotator) {
+          return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator, limiter)
+        } else {
+          throw BaseQuery.processGraphQLError(err)
+        }
+      } else {
+        logger.error('Error in getSinglePage: other error')
+        throw BaseQuery.processGraphQLError(err)
+      }
+    }
+  }
+
+  private async getSinglePageWithTokenRotation(
+    beforeCursor: string,
+    tokenRotator: GithubTokenRotator,
+    limiter?: Limiter,
+  ): Promise<GraphQlQueryResponse> {
+    logger.info('getSinglePageWithTokenRotation')
+
+    const paginatedQuery = BaseQuery.interpolate(this.query, {
+      beforeCursor: BaseQuery.getPagination(beforeCursor),
+    })
+
+    const token = await tokenRotator.getToken()
+
+    const process = async () => {
+      const graphqlWithTokenRotation = graphql.defaults({
+        headers: {
+          authorization: `token ${token}`,
+        },
+      })
+      const result = await graphqlWithTokenRotation(paginatedQuery)
+      await tokenRotator.updateRateLimitInfoFromApi(token)
+      await tokenRotator.returnToken(token)
+      return this.getEventData(result)
+    }
+
+    try {
+      if (limiter) {
+        return await limiter.concurrentRequestLimiter.processWithLimit(
+          limiter.integrationId,
+          async () => {
+            return await process()
+          },
+        )
+      } else {
+        return await process()
+      }
+    } catch (err) {
+      logger.error('Error in getSinglePageWithTokenRotation')
+      // we might have exhausted one token, but we let another streams to continue
+      if (err.headers && err.headers['x-ratelimit-remaining'] && err.headers['x-ratelimit-reset']) {
+        const remaining = parseInt(err.headers['x-ratelimit-remaining'])
+        const reset = parseInt(err.headers['x-ratelimit-reset'])
+        await tokenRotator.updateTokenInfo(token, remaining, reset)
+      } else {
+        await tokenRotator.updateRateLimitInfoFromApi(token)
+      }
       throw BaseQuery.processGraphQLError(err)
+    } finally {
+      await tokenRotator.returnToken(token)
     }
   }
 
@@ -162,3 +242,11 @@ class BaseQuery {
 }
 
 export default BaseQuery
+
+export const process = async () => {
+  try {
+    return process()
+  } catch (err) {
+    // some logic here
+  }
+}

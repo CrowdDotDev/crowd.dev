@@ -1,4 +1,5 @@
 import { DATABASE_IOC } from '@crowd/database'
+import { IOC } from '@crowd/ioc'
 import { LOGGING_IOC, Logger } from '@crowd/logging'
 import { SQS_IOC, SqsClient } from '@crowd/sqs'
 import cors from 'cors'
@@ -12,7 +13,6 @@ import { loggingMiddleware } from './middleware/logging'
 import { sqsMiddleware } from './middleware/sqs'
 import { installGithubRoutes } from './routes/github'
 import { installGroupsIoRoutes } from './routes/groupsio'
-import { IOC } from '@crowd/ioc'
 
 const config = WEBHOOK_API_CONFIG()
 
@@ -23,6 +23,16 @@ setImmediate(async () => {
 
   const log = ioc.get<Logger>(LOGGING_IOC.logger)
   const app = express()
+
+  app.use((req, res, next) => {
+    // Groups.io doesn't send a content-type header,
+    // so request body parsing is just skipped
+    // But we fix it
+    if (!req.headers['content-type']) {
+      req.headers['content-type'] = 'application/json'
+    }
+    next()
+  })
 
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '5mb' }))

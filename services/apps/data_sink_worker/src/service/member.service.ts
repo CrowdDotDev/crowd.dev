@@ -272,8 +272,11 @@ export default class MemberService extends LoggerBase {
     for (const email of emails) {
       if (email) {
         const domain = email.split('@')[1]
-        if (!isDomainExcluded(domain)) {
-          emailDomains.add(domain)
+        // domain can be undefined if email is invalid
+        if (domain) {
+          if (!isDomainExcluded(domain)) {
+            emailDomains.add(domain)
+          }
         }
       }
     }

@@ -401,9 +401,13 @@ export default class ActivityService extends LoggerBase {
           segmentId = providedSegmentId
           if (!segmentId) {
             const dbIntegration = await txIntegrationRepo.findById(integrationId)
+            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
             segmentId =
-              platform === PlatformType.GITHUB
-                ? await txGithubReposRepo.findSegmentForRepo(tenantId, activity.channel)
+              platform === PlatformType.GITHUB && repoSegmentId
+                ? repoSegmentId
                 : dbIntegration.segmentId
           }
 
