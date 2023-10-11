@@ -1,3 +1,4 @@
+import cronGenerator from 'cron-time-generator'
 import { timeout } from '@crowd/common'
 import TenantService from '../../services/tenantService'
 import { CrowdJob } from '../../types/jobTypes'
@@ -8,7 +9,7 @@ import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 const job: CrowdJob = {
   name: 'Merge suggestions',
   // every hour
-  cronTime: '0 * * * *',
+  cronTime: cronGenerator.every(12).hours(),
   onTrigger: async () => {
     const tenants = await TenantService._findAndCountAllForEveryUser({})
     for (const tenant of tenants.rows) {
