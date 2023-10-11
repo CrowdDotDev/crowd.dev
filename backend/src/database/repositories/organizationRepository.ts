@@ -915,7 +915,7 @@ class OrganizationRepository {
     let idValues = ``
 
     for (let i = 0; i < ids.length; i++) {
-      idValues += `('${ids[i]}::uuid')`
+      idValues += `('${ids[i]}'::uuid)`
 
       if (i !== ids.length - 1) {
         idValues += ','

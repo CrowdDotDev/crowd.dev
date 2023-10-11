@@ -269,7 +269,10 @@ export default class OrganizationService extends LoggerBase {
             this.log.trace(`Finished going tru all suggestions!`)
           }
 
-          await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
+          if (mergeSuggestions.value && mergeSuggestions.value.length > 0) {
+            await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
+          }
+
         } while (!mergeSuggestions.done)
       }
       await SequelizeRepository.commitTransaction(transaction)
