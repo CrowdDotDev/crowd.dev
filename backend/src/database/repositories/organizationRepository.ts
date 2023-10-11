@@ -343,14 +343,20 @@ class OrganizationRepository {
         })
       }
     }
+
     // Using bulk insert to update on duplicate primary ID
-    const orgs = await options.database.organization.bulkCreate(data, {
-      fields: ['id', 'tenantId', ...fields],
-      updateOnDuplicate: fields,
-      returning: fields,
-      transaction,
-    })
-    return orgs
+    try {
+      const orgs = await options.database.organization.bulkCreate(data, {
+        fields: ['id', 'tenantId', ...fields],
+        updateOnDuplicate: fields,
+        returning: fields,
+        transaction,
+      })
+      return orgs
+    } catch (error) {
+      options.log.error('Error while bulk updating organizations!', error)
+      throw error
+    }
   }
 
   static async checkIdentities(
