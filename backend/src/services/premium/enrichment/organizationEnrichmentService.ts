@@ -203,9 +203,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       return records
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'organization')
-
+      this.log.error({ error }, 'Error updating organizations while enriching!')
       throw error
     }
   }
