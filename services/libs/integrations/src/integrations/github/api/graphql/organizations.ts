@@ -89,6 +89,7 @@ const getOrganizationWithTokenRotation = async (
   err: any,
   limiter?: Limiter,
 ): Promise<any> => {
+  let organization: string | null
   let token: string
   try {
     token = await tokenRotator.getToken(limiter.integrationId, err)
@@ -116,7 +117,7 @@ const getOrganizationWithTokenRotation = async (
       }`
 
     const process = async () => {
-      const organization = (await graphqlWithTokenRotation(organizationsQuery)) as any
+      organization = (await graphqlWithTokenRotation(organizationsQuery)) as any
 
       return (organization as any).search.nodes.length > 0
         ? (organization as any).search.nodes[0]
@@ -151,9 +152,6 @@ const getOrganizationWithTokenRotation = async (
       await tokenRotator.updateRateLimitInfoFromApi(token)
     }
     throw BaseQuery.processGraphQLError(err1)
-  } finally {
-    logger.info('Returning token in getOrganizationWithTokenRotation')
-    await tokenRotator.returnToken(token)
   }
 }
 

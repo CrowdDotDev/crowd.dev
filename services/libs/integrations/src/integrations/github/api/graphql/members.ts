@@ -95,7 +95,6 @@ const getMemberWithTokenRotation = async (
     }
 
     await tokenRotator.updateRateLimitInfoFromApi(token)
-    await tokenRotator.returnToken(token)
 
     return user
   } catch (err) {
@@ -115,8 +114,6 @@ const getMemberWithTokenRotation = async (
       await tokenRotator.updateRateLimitInfoFromApi(token)
     }
     throw BaseQuery.processGraphQLError(err)
-  } finally {
-    await tokenRotator.returnToken(token)
   }
 }
 

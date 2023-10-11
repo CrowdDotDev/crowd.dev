@@ -92,15 +92,6 @@ export class GithubTokenRotator {
     )
   }
 
-  public async returnToken(token: string): Promise<void> {
-    const tokenInfo: TokenInfo = JSON.parse(
-      (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
-    )
-    if (tokenInfo) {
-      await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
-    }
-  }
-
   public async updateTokenInfo(token: string, remaining: number, reset: number): Promise<void> {
     const tokenInfo: TokenInfo = JSON.parse(
       (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
@@ -129,32 +120,4 @@ export class GithubTokenRotator {
       await this.updateTokenInfo(token, remaining, reset)
     }
   }
-
-  //   public async apiRequest(
-  //     url: string,
-  //     method: 'get' | 'post' | 'put' | 'delete',
-  //     data?: any,
-  //   ): Promise<any> {
-  //     const token = await this.getToken()
-  //     if (!token) {
-  //       throw new Error('No available tokens')
-  //     }
-
-  //     try {
-  //       const response = await axios({
-  //         url,
-  //         method,
-  //         data,
-  //         headers: { Authorization: `token ${token}` },
-  //       })
-
-  //       const remaining = parseInt(response.headers['x-ratelimit-remaining'])
-  //       const reset = parseInt(response.headers['x-ratelimit-reset'])
-  //       await this.updateTokenInfo(token, remaining, reset)
-
-  //       return response.data
-  //     } finally {
-  //       await this.returnToken(token)
-  //     }
-  //   }
 }

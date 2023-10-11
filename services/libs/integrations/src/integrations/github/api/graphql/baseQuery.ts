@@ -162,7 +162,6 @@ class BaseQuery {
       })
       const result = await graphqlWithTokenRotation(paginatedQuery)
       await tokenRotator.updateRateLimitInfoFromApi(token)
-      await tokenRotator.returnToken(token)
       return this.getEventData(result)
     }
 
@@ -188,8 +187,6 @@ class BaseQuery {
         await tokenRotator.updateRateLimitInfoFromApi(token)
       }
       throw BaseQuery.processGraphQLError(err)
-    } finally {
-      await tokenRotator.returnToken(token)
     }
   }
 
