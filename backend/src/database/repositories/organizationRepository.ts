@@ -1313,6 +1313,8 @@ class OrganizationRepository {
             ],
           }
 
+          let hasFuzzySearch = false
+
           for (const identity of organization._source.nested_identities) {
             if (identity.string_name.length > 0) {
               // weak identity search
@@ -1335,6 +1337,7 @@ class OrganizationRepository {
 
               // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
               if (Number.isNaN(Number(identity.string_name))) {
+                hasFuzzySearch = true
                 // fuzzy search for identities
                 identitiesPartialQuery.should[1].nested.query.bool.should.push({
                   match: {
@@ -1358,6 +1361,11 @@ class OrganizationRepository {
                 }
               }
             }
+          }
+
+          // check if we have any actual identity searches, if not remove it from the query
+          if (!hasFuzzySearch) {
+            identitiesPartialQuery.should.pop()
           }
 
           if (
