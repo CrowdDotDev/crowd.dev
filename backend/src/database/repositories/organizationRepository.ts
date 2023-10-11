@@ -49,6 +49,11 @@ interface IOrganizationId {
   id: string
 }
 
+interface IOrganizationNoMerge {
+  organizationId: string
+  noMergeId: string
+}
+
 type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
@@ -947,6 +952,38 @@ class OrganizationRepository {
     }
   }
 
+  static async findNoMergeIds(id: string, options: IRepositoryOptions): Promise<string[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `select onm."organizationId", onm."noMergeId" from "organizationNoMerge" onm
+                  where onm."organizationId" = :id or onm."noMergeId" = :id;`
+
+    try {
+      const results: IOrganizationNoMerge[] = await seq.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: {
+          id,
+        },
+        transaction,
+      })
+
+      return Array.from(
+        results.reduce((acc, r) => {
+          if (id === r.organizationId) {
+            acc.add(r.noMergeId)
+          } else if (id === r.noMergeId) {
+            acc.add(r.organizationId)
+          }
+          return acc
+        }, new Set<string>()),
+      )
+    } catch (error) {
+      options.log.error('error while getting non existing organizations from db', error)
+      throw error
+    }
+  }
+
   static async addToMerge(
     suggestions: IOrganizationMergeSuggestion[],
     options: IRepositoryOptions,
@@ -1368,11 +1405,13 @@ class OrganizationRepository {
             identitiesPartialQuery.should.pop()
           }
 
-          if (
-            organization._source.uuid_arr_noMergeIds &&
-            organization._source.uuid_arr_noMergeIds.length > 0
-          ) {
-            for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
+          const noMergeIds = await OrganizationRepository.findNoMergeIds(
+            organization._source.uuid_organizationId,
+            options,
+          )
+
+          if (noMergeIds && noMergeIds.length > 0) {
+            for (const noMergeId of noMergeIds) {
               identitiesPartialQuery.must_not.push({
                 term: {
                   uuid_organizationId: noMergeId,
