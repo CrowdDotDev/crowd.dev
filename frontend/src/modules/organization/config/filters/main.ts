@@ -17,8 +17,10 @@ import annualEmployeeGrowthRate from './annualEmployeeGrowthRate/config';
 import employeeCount from './employeeCount/config';
 import tags from './tags/config';
 import type from './type/config';
+import organizations from './organizations/config';
 
 export const organizationFilters: Record<string, FilterConfig> = {
+  organizations,
   noOfActivities,
   noOfMembers,
   activeOn,

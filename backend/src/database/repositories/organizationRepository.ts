@@ -45,6 +45,15 @@ interface IOrganizationIdOpensearch {
   }
 }
 
+interface IOrganizationId {
+  id: string
+}
+
+interface IOrganizationNoMerge {
+  organizationId: string
+  noMergeId: string
+}
+
 type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
@@ -904,6 +913,77 @@ class OrganizationRepository {
     }
   }
 
+  static async findNonExistingIds(ids: string[], options: IRepositoryOptions): Promise<string[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    let idValues = ``
+
+    for (let i = 0; i < ids.length; i++) {
+      idValues += `('${ids[i]}'::uuid)`
+
+      if (i !== ids.length - 1) {
+        idValues += ','
+      }
+    }
+
+    const query = `WITH id_list (id) AS (
+      VALUES
+          ${idValues}
+        )
+        SELECT id
+        FROM id_list
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM organizations o
+            WHERE o.id = id_list.id
+        );`
+
+    try {
+      const results: IOrganizationId[] = await seq.query(query, {
+        type: QueryTypes.SELECT,
+        transaction,
+      })
+
+      return results.map((r) => r.id)
+    } catch (error) {
+      options.log.error('error while getting non existing organizations from db', error)
+      throw error
+    }
+  }
+
+  static async findNoMergeIds(id: string, options: IRepositoryOptions): Promise<string[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `select onm."organizationId", onm."noMergeId" from "organizationNoMerge" onm
+                  where onm."organizationId" = :id or onm."noMergeId" = :id;`
+
+    try {
+      const results: IOrganizationNoMerge[] = await seq.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: {
+          id,
+        },
+        transaction,
+      })
+
+      return Array.from(
+        results.reduce((acc, r) => {
+          if (id === r.organizationId) {
+            acc.add(r.noMergeId)
+          } else if (id === r.noMergeId) {
+            acc.add(r.organizationId)
+          }
+          return acc
+        }, new Set<string>()),
+      )
+    } catch (error) {
+      options.log.error('error while getting non existing organizations from db', error)
+      throw error
+    }
+  }
+
   static async addToMerge(
     suggestions: IOrganizationMergeSuggestion[],
     options: IRepositoryOptions,
@@ -914,6 +994,27 @@ class OrganizationRepository {
     // Remove possible duplicates
     suggestions = lodash.uniqWith(suggestions, (a, b) =>
       lodash.isEqual(lodash.sortBy(a.organizations), lodash.sortBy(b.organizations)),
+    )
+
+    // check all suggestion ids exists in the db
+    const uniqueOrganizationIds = Array.from(
+      suggestions.reduce((acc, suggestion) => {
+        acc.add(suggestion.organizations[0])
+        acc.add(suggestion.organizations[1])
+        return acc
+      }, new Set<string>()),
+    )
+
+    // filter non existing org ids from suggestions
+    const nonExistingIds = await OrganizationRepository.findNonExistingIds(
+      uniqueOrganizationIds,
+      options,
+    )
+
+    suggestions = suggestions.filter(
+      (s) =>
+        !nonExistingIds.includes(s.organizations[0]) &&
+        !nonExistingIds.includes(s.organizations[1]),
     )
 
     // Process suggestions in chunks of 100 or less
@@ -1052,10 +1153,6 @@ class OrganizationRepository {
         return 6
       }
 
-      if (string.length > 8 && string.length < 12) {
-        return 9
-      }
-
       return 10
     }
 
@@ -1065,10 +1162,22 @@ class OrganizationRepository {
       }
 
       if (max === min) {
-        return (70 + Math.floor(Math.random() * 26) - 10) / 100
+        return (40 + Math.floor(Math.random() * 26) - 10) / 100
       }
 
-      return (score - min) / (max - min)
+      const normalizedScore = (score - min) / (max - min)
+
+      // randomize the cases where score === max and score === min
+      if (normalizedScore === 1) {
+        return Math.floor(Math.random() * (76 - 50) + 50) / 100
+      }
+
+      // normalization is resolved to 0, randomize it
+      if (normalizedScore === 0) {
+        return Math.floor(Math.random() * (41 - 20) + 20) / 100
+      }
+
+      return normalizedScore
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -1095,6 +1204,25 @@ class OrganizationRepository {
           bool: {
             filter: [
               {
+                bool: {
+                  should: [
+                    {
+                      range: {
+                        int_activityCount: {
+                          gt: 0,
+                        },
+                      },
+                    },
+                    {
+                      term: {
+                        bool_manuallyCreated: true,
+                      },
+                    },
+                  ],
+                  minimum_should_match: 1,
+                },
+              },
+              {
                 term: {
                   uuid_tenantId: tenant.id,
                 },
@@ -1113,6 +1241,25 @@ class OrganizationRepository {
         queryBody.query = {
           bool: {
             filter: [
+              {
+                bool: {
+                  should: [
+                    {
+                      range: {
+                        int_activityCount: {
+                          gt: 0,
+                        },
+                      },
+                    },
+                    {
+                      term: {
+                        bool_manuallyCreated: true,
+                      },
+                    },
+                  ],
+                  minimum_should_match: 1,
+                },
+              },
               {
                 term: {
                   uuid_tenantId: tenant.id,
@@ -1181,8 +1328,29 @@ class OrganizationRepository {
                   uuid_tenantId: tenant.id,
                 },
               },
+              {
+                bool: {
+                  should: [
+                    {
+                      range: {
+                        int_activityCount: {
+                          gt: 0,
+                        },
+                      },
+                    },
+                    {
+                      term: {
+                        bool_manuallyCreated: true,
+                      },
+                    },
+                  ],
+                  minimum_should_match: 1,
+                },
+              },
             ],
           }
+
+          let hasFuzzySearch = false
 
           for (const identity of organization._source.nested_identities) {
             if (identity.string_name.length > 0) {
@@ -1190,7 +1358,7 @@ class OrganizationRepository {
               identitiesPartialQuery.should[0].nested.query.bool.should.push({
                 bool: {
                   must: [
-                    { match: { [`nested_weakIdentities.string_name`]: identity.string_name } },
+                    { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
                     {
                       match: {
                         [`nested_weakIdentities.string_platform`]: identity.string_platform,
@@ -1204,44 +1372,46 @@ class OrganizationRepository {
               // remove these when making fuzzy, wildcard and prefix searches
               const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
 
-              // fuzzy search for identities
-              identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                match: {
-                  [`nested_identities.string_name`]: {
-                    query: cleanedIdentityName,
-                    prefix_length: 1,
-                    fuzziness: 'auto',
-                  },
-                },
-              })
-
-              // wildcard search for identities
-              identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                wildcard: {
-                  [`nested_identities.string_name`]: {
-                    value: `${cleanedIdentityName}*`,
-                  },
-                },
-              })
-
-              // also check for prefix for identities that has more than 5 characters
-              if (identity.string_name.length > 5) {
+              // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
+              if (Number.isNaN(Number(identity.string_name))) {
+                hasFuzzySearch = true
+                // fuzzy search for identities
                 identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                  prefix: {
-                    [`nested_identities.string_name`]: {
-                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                  match: {
+                    [`nested_identities.keyword_name`]: {
+                      query: cleanedIdentityName,
+                      prefix_length: 1,
+                      fuzziness: 'auto',
                     },
                   },
                 })
+
+                // also check for prefix for identities that has more than 5 characters and no whitespace
+                if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
+                  identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                    prefix: {
+                      [`nested_identities.keyword_name`]: {
+                        value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                      },
+                    },
+                  })
+                }
               }
             }
           }
 
-          if (
-            organization._source.uuid_arr_noMergeIds &&
-            organization._source.uuid_arr_noMergeIds.length > 0
-          ) {
-            for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
+          // check if we have any actual identity searches, if not remove it from the query
+          if (!hasFuzzySearch) {
+            identitiesPartialQuery.should.pop()
+          }
+
+          const noMergeIds = await OrganizationRepository.findNoMergeIds(
+            organization._source.uuid_organizationId,
+            options,
+          )
+
+          if (noMergeIds && noMergeIds.length > 0) {
+            for (const noMergeId of noMergeIds) {
               identitiesPartialQuery.must_not.push({
                 term: {
                   uuid_organizationId: noMergeId,
@@ -1332,9 +1502,10 @@ class OrganizationRepository {
         JOIN "organizationSegments" os ON os."organizationId" = org.id
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
+        ORDER BY Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))), org.id
       ) AS "organizationsToMerge" 
     ORDER BY 
-      "organizationsToMerge"."similarity" DESC 
+      "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id 
     LIMIT :limit OFFSET :offset
     `,
       {
