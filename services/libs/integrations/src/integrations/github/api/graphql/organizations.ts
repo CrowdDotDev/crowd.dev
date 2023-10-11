@@ -92,6 +92,7 @@ const getOrganizationWithTokenRotation = async (
   let token: string
   try {
     token = await tokenRotator.getToken(limiter.integrationId, err)
+    logger.info('Got token from token rotator in getOrganizationWithTokenRotation')
     const graphqlWithTokenRotation = graphql.defaults({
       headers: {
         authorization: `token ${token}`,
@@ -132,22 +133,26 @@ const getOrganizationWithTokenRotation = async (
     } else {
       return await process()
     }
-  } catch (err) {
-    if (err.errors && err.errors[0].type === 'NOT_FOUND') {
+  } catch (err1) {
+    if (err1.errors && err1.errors[0].type === 'NOT_FOUND') {
+      logger.info('Organization not found in getOrganizationWithTokenRotation')
       return null
     } else if (
-      err.headers &&
-      err.headers['x-ratelimit-remaining'] &&
-      err.headers['x-ratelimit-reset']
+      err1.headers &&
+      err1.headers['x-ratelimit-remaining'] &&
+      err1.headers['x-ratelimit-reset']
     ) {
-      const remaining = parseInt(err.headers['x-ratelimit-remaining'])
-      const reset = parseInt(err.headers['x-ratelimit-reset'])
+      logger.info('Rate limit error detected in getOrganizationWithTokenRotation')
+      const remaining = parseInt(err1.headers['x-ratelimit-remaining'])
+      const reset = parseInt(err1.headers['x-ratelimit-reset'])
       await tokenRotator.updateTokenInfo(token, remaining, reset)
     } else {
+      logger.info('Other error detected in getOrganizationWithTokenRotation')
       await tokenRotator.updateRateLimitInfoFromApi(token)
     }
-    throw BaseQuery.processGraphQLError(err)
+    throw BaseQuery.processGraphQLError(err1)
   } finally {
+    logger.info('Returning token in getOrganizationWithTokenRotation')
     await tokenRotator.returnToken(token)
   }
 }
