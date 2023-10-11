@@ -182,6 +182,8 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         }
       }
 
+      this.log.info({ orgs: unmergedOrgs }, 'Updating organizations')
+
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
       const records = await OrganizationRepository.bulkUpdate(
