@@ -45,6 +45,10 @@ interface IOrganizationIdOpensearch {
   }
 }
 
+interface IOrganizationId {
+  id: string
+}
+
 type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
@@ -904,6 +908,45 @@ class OrganizationRepository {
     }
   }
 
+  static async findNonExistingIds(ids: string[], options: IRepositoryOptions): Promise<string[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    let idValues = ``
+
+    for (let i = 0; i < ids.length; i++) {
+      idValues += `('${ids[i]}::uuid')`
+
+      if (i !== ids.length - 1) {
+        idValues += ','
+      }
+    }
+
+    const query = `WITH id_list (id) AS (
+      VALUES
+          ${idValues}
+        )
+        SELECT id
+        FROM id_list
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM organizations o
+            WHERE o.id = id_list.id
+        );`
+
+    try {
+      const results: IOrganizationId[] = await seq.query(query, {
+        type: QueryTypes.SELECT,
+        transaction,
+      })
+
+      return results.map((r) => r.id)
+    } catch (error) {
+      options.log.error('error adding organizations to merge', error)
+      throw error
+    }
+  }
+
   static async addToMerge(
     suggestions: IOrganizationMergeSuggestion[],
     options: IRepositoryOptions,
@@ -914,6 +957,27 @@ class OrganizationRepository {
     // Remove possible duplicates
     suggestions = lodash.uniqWith(suggestions, (a, b) =>
       lodash.isEqual(lodash.sortBy(a.organizations), lodash.sortBy(b.organizations)),
+    )
+
+    // check all suggestion ids exists in the db
+    const uniqueOrganizationIds = Array.from(
+      suggestions.reduce((acc, suggestion) => {
+        acc.add(suggestion.organizations[0])
+        acc.add(suggestion.organizations[1])
+        return acc
+      }, new Set<string>()),
+    )
+
+    // filter non existing org ids from suggestions
+    const nonExistingIds = await OrganizationRepository.findNonExistingIds(
+      uniqueOrganizationIds,
+      options,
+    )
+
+    suggestions = suggestions.filter(
+      (s) =>
+        !nonExistingIds.includes(s.organizations[0]) &&
+        !nonExistingIds.includes(s.organizations[1]),
     )
 
     // Process suggestions in chunks of 100 or less
