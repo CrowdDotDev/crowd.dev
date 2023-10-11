@@ -149,7 +149,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
     try {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      const unmergedOrgs: IOrganization[] = []
+      let unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -182,7 +182,22 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         }
       }
 
-      this.log.info({ orgs: unmergedOrgs }, 'Updating organizations')
+      // Check if two or more orgs in the umergedOrgs list have same website
+      const duplicateOrgs = []
+      const uniqueWebsites = new Set()
+
+      for (const org of unmergedOrgs) {
+        if (uniqueWebsites.has(org.website)) {
+          duplicateOrgs.push(org)
+        } else {
+          uniqueWebsites.add(org.website)
+        }
+      }
+
+      // Remove duplicate organizations from unmergedOrgs
+      unmergedOrgs = unmergedOrgs.filter((org) => !duplicateOrgs.includes(org))
+
+      this.log.info('Duplicate organizations found in enriched list:', duplicateOrgs)
 
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
