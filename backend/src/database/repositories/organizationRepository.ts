@@ -1914,6 +1914,7 @@ class OrganizationRepository {
           join activities a
                     on a."segmentId" = ls.id and a."organizationId" = :id and
                       a."deletedAt" is null
+          join "organizationSegments" os on a."segmentId" = os."segmentId" and os."organizationId" = :id
           join members m on a."memberId" = m.id and m."deletedAt" is null
           join "memberOrganizations" mo on m.id = mo."memberId" and mo."organizationId" = :id and mo."dateEnd" is null
     group by a."organizationId"),
