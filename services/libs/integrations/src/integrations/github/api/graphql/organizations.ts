@@ -70,8 +70,10 @@ const getOrganization = async (
       (err.errors && err.errors[0].type === 'RATE_LIMITED') ||
       err?.message?.toLowerCase().includes('rate limit exceeded')
     ) {
+      logger.info('Rate limit error detected in getOrganization')
       // this is rate limit, let's try token rotation
       if (tokenRotator && limiter) {
+        logger.info('Trying token rotation in getOrganization')
         organization = await getOrganizationWithTokenRotation(name, tokenRotator, err, limiter)
       }
     } else {
@@ -87,8 +89,9 @@ const getOrganizationWithTokenRotation = async (
   err: any,
   limiter?: Limiter,
 ): Promise<any> => {
-  const token = await tokenRotator.getToken(limiter.integrationId, err)
+  let token: string
   try {
+    token = await tokenRotator.getToken(limiter.integrationId, err)
     const graphqlWithTokenRotation = graphql.defaults({
       headers: {
         authorization: `token ${token}`,

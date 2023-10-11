@@ -1,6 +1,9 @@
 import { ICache } from '@crowd/types'
 import axios from 'axios'
 import { RateLimitError } from '@crowd/types'
+import { getServiceChildLogger } from '@crowd/logging'
+
+const logger = getServiceChildLogger('github.tokenRotator')
 
 interface TokenInfo {
   token: string
@@ -49,8 +52,14 @@ export class GithubTokenRotator {
 
     if (!highPrioiryIntegrations.includes(integrationId)) {
       if (err) {
+        logger.info(err, { integrationId }, 'Low priority integration, throwing original error')
         throw err
       } else {
+        logger.info(
+          err,
+          { integrationId },
+          'Low priority integration, throwing no avaliable tokens error',
+        )
         throw new Error('No available tokens for low priority integration')
       }
     }
