@@ -1193,12 +1193,17 @@ class OrganizationRepository {
             }
           }
 
-          for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
-            identitiesPartialQuery.must_not.push({
-              term: {
-                uuid_organizationId: noMergeId,
-              },
-            })
+          if (
+            organization._source.uuid_arr_noMergeIds &&
+            organization._source.uuid_arr_noMergeIds.length > 0
+          ) {
+            for (const noMergeId of organization._source.uuid_arr_noMergeIds) {
+              identitiesPartialQuery.must_not.push({
+                term: {
+                  uuid_organizationId: noMergeId,
+                },
+              })
+            }
           }
 
           const sameOrganizationsQueryBody = {

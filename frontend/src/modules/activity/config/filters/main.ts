@@ -7,12 +7,14 @@ import member from './member/config';
 import platform from './platform/config';
 import sentiment from './sentiment/config';
 import projects from './projects/config';
+import organizations from './organizations/config';
 
 export const activityFilters: Record<string, FilterConfig> = {
   activityType,
   channel,
   date,
   member,
+  organizations,
   platform,
   sentiment,
   projects,
