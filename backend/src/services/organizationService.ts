@@ -260,13 +260,13 @@ export default class OrganizationService extends LoggerBase {
 
           if (mergeSuggestions.value) {
             this.log.info(
-              `ORG_MERGE_SUGGESTIONS: Tenant: ${this.options.currentTenant.id}, adding ${mergeSuggestions.value.length} organizations to suggestions!`,
+              `[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id}, adding ${mergeSuggestions.value.length} organizations to suggestions!`,
             )
             hasSuggestions = true
           } else if (!hasSuggestions) {
-            this.log.info(`ORG_MERGE_SUGGESTIONS: Tenant: ${this.options.currentTenant.id} doesn't have any merge suggestions`)
+            this.log.info(`[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id} doesn't have any merge suggestions`)
           } else {
-            this.log.info(`ORG_MERGE_SUGGESTIONS: Tenant: ${this.options.currentTenant.id} Finished going tru all suggestions!`)
+            this.log.info(`[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id} Finished going tru all suggestions!`)
           }
 
           if (mergeSuggestions.value && mergeSuggestions.value.length > 0) {
