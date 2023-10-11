@@ -18,8 +18,7 @@ const job: CrowdJob = {
         service: 'merge-suggestions',
       } as NodeWorkerMessageBase)
 
-      // Wait 1 second between messages to potentially reduce spike load on cube between each tenant runs
-      await timeout(1000)
+      await timeout(300)
     }
   },
 }
