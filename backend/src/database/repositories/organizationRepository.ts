@@ -942,7 +942,7 @@ class OrganizationRepository {
 
       return results.map((r) => r.id)
     } catch (error) {
-      options.log.error('error adding organizations to merge', error)
+      options.log.error('error while getting non existing organizations from db', error)
       throw error
     }
   }
