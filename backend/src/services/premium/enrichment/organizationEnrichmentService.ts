@@ -167,8 +167,13 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         delete org.identities
 
         // Check for an organization with the same website exists
-        const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
-        const orgService = new OrganizationService({ ...this.options, transaction })
+        let existingOrg
+        let orgService
+
+        if (org.website) {
+          existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          orgService = new OrganizationService({ ...this.options, transaction })
+        }
 
         if (existingOrg && existingOrg.id !== org.id) {
           await orgService.merge(existingOrg.id, org.id)
