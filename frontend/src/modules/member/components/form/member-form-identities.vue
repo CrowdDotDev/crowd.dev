@@ -65,7 +65,7 @@
                     onInputChange(newValue, key, value, ii)
                   "
                 >
-                  <template #prepend>
+                  <template v-if="value.urlPrefix" #prepend>
                     <span>{{ value.urlPrefix }}</span>
                     <span class="text-red-500">*</span>
                   </template>
@@ -234,6 +234,14 @@ const identitiesForm = reactive({
     urlPrefix: 'news.ycombinator.com/user?id=',
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base btn--hackernews',
+  },
+  git: {
+    enabled:
+      props.modelValue.username?.git !== undefined
+      || false,
+    urlPrefix: '',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--git',
   },
   stackoverflow: {
     enabled:
