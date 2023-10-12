@@ -259,17 +259,23 @@ export default class OrganizationService extends LoggerBase {
           mergeSuggestions = await generator.next()
 
           if (mergeSuggestions.value) {
-            this.log.trace(
-              `Tenant: ${this.options.currentTenant.id}, adding ${mergeSuggestions.value.length} organizations to suggestions!`,
+            this.log.info(
+              `[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id}, adding ${mergeSuggestions.value.length} organizations to suggestions!`,
             )
             hasSuggestions = true
           } else if (!hasSuggestions) {
-            this.log.trace(`Tenant doesn't have any merge suggestions`)
+            this.log.info(
+              `[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id} doesn't have any merge suggestions`,
+            )
           } else {
-            this.log.trace(`Finished going tru all suggestions!`)
+            this.log.info(
+              `[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id} Finished going tru all suggestions!`,
+            )
           }
 
-          await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
+          if (mergeSuggestions.value && mergeSuggestions.value.length > 0) {
+            await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
+          }
         } while (!mergeSuggestions.done)
       }
       await SequelizeRepository.commitTransaction(transaction)
