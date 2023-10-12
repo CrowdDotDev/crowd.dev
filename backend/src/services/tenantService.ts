@@ -25,6 +25,8 @@ import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
 import { SegmentData, SegmentStatus } from '../types/segmentTypes'
 import SegmentService from './segmentService'
+import { defaultCustomViews } from '@/types/customView'
+import CustomViewRepository from '@/database/repositories/customViewRepository'
 
 export default class TenantService {
   options: IServiceOptions
@@ -290,6 +292,17 @@ export default class TenantService {
         transaction,
         currentTenant: record,
       })
+
+      // create default custom views
+      for (const entity of Object.values(defaultCustomViews)) {
+        for (const customView of entity) {
+          await CustomViewRepository.create(customView, {
+            ...this.options,
+            transaction,
+            currentTenant: record,
+          })
+        }
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
 
