@@ -23,9 +23,7 @@
 </template>
 
 <script setup>
-import { defineProps, reactive, watch } from 'vue';
-import debounce from 'lodash/debounce';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { defineProps, reactive } from 'vue';
 import { FormSchema } from '@/shared/form/form-schema';
 import { ReportModel } from '@/modules/report/report-model';
 import ReportGridLayout from './report-grid-layout.vue';
@@ -49,19 +47,6 @@ const rules = formSchema.rules();
 const model = reactive(
   JSON.parse(JSON.stringify(props.record)),
 );
-
-const { doUpdate } = mapActions('report');
-
-const debouncedChange = debounce(async () => {
-  await doUpdate({
-    id: props.record && props.record.id,
-    values: formSchema.cast(model),
-  });
-}, 1000);
-
-watch(model, () => {
-  debouncedChange();
-});
 </script>
 
 <script>

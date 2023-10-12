@@ -1,9 +1,7 @@
 <template>
   <div
     class="report-grid-layout flex-grow"
-    :class="
-      editable ? 'report-grid-layout--editing' : '-m-2'
-    "
+    :class="editable ? 'report-grid-layout--editing' : '-m-2'"
   >
     <app-widget-cube-builder
       v-if="widgetDrawer.visible === true"
@@ -12,30 +10,21 @@
       :action="widgetDrawer.action"
       @submit="handleWidgetFormSubmit"
     />
-    <div
-      v-if="loadingCube"
-      v-loading="loadingCube"
-      class="app-page-spinner"
-    />
+    <div v-if="loadingCube" v-loading="loadingCube" class="app-page-spinner" />
     <div v-else>
       <div
-        v-if="
-          (!model.widgets || model.widgets.length === 0)
-            && !isPublicView
-        "
+        v-if="!layout.widgets?.length && !isPublicView"
         class="text-black flex flex-col items-center justify-center rounded border border-dashed border-gray-200 p-12 mx-4 my-8"
       >
-        <i
-          class="ri-bar-chart-line ri-6x text-gray-200"
-        />
+        <i class="ri-bar-chart-line ri-6x text-gray-200" />
         <div class="font-semibold mt-8 mb-4">
           Add your first widget
         </div>
         <div class="text-sm text-gray-600">
           {{
             editable
-              ? 'Build a custom widget and start composing your report'
-              : 'Edit your report and compose your first custom widget'
+              ? "Build a custom widget and start composing your report"
+              : "Edit your report and compose your first custom widget"
           }}
         </div>
         <el-button
@@ -57,20 +46,19 @@
           Edit report
         </router-link>
       </div>
-      <div v-else>
+      <div v-else class="h-fit">
         <grid-layout
-          v-model:layout="layout"
+          v-model:layout="layout.widgets"
           :col-num="12"
           :row-height="8"
           :is-draggable="editable"
           :is-resizable="editable"
-          :is-mirrored="false"
-          :vertical-compact="true"
           :margin="[16, 22]"
-          :use-css-transforms="true"
+          :use-css-transforms="false"
+          @layout-updated="layoutUpdatedEvent"
         >
           <grid-item
-            v-for="item in layout"
+            v-for="item in layout.widgets"
             :key="item.i"
             class="pb-8"
             :x="item.x"
@@ -78,36 +66,22 @@
             :w="item.w"
             :h="item.h"
             :i="item.i"
-            @drop="
-              (i, newX, newY) =>
-                handleWidgetMove(
-                  widgets[item.i],
-                  newX,
-                  newY,
-                )
-            "
-            @resize="
-              (i, newH, newW) =>
-                handleWidgetResize(
-                  widgets[item.i],
-                  newH,
-                  newW,
-                )
-            "
+            @moved="movedEvent"
+            @move="isMoving = true"
+            @resized="resizedEvent"
           >
             <app-widget-cube-renderer
+              :show="!isMoving"
               class="panel"
               :editable="editable"
-              :widget="widgets[item.i]"
+              :widget="item"
               :chart-options="{
-                ...widgets[item.i],
+                ...item,
                 title: undefined,
               }"
-              @edit="handleWidgetEdit(widgets[item.i])"
-              @duplicate="
-                handleWidgetDuplicate(widgets[item.i])
-              "
-              @delete="handleWidgetDelete(widgets[item.i])"
+              @edit="handleWidgetEdit(item)"
+              @duplicate="handleWidgetDuplicate(item)"
+              @delete="handleWidgetDelete(item)"
             />
           </grid-item>
         </grid-layout>
@@ -118,8 +92,7 @@
             @click="handleAddWidgetClick"
           >
             <span class="flex items-center text-brand-500">
-              <i class="ri-lg ri-add-line mr-1" />Add
-              Widget
+              <i class="ri-lg ri-add-line mr-1" />Add Widget
             </span>
           </button>
         </div>
@@ -128,216 +101,218 @@
   </div>
 </template>
 
-<script>
-import { mapGetters, mapActions } from 'vuex';
+<script setup>
 import { WidgetService } from '@/modules/widget/widget-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer.vue';
-import WidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder.vue';
+import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer.vue';
+import AppWidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder.vue';
+import {
+  reactive, computed, onMounted, ref,
+} from 'vue';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 
-export default {
-  name: 'ReportGridLayout',
-  components: {
-    'app-widget-cube-builder': WidgetCubeBuilder,
-    'app-widget-cube-renderer': WidgetCubeRenderer,
+const props = defineProps({
+  modelValue: {
+    type: Object,
+    default: () => {},
   },
-  props: {
-    modelValue: {
-      type: Object,
-      default: () => {},
-    },
-    editable: {
-      type: Boolean,
-      default: false,
-    },
-    isPublicView: {
-      type: Boolean,
-      default: false,
-    },
+  editable: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['close'],
-
-  data() {
-    return {
-      model: { ...this.modelValue },
-      widgetDrawer: {
-        visible: false,
-        action: null,
-        model: {},
-      },
-      layout: [],
-    };
+  isPublicView: {
+    type: Boolean,
+    default: false,
   },
+});
 
-  computed: {
-    ...mapGetters({
-      cubejsToken: 'widget/cubejsToken',
-      cubejsApi: 'widget/cubejsApi',
-    }),
-    loadingCube() {
-      return this.cubejsToken === null;
+const isMoving = ref(false);
+const model = reactive({ ...props.modelValue });
+const layout = reactive({ widgets: [] });
+const widgetDrawer = reactive({
+  visible: false,
+  action: null,
+  model: {},
+});
+const layoutUpdatedEvent = () => {
+  isMoving.value = false;
+};
+const { cubejsToken, cubejsApi } = mapGetters('widget');
+const { getCubeToken } = mapActions('widget');
+const { doUpdate } = mapActions('report');
+
+const loadingCube = computed(() => cubejsToken.value === null);
+
+const resetWidgetDrawerForm = () => {
+  widgetDrawer.model = {
+    title: 'Untitled',
+    type: 'cubejs',
+    reportId: model.id,
+  };
+};
+
+const updateLayout = () => {
+  layout.widgets = model.widgets.map((w) => ({
+    ...w,
+    ...w.settings.layout,
+    i: w.id,
+  }));
+};
+
+onMounted(async () => {
+  if (cubejsApi.value === null) {
+    await getCubeToken();
+  }
+
+  resetWidgetDrawerForm();
+  updateLayout();
+});
+
+const updateReport = async () => {
+  await doUpdate({
+    id: model.id,
+    values: {
+      ...model,
+      widgets: model.widgets.map((w) => w.id),
     },
-    widgets() {
-      return this.model.widgets.reduce((acc, item) => {
-        const itemCopy = { ...item };
-        itemCopy.settings.layout.i = item.id;
-        acc[item.id] = itemCopy;
-        return acc;
-      }, {});
-    },
-  },
+  });
 
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken();
-    }
-    this.resetWidgetModel();
-    this.updateLayout();
-  },
+  updateLayout();
+};
 
-  methods: {
-    ...mapActions({
-      getCubeToken: 'widget/getCubeToken',
-    }),
-    handleAddWidgetClick() {
-      this.widgetDrawer = {
-        visible: true,
-        action: 'add',
-        model: JSON.parse(
-          JSON.stringify({
-            title: 'Untitled',
-            type: 'cubejs',
-            reportId: this.modelValue.id
-              ? this.modelValue.id
-              : undefined,
-            settings: {},
-          }),
-        ),
-      };
-    },
+const resizedEvent = async (i, newH, newW) => {
+  const widget = model.widgets.find((w) => w.id === i);
+  const widgetCopy = { ...widget };
 
-    createWidget(widgetModel, duplicate = false) {
-      const { length } = this.model.widgets;
-      const widget = { ...widgetModel };
-      widget.settings.layout = {
-        x: (length * 6) % 12,
-        y: length + 12, // puts it at the bottom
-        w: 6,
-        h:
-          widget.settings.chartType === 'number'
-            ? 6
-            : 21,
-      };
-      return WidgetService.create({
-        title: duplicate
-          ? `${widget.title} [Copy]`
-          : widget.title,
-        type: 'cubejs',
-        settings: widget.settings,
-        report: widget.reportId,
-      });
-    },
+  widgetCopy.settings.layout.h = newH;
+  widgetCopy.settings.layout.w = newW;
 
-    async handleWidgetFormSubmit(widgetModel) {
-      if (this.widgetDrawer.action === 'add') {
-        const widget = await this.createWidget(widgetModel);
-        this.model.widgets.push(widget);
-        this.resetWidgetModel();
-      } else {
-        const widget = await WidgetService.update(
-          widgetModel.id,
-          widgetModel,
-        );
-        const index = this.model.widgets.findIndex(
-          (w) => w.id === widget.id,
-        );
-        this.model.widgets[index] = widget;
-        this.resetWidgetModel();
-      }
+  await WidgetService.update(widgetCopy.id, widgetCopy);
+  await updateReport();
+};
 
-      this.updateLayout();
-    },
+const movedEvent = async (i, newX, newY) => {
+  const widget = model.widgets.find((w) => w.id === i);
+  const widgetCopy = { ...widget };
+  widgetCopy.settings.layout.x = newX;
+  widgetCopy.settings.layout.y = newY;
 
-    async handleWidgetDuplicate(widget) {
-      const result = await this.createWidget(widget, true);
-      this.model.widgets.push(result);
+  await WidgetService.update(widgetCopy.id, widgetCopy);
+  await updateReport();
+};
 
-      this.updateLayout();
-    },
-
-    async handleWidgetMove(widget, newX, newY) {
-      const widgetCopy = { ...widget };
-      widgetCopy.settings.layout.x = newX;
-      widgetCopy.settings.layout.y = newY;
-
-      await WidgetService.update(widgetCopy.id, widgetCopy);
-    },
-
-    async handleWidgetResize(widget, newH, newW) {
-      const widgetCopy = { ...widget };
-      widgetCopy.settings.layout.h = newH;
-      widgetCopy.settings.layout.w = newW;
-
-      await WidgetService.update(widgetCopy.id, widgetCopy);
-    },
-
-    async handleWidgetEdit(widget) {
-      this.widgetDrawer = {
-        action: 'edit',
-        model: JSON.parse(JSON.stringify(widget)),
-      };
-
-      setTimeout(() => {
-        this.widgetDrawer.visible = true;
-      }, 200);
-    },
-    async handleWidgetDelete(widget) {
-      try {
-        await ConfirmDialog({
-          type: 'danger',
-          title: 'Delete widget',
-          message:
-            "Are you sure you want to proceed? You can't undo this action",
-          confirmButtonText: 'Confirm',
-          cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line',
-        });
-
-        await WidgetService.destroyAll([widget.id]);
-        const index = this.model.widgets.findIndex(
-          (w) => w.id === widget.id,
-        );
-        this.model.widgets.splice(index, 1);
-        this.updateLayout();
-      } catch (error) {
-        // no
-      }
-    },
-    resetWidgetModel() {
-      this.widgetDrawer.model = {
+const handleAddWidgetClick = () => {
+  Object.assign(widgetDrawer, {
+    visible: true,
+    action: 'add',
+    model: JSON.parse(
+      JSON.stringify({
         title: 'Untitled',
         type: 'cubejs',
-        reportId: this.modelValue.id
-          ? this.modelValue.id
-          : undefined,
-      };
-    },
-    updateLayout() {
-      this.layout = this.model.widgets.map((w) => ({
-        ...w.settings.layout,
-        i: w.id,
-      }));
-      this.layout.forEach((widget) => {
-        this.widgets[widget.i].settings.layout = widget;
-      });
-    },
-  },
+        reportId: model.id,
+        settings: {},
+      }),
+    ),
+  });
+};
+
+const createWidget = (widgetModel, duplicate = false) => {
+  const { length } = model.widgets;
+  const widget = { ...widgetModel };
+  const bottomWidget = model.widgets.reduce((minWidget, currWidget) => (currWidget.settings.layout.y > minWidget.settings.layout.y
+    ? currWidget
+    : minWidget));
+
+  widget.settings.layout = {
+    x: (length * 6) % 12,
+    y: bottomWidget.settings.layout.y + bottomWidget.settings.layout.h, // puts it at the bottom
+    w: 6,
+    h: widget.settings.chartType === 'number' ? 6 : 21,
+  };
+
+  return WidgetService.create({
+    title: duplicate ? `${widget.title} [Copy]` : widget.title,
+    type: 'cubejs',
+    settings: widget.settings,
+    report: widget.reportId,
+  });
+};
+
+const handleWidgetFormSubmit = async (widgetModel) => {
+  if (widgetDrawer.action === 'add') {
+    const widget = await createWidget(widgetModel);
+    delete widget.report;
+
+    model.widgets.push(widget);
+
+    resetWidgetDrawerForm();
+  } else {
+    const widget = await WidgetService.update(widgetModel.id, widgetModel);
+    const index = model.widgets.findIndex((w) => w.id === widget.id);
+
+    model.widgets[index] = widget;
+    resetWidgetDrawerForm();
+  }
+
+  await updateReport();
+};
+
+const handleWidgetDuplicate = async (widget) => {
+  const result = await createWidget(widget, true);
+  delete result.report;
+
+  model.widgets.push(result);
+
+  await updateReport();
+};
+
+const handleWidgetEdit = (widget) => {
+  Object.assign(widgetDrawer, {
+    action: 'edit',
+    model: JSON.parse(JSON.stringify(widget)),
+  });
+
+  setTimeout(() => {
+    widgetDrawer.visible = true;
+  }, 200);
+};
+
+const handleWidgetDelete = async (widget) => {
+  try {
+    await ConfirmDialog({
+      type: 'danger',
+      title: 'Delete widget',
+      message: "Are you sure you want to proceed? You can't undo this action",
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      icon: 'ri-delete-bin-line',
+    });
+
+    await WidgetService.destroyAll([widget.id]);
+
+    const index = model.widgets.findIndex((w) => w.id === widget.id);
+
+    model.widgets.splice(index, 1);
+
+    await updateReport();
+  } catch (error) {
+    // no
+  }
 };
 </script>
 
 <style lang="scss">
+.vue-grid-item.vue-draggable-dragging { transition:none; z-index: 3; }
 .report-grid-layout {
   @apply min-h-40 relative;
+}
+.vue-grid-item {
+  transition: none;
+}
+.vue-grid-layout {
+  position: relative;
+  -webkit-transition: height 0.2s ease;
+  transition: height 0.2s ease;
 }
 .vue-grid-item > div {
   overflow-y: auto;
@@ -393,7 +368,8 @@ export default {
   top: 0;
   left: 0;
   padding: 0 8px 8px 0;
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><circle cx='5' cy='5' r='5' fill='#999999'/></svg>") no-repeat bottom right;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><circle cx='5' cy='5' r='5' fill='#999999'/></svg>")
+    no-repeat bottom right;
   background-origin: content-box;
   box-sizing: border-box;
   cursor: pointer;

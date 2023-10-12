@@ -2,6 +2,7 @@
   <div ref="widget" class="widget-cube">
     <app-widget-table
       v-if="chartType === 'table'"
+      :show="show"
       :config="{
         title: widget.title,
         subtitle: showSubtitle ? subtitle : null,
@@ -17,6 +18,7 @@
     />
     <app-widget-number
       v-else-if="chartType === 'number'"
+      :show="show"
       :config="{
         title: widget.title,
         subtitle: showSubtitle ? subtitle : null,
@@ -37,6 +39,7 @@
     <div v-else>
       <app-widget
         v-if="!widget.chartOnly"
+        :show="show"
         :config="{
           title: widget.title,
           subtitle: showSubtitle ? subtitle : null,
@@ -92,6 +95,10 @@ export default {
     'app-widget': Widget,
   },
   props: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
     widget: {
       type: Object,
       required: true,
