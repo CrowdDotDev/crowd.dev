@@ -8,6 +8,25 @@
             <h4>Organizations</h4>
           </div>
           <div class="flex items-center">
+            <router-link
+              class=" mr-4 "
+              :class="{ 'pointer-events-none': isEditLockedForSampleData }"
+              :to="{
+                name: 'organizationMergeSuggestions',
+                query: {
+                  projectGroup: selectedProjectGroup?.id,
+                },
+              }"
+            >
+              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--secondary btn--md flex items-center">
+                <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                <span class="text-gray-900">Merge suggestions</span>
+                <span
+                  v-if="organizationsToMergeCount > 0"
+                  class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                >{{ Math.ceil(organizationsToMergeCount) }}</span>
+              </button>
+            </router-link>
             <el-button
               v-if="hasPermissionToCreate"
               class="btn btn--primary btn--md"
@@ -78,6 +97,7 @@ import { organizationFilters, organizationSearchFilter } from '@/modules/organiz
 import { organizationSavedViews, organizationViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationPermissions } from '../organization-permissions';
 
 const router = useRouter();
@@ -93,6 +113,9 @@ const organizationCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
 const organizationFilter = ref<CrFilter | null>(null);
+const lsSegmentsStore = useLfSegmentsStore();
+
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const hasPermissionToCreate = computed(
   () => new OrganizationPermissions(
@@ -105,6 +128,13 @@ const isCreateLockedForSampleData = computed(
     currentTenant.value,
     currentUser.value,
   ).createLockedForSampleData,
+);
+
+const isEditLockedForSampleData = computed(
+  () => new OrganizationPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).editLockedForSampleData,
 );
 
 const pagination = ref({
@@ -166,8 +196,17 @@ const onPaginationChange = ({
   });
 };
 
+const organizationsToMergeCount = ref(0);
+const fetchOrganizationsToMergeCount = () => {
+  OrganizationService.fetchMergeSuggestions(1, 0)
+    .then(({ count }: any) => {
+      organizationsToMergeCount.value = count;
+    });
+};
+
 onMounted(async () => {
   doGetOrganizationCount();
+  fetchOrganizationsToMergeCount();
   (window as any).analytics.page('Organization');
 });
 
