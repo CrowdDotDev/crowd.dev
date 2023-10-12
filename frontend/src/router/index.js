@@ -16,6 +16,10 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
  * @type {[...*,{redirect: string, path: string}]}
  */
 const routes = [
+  {
+    path: '/',
+    redirect: '/auth/signin',
+  },
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
     .map((key) => modules[key].routes.map((r) => {
