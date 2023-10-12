@@ -48,6 +48,7 @@ export class GithubTokenRotator {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getToken(integrationId: string, err?: any): Promise<string | null> {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     let minResetTime = Infinity
