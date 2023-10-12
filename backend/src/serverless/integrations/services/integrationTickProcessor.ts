@@ -206,6 +206,8 @@ export class IntegrationTickProcessor extends LoggerBase {
                   integration.id,
                   false,
                 )
+              } else {
+                logger.info({ integrationId: integration.id }, 'Existing run found, skipping!')
               }
             }
           },
