@@ -3,7 +3,7 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { PlatformType } from '@crowd/types'
+import { IntegrationRunState, PlatformType } from '@crowd/types'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -33,7 +33,6 @@ import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
-import { IntegrationRunState } from '../types/integrationRunTypes'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,

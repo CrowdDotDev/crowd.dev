@@ -23,6 +23,7 @@
     "@aws-sdk/types": "^3.329.0",
     "@crowd/common": "file:../common",
     "@crowd/logging": "file:../logging",
+    "@crowd/tracing": "file:../tracing",
     "@crowd/types": "file:../types",
     "@smithy/util-retry": "^2.0.1"
   }

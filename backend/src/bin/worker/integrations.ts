@@ -4,7 +4,6 @@ import { REDIS_CONFIG } from '../../conf'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { IntegrationProcessor } from '../../serverless/integrations/services/integrationProcessor'
 import { IServiceOptions } from '../../services/IServiceOptions'
-import { NodeWorkerIntegrationCheckMessage } from '../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 
@@ -23,14 +22,6 @@ async function getIntegrationProcessor(logger: Logger): Promise<IntegrationProce
   integrationProcessorInstance = new IntegrationProcessor(options, redisEmitter)
 
   return integrationProcessorInstance
-}
-
-export const processIntegrationCheck = async (
-  msg: NodeWorkerIntegrationCheckMessage,
-  messageLogger: Logger,
-): Promise<void> => {
-  const processor = await getIntegrationProcessor(messageLogger)
-  await processor.processCheck(msg.integrationType)
 }
 
 export const processIntegration = async (
