@@ -18,7 +18,7 @@
                 },
               }"
             >
-              <button type="button" class="btn btn--bordered btn--md flex items-center">
+              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--secondary btn--md flex items-center">
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
@@ -198,7 +198,7 @@ const onPaginationChange = ({
 
 const organizationsToMergeCount = ref(0);
 const fetchOrganizationsToMergeCount = () => {
-  OrganizationService.fetchMergeSuggestions(1, 0, segments)
+  OrganizationService.fetchMergeSuggestions(1, 0)
     .then(({ count }: any) => {
       organizationsToMergeCount.value = count;
     });
