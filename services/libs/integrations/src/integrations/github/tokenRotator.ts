@@ -1,26 +1,12 @@
 import { ICache } from '@crowd/types'
 import axios from 'axios'
 import { RateLimitError } from '@crowd/types'
-import { getServiceChildLogger } from '@crowd/logging'
-
-const logger = getServiceChildLogger('github.tokenRotator')
 
 interface TokenInfo {
   token: string
   remaining: number
   reset: number
 }
-
-const highPriorityIntegrations = [
-  // // tiptap
-  '20147429-c1b7-4ff6-a19b-8306527e7ae3',
-  // // plane
-  'f2b2c42e-76aa-4b0f-a70c-ecc3745d4f15',
-  // // superset
-  // '2c6283c2-0a79-4d87-b62b-334a4876fe1c',
-  // // qdrant
-  // '2c79e053-2578-434f-92df-35b5e76a18a8',
-]
 
 export class GithubTokenRotator {
   static CACHE_KEY = 'integration-cache:github-token-rotator:tokens'
@@ -53,20 +39,6 @@ export class GithubTokenRotator {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     let minResetTime = Infinity
 
-    if (!highPriorityIntegrations.includes(integrationId)) {
-      if (err) {
-        logger.info(err, { integrationId }, 'Low priority integration, throwing original error')
-        throw err
-      } else {
-        logger.info(
-          err,
-          { integrationId },
-          'Low priority integration, throwing no avaliable tokens error',
-        )
-        throw new Error('No available tokens for low priority integration')
-      }
-    }
-
     for (const token in tokens) {
       const tokenInfo: TokenInfo = JSON.parse(tokens[token])
       if (tokenInfo.remaining > 0 || tokenInfo.reset < Math.floor(Date.now() / 1000)) {
@@ -88,11 +60,16 @@ export class GithubTokenRotator {
       })
     }
 
-    throw new RateLimitError(
-      waitTime + Math.floor(Math.random() * 120) + 60,
-      'token-rotator',
-      `No available tokens in GitHubTokenRotator. Please wait for ${waitTime} seconds`,
-    )
+    // no tokens available, throwing error
+    if (err) {
+      throw err
+    } else {
+      throw new RateLimitError(
+        waitTime,
+        'token-rotator',
+        `No tokens available for integration ${integrationId}, please try again later.`,
+      )
+    }
   }
 
   public async updateTokenInfo(token: string, remaining: number, reset: number): Promise<void> {
