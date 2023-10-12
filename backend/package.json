@@ -54,6 +54,7 @@
     "@crowd/common": "file:../services/libs/common",
     "@crowd/integrations": "file:../services/libs/integrations",
     "@crowd/logging": "file:../services/libs/logging",
+    "@crowd/tracing": "file:../services/libs/tracing",
     "@crowd/opensearch": "file:../services/libs/opensearch",
     "@crowd/redis": "file:../services/libs/redis",
     "@crowd/sqs": "file:../services/libs/sqs",

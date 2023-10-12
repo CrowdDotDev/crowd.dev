@@ -2,6 +2,7 @@ import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '../conf'
 import IntegrationStreamService from '../service/integrationStreamService'
 import { timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
+import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import {
@@ -15,6 +16,7 @@ import { IntegrationStreamState } from '@crowd/types'
 const BATCH_SIZE = 100
 const MAX_CONCURRENT = 3
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 async function processStream(
@@ -32,9 +34,9 @@ setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
 
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, log)
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
+  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
+  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, tracer, log)
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, tracer, log)
 
   await runWorkerEmiiter.init()
   await dataWorkerEmitter.init()
