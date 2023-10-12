@@ -25,6 +25,7 @@ function isGoingToIntegrationsPage(to) {
 export default async function ({
   to, from, store, router,
 }) {
+  console.log(from, to);
   if (!to.meta || !to.meta.auth) {
     return;
   }
