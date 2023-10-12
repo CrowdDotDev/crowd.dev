@@ -21,6 +21,7 @@ class CustomViewRepository {
 
         tenantId: tenant.id,
         createdById: currentUser.id,
+        updatedById: currentUser.id,
       },
       {
         transaction,
