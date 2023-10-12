@@ -338,7 +338,6 @@ export default class MemberEnrichmentService extends LoggerBase {
                 platform: PlatformType.ENRICHMENT,
               },
             ],
-            displayName: workExperience.company,
           })
 
           const dateEnd = workExperience.endDate

@@ -379,7 +379,6 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       data.displayName = identity ? identity.name : data.website
     }
 
-
     return lodash.pick(
       { ...data, lastEnrichedAt: new Date() },
       this.selectFieldsForEnrichment(instance),
