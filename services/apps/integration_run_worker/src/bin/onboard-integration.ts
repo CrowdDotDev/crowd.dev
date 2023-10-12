@@ -12,6 +12,7 @@ const log = getServiceLogger()
 const processArguments = process.argv.slice(2)
 
 const parameter = processArguments[0]
+const isOnboarding = processArguments[1] ? processArguments[1] === 'true' : true
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
@@ -44,13 +45,13 @@ setImmediate(async () => {
         continue
       }
 
-      log.info(`Triggering integration run for ${integrationId}!`)
+      log.info(`Triggering integration run for ${integrationId}, onboarding=${isOnboarding}!`)
 
       await emitter.triggerIntegrationRun(
         integration.tenantId,
         integration.type,
         integration.id,
-        true,
+        isOnboarding,
       )
     } else {
       log.error({ integrationId }, 'Integration not found!')
