@@ -5,12 +5,12 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
+import { IntegrationRunState } from '@crowd/types'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { getIntegrationRunWorkerEmitter } from '../../serverless/utils/serviceSQS'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { IntegrationRunState } from '../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 
 /* eslint-disable no-console */

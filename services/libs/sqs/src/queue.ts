@@ -18,15 +18,18 @@ import {
 } from './client'
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
 import { IQueueMessage, ISqsQueueEmitter } from '@crowd/types'
+import { Tracer } from '@crowd/tracing'
 
 export abstract class SqsQueueBase extends LoggerBase {
   private readonly queueName: string
   private queueUrl: string | undefined
   protected readonly isFifo: boolean
+  tracer: Tracer
 
   constructor(
     protected readonly sqsClient: SqsClient,
     public readonly queueConf: ISqsQueueConfig,
+    tracer: Tracer,
     parentLog: Logger,
   ) {
     super(parentLog, {
@@ -34,6 +37,7 @@ export abstract class SqsQueueBase extends LoggerBase {
       type: queueConf.type,
     })
 
+    this.tracer = tracer
     this.isFifo = queueConf.type === SqsQueueType.FIFO
 
     let env = ''
@@ -107,12 +111,13 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     sqsClient: SqsClient,
     queueConf: ISqsQueueConfig,
     private readonly maxConcurrentMessageProcessing: number,
+    tracer: Tracer,
     parentLog: Logger,
     private readonly deleteMessageImmediately = false,
     private readonly visibilityTimeoutSeconds?: number,
     private readonly receiveMessageCount?: number,
   ) {
-    super(sqsClient, queueConf, parentLog)
+    super(sqsClient, queueConf, tracer, parentLog)
   }
 
   private isAvailable(): boolean {
@@ -210,8 +215,8 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
 }
 
 export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueEmitter {
-  constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, parentLog: Logger) {
-    super(sqsClient, queueConf, parentLog)
+  constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, tracer: Tracer, parentLog: Logger) {
+    super(sqsClient, queueConf, tracer, parentLog)
   }
 
   public async sendMessage<T extends IQueueMessage>(

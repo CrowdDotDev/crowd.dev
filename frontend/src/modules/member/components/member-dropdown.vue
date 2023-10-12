@@ -32,13 +32,15 @@
           >
             <i
               class="ri-pencil-line text-base mr-2"
-            /><span class="text-xs">Edit member</span>
+            /><span class="text-xs">Edit contact</span>
           </el-dropdown-item>
         </router-link>
         <el-tooltip
           placement="top"
-          content="Member enrichment requires an associated GitHub profile or Email"
-          :disabled="!isEnrichmentDisabled"
+          :content="!isEnrichmentFeatureEnabled()
+            ? 'Upgrade your plan to increase your quota of available contact enrichments'
+            : 'Contact enrichment requires an associated GitHub profile or Email'"
+          :disabled="isEnrichmentDisabledForMember || isEnrichmentFeatureEnabled()"
           popper-class="max-w-[260px]"
         >
           <span>
@@ -48,10 +50,7 @@
                 member,
               }"
               class="h-10 mb-1"
-              :disabled="
-                isEnrichmentDisabled
-                  || isEditLockedForSampleData
-              "
+              :disabled="isEnrichmentActionDisabled"
             >
               <app-svg
                 name="enrichment"
@@ -61,12 +60,12 @@
               <span
                 class="ml-2 text-xs"
                 :class="{
-                  'text-gray-400': isEnrichmentDisabled,
+                  'text-gray-400': isEnrichmentDisabledForMember,
                 }"
               >{{
                 member.lastEnriched
-                  ? 'Re-enrich member'
-                  : 'Enrich member'
+                  ? 'Re-enrich contact'
+                  : 'Enrich contact'
               }}</span>
             </el-dropdown-item>
           </span>
@@ -81,38 +80,47 @@
         >
           <i class="ri-group-line text-base mr-2" /><span
             class="text-xs"
-          >Merge member</span>
+          >Merge contact</span>
         </el-dropdown-item>
 
         <!-- Hubspot -->
-        <el-dropdown-item
-          v-if="!isSyncingWithHubspot"
-          class="h-10"
-          :command="{
-            action: 'syncHubspot',
-            member: member,
-          }"
-          :disabled="!isHubspotConnected || member.emails.length === 0"
+        <el-tooltip
+          placement="top"
+          content="Upgrade your plan to create a 2-way sync with HubSpot"
+          :disabled="isHubspotFeatureEnabled"
+          popper-class="max-w-[260px]"
         >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Sync with HubSpot</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-else
-          class="h-10"
-          :command="{
-            action: 'stopSyncHubspot',
-            member: member,
-          }"
-          :disabled="!isHubspotConnected || member.emails.length === 0"
-        >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Stop sync with HubSpot</span>
-        </el-dropdown-item>
+          <span>
+            <el-dropdown-item
+              v-if="!isSyncingWithHubspot"
+              class="h-10"
+              :command="{
+                action: 'syncHubspot',
+                member: member,
+              }"
+              :disabled="isHubspotActionDisabled"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Sync with HubSpot</span>
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-else
+              class="h-10"
+              :command="{
+                action: 'stopSyncHubspot',
+                member: member,
+              }"
+              :disabled="isHubspotActionDisabled"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Stop sync with HubSpot</span>
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
 
         <el-dropdown-item
           v-if="!member.attributes.isTeamMember?.default"
@@ -126,7 +134,7 @@
         >
           <i
             class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs">Mark as team member</span>
+          /><span class="text-xs">Mark as team contact</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="member.attributes.isTeamMember?.default"
@@ -140,7 +148,7 @@
         >
           <i
             class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs">Unmark as team member</span>
+          /><span class="text-xs">Unmark as team contact</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="!member.attributes.isBot?.default"
@@ -187,7 +195,7 @@
             :class="{
               'text-red-500': !isDeleteLockedForSampleData,
             }"
-          >Delete member</span>
+          >Delete contact</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -206,6 +214,8 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
+import { isEnrichmentFeatureEnabled } from '@/modules/member/member-enrichment';
+import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 
 export default {
   name: 'AppMemberDropdown',
@@ -227,6 +237,7 @@ export default {
       pair: [],
     };
   },
+
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
@@ -238,12 +249,6 @@ export default {
           this.currentTenant,
           this.currentUser,
         ).edit === false
-      );
-    },
-    isEnrichmentDisabled() {
-      return (
-        !this.member.username?.github?.length
-        && !this.member.emails?.length
       );
     },
     isEditLockedForSampleData() {
@@ -258,6 +263,15 @@ export default {
         this.currentUser,
       ).destroyLockedForSampleData;
     },
+    isEnrichmentDisabledForMember() {
+      return (
+        !this.member.username?.github?.length
+            && !this.member.emails?.length
+      );
+    },
+    isEnrichmentActionDisabled() {
+      return this.isEnrichmentDisabledForMember || this.isEditLockedForSampleData || !this.isEnrichmentFeatureEnabled();
+    },
     isSyncingWithHubspot() {
       return this.member.attributes?.syncRemote?.hubspot || false;
     },
@@ -265,6 +279,17 @@ export default {
       const hubspot = CrowdIntegrations.getMappedConfig('hubspot', this.$store);
       const enabledFor = hubspot.settings?.enabledFor || [];
       return hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS);
+    },
+    isHubspotDisabledForMember() {
+      return props.member.emails.length === 0;
+    },
+    isHubspotFeatureEnabled() {
+      return FeatureFlag.isFlagEnabled(
+        FEATURE_FLAGS.hubspot,
+      );
+    },
+    isHubspotActionDisabled() {
+      return !this.isHubspotConnected || this.isHubspotDisabledForMember || !this.isHubspotFeatureEnabled;
     },
   },
   methods: {
@@ -278,7 +303,7 @@ export default {
       try {
         await ConfirmDialog({
           type: 'danger',
-          title: 'Delete member',
+          title: 'Delete contact',
           message:
             "Are you sure you want to proceed? You can't undo this action",
           confirmButtonText: 'Confirm',
@@ -309,9 +334,9 @@ export default {
               this.doFind(command.member.id);
             }
             if (sync) {
-              Message.success('Member is now syncing with HubSpot');
+              Message.success('Contact is now syncing with HubSpot');
             } else {
-              Message.success('Member syncing stopped');
+              Message.success('Contact syncing stopped');
             }
           })
           .catch(() => {
@@ -330,7 +355,7 @@ export default {
         });
         await this.fetchMembers({ reload: true });
 
-        Message.success('Member updated successfully');
+        Message.success('Contact updated successfully');
 
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
@@ -347,7 +372,7 @@ export default {
           },
         });
         await this.fetchMembers({ reload: true });
-        Message.success('Member updated successfully');
+        Message.success('Contact updated successfully');
         if (this.$route.name === 'member') {
           await this.fetchMembers({ reload: true });
         } else {
@@ -362,6 +387,7 @@ export default {
 
       return null;
     },
+    isEnrichmentFeatureEnabled,
   },
 };
 </script>

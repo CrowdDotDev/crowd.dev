@@ -25,14 +25,14 @@
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
-              label="Current members"
-              name="members"
+              label="Current contacts"
+              name="contacts"
             >
               <template #label>
                 <span class="flex gap-2">
-                  <span>Current members</span>
+                  <span>Current contacts</span>
                   <el-tooltip
-                    content="Members that are currently a part of this organization."
+                    content="Contacts that are currently a part of this organization."
                     placement="top"
                   >
                     <i class="ri-information-line" />
@@ -84,7 +84,7 @@ const { organization } = storeToRefs(organizationStore);
 const { fetchOrganization } = organizationStore;
 
 const loading = ref(true);
-const tab = ref('members');
+const tab = ref('contacts');
 
 onMounted(() => {
   try {

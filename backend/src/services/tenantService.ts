@@ -25,6 +25,7 @@ import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
 import { SegmentData, SegmentStatus } from '../types/segmentTypes'
 import SegmentService from './segmentService'
+import OrganizationService from './organizationService'
 import { defaultCustomViews } from '@/types/customView'
 import CustomViewRepository from '@/database/repositories/customViewRepository'
 
@@ -574,5 +575,10 @@ export default class TenantService {
   async findMembersToMerge(args) {
     const memberService = new MemberService(this.options)
     return memberService.findMembersWithMergeSuggestions(args)
+  }
+
+  async findOrganizationsToMerge(args) {
+    const organizationService = new OrganizationService(this.options)
+    return organizationService.findOrganizationsWithMergeSuggestions(args)
   }
 }

@@ -17,6 +17,7 @@ import { IServiceOptions } from '../../IServiceOptions'
 import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import OrganizationService from '@/services/organizationService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
@@ -70,6 +71,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
   }
 
   public async enrichOrganizationsAndSignalDone(
+    includeOrgsActiveLastYear: boolean = false,
     verbose: boolean = false,
   ): Promise<IOrganization[]> {
     const enrichmentPlatformPriority = [
@@ -80,7 +82,12 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const enrichedOrganizations: IOrganization[] = []
     const enrichedCacheOrganizations: IOrganizationCache[] = []
     let count = 0
-    for (const instance of await OrganizationRepository.filterByPayingTenant(
+
+    const organizationFilterMethod = includeOrgsActiveLastYear
+      ? OrganizationRepository.filterByActiveLastYear
+      : OrganizationRepository.filterByPayingTenant
+
+    for (const instance of await organizationFilterMethod(
       this.tenantId,
       this.maxOrganizationsLimit,
       this.options,
@@ -142,6 +149,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
     try {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      let unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -157,12 +165,44 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         }
 
         delete org.identities
+
+        // Check for an organization with the same website exists
+        let existingOrg
+        let orgService
+
+        if (org.website) {
+          existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          orgService = new OrganizationService({ ...this.options, transaction })
+        }
+
+        if (existingOrg && existingOrg.id !== org.id) {
+          await orgService.merge(existingOrg.id, org.id)
+        } else {
+          unmergedOrgs.push(org)
+        }
       }
+
+      // Check if two or more orgs in the umergedOrgs list have same website
+      const duplicateOrgs = []
+      const uniqueWebsites = new Set()
+
+      for (const org of unmergedOrgs) {
+        if (uniqueWebsites.has(org.website)) {
+          duplicateOrgs.push(org)
+        } else {
+          uniqueWebsites.add(org.website)
+        }
+      }
+
+      // Remove duplicate organizations from unmergedOrgs
+      unmergedOrgs = unmergedOrgs.filter((org) => !duplicateOrgs.includes(org))
+
+      this.log.info('Duplicate organizations found in enriched list:', duplicateOrgs)
 
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
       const records = await OrganizationRepository.bulkUpdate(
-        orgs,
+        unmergedOrgs,
         [...this.fields],
         { ...this.options, transaction },
         true,
@@ -178,9 +218,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       return records
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'organization')
-
+      this.log.error({ error }, 'Error updating organizations while enriching!')
       throw error
     }
   }

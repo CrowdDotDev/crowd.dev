@@ -3,18 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "rm -rf dist && ./node_modules/.bin/tsc",
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
     "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
     "format-check": "./node_modules/.bin/prettier --check .",
     "tsc-check": "./node_modules/.bin/tsc --noEmit"
-  },
-  "exports": {
-    ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
@@ -31,6 +23,7 @@
     "@aws-sdk/types": "^3.329.0",
     "@crowd/common": "file:../common",
     "@crowd/logging": "file:../logging",
+    "@crowd/tracing": "file:../tracing",
     "@crowd/types": "file:../types",
     "@smithy/util-retry": "^2.0.1"
   }

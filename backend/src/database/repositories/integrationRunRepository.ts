@@ -1,10 +1,7 @@
 import { QueryTypes } from 'sequelize'
 import { generateUUIDv1 } from '@crowd/common'
-import {
-  IntegrationRunState,
-  IntegrationRun,
-  DbIntegrationRunCreateData,
-} from '../../types/integrationRunTypes'
+import { IntegrationRunState } from '@crowd/types'
+import { IntegrationRun, DbIntegrationRunCreateData } from '../../types/integrationRunTypes'
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { IOrganization, PlatformType } from '@crowd/types'
@@ -88,10 +88,17 @@ export const batchCreateOrganizations = async (
           crowdOrganization.website &&
           getOrganizationDomain(crowdOrganization.website) === o.properties.domain,
       )
+
+      const hubspotPayload = hubspotCompanies.find(
+        (hubspotCompany) => hubspotCompany.properties.domain === o.properties.domain,
+      )
+
       acc.push({
         organizationId: organization.id,
         sourceId: o.id,
+        lastSyncedPayload: hubspotPayload,
       })
+
       return acc
     }, [])
   } catch (err) {

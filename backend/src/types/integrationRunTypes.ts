@@ -1,10 +1,4 @@
-export enum IntegrationRunState {
-  DELAYED = 'delayed',
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  PROCESSED = 'processed',
-  ERROR = 'error',
-}
+import { IntegrationRunState } from '@crowd/types'
 
 export interface IntegrationRun {
   id: string

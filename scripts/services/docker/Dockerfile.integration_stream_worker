@@ -1,30 +1,17 @@
-FROM node:16-alpine as builder
+FROM node:16-alpine
 
 RUN apk add --update --no-cache bash
 
 WORKDIR /usr/crowd/app
 
-# build libraries
 COPY ./services/scripts ./services/scripts
-COPY ./services/libs ./services/libs
-RUN cd services/scripts && ./install_lib_packages.sh && ./build_libs.sh && ./clear_lib_packages.sh
-
-FROM node:16-alpine as release
-
-RUN apk add --update --no-cache bash
-
-WORKDIR /usr/crowd/app
-
-ARG INSTALL_DEV_DEPENDENCIES="false"
-
-COPY ./services/scripts ./services/scripts
-COPY --from=builder /usr/crowd/app/services/libs/ ./services/libs/
-RUN if [ "$INSTALL_DEV_DEPENDENCIES" = "false" ]; then export NPM_I_ENV_OPTS="--omit=dev"; fi && cd services/scripts && ./install_lib_packages.sh ${NPM_I_ENV_OPTS}
+COPY ./services/libs/ ./services/libs/
+RUN cd services/scripts && ./install_lib_packages.sh
 
 COPY ./services/apps/integration_stream_worker/package.json ./services/apps/integration_stream_worker/package-lock.json ./services/apps/integration_stream_worker/tsconfig.json  ./services/apps/integration_stream_worker/
 COPY ./services/apps/integration_stream_worker/config ./services/apps/integration_stream_worker/config
 COPY ./services/apps/integration_stream_worker/src ./services/apps/integration_stream_worker/src
 
-RUN if [ "$INSTALL_DEV_DEPENDENCIES" = "false" ]; then export NPM_I_ENV_OPTS="--omit=dev"; fi && cd services/apps/integration_stream_worker && npm ci ${NPM_I_ENV_OPTS}
+RUN cd services/apps/integration_stream_worker && npm ci
 
 RUN npm cache clean --force

@@ -3,7 +3,7 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { PlatformType } from '@crowd/types'
+import { IntegrationRunState, PlatformType } from '@crowd/types'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -15,6 +15,7 @@ import {
   HubspotEndpoint,
   IHubspotManualSyncPayload,
   getHubspotLists,
+  IProcessStreamContext,
 } from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
@@ -32,7 +33,6 @@ import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import Error404 from '../errors/Error404'
 import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
-import { IntegrationRunState } from '../types/integrationRunTypes'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
@@ -863,7 +863,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const memberLists = await getHubspotLists(nangoId, context)
 
@@ -937,7 +937,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties = await getHubspotProperties(
       nangoId,
@@ -1000,7 +1000,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties: IHubspotProperty[] = await getHubspotProperties(
       nangoId,

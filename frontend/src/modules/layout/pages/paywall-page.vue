@@ -112,8 +112,8 @@ const section = computed(
 const page = computed(() => pageContent[section.value]);
 const computedFeaturePlan = computed(() => {
   if (config.isCommunityVersion) return 'Custom plan';
-  if (page.value.headerTitle === 'Eagle Eye') return 'Growth and Eagle Eye plans';
-  return 'Growth plan';
+  if (page.value.headerTitle === 'Eagle Eye') return 'Scale and Eagle Eye plans';
+  return 'Scale plan';
 });
 </script>
 

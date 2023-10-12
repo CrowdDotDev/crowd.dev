@@ -8,7 +8,7 @@ export const webhook: AutomationTypeConfig = {
   icon: '/images/automation/webhook.png',
   emptyScreen: {
     title: 'No Webhooks yet',
-    body: 'Create webhook actions when a new activity happens, or a new member joins your community',
+    body: 'Create webhook actions when a new activity happens, or a new contact joins your community',
   },
   triggerText: 'Define the event that triggers your webhook',
   actionText: 'Define the endpoint where the webhook payload should be sent to',
