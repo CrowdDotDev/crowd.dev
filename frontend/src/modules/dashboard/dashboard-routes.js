@@ -4,7 +4,7 @@ const DashboardPage = () => import('@/modules/dashboard/pages/dashboard-page.vue
 
 export default [
   {
-    path: '',
+    path: '/',
     exact: true,
     component: Layout,
     meta: {
