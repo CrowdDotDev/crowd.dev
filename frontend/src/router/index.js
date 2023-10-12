@@ -16,10 +16,6 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
  * @type {[...*,{redirect: string, path: string}]}
  */
 const routes = [
-  {
-    path: '/',
-    redirect: '/auth/signin',
-  },
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
     .map((key) => modules[key].routes.map((r) => {
@@ -31,6 +27,10 @@ const routes = [
       return r;
     }))
     .reduce((a, b) => a.concat(b), []),
+  {
+    path: '/',
+    redirect: '/auth/signin',
+  },
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
 // eslint-disable-next-line import/no-mutable-exports
