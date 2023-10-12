@@ -1,11 +1,9 @@
 import { LoggerBase } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
-import { IntegrationType } from '@crowd/types'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../../database/repositories/integrationStreamRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { IntegrationCheckProcessor } from './integrationCheckProcessor'
 import { IntegrationRunProcessor } from './integrationRunProcessor'
 import { IntegrationTickProcessor } from './integrationTickProcessor'
 import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
@@ -15,8 +13,6 @@ import { WebhookProcessor } from './webhookProcessor'
 
 export class IntegrationProcessor extends LoggerBase {
   private readonly tickProcessor: IntegrationTickProcessor
-
-  private readonly checkProcessor: IntegrationCheckProcessor
 
   private readonly webhookProcessor: WebhookProcessor
 
@@ -51,12 +47,6 @@ export class IntegrationProcessor extends LoggerBase {
       integrationRunRepository,
     )
 
-    this.checkProcessor = new IntegrationCheckProcessor(
-      options,
-      integrationServices,
-      integrationRunRepository,
-    )
-
     this.webhookProcessor = new WebhookProcessor(options, integrationServices)
 
     if (apiPubSubEmitter) {
@@ -74,10 +64,6 @@ export class IntegrationProcessor extends LoggerBase {
 
   async processTick() {
     await this.tickProcessor.processTick()
-  }
-
-  async processCheck(type: IntegrationType) {
-    await this.checkProcessor.processCheck(type)
   }
 
   async processWebhook(webhookId: string, force?: boolean, fireCrowdWebhooks?: boolean) {
