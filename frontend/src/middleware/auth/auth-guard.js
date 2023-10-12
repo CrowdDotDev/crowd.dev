@@ -38,7 +38,7 @@ export default async function ({
   );
 
   if (!permissionChecker.isAuthenticated) {
-    router.push({ path: '/auth/signup' });
+    router.push({ path: '/auth/signin' });
     return;
   }
 
