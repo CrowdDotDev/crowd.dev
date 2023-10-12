@@ -110,7 +110,7 @@ export class IntegrationTickProcessor extends LoggerBase {
   }
 
   async processCheck(type: IntegrationType) {
-    const logger = getChildLogger('processCheck', this.log, { type })
+    const logger = getChildLogger('processCheck', this.log, { IntegrationType: type })
     logger.trace('Processing integration check!')
 
     if (type === IntegrationType.TWITTER_REACH) {
@@ -154,7 +154,10 @@ export class IntegrationTickProcessor extends LoggerBase {
         await processPaginated(
           async (page) => IntegrationRepository.findAllActive(type, page, 10),
           async (integrations) => {
-            logger.debug({ count: integrations.length }, 'Found integrations to check!')
+            logger.debug(
+              { integrationIds: integrations.map((i) => i.id) },
+              'Found old integrations to check!',
+            )
             const inactiveIntegrations: any[] = []
             for (const integration of integrations as any[]) {
               const existingRun = await this.integrationRunRepository.findLastProcessingRun(
@@ -164,7 +167,14 @@ export class IntegrationTickProcessor extends LoggerBase {
                 inactiveIntegrations.push(integration)
               }
             }
-            await intService.triggerIntegrationCheck(inactiveIntegrations, options)
+
+            if (inactiveIntegrations.length > 0) {
+              logger.info(
+                { integrationIds: inactiveIntegrations.map((i) => i.id) },
+                'Triggering old integration checks!',
+              )
+              await intService.triggerIntegrationCheck(inactiveIntegrations, options)
+            }
           },
         )
       } else {
@@ -179,13 +189,17 @@ export class IntegrationTickProcessor extends LoggerBase {
         await processPaginated(
           async (page) => IntegrationRepository.findAllActive(type, page, 10),
           async (integrations) => {
-            logger.debug({ count: integrations.length }, 'Found integrations to check!')
+            logger.debug(
+              { integrationIds: integrations.map((i) => i.id) },
+              'Found new integrations to check!',
+            )
             for (const integration of integrations as any[]) {
               const existingRun =
                 await this.integrationRunRepository.findLastProcessingRunInNewFramework(
                   integration.id,
                 )
               if (!existingRun) {
+                logger.info({ integrationId: integration.id }, 'Triggering new integration check!')
                 await emitter.triggerIntegrationRun(
                   integration.tenantId,
                   integration.platform,
