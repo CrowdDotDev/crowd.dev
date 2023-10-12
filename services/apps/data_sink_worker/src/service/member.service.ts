@@ -341,7 +341,7 @@ export default class MemberService extends LoggerBase {
         // first try finding the member using the identity
         const identity = singleOrDefault(
           member.identities,
-          (i) => i.platform === platform && i.sourceId !== null,
+          (i) => i.platform === platform && i.sourceId !== undefined,
         )
         let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
 
@@ -356,7 +356,7 @@ export default class MemberService extends LoggerBase {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
 
           // set a record in membersSyncRemote to save the sourceId
-          // we can't use member.attributes because of segments
+          // these rows will be used for outgoing data
           if (member.attributes?.sourceId?.[platform]) {
             await txRepo.addToSyncRemote(
               dbMember.id,
