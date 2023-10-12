@@ -9,6 +9,7 @@ import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import ErrorPage from '@/modules/layout/pages/error-page.vue';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -27,7 +28,16 @@ const routes = [
       return r;
     }))
     .reduce((a, b) => a.concat(b), []),
-  { path: '/:catchAll(.*)', redirect: '/404' },
+  {
+    path: '/:catchAll(.*)',
+    component: ErrorPage,
+    props: {
+      code: 404,
+      title: 'Page not found',
+      subtitle:
+        'Sorry, the page you are looking for doesn’t exist or was removed.',
+    },
+  },
 ];
 // eslint-disable-next-line import/no-mutable-exports
 let router;
