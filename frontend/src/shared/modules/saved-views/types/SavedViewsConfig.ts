@@ -2,8 +2,10 @@ import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface SavedView {
   id: string;
-  label: string;
-  filter: Filter & Record<string, any>
+  name: string;
+  visibility: string;
+  placement: string;
+  config: Filter & Record<string, any>
 }
 
 export interface SavedViewsSetting<T> {
@@ -24,6 +26,6 @@ export interface SavedViewsConfig {
 export interface SavedViewCreate {
   name: string;
   visibility: string;
-  placement: [string];
+  placement: string;
   config: Filter & Record<string, any>
 }

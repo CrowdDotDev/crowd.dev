@@ -1,5 +1,5 @@
 <template>
-  <app-drawer v-model="isDrawerOpen" title="New view" size="600px">
+  <app-drawer v-model="isDrawerOpen" :title="title" size="600px">
     <template #content>
       <div class="-mx-6 -mt-4">
         <!-- Share with workspace -->
@@ -14,7 +14,7 @@
               </p>
             </div>
             <div>
-              <el-switch />
+              <el-switch v-model="form.shared" :disabled="isEdit" />
             </div>
           </div>
         </section>
@@ -142,15 +142,18 @@
       <div style="flex: auto">
         <el-button
           class="btn btn--md btn--bordered mr-3"
+          @click="isDrawerOpen = false"
         >
           Cancel
         </el-button>
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
+          :loading="sending"
+          :disabled="$v.$invalid"
           @click="submit()"
         >
-          Add view
+          {{ isEdit ? 'Update' : 'Add view' }}
         </el-button>
       </div>
     </template>
@@ -159,25 +162,42 @@
 
 <script setup lang="ts">
 import {
-  computed, reactive, ref,
+  computed, reactive, ref, watch,
 } from 'vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
+import Message from '@/shared/message/message';
 
 const props = defineProps<{
   modelValue: boolean,
   config: SavedViewsConfig,
   filters: Record<string, FilterConfig>,
   placement: string,
+  view: SavedView | SavedViewCreate | null,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any,
+  (e: 'reload'): any
+}>();
+
+const isEdit = computed(() => props.view && (props.view as SavedView).id);
+const isDuplicate = computed(() => props.view && !(props.view as SavedView).id);
+
+const title = computed<string>(() => {
+  if (isEdit.value) {
+    return 'Edit view';
+  }
+  if (isDuplicate.value) {
+    return 'Duplicate view';
+  }
+  return 'New view';
+});
 
 const isDrawerOpen = computed<boolean>({
   get() {
@@ -203,6 +223,7 @@ const settingsDefaultValue = computed<Record<string, any>>(() => {
 interface SavedViewForm {
   shared: boolean;
   name: string;
+  relation: 'and' | 'or';
   filters: Record<string, any>;
   settings: Record<string, any>;
   sorting: {
@@ -214,11 +235,12 @@ interface SavedViewForm {
 const form = reactive<SavedViewForm>({
   shared: false,
   name: '',
+  relation: 'and',
   filters: {},
   settings: { ...settingsDefaultValue.value },
   sorting: {
-    prop: props.config.defaultView.filter.order.prop,
-    order: props.config.defaultView.filter.order.order,
+    prop: props.config.defaultView.config.order.prop,
+    order: props.config.defaultView.config.order.order,
   },
 });
 
@@ -266,25 +288,90 @@ const removeFilter = (key: any) => {
   dropdownSearch.value = '';
 };
 
+const fillForm = () => {
+  if (props.view) {
+    form.shared = props.view.visibility === 'tenant';
+    form.name = props.view.name;
+    const {
+      relation, order, settings, search, ...restFilters
+    } = props.view.config;
+    form.relation = relation;
+    form.sorting.prop = order.prop;
+    form.sorting.order = order.order;
+    form.filters = restFilters;
+    filterList.value = Object.keys(restFilters);
+    console.log(restFilters);
+  }
+};
+
+const reset = () => {
+  form.shared = false;
+  form.name = '';
+  form.relation = 'and';
+  form.filters = {};
+  form.settings = { ...settingsDefaultValue.value };
+  form.sorting = {
+    prop: props.config.defaultView.config.order.prop,
+    order: props.config.defaultView.config.order.order,
+  };
+  $v.value.$reset();
+};
+
+watch(() => props.view, () => {
+  reset();
+  if (props.view) {
+    fillForm();
+  }
+}, {deep: true, immediate: true});
+
+// Form submission
+const sending = ref<boolean>(false);
+
 const submit = (): void => {
   if ($v.value.$invalid) {
-return;
+    return;
   }
-  SavedViewsService.create({
+  sending.value = true;
+  const data: SavedViewCreate = {
     name: form.name,
     config: {
       search: '',
       relation: 'and',
       order: {
         prop: form.sorting.prop,
-        order: form.sorting.order
+        order: form.sorting.order,
       },
       settings: form.settings,
       ...form.filters,
     },
-    placement: [props.placement],
+    placement: props.placement,
     visibility: form.shared ? 'tenant' : 'user',
-  })
+  };
+  (isEdit.value ? SavedViewsService.update((props.view as SavedView).id, data) : SavedViewsService.create(data))
+    .then(() => {
+      isDrawerOpen.value = false;
+      reset();
+      if (isEdit.value) {
+        Message.success('View updated successfully!');
+      } else if (isDuplicate.value) {
+        Message.success('View duplicated successfully!');
+      } else {
+        Message.success('View successfully created!');
+      }
+      emit('reload');
+    })
+    .catch(() => {
+      if (isEdit.value) {
+        Message.error('There was an error updating a view');
+      } else if (isDuplicate.value) {
+        Message.error('There was an error duplicating a view');
+      } else {
+        Message.error('There was an error creating a view');
+      }
+    })
+    .finally(() => {
+      sending.value = false;
+    });
 };
 </script>
 

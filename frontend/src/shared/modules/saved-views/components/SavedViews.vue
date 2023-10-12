@@ -3,13 +3,13 @@
     <div class="tabs flex-grow " :class="{ 'is-shrink': hasChanged }">
       <el-tabs v-model="selectedTab" @tab-change="onTabChange($event)">
         <el-tab-pane
-          :label="props.config.defaultView.label"
+          :label="props.config.defaultView.name"
           name=""
         />
         <el-tab-pane
           v-for="view of views"
           :key="view.id"
-          :label="view.label"
+          :label="view.name"
           :name="view.id"
         />
       </el-tabs>
@@ -47,11 +47,24 @@
             <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
           </el-button>
         </template>
-        <cr-saved-views-management :config="props.config" :views="views" />
+        <cr-saved-views-management
+          v-model:views="views"
+          :config="props.config"
+          @edit="edit($event)"
+          @duplicate="duplicate($event)"
+        />
       </el-popover>
     </div>
   </div>
-  <cr-saved-views-form v-model="isFormOpen" :config="props.config" :filters="props.filters" :placement="props.placement" />
+  <cr-saved-views-form
+    v-model="isFormOpen"
+    :config="props.config"
+    :filters="props.filters"
+    :placement="props.placement"
+    :view="editView"
+    @update:model-value="editView = null"
+    @reload="getViews()"
+  />
 </template>
 
 <script setup lang="ts">
@@ -60,7 +73,7 @@ import {
   onMounted, ref, watch,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { isEqual } from 'lodash';
 import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -113,15 +126,15 @@ const compareFilterToCurrentValues = (filter: Filter): boolean => {
 };
 
 const hasChanged = computed<boolean>(() => {
-  const viewFilter = currentView.value.filter;
+  const viewFilter = currentView.value.config;
   return !compareFilterToCurrentValues(viewFilter);
 });
 
 const onTabChange = (id: string) => {
-  const { filter } = getView(id);
-  if (filter) {
+  const { config } = getView(id);
+  if (config) {
     filters.value = {
-      ...filter,
+      ...config,
     };
   }
 };
@@ -129,7 +142,7 @@ const onTabChange = (id: string) => {
 // Reset to current view
 const reset = () => {
   filters.value = {
-    ...currentView.value.filter,
+    ...currentView.value.config,
   };
 };
 
@@ -150,11 +163,11 @@ const update = () => {
 
 // Change tab if filters match
 watch(() => props.modelValue, (filter: Filter) => {
-  if (compareFilterToCurrentValues(props.config.defaultView.filter)) {
+  if (compareFilterToCurrentValues(props.config.defaultView.config)) {
     selectedTab.value = '';
     return;
   }
-  const matchingView = views.value.find((view) => compareFilterToCurrentValues(view.filter));
+  const matchingView = views.value.find((view) => compareFilterToCurrentValues(view.config));
   if (matchingView) {
     selectedTab.value = matchingView.id;
   }
@@ -173,6 +186,20 @@ const getViews = () => {
     .catch(() => {
       views.value = [];
     });
+};
+
+const editView = ref<SavedView | SavedViewCreate | null>(null);
+const edit = (view: SavedView) => {
+  editView.value = view;
+  isFormOpen.value = true;
+};
+const duplicate = (view: SavedView) => {
+  editView.value = {
+    ...view,
+    id: undefined,
+    name: `${view.name} (1)`,
+  };
+  isFormOpen.value = true;
 };
 
 onMounted(() => {
