@@ -11,15 +11,15 @@ interface TokenInfo {
   reset: number
 }
 
-const highPrioiryIntegrations = [
+const highPriorityIntegrations = [
   // // tiptap
-  // '20147429-c1b7-4ff6-a19b-8306527e7ae3',
+  '20147429-c1b7-4ff6-a19b-8306527e7ae3',
   // // plane
-  // 'f2b2c42e-76aa-4b0f-a70c-ecc3745d4f15',
+  'f2b2c42e-76aa-4b0f-a70c-ecc3745d4f15',
   // // superset
   // '2c6283c2-0a79-4d87-b62b-334a4876fe1c',
   // // qdrant
-  '2c79e053-2578-434f-92df-35b5e76a18a8',
+  // '2c79e053-2578-434f-92df-35b5e76a18a8',
 ]
 
 export class GithubTokenRotator {
@@ -50,7 +50,7 @@ export class GithubTokenRotator {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     let minResetTime = Infinity
 
-    if (!highPrioiryIntegrations.includes(integrationId)) {
+    if (!highPriorityIntegrations.includes(integrationId)) {
       if (err) {
         logger.info(err, { integrationId }, 'Low priority integration, throwing original error')
         throw err
