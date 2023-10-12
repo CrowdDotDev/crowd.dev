@@ -2,7 +2,7 @@ import moment from 'moment'
 import { ApiPubSubEmitter } from '@crowd/redis'
 import { Logger, getChildLogger, LoggerBase } from '@crowd/logging'
 import { singleOrDefault } from '@crowd/common'
-import { PlatformType } from '@crowd/types'
+import { IntegrationRunState, PlatformType } from '@crowd/types'
 import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
@@ -16,7 +16,7 @@ import {
   IProcessStreamResults,
   IStepContext,
 } from '../../../types/integration/stepResult'
-import { IntegrationRun, IntegrationRunState } from '../../../types/integrationRunTypes'
+import { IntegrationRun } from '../../../types/integrationRunTypes'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { IntegrationServiceBase } from './integrationServiceBase'
 import SampleDataService from '../../../services/sampleDataService'
