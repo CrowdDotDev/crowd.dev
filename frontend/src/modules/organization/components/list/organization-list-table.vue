@@ -136,7 +136,7 @@
                           v-if="scope.row.headline || scope.row.description"
                           class="text-sm h-full flex items-center text-gray-900"
                         >
-                          {{ scope.row.headline || scope.row.description }}
+                          {{ truncateText((scope.row.headline || scope.row.description), 150, '...') }}
                         </span>
                         <span
                           v-else
@@ -674,7 +674,7 @@ import {
 import { useRouter } from 'vue-router';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
-import { withHttp, toSentenceCase } from '@/utils/string';
+import { withHttp, toSentenceCase, truncateText } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';

@@ -79,11 +79,18 @@ export function getConcurrentRequestLimiter(
 }
 
 export function getTokenRotator(ctx: IProcessStreamContext): GithubTokenRotator {
-  const GITHUB_CONFIG = ctx.platformSettings as GithubPlatformSettings
+  const GITHUB_CONFIG = ctx?.platformSettings as GithubPlatformSettings
+
+  // check if we have tokens configured
+  if (!GITHUB_CONFIG?.personalAccessTokens) {
+    // if tokenRotator is undefined, API requests won't use it
+    return undefined
+  }
+
   if (tokenRotator === undefined) {
     tokenRotator = new GithubTokenRotator(
       ctx.globalCache,
-      GITHUB_CONFIG.personalAccessTokens.split(','),
+      GITHUB_CONFIG?.personalAccessTokens?.split(','),
     )
   }
   return tokenRotator

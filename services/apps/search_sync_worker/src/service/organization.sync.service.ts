@@ -497,6 +497,7 @@ export class OrganizationSyncService extends LoggerBase {
       p_identities.push({
         string_platform: identity.platform,
         string_name: identity.name,
+        keyword_name: identity.name,
         string_url: identity.url,
       })
     }

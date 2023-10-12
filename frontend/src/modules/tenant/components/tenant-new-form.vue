@@ -44,7 +44,7 @@ import { useStore } from 'vuex';
 const props = defineProps<{
   modelValue: boolean,
 }>();
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'createdTenant', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'createdTenant', value: boolean): void }>();
 
 const store = useStore();
 
@@ -87,6 +87,7 @@ const onBtnClick = () => {
         emit('createdTenant', true);
 
         // Select tenant in app
+        store.dispatch('tenant/doFetch', {});
         store.dispatch('auth/doSelectTenant', { tenant });
         return Promise.resolve();
       }))
