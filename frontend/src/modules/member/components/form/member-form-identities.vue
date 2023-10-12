@@ -258,6 +258,9 @@ function findPlatform(platform) {
 }
 
 function editingDisabled(platform) {
+  if (['git'].includes(platform)) {
+    return false;
+  }
   return props.record
     ? props.record.activeOn.includes(platform)
     : false;
