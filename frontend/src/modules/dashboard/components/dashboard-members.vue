@@ -221,7 +221,7 @@ import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import allMembers from '@/modules/member/config/saved-views/views/all-members';
+import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 
 export default {
   name: 'AppDashboardMember',

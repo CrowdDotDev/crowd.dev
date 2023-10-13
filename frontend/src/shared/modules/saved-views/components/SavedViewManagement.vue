@@ -12,7 +12,7 @@
     </div>
     <div class="border-b border-gray-100" />
     <div class="py-2">
-      <vue-draggable-next :list="views">
+      <vue-draggable-next :list="views" @change="onListChange">
         <article
           v-for="view of views"
           :key="view.id"
@@ -49,9 +49,12 @@
 </template>
 
 <script setup lang="ts">
-import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { VueDraggableNext } from 'vue-draggable-next';
 import { computed, ref } from 'vue';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
+import Message from '@/shared/message/message';
 
 const props = defineProps<{
   config: SavedViewsConfig,
@@ -61,6 +64,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:views', value: SavedView[]): any,
   (e: 'edit', value: SavedView): any,
   (e: 'duplicate', value: SavedView): any,
+  (e: 'reload'): any,
 }>();
 
 const views = computed<SavedView[]>({
@@ -72,6 +76,20 @@ const views = computed<SavedView[]>({
   },
 });
 
+const onListChange = () => {
+  SavedViewsService.updateBulk(
+    views.value.map(
+      (view, viewIndex) => ({
+        id: view.id,
+        name: view.name,
+        order: viewIndex + 1,
+      }),
+    ),
+  ).then(() => {
+    emit('reload');
+  })
+};
+
 const edit = (view: SavedView) => {
   emit('edit', view);
 };
@@ -79,7 +97,27 @@ const duplicate = (view: SavedView) => {
   emit('duplicate', view);
 };
 const remove = (view: SavedView) => {
-  console.log('delete', view);
+  const isShared = view.visibility === 'tenant';
+  ConfirmDialog({
+    type: 'danger',
+    title: isShared ? 'Delete shared view' : 'Delete view',
+    message: isShared
+      ? 'This view will be deleted on all user accounts from this workspace. Are you sure you want to proceed? You can’t undo this action.'
+      : 'Are you sure you want to proceed? You can’t undo this action.',
+    icon: 'ri-delete-bin-line',
+    cancelButtonText: 'Cancel',
+    confirmButtonText: isShared ? 'Delete shared view' : 'Delete view',
+  } as any)
+    .then(() => {
+      SavedViewsService.delete(view.id)
+        .then(() => {
+          emit('reload');
+          Message.success('View successfully deleted');
+        })
+        .catch(() => {
+          Message.error('There was an error deleting view');
+        });
+    });
 };
 </script>
 

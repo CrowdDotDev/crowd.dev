@@ -1,14 +1,14 @@
 <template>
   <div class="flex items-end justify-between mb-6 h-8">
     <div class="tabs flex-grow " :class="{ 'is-shrink': hasChanged }">
-      <el-tabs v-model="selectedTab" @tab-change="onTabChange($event)">
+      <el-tabs v-if="views.length > 0" v-model="selectedTab" @tab-change="onTabChange($event)">
         <el-tab-pane
           :label="props.config.defaultView.name"
           name=""
         />
         <el-tab-pane
           v-for="view of views"
-          :key="view.id"
+          :key="view.name"
           :label="view.name"
           :name="view.id"
         />
@@ -52,6 +52,7 @@
           :config="props.config"
           @edit="edit($event)"
           @duplicate="duplicate($event)"
+          @reload="getViews()"
         />
       </el-popover>
     </div>
@@ -69,7 +70,7 @@
 
 <script setup lang="ts">
 import {
-  computed,
+  computed, getCurrentInstance,
   onMounted, ref, watch,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
@@ -178,10 +179,15 @@ const views = ref<SavedView[]>([]);
 
 const getViews = () => {
   SavedViewsService.query({
-    placement: props.placement,
+    filter: {
+      placement: [props.placement],
+    },
   })
     .then((res: SavedView[]) => {
-      views.value = res;
+      views.value = [];
+      setTimeout(() => {
+        views.value = [...res];
+      }, 0);
     })
     .catch(() => {
       views.value = [];

@@ -25,7 +25,7 @@ export class SavedViewsService {
       .then((res) => res.data);
   }
 
-  static update(id: string, view: SavedViewCreate) {
+  static update(id: string, view: Partial<SavedViewCreate>) {
     const tenantId = AuthCurrentTenant.get();
 
     return authAxios.put(
@@ -35,11 +35,26 @@ export class SavedViewsService {
       .then((res) => res.data);
   }
 
+  static updateBulk(views: Partial<SavedViewCreate>[]) {
+    const tenantId = AuthCurrentTenant.get();
+
+    return authAxios.patch(
+      `/tenant/${tenantId}/customview`,
+      views,
+    )
+      .then((res) => res.data);
+  }
+
   static delete(id: string) {
     const tenantId = AuthCurrentTenant.get();
 
     return authAxios.delete(
-      `/tenant/${tenantId}/customview/${id}`,
+      `/tenant/${tenantId}/customview`,
+      {
+        params: {
+          ids: [id],
+        },
+      },
     )
       .then((res) => res.data);
   }

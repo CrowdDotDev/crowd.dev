@@ -1,6 +1,6 @@
 import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
-const allMembers: SavedView = {
+const allContacts: SavedView = {
   id: 'all-contacts',
   name: 'All contacts',
   placement: 'member',
@@ -20,4 +20,4 @@ const allMembers: SavedView = {
   },
 };
 
-export default allMembers;
+export default allContacts;

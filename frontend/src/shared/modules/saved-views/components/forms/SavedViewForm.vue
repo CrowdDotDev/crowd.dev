@@ -173,6 +173,7 @@ import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -298,7 +299,8 @@ const fillForm = () => {
     form.relation = relation;
     form.sorting.prop = order.prop;
     form.sorting.order = order.order;
-    form.filters = restFilters;
+    form.filters = restFilters || {};
+    form.settings = settings || {};
     filterList.value = Object.keys(restFilters);
     console.log(restFilters);
   }
@@ -322,7 +324,7 @@ watch(() => props.view, () => {
   if (props.view) {
     fillForm();
   }
-}, {deep: true, immediate: true});
+}, { deep: true, immediate: true });
 
 // Form submission
 const sending = ref<boolean>(false);
@@ -347,31 +349,54 @@ const submit = (): void => {
     placement: props.placement,
     visibility: form.shared ? 'tenant' : 'user',
   };
-  (isEdit.value ? SavedViewsService.update((props.view as SavedView).id, data) : SavedViewsService.create(data))
-    .then(() => {
-      isDrawerOpen.value = false;
-      reset();
-      if (isEdit.value) {
-        Message.success('View updated successfully!');
-      } else if (isDuplicate.value) {
-        Message.success('View duplicated successfully!');
-      } else {
-        Message.success('View successfully created!');
-      }
-      emit('reload');
-    })
-    .catch(() => {
-      if (isEdit.value) {
-        Message.error('There was an error updating a view');
-      } else if (isDuplicate.value) {
-        Message.error('There was an error duplicating a view');
-      } else {
-        Message.error('There was an error creating a view');
-      }
-    })
-    .finally(() => {
-      sending.value = false;
-    });
+  if (isEdit.value) {
+    (form.shared ? ConfirmDialog({
+      type: 'danger',
+      title: 'Update shared view',
+      message:
+          'This view is shared with all workspace users, any changes will reflected in each user account.',
+      icon: 'ri-loop-left-line',
+      cancelButtonText: 'Cancel',
+      confirmButtonText: 'Update shared view',
+    } as any) : Promise.resolve())
+      .then(() => {
+        SavedViewsService.update((props.view as SavedView).id, data)
+          .then(() => {
+            isDrawerOpen.value = false;
+            reset();
+            Message.success('View updated successfully!');
+            emit('reload');
+          })
+          .catch(() => {
+            Message.error('There was an error updating a view');
+          })
+          .finally(() => {
+            sending.value = false;
+          });
+      });
+  } else {
+    SavedViewsService.create(data)
+      .then(() => {
+        isDrawerOpen.value = false;
+        reset();
+        if (isDuplicate.value) {
+          Message.success('View duplicated successfully!');
+        } else {
+          Message.success('View successfully created!');
+        }
+        emit('reload');
+      })
+      .catch(() => {
+        if (isDuplicate.value) {
+          Message.error('There was an error duplicating a view');
+        } else {
+          Message.error('There was an error creating a view');
+        }
+      })
+      .finally(() => {
+        sending.value = false;
+      });
+  }
 };
 </script>
 

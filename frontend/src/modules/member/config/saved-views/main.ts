@@ -1,12 +1,12 @@
 import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
-import allMembers from './views/all-members';
+import allContacts from './views/all-contacts';
 
 import bot from './settings/bot/config';
 import teamMember from './settings/teamMember/config';
 import organization from './settings/organization/config';
 
 export const memberSavedViews: SavedViewsConfig = {
-  defaultView: allMembers,
+  defaultView: allContacts,
   settings: {
     teamMember,
     bot,

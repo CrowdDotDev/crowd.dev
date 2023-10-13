@@ -6,6 +6,7 @@ export interface SavedView {
   visibility: string;
   placement: string;
   config: Filter & Record<string, any>
+  order?: number;
 }
 
 export interface SavedViewsSetting<T> {
@@ -22,10 +23,10 @@ export interface SavedViewsConfig {
   sorting: Record<string, string> // Object with property and label for sorting
 }
 
-
 export interface SavedViewCreate {
   name: string;
   visibility: string;
   placement: string;
   config: Filter & Record<string, any>
+  order: number;
 }
