@@ -108,7 +108,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       // Update original organization
-      await txService.update(originalId, toUpdate, repoOptions.transaction)
+      await txService.update(originalId, toUpdate)
 
       // update members that belong to source organization to destination org
       await OrganizationRepository.moveMembersBetweenOrganizations(
