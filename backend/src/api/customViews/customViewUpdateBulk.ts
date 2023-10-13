@@ -25,10 +25,7 @@ export default async (req, res) => {
 
   const customViewService = new CustomViewService(req)
 
-  const promises = customViewsToUpdate.reduce((acc, item) => {
-    acc.push(customViewService.update(item.id, item))
-    return acc
-  }, [])
+  const promises = customViewsToUpdate.map((item) => customViewService.update(item.id, item))
 
   const payload = await Promise.all(promises)
   await req.responseHandler.success(req, res, payload)
