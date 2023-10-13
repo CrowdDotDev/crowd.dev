@@ -27,8 +27,7 @@
               href="https://dev.to/settings/extensions#:~:text=DEV%20Community%20API%20Keys"
               target="_blank"
               rel="noopener noreferrer"
-              >settings</a
-            >
+            >settings</a>
             page.
           </div>
           <el-input ref="focus" v-model="form.apiKey" @blur="onBlurAPIKey()">
@@ -69,7 +68,9 @@
                 :disabled="!isAPIConnectionValid"
                 @blur="handleOrganizationValidation(org.id)"
               >
-                <template #prepend> dev.to/ </template>
+                <template #prepend>
+                  dev.to/
+                </template>
                 <template #suffix>
                   <div
                     v-if="org.validating"
@@ -87,9 +88,10 @@
                 <i class="ri-delete-bin-line text-lg text-black" />
               </el-button>
             </div>
-            <span v-if="org.touched && !org.valid" class="el-form-item__error"
-              >Organization slug is not valid</span
-            >
+            <span
+              v-if="org.touched && !org.valid"
+              class="el-form-item__error"
+            >Organization slug is not valid</span>
           </el-form-item>
           <el-button
             class="btn btn-link btn-link--primary"
@@ -121,7 +123,9 @@
                 :disabled="!isAPIConnectionValid"
                 @blur="handleUserValidation(user.id)"
               >
-                <template #prepend> dev.to/ </template>
+                <template #prepend>
+                  dev.to/
+                </template>
                 <template #suffix>
                   <div
                     v-if="user.validating"
@@ -139,9 +143,10 @@
                 <i class="ri-delete-bin-line text-lg text-black" />
               </el-button>
             </div>
-            <span v-if="user.touched && !user.valid" class="el-form-item__error"
-              >User slug is not valid</span
-            >
+            <span
+              v-if="user.touched && !user.valid"
+              class="el-form-item__error"
+            >User slug is not valid</span>
           </el-form-item>
           <el-button
             class="btn btn-link btn-link--primary"
@@ -187,17 +192,17 @@ import {
   defineEmits,
   defineProps,
   watch,
-} from "vue";
-import { CrowdIntegrations } from "@/integrations/integrations-config";
-import { required } from "@vuelidate/validators";
-import useVuelidate from "@vuelidate/core";
-import AppDrawer from "@/shared/drawer/drawer.vue";
-import { mapActions } from "@/shared/vuex/vuex.helpers";
-import AppFormItem from "@/shared/form/form-item.vue";
+} from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { required } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
+import AppDrawer from '@/shared/drawer/drawer.vue';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import AppFormItem from '@/shared/form/form-item.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
-import { IntegrationService } from "@/modules/integration/integration-service";
+import { IntegrationService } from '@/modules/integration/integration-service';
 
-const { doDevtoConnect } = mapActions("integration");
+const { doDevtoConnect } = mapActions('integration');
 
 const props = defineProps({
   integration: {
@@ -210,7 +215,7 @@ const props = defineProps({
   },
 });
 
-const logoUrl = ref(CrowdIntegrations.getConfig("devto").image);
+const logoUrl = ref(CrowdIntegrations.getConfig('devto').image);
 const users = ref([]);
 const organizations = ref([]);
 const loading = ref(false);
@@ -229,14 +234,10 @@ const connectDisabled = computed(() => {
 
   if (props.integration.settings && !empty) {
     return (
-      validUsers.length === props.integration.settings.users.length &&
-      validUsers.every((u) =>
-        props.integration.settings.users.includes(u.username)
-      ) &&
-      validOrgs.length === props.integration.settings.organizations.length &&
-      validOrgs.every((o) =>
-        props.integration.settings.organizations.includes(o.username)
-      )
+      validUsers.length === props.integration.settings.users.length
+      && validUsers.every((u) => props.integration.settings.users.includes(u.username))
+      && validOrgs.length === props.integration.settings.organizations.length
+      && validOrgs.every((o) => props.integration.settings.organizations.includes(o.username))
     );
   }
 
@@ -283,19 +284,13 @@ const maxId = computed(() => {
   return maxId;
 });
 
-const toggle = () => {
-  isVisible.value = !isVisible.value;
-};
-
 const syncData = () => {
   users.value = [];
   organizations.value = [];
 
   if (props.integration && props.integration.settings) {
     props.integration.settings.users.forEach((u) => addNewUser(u));
-    props.integration.settings.organizations.forEach((o) =>
-      addNewOrganization(o)
-    );
+    props.integration.settings.organizations.forEach((o) => addNewOrganization(o));
   }
 
   if (users.value.length === 0) {
@@ -310,9 +305,9 @@ const addNewUser = (username) => {
   users.value.push({
     id: maxId.value + 1,
     username:
-      typeof username === "string" || username instanceof String
+      typeof username === 'string' || username instanceof String
         ? username
-        : "",
+        : '',
     touched: false,
     valid: false,
     validating: false,
@@ -327,9 +322,9 @@ const addNewOrganization = (username) => {
   organizations.value.push({
     id: maxId.value + 1,
     username:
-      typeof username === "string" || username instanceof String
+      typeof username === 'string' || username instanceof String
         ? username
-        : "",
+        : '',
     touched: false,
     valid: false,
     validating: false,
@@ -380,13 +375,13 @@ const handleOrganizationValidation = async (id) => {
 
     if (
       organizations.value.find(
-        (o) => o.id !== id && o.username === organization.username
+        (o) => o.id !== id && o.username === organization.username,
       )
     ) {
       organization.valid = false;
     } else {
       const result = await IntegrationService.devtoValidateOrganization(
-        organization.username
+        organization.username,
       );
       organization.valid = !!result;
     }
@@ -432,7 +427,7 @@ const validateAPIKey = async () => {
     isAPIConnectionValid.value = true;
   } else {
     const errors = {
-      apiKey: "Invalid API key",
+      apiKey: 'Invalid API key',
     };
     $externalResults.value = errors;
     isAPIConnectionValid.value = false;
@@ -441,7 +436,7 @@ const validateAPIKey = async () => {
 };
 
 const form = reactive({
-  apiKey: "",
+  apiKey: '',
 });
 
 const rules = {
@@ -460,17 +455,17 @@ watch(
     if (newVal) {
       syncData();
     }
-  }
+  },
 );
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue']);
 
 const isVisible = computed({
   get() {
     return props.modelValue;
   },
   set(value) {
-    return emit("update:modelValue", value);
+    return emit('update:modelValue', value);
   },
 });
 
@@ -479,7 +474,7 @@ onMounted(syncData);
 
 <script>
 export default {
-  name: "AppDevtoConnectDrawer",
+  name: 'AppDevtoConnectDrawer',
 };
 </script>
 
