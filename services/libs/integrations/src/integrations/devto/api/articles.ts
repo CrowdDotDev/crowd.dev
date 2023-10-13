@@ -16,13 +16,14 @@ export interface IDevToArticle {
   last_comment_at: string
 }
 
-export const getArticle = async (id: number): Promise<IDevToArticle> => {
+export const getArticle = async (id: number, apiKey?: string): Promise<IDevToArticle> => {
   try {
     const result = await axios.get(
       `https://dev.to/api/articles/${encodeURIComponent(id.toString())}`,
       {
         headers: {
-          'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)',
+          Accept: 'application/vnd.forem.api-v1+json',
+          'api-key': apiKey || '',
         },
       },
     )
@@ -49,6 +50,7 @@ export const getOrganizationArticles = async (
   organizationName: string,
   page: number,
   perPage: number,
+  apiKey?: string,
 ): Promise<IDevToArticle[]> => {
   try {
     const result = await axios.get(
@@ -59,7 +61,8 @@ export const getOrganizationArticles = async (
           per_page: perPage,
         },
         headers: {
-          'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)',
+          Accept: 'application/vnd.forem.api-v1+json',
+          'api-key': apiKey || '',
         },
       },
     )
@@ -88,6 +91,7 @@ export const getUserArticles = async (
   username: string,
   page: number,
   perPage: number,
+  apiKey?: string,
 ): Promise<IDevToArticle[]> => {
   try {
     const result = await axios.get(`https://dev.to/api/articles`, {
@@ -97,7 +101,8 @@ export const getUserArticles = async (
         per_page: perPage,
       },
       headers: {
-        'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)',
+        Accept: 'application/vnd.forem.api-v1+json',
+        'api-key': apiKey || '',
       },
     })
     return result.data

@@ -67,11 +67,14 @@ const getOrganization = async (
       (err.status === 403 &&
         err.message &&
         (err.message as string).toLowerCase().includes('secondary rate limit')) ||
-      (err.errors && err.errors[0].type === 'RATE_LIMITED')
+      (err.errors && err.errors[0].type === 'RATE_LIMITED') ||
+      err?.message?.toLowerCase().includes('rate limit exceeded')
     ) {
+      logger.info('Rate limit error detected in getOrganization')
       // this is rate limit, let's try token rotation
-      if (tokenRotator) {
-        organization = await getOrganizationWithTokenRotation(name, tokenRotator, limiter)
+      if (tokenRotator && limiter) {
+        logger.info('Trying token rotation in getOrganization')
+        organization = await getOrganizationWithTokenRotation(name, tokenRotator, err, limiter)
       }
     } else {
       throw BaseQuery.processGraphQLError(err)
@@ -83,10 +86,14 @@ const getOrganization = async (
 const getOrganizationWithTokenRotation = async (
   name: string,
   tokenRotator: GithubTokenRotator,
+  err: any,
   limiter?: Limiter,
 ): Promise<any> => {
-  const token = await tokenRotator.getToken()
+  let organization: string | null
+  let token: string
   try {
+    token = await tokenRotator.getToken(limiter.integrationId, err)
+    logger.info('Got token from token rotator in getOrganizationWithTokenRotation')
     const graphqlWithTokenRotation = graphql.defaults({
       headers: {
         authorization: `token ${token}`,
@@ -110,7 +117,7 @@ const getOrganizationWithTokenRotation = async (
       }`
 
     const process = async () => {
-      const organization = (await graphqlWithTokenRotation(organizationsQuery)) as any
+      organization = (await graphqlWithTokenRotation(organizationsQuery)) as any
 
       return (organization as any).search.nodes.length > 0
         ? (organization as any).search.nodes[0]
@@ -127,23 +134,24 @@ const getOrganizationWithTokenRotation = async (
     } else {
       return await process()
     }
-  } catch (err) {
-    if (err.errors && err.errors[0].type === 'NOT_FOUND') {
+  } catch (err1) {
+    if (err1.errors && err1.errors[0].type === 'NOT_FOUND') {
+      logger.info('Organization not found in getOrganizationWithTokenRotation')
       return null
     } else if (
-      err.headers &&
-      err.headers['x-ratelimit-remaining'] &&
-      err.headers['x-ratelimit-reset']
+      err1.headers &&
+      err1.headers['x-ratelimit-remaining'] &&
+      err1.headers['x-ratelimit-reset']
     ) {
-      const remaining = parseInt(err.headers['x-ratelimit-remaining'])
-      const reset = parseInt(err.headers['x-ratelimit-reset'])
+      logger.info('Rate limit error detected in getOrganizationWithTokenRotation')
+      const remaining = parseInt(err1.headers['x-ratelimit-remaining'])
+      const reset = parseInt(err1.headers['x-ratelimit-reset'])
       await tokenRotator.updateTokenInfo(token, remaining, reset)
     } else {
+      logger.info('Other error detected in getOrganizationWithTokenRotation')
       await tokenRotator.updateRateLimitInfoFromApi(token)
     }
-    throw BaseQuery.processGraphQLError(err)
-  } finally {
-    await tokenRotator.returnToken(token)
+    throw BaseQuery.processGraphQLError(err1)
   }
 }
 
