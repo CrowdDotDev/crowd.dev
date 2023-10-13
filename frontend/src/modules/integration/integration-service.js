@@ -104,6 +104,13 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async devtoValidateAPIKey(apiKey) {
+    // Getting the tenant_id
+    const tenantId = AuthCurrentTenant.get();
+
+    // do some call to DEV.to API to validate the API key
+  }
+
   static async hackerNewsConnect(keywords, urls) {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get();

@@ -7,8 +7,8 @@
 </template>
 
 <script setup>
-import { defineProps, ref } from 'vue';
-import AppDevtoConnectDrawer from '@/integrations/devto/components/devto-connect-drawer.vue';
+import { defineProps, ref } from "vue";
+import AppDevtoConnectDrawer from "@/integrations/devto/components/devto-connect-drawer.vue";
 
 defineProps({
   integration: {
@@ -26,6 +26,6 @@ const connect = () => {
 
 <script>
 export default {
-  name: 'AppDevtoConnect',
+  name: "AppDevtoConnect",
 };
 </script>
