@@ -1,23 +1,6 @@
 import { ICustomView, CustomViewPlacement, CustomViewVisibility } from '@crowd/types'
 import moment from 'moment'
 
-const allOrganizations: ICustomView = {
-  name: 'All organizations',
-  config: {
-    search: '',
-    relation: 'and',
-    order: {
-      prop: 'lastActive',
-      order: 'descending',
-    },
-    settings: {
-      teamOrganization: 'exclude',
-    },
-  },
-  visibility: CustomViewVisibility.TENANT,
-  placement: CustomViewPlacement.ORGANIZATION,
-}
-
 const newAndActiveOrgs: ICustomView = {
   name: 'New and active',
   config: {
@@ -41,7 +24,7 @@ const newAndActiveOrgs: ICustomView = {
 }
 
 const mostMembers: ICustomView = {
-  name: 'Most members',
+  name: 'Most contacts',
   config: {
     search: '',
     relation: 'and',
@@ -75,7 +58,6 @@ const teamOrganizations: ICustomView = {
 }
 
 export const organizationCustomViews: ICustomView[] = [
-  allOrganizations,
   newAndActiveOrgs,
   mostMembers,
   teamOrganizations,
