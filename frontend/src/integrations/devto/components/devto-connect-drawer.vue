@@ -287,6 +287,9 @@ const maxId = computed(() => {
 const syncData = () => {
   users.value = [];
   organizations.value = [];
+  form.apiKey = '';
+  $v.value.$reset();
+  $v.value.$clearExternalResults();
 
   if (props.integration && props.integration.settings) {
     props.integration.settings.users.forEach((u) => addNewUser(u));
@@ -420,8 +423,12 @@ const save = async () => {
 };
 
 const validateAPIKey = async () => {
-  isValidating.value = true;
   $v.value.$clearExternalResults();
+
+  if ($v.value.$error) return;
+
+  isValidating.value = true;
+
   const isValid = await IntegrationService.devtoValidateAPIKey(form.apiKey);
   if (isValid) {
     isAPIConnectionValid.value = true;
