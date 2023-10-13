@@ -8,8 +8,14 @@ import {
   IDevToArticleData,
   IDevToRootOrganizationStreamData,
   IDevToRootUserStreamData,
+  DevToPlatformSettings,
 } from './types'
 import { getUserIdsFromComments, setFullUser } from './utils'
+
+const getDevApiKey = (ctx: IProcessStreamContext) => {
+  const DEVTO_CONFIG = ctx?.platformSettings as DevToPlatformSettings
+  return DEVTO_CONFIG.apiKey || ''
+}
 
 const getDevToArticle = async (ctx: IProcessStreamContext, id: number): Promise<IDevToArticle> => {
   const cached = await ctx.cache.get(`article:${id}`)
@@ -17,7 +23,7 @@ const getDevToArticle = async (ctx: IProcessStreamContext, id: number): Promise<
     return JSON.parse(cached)
   }
 
-  const article = await getArticle(id)
+  const article = await getArticle(id, getDevApiKey(ctx))
   await ctx.cache.set(`article:${id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
   return article
 }
@@ -28,7 +34,7 @@ const getDevToUser = async (ctx: IProcessStreamContext, userId: number): Promise
     return JSON.parse(cached)
   }
 
-  const user = await getUser(userId)
+  const user = await getUser(userId, getDevApiKey(ctx))
   await ctx.cache.set(`user:${userId}`, JSON.stringify(user), 7 * 24 * 60 * 60) // store for 7 days
   return user
 }
@@ -38,26 +44,26 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   if (ctx.stream.identifier.startsWith(DevToRootStream.ORGANIZATION_ARTICLES)) {
     const organization = (ctx.stream.data as IDevToRootOrganizationStreamData).organization
     let page = 1
-    let articles = await getOrganizationArticles(organization, page, 20)
+    let articles = await getOrganizationArticles(organization, page, 20, getDevApiKey(ctx))
     while (articles.length > 0) {
       for (const article of articles) {
         ctx.log.debug(`Creating organization article stream with identifier ${article.id}!`)
         await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
         await ctx.publishStream(`${article.id}`)
       }
-      articles = await getOrganizationArticles(organization, ++page, 20)
+      articles = await getOrganizationArticles(organization, ++page, 20, getDevApiKey(ctx))
     }
   } else if (ctx.stream.identifier.startsWith(DevToRootStream.USER_ARTICLES)) {
     const user = (ctx.stream.data as IDevToRootUserStreamData).user
     let page = 1
-    let articles = await getUserArticles(user, page, 20)
+    let articles = await getUserArticles(user, page, 20, getDevApiKey(ctx))
     while (articles.length > 0) {
       for (const article of articles) {
         ctx.log.debug(`Creating user article stream with identifier ${article.id}!`)
         await ctx.cache.set(`article:${article.id}`, JSON.stringify(article), 7 * 24 * 60 * 60) // store for 7 days
         await ctx.publishStream(`${article.id}`)
       }
-      articles = await getUserArticles(user, ++page, 20)
+      articles = await getUserArticles(user, ++page, 20, getDevApiKey(ctx))
     }
   } else {
     await ctx.abortWithError(`Unknown root stream identifier: ${ctx.stream.identifier}`)
@@ -69,7 +75,7 @@ const processArticleStream: ProcessStreamHandler = async (ctx) => {
 
   ctx.log.debug({ devtoArticleId: articleId }, 'Processing article stream!')
 
-  const comments = await getArticleComments(articleId)
+  const comments = await getArticleComments(articleId, getDevApiKey(ctx))
 
   if (comments.length > 0) {
     ctx.log.debug(
