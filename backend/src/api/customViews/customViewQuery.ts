@@ -24,7 +24,7 @@ export default async (req, res) => {
   const payload = await new CustomViewService(req).query(req.body)
 
   if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-    track('Custom views Fitler', { ...payload }, { ...req })
+    track('Custom views Filter', { ...payload }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)
