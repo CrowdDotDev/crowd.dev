@@ -35,12 +35,16 @@ export const getUserById = async (userId: number): Promise<DevtoUser | null> => 
  * @param username
  * @returns {DevtoUser} or null if no user found
  */
-export const getUserByUsername = async (username: string): Promise<DevtoUser | null> => {
+export const getUserByUsername = async (username: string, apiKey?: string): Promise<DevtoUser | null> => {
   try {
     const result = await axios.get('https://dev.to/api/users/by_username', {
       params: {
         url: username,
       },
+      headers: {
+          Accept: 'application/vnd.forem.api-v1+json',
+          'api-key': apiKey || '',
+        },
     })
     return result.data
   } catch (err: any) {

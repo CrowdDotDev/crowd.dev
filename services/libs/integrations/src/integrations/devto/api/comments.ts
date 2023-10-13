@@ -45,7 +45,7 @@ export const getArticleComments = async (
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getArticleComments(articleId)
+          return getArticleComments(articleId, apiKey)
         }
       }
     }

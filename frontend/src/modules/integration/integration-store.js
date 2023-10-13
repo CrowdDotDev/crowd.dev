@@ -382,7 +382,7 @@ export default {
 
     async doDevtoConnect(
       { commit },
-      { users, organizations },
+      { users, organizations, apiKey },
     ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
@@ -393,6 +393,7 @@ export default {
         const integration = await IntegrationService.devtoConnect(
           users,
           organizations,
+          apiKey,
         );
 
         commit('CREATE_SUCCESS', integration);

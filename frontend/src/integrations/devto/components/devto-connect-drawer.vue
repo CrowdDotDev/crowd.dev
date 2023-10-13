@@ -165,7 +165,9 @@
         <el-button
           id="devConnect"
           class="btn btn--md btn--primary"
-          :disabled="connectDisabled || loading"
+          :disabled="
+            connectDisabled || loading || !isAPIConnectionValid || isValidating
+          "
           :loading="loading"
           @click="save"
         >
@@ -192,11 +194,10 @@ import useVuelidate from "@vuelidate/core";
 import AppDrawer from "@/shared/drawer/drawer.vue";
 import { mapActions } from "@/shared/vuex/vuex.helpers";
 import AppFormItem from "@/shared/form/form-item.vue";
-import formChangeDetector from "@/shared/form/form-change";
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from "@/modules/integration/integration-service";
-import Message from "@/shared/message/message";
-import AuthCurrentTenant from "@/modules/auth/auth-current-tenant";
+
+const { doDevtoConnect } = mapActions("integration");
 
 const props = defineProps({
   integration: {
@@ -214,6 +215,7 @@ const users = ref([]);
 const organizations = ref([]);
 const loading = ref(false);
 const isAPIConnectionValid = ref(false);
+const isValidating = ref(false);
 
 const connectDisabled = computed(() => {
   if (!isValid.value) {
@@ -399,6 +401,7 @@ const handleOrganizationValidation = async (id) => {
 
 const onBlurAPIKey = async () => {
   $v.value.apiKey.$touch();
+  await validateAPIKey();
 };
 
 const cancel = () => {
@@ -414,6 +417,7 @@ const save = async () => {
   await doDevtoConnect({
     users: relevantUsers.map((u) => u.username),
     organizations: relevantOrganizations.map((o) => o.username),
+    apiKey: form.apiKey,
   });
 
   isVisible.value = false;
@@ -421,7 +425,19 @@ const save = async () => {
 };
 
 const validateAPIKey = async () => {
-  //
+  isValidating.value = true;
+  $v.value.$clearExternalResults();
+  const isValid = await IntegrationService.devtoValidateAPIKey(form.apiKey);
+  if (isValid) {
+    isAPIConnectionValid.value = true;
+  } else {
+    const errors = {
+      apiKey: "Invalid API key",
+    };
+    $externalResults.value = errors;
+    isAPIConnectionValid.value = false;
+  }
+  isValidating.value = false;
 };
 
 const form = reactive({
@@ -434,7 +450,9 @@ const rules = {
   },
 };
 
-const $v = useVuelidate(rules, form);
+const $externalResults = ref({});
+
+const $v = useVuelidate(rules, form, { $externalResults });
 
 watch(
   () => props.integration,

@@ -31,7 +31,7 @@ export const getUser = async (userId: number, apiKey?: string): Promise<IDevToUs
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getUser(userId)
+          return getUser(userId, apiKey)
         }
       }
     } else if (err.response.status === 404) {

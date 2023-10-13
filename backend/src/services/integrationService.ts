@@ -1164,6 +1164,7 @@ export default class IntegrationService {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DEVTO,
+          token: integrationData.apiKey,
           settings: {
             users: integrationData.users,
             organizations: integrationData.organizations,

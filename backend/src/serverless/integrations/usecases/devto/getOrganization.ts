@@ -7,9 +7,14 @@ import { DevtoOrganization } from './types'
  * @param organization
  * @returns {DevtoOrganization} or null if no organization found
  */
-export const getOrganization = async (organization: string): Promise<DevtoOrganization> => {
+export const getOrganization = async (organization: string, apiKey?: string): Promise<DevtoOrganization> => {
   try {
-    const result = await axios.get(`https://dev.to/api/organizations/${organization}`)
+    const result = await axios.get(`https://dev.to/api/organizations/${organization}`, {
+      headers: {
+          Accept: 'application/vnd.forem.api-v1+json',
+          'api-key': apiKey || '',
+        },
+    })
     return result.data
   } catch (err: any) {
     if (err.response) {
