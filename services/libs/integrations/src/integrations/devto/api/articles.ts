@@ -37,7 +37,7 @@ export const getArticle = async (id: number, apiKey?: string): Promise<IDevToArt
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getArticle(id)
+          return getArticle(id, apiKey)
         }
       }
     }
@@ -78,7 +78,7 @@ export const getOrganizationArticles = async (
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getOrganizationArticles(organizationName, page, perPage)
+          return getOrganizationArticles(organizationName, page, perPage, apiKey)
         }
       }
     }
@@ -114,7 +114,7 @@ export const getUserArticles = async (
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getUserArticles(username, page, perPage)
+          return getUserArticles(username, page, perPage, apiKey)
         }
       }
     }
