@@ -104,7 +104,7 @@
       v-else
       icon="ri-flow-chart"
       title="Start to automate manual tasks"
-      description="Create config actions or send Slack notifications when a new activity happens, or a new member joins your community "
+      description="Create config actions or send Slack notifications when a new activity happens, or a new contact joins your community "
     />
 
     <!-- Add/Edit Webhook form drawer -->

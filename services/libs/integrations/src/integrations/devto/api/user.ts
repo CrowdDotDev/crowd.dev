@@ -14,11 +14,12 @@ export interface IDevToUser {
   profile_image: string
 }
 
-export const getUser = async (userId: number): Promise<IDevToUser | null> => {
+export const getUser = async (userId: number, apiKey?: string): Promise<IDevToUser | null> => {
   try {
     const result = await axios.get(`https://dev.to/api/users/${userId}`, {
       headers: {
-        'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)',
+        Accept: 'application/vnd.forem.api-v1+json',
+        'api-key': apiKey || '',
       },
     })
     return result.data

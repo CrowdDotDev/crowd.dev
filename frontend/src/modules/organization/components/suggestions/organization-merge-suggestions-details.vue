@@ -207,7 +207,7 @@
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
-            # of members
+            # of contacts
           </p>
           <p class="text-xs text-gray-900 text-right">
             {{ props.config.memberCount || '-' }}

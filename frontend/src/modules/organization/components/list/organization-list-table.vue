@@ -12,8 +12,8 @@
           v-if="!hasOrganizations"
           icon="ri-community-line"
           title="No organizations yet"
-          description="We couldn't track any organizations related to your community members."
-          cta-btn="Add config"
+          description="We couldn't track any organizations related to your community contacts."
+          cta-btn="Add organization"
           @cta-click="onCtaClick"
         />
 
@@ -32,7 +32,7 @@
               :total="totalOrganizations"
               :current-page="pagination.page"
               :has-page-counter="false"
-              module="config"
+              module="organization"
               position="top"
               @change-sorter="doChangePaginationPageSize"
             />
@@ -136,7 +136,7 @@
                           v-if="scope.row.headline || scope.row.description"
                           class="text-sm h-full flex items-center text-gray-900"
                         >
-                          {{ scope.row.headline || scope.row.description }}
+                          {{ truncateText((scope.row.headline || scope.row.description), 150, '...') }}
                         </span>
                         <span
                           v-else
@@ -179,7 +179,7 @@
 
                 <!-- Number of members -->
                 <el-table-column
-                  label="# Members"
+                  label="# Contacts"
                   width="150"
                   prop="memberCount"
                   sortable
@@ -646,7 +646,7 @@
                   :total="totalOrganizations"
                   :page-size="Number(pagination.perPage)"
                   :current-page="pagination.page || 1"
-                  module="config"
+                  module="organization"
                   @change-current-page="
                     doChangePaginationCurrentPage
                   "
@@ -674,7 +674,7 @@ import {
 import { useRouter } from 'vue-router';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
-import { withHttp, toSentenceCase } from '@/utils/string';
+import { withHttp, toSentenceCase, truncateText } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';

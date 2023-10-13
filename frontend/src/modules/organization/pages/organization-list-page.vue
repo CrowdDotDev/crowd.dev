@@ -78,6 +78,7 @@ import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import {
   mapGetters,
+  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
@@ -90,6 +91,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { OrganizationPermissions } from '../organization-permissions';
 
 const { currentUser, currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
 
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
@@ -189,6 +191,7 @@ const fetchOrganizationsToMergeCount = () => {
 };
 
 onMounted(async () => {
+  doRefreshCurrentUser({});
   fetchOrganizationsToMergeCount();
   doGetOrganizationCount();
   (window as any).analytics.page('Organization');

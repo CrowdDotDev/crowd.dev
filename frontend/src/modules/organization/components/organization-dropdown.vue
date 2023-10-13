@@ -25,10 +25,10 @@
         >
           <i class="ri-pencil-line text-base mr-2" /><span
             class="text-xs"
-          >Edit config</span>
+          >Edit organization</span>
         </el-dropdown-item>
 
-        <!-- Merge config -->
+        <!-- Merge organization -->
         <el-dropdown-item
           class="h-10"
           :command="{
@@ -39,38 +39,47 @@
         >
           <i class="ri-shuffle-line text-base mr-2" /><span
             class="text-xs"
-          >Merge config</span>
+          >Merge organization</span>
         </el-dropdown-item>
 
         <!-- Hubspot -->
-        <el-dropdown-item
-          v-if="!isSyncingWithHubspot(organization)"
-          class="h-10"
-          :command="{
-            action: 'syncHubspot',
-            organization,
-          }"
-          :disabled="!isHubspotConnected || (!organization.website && !organization.attributes?.sourceId?.hubspot)"
+        <el-tooltip
+          placement="top"
+          content="Upgrade your plan to create a 2-way sync with HubSpot"
+          :disabled="isHubspotEnabled"
+          popper-class="max-w-[260px]"
         >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Sync with HubSpot</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-else
-          class="h-10"
-          :command="{
-            action: 'stopSyncHubspot',
-            organization,
-          }"
-          :disabled="!isHubspotConnected"
-        >
-          <app-svg name="hubspot" class="h-4 w-4 text-current" />
-          <span
-            class="text-xs pl-2"
-          >Stop sync with HubSpot</span>
-        </el-dropdown-item>
+          <span>
+            <el-dropdown-item
+              v-if="!isSyncingWithHubspot(organization)"
+              class="h-10"
+              :command="{
+                action: 'syncHubspot',
+                organization,
+              }"
+              :disabled="!isHubspotConnected || (!organization.website && !organization.attributes?.sourceId?.hubspot) || !isHubspotEnabled"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Sync with HubSpot</span>
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-else
+              class="h-10"
+              :command="{
+                action: 'stopSyncHubspot',
+                organization,
+              }"
+              :disabled="!isHubspotConnected"
+            >
+              <app-svg name="hubspot" class="h-4 w-4 text-current" />
+              <span
+                class="text-xs pl-2"
+              >Stop sync with HubSpot</span>
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
 
         <!-- Mark as Team Organization -->
         <el-dropdown-item
@@ -85,7 +94,7 @@
         >
           <i
             class="ri-bookmark-line text-base mr-2"
-          /><span class="text-xs">Mark as team config</span>
+          /><span class="text-xs">Mark as team organization</span>
         </el-dropdown-item>
 
         <!-- Unmark as Team Organization -->
@@ -101,7 +110,7 @@
         >
           <i
             class="ri-bookmark-2-line text-base mr-2"
-          /><span class="text-xs">Unmark as team config</span>
+          /><span class="text-xs">Unmark as team organization</span>
         </el-dropdown-item>
 
         <el-divider class="border-gray-200 my-2" />
@@ -125,7 +134,7 @@
             :class="{
               'text-red-500': !isDeleteLockedForSampleData,
             }"
-          >Delete config</span>
+          >Delete organization</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -147,6 +156,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
+import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -190,7 +200,11 @@ const isDeleteLockedForSampleData = computed(
   ).destroyLockedForSampleData,
 );
 
-const isSyncingWithHubspot = (config) => organization.attributes?.syncRemote?.hubspot || false;
+const isHubspotEnabled = computed(() => FeatureFlag.isFlagEnabled(
+  FEATURE_FLAGS.hubspot,
+));
+
+const isSyncingWithHubspot = (organization) => organization.attributes?.syncRemote?.hubspot || false;
 
 const isHubspotConnected = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
@@ -202,7 +216,7 @@ const doDestroyWithConfirm = async (id) => {
   try {
     await ConfirmDialog({
       type: 'danger',
-      title: 'Delete config',
+      title: 'Delete organization',
       message:
         "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
@@ -213,7 +227,7 @@ const doDestroyWithConfirm = async (id) => {
     await OrganizationService.destroyAll([id]);
 
     Message.success(
-      i18n('entities.config.destroy.success'),
+      i18n('entities.organization.destroy.success'),
     );
     await fetchOrganizations({
       reload: true,

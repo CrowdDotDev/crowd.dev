@@ -3,11 +3,11 @@ import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
 import { getServiceLogger } from '@crowd/logging'
+import { IntegrationRunState } from '@crowd/types'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
-import { IntegrationRunState } from '../../types/integrationRunTypes'
 
 /* eslint-disable no-console */
 

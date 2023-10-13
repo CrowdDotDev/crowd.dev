@@ -84,6 +84,21 @@ export class RedisCache extends LoggerBase implements ICache {
     return this.client.del(actualKey)
   }
 
+  public async hget(key: string, field: string): Promise<string> {
+    const actualKey = this.prefixer(key)
+    return this.client.hGet(actualKey, field)
+  }
+
+  public async hset(key: string, field: string, value: string): Promise<number> {
+    const actualKey = this.prefixer(key)
+    return this.client.hSet(actualKey, field, value)
+  }
+
+  public async hgetall(key: string): Promise<{ [key: string]: string }> {
+    const actualKey = this.prefixer(key)
+    return this.client.hGetAll(actualKey)
+  }
+
   private async deleteByPattern(pattern: string): Promise<number> {
     const script = `
 local delpattern = ARGV[1]

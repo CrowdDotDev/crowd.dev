@@ -1,8 +1,8 @@
 import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const allMembers: SavedView = {
-  id: 'all-members',
-  name: 'All members',
+  id: 'all-contacts',
+  name: 'All contacts',
   placement: 'member',
   visibility: 'tenant',
   config: {

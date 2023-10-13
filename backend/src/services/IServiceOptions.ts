@@ -10,4 +10,5 @@ export interface IServiceOptions {
   currentSegments: SegmentData[]
   database: any
   redis: RedisClient
+  transaction?: any
 }
