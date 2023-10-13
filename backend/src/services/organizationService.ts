@@ -53,8 +53,12 @@ export default class OrganizationService extends LoggerBase {
     let tx
 
     try {
+      this.log.info("[Merge Organizations] - Finding organizations! ")
       let original = await OrganizationRepository.findById(originalId, this.options)
       let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+
+      this.log.info({originalId, toMergeId}, "[Merge Organizations] - Found organizations! ")
+
 
       if (original.id === toMerge.id) {
         return {
@@ -85,6 +89,8 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Moving identities between organizations! ")
+
       await OrganizationRepository.moveIdentitiesBetweenOrganizations(
         toMergeId,
         originalId,
@@ -92,14 +98,23 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Moving identities between organizations done! ")
+
       // remove aggregate fields and relationships
       original = removeExtraFields(original)
       toMerge = removeExtraFields(toMerge)
 
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Generating merge object! ")
+
       // Performs a merge and returns the fields that were changed so we can update
       const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
 
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Generating merge object done! ")
+
       const txService = new OrganizationService(repoOptions as IServiceOptions)
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Updating original organisation! ")
 
       // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
       // because of website unique constraint
@@ -110,6 +125,10 @@ export default class OrganizationService extends LoggerBase {
       // Update original organization
       await txService.update(originalId, toUpdate, repoOptions.transaction)
 
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Updating original organisation done! ")
+
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Moving members to original organisation! ")
       // update members that belong to source organization to destination org
       await OrganizationRepository.moveMembersBetweenOrganizations(
         toMergeId,
@@ -117,12 +136,20 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Moving members to original organisation done! ")
+
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Moving activities to original organisation! ")
       // update activities that belong to source org to destination org
       await OrganizationRepository.moveActivitiesBetweenOrganizations(
         toMergeId,
         originalId,
         repoOptions,
       )
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Moving activities to original organisation done! ")
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Including original organisation into secondary organisation segments! ")
 
       const secondMemberSegments = await OrganizationRepository.getOrganizationSegments(
         toMergeId,
@@ -135,11 +162,22 @@ export default class OrganizationService extends LoggerBase {
           currentSegments: secondMemberSegments,
         })
       }
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Including original organisation into secondary organisation segments done! ")
 
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Destroying secondary organisation! ")
       // Delete toMerge organization
       await OrganizationRepository.destroy(toMergeId, repoOptions, true)
 
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Destroying secondary organisation done! ")
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Commiting the transaction! ")
+
       await SequelizeRepository.commitTransaction(tx)
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Transaction commited! ")
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Sending refresh opensearch messages! ")
+      
 
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
       await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, originalId)
@@ -150,6 +188,8 @@ export default class OrganizationService extends LoggerBase {
 
       // sync organization activities
       await searchSyncEmitter.triggerOrganizationActivitiesSync(originalId)
+
+      this.log.info({originalId, toMergeId }, "[Merge Organizations] - Sending refresh opensearch messages done! ")
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }
