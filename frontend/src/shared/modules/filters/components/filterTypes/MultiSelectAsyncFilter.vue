@@ -26,6 +26,7 @@
           :value="option"
         >
           <div
+            v-if="config.id !== 'tags'"
             class="h-4 el-checkbox filter-checkbox"
             :class="{ 'is-checked': props.modelValue.value.includes(option.value) }"
           >
