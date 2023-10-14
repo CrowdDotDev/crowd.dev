@@ -152,6 +152,7 @@ const en = {
       create: {
         success: 'Contact successfully saved',
         error: 'There was an error creating the contact',
+        message: 'View contact',
       },
       update: {
         success: 'Contact successfully saved',

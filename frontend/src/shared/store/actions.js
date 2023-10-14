@@ -113,9 +113,19 @@ export default (moduleName, moduleService = null) => {
           );
           commit('CREATE_SUCCESS', response);
 
-          Message.success(
-            i18n(`entities.${moduleName}.create.success`),
-          );
+          if (moduleName === 'member') {
+            const contactId = response.id;
+            const successMessageAction = i18n(`entities.${moduleName}.create.message`);
+            const message = `<button class="btn btn--xs btn--bordered">
+                                <a href="/contacts/${contactId}" class="text-current">${successMessageAction}</a>
+                             </button>`;
+
+            Message.success(i18n(`entities.${moduleName}.create.success`), {
+              message,
+            });
+          } else {
+            Message.success(i18n(`entities.${moduleName}.create.success`));
+          }
 
           return response;
         } catch (error) {
