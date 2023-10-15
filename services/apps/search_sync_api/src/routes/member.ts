@@ -1,9 +1,10 @@
 import express from 'express'
 import { MemberSyncService } from '@crowd/opensearch'
+import { ApiRequest } from 'middleware'
 
 const router = express.Router()
 
-router.post('/sync/members', async (req, res) => {
+router.post('/sync/members', async (req: ApiRequest, res) => {
   const memberSyncService = new MemberSyncService(
     req.redisClient,
     req.dbStore,
@@ -19,7 +20,7 @@ router.post('/sync/members', async (req, res) => {
   }
 })
 
-router.post('/sync/tenant/members', async (req, res) => {
+router.post('/sync/tenant/members', async (req: ApiRequest, res) => {
   const memberSyncService = new MemberSyncService(
     req.redisClient,
     req.dbStore,
@@ -36,7 +37,7 @@ router.post('/sync/tenant/members', async (req, res) => {
   }
 })
 
-router.post('/sync/organization/members', async (req, res) => {
+router.post('/sync/organization/members', async (req: ApiRequest, res) => {
   const memberSyncService = new MemberSyncService(
     req.redisClient,
     req.dbStore,
@@ -53,7 +54,7 @@ router.post('/sync/organization/members', async (req, res) => {
   }
 })
 
-router.delete('/cleanup/tenant/members', async (req, res) => {
+router.delete('/cleanup/tenant/members', async (req: ApiRequest, res) => {
   const memberSyncService = new MemberSyncService(
     req.redisClient,
     req.dbStore,
@@ -70,7 +71,7 @@ router.delete('/cleanup/tenant/members', async (req, res) => {
   }
 })
 
-router.delete('/cleanup/members', async (req, res) => {
+router.delete('/cleanup/members', async (req: ApiRequest, res) => {
   const memberSyncService = new MemberSyncService(
     req.redisClient,
     req.dbStore,

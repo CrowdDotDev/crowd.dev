@@ -5,22 +5,45 @@ import {
   OpenSearchIndex,
 } from '../types'
 import { IS_DEV_ENV } from '@crowd/common'
-import { Logger, getChildLogger } from '@crowd/logging'
+import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { IIndexRequest, ISearchHit } from './opensearch.data'
+import { OPENSEARCH_CONFIG } from 'conf'
+import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
 
-export class OpenSearchService {
-  private log: Logger
+export class OpenSearchService extends LoggerBase {
+  public readonly client: Client
   private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
 
-  constructor(private readonly client: Client, parentLog: Logger) {
-    this.log = getChildLogger('opensearch-service', parentLog)
+  constructor(parentLog: Logger) {
+    super(parentLog)
 
     const indexNames = Object.values(OpenSearchIndex)
     indexNames.forEach((name) => {
       const version = IndexVersions.get(name)
       this.indexVersionMap.set(name, `${name}_v${version}`)
     })
+
+    const config = OPENSEARCH_CONFIG()
+    if (config.region) {
+      this.client = new Client({
+        node: config.node,
+        ...AwsSigv4Signer({
+          region: config.region,
+          service: 'es',
+          getCredentials: async () => {
+            return {
+              accessKeyId: config.accessKeyId,
+              secretAccessKey: config.secretAccessKey,
+            }
+          },
+        }),
+      })
+    } else {
+      this.client = new Client({
+        node: config.node,
+      })
+    }
   }
 
   private async doesIndexExist(indexName: string): Promise<boolean> {

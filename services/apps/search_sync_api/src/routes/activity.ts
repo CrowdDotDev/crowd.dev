@@ -1,9 +1,10 @@
 import express from 'express'
 import { ActivitySyncService } from '@crowd/opensearch'
+import { ApiRequest } from '../middleware/index'
 
 const router = express.Router()
 
-router.post('/sync/activities', async (req, res) => {
+router.post('/sync/activities', async (req: ApiRequest, res) => {
   const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
   const { activityIds } = req.body
   try {
@@ -14,7 +15,7 @@ router.post('/sync/activities', async (req, res) => {
   }
 })
 
-router.post('/sync/tenant/activities', async (req, res) => {
+router.post('/sync/tenant/activities', async (req: ApiRequest, res) => {
   const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
   const { tenantId } = req.body
@@ -26,7 +27,7 @@ router.post('/sync/tenant/activities', async (req, res) => {
   }
 })
 
-router.post('/sync/organization/activities', async (req, res) => {
+router.post('/sync/organization/activities', async (req: ApiRequest, res) => {
   const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
   const { organizationId } = req.body
@@ -38,7 +39,7 @@ router.post('/sync/organization/activities', async (req, res) => {
   }
 })
 
-router.delete('/cleanup/tenant/activities', async (req, res) => {
+router.delete('/cleanup/tenant/activities', async (req: ApiRequest, res) => {
   const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
   const { tenantId } = req.body
@@ -50,7 +51,7 @@ router.delete('/cleanup/tenant/activities', async (req, res) => {
   }
 })
 
-router.delete('/cleanup/activities', async (req, res) => {
+router.delete('/cleanup/activities', async (req: ApiRequest, res) => {
   const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
   const { activityId } = req.body

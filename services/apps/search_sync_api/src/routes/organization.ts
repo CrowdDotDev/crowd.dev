@@ -1,9 +1,10 @@
 import express from 'express'
 import { OrganizationSyncService } from '@crowd/opensearch'
+import { ApiRequest } from 'middleware'
 
 const router = express.Router()
 
-router.post('/sync/organizations', async (req, res) => {
+router.post('/sync/organizations', async (req: ApiRequest, res) => {
   const organizationSyncService = new OrganizationSyncService(req.dbStore, req.opensearch, req.log)
   const { organizationIds } = req.body
   try {
@@ -14,7 +15,7 @@ router.post('/sync/organizations', async (req, res) => {
   }
 })
 
-router.post('/sync/tenant/organizations', async (req, res) => {
+router.post('/sync/tenant/organizations', async (req: ApiRequest, res) => {
   const organizationSyncService = new OrganizationSyncService(req.dbStore, req.opensearch, req.log)
 
   const { tenantId } = req.body
@@ -26,7 +27,7 @@ router.post('/sync/tenant/organizations', async (req, res) => {
   }
 })
 
-router.delete('/cleanup/tenant/organizations', async (req, res) => {
+router.delete('/cleanup/tenant/organizations', async (req: ApiRequest, res) => {
   const organizationSyncService = new OrganizationSyncService(req.dbStore, req.opensearch, req.log)
 
   const { tenantId } = req.body
@@ -38,7 +39,7 @@ router.delete('/cleanup/tenant/organizations', async (req, res) => {
   }
 })
 
-router.delete('/cleanup/organizations', async (req, res) => {
+router.delete('/cleanup/organizations', async (req: ApiRequest, res) => {
   const organizationSyncService = new OrganizationSyncService(req.dbStore, req.opensearch, req.log)
 
   const { organizationId } = req.body
