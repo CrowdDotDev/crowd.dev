@@ -20,6 +20,9 @@
   },
   "dependencies": {
     "@crowd/types": "file:../types",
+    "@crowd/logging": "file:../logging",
+    "@crowd/database": "file:../database",
+    "@crowd/redis": "file:../redis",
     "@opensearch-project/opensearch": "^1.2.0"
   }
 }
