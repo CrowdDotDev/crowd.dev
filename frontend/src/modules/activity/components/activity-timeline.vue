@@ -11,8 +11,10 @@
         <template #append>
           <el-select
             v-model="platform"
+            clearable
             placeholder="All platforms"
             class="w-40"
+            @clear="reloadActivities"
           >
             <template
               v-if="
@@ -61,86 +63,102 @@
     </div>
     <div>
       <el-timeline>
-        <el-timeline-item
-          v-for="activity in activities"
-          :key="activity.id"
-        >
-          <div class="-mt-1.5">
-            <app-member-display-name
-              v-if="entityType === 'organization'"
-              :member="activity.member"
-              custom-class="block text-gray-900 font-medium"
-              with-link
-              class="bl"
-            />
-            <div
-              class="flex gap-4 justify-between min-h-9 -mt-1"
-              :class="{
-                'items-center': !isMemberIdentity,
-                'items-start': isMemberIdentity,
-              }"
-            >
-              <app-activity-header
-                :activity="activity"
-                class="flex flex-wrap items-center"
+        <template v-if="activities.length && !loading">
+          <el-timeline-item
+            v-for="activity in activities"
+            :key="activity.id"
+          >
+            <div class="-mt-1.5">
+              <app-member-display-name
+                v-if="entityType === 'organization'"
+                :member="activity.member"
+                custom-class="block text-gray-900 font-medium"
+                with-link
+                class="bl"
+              />
+              <div
+                class="flex gap-4 justify-between min-h-9 -mt-1"
                 :class="{
-                  'mt-1.5': isMemberIdentity,
+                  'items-center': !isMemberIdentity,
+                  'items-start': isMemberIdentity,
                 }"
-              />
-              <div class="flex-grow" />
-              <app-activity-dropdown
+              >
+                <app-activity-header
+                  :activity="activity"
+                  class="flex flex-wrap items-center"
+                  :class="{
+                    'mt-1.5': isMemberIdentity,
+                  }"
+                />
+                <div class="flex-grow" />
+                <app-activity-dropdown
+                  :activity="activity"
+                  :disable-edit="true"
+                  @activity-destroyed="fetchActivities(true)"
+                />
+              </div>
+              <app-activity-content
+                v-if="activity.title || activity.body"
+                class="text-sm bg-gray-50 rounded-lg p-4"
                 :activity="activity"
-                :disable-edit="true"
-                @activity-destroyed="fetchActivities(true)"
-              />
-            </div>
-            <app-activity-content
-              v-if="activity.title || activity.body"
-              class="text-sm bg-gray-50 rounded-lg p-4"
-              :activity="activity"
-              :show-more="true"
-            >
-              <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
-                <div v-if="activity.attributes">
-                  <app-activity-content-footer
-                    :source-id="activity.sourceId"
-                    :changes="activity.attributes.lines"
-                    changes-copy="line"
-                    :insertions="activity.attributes.insertions"
-                    :deletions="activity.attributes.deletions"
-                  />
-                </div>
-              </template>
+                :show-more="true"
+              >
+                <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
+                  <div v-if="activity.attributes">
+                    <app-activity-content-footer
+                      :source-id="activity.sourceId"
+                      :changes="activity.attributes.lines"
+                      changes-copy="line"
+                      :insertions="activity.attributes.insertions"
+                      :deletions="activity.attributes.deletions"
+                    />
+                  </div>
+                </template>
 
-              <template #bottomLink>
-                <div v-if="activity.url" class="pt-6">
-                  <app-activity-link
-                    :activity="activity"
-                  />
-                </div>
-              </template>
-            </app-activity-content>
-          </div>
-          <template #dot>
-            <span
-              class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
-              :class="`btn--${activity.platform}`"
-            >
-              <img
-                v-if="platformDetails(activity.platform)"
-                :src="
-                  platformDetails(activity.platform).image
-                "
-                :alt="`${activity.platform}-icon`"
-                class="w-4 h-4"
-              />
-              <i
-                v-else
-                class="ri-radar-line text-base text-gray-400"
-              />
-            </span>
-          </template>
-        </el-timeline-item>
+                <template #bottomLink>
+                  <div v-if="activity.url" class="pt-6">
+                    <app-activity-link
+                      :activity="activity"
+                    />
+                  </div>
+                </template>
+              </app-activity-content>
+            </div>
+            <template #dot>
+              <span
+                class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
+                :class="`btn--${activity.platform}`"
+              >
+                <img
+                  v-if="platformDetails(activity.platform)"
+                  :src="
+                    platformDetails(activity.platform).image
+                  "
+                  :alt="`${activity.platform}-icon`"
+                  class="w-4 h-4"
+                />
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
+              </span>
+            </template>
+          </el-timeline-item>
+        </template>
+
+        <div
+          v-if="!activities.length && !loading"
+          class="flex items-center justify-center pt-6 pb-5"
+        >
+          <div
+            class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
+          />
+          <p
+            class="text-xs leading-5 text-center italic text-gray-400"
+          >
+            This member has no activities in {{ getPlatformDetails(platform)?.name || 'the platform' }}
+          </p>
+        </div>
       </el-timeline>
       <div
         v-if="loading"
@@ -316,6 +334,11 @@ const fetchActivities = async (reload = false) => {
   } else {
     activities.value.push(...data.rows);
   }
+};
+
+const reloadActivities = async () => {
+  platform.value = undefined;
+  await fetchActivities();
 };
 
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
