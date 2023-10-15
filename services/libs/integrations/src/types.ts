@@ -6,7 +6,13 @@ import {
   IAutomation,
 } from '@crowd/types'
 import { Logger } from '@crowd/logging'
-import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
+import {
+  ICache,
+  IIntegration,
+  IIntegrationStream,
+  IRateLimiter,
+  IConcurrentRequestLimiter,
+} from '@crowd/types'
 
 import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
 import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
@@ -54,6 +60,8 @@ export interface IProcessStreamContext extends IIntegrationContext {
   serviceSettings: IIntegrationServiceSettings
   platformSettings?: unknown
 
+  setMessageVisibilityTimeout: (newTimeout: number) => Promise<void>
+
   publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
@@ -69,6 +77,10 @@ export interface IProcessStreamContext extends IIntegrationContext {
   integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+  getConcurrentRequestLimiter: (
+    maxConcurrentRequests: number,
+    cacheKey: string,
+  ) => IConcurrentRequestLimiter
 }
 
 export interface IProcessWebhookStreamContext {
@@ -97,6 +109,10 @@ export interface IProcessWebhookStreamContext {
   integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+  getConcurrentRequestLimiter: (
+    maxConcurrentRequests: number,
+    cacheKey: string,
+  ) => IConcurrentRequestLimiter
 }
 
 export interface IProcessDataContext extends IIntegrationContext {

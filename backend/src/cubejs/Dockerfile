@@ -1,3 +1,3 @@
-FROM cubejs/cube:v0.32.16
+FROM cubejs/cube:v0.33.55
 
 COPY ./ /cube/conf/

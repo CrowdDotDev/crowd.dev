@@ -1,3 +1,4 @@
+import { IRedisConfiguration } from './../../../../libs/redis/src/types'
 import { IDatabaseConfig } from '@crowd/database'
 import { ISqsClientConfig } from '@crowd/sqs'
 import { ISentimentClientConfig } from '@crowd/sentiment'
@@ -5,6 +6,14 @@ import config from 'config'
 
 export interface ISlackAlertingConfig {
   url: string
+}
+
+let redisConfig: IRedisConfiguration
+export const REDIS_CONFIG = (): IRedisConfiguration => {
+  if (redisConfig) return redisConfig
+
+  redisConfig = config.get<IRedisConfiguration>('redis')
+  return redisConfig
 }
 
 let sqsConfig: ISqsClientConfig

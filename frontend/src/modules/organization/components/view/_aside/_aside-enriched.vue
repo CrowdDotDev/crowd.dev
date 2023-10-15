@@ -19,7 +19,7 @@
 
         <component
           :is="attribute.component"
-          v-if="attribute.component && attribute.type === attributesTypes.array"
+          v-if="attribute.component && attribute.type === AttributeType.ARRAY"
           more-label=""
           wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
           item-class="border border-gray-200 px-1.5 text-xs rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
@@ -31,10 +31,9 @@
         />
         <component
           :is="attribute.component"
-          v-else-if="attribute.component && attribute.type === attributesTypes.json"
+          v-else-if="attribute.component && attribute.type === AttributeType.JSON"
           :attribute-value="organization[attribute.name]"
           :key-parser="attribute.keyParser"
-          :nested-key-parser="attribute.nestedKeyParser"
           :value-parser="attribute.valueParser"
           :filter-value="attribute.filterValue"
         />
@@ -49,7 +48,7 @@
 <script setup>
 import { computed, defineProps } from 'vue';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 
 const props = defineProps({
   organization: {
@@ -59,7 +58,7 @@ const props = defineProps({
 });
 
 const visibleAttributes = computed(() => enrichmentAttributes
-  .filter((a) => ((props.organization[a.name] && a.type !== attributesTypes.array && a.type !== attributesTypes.json)
-    || (a.type === attributesTypes.array && props.organization[a.name]?.length)
-    || (a.type === attributesTypes.json && props.organization[a.name] && Object.keys(props.organization[a.name]))) && a.showInAttributes));
+  .filter((a) => ((props.organization[a.name] && a.type !== AttributeType.ARRAY && a.type !== AttributeType.JSON)
+    || (a.type === AttributeType.ARRAY && props.organization[a.name]?.length)
+    || (a.type === AttributeType.JSON && props.organization[a.name] && Object.keys(props.organization[a.name]))) && a.showInAttributes));
 </script>

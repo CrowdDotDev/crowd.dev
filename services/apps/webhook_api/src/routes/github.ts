@@ -1,9 +1,12 @@
-import { asyncWrap } from '@/middleware/error'
-import { WebhooksRepository } from '@/repos/webhooks.repo'
+import { asyncWrap } from '../middleware/error'
+import { WebhooksRepository } from '../repos/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
+import { getServiceTracer } from '@crowd/tracing'
 import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'
+
+const tracer = getServiceTracer()
 
 const SIGNATURE_HEADER = 'x-hub-signature'
 const EVENT_HEADER = 'x-github-event'
@@ -43,11 +46,12 @@ export const installGithubRoutes = async (app: express.Express) => {
             signature,
             event,
             data,
+            date: new Date().toISOString(),
           },
         )
 
         if (!emitter) {
-          emitter = new IntegrationStreamWorkerEmitter(req.sqs, req.log)
+          emitter = new IntegrationStreamWorkerEmitter(req.sqs, tracer, req.log)
           await emitter.init()
         }
 

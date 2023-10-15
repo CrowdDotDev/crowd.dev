@@ -103,7 +103,7 @@ const tabs = ref([
   {
     label: 'Open',
     name: 'open',
-    emptyText: 'No open tasks associated with this member',
+    emptyText: 'No open tasks associated with this contact',
     filters: {
       type: 'regular',
       status: 'in-progress',
@@ -114,7 +114,7 @@ const tabs = ref([
     label: 'Completed',
     name: 'completed',
     emptyText:
-      'No completed tasks associated with this member',
+      'No completed tasks associated with this contact',
     filters: {
       type: 'regular',
       status: 'done',

@@ -3,15 +3,15 @@ import { NODEJS_WORKER_QUEUE_SETTINGS } from '../config'
 import { SqsQueueEmitter } from '../queue'
 import { SqsClient } from '../types'
 import {
-  EnrichMemberOrganizationsQueueMessage,
   IQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
 } from '@crowd/types'
+import { Tracer } from '@crowd/tracing'
 
 export class NodejsWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, NODEJS_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, NODEJS_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public override sendMessage(
@@ -39,17 +39,6 @@ export class NodejsWorkerEmitter extends SqsQueueEmitter {
       memberId,
       new NewMemberAutomationQueueMessage(tenantId, memberId),
       memberId,
-    )
-  }
-
-  public async enrichMemberOrganizations(
-    tenantId: string,
-    memberId: string,
-    organizationIds: string[],
-  ): Promise<void> {
-    await super.sendMessage(
-      memberId,
-      new EnrichMemberOrganizationsQueueMessage(tenantId, memberId, organizationIds),
     )
   }
 }

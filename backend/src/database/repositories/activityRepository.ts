@@ -293,6 +293,8 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const where = {
       id: {
         [Op.in]: ids,
@@ -303,6 +305,7 @@ class ActivityRepository {
     const records = await options.database.activity.findAll({
       attributes: ['id'],
       where,
+      transaction,
     })
 
     return records.map((record) => record.id)

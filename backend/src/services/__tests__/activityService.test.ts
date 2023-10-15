@@ -867,9 +867,8 @@ describe('ActivityService tests', () => {
       }
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-
-      const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
-
+      const segmentRepository = new SegmentRepository(mockIRepositoryOptions)
+      const activityChannels = await segmentRepository.fetchTenantActivityChannels()
       expect(activityChannels[activity.platform].includes(activity.channel)).toBe(true)
     })
 
@@ -935,8 +934,10 @@ describe('ActivityService tests', () => {
         member: memberCreated.id,
         score: 1,
       }
+
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
-      const activityChannels = SegmentRepository.getActivityChannels(mockIRepositoryOptions)
+      const segmentRepository = new SegmentRepository(mockIRepositoryOptions)
+      const activityChannels = await segmentRepository.fetchTenantActivityChannels()
       expect(activityChannels[activity1.platform].length).toBe(1)
     })
   })
@@ -1425,14 +1426,14 @@ describe('ActivityService tests', () => {
       await populateSegments(mockIRepositoryOptions)
       const org1 = await OrganizationRepository.create(
         {
-          name: 'tesla',
+          displayName: 'tesla',
         },
         mockIRepositoryOptions,
       )
 
       const org2 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
@@ -2781,8 +2782,13 @@ describe('ActivityService tests', () => {
     }
 
     async function createOrg(name, data = {}) {
-      return await organizationService.findOrCreate({
-        name,
+      return await organizationService.createOrUpdate({
+        identities: [
+          {
+            name,
+            platform: 'crowd',
+          },
+        ],
         ...data,
       })
     }
@@ -2820,6 +2826,7 @@ describe('ActivityService tests', () => {
           memberId,
           organizationId: orgId,
           updateAffiliation: false,
+          source: 'test',
           ...data,
         },
         options,

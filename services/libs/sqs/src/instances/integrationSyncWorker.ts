@@ -1,10 +1,11 @@
 import { Logger } from '@crowd/logging'
 import { AutomationSyncTrigger, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
 import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public async triggerSyncMarkedMembers(tenantId: string, integrationId: string): Promise<void> {

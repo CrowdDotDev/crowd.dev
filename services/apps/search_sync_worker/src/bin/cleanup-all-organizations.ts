@@ -1,7 +1,7 @@
-import { DB_CONFIG } from '@/conf'
-import { InitService } from '@/service/init.service'
-import { OpenSearchService } from '@/service/opensearch.service'
-import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { DB_CONFIG } from '../conf'
+import { InitService } from '../service/init.service'
+import { OpenSearchService } from '../service/opensearch.service'
+import { OrganizationSyncService } from '../service/organization.sync.service'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 

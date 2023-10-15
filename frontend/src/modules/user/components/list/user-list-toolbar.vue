@@ -21,7 +21,7 @@
           Export to CSV
         </el-dropdown-item>
         <el-dropdown-item
-          v-if="hasPermissionToDestroy"
+          v-if="hasPermissionToDestroy && !(selectedRows.length === 1 && selectedRows[0].id === currentUser.id)"
           command="destroyAll"
           :disabled="destroyButtonDisabled"
         >

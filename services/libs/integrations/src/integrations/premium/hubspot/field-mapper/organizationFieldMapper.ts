@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { IOrganization, OrganizationAttributeName, PlatformType } from '@crowd/types'
+import {
+  IOrganization,
+  OrganizationAttributeName,
+  PlatformType,
+  OrganizationSource,
+} from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { serializeArray } from './utils/serialization'
@@ -58,12 +63,20 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         return crunchbase.handle
       },
     },
-    revenueRange: {
-      hubspotType: HubspotPropertyType.STRING,
+    // revenueRange: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (revenueRange: any) => {
+    //     return JSON.stringify(revenueRange)
+    //   },
+    // },
+    revenueRangeMin: {
+      hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
-      serialize: (revenueRange: any) => {
-        return JSON.stringify(revenueRange)
-      },
+    },
+    revenueRangeMax: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
     },
     employeeCountByCountry: {
       hubspotType: HubspotPropertyType.STRING,
@@ -147,13 +160,13 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       readonly: true,
       serialize: serializeArray,
     },
-    employeeChurnRate: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (employeeChurnRate: any) => {
-        return JSON.stringify(employeeChurnRate)
-      },
-    },
+    // employeeChurnRate: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (employeeChurnRate: any) => {
+    //     return JSON.stringify(employeeChurnRate)
+    //   },
+    // },
     employeeCountByMonth: {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
@@ -161,12 +174,20 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         return JSON.stringify(employeeCountByMonth)
       },
     },
-    employeeGrowthRate: {
-      hubspotType: HubspotPropertyType.STRING,
+    employeeChurnRate12Month: {
+      hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
-      serialize: (employeeGrowthRate: any) => {
-        return JSON.stringify(employeeGrowthRate)
-      },
+    },
+    // employeeGrowthRate: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   readonly: true,
+    //   serialize: (employeeGrowthRate: any) => {
+    //     return JSON.stringify(employeeGrowthRate)
+    //   },
+    // },
+    employeeGrowthRate12Month: {
+      hubspotType: HubspotPropertyType.NUMBER,
+      readonly: true,
     },
     employeeCountByMonthByLevel: {
       hubspotType: HubspotPropertyType.STRING,
@@ -214,6 +235,25 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
     return this.fieldProperties
   }
 
+  public getSocialUrl(platform: string, handle: string): string {
+    if (!platform || !handle) {
+      return null
+    }
+
+    switch (platform) {
+      case PlatformType.TWITTER:
+        return `https://twitter.com/${handle}`
+      case PlatformType.LINKEDIN:
+        return `https://linkedin.com/company/${handle}`
+      case PlatformType.CRUNCHBASE:
+        return `https://crunchbase.com/organization/${handle}`
+      case PlatformType.GITHUB:
+        return `https://github.com/${handle}`
+      default:
+        return null
+    }
+  }
+
   override getEntity(hubspotOrganization: IHubspotObject): IOrganization {
     this.ensureFieldMapExists()
 
@@ -230,7 +270,14 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
     }
 
     const organization: IOrganization = {
-      name: organizationProperties.name,
+      identities: [
+        {
+          name: organizationProperties.name,
+          platform: PlatformType.HUBSPOT,
+          sourceId: hubspotOrganization.id,
+          url: `https://app.hubspot.com/contacts/${this.hubspotId}/company/${hubspotOrganization.id}`,
+        },
+      ],
       attributes: {
         [OrganizationAttributeName.SOURCE_ID]: {
           [PlatformType.HUBSPOT]: hubspotOrganization.id,
@@ -242,6 +289,7 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
           [PlatformType.HUBSPOT]: organizationProperties.domain,
         },
       },
+      source: OrganizationSource.HUBSPOT,
     }
 
     // loop through organization properties
@@ -253,10 +301,27 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
         if (organizationProperties[hubspotPropertyName] !== null) {
           organization[crowdKey] = organizationProperties[hubspotPropertyName]
 
-          // fix for linkedin social, it comes as a full url
-          if (crowdKey === 'linkedin') {
-            const linkedinHandle = organizationProperties[hubspotPropertyName].split('/').pop()
-            organization[crowdKey] = linkedinHandle
+          // add additional identities to org using social fields come from hubspot
+          if (
+            [
+              PlatformType.LINKEDIN,
+              PlatformType.TWITTER,
+              PlatformType.GITHUB,
+              PlatformType.CRUNCHBASE,
+            ].includes(crowdKey as PlatformType)
+          ) {
+            // fix for linkedin social, it comes as a full url
+            if (crowdKey === PlatformType.LINKEDIN) {
+              const linkedinHandle = organizationProperties[hubspotPropertyName].split('/').pop()
+              organization[crowdKey] = linkedinHandle
+            }
+
+            organization.identities.push({
+              name: organization[crowdKey],
+              platform: crowdKey,
+              url: this.getSocialUrl(crowdKey, organization[crowdKey]),
+              sourceId: null,
+            })
           }
         }
       }

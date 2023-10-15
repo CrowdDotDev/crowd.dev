@@ -1,11 +1,14 @@
-import { attributesTypes } from '@/modules/organization/types/Attributes';
+import { AttributeType } from '@/modules/organization/types/Attributes';
 import OrganizationAttributesArrayRenderer from '@/modules/organization/components/organization-attributes-array-renderer.vue';
+import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-export default {
+const directSubsidiaries: OrganizationEnrichmentConfig = {
   name: 'directSubsidiaries',
   label: 'Direct Subsidiaries',
-  type: attributesTypes.array,
+  type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
   component: OrganizationAttributesArrayRenderer,
 };
+
+export default directSubsidiaries;

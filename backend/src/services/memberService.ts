@@ -4,7 +4,8 @@ import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { MemberAttributeType } from '@crowd/types'
+import { IOrganization, MemberAttributeType } from '@crowd/types'
+import { isDomainExcluded } from '@crowd/common'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -319,13 +320,22 @@ export default class MemberService extends LoggerBase {
             let data = {}
             if (typeof organization === 'string') {
               // If a string was sent, we assume it is the name of the organization
-              data = { name: organization }
+              data = {
+                identities: [
+                  {
+                    name: organization,
+                    platform,
+                  },
+                ],
+              }
             } else {
               // Otherwise, we assume it is an object with the data of the organization
               data = organization
             }
-            // We findOrCreate the organization and add it to the list of IDs
-            const organizationRecord = await organizationService.findOrCreate(data)
+            // We createOrUpdate the organization and add it to the list of IDs
+            const organizationRecord = await organizationService.createOrUpdate(
+              data as IOrganization,
+            )
             organizations.push({ id: organizationRecord.id })
           }
         }
@@ -333,24 +343,34 @@ export default class MemberService extends LoggerBase {
 
       // Auto assign member to organization if email domain matches
       if (data.emails) {
-        const emailDomains = new Set()
+        const emailDomains = new Set<string>()
 
         // Collect unique domains
         for (const email of data.emails) {
-          if (!email) {
-            continue
+          if (email) {
+            const domain = email.split('@')[1]
+            if (!isDomainExcluded(domain)) {
+              emailDomains.add(domain)
+            }
           }
-          const domain = email.split('@')[1]
-          emailDomains.add(domain)
         }
 
         // Fetch organization ids for these domains
         const organizationService = new OrganizationService(this.options)
         for (const domain of emailDomains) {
           if (domain) {
-            const organizationRecord = await organizationService.findByDomain(domain)
-            if (organizationRecord) {
-              organizations.push({ id: organizationRecord.id })
+            const org = await organizationService.createOrUpdate({
+              website: domain,
+              identities: [
+                {
+                  name: domain,
+                  platform: 'email',
+                },
+              ],
+            })
+
+            if (org) {
+              organizations.push({ id: org.id })
             }
           }
         }
@@ -541,14 +561,15 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      tx = await SequelizeRepository.createTransaction(this.options)
-      const repoOptions: IRepositoryOptions = { ...this.options }
-      repoOptions.transaction = tx
+      const repoOptions: IRepositoryOptions =
+        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+      tx = repoOptions.transaction
 
       const allIdentities = await MemberRepository.getIdentities(
         [originalId, toMergeId],
         repoOptions,
       )
+
       const originalIdentities = allIdentities.get(originalId)
       const toMergeIdentities = allIdentities.get(toMergeId)
       const identitiesToMove = []
@@ -596,6 +617,7 @@ export default class MemberService extends LoggerBase {
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
       const secondMemberSegments = await MemberRepository.getMemberSegments(toMergeId, repoOptions)
+
       await MemberRepository.includeMemberToSegments(toMergeId, {
         ...repoOptions,
         currentSegments: secondMemberSegments,
@@ -606,9 +628,22 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+      try {
+        // TODO replace this with synchroneous call
+        const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+        await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+      } catch (emitError) {
+        this.log.error(
+          emitError,
+          {
+            tenantId: this.options.currentTenant.id,
+            originalId,
+            toMergeId,
+          },
+          'Error while triggering member sync changes!',
+        )
+      }
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
@@ -697,32 +732,6 @@ export default class MemberService extends LoggerBase {
         }
 
         return toKeep
-      },
-      organizations: (oldOrganizations, newOrganizations) => {
-        const convertOrgs = (orgs) =>
-          orgs
-            ? orgs
-                .map((o) => (o.dataValues ? o.get({ plain: true }) : o))
-                .map((o) => {
-                  if (typeof o === 'string') {
-                    return {
-                      id: o,
-                    }
-                  }
-                  const memberOrg = o.memberOrganizations
-                  return {
-                    id: o.id,
-                    title: memberOrg?.title,
-                    startDate: memberOrg?.dateStart,
-                    endDate: memberOrg?.dateEnd,
-                  }
-                })
-            : []
-
-        oldOrganizations = convertOrgs(oldOrganizations)
-        newOrganizations = convertOrgs(newOrganizations)
-
-        return lodash.uniqWith([...oldOrganizations, ...newOrganizations], lodash.isEqual)
       },
     })
   }
@@ -836,44 +845,37 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async update(id, data, passedTransaction?) {
-    const transaction =
-      passedTransaction || (await SequelizeRepository.createTransaction(this.options))
+  async update(id, data) {
+    let transaction
     const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
+      const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
+        this.options,
+      )
+      transaction = repoOptions.transaction
+
       if (data.activities) {
-        data.activities = await ActivityRepository.filterIdsInTenant(data.activities, {
-          ...this.options,
-          transaction,
-        })
+        data.activities = await ActivityRepository.filterIdsInTenant(data.activities, repoOptions)
       }
       if (data.tags) {
-        data.tags = await TagRepository.filterIdsInTenant(data.tags, {
-          ...this.options,
-          transaction,
-        })
+        data.tags = await TagRepository.filterIdsInTenant(data.tags, repoOptions)
       }
       if (data.noMerge) {
         data.noMerge = await MemberRepository.filterIdsInTenant(
           data.noMerge.filter((i) => i !== id),
-          { ...this.options, transaction },
+          repoOptions,
         )
       }
       if (data.toMerge) {
         data.toMerge = await MemberRepository.filterIdsInTenant(
           data.toMerge.filter((i) => i !== id),
-          { ...this.options, transaction },
+          repoOptions,
         )
       }
       if (data.username) {
         // need to filter out existing identities from the payload
-        const existingIdentities = (
-          await MemberRepository.getIdentities([id], {
-            ...this.options,
-            transaction,
-          })
-        ).get(id)
+        const existingIdentities = (await MemberRepository.getIdentities([id], repoOptions)).get(id)
 
         data.username = mapUsernameToIdentities(data.username, data.platform)
 
@@ -903,14 +905,18 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      const record = await MemberRepository.update(id, data, {
-        ...this.options,
-        transaction,
-      })
+      const record = await MemberRepository.update(id, data, repoOptions)
 
-      if (!passedTransaction) {
-        await SequelizeRepository.commitTransaction(transaction)
+      await SequelizeRepository.commitTransaction(transaction)
+      try {
+        // TODO replace this with synchroneous call
         await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+      } catch (emitErr) {
+        this.log.error(
+          emitErr,
+          { tenantId: this.options.currentTenant.id, memberId: record.id },
+          'Error while triggering member sync changes!',
+        )
       }
 
       return record
@@ -927,7 +933,10 @@ export default class MemberService extends LoggerBase {
       } else {
         this.log.error(error, 'Error during member update!')
       }
-      await SequelizeRepository.rollbackTransaction(transaction)
+
+      if (transaction) {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      }
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
 

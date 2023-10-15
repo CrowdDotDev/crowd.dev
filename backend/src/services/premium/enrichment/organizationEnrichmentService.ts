@@ -3,24 +3,26 @@ import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
 import lodash from 'lodash'
 import moment from 'moment'
 import PDLJS from 'peopledatalabs'
-import { ApiWebsocketMessage, PlatformType } from '@crowd/types'
+import {
+  ApiWebsocketMessage,
+  IEnrichableOrganization,
+  IOrganization,
+  IOrganizationCache,
+  PlatformType,
+} from '@crowd/types'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
-import {
-  EnrichmentParams,
-  IEnrichableOrganization,
-  IEnrichmentResponse,
-  IOrganization,
-  IOrganizations,
-} from './types/organizationEnrichmentTypes'
+import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import OrganizationService from '@/services/organizationService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
 
-  fields = new Set<string>(['name', 'lastEnrichedAt'])
+  fields = new Set<string>(['lastEnrichedAt'])
 
   private readonly apiKey: string
 
@@ -68,34 +70,71 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     return org.lastEnrichedAt && moment(org.lastEnrichedAt).diff(moment(), 'months') >= lastEnriched
   }
 
-  public async enrichOrganizationsAndSignalDone(verbose: boolean = false): Promise<IOrganizations> {
-    const enrichedOrganizations: IOrganizations = []
-    const enrichedCacheOrganizations: IOrganizations = []
+  public async enrichOrganizationsAndSignalDone(
+    includeOrgsActiveLastYear: boolean = false,
+    verbose: boolean = false,
+  ): Promise<IOrganization[]> {
+    const enrichmentPlatformPriority = [
+      PlatformType.GITHUB,
+      PlatformType.LINKEDIN,
+      PlatformType.TWITTER,
+    ]
+    const enrichedOrganizations: IOrganization[] = []
+    const enrichedCacheOrganizations: IOrganizationCache[] = []
     let count = 0
-    for (const instance of await OrganizationRepository.filterByPayingTenant<IEnrichableOrganization>(
+
+    const organizationFilterMethod = includeOrgsActiveLastYear
+      ? OrganizationRepository.filterByActiveLastYear
+      : OrganizationRepository.filterByPayingTenant
+
+    for (const instance of await organizationFilterMethod(
       this.tenantId,
       this.maxOrganizationsLimit,
       this.options,
     )) {
-      if (instance.orgActivityCount > 0) {
-        if (verbose) {
-          count += 1
-          this.log.info(`(${count}/${this.maxOrganizationsLimit}). Enriching ${instance.name}`)
-        }
-        const data = await this.getEnrichment(instance)
-        if (data) {
-          const org = this.convertEnrichedDataToOrg(data, instance)
-          enrichedOrganizations.push({ ...org, id: instance.id, tenantId: this.tenantId })
-          enrichedCacheOrganizations.push({ ...org, id: instance.cachId })
-        } else {
-          const lastEnrichedAt = new Date()
-          enrichedOrganizations.push({
-            ...instance,
-            id: instance.id,
-            tenantId: this.tenantId,
-            lastEnrichedAt,
-          })
-          enrichedCacheOrganizations.push({ ...instance, id: instance.cachId, lastEnrichedAt })
+      const identityPlatforms = Array.from(
+        instance.identities.reduce((acc, i) => {
+          acc.add(i.platform)
+          return acc
+        }, new Set<string>()),
+      )
+
+      if (instance.orgActivityCount > 0 && identityPlatforms.length > 0) {
+        const platformToUseForEnrichment = enrichmentPlatformPriority.filter((p) =>
+          identityPlatforms.includes(p),
+        )[0]
+
+        if (platformToUseForEnrichment) {
+          const identityForEnrichment = instance.identities.find(
+            (i) => i.platform === platformToUseForEnrichment,
+          )
+
+          if (verbose) {
+            count += 1
+            this.log.info(
+              `(${count}/${this.maxOrganizationsLimit}). Enriching ${identityForEnrichment.name}`,
+            )
+            this.log.debug(instance)
+          }
+          const data = await this.getEnrichment({ ...instance, name: identityForEnrichment.name })
+          if (data) {
+            const org = this.convertEnrichedDataToOrg(data, instance)
+            enrichedOrganizations.push({
+              ...org,
+              id: instance.id,
+              tenantId: this.tenantId,
+              identities: instance.identities,
+            })
+            enrichedCacheOrganizations.push({ ...org, name: identityForEnrichment.name })
+          } else {
+            const lastEnrichedAt = new Date()
+            enrichedOrganizations.push({
+              ...instance,
+              id: instance.id,
+              tenantId: this.tenantId,
+              lastEnrichedAt,
+            })
+          }
         }
       }
     }
@@ -105,27 +144,86 @@ export default class OrganizationEnrichmentService extends LoggerBase {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async update(orgs: IOrganizations): Promise<IOrganizations> {
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+  private async update(orgs: IOrganization[]): Promise<IOrganization[]> {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    // TODO: Update cache
-    // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
-    const records = await OrganizationRepository.bulkUpdate(
-      orgs,
-      [...this.fields],
-      this.options,
-      true,
-    )
+    try {
+      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      let unmergedOrgs: IOrganization[] = []
 
-    for (const org of records) {
-      // trigger open search sync
-      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, org.id)
+      // check strong weak identities and move them if needed
+      for (const org of orgs) {
+        await OrganizationRepository.checkIdentities(org, this.options, org.id)
+
+        // TODO:: also check for weak strong identities to not loose them later for merge suggestions
+
+        for (const identity of org.identities) {
+          await OrganizationRepository.addIdentity(org.id, identity, {
+            ...this.options,
+            transaction,
+          })
+        }
+
+        delete org.identities
+
+        // Check for an organization with the same website exists
+        let existingOrg
+        let orgService
+
+        if (org.website) {
+          existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          orgService = new OrganizationService({ ...this.options, transaction })
+        }
+
+        if (existingOrg && existingOrg.id !== org.id) {
+          await orgService.merge(existingOrg.id, org.id)
+        } else {
+          unmergedOrgs.push(org)
+        }
+      }
+
+      // Check if two or more orgs in the umergedOrgs list have same website
+      const duplicateOrgs = []
+      const uniqueWebsites = new Set()
+
+      for (const org of unmergedOrgs) {
+        if (uniqueWebsites.has(org.website)) {
+          duplicateOrgs.push(org)
+        } else {
+          uniqueWebsites.add(org.website)
+        }
+      }
+
+      // Remove duplicate organizations from unmergedOrgs
+      unmergedOrgs = unmergedOrgs.filter((org) => !duplicateOrgs.includes(org))
+
+      this.log.info('Duplicate organizations found in enriched list:', duplicateOrgs)
+
+      // TODO: Update cache
+      // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
+      const records = await OrganizationRepository.bulkUpdate(
+        unmergedOrgs,
+        [...this.fields],
+        { ...this.options, transaction },
+        true,
+      )
+
+      for (const org of records) {
+        // trigger open search sync
+        await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, org.id)
+      }
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return records
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      this.log.error({ error }, 'Error updating organizations while enriching!')
+      throw error
     }
-
-    return records
   }
 
-  private static sanitize(data: IEnrichableOrganization): IEnrichableOrganization {
+  private static sanitize(data: any): any {
     if (data.address) {
       data.geoLocation = data.address.geo ?? null
       delete data.address.geo
@@ -135,7 +233,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     }
     if (data.employeeCountByCountry && !data.employees) {
       const employees = Object.values(data.employeeCountByCountry).reduce(
-        (acc, size) => acc + size,
+        (acc, size) => (acc as any) + size,
         0,
       )
       Object.assign(data, { employees: employees || data.employees })
@@ -231,13 +329,57 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       linkedin_id: pdlData.linkedin_id,
     })
 
+    data.identities = instance.identities
+
+    if (data.github && data.github.handle) {
+      const identityExists = data.identities.find(
+        (i) => i.platform === PlatformType.GITHUB && i.name === data.github.handle,
+      )
+      if (!identityExists) {
+        data.identities.push({
+          name: data.github.handle,
+          platform: PlatformType.GITHUB,
+          integrationId: null,
+          url: data.github.url || `https://github.com/${data.github.handle}`,
+        })
+      }
+    }
+
+    if (data.twitter && data.twitter.handle) {
+      const identityExists = data.identities.find(
+        (i) => i.platform === PlatformType.TWITTER && i.name === data.twitter.handle,
+      )
+      if (!identityExists) {
+        data.identities.push({
+          name: data.twitter.handle,
+          platform: PlatformType.TWITTER,
+          integrationId: null,
+          url: data.twitter.url || `https://twitter.com/${data.twitter.handle}`,
+        })
+      }
+    }
+
+    if (data.linkedin && data.linkedin.handle) {
+      const identityExists = data.identities.find(
+        (i) => i.platform === PlatformType.LINKEDIN && i.name === data.linkedin.handle,
+      )
+      if (!identityExists) {
+        data.identities.push({
+          name: data.linkedin.handle,
+          platform: PlatformType.LINKEDIN,
+          integrationId: null,
+          url: data.linkedin.url || `https://linkedin.com/company/${data.linkedin.handle}`,
+        })
+      }
+    }
+
     return lodash.pick(
       { ...data, lastEnrichedAt: new Date() },
       this.selectFieldsForEnrichment(instance),
     )
   }
 
-  private async sendDoneSignal(organizations: IOrganizations) {
+  private async sendDoneSignal(organizations: IOrganization[]) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
     const organizationIds = organizations.map((org) => org.id)
 
@@ -293,6 +435,6 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       Object.keys(org).forEach((field) => this.fields.add(field))
     }
 
-    return ['id', 'cachId', ...this.fields]
+    return ['id', ...this.fields]
   }
 }

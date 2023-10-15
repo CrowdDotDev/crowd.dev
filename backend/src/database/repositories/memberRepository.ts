@@ -5,8 +5,10 @@ import {
   OpenSearchIndex,
   PlatformType,
   SyncStatus,
+  OrganizationSource,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
+import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
@@ -133,12 +135,7 @@ class MemberRepository {
       transaction,
     })
 
-    await MemberRepository.updateMemberOrganizations(
-      record,
-      data.organizations,
-      transaction,
-      options,
-    )
+    await MemberRepository.updateMemberOrganizations(record, data.organizations, true, options)
 
     await record.setTasks(data.tasks || [], {
       transaction,
@@ -564,12 +561,14 @@ class MemberRepository {
                     'dateEnd', "dateEnd",
                     'createdAt', "createdAt",
                     'updatedAt', "updatedAt",
-                    'title', title
+                    'title', title,
+                    'source', source
                   )
                 )
             ) AS orgs
           from "memberOrganizations"
           where "memberId" = :memberId
+            and "deletedAt" is null
           group by "memberId"
         )
         select m."id",
@@ -686,7 +685,7 @@ class MemberRepository {
     await MemberRepository.updateMemberOrganizations(
       record,
       data.organizations,
-      transaction,
+      data.organizationsReplace,
       options,
     )
 
@@ -703,11 +702,11 @@ class MemberRepository {
     }
 
     if (data.affiliations) {
-      await this.setAffiliations(id, data.affiliations, options)
+      await MemberRepository.setAffiliations(id, data.affiliations, options)
     }
 
     if (options.currentSegments && options.currentSegments.length > 0) {
-      await MemberRepository.includeMemberToSegments(record.id, { ...options, transaction })
+      await MemberRepository.includeMemberToSegments(record.id, options)
     }
 
     const seq = SequelizeRepository.getSequelize(options)
@@ -882,7 +881,7 @@ class MemberRepository {
         s.name as "segmentName",
         s."parentName" as "segmentParentName", 
         o.id as "organizationId", 
-        o.name as "organizationName",
+        o."displayName" as "organizationName",
         o.logo as "organizationLogo",
         msa."dateStart" as "dateStart",
         msa."dateEnd" as "dateEnd"
@@ -957,19 +956,14 @@ class MemberRepository {
     const include = [
       {
         model: options.database.organization,
-        attributes: ['id', 'name'],
+        attributes: ['id', 'displayName'],
         as: 'organizations',
         order: [['createdAt', 'ASC']],
         through: {
-          attributes: [
-            'memberId',
-            'organizationId',
-            'createdAt',
-            'updatedAt',
-            'dateStart',
-            'dateEnd',
-            'title',
-          ],
+          attributes: ['memberId', 'organizationId', 'dateStart', 'dateEnd', 'title', 'source'],
+          where: {
+            deletedAt: null,
+          },
         },
       },
       {
@@ -1018,7 +1012,7 @@ class MemberRepository {
       }
     }
 
-    data.affiliations = await this.getAffiliations(id, options)
+    data.affiliations = await MemberRepository.getAffiliations(id, options)
 
     return data
   }
@@ -1424,6 +1418,7 @@ class MemberRepository {
                 SELECT mo."memberId", JSON_AGG(ROW_TO_JSON(o.*)) AS organizations
                 FROM "memberOrganizations" mo
                 INNER JOIN organizations o ON mo."organizationId" = o.id
+                WHERE mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             ),
             activity_data AS (
@@ -1599,6 +1594,7 @@ class MemberRepository {
                   AND o."tenantId" = :tenantId
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
+                  AND mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             )
         SELECT
@@ -1790,6 +1786,7 @@ class MemberRepository {
                   AND o."deletedAt" IS NULL
                   AND os."segmentId" IN (:segmentIds)
                   AND ms."segmentId" = os."segmentId"
+                  AND mo."deletedAt" IS NULL
                 GROUP BY mo."memberId"
             ),
             aggs AS (
@@ -1987,7 +1984,7 @@ class MemberRepository {
 
     if (filter.organizations && filter.organizations.length > 0) {
       parsed.query.bool.must = parsed.query.bool.must.filter(
-        (d) => d.term['nested_organizations.uuid_id'] === undefined,
+        (d) => d.nested?.query?.term?.['nested_organizations.uuid_id'] === undefined,
       )
 
       // add organizations filter manually for now
@@ -2707,7 +2704,7 @@ class MemberRepository {
       include: [
         {
           model: options.database.organization,
-          attributes: ['id', 'name'],
+          attributes: ['id', 'displayName'],
           as: 'organizations',
         },
         {
@@ -3199,7 +3196,12 @@ class MemberRepository {
     output.organizations = await record.getOrganizations({
       transaction,
       order: [['createdAt', 'ASC']],
-      joinTableAttributes: ['dateStart', 'dateEnd', 'title'],
+      joinTableAttributes: ['dateStart', 'dateEnd', 'title', 'source'],
+      through: {
+        where: {
+          deletedAt: null,
+        },
+      },
     })
     MemberRepository.sortOrganizations(output.organizations)
 
@@ -3242,10 +3244,9 @@ class MemberRepository {
 
     output.affiliations = await this.getAffiliations(record.id, options)
 
-    const manualSyncRemote = await new MemberSyncRemoteRepository({
-      ...options,
-      transaction,
-    }).findMemberManualSync(record.id)
+    const manualSyncRemote = await new MemberSyncRemoteRepository(options).findMemberManualSync(
+      record.id,
+    )
 
     for (const syncRemote of manualSyncRemote) {
       if (output.attributes?.syncRemote) {
@@ -3263,31 +3264,34 @@ class MemberRepository {
   static async updateMemberOrganizations(
     record,
     organizations,
-    transaction,
+    replace,
     options: IRepositoryOptions,
   ) {
     if (!organizations) {
       return
     }
 
-    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+    function iso(v) {
+      return moment(v).toISOString()
+    }
 
-    const toDelete = originalOrgs.filter(
-      (originalOrg: any) =>
-        !organizations.find(
-          (newOrg) =>
-            originalOrg.organizationId === newOrg.id &&
-            originalOrg.title === (newOrg.title || null) &&
-            originalOrg.dateStart === (newOrg.startDate || null) &&
-            originalOrg.dateEnd === (newOrg.endDate || null),
-        ),
-    )
+    if (replace) {
+      const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
 
-    for (const item of toDelete) {
-      await MemberRepository.deleteWorkExperience((item as any).id, {
-        transaction,
-        ...options,
-      })
+      const toDelete = originalOrgs.filter(
+        (originalOrg: any) =>
+          !organizations.find(
+            (newOrg) =>
+              originalOrg.organizationId === newOrg.id &&
+              originalOrg.title === (newOrg.title || null) &&
+              iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
+              iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
+          ),
+      )
+
+      for (const item of toDelete) {
+        await MemberRepository.deleteWorkExperience((item as any).id, options)
+      }
     }
 
     for (const item of organizations) {
@@ -3299,16 +3303,11 @@ class MemberRepository {
           title: org.title,
           dateStart: org.startDate,
           dateEnd: org.endDate,
+          source: org.source,
         },
-        {
-          transaction,
-          ...options,
-        },
+        options,
       )
-      await OrganizationRepository.includeOrganizationToSegments(org.id, {
-        transaction,
-        ...options,
-      })
+      await OrganizationRepository.includeOrganizationToSegments(org.id, options)
     }
   }
 
@@ -3316,6 +3315,7 @@ class MemberRepository {
     {
       memberId,
       organizationId,
+      source,
       title = null,
       dateStart = null,
       dateEnd = null,
@@ -3330,7 +3330,8 @@ class MemberRepository {
       // clean up organizations without dates if we're getting ones with dates
       await seq.query(
         `
-          DELETE FROM "memberOrganizations"
+          UPDATE "memberOrganizations"
+          SET "deletedAt" = NOW()
           WHERE "memberId" = :memberId
           AND "organizationId" = :organizationId
           AND "dateStart" IS NULL
@@ -3341,7 +3342,7 @@ class MemberRepository {
             memberId,
             organizationId,
           },
-          type: QueryTypes.DELETE,
+          type: QueryTypes.UPDATE,
           transaction,
         },
       )
@@ -3352,6 +3353,7 @@ class MemberRepository {
           WHERE "memberId" = :memberId
           AND "organizationId" = :organizationId
           AND "dateStart" IS NOT NULL
+          AND "deletedAt" IS NULL
         `,
         {
           replacements: {
@@ -3369,11 +3371,24 @@ class MemberRepository {
       }
     }
 
+    let conflictCondition = `("memberId", "organizationId", "dateStart", "dateEnd")`
+    if (!dateEnd) {
+      conflictCondition = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
+    }
+    if (!dateStart) {
+      conflictCondition = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
+    }
+
+    const onConflict =
+      source === OrganizationSource.UI
+        ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = :title, "dateStart" = :dateStart, "dateEnd" = :dateEnd, "deletedAt" = NULL, "source" = :source`
+        : 'ON CONFLICT DO NOTHING'
+
     await seq.query(
       `
-        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd")
-        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd)
-        ON CONFLICT DO NOTHING
+        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
+        VALUES (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
+        ${onConflict}
       `,
       {
         replacements: {
@@ -3382,6 +3397,7 @@ class MemberRepository {
           title: title || null,
           dateStart: dateStart || null,
           dateEnd: dateEnd || null,
+          source: source || null,
         },
         type: QueryTypes.INSERT,
         transaction,
@@ -3399,14 +3415,15 @@ class MemberRepository {
 
     await seq.query(
       `
-        DELETE FROM "memberOrganizations"
+        UPDATE "memberOrganizations"
+        SET "deletedAt" = NOW()
         WHERE "id" = :id
       `,
       {
         replacements: {
           id,
         },
-        type: QueryTypes.DELETE,
+        type: QueryTypes.UPDATE,
         transaction,
       },
     )
@@ -3419,6 +3436,7 @@ class MemberRepository {
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        AND "deletedAt" IS NULL
     `
 
     const records = await seq.query(query, {
@@ -3447,6 +3465,7 @@ class MemberRepository {
           ("dateStart" <= :timestamp AND "dateEnd" >= :timestamp)
           OR ("dateStart" <= :timestamp AND "dateEnd" IS NULL)
         )
+        AND "deletedAt" IS NULL
       ORDER BY "dateStart" DESC, id
       LIMIT 1
     `
@@ -3478,7 +3497,10 @@ class MemberRepository {
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        AND "dateStart" IS NULL
+        AND "dateEnd" IS NULL
         AND "createdAt" <= :timestamp
+        AND "deletedAt" IS NULL
       ORDER BY "createdAt" DESC, id
       LIMIT 1
     `
@@ -3508,6 +3530,9 @@ class MemberRepository {
     const query = `
       SELECT * FROM "memberOrganizations"
       WHERE "memberId" = :memberId
+        AND "dateStart" IS NULL
+        AND "dateEnd" IS NULL
+        AND "deletedAt" IS NULL
       ORDER BY "createdAt", id
       LIMIT 1
     `

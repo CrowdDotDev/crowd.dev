@@ -4,7 +4,7 @@ import VueClickAway from 'vue3-click-away';
 import VueGridLayout from 'vue-grid-layout';
 // @ts-ignore
 import Vue3Sanitize from 'vue-3-sanitize';
-import LogRocket from 'logrocket';
+import LogRocketClient from 'logrocket';
 import VNetworkGraph from 'v-network-graph';
 import VueLazyLoad from 'vue3-lazyload';
 import { createPinia } from 'pinia';
@@ -26,6 +26,7 @@ import 'v-network-graph/lib/style.css';
 import App from '@/app.vue';
 import { vueSanitizeOptions } from '@/plugins/sanitize';
 import marked from '@/plugins/marked';
+import { useLogRocket } from '@/utils/logRocket';
 
 i18nInit();
 /**
@@ -34,14 +35,12 @@ i18nInit();
  */
 /* eslint-disable no-param-reassign, no-underscore-dangle, func-names */
 (async function () {
-  if (config.env === 'production') {
-    LogRocket.init('nm6fil/crowddev');
-  }
+  const { captureException } = useLogRocket();
 
   const app = createApp(App);
   const pinia = createPinia();
   const router = await createRouter();
-  const store = await createStore(LogRocket);
+  const store = await createStore(LogRocketClient);
 
   const isSocialOnboardRequested = AuthService.isSocialOnboardRequested();
 
@@ -60,10 +59,10 @@ i18nInit();
   (app.config as any).productionTip = process.env.NODE_ENV === 'production';
 
   app.config.errorHandler = (err: any) => {
-    if (config.env === 'production') {
-      LogRocket.captureException(err);
-    } else if (config.env === 'local') {
+    if (config.env === 'local') {
       console.error(err);
+    } else {
+      captureException(err);
     }
   };
 

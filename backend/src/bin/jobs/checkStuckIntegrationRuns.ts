@@ -2,6 +2,7 @@ import { processPaginated } from '@crowd/common'
 import { Logger, getChildLogger, getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
+import { IntegrationRunState } from '@crowd/types'
 import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
@@ -9,7 +10,7 @@ import IntegrationRunRepository from '../../database/repositories/integrationRun
 import IntegrationStreamRepository from '../../database/repositories/integrationStreamRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { IntegrationRun, IntegrationRunState } from '../../types/integrationRunTypes'
+import { IntegrationRun } from '../../types/integrationRunTypes'
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { CrowdJob } from '../../types/jobTypes'
 import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
@@ -248,7 +249,7 @@ export const checkStuckWebhooks = async (): Promise<void> => {
 
 const job: CrowdJob = {
   name: 'Detect & Fix Stuck Integration Runs',
-  cronTime: cronGenerator.every(30).minutes(),
+  cronTime: cronGenerator.every(90).minutes(),
   onTrigger: async () => {
     if (!running) {
       running = true

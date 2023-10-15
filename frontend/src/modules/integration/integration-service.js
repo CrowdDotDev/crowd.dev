@@ -91,7 +91,7 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async devtoConnect(users, organizations) {
+  static async devtoConnect(users, organizations, apiKey) {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get();
 
@@ -99,6 +99,19 @@ export class IntegrationService {
     const response = await authAxios.post(`/tenant/${tenantId}/devto-connect`, {
       users,
       organizations,
+      apiKey,
+    });
+
+    return response.data;
+  }
+
+  static async devtoValidateAPIKey(apiKey) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
+      params: {
+        apiKey,
+      },
     });
 
     return response.data;
@@ -133,6 +146,17 @@ export class IntegrationService {
     const response = await authAxios.put(
       `/authenticate/${tenantId}/${code}`,
       body,
+    );
+    return response.data;
+  }
+
+  static async githubMapRepos(integrationId, mapping) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
+      {
+        mapping,
+      },
     );
     return response.data;
   }
@@ -182,24 +206,26 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async devtoValidateUser(username) {
+  static async devtoValidateUser(username, apiKey) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
       params: {
         username,
+        apiKey,
       },
     });
 
     return response.data;
   }
 
-  static async devtoValidateOrganization(organization) {
+  static async devtoValidateOrganization(organization, apiKey) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
       params: {
         organization,
+        apiKey,
       },
     });
 
@@ -347,5 +373,49 @@ export class IntegrationService {
     );
 
     return response.data.isWebhooksReceived;
+  }
+
+  static async groupsioConnect(email, token, groupNames) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-connect`,
+      {
+        email,
+        token,
+        groupNames,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async groupsioGetToken(email, password, twoFactorCode = null) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-get-token`,
+      {
+        email,
+        password,
+        twoFactorCode,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async groupsioVerifyGroup(groupName, cookie) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-verify-group`,
+      {
+        groupName,
+        cookie,
+      },
+    );
+
+    return response.data;
   }
 }

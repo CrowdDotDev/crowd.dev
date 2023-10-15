@@ -260,6 +260,7 @@ class IntegrationRepository {
       },
       limit: perPage,
       offset: (page - 1) * perPage,
+      order: [['id', 'ASC']],
     })
 
     if (!records) {

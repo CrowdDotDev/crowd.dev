@@ -104,7 +104,7 @@
       v-else
       icon="ri-flow-chart"
       title="Start to automate manual tasks"
-      description="Create config actions or send Slack notifications when a new activity happens, or a new member joins your community "
+      description="Create config actions or send Slack notifications when a new activity happens, or a new contact joins your community "
     />
 
     <!-- Add/Edit Webhook form drawer -->
@@ -130,7 +130,7 @@ import AppAutomationForm from '@/modules/automation/components/automation-form.v
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 
 import { useStore } from 'vuex';

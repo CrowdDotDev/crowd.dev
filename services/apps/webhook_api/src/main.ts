@@ -8,6 +8,7 @@ import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { sqsMiddleware } from './middleware/sqs'
 import { installGithubRoutes } from './routes/github'
+import { installGroupsIoRoutes } from './routes/groupsio'
 import cors from 'cors'
 
 const log = getServiceLogger()
@@ -20,6 +21,16 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG(), 3)
 
+  app.use((req, res, next) => {
+    // Groups.io doesn't send a content-type header,
+    // so request body parsing is just skipped
+    // But we fix it
+    if (!req.headers['content-type']) {
+      req.headers['content-type'] = 'application/json'
+    }
+    next()
+  })
+
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '5mb' }))
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
@@ -29,6 +40,7 @@ setImmediate(async () => {
 
   // add routes
   installGithubRoutes(app)
+  installGroupsIoRoutes(app)
 
   app.use(errorMiddleware())
 

@@ -1,4 +1,5 @@
 import {
+  ChangeMessageVisibilityRequest,
   CreateQueueCommand,
   DeleteMessageRequest,
   GetQueueUrlCommand,
@@ -8,18 +9,27 @@ import {
 } from '@aws-sdk/client-sqs'
 import { IS_PROD_ENV, IS_STAGING_ENV, generateUUIDv1, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { deleteMessage, receiveMessage, sendMessage, sendMessagesBulk } from './client'
+import {
+  deleteMessage,
+  receiveMessage,
+  sendMessage,
+  sendMessagesBulk,
+  changeMessageVisibility,
+} from './client'
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
 import { IQueueMessage, ISqsQueueEmitter } from '@crowd/types'
+import { Tracer } from '@crowd/tracing'
 
 export abstract class SqsQueueBase extends LoggerBase {
   private readonly queueName: string
   private queueUrl: string | undefined
   protected readonly isFifo: boolean
+  tracer: Tracer
 
   constructor(
     protected readonly sqsClient: SqsClient,
     public readonly queueConf: ISqsQueueConfig,
+    tracer: Tracer,
     parentLog: Logger,
   ) {
     super(parentLog, {
@@ -27,6 +37,7 @@ export abstract class SqsQueueBase extends LoggerBase {
       type: queueConf.type,
     })
 
+    this.tracer = tracer
     this.isFifo = queueConf.type === SqsQueueType.FIFO
 
     let env = ''
@@ -100,12 +111,13 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     sqsClient: SqsClient,
     queueConf: ISqsQueueConfig,
     private readonly maxConcurrentMessageProcessing: number,
+    tracer: Tracer,
     parentLog: Logger,
     private readonly deleteMessageImmediately = false,
     private readonly visibilityTimeoutSeconds?: number,
     private readonly receiveMessageCount?: number,
   ) {
-    super(sqsClient, queueConf, parentLog)
+    super(sqsClient, queueConf, tracer, parentLog)
   }
 
   private isAvailable(): boolean {
@@ -134,7 +146,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
             if (this.isAvailable()) {
               this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
               this.addJob()
-              this.processMessage(JSON.parse(message.Body))
+              this.processMessage(JSON.parse(message.Body), message.ReceiptHandle)
                 // when the message is processed, delete it from the queue
                 .then(async () => {
                   this.log.trace(
@@ -169,7 +181,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
     this.started = false
   }
 
-  protected abstract processMessage(data: IQueueMessage): Promise<void>
+  protected abstract processMessage(data: IQueueMessage, receiptHandle?: string): Promise<void>
 
   private async receiveMessage(): Promise<SqsMessage[]> {
     try {
@@ -203,8 +215,8 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
 }
 
 export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueEmitter {
-  constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, parentLog: Logger) {
-    super(sqsClient, queueConf, parentLog)
+  constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, tracer: Tracer, parentLog: Logger) {
+    super(sqsClient, queueConf, tracer, parentLog)
   }
 
   public async sendMessage<T extends IQueueMessage>(
@@ -249,5 +261,17 @@ export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueE
       QueueUrl: this.getQueueUrl(),
       Entries: entries,
     })
+  }
+
+  public async setMessageVisibilityTimeout(
+    receiptHandle: string,
+    newVisibility: number,
+  ): Promise<void> {
+    const params: ChangeMessageVisibilityRequest = {
+      QueueUrl: this.getQueueUrl(),
+      ReceiptHandle: receiptHandle,
+      VisibilityTimeout: newVisibility,
+    }
+    await changeMessageVisibility(this.sqsClient, params)
   }
 }

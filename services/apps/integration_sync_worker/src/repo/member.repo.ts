@@ -83,28 +83,37 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async setLastSyncedAtBySyncRemoteId(syncRemoteId: string): Promise<void> {
+  public async setLastSyncedAtBySyncRemoteId(
+    syncRemoteId: string,
+    lastSyncedPayload: unknown,
+  ): Promise<void> {
     this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
 
     await this.db().none(
-      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where id = $(syncRemoteId)`,
+      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where id = $(syncRemoteId)`,
       {
         syncRemoteId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
       },
     )
   }
 
-  public async setLastSyncedAt(memberId: string, integrationId: string): Promise<void> {
+  public async setLastSyncedAt(
+    memberId: string,
+    integrationId: string,
+    lastSyncedPayload: unknown,
+  ): Promise<void> {
     this.log.debug(
       `Setting lastSyncedAt for member ${memberId} and integration ${integrationId} to now!`,
     )
 
     await this.db().none(
-      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where "memberId" = $(memberId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
+      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where "memberId" = $(memberId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
       {
         memberId,
         integrationId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
         neverStatus: SyncStatus.NEVER,
       },
@@ -202,6 +211,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       `select distinct "memberId"
         from "memberOrganizations"
         where "organizationId" = $(organizationId)
+          and "deletedAt" is null
         order by "memberId"
         limit $(limit) offset $(offset)`,
       {
@@ -258,6 +268,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                               inner join "organizationSegments" os on o.id = os."organizationId"
                                       where mo."memberId" = $(id)
                                         and o."deletedAt" is null
+                                        and mo."deletedAt" is null
                                       group by mo."memberId", os."segmentId"),
             identities as (select mi."memberId",
                                   json_agg(

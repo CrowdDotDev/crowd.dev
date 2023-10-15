@@ -65,17 +65,6 @@ const constaintConfiguration = {
       },
     ],
   ],
-  [FeatureFlag.COMMUNITY_HELP_CENTER_PRO]: [
-    [
-      {
-        values: [Plans.values.growth],
-        inverted: false,
-        operator: 'IN',
-        contextName: 'plan',
-        caseInsensitive: false,
-      },
-    ],
-  ],
   [FeatureFlag.CSV_EXPORT]: [
     [
       {
@@ -197,23 +186,6 @@ const constaintConfiguration = {
         caseInsensitive: false,
       },
     ],
-    [
-      {
-        values: [Plans.values.essential],
-        inverted: false,
-        operator: 'IN',
-        contextName: 'plan',
-        caseInsensitive: false,
-      },
-      {
-        value: PLAN_LIMITS[Plans.values.essential][FeatureFlag.MEMBER_ENRICHMENT].toString(),
-        values: [],
-        inverted: false,
-        operator: 'NUM_LT',
-        contextName: 'memberEnrichmentCount',
-        caseInsensitive: false,
-      },
-    ],
   ],
   [FeatureFlag.ORGANIZATION_ENRICHMENT]: [
     [
@@ -243,23 +215,6 @@ const constaintConfiguration = {
       },
       {
         value: PLAN_LIMITS[Plans.values.growth][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
-        values: [],
-        inverted: false,
-        operator: 'NUM_LT',
-        contextName: 'organizationEnrichmentCount',
-        caseInsensitive: false,
-      },
-    ],
-    [
-      {
-        values: [Plans.values.essential],
-        inverted: false,
-        operator: 'IN',
-        contextName: 'plan',
-        caseInsensitive: false,
-      },
-      {
-        value: PLAN_LIMITS[Plans.values.essential][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',

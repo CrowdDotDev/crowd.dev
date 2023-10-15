@@ -1,10 +1,10 @@
-import { OPENSEARCH_CONFIG } from '@/conf'
+import { OPENSEARCH_CONFIG } from '../conf'
 import {
   IndexVersions,
   OPENSEARCH_INDEX_MAPPINGS,
   OPENSEARCH_INDEX_SETTINGS,
   OpenSearchIndex,
-} from '@/types'
+} from '../types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
@@ -12,7 +12,7 @@ import { IIndexRequest, ISearchHit } from './opensearch.data'
 import { IS_DEV_ENV } from '@crowd/common'
 
 export class OpenSearchService extends LoggerBase {
-  private readonly client: Client
+  public readonly client: Client
   private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
 
   constructor(parentLog: Logger) {

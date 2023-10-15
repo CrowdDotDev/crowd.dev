@@ -21,6 +21,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     ['size', 'org.size'],
     ['industry', 'org.industry'],
     ['revenueRange', `(org."revenueRange" -> 'max')::integer`],
+    ['revenueRangeMin', `nullif(org."revenueRange" -> 'min', 'null')::integer`],
+    ['revenueRangeMax', `nullif(org."revenueRange" -> 'max', 'null')::integer`],
+    ['employeeChurnRate12Month', `nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal`],
+    ['employeeGrowthRate12Month', `nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal`],
   ])
 
   public static replaceParametersWithDollarSign(inputString) {
@@ -80,71 +84,93 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results
   }
 
-  public async findOrganization(organizationId: string, tenantId: string): Promise<IOrganization> {
+  public async findOrganization(
+    organizationId: string,
+    tenantId: string,
+    segmentId: string,
+  ): Promise<IOrganization> {
+    const segmentsSubQuery = `
+    with input_segment as (select id,
+                                  slug,
+                                  "parentSlug",
+                                  "grandparentSlug"
+                          from segments
+                          where id = $(segmentId)
+                            and "tenantId" = $(tenantId)),
+                          segment_level as (select case
+                                      when "parentSlug" is not null and "grandparentSlug" is not null
+                                          then 'child'
+                                      when "parentSlug" is not null and "grandparentSlug" is null
+                                          then 'parent'
+                                      when "parentSlug" is null and "grandparentSlug" is null
+                                          then 'grandparent'
+                                      end as level,
+                                  id,
+                                  slug,
+                                  "parentSlug",
+                                  "grandparentSlug"
+                          from input_segment)
+                          select s.id
+                          from segments s
+                          join
+                          segment_level sl
+                          on
+                          (sl.level = 'child' and s.id = sl.id) or
+                          (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null) or
+                          (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)`
+
     return await this.db().oneOrNone(
       `
-      WITH
-      activity_counts AS (
-          SELECT mo."organizationId", COUNT(a.id) AS "activityCount"
-          FROM "memberOrganizations" mo
-          LEFT JOIN activities a ON a."memberId" = mo."memberId"
-          WHERE mo."organizationId" = $(organizationId)
-          GROUP BY mo."organizationId"
-      ),
-      member_counts AS (
-          SELECT "organizationId", COUNT(DISTINCT "memberId") AS "memberCount"
-          FROM "memberOrganizations"
-          WHERE "organizationId" = $(organizationId)
-          GROUP BY "organizationId"
-      ),
-      active_on AS (
-          SELECT mo."organizationId", ARRAY_AGG(DISTINCT platform) AS "activeOn"
-          FROM "memberOrganizations" mo
-          JOIN activities a ON a."memberId" = mo."memberId"
-          WHERE mo."organizationId" = $(organizationId)
-          GROUP BY mo."organizationId"
-      ),
-      identities AS (
-          SELECT "organizationId", ARRAY_AGG(DISTINCT platform) AS "identities"
-          FROM "memberOrganizations" mo
-          JOIN "memberIdentities" mi ON mi."memberId" = mo."memberId"
-          WHERE mo."organizationId" = $(organizationId)
-          GROUP BY "organizationId"
-      ),
-      last_active AS (
-          SELECT mo."organizationId", MAX(timestamp) AS "lastActive", MIN(timestamp) AS "joinedAt"
-          FROM "memberOrganizations" mo
-          JOIN activities a ON a."memberId" = mo."memberId"
-          WHERE mo."organizationId" = $(organizationId)
-          GROUP BY mo."organizationId"
-      ),
-      segments AS (
-          SELECT "organizationId", ARRAY_AGG("segmentId") AS "segments"
-          FROM "organizationSegments"
-          WHERE "organizationId" = $(organizationId)
-          GROUP BY "organizationId"
+      with leaf_segment_ids as (${segmentsSubQuery}),
+      member_data as (select a."organizationId",
+          count(distinct a."memberId")                                                        as "memberCount",
+          count(distinct a.id)                                                        as "activityCount",
+          case
+              when array_agg(distinct a.platform) = array [null] then array []::text[]
+              else array_agg(distinct a.platform) end                                 as "activeOn",
+          max(a.timestamp)                                                            as "lastActive",
+          min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
+      from leaf_segment_ids ls
+            join activities a
+                      on a."segmentId" = ls.id and a."organizationId" = $(id) and
+                        a."deletedAt" is null
+            join members m on a."memberId" = m.id and m."deletedAt" is null
+            join "memberOrganizations" mo on m.id = mo."memberId" and mo."organizationId" = $(id) and mo."dateEnd" is null
+      group by a."organizationId"),
+      organization_segments as (select "organizationId", array_agg("segmentId") as "segments"
+            from "organizationSegments"
+            where "organizationId" = $(id)
+            group by "organizationId"),
+      identities as (
+        SELECT oi."organizationId", jsonb_agg(oi) AS "identities"
+        FROM "organizationIdentities" oi
+        WHERE oi."organizationId" = $(id)
+        GROUP BY "organizationId"
       )
-  SELECT
-      o.*,
-      COALESCE(ac."activityCount", 0)::INTEGER AS "activityCount",
-      COALESCE(mc."memberCount", 0)::INTEGER AS "memberCount",
-      COALESCE(ao."activeOn", '{}') AS "activeOn",
-      COALESCE(id."identities", '{}') AS "identities",
-      COALESCE(s."segments", '{}') AS "segments",
-      a."lastActive",
-      a."joinedAt"
-  FROM organizations o
-  LEFT JOIN activity_counts ac ON ac."organizationId" = o.id
-  LEFT JOIN member_counts mc ON mc."organizationId" = o.id
-  LEFT JOIN active_on ao ON ao."organizationId" = o.id
-  LEFT JOIN identities id ON id."organizationId" = o.id
-  LEFT JOIN last_active a ON a."organizationId" = o.id
-  LEFT JOIN segments s ON s."organizationId" = o.id
-  WHERE o.id = $(organizationId)
-    AND o."tenantId" = $(tenantId);`,
+      select 
+        o.*,
+        nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal as "employeeChurnRate12Month",
+        nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal as "employeeGrowthRate12Month",
+        nullif(o."revenueRange" -> 'min', 'null')::integer as "revenueRangeMin",
+        nullif(o."revenueRange" -> 'max', 'null')::integer as "revenueRangeMax",
+        coalesce(md."activityCount", 0)::integer as "activityCount",
+        coalesce(md."memberCount", 0)::integer   as "memberCount",
+        coalesce(md."activeOn", '{}')            as "activeOn",
+        coalesce(i.identities, '{}')            as identities,
+        coalesce(os.segments, '{}')              as segments,
+        md."lastActive",
+        md."joinedAt"
+      from organizations o
+      left join member_data md on md."organizationId" = o.id
+      left join organization_segments os on os."organizationId" = o.id
+      left join identities i on i."organizationId" = o.id
+      where o.id = $(id)
+      and o."tenantId" = $(tenantId);
+  `,
       {
-        organizationId,
+        id: organizationId,
         tenantId,
+        segmentId,
       },
     )
   }
@@ -153,13 +179,11 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     segmentIds: string[],
     platform: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filter: any,
+    filter: unknown,
     limit: number,
     offset: number,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {
+    const params: unknown = {
       tenantId,
       segmentIds,
       limit,
@@ -186,7 +210,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             count(actAgg.id)            as "memberCount",
             SUM(actAgg."activityCount") as "activityCount"
         from "memberActivityAggregatesMVs" actAgg
-              inner join "memberOrganizations" memOrgs on actAgg."id" = memOrgs."memberId"
+              inner join "memberOrganizations" memOrgs
+                 on actAgg."id" = memOrgs."memberId"
+                 and memOrgs."deletedAt" is null
         group by memOrgs."organizationId")
         select org.*,
         oa."activityCount",
@@ -227,28 +253,37 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async setLastSyncedAtBySyncRemoteId(syncRemoteId: string): Promise<void> {
+  public async setLastSyncedAtBySyncRemoteId(
+    syncRemoteId: string,
+    lastSyncedPayload: unknown,
+  ): Promise<void> {
     this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
 
     await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where id = $(syncRemoteId)`,
+      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where id = $(syncRemoteId)`,
       {
         syncRemoteId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
       },
     )
   }
 
-  public async setLastSyncedAt(organizationId: string, integrationId: string): Promise<void> {
+  public async setLastSyncedAt(
+    organizationId: string,
+    integrationId: string,
+    lastSyncedPayload: unknown,
+  ): Promise<void> {
     this.log.debug(
       `Setting lastSyncedAt for organization ${organizationId} and integration ${integrationId} to now!`,
     )
 
     await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
+      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
       {
         organizationId,
         integrationId,
+        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
         status: SyncStatus.ACTIVE,
         neverStatus: SyncStatus.NEVER,
       },

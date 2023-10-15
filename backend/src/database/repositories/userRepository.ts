@@ -524,11 +524,34 @@ export default class UserRepository {
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    let record = await options.database.user.findByPk(id, {
-      transaction,
-    })
+    let record: any = await options.database.sequelize.query(
+      `
+        SELECT
+          "id",
+          ROW_TO_JSON(users) AS json
+        FROM users
+        WHERE "deletedAt" IS NULL
+          AND "id" = :id;
+      `,
+      {
+        replacements: { id },
+        transaction,
+        model: options.database.user,
+        mapToModel: true,
+      },
+    )
+    record = record[0]
 
-    record = await this._populateRelations(record, options)
+    record = await this._populateRelations(record, options, {
+      where: {
+        status: 'active',
+      },
+    })
+    record = {
+      ...record,
+      ...record.json,
+    }
+    delete record.json
 
     if (!record) {
       throw new Error404()
@@ -761,7 +784,7 @@ export default class UserRepository {
     return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record, options: IRepositoryOptions) {
+  static async _populateRelations(record, options: IRepositoryOptions, filter = {}) {
     if (!record) {
       return record
     }
@@ -769,12 +792,13 @@ export default class UserRepository {
     const output = record.get({ plain: true })
 
     output.tenants = await record.getTenants({
+      ...filter,
       include: [
         {
           model: options.database.tenant,
           as: 'tenant',
           required: true,
-          include: ['settings', 'conversationSettings'],
+          include: ['settings'],
         },
       ],
       transaction: SequelizeRepository.getTransaction(options),

@@ -602,7 +602,7 @@ describe('ActivityRepository tests', () => {
 
       const org1 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
@@ -1344,14 +1344,14 @@ describe('ActivityRepository tests', () => {
 
       const org1 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
 
       const org2 = await OrganizationRepository.create(
         {
-          name: 'tesla',
+          displayName: 'tesla',
         },
         mockIRepositoryOptions,
       )

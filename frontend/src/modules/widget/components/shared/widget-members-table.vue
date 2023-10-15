@@ -5,7 +5,7 @@
         <div
           class="uppercase text-2xs text-gray-400 font-semibold"
         >
-          Member
+          Contact
         </div>
         <el-button
           class="btn btn--transparent !h-8"
@@ -73,6 +73,7 @@
             :as-link="true"
             :username-handles="member.username[platform]"
             :show-handles-badge="true"
+            :attributes="member.attributes"
           />
         </div>
       </div>

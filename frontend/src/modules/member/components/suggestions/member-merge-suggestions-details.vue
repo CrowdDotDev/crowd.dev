@@ -29,7 +29,7 @@
           v-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
-          Primary member
+          Primary contact
         </div>
         <button
           v-else
@@ -126,7 +126,7 @@
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
-            Member since
+            Contact since
           </p>
           <p class="text-xs text-gray-900 text-right">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
@@ -156,7 +156,7 @@
           <a
             v-for="handle in usernameHandles"
             :key="handle"
-            :href="identityUrl(platform, handle)"
+            :href="identityUrl(platform, handle, member.attributes)"
             class="pb-2 pt-3 flex items-center text-gray-900 hover:text-gray-900"
             target="_blank"
             rel="noopener noreferrer"
@@ -192,7 +192,7 @@
             <span
               v-else
               class="text-xs leading-5"
-              :class="{ 'underline hover:text-brand-500': identityUrl(platform, handle) }"
+              :class="{ 'underline hover:text-brand-500': identityUrl(platform, handle, member.attributes) }"
               v-html="$sanitize(handle)"
             />
           </a>
@@ -272,12 +272,12 @@ const displayShowMore = ref(null);
 const more = ref(null);
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-const identityUrl = (platform, username) => {
+const identityUrl = (platform, username, attributes) => {
   if (platform === 'discord' || platform === 'slack') {
     return null;
   }
 
-  return CrowdIntegrations.getConfig(platform)?.url(username);
+  return CrowdIntegrations.getConfig(platform)?.url({ username, attributes });
 };
 
 onMounted(() => {

@@ -12,10 +12,16 @@ import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
 import reach from './reach/config';
 import tags from './tags/config';
+import memberName from './memberName/config';
+import jobTitle from './jobTitle/config';
+import organizations from './organizations/config';
 
 export const memberFilters: Record<string, FilterConfig> = {
+  memberName,
+  organizations,
   noOfActivities,
   noOfOSSContributions,
+  jobTitle,
   activeOn,
   activityType,
   avgSentiment,
@@ -29,7 +35,7 @@ export const memberFilters: Record<string, FilterConfig> = {
 };
 
 export const memberSearchFilter: SearchFilterConfig = {
-  placeholder: 'Search members',
+  placeholder: 'Search contacts',
   apiFilterRenderer(value: string): any[] {
     return [
       {
