@@ -128,8 +128,8 @@ class BaseQuery {
       ) {
         logger.error('Error in getSinglePage: rate limit error. Trying token rotation')
         // this is rate limit, let's try token rotation
-        if (tokenRotator) {
-          return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator, limiter)
+        if (tokenRotator && limiter) {
+          return await this.getSinglePageWithTokenRotation(beforeCursor, tokenRotator, err, limiter)
         } else {
           throw BaseQuery.processGraphQLError(err)
         }
@@ -143,6 +143,7 @@ class BaseQuery {
   private async getSinglePageWithTokenRotation(
     beforeCursor: string,
     tokenRotator: GithubTokenRotator,
+    err: any,
     limiter?: Limiter,
   ): Promise<GraphQlQueryResponse> {
     logger.info('getSinglePageWithTokenRotation')
@@ -151,7 +152,7 @@ class BaseQuery {
       beforeCursor: BaseQuery.getPagination(beforeCursor),
     })
 
-    const token = await tokenRotator.getToken()
+    const token = await tokenRotator.getToken(limiter.integrationId, err)
 
     const process = async () => {
       const graphqlWithTokenRotation = graphql.defaults({
@@ -161,7 +162,6 @@ class BaseQuery {
       })
       const result = await graphqlWithTokenRotation(paginatedQuery)
       await tokenRotator.updateRateLimitInfoFromApi(token)
-      await tokenRotator.returnToken(token)
       return this.getEventData(result)
     }
 
@@ -187,8 +187,6 @@ class BaseQuery {
         await tokenRotator.updateRateLimitInfoFromApi(token)
       }
       throw BaseQuery.processGraphQLError(err)
-    } finally {
-      await tokenRotator.returnToken(token)
     }
   }
 

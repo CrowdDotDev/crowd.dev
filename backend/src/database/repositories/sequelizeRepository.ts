@@ -81,7 +81,7 @@ export default class SequelizeRepository {
   /**
    * Creates a database transaction.
    */
-  static async createTransaction(options) {
+  static async createTransaction(options: IRepositoryOptions) {
     if (options.transaction) {
       if (options.transaction.crowdNestedTransactions !== undefined) {
         options.transaction.crowdNestedTransactions++
@@ -93,6 +93,20 @@ export default class SequelizeRepository {
     }
 
     return options.database.sequelize.transaction()
+  }
+
+  /**
+   * Creates a transactional repository options instance
+   */
+  static async createTransactionalRepositoryOptions(
+    options: IRepositoryOptions,
+  ): Promise<IRepositoryOptions> {
+    const transaction = await this.createTransaction(options)
+
+    return {
+      ...options,
+      transaction,
+    }
   }
 
   /**

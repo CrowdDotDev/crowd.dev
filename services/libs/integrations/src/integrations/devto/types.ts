@@ -33,3 +33,7 @@ export interface IDevToArticleData {
   article: IDevToArticle
   comments: IDevToComment[]
 }
+
+export interface DevToPlatformSettings {
+  apiKey: string
+}

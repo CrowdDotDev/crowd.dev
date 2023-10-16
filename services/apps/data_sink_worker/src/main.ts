@@ -1,4 +1,5 @@
 import { getDbConnection } from '@crowd/database'
+import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG, REDIS_CONFIG } from './conf'
@@ -7,6 +8,7 @@ import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getRedisClient } from '@crowd/redis'
 import { processOldResultsJob } from './jobs/processOldResults'
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 3
@@ -25,8 +27,8 @@ setImmediate(async () => {
     initializeSentimentAnalysis(SENTIMENT_CONFIG())
   }
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, log)
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
 
   const queue = new WorkerQueueReceiver(
     sqsClient,
@@ -34,6 +36,7 @@ setImmediate(async () => {
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     redisClient,
+    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )

@@ -52,8 +52,8 @@ const getMember = async (
       (err.errors && err.errors[0].type === 'RATE_LIMITED')
     ) {
       // this is rate limit, let's try token rotation
-      if (tokenRotator) {
-        user = await getMemberWithTokenRotation(username, tokenRotator, limiter)
+      if (tokenRotator && limiter) {
+        user = await getMemberWithTokenRotation(username, tokenRotator, err, limiter)
       }
     } else {
       throw BaseQuery.processGraphQLError(err)
@@ -65,10 +65,11 @@ const getMember = async (
 const getMemberWithTokenRotation = async (
   username: string,
   tokenRotator: GithubTokenRotator,
+  err: any,
   limiter?: Limiter,
 ): Promise<any> => {
   let user: string | null
-  const token = await tokenRotator.getToken()
+  const token = await tokenRotator.getToken(limiter.integrationId, err)
   try {
     const graphqlWithTokenRotation = graphql.defaults({
       headers: {
@@ -94,7 +95,6 @@ const getMemberWithTokenRotation = async (
     }
 
     await tokenRotator.updateRateLimitInfoFromApi(token)
-    await tokenRotator.returnToken(token)
 
     return user
   } catch (err) {
@@ -114,8 +114,6 @@ const getMemberWithTokenRotation = async (
       await tokenRotator.updateRateLimitInfoFromApi(token)
     }
     throw BaseQuery.processGraphQLError(err)
-  } finally {
-    await tokenRotator.returnToken(token)
   }
 }
 

@@ -149,7 +149,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
     try {
       const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      const unmergedOrgs: IOrganization[] = []
+      let unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -167,8 +167,13 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         delete org.identities
 
         // Check for an organization with the same website exists
-        const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
-        const orgService = new OrganizationService({ ...this.options, transaction })
+        let existingOrg
+        let orgService
+
+        if (org.website) {
+          existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          orgService = new OrganizationService({ ...this.options, transaction })
+        }
 
         if (existingOrg && existingOrg.id !== org.id) {
           await orgService.merge(existingOrg.id, org.id)
@@ -176,6 +181,23 @@ export default class OrganizationEnrichmentService extends LoggerBase {
           unmergedOrgs.push(org)
         }
       }
+
+      // Check if two or more orgs in the umergedOrgs list have same website
+      const duplicateOrgs = []
+      const uniqueWebsites = new Set()
+
+      for (const org of unmergedOrgs) {
+        if (uniqueWebsites.has(org.website)) {
+          duplicateOrgs.push(org)
+        } else {
+          uniqueWebsites.add(org.website)
+        }
+      }
+
+      // Remove duplicate organizations from unmergedOrgs
+      unmergedOrgs = unmergedOrgs.filter((org) => !duplicateOrgs.includes(org))
+
+      this.log.info('Duplicate organizations found in enriched list:', duplicateOrgs)
 
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
@@ -196,9 +218,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       return records
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'organization')
-
+      this.log.error({ error }, 'Error updating organizations while enriching!')
       throw error
     }
   }

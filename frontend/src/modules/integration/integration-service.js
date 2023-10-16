@@ -81,19 +81,30 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async devtoConnect(users, organizations) {
+  static async devtoConnect(users, organizations, apiKey) {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get();
 
     // Calling connect devto function in the backend.
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/devto-connect`,
-      {
-        users,
-        organizations,
+    const response = await authAxios.post(`/tenant/${tenantId}/devto-connect`, {
+      users,
+      organizations,
+      apiKey,
+      ...getSegments(),
+    });
+
+    return response.data;
+  }
+
+  static async devtoValidateAPIKey(apiKey) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
+      params: {
+        apiKey,
         ...getSegments(),
       },
-    );
+    });
 
     return response.data;
   }
@@ -209,34 +220,30 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async devtoValidateUser(username) {
+  static async devtoValidateUser(username, apiKey) {
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/devto-validate`,
-      {
-        params: {
-          username,
-          ...getSegments(),
-        },
+    const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
+      params: {
+        username,
+        apiKey,
+        ...getSegments(),
       },
-    );
+    });
 
     return response.data;
   }
 
-  static async devtoValidateOrganization(organization) {
+  static async devtoValidateOrganization(organization, apiKey) {
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/devto-validate`,
-      {
-        params: {
-          organization,
-          ...getSegments(),
-        },
+    const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
+      params: {
+        organization,
+        apiKey,
+        ...getSegments(),
       },
-    );
+    });
 
     return response.data;
   }
