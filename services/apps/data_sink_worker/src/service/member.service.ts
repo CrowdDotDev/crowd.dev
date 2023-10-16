@@ -341,7 +341,7 @@ export default class MemberService extends LoggerBase {
         // first try finding the member using the identity
         const identity = singleOrDefault(
           member.identities,
-          (i) => i.platform === platform && i.sourceId !== undefined,
+          (i) => i.platform === platform && i.sourceId !== undefined && i.sourceId !== null,
         )
         let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
 
