@@ -296,7 +296,7 @@ function onInputChange(newValue, key, value, index) {
       ...props.modelValue.attributes,
       url: {
         ...props.modelValue.attributes?.url,
-        [key]: `https://${value.urlPrefix}${newValue}`,
+        [key]: value.urlPrefix ? `https://${value.urlPrefix}${newValue}` : undefined,
       },
     };
   }
