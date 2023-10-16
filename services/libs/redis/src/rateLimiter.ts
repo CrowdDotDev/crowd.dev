@@ -37,7 +37,7 @@ export class ConcurrentRequestLimiter implements IConcurrentRequestLimiter {
     private readonly maxConcurrentRequests: number,
     private readonly requestKey: string,
     // cache key will be deleted after this time since last increment / decrement
-    private readonly maxLockTimeSeconds = 30,
+    private readonly maxLockTimeSeconds = 50,
   ) {
     this.cache = cache
     this.maxConcurrentRequests = maxConcurrentRequests
