@@ -1,6 +1,9 @@
-import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
-import { LoggerBase } from '@crowd/logging'
 import { websiteNormalizer } from '@crowd/common'
+import { LoggerBase } from '@crowd/logging'
+import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
 import MemberRepository from '../database/repositories/memberRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
@@ -11,15 +14,12 @@ import Plans from '../security/plans'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { enrichOrganization } from './helpers/enrichment'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import merge from './helpers/merge'
 import {
   keepPrimary,
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -63,9 +63,9 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      tx = await SequelizeRepository.createTransaction(this.options)
-      const repoOptions: IRepositoryOptions = { ...this.options }
-      repoOptions.transaction = tx
+      const repoOptions: IRepositoryOptions =
+        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+      tx = repoOptions.transaction
 
       const allIdentities = await OrganizationRepository.getIdentities(
         [originalId, toMergeId],
@@ -108,7 +108,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       // Update original organization
-      await txService.update(originalId, toUpdate, repoOptions.transaction)
+      await txService.update(originalId, toUpdate)
 
       // update members that belong to source organization to destination org
       await OrganizationRepository.moveMembersBetweenOrganizations(
@@ -489,16 +489,17 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
-  async update(id, data, passedTransaction?) {
-    const transaction =
-      passedTransaction || (await SequelizeRepository.createTransaction(this.options))
+  async update(id, data) {
+    let tx
 
     try {
+      const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
+        this.options,
+      )
+      tx = repoOptions.transaction
+
       if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(data.members, {
-          ...this.options,
-          transaction,
-        })
+        data.members = await MemberRepository.filterIdsInTenant(data.members, repoOptions)
       }
 
       // Normalize the website URL if it exists
@@ -510,7 +511,7 @@ export default class OrganizationService extends LoggerBase {
         const originalIdentities = data.identities
 
         // check identities
-        await OrganizationRepository.checkIdentities(data, { ...this.options, transaction }, id)
+        await OrganizationRepository.checkIdentities(data, repoOptions, id)
 
         // if we found any strong identities sent already existing in another organization
         // instead of making it a weak identity we throw an error here, because this function
@@ -530,21 +531,27 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const record = await OrganizationRepository.update(id, data, {
-        ...this.options,
-        transaction,
-      })
+      const record = await OrganizationRepository.update(id, data, repoOptions)
 
-      if (!passedTransaction) {
-        await SequelizeRepository.commitTransaction(transaction)
+      await SequelizeRepository.commitTransaction(tx)
+
+      try {
+        // TODO replace with synchroneous call
+        const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+        await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+      } catch (emitErr) {
+        this.log.error(
+          emitErr,
+          { tenantId: this.options.currentTenant.id, organizationId: record.id },
+          'Error while emitting organization sync!',
+        )
       }
-
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
 
       return record
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'organization')
 

@@ -654,10 +654,7 @@ class OrganizationRepository {
     }
 
     if (data.segments) {
-      await OrganizationRepository.includeOrganizationToSegments(record.id, {
-        ...options,
-        transaction,
-      })
+      await OrganizationRepository.includeOrganizationToSegments(record.id, options)
     }
 
     if (data.identities && data.identities.length > 0) {
@@ -680,6 +677,8 @@ class OrganizationRepository {
     isTeam: boolean,
     options: IRepositoryOptions,
   ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
     await options.database.sequelize.query(
       `update members as m
       set attributes = jsonb_set("attributes", '{isTeamMember}', '{"default": ${isTeam}}'::jsonb)
@@ -696,6 +695,7 @@ class OrganizationRepository {
           tenantId: options.currentTenant.id,
         },
         type: QueryTypes.UPDATE,
+        transaction,
       },
     )
   }
@@ -755,7 +755,7 @@ class OrganizationRepository {
     )
 
     for (const identity of identities) {
-      await this.addIdentity(organizationId, identity, options)
+      await OrganizationRepository.addIdentity(organizationId, identity, options)
     }
   }
 
@@ -2002,10 +2002,9 @@ class OrganizationRepository {
 
     const result = results[0] as any
 
-    const manualSyncRemote = await new OrganizationSyncRemoteRepository({
-      ...options,
-      transaction,
-    }).findOrganizationManualSync(result.id)
+    const manualSyncRemote = await new OrganizationSyncRemoteRepository(
+      options,
+    ).findOrganizationManualSync(result.id)
 
     for (const syncRemote of manualSyncRemote) {
       if (result.attributes?.syncRemote) {
