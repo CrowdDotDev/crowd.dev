@@ -1,5 +1,3 @@
-import { SLACK_ALERTING_CONFIG } from '../conf'
-import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -172,29 +170,8 @@ export default class DataSinkService extends LoggerBase {
           undefined,
           err,
         )
-
-        await sendSlackAlert({
-          slackURL: SLACK_ALERTING_CONFIG().url,
-          alertType: SlackAlertTypes.SINK_WORKER_ERROR,
-          integration: {
-            id: resultInfo.integrationId,
-            platform: resultInfo.platform,
-            tenantId: resultInfo.tenantId,
-            resultId: resultInfo.id,
-            apiDataId: resultInfo.apiDataId,
-          },
-          userContext: {
-            currentTenant: {
-              name: resultInfo.name,
-              plan: resultInfo.plan,
-              isTrial: resultInfo.isTrialPlan,
-            },
-          },
-          log: this.log,
-          frameworkVersion: 'new',
-        })
       } catch (err2) {
-        this.log.error(err2, 'Error sending slack alert.')
+        this.log.error(err2, 'Error triggering result error.')
       }
 
       return false

@@ -10,6 +10,7 @@ import {
 } from '@crowd/integrations'
 import {
   IActivityScoringGrid,
+  IntegrationRunState,
   IntegrationType,
   MemberAttributeName,
   PlatformType,
@@ -49,7 +50,6 @@ import PullRequestCommitsQueryNoAdditions, {
   PullRequestCommitNoAdditions,
 } from '../../usecases/github/graphql/pullRequestCommitsNoAdditions'
 import IntegrationRunRepository from '../../../../database/repositories/integrationRunRepository'
-import { IntegrationRunState } from '../../../../types/integrationRunTypes'
 import IntegrationStreamRepository from '../../../../database/repositories/integrationStreamRepository'
 import { DbIntegrationStreamCreateData } from '../../../../types/integrationStreamTypes'
 import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'

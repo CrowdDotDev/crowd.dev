@@ -561,14 +561,15 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      tx = await SequelizeRepository.createTransaction(this.options)
-      const repoOptions: IRepositoryOptions = { ...this.options }
-      repoOptions.transaction = tx
+      const repoOptions: IRepositoryOptions =
+        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+      tx = repoOptions.transaction
 
       const allIdentities = await MemberRepository.getIdentities(
         [originalId, toMergeId],
         repoOptions,
       )
+
       const originalIdentities = allIdentities.get(originalId)
       const toMergeIdentities = allIdentities.get(toMergeId)
       const identitiesToMove = []
@@ -616,6 +617,7 @@ export default class MemberService extends LoggerBase {
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
       const secondMemberSegments = await MemberRepository.getMemberSegments(toMergeId, repoOptions)
+
       await MemberRepository.includeMemberToSegments(toMergeId, {
         ...repoOptions,
         currentSegments: secondMemberSegments,
@@ -626,9 +628,22 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+      try {
+        // TODO replace this with synchroneous call
+        const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
+        await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+      } catch (emitError) {
+        this.log.error(
+          emitError,
+          {
+            tenantId: this.options.currentTenant.id,
+            originalId,
+            toMergeId,
+          },
+          'Error while triggering member sync changes!',
+        )
+      }
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
@@ -830,44 +845,37 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async update(id, data, passedTransaction?) {
-    const transaction =
-      passedTransaction || (await SequelizeRepository.createTransaction(this.options))
+  async update(id, data) {
+    let transaction
     const searchSyncEmitter = await getSearchSyncWorkerEmitter()
 
     try {
+      const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
+        this.options,
+      )
+      transaction = repoOptions.transaction
+
       if (data.activities) {
-        data.activities = await ActivityRepository.filterIdsInTenant(data.activities, {
-          ...this.options,
-          transaction,
-        })
+        data.activities = await ActivityRepository.filterIdsInTenant(data.activities, repoOptions)
       }
       if (data.tags) {
-        data.tags = await TagRepository.filterIdsInTenant(data.tags, {
-          ...this.options,
-          transaction,
-        })
+        data.tags = await TagRepository.filterIdsInTenant(data.tags, repoOptions)
       }
       if (data.noMerge) {
         data.noMerge = await MemberRepository.filterIdsInTenant(
           data.noMerge.filter((i) => i !== id),
-          { ...this.options, transaction },
+          repoOptions,
         )
       }
       if (data.toMerge) {
         data.toMerge = await MemberRepository.filterIdsInTenant(
           data.toMerge.filter((i) => i !== id),
-          { ...this.options, transaction },
+          repoOptions,
         )
       }
       if (data.username) {
         // need to filter out existing identities from the payload
-        const existingIdentities = (
-          await MemberRepository.getIdentities([id], {
-            ...this.options,
-            transaction,
-          })
-        ).get(id)
+        const existingIdentities = (await MemberRepository.getIdentities([id], repoOptions)).get(id)
 
         data.username = mapUsernameToIdentities(data.username, data.platform)
 
@@ -897,14 +905,18 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      const record = await MemberRepository.update(id, data, {
-        ...this.options,
-        transaction,
-      })
+      const record = await MemberRepository.update(id, data, repoOptions)
 
-      if (!passedTransaction) {
-        await SequelizeRepository.commitTransaction(transaction)
+      await SequelizeRepository.commitTransaction(transaction)
+      try {
+        // TODO replace this with synchroneous call
         await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+      } catch (emitErr) {
+        this.log.error(
+          emitErr,
+          { tenantId: this.options.currentTenant.id, memberId: record.id },
+          'Error while triggering member sync changes!',
+        )
       }
 
       return record
@@ -921,7 +933,10 @@ export default class MemberService extends LoggerBase {
       } else {
         this.log.error(error, 'Error during member update!')
       }
-      await SequelizeRepository.rollbackTransaction(transaction)
+
+      if (transaction) {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      }
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
 

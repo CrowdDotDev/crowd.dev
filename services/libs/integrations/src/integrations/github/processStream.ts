@@ -71,7 +71,7 @@ export function getConcurrentRequestLimiter(
 ): IConcurrentRequestLimiter {
   if (concurrentRequestLimiter === undefined) {
     concurrentRequestLimiter = ctx.getConcurrentRequestLimiter(
-      2, // max 2 concurrent requests
+      8, // max 10 concurrent requests
       'github-concurrent-request-limiter',
     )
   }
@@ -114,7 +114,10 @@ export async function getGithubToken(ctx: IProcessStreamContext): Promise<string
 
 async function getMemberData(ctx: IProcessStreamContext, login: string): Promise<any> {
   const appToken = await getGithubToken(ctx)
-  return getMember(login, appToken, getTokenRotator(ctx))
+  return getMember(login, appToken, getTokenRotator(ctx), {
+    concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
+    integrationId: ctx.integration.id,
+  })
 }
 
 async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promise<string> {
@@ -177,7 +180,10 @@ export const prepareMember = async (
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
       const token = await getGithubToken(ctx)
-      const fromAPI = await getOrganization(company, token, getTokenRotator(ctx))
+      const fromAPI = await getOrganization(company, token, getTokenRotator(ctx), {
+        concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
+        integrationId: ctx.integration.id,
+      })
 
       orgs = fromAPI
     }

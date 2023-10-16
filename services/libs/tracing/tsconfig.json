@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "declaration": true,
+    "outDir": "./dist",
+    "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise", "ES2017.String"],
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@crowd/*": ["../../*/dist"],
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

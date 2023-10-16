@@ -18,7 +18,9 @@
     "script:process-all-webhooks": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-webhooks.ts",
     "script:trigger-all-failed-webhooks": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-failed-webhooks.ts",
     "script:trigger-webhook": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-webhook.ts",
-    "script:trigger-all-streams": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/trigger-all-streams.ts"
+    "script:trigger-all-streams": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/trigger-all-streams.ts",
+    "script:trigger-all-streams-for-integration": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/trigger-all-streams-for-integration.ts",
+    "script:process-all-streams-for-integration": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-streams-for-integration.ts"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
@@ -27,6 +29,7 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",
+    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",

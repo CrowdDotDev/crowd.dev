@@ -2,7 +2,9 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { mergeSuggestionsWorker } from '@/serverless/microservices/nodejs/merge-suggestions/mergeSuggestionsWorker'
+import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
+import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
+import { NodeWorkerMessageBase } from '@/types/mq/nodeWorkerMessageBase'
 
 /* eslint-disable no-console */
 
@@ -48,8 +50,13 @@ if (parameters.help || !parameters.tenant) {
     const tenantIds = parameters.tenant.split(',')
 
     for (const tenantId of tenantIds) {
-      await mergeSuggestionsWorker(tenantId)
+      await sendNodeWorkerMessage(tenantId, {
+        type: NodeWorkerMessageType.NODE_MICROSERVICE,
+        tenant: tenantId,
+        service: 'merge-suggestions',
+      } as NodeWorkerMessageBase)
     }
+
     process.exit(0)
   })
 }
