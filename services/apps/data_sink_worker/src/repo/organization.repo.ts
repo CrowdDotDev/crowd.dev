@@ -269,6 +269,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                     oi.platform = $(platform)
                     and oi."sourceId" = $(sourceId)
                     and os."segmentId" =  $(segmentId)
+              order by oi."updatedAt" desc
+              limit 1
           )
       select  o.id,
               o.description,
