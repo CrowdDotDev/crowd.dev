@@ -37,7 +37,7 @@ async function getMoreComments(
       url: `http://oauth.reddit.com/api/morechildren?api_type=json`,
       params: {
         depth: 99,
-        link_id: input.postId,
+        link_id: `t3_${input.postId}`,
         children: input.children,
       },
       headers: {
