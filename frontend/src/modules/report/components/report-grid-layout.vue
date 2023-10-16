@@ -107,10 +107,11 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer.vue';
 import AppWidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder.vue';
 import {
-  reactive, computed, onMounted, ref,
+  reactive, computed, onMounted, ref, watch,
 } from 'vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 
+const emits = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
     type: Object,
@@ -134,15 +135,14 @@ const widgetDrawer = reactive({
   action: null,
   model: {},
 });
-const layoutUpdatedEvent = () => {
-  isMoving.value = false;
-};
+
 const { cubejsToken, cubejsApi } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
 const { doUpdate } = mapActions('report');
 
 const loadingCube = computed(() => cubejsToken.value === null);
 
+// Reset widget drawer form
 const resetWidgetDrawerForm = () => {
   widgetDrawer.model = {
     title: 'Untitled',
@@ -151,6 +151,7 @@ const resetWidgetDrawerForm = () => {
   };
 };
 
+// Update layout object with reports payload
 const updateLayout = () => {
   layout.widgets = model.widgets.map((w) => ({
     ...w,
@@ -168,7 +169,23 @@ onMounted(async () => {
   updateLayout();
 });
 
+// Whenever title is updated, update model as well
+watch(() => props.modelValue?.name, (newValue) => {
+  model.name = newValue;
+}, {
+  immediate: true,
+  deep: true,
+});
+
+// Keep track of when user is not moving or resizing any widget
+const layoutUpdatedEvent = () => {
+  isMoving.value = false;
+};
+
+// Update Report entity and emit model update to parent
 const updateReport = async () => {
+  emits('update:modelValue', model);
+
   await doUpdate({
     id: model.id,
     values: {
@@ -180,6 +197,7 @@ const updateReport = async () => {
   updateLayout();
 };
 
+// On widget resize, update widget and report
 const resizedEvent = async (i, newH, newW) => {
   const widget = model.widgets.find((w) => w.id === i);
   const widgetCopy = { ...widget };
@@ -191,6 +209,7 @@ const resizedEvent = async (i, newH, newW) => {
   await updateReport();
 };
 
+// On widget move, update widget and report
 const movedEvent = async (i, newX, newY) => {
   const widget = model.widgets.find((w) => w.id === i);
   const widgetCopy = { ...widget };
@@ -201,6 +220,7 @@ const movedEvent = async (i, newX, newY) => {
   await updateReport();
 };
 
+// Open widget form drawer when Add button is clicked
 const handleAddWidgetClick = () => {
   Object.assign(widgetDrawer, {
     visible: true,
@@ -217,15 +237,18 @@ const handleAddWidgetClick = () => {
 };
 
 const createWidget = (widgetModel, duplicate = false) => {
-  const { length } = model.widgets;
-  const widget = { ...widgetModel };
-  const bottomWidget = model.widgets.reduce((minWidget, currWidget) => (currWidget.settings.layout.y > minWidget.settings.layout.y
+  const { length } = layout.widgets;
+  const widget = JSON.parse(JSON.stringify({ ...widgetModel }));
+  const bottomWidget = layout.widgets.reduce((minWidget, currWidget) => (currWidget.y > minWidget.y
     ? currWidget
-    : minWidget));
+    : minWidget), {
+    y: 0,
+    h: 0,
+  });
 
   widget.settings.layout = {
     x: (length * 6) % 12,
-    y: bottomWidget.settings.layout.y + bottomWidget.settings.layout.h, // puts it at the bottom
+    y: bottomWidget.y + bottomWidget.h, // puts it at the bottom
     w: 6,
     h: widget.settings.chartType === 'number' ? 6 : 21,
   };
@@ -257,6 +280,7 @@ const handleWidgetFormSubmit = async (widgetModel) => {
   await updateReport();
 };
 
+// Duplicate widget by creating a new one and updating report
 const handleWidgetDuplicate = async (widget) => {
   const result = await createWidget(widget, true);
   delete result.report;
@@ -264,8 +288,11 @@ const handleWidgetDuplicate = async (widget) => {
   model.widgets.push(result);
 
   await updateReport();
+
+  updateLayout();
 };
 
+// Edit widget by opening widget form drawer
 const handleWidgetEdit = (widget) => {
   Object.assign(widgetDrawer, {
     action: 'edit',
@@ -277,6 +304,7 @@ const handleWidgetEdit = (widget) => {
   }, 200);
 };
 
+// Delete widget
 const handleWidgetDelete = async (widget) => {
   try {
     await ConfirmDialog({

@@ -4,14 +4,13 @@
       v-if="record"
       ref="form"
       :model="model"
-      :rules="rules"
       class="report-form"
     >
       <el-input
         ref="focus"
-        v-model="model[fields.name.name]"
-        :placeholder="fields.name.placeholder"
+        v-model="model.name"
         class="report-form-title"
+        @input="onTitleUpdate"
       />
       <ReportGridLayout
         v-model="model"
@@ -24,8 +23,8 @@
 
 <script setup>
 import { defineProps, reactive } from 'vue';
-import { FormSchema } from '@/shared/form/form-schema';
-import { ReportModel } from '@/modules/report/report-model';
+import debounce from 'lodash/debounce';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import ReportGridLayout from './report-grid-layout.vue';
 
 const props = defineProps({
@@ -35,18 +34,21 @@ const props = defineProps({
   },
 });
 
-const { fields } = ReportModel;
-const formSchema = new FormSchema([
-  fields.name,
-  fields.widgets,
-  fields.settings,
-  fields.public,
-]);
+const { doUpdate } = mapActions('report');
 
-const rules = formSchema.rules();
-const model = reactive(
-  JSON.parse(JSON.stringify(props.record)),
-);
+const model = reactive(props.record);
+
+const onTitleUpdate = debounce(async (value) => {
+  model.name = value;
+
+  await doUpdate({
+    id: props.record.id,
+    values: {
+      ...model,
+      widgets: model.widgets.map((w) => w.id),
+    },
+  });
+}, 500);
 </script>
 
 <script>
