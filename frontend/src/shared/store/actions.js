@@ -1,3 +1,4 @@
+import { h } from 'vue';
 import { attributesAreDifferent } from '@/shared/filter/helpers/different-util';
 import { router } from '@/router';
 import Errors from '@/shared/error/errors';
@@ -116,9 +117,20 @@ export default (moduleName, moduleService = null) => {
           if (moduleName === 'member') {
             const contactId = response.id;
             const successMessageAction = i18n(`entities.${moduleName}.create.message`);
-            const message = `<button class="btn btn--xs btn--bordered">
-                                <a href="/contacts/${contactId}" class="text-current">${successMessageAction}</a>
-                             </button>`;
+            const message = h(
+              'el-button',
+              {
+                class: 'btn btn--xs btn--bordered !h-6',
+                onClick: () => {
+                  router.push({
+                    name: 'memberView',
+                    params: { id: contactId },
+                  });
+                  Message.closeAll();
+                },
+              },
+              successMessageAction,
+            );
 
             Message.success(i18n(`entities.${moduleName}.create.success`), {
               message,

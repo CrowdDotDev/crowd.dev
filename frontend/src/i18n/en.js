@@ -150,12 +150,12 @@ const en = {
         title: 'Contacts',
       },
       create: {
-        success: 'Contact successfully saved',
+        success: 'Contact added successfully',
         error: 'There was an error creating the contact',
         message: 'View contact',
       },
       update: {
-        success: 'Contact successfully saved',
+        success: 'Contact edited successfully',
         error: 'There was an error updating the contact',
       },
       destroy: {
