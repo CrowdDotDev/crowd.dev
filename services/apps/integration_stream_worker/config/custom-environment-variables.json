@@ -39,5 +39,8 @@
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED",
     "personalAccessTokens": "CROWD_GITHUB_PERSONAL_ACCESS_TOKENS"
+  },
+  "devto": {
+    "apiKey": "CROWD_DEVTO_API_KEY"
   }
 }

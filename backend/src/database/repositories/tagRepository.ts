@@ -153,6 +153,8 @@ class TagRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const where = {
       id: {
         [Op.in]: ids,
@@ -163,6 +165,7 @@ class TagRepository {
     const records = await options.database.tag.findAll({
       attributes: ['id'],
       where,
+      transaction,
     })
 
     return records.map((record) => record.id)
