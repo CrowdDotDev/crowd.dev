@@ -37,7 +37,7 @@ export class ConcurrentRequestLimiter implements IConcurrentRequestLimiter {
     private readonly maxConcurrentRequests: number,
     private readonly requestKey: string,
     // cache key will be deleted after this time since last increment / decrement
-    private readonly maxLockTimeSeconds = 30,
+    private readonly maxLockTimeSeconds = 50,
   ) {
     this.cache = cache
     this.maxConcurrentRequests = maxConcurrentRequests
@@ -45,7 +45,11 @@ export class ConcurrentRequestLimiter implements IConcurrentRequestLimiter {
     this.maxLockTimeSeconds = maxLockTimeSeconds
   }
 
-  public async checkConcurrentRequestLimit(integrationId: string, retries = 200, sleepTimeMs = 50) {
+  public async checkConcurrentRequestLimit(
+    integrationId: string,
+    retries = 1000,
+    sleepTimeMs = 50,
+  ) {
     const key = this.getRequestKey(integrationId)
     let currentRequests: number
     let canMakeRequest: boolean
