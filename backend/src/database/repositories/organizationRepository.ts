@@ -663,8 +663,15 @@ class OrganizationRepository {
       await OrganizationRepository.includeOrganizationToSegments(record.id, options)
     }
 
-    if (overrideIdentities && data.identities && data.identities.length > 0) {
-      await this.setIdentities(id, data.identities, options)
+    if (data.identities && data.identities.length > 0) {
+      if (overrideIdentities) {
+          await this.setIdentities(id, data.identities, options)
+      }
+      else {
+        for (const identity of data.identities) {
+          await this.addIdentity(id, identity, options)
+        }
+      }
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
