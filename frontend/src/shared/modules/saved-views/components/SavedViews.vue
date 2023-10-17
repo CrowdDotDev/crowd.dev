@@ -214,9 +214,7 @@ const getViews = () => {
     return;
   }
   SavedViewsService.query({
-    filter: {
-      placement: [props.placement],
-    },
+    placement: [props.placement],
   })
     .then((res: SavedView[]) => {
       views.value = [];
