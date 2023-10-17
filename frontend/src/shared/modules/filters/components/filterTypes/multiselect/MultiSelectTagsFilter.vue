@@ -36,6 +36,7 @@
               <span class="el-checkbox__inner" />
             </span>
           </div>
+          <img :src="option.avatar" alt="Avatar" class="avatar" />
           {{ option.label }}
         </el-option>
       </template>
@@ -131,5 +132,11 @@ export default {
       @apply py-3 px-3;
     }
   }
+}
+.avatar {
+  width: 2em; 
+  height: 2em;
+  border-radius: 50%; 
+  margin-right: 1em; 
 }
 </style>
