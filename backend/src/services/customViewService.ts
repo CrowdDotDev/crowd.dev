@@ -73,7 +73,7 @@ export default class CustomViewService extends LoggerBase {
     return CustomViewRepository.findById(id, this.options)
   }
 
-  async query(data) {
-    return CustomViewRepository.findAll(data.filter, this.options)
+  async findAll(args) {
+    return CustomViewRepository.findAll(args, this.options)
   }
 }

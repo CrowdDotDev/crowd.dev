@@ -4,13 +4,14 @@ import PermissionChecker from '../../services/user/permissionChecker'
 import track from '../../segment/track'
 
 /**
- * POST /tenant/{tenantId}/customview/query
+ * GET /tenant/{tenantId}/customview/query
  * @summary Query custom views
  * @tag CustomViews
  * @security Bearer
- * @description Query custom views. It accepts filters and sorting options
+ * @description Query custom views. It accepts filters and sorting options.
  * @pathParam {string} tenantId - Your workspace/tenant ID
- * @bodyContent {CustomViewQuery} application/json
+ * @queryParam {string[]} placement - The placements to filter by
+ * @queryParam {string} visibility - The visibility to filter by
  * @response 200 - Ok
  * @responseContent {CustomViewList} 200.application/json
  * @responseExample {CustomViewList} 200.application/json.CustomView
@@ -21,7 +22,7 @@ import track from '../../segment/track'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.activityRead)
 
-  const payload = await new CustomViewService(req).query(req.body)
+  const payload = await new CustomViewService(req).findAll(req.query)
 
   if (req.query.filter && Object.keys(req.query.filter).length > 0) {
     track('Custom views Filter', { ...payload }, { ...req })

@@ -157,7 +157,7 @@ class CustomViewRepository {
     return record
   }
 
-  static async findAll(filter, options: IRepositoryOptions) {
+  static async findAll(query, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -165,13 +165,13 @@ class CustomViewRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const where = {
-      ...lodash.pick(filter, ['visibility']),
+      ...lodash.pick(query, ['visibility']),
       tenantId: tenant.id,
     }
 
-    if (filter?.placement) {
+    if (query?.placement) {
       where.placement = {
-        [Op.in]: filter.placement,
+        [Op.in]: query.placement,
       }
     }
 
