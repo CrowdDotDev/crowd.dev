@@ -6,7 +6,7 @@ export default {
   backgroundColor: '#D4E1F0',
   borderColor: '#D4E1F0',
   description:
-    "Connect LinkedIn to sync comments and reactions from your config's posts.",
+    "Connect LinkedIn to sync comments and reactions from your organization's posts.",
   image: '/images/integrations/linkedin.png',
   connectComponent: LinkedInConnect,
   reactions: {

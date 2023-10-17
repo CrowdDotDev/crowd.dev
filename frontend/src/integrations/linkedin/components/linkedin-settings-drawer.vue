@@ -31,7 +31,7 @@
             class="text-2xs font-light mb-2 text-gray-600"
           >
             Monitor all comments and reactions to posts or
-            shares from one of your associated config
+            shares from one of your associated organization
             profiles. <br />
           </span>
           <el-select
@@ -55,7 +55,7 @@
             <i class="ri-alert-line mr-2" />
             <div class="text-sm pt-0.5">
               <span class="font-medium">Action required.</span>
-              Select one of your associated config
+              Select one of your associated organization
               profiles to start tracking LinkedIn activities
             </div>
           </div>

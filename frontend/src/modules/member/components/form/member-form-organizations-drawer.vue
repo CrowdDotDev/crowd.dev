@@ -50,7 +50,7 @@
         </article>
         <div class="flex justify-start pt-5">
           <el-button class="btn btn-link btn-link--primary" @click="isOrganizationFormModalOpen = true">
-            + Add config
+            + Add organization
           </el-button>
         </div>
       </div>

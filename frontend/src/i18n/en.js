@@ -237,12 +237,12 @@ const en = {
       create: {
         success: 'Organization successfully saved',
         error:
-          'There was an error creating the config',
+          'There was an error creating the organization',
       },
       update: {
         success: 'Organization successfully saved',
         error:
-          'There was an error updating the config',
+          'There was an error updating the organization',
       },
       destroy: {
         success: 'Organization successfully deleted',

@@ -26,14 +26,14 @@ const connect = () => {
   ConfirmDialog({
     type: 'notification',
     title:
-      'Are you the admin of your GitHub config?',
+      'Are you the admin of your GitHub organization?',
     titleClass: 'text-lg pt-2',
     message:
       `Only GitHub users with admin permissions are able to connect crowd.dev's GitHub integration.
       If you are an organization contact, you will need an approval from the GitHub workspace admin. <a href="https://docs.crowd.dev/docs/github-integration" target="_blank">Read more</a>`,
     icon: 'ri-information-line',
-    confirmButtonText: 'I\'m the GitHub config admin',
-    cancelButtonText: 'Invite config admin to this workspace',
+    confirmButtonText: 'I\'m the GitHub organization admin',
+    cancelButtonText: 'Invite organization admin to this workspace',
     verticalCancelButtonClass: 'btn btn--md btn--primary w-full',
     verticalConfirmButtonClass: 'btn btn--md btn--bordered w-full !mb-2',
     vertical: true,

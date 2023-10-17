@@ -5,7 +5,7 @@
       <p class="text-gray-500 text-2xs leading-normal mt-1">
         Organizations’ data is automatically obtained via enrichement (work experience).<br>
         <br>
-        The config period will define each activity affiliation.
+        The organization period will define each activity affiliation.
       </p>
     </div>
     <div
@@ -38,26 +38,26 @@
               class="mr-2"
             />
             <p class="text-xs leading-5 pl-2">
-              {{ config.displayName || config.name }}
+              {{ organization.displayName || organization.name }}
             </p>
           </div>
           <div class="w-1/3">
             <p class="text-xs leading-5 pl-2">
-              {{ config.memberOrganizations.title }}
+              {{ organization.memberOrganizations.title }}
             </p>
           </div>
           <div class="w-1/3">
             <p class="text-xs leading-5 pl-2">
               <span>
-                {{ config.memberOrganizations.dateStart
-                  ? moment(config.memberOrganizations.dateStart).utc().format('MMMM YYYY')
+                {{ organization.memberOrganizations.dateStart
+                  ? moment(organization.memberOrganizations.dateStart).utc().format('MMMM YYYY')
                   : 'Unknown' }}
               </span>
               <span class="mx-1 whitespace-nowrap">-></span>
               <span>
-                {{ config.memberOrganizations.dateEnd
-                  ? moment(config.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
-                  : config.memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
+                {{ organization.memberOrganizations.dateEnd
+                  ? moment(organization.memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+                  : organization.memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
               </span>
             </p>
           </div>
@@ -74,7 +74,7 @@
 
       <div class="flex justify-start">
         <el-button class="btn btn-link btn-link--primary mt-5" @click="isOrganizationFormModalOpen = true">
-          + Add config
+          + Add organization
         </el-button>
       </div>
     </div>

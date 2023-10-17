@@ -161,7 +161,7 @@
         >
           <i class="ri-robot-line text-base mr-2" /><span
             class="text-xs"
-          >Mark as config</span>
+          >Mark as bot</span>
         </el-dropdown-item>
         <el-dropdown-item
           v-if="member.attributes.isBot?.default"
@@ -174,7 +174,7 @@
         >
           <i class="ri-robot-line text-base mr-2" /><span
             class="text-xs"
-          >Unmark as config</span>
+          >Unmark as bot</span>
         </el-dropdown-item>
         <el-divider class="border-gray-200" />
         <el-dropdown-item

@@ -211,14 +211,14 @@ const multiSelectCreateFn = computed(() => {
 
 const multiSelectPlaceholder = computed(() => {
   if (selectedAttribute.value.name === 'organizations') {
-    return 'Select or create an config';
+    return 'Select or create an organization';
   }
   return 'Enter option(s) or create one';
 });
 
 const multiSelectClassName = computed(() => {
   if (selectedAttribute.value.name === 'organizations') {
-    return 'config-input w-full';
+    return 'organization-input w-full';
   }
   return 'w-full multi-select-field';
 });
