@@ -64,6 +64,10 @@ export default {
   },
 
   props: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
     config: {
       type: Object,
       default: () => ({

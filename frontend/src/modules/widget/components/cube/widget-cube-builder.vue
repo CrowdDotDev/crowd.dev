@@ -170,56 +170,58 @@
             </div>
           </div>
         </template>
-        <template #default="{ resultSet, validatedQuery }">
+        <template #default="{ resultSet, validatedQuery, loading }">
           <SyncModel
             v-model:model-query="model.settings.query"
             :query="validatedQuery"
           />
           <div class="border-t border-gray-200">
-            <div
-              class="preview-collapse"
-              @click="handlePreviewChange"
-            >
-              <i
-                :class="
-                  previewExpanded
-                    ? 'ri-arrow-down-s-line'
-                    : 'ri-arrow-up-s-line'
-                "
-                class="text-base mr-1"
-              />
-              Preview
-            </div>
-            <div
-              v-show="previewExpanded"
-              class="preview px-4"
-            >
-              <app-widget-cube
-                v-if="
-                  model.settings.chartType
+            <el-collapse v-model="preview" accordion @change="onChange">
+              <el-collapse-item name="chart" :disabled="loading">
+                <template #title>
+                  <div class="px-6">
+                    <i
+                      :class="
+                        preview
+                          ? 'ri-arrow-down-s-line'
+                          : 'ri-arrow-up-s-line'
+                      "
+                      class="text-base mr-1"
+                    />
+                    <span class="preview-collapse">Preview</span>
+                    <i v-if="loading" class="ri-loader-4-line animate-spin text-gray-900 w-4 ml-2" />
+                  </div>
+                </template>
+                <div
+                  v-if="preview && model.settings.chartType
                     && model.settings.query
-                "
-                :widget="
-                  mapWidget(
-                    buildWidgetPreview({
-                      chartType: model.settings.chartType,
-                      query: model.settings.query,
-                    }),
-                    resultSet,
-                  )
-                "
-                :result-set="resultSet"
-                :chart-options="
-                  chartOptions(
-                    buildWidgetPreview({
-                      chartType: model.settings.chartType,
-                      query: model.settings.query,
-                    }),
-                    resultSet,
-                  )
-                "
-              />
-            </div>
+                  "
+                  class="preview px-4"
+                >
+                  <app-widget-cube
+                    :widget="
+                      mapWidget(
+                        buildWidgetPreview({
+                          chartType: model.settings.chartType,
+                          query: model.settings.query,
+                        }),
+                        resultSet,
+                      )
+                    "
+                    :result-set="resultSet"
+                    :chart-options="
+                      chartOptions(
+                        buildWidgetPreview({
+                          chartType: model.settings.chartType,
+                          query: model.settings.query,
+                        }),
+                        resultSet,
+                      )
+                    "
+                  />
+                </div>
+              </el-collapse-item>
+            </el-collapse>
           </div>
         </template>
       </query-builder>
@@ -338,6 +340,7 @@ export default {
       initialChartType: initialCharType,
       additionalSettingsVisible: false,
       previewExpanded: false,
+      preview: null,
     };
   },
 
@@ -362,6 +365,11 @@ export default {
   },
 
   methods: {
+    onChange(value) {
+      setTimeout(() => {
+        this.showGraph = !!value;
+      }, 200);
+    },
     ...mapActions({
       getCubeToken: 'widget/getCubeToken',
     }),
@@ -396,9 +404,6 @@ export default {
     handleAdditionalSettingsClick() {
       this.additionalSettingsVisible = !this.additionalSettingsVisible;
     },
-    handlePreviewChange() {
-      this.previewExpanded = !this.previewExpanded;
-    },
   },
 };
 </script>
@@ -416,14 +421,28 @@ export default {
       @apply h-full flex flex-1 flex-col;
     }
 
-    .preview-collapse {
-      @apply px-6 uppercase text-gray-600 text-2xs cursor-pointer flex items-center h-12;
-      &:hover {
-        @apply text-gray-900;
+    .el-collapse-item:not(.is-disabled) {
+      .preview-collapse {
+        @apply text-2xs uppercase cursor-pointer text-gray-600;
+
+        &:hover {
+          @apply text-gray-900;
+        }
+      }
+
+    }
+    .el-collapse-item.is-disabled {
+      .preview-collapse {
+        @apply text-2xs uppercase cursor-not-allowed text-gray-400;
       }
     }
+
     .preview {
       max-height: 40vh;
+
+      &.collapsed {
+        display: none;
+      }
     }
     .el-collapse-item__content {
       @apply pb-0;

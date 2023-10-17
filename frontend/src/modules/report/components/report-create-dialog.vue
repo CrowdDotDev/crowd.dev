@@ -61,8 +61,6 @@ import {
 } from 'vue';
 import { useRouter } from 'vue-router';
 import { ReportService } from '@/modules/report/report-service';
-import { ReportModel } from '@/modules/report/report-model';
-import { FormSchema } from '@/shared/form/form-schema';
 
 const router = useRouter();
 const props = defineProps({
@@ -76,16 +74,6 @@ const props = defineProps({
   },
 });
 const emit = defineEmits('update:modelValue');
-
-const { fields } = ReportModel;
-const formSchema = new FormSchema([
-  fields.name,
-  fields.widgets,
-  fields.settings,
-  fields.public,
-]);
-
-const rules = reactive(formSchema.rules());
 
 const visible = computed({
   get() {

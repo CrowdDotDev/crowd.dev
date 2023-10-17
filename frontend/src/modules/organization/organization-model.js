@@ -8,6 +8,7 @@ import JsonField from '@/shared/fields/json-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import IntegerField from '@/shared/fields/integer-field';
 import BooleanField from '@/shared/fields/boolean-field';
+import GenericField from '@/shared/fields/generic-field';
 import OrganizationHeadcountField from './organization-headcount-field';
 import OrganizationEmployeesField from './organization-employees-field';
 import OrganizationTypeField from './organization-type-field';
@@ -107,7 +108,7 @@ const fields = {
   allSubsidiaries: new StringArrayField('allSubsidiaries', 'All Subsidiaries'),
   alternativeDomains: new StringArrayField('alternativeDomains', 'Alternative Domains'),
   alternativeNames: new StringArrayField('alternativeNames', 'Alternative Names'),
-  averageEmployeeTenure: new IntegerField('averageEmployeeTenure', 'Average Employee Tenure'),
+  averageEmployeeTenure: new GenericField('averageEmployeeTenure', 'Average Employee Tenure'),
   averageTenureByLevel: new JsonField('averageTenureByLevel', 'Average Tenure by Level'),
   averageTenureByRole: new JsonField('averageTenureByRole', 'Average Tenure by Role'),
   directSubsidiaries: new StringArrayField('directSubsidiaries', 'Direct Subsidiaries'),
