@@ -531,7 +531,7 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const record = await OrganizationRepository.update(id, data, repoOptions)
+      const record = await OrganizationRepository.update(id, data, repoOptions, true)
 
       await SequelizeRepository.commitTransaction(tx)
 

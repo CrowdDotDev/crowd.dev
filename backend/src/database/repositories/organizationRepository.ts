@@ -304,7 +304,7 @@ class OrganizationRepository {
     })
 
     if (data.identities && data.identities.length > 0) {
-      await OrganizationRepository.addIdentities(record.id, data.identities, options)
+      await OrganizationRepository.setIdentities(record.id, data.identities, options)
     }
 
     await OrganizationRepository.includeOrganizationToSegments(record.id, options)
@@ -562,7 +562,7 @@ class OrganizationRepository {
     })
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -663,8 +663,8 @@ class OrganizationRepository {
       await OrganizationRepository.includeOrganizationToSegments(record.id, options)
     }
 
-    if (data.identities && data.identities.length > 0) {
-      await this.addIdentity(id, data.identities, options)
+    if (overrideIdentities && data.identities && data.identities.length > 0) {
+      await this.setIdentities(id, data.identities, options)
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
@@ -739,11 +739,27 @@ class OrganizationRepository {
     }
   }
 
-  static async addIdentities(
+  static async setIdentities(
     organizationId: string,
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
   ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    await sequelize.query(
+      `delete from "organizationIdentities" where "organizationId" = :organizationId and "tenantId" = :tenantId`,
+      {
+        replacements: {
+          organizationId,
+          tenantId: currentTenant.id,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      },
+    )
+
     for (const identity of identities) {
       await OrganizationRepository.addIdentity(organizationId, identity, options)
     }
@@ -1502,29 +1518,49 @@ class OrganizationRepository {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const orgs = await options.database.sequelize.query(
-      `SELECT 
-      "organizationsToMerge".id, 
-      "organizationsToMerge"."toMergeId",
-      "organizationsToMerge"."total_count",
-      "organizationsToMerge"."similarity"
-    FROM 
-    (
-      SELECT DISTINCT ON (Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id)))) 
-          org.id, 
-          otm."toMergeId", 
-          org."createdAt", 
-          COUNT(*) OVER() AS total_count,
+      `WITH
+      cte AS (
+        SELECT
+          Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))) as hash,
+          org.id,
+          otm."toMergeId",
+          org."createdAt",
           otm."similarity"
         FROM organizations org
-        INNER JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
+        JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
+        JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
-        ORDER BY Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))), org.id
-      ) AS "organizationsToMerge" 
-    ORDER BY 
-      "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id 
-    LIMIT :limit OFFSET :offset
+          AND to_merge_segments."segmentId" IN (:segmentIds)
+      ),
+      
+      count_cte AS (
+        SELECT COUNT(DISTINCT hash) AS total_count
+        FROM cte
+      ),
+      
+      final_select AS (
+        SELECT DISTINCT ON (hash)
+          id,
+          "toMergeId",
+          "createdAt",
+          "similarity"
+        FROM cte
+        ORDER BY hash, id
+      )
+      
+      SELECT
+        "organizationsToMerge".id,
+        "organizationsToMerge"."toMergeId",
+        count_cte."total_count",
+        "organizationsToMerge"."similarity"
+      FROM
+        final_select AS "organizationsToMerge",
+        count_cte
+      ORDER BY
+        "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id
+      LIMIT :limit OFFSET :offset
     `,
       {
         replacements: {
