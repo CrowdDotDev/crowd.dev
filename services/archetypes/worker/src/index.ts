@@ -8,13 +8,13 @@ import { getDbConnection, DbInstance, DbStore } from '@crowd/database'
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
 const envvars = {
-  worker: ['TEMPORAL_SERVER_URL', 'TEMPORAL_NAMESPACE', 'TEMPORAL_TASKQUEUE'],
+  worker: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE', 'CROWD_TEMPORAL_TASKQUEUE'],
   postgres: [
-    'POSTGRES_HOST',
-    'POSTGRES_PORT',
-    'POSTGRES_USER',
-    'POSTGRES_PASSWORD',
-    'POSTGRES_DATABASE',
+    'CROWD_POSTGRES_HOST',
+    'CROWD_POSTGRES_PORT',
+    'CROWD_POSTGRES_USER',
+    'CROWD_POSTGRES_PASSWORD',
+    'CROWD_POSTGRES_DATABASE',
   ],
 }
 
@@ -86,7 +86,7 @@ export class ServiceWorker extends Service {
     // TODO: Handle TLS for Temporal Cloud.
     try {
       const connection = await NativeConnection.connect({
-        address: process.env['TEMPORAL_SERVER_URL'],
+        address: process.env['CROWD_TEMPORAL_SERVER_URL'],
         // tls:
       })
 
@@ -97,8 +97,8 @@ export class ServiceWorker extends Service {
       this._worker = await TemporalWorker.create({
         connection: connection,
         identity: this.name,
-        namespace: process.env['TEMPORAL_NAMESPACE'],
-        taskQueue: process.env['TEMPORAL_TASKQUEUE'],
+        namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
+        taskQueue: process.env['CROWD_TEMPORAL_TASKQUEUE'],
         enableSDKTracing: true,
         showStackTraceSources: true,
         workflowBundle: workflowBundle,
@@ -111,11 +111,11 @@ export class ServiceWorker extends Service {
     if (this.options.postgres.enabled) {
       try {
         const dbConnection = await getDbConnection({
-          host: process.env['POSTGRES_HOST'],
-          port: Number(process.env['POSTGRES_PORT']),
-          user: process.env['POSTGRES_USER'],
-          password: process.env['POSTGRES_PASSWORD'],
-          database: process.env['POSTGRES_DATABASE'],
+          host: process.env['CROWD_POSTGRES_HOST'],
+          port: Number(process.env['CROWD_POSTGRES_PORT']),
+          user: process.env['CROWD_POSTGRES_USER'],
+          password: process.env['CROWD_POSTGRES_PASSWORD'],
+          database: process.env['CROWD_POSTGRES_DATABASE'],
         })
 
         const dbStore = new DbStore(this.log, dbConnection)

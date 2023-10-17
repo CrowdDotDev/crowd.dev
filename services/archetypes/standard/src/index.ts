@@ -13,10 +13,10 @@ const logger = getServiceLogger()
 
 // List all required environment variables, grouped per "component".
 const envvars = {
-  base: ['SERVICE', 'UNLEASH_URL', 'UNLEASH_API_TOKEN'],
-  producer: ['KAFKA_BROKERS'],
-  temporal: ['TEMPORAL_SERVER_URL', 'TEMPORAL_NAMESPACE'],
-  redis: ['REDIS_HOST', 'REDIS_PORT', 'REDIS_USER', 'REDIS_PASSWORD'],
+  base: ['CROWD_SERVICE', 'CROWD_UNLEASH_URL', 'CROWD_UNLEASH_API_TOKEN'],
+  producer: ['CROWD_KAFKA_BROKERS'],
+  temporal: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE'],
+  redis: ['CROWD_REDIS_HOST', 'CROWD_REDIS_PORT', 'CROWD_REDIS_USER', 'CROWD_REDIS_PASSWORD'],
 }
 
 /*
@@ -64,14 +64,14 @@ export class Service {
   protected _redisClient: RedisClient | null
 
   constructor(config: Config) {
-    this.name = process.env['SERVICE']
+    this.name = process.env['CROWD_SERVICE']
     this.tracer = tracer
     this.log = logger
     this.config = config
     this.integrations = INTEGRATION_SERVICES
 
-    if (config.producer.enabled && process.env['KAFKA_BROKERS']) {
-      const brokers = process.env['KAFKA_BROKERS']
+    if (config.producer.enabled && process.env['CROWD_KAFKA_BROKERS']) {
+      const brokers = process.env['CROWD_KAFKA_BROKERS']
       this._kafka = new Kafka({
         clientId: this.name,
         brokers: brokers.split(','),
@@ -187,9 +187,9 @@ export class Service {
 
     this._unleash = InitUnleash({
       appName: this.name,
-      url: process.env['UNLEASH_URL'],
+      url: process.env['CROWD_UNLEASH_URL'],
       customHeaders: {
-        Authorization: process.env['UNLEASH_API_TOKEN'],
+        Authorization: process.env['CROWD_UNLEASH_API_TOKEN'],
       },
     })
 
@@ -205,13 +205,13 @@ export class Service {
     if (this.config.temporal.enabled) {
       try {
         const connection = await Connection.connect({
-          address: process.env['TEMPORAL_SERVER_URL'],
+          address: process.env['CROWD_TEMPORAL_SERVER_URL'],
           // tls:
         })
 
         this._temporal = new TemporalClient({
           connection: connection,
-          namespace: process.env['TEMPORAL_NAMESPACE'],
+          namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
           identity: this.name,
         })
       } catch (err) {
@@ -222,10 +222,10 @@ export class Service {
     if (this.config.redis.enabled) {
       try {
         this._redisClient = await getRedisClient({
-          host: process.env['REDIS_HOST'],
-          port: process.env['REDIS_PORT'],
-          username: process.env['REDIS_USER'],
-          password: process.env['REDIS_PASSWORD'],
+          host: process.env['CROWD_REDIS_HOST'],
+          port: process.env['CROWD_REDIS_PORT'],
+          username: process.env['CROWD_REDIS_USER'],
+          password: process.env['CROWD_REDIS_PASSWORD'],
         })
 
         this._redisCache = new RedisCache(this.name, this._redisClient, this.log)
