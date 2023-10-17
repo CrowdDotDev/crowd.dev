@@ -37,7 +37,7 @@
                 class="btn btn--primary btn--md"
                 :disabled="isCreateLockedForSampleData"
               >
-                Add config
+                Add organization
               </el-button>
             </router-link>
           </div>

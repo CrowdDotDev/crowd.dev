@@ -274,7 +274,7 @@ export default {
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.config',
+            'Members.organization',
           ],
           Tags: ['Tags.name'],
         },
@@ -292,7 +292,7 @@ export default {
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.config',
+            'Members.organization',
           ],
           Tags: ['Tags.name'],
         },
@@ -301,7 +301,7 @@ export default {
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.config',
+            'Members.organization',
           ],
           Activities: [
             'Activities.platform',
@@ -311,7 +311,7 @@ export default {
           Members: [
             'Members.score',
             'Members.location',
-            'Members.config',
+            'Members.organization',
           ],
           Tags: ['Tags.name'],
         },
@@ -320,7 +320,7 @@ export default {
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.config',
+            'Members.organization',
           ],
           Activities: [
             'Activities.platform',
@@ -330,7 +330,7 @@ export default {
           Members: [
             'Members.score',
             'Members.location',
-            'Members.config',
+            'Members.organization',
           ],
           Tags: ['Tags.name'],
         },

@@ -15,8 +15,8 @@
       <h4 class="mt-4 mb-6">
         {{
           isEditPage
-            ? 'Edit config'
-            : 'New config'
+            ? 'Edit organization'
+            : 'New organization'
         }}
       </h4>
       <el-container
@@ -87,8 +87,8 @@
             >
               {{
                 isEditPage
-                  ? 'Update config'
-                  : 'Add config'
+                  ? 'Update organization'
+                  : 'Add organization'
               }}
             </el-button>
           </div>
@@ -393,9 +393,9 @@ async function onSubmit() {
         payload.id,
         payload.values,
       );
-      Message.success(i18n('entities.config.update.success'));
+      Message.success(i18n('entities.organization.update.success'));
     } catch (error) {
-      Message.error(i18n('entities.config.update.error'));
+      Message.error(i18n('entities.organization.update.error'));
 
       Errors.handle(error);
     }
@@ -404,9 +404,9 @@ async function onSubmit() {
     try {
       await OrganizationService.create(payload);
 
-      Message.success(i18n('entities.config.create.success'));
+      Message.success(i18n('entities.organization.create.success'));
     } catch (error) {
-      Message.error(i18n('entities.config.create.error'));
+      Message.error(i18n('entities.organization.create.error'));
       Errors.handle(error);
     }
   }

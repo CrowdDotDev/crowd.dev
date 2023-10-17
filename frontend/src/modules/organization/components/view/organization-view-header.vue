@@ -12,7 +12,7 @@
         />
         <div>
           <div class="flex">
-            <h5>{{ config.displayName || config.name }}</h5>
+            <h5>{{ organization.displayName || organization.name }}</h5>
             <app-organization-badge
               class="ml-2"
               :organization="organization"
@@ -31,7 +31,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-gray-600"
-              >{{ config.website }}</a>
+              >{{ organization.website }}</a>
             </div>
             <span
               v-if="
@@ -45,7 +45,7 @@
               class="flex items-center"
             >
               <i class="ri-map-pin-2-line mr-1" />
-              <span>{{ config.location }}</span>
+              <span>{{ organization.location }}</span>
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              config.memberCount,
+              organization.memberCount,
               'number',
             )
           }}
@@ -99,7 +99,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              config.activityCount,
+              organization.activityCount,
               'number',
             )
           }}
@@ -112,7 +112,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              config.size,
+              organization.size,
               'string',
             )
           }}
@@ -125,7 +125,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              config.joinedAt,
+              organization.joinedAt,
               'relative',
             )
           }}
@@ -138,7 +138,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             revenueRange.displayValue(
-              config.revenueRange,
+              organization.revenueRange,
             )
           }}
         </p>
@@ -150,7 +150,7 @@
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
-              config.lastActive,
+              organization.lastActive,
               'relative',
             )
           }}

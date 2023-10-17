@@ -100,7 +100,7 @@ const fields = {
   founded: new IntegerField('founded', 'Founded', { filterable: true }),
   type: new OrganizationTypeField('organizationType', 'Type', { filterable: true }),
   profiles: new StringArrayField('profiles', 'Profiles'),
-  lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched config', {
+  lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
     filterable: true,
   }),
   affiliatedProfiles: new StringArrayField('affiliatedProfiles', 'Affiliated Profiles'),

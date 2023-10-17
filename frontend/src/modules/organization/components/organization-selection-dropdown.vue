@@ -6,7 +6,7 @@
       />
     </div>
     <div class="text-gray-600 text-sm text-center py-4">
-      Select the config you want to merge with
+      Select the organization you want to merge with
     </div>
     <div class="flex justify-center">
       <div class="flex w-4/5">
@@ -81,10 +81,10 @@ const fetchFn = async (query, limit) => {
     limit,
   );
 
-  // Remove primary config from organizations that can be merged with
+  // Remove primary organization from organizations that can be merged with
   const filteredOptions = options.filter((m) => m.id !== props.id);
 
-  // If the primary config was removed, add an empty object in replacement
+  // If the primary organization was removed, add an empty object in replacement
   if (options.length !== filteredOptions.length) {
     filteredOptions.push({});
   }

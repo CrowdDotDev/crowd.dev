@@ -7,7 +7,7 @@ export class OrganizationField {
     return new RelationToManyField(
       name,
       label,
-      '/config',
+      '/organization',
       Permissions.values.organizationRead,
       OrganizationService.listAutocomplete,
       (record) => {

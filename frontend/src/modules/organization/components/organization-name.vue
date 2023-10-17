@@ -29,7 +29,7 @@
           @mouseover="handleOnMouseOver"
           @mouseleave="handleOnMouseLeave"
         >
-          {{ config.displayName || config.name }}
+          {{ organization.displayName || organization.name }}
         </div>
       </el-tooltip>
       <app-organization-badge

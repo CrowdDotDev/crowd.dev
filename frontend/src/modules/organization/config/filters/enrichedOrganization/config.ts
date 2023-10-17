@@ -7,12 +7,12 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 
 const enrichedOrganization: BooleanFilterConfig = {
   id: 'enrichedOrganization',
-  label: 'Enriched config',
+  label: 'Enriched organization',
   iconClass: 'ri-sparkling-line',
   type: FilterConfigType.BOOLEAN,
   options: {},
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Enriched config', value, options);
+    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Enriched organization', value, options);
   },
   apiFilterRenderer({ value, include }: BooleanFilterValue): any[] {
     const filter = {

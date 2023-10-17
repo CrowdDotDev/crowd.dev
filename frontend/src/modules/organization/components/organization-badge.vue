@@ -65,7 +65,7 @@ const computedTooltipContent = (tooltip) => {
       props.organization.joinedAt,
     ).format('MMM DD, YYYY')}`;
   } if (tooltip === 'team') {
-    return 'Team config';
+    return 'Team organization';
   }
   return '';
 };
