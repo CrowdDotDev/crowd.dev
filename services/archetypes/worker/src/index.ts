@@ -3,7 +3,7 @@ import path from 'path'
 import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '@temporalio/worker'
 
 import { Config, Service } from '@crowd/standard'
-import { getDbConnection, DbInstance, DbStore } from '@crowd/database'
+import { getDbConnection, DbStore } from '@crowd/database'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
@@ -34,7 +34,7 @@ export class ServiceWorker extends Service {
   readonly options: Options
 
   protected _worker: TemporalWorker
-  protected _postgres: DbInstance
+  protected _postgres: DbStore
 
   constructor(config: Config, opts: Options) {
     super(config)
@@ -42,7 +42,7 @@ export class ServiceWorker extends Service {
     this.options = opts
   }
 
-  get postgres(): DbInstance | null {
+  get postgres(): DbStore | null {
     if (!this.options.postgres.enabled) {
       return null
     }
@@ -118,8 +118,7 @@ export class ServiceWorker extends Service {
           database: process.env['CROWD_POSTGRES_DATABASE'],
         })
 
-        const dbStore = new DbStore(this.log, dbConnection)
-        this._postgres = dbStore.dbInstance
+        this._postgres = new DbStore(this.log, dbConnection)
       } catch (err) {
         throw new Error(err)
       }
@@ -138,7 +137,7 @@ export class ServiceWorker extends Service {
   protected override async stop() {
     this._worker.shutdown()
     if (this.options.postgres.enabled) {
-      this._postgres.end()
+      this._postgres.dbInstance.end()
     }
 
     await super.stop()
