@@ -562,7 +562,7 @@ class OrganizationRepository {
     })
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -664,7 +664,13 @@ class OrganizationRepository {
     }
 
     if (data.identities && data.identities.length > 0) {
-      await this.setIdentities(id, data.identities, options)
+      if (overrideIdentities) {
+        await this.setIdentities(id, data.identities, options)
+      } else {
+        for (const identity of data.identities) {
+          await this.addIdentity(id, identity, options)
+        }
+      }
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
