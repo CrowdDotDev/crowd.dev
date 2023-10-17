@@ -134,9 +134,6 @@ export default {
   }
 }
 .avatar {
-  width: 2em; 
-  height: 2em;
-  border-radius: 50%; 
-  margin-right: 1em; 
+  @apply w-8 h-8 rounded-full mr-4;
 }
 </style>
