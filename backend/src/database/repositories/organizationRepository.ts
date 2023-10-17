@@ -304,7 +304,7 @@ class OrganizationRepository {
     })
 
     if (data.identities && data.identities.length > 0) {
-      await OrganizationRepository.setIdentities(record.id, data.identities, options)
+      await OrganizationRepository.addIdentities(record.id, data.identities, options)
     }
 
     await OrganizationRepository.includeOrganizationToSegments(record.id, options)
@@ -664,7 +664,7 @@ class OrganizationRepository {
     }
 
     if (data.identities && data.identities.length > 0) {
-      await this.setIdentities(id, data.identities, options)
+      await this.addIdentity(id, data.identities, options)
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
@@ -739,27 +739,11 @@ class OrganizationRepository {
     }
   }
 
-  static async setIdentities(
+  static async addIdentities(
     organizationId: string,
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    await sequelize.query(
-      `delete from "organizationIdentities" where "organizationId" = :organizationId and "tenantId" = :tenantId`,
-      {
-        replacements: {
-          organizationId,
-          tenantId: currentTenant.id,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      },
-    )
-
     for (const identity of identities) {
       await OrganizationRepository.addIdentity(organizationId, identity, options)
     }
