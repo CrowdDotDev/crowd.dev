@@ -1,5 +1,6 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
+import { trimAndReduceSpaces } from '@/utils/string';
 import activityType from './activityType/config';
 import channel from './channel/config';
 import date from './date/config';
@@ -7,8 +8,6 @@ import member from './member/config';
 import platform from './platform/config';
 import sentiment from './sentiment/config';
 import organizations from './organizations/config';
-
-import { trimAndReduceSpaces } from '@/utils/string';
 
 export const activityFilters: Record<string, FilterConfig> = {
   activityType,

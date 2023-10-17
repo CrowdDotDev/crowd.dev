@@ -1,5 +1,6 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
+import { trimAndReduceSpaces } from '@/utils/string';
 import noOfMembers from './noOfMembers/config';
 import noOfActivities from './noOfActivities/config';
 import activeOn from './activeOn/config';
@@ -18,8 +19,6 @@ import employeeCount from './employeeCount/config';
 import tags from './tags/config';
 import type from './type/config';
 import organizations from './organizations/config';
-
-import { trimAndReduceSpaces } from '@/utils/string';
 
 export const organizationFilters: Record<string, FilterConfig> = {
   organizations,
