@@ -38,7 +38,9 @@ setImmediate(async () => {
 
   app.use(errorMiddleware())
 
-  app.listen(config.port, () => {
-    log.info(`Search Sync API listening on port ${config.port}!`)
+  const PORT = config.port || 8083
+
+  app.listen(PORT, () => {
+    log.info(`Search Sync API listening on port ${PORT}!`)
   })
 })
