@@ -665,9 +665,8 @@ class OrganizationRepository {
 
     if (data.identities && data.identities.length > 0) {
       if (overrideIdentities) {
-          await this.setIdentities(id, data.identities, options)
-      }
-      else {
+        await this.setIdentities(id, data.identities, options)
+      } else {
         for (const identity of data.identities) {
           await this.addIdentity(id, identity, options)
         }
