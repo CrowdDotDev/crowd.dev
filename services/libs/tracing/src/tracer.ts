@@ -14,6 +14,7 @@ import { BunyanInstrumentation } from '@opentelemetry/instrumentation-bunyan'
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
 import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
+import { KafkaJsInstrumentation } from 'opentelemetry-instrumentation-kafkajs'
 import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis'
 import { SequelizeInstrumentation } from 'opentelemetry-instrumentation-sequelize'
 
@@ -50,6 +51,7 @@ export const getServiceTracer = (): Tracer => {
       new HttpInstrumentation(),
       new ExpressInstrumentation(),
       new AwsInstrumentation(),
+      new KafkaJsInstrumentation(),
       new RedisInstrumentation(),
       new SequelizeInstrumentation(),
     ],
