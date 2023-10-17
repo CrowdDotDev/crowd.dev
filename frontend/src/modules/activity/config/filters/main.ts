@@ -8,6 +8,8 @@ import platform from './platform/config';
 import sentiment from './sentiment/config';
 import organizations from './organizations/config';
 
+import { trimAndReduceSpaces } from '@/utils/string';
+
 export const activityFilters: Record<string, FilterConfig> = {
   activityType,
   channel,
@@ -20,11 +22,13 @@ export const activityFilters: Record<string, FilterConfig> = {
 export const activitySearchFilter: SearchFilterConfig = {
   placeholder: 'Search activities',
   apiFilterRenderer(value: string): any[] {
+    const trimmedValue = trimAndReduceSpaces(value);
+
     return [
       {
         or: [
-          { title: { textContains: value } },
-          { body: { textContains: value } },
+          { title: { textContains: trimmedValue } },
+          { body: { textContains: trimmedValue } },
         ],
       },
     ];

@@ -16,6 +16,8 @@ import memberName from './memberName/config';
 import jobTitle from './jobTitle/config';
 import organizations from './organizations/config';
 
+import { trimAndReduceSpaces } from '@/utils/string';
+
 export const memberFilters: Record<string, FilterConfig> = {
   memberName,
   organizations,
@@ -37,11 +39,12 @@ export const memberFilters: Record<string, FilterConfig> = {
 export const memberSearchFilter: SearchFilterConfig = {
   placeholder: 'Search contacts',
   apiFilterRenderer(value: string): any[] {
+    const trimmedValue = trimAndReduceSpaces(value);
     return [
       {
         or: [
-          { displayName: { textContains: value } },
-          { emails: { textContains: value } },
+          { displayName: { textContains: trimmedValue } },
+          { emails: { textContains: trimmedValue } },
         ],
       },
     ];

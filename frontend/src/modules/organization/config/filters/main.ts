@@ -19,6 +19,8 @@ import tags from './tags/config';
 import type from './type/config';
 import organizations from './organizations/config';
 
+import { trimAndReduceSpaces } from '@/utils/string';
+
 export const organizationFilters: Record<string, FilterConfig> = {
   organizations,
   noOfActivities,
@@ -46,7 +48,7 @@ export const organizationSearchFilter: SearchFilterConfig = {
     return [
       {
         or: [
-          { displayName: { textContains: value } },
+          { displayName: { textContains: trimAndReduceSpaces(value) } },
         ],
       },
     ];
