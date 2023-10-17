@@ -1130,31 +1130,44 @@ class OrganizationRepository {
     fromOrganizationId: string,
     toOrganizationId: string,
     options: IRepositoryOptions,
+    batchSize = 10000,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-
     const seq = SequelizeRepository.getSequelize(options)
-
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
-      update "activities" 
-      set 
-        "organizationId" = :newOrganizationId
-      where 
-        "tenantId" = :tenantId and 
-        "organizationId" = :oldOrganizationId 
-    `
+    let updatedRowsCount = 0
 
-    await seq.query(query, {
-      replacements: {
-        tenantId: tenant.id,
-        oldOrganizationId: fromOrganizationId,
-        newOrganizationId: toOrganizationId,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
+    do {
+      options.log.info(
+        `[Move Activities] - Moving maximum of ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
+      )
+
+      const query = `
+        UPDATE "activities" 
+        SET "organizationId" = :newOrganizationId
+        WHERE id IN (
+          SELECT id 
+          FROM "activities" 
+          WHERE "tenantId" = :tenantId 
+            AND "organizationId" = :oldOrganizationId
+          LIMIT :limit
+        )
+      `
+
+      const [, rowCount] = await seq.query(query, {
+        replacements: {
+          tenantId: tenant.id,
+          oldOrganizationId: fromOrganizationId,
+          newOrganizationId: toOrganizationId,
+          limit: batchSize,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      })
+
+      updatedRowsCount = rowCount ?? 0
+    } while (updatedRowsCount === batchSize)
   }
 
   static async *getMergeSuggestions(
