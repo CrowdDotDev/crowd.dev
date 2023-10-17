@@ -1,4 +1,5 @@
 import lodash, { chunk } from 'lodash'
+import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
@@ -27,6 +28,11 @@ import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
+interface IOrganizationIdentityOpensearch {
+  string_platform: string
+  string_name: string
+}
+
 interface IOrganizationPartialAggregatesOpensearch {
   _source: {
     uuid_organizationId: string
@@ -38,10 +44,12 @@ interface IOrganizationPartialAggregatesOpensearch {
   }
 }
 
-interface IOrganizationIdOpensearch {
+interface ISimilarOrganization {
   _score: number
   _source: {
     uuid_organizationId: string
+    nested_identities: IOrganizationIdentityOpensearch[]
+    nested_weakIdentities: IOrganizationIdentityOpensearch[]
   }
 }
 
@@ -53,8 +61,6 @@ interface IOrganizationNoMerge {
   organizationId: string
   noMergeId: string
 }
-
-type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
   static async filterByPayingTenant(
@@ -556,7 +562,7 @@ class OrganizationRepository {
     })
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -658,7 +664,13 @@ class OrganizationRepository {
     }
 
     if (data.identities && data.identities.length > 0) {
-      await this.setIdentities(id, data.identities, options)
+      if (overrideIdentities) {
+        await this.setIdentities(id, data.identities, options)
+      } else {
+        for (const identity of data.identities) {
+          await this.addIdentity(id, identity, options)
+        }
+      }
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
@@ -1118,31 +1130,44 @@ class OrganizationRepository {
     fromOrganizationId: string,
     toOrganizationId: string,
     options: IRepositoryOptions,
+    batchSize = 10000,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-
     const seq = SequelizeRepository.getSequelize(options)
-
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
-      update "activities" 
-      set 
-        "organizationId" = :newOrganizationId
-      where 
-        "tenantId" = :tenantId and 
-        "organizationId" = :oldOrganizationId 
-    `
+    let updatedRowsCount = 0
 
-    await seq.query(query, {
-      replacements: {
-        tenantId: tenant.id,
-        oldOrganizationId: fromOrganizationId,
-        newOrganizationId: toOrganizationId,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
+    do {
+      options.log.info(
+        `[Move Activities] - Moving maximum of ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
+      )
+
+      const query = `
+        UPDATE "activities" 
+        SET "organizationId" = :newOrganizationId
+        WHERE id IN (
+          SELECT id 
+          FROM "activities" 
+          WHERE "tenantId" = :tenantId 
+            AND "organizationId" = :oldOrganizationId
+          LIMIT :limit
+        )
+      `
+
+      const [, rowCount] = await seq.query(query, {
+        replacements: {
+          tenantId: tenant.id,
+          oldOrganizationId: fromOrganizationId,
+          newOrganizationId: toOrganizationId,
+          limit: batchSize,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      })
+
+      updatedRowsCount = rowCount ?? 0
+    } while (updatedRowsCount === batchSize)
   }
 
   static async *getMergeSuggestions(
@@ -1162,28 +1187,48 @@ class OrganizationRepository {
       return 10
     }
 
-    const normalizeScore = (max: number, min: number, score: number): number => {
-      if (score > 100) {
-        return 1
+    const calculateSimilarity = (
+      primaryOrganization: IOrganizationPartialAggregatesOpensearch,
+      similarOrganization: ISimilarOrganization,
+    ): number => {
+      let smallestEditDistance: number = null
+
+      let similarPrimaryIdentity: IOrganizationIdentityOpensearch = null
+
+      // find the smallest edit distance between both identity arrays
+      for (const primaryIdentity of primaryOrganization._source.nested_identities) {
+        // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
+        if (
+          similarOrganization._source.nested_weakIdentities.length > 0 &&
+          similarOrganization._source.nested_weakIdentities.some(
+            (weakIdentity) =>
+              weakIdentity.string_name === primaryIdentity.string_name &&
+              weakIdentity.string_platform === primaryIdentity.string_platform,
+          )
+        ) {
+          return 0.95
+        }
+        for (const secondaryIdentity of similarOrganization._source.nested_identities) {
+          const currentLevenstheinDistance = getLevenshteinDistance(
+            primaryIdentity.string_name,
+            secondaryIdentity.string_name,
+          )
+          if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
+            smallestEditDistance = currentLevenstheinDistance
+            similarPrimaryIdentity = primaryIdentity
+          }
+        }
       }
 
-      if (max === min) {
-        return (40 + Math.floor(Math.random() * 26) - 10) / 100
+      // calculate similarity percentage
+      const identityLength = similarPrimaryIdentity.string_name.length
+
+      if (identityLength < smallestEditDistance) {
+        // if levensthein distance is bigger than the word itself, it might be a prefix match, return medium similarity
+        return (Math.floor(Math.random() * 21) + 20) / 100
       }
 
-      const normalizedScore = (score - min) / (max - min)
-
-      // randomize the cases where score === max and score === min
-      if (normalizedScore === 1) {
-        return Math.floor(Math.random() * (76 - 50) + 50) / 100
-      }
-
-      // normalization is resolved to 0, randomize it
-      if (normalizedScore === 0) {
-        return Math.floor(Math.random() * (41 - 20) + 20) / 100
-      }
-
-      return normalizedScore
+      return Math.floor(((identityLength - smallestEditDistance) / identityLength) * 100) / 100
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -1433,10 +1478,10 @@ class OrganizationRepository {
             collapse: {
               field: 'uuid_organizationId',
             },
-            _source: ['uuid_organizationId'],
+            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities'],
           }
 
-          const organizationsToMerge: IOrganizationIdOpensearch[] =
+          const organizationsToMerge: ISimilarOrganization[] =
             (
               await options.opensearch.search({
                 index: OpenSearchIndex.ORGANIZATIONS,
@@ -1444,6 +1489,7 @@ class OrganizationRepository {
               })
             ).body?.hits?.hits || []
 
+          /*
           const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
             (acc, organizationToMerge) => {
               if (!acc.minScore || organizationToMerge._score < acc.minScore) {
@@ -1458,10 +1504,11 @@ class OrganizationRepository {
             },
             { maxScore: null, minScore: null },
           )
+          */
 
           for (const organizationToMerge of organizationsToMerge) {
             yieldChunk.push({
-              similarity: normalizeScore(maxScore, minScore, organizationToMerge._score),
+              similarity: calculateSimilarity(organization, organizationToMerge),
               organizations: [
                 organization._source.uuid_organizationId,
                 organizationToMerge._source.uuid_organizationId,
@@ -1490,29 +1537,49 @@ class OrganizationRepository {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const orgs = await options.database.sequelize.query(
-      `SELECT 
-      "organizationsToMerge".id, 
-      "organizationsToMerge"."toMergeId",
-      "organizationsToMerge"."total_count",
-      "organizationsToMerge"."similarity"
-    FROM 
-    (
-      SELECT DISTINCT ON (Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id)))) 
-          org.id, 
-          otm."toMergeId", 
-          org."createdAt", 
-          COUNT(*) OVER() AS total_count,
+      `WITH
+      cte AS (
+        SELECT
+          Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))) as hash,
+          org.id,
+          otm."toMergeId",
+          org."createdAt",
           otm."similarity"
         FROM organizations org
-        INNER JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
+        JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
+        JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
-        ORDER BY Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))), org.id
-      ) AS "organizationsToMerge" 
-    ORDER BY 
-      "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id 
-    LIMIT :limit OFFSET :offset
+          AND to_merge_segments."segmentId" IN (:segmentIds)
+      ),
+      
+      count_cte AS (
+        SELECT COUNT(DISTINCT hash) AS total_count
+        FROM cte
+      ),
+      
+      final_select AS (
+        SELECT DISTINCT ON (hash)
+          id,
+          "toMergeId",
+          "createdAt",
+          "similarity"
+        FROM cte
+        ORDER BY hash, id
+      )
+      
+      SELECT
+        "organizationsToMerge".id,
+        "organizationsToMerge"."toMergeId",
+        count_cte."total_count",
+        "organizationsToMerge"."similarity"
+      FROM
+        final_select AS "organizationsToMerge",
+        count_cte
+      ORDER BY
+        "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id
+      LIMIT :limit OFFSET :offset
     `,
       {
         replacements: {
@@ -1541,7 +1608,7 @@ class OrganizationRepository {
         organizations: [i, organizationToMergeResults[idx]],
         similarity: orgs[idx].similarity,
       }))
-      return { rows: result, count: orgs[0].total_count / 2, limit, offset }
+      return { rows: result, count: orgs[0].total_count, limit, offset }
     }
 
     return { rows: [{ organizations: [], similarity: 0 }], count: 0, limit, offset }

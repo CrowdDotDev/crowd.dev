@@ -41,7 +41,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
   }
 
   override async processMessage(message: IQueueMessage, receiptHandle: string): Promise<void> {
-    this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
+    await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
       try {
         this.log.trace({ messageType: message.type }, 'Processing message!')
 
