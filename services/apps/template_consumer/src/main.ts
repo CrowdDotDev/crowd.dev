@@ -17,9 +17,9 @@ const config: Config = {
 const options: Options = {
   maxWaitTimeInMs: 1000,
   retryPolicy: {
-    initialRetryTime: 1000,
-    maxRetryTime: 1000,
-    retries: 1000,
+    initialRetryTime: 500,
+    maxRetryTime: 15000,
+    retries: 10,
   },
 }
 
