@@ -5,9 +5,8 @@ import IntegrationDataRepository from '../repo/integrationData.repo'
 import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { WORKER_SETTINGS, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '@/conf'
+import { WORKER_SETTINGS, PLATFORM_CONFIG } from '../conf'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
-import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository
@@ -58,7 +57,7 @@ export default class IntegrationDataService extends LoggerBase {
     })
   }
 
-  public async processData(dataId: string): Promise<void> {
+  public async processData(dataId: string): Promise<boolean> {
     this.log.debug({ dataId }, 'Trying to process stream data!')
 
     const dataInfo = await this.repo.getDataInfo(dataId)
@@ -71,7 +70,7 @@ export default class IntegrationDataService extends LoggerBase {
     if (dataInfo.runId) {
       if (dataInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
         this.log.warn('Integration was deleted! Skipping data processing!')
-        return
+        return false
       }
 
       this.log = getChildLogger('stream-data-processor', this.log, {
@@ -108,7 +107,7 @@ export default class IntegrationDataService extends LoggerBase {
           type: dataInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     const cache = new RedisCache(
@@ -184,55 +183,42 @@ export default class IntegrationDataService extends LoggerBase {
       await integrationService.processData(context)
       this.log.debug('Finished processing data!')
       await this.repo.deleteData(dataId)
+      return true
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
-      await this.triggerDataError(
-        dataId,
-        'data-process',
-        'Error while processing data!',
-        undefined,
-        err,
-      )
+      try {
+        await this.triggerDataError(
+          dataId,
+          'data-process',
+          'Error while processing data!',
+          undefined,
+          err,
+        )
 
-      if (dataInfo.retries + 1 <= WORKER_SETTINGS().maxDataRetries) {
-        // delay for #retries * 15 minutes
-        const until = addSeconds(new Date(), (dataInfo.retries + 1) * 15 * 60)
-        this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
-        await this.repo.delayData(dataId, until)
-      } else {
-        // stop run because of stream error
-        if (dataInfo.runId) {
-          this.log.warn('Reached maximum retries for data! Stopping the run!')
-          await this.triggerRunError(
-            dataInfo.runId,
-            'data-run-stop',
-            'Data reached maximum retries!',
-            {
-              retries: dataInfo.retries + 1,
-              maxRetries: WORKER_SETTINGS().maxDataRetries,
-            },
-          )
+        if (dataInfo.retries + 1 <= WORKER_SETTINGS().maxDataRetries) {
+          // delay for #retries * 15 minutes
+          const until = addSeconds(new Date(), (dataInfo.retries + 1) * 15 * 60)
+          this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
+          await this.repo.delayData(dataId, until)
+        } else {
+          // stop run because of stream error
+          if (dataInfo.runId) {
+            this.log.warn('Reached maximum retries for data! Stopping the run!')
+            await this.triggerRunError(
+              dataInfo.runId,
+              'data-run-stop',
+              'Data reached maximum retries!',
+              {
+                retries: dataInfo.retries + 1,
+                maxRetries: WORKER_SETTINGS().maxDataRetries,
+              },
+            )
+          }
         }
+      } catch (err2) {
+        this.log.error(err2, 'Error while handling stream error!')
 
-        await sendSlackAlert({
-          slackURL: SLACK_ALERTING_CONFIG().url,
-          alertType: SlackAlertTypes.DATA_WORKER_ERROR,
-          integration: {
-            id: dataInfo.integrationId,
-            platform: dataInfo.integrationType,
-            tenantId: dataInfo.tenantId,
-            apiDataId: dataInfo.id,
-          },
-          userContext: {
-            currentTenant: {
-              name: dataInfo.name,
-              plan: dataInfo.plan,
-              isTrial: dataInfo.isTrialPlan,
-            },
-          },
-          log: this.log,
-          frameworkVersion: 'new',
-        })
+        return false
       }
     }
 

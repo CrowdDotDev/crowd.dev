@@ -9,6 +9,7 @@ import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/
 import { getServiceLogger } from '@crowd/logging'
 import { ApiWebsocketMessage, Edition } from '@crowd/types'
 import { getOpensearchClient } from '@crowd/opensearch'
+import { getServiceTracer } from '@crowd/tracing'
 import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
@@ -26,6 +27,7 @@ import WebSockets from './websockets'
 import { opensearchMiddleware } from '../middlewares/opensearchMiddleware'
 
 const serviceLogger = getServiceLogger()
+getServiceTracer()
 
 const app = express()
 

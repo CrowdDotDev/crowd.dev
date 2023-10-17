@@ -79,6 +79,13 @@ export const shouldProcessActivity = async (
     process = false
   }
 
+  if (activity?.member?.attributes?.isBot && activity?.member?.attributes?.isBot.default) {
+    log.warn(
+      `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a bot, cannot be processed automaticaly!`,
+    )
+    process = false
+  }
+
   if (process) {
     const userContext = await SequelizeRepository.getDefaultIRepositoryOptions()
     const repo = new AutomationExecutionRepository(userContext)

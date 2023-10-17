@@ -102,7 +102,7 @@ import { useRouter } from 'vue-router';
 import config from '@/config';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import { pageContent } from '@/modules/layout/layout-page-content';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 const router = useRouter();
 
@@ -112,8 +112,8 @@ const section = computed(
 const page = computed(() => pageContent[section.value]);
 const computedFeaturePlan = computed(() => {
   if (config.isCommunityVersion) return 'Custom plan';
-  if (page.value.headerTitle === 'Eagle Eye') return 'Growth and Eagle Eye plans';
-  return 'Growth plan';
+  if (page.value.headerTitle === 'Eagle Eye') return 'Scale and Eagle Eye plans';
+  return 'Scale plan';
 });
 </script>
 

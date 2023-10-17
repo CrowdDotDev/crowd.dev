@@ -15,7 +15,7 @@ const integrationFolders = fs
     (dir) =>
       dir.isDirectory() &&
       dir.name !== 'premium' &&
-      fs.existsSync(`${intFolder}/${dir.name}/index.js`),
+      fs.existsSync(`${intFolder}/${dir.name}/index.ts`),
   )
 
 for (const intFolder of integrationFolders) {
@@ -29,7 +29,7 @@ const premiumFolder = path.resolve(`${__dirname}/premium`)
 if (fs.existsSync(premiumFolder)) {
   const premiumIntFolders = fs
     .readdirSync(premiumFolder, { withFileTypes: true })
-    .filter((dir) => dir.isDirectory() && fs.existsSync(`${premiumFolder}/${dir.name}/index.js`))
+    .filter((dir) => dir.isDirectory() && fs.existsSync(`${premiumFolder}/${dir.name}/index.ts`))
 
   if (premiumIntFolders.length > 0) {
     for (const premiumIntFolder of premiumIntFolders) {

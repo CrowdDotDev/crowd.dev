@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { DiscordApiMessage, DiscordParsedReponse, DiscordGetMessagesInput } from '../types'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 async function getMessages(
   input: DiscordGetMessagesInput,

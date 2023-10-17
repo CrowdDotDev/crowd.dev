@@ -21,7 +21,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationEdit)
 
-  const payload = await new OrganizationService(req).update(req.params.id, req.body)
+  const payload = await new OrganizationService(req).update(req.params.id, req.body, true)
 
   await req.responseHandler.success(req, res, payload)
 }

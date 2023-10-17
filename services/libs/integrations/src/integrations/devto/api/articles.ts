@@ -16,10 +16,16 @@ export interface IDevToArticle {
   last_comment_at: string
 }
 
-export const getArticle = async (id: number): Promise<IDevToArticle> => {
+export const getArticle = async (id: number, apiKey?: string): Promise<IDevToArticle> => {
   try {
     const result = await axios.get(
       `https://dev.to/api/articles/${encodeURIComponent(id.toString())}`,
+      {
+        headers: {
+          Accept: 'application/vnd.forem.api-v1+json',
+          'api-key': apiKey || '',
+        },
+      },
     )
 
     return result.data
@@ -31,7 +37,7 @@ export const getArticle = async (id: number): Promise<IDevToArticle> => {
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getArticle(id)
+          return getArticle(id, apiKey)
         }
       }
     }
@@ -44,6 +50,7 @@ export const getOrganizationArticles = async (
   organizationName: string,
   page: number,
   perPage: number,
+  apiKey?: string,
 ): Promise<IDevToArticle[]> => {
   try {
     const result = await axios.get(
@@ -52,6 +59,10 @@ export const getOrganizationArticles = async (
         params: {
           page,
           per_page: perPage,
+        },
+        headers: {
+          Accept: 'application/vnd.forem.api-v1+json',
+          'api-key': apiKey || '',
         },
       },
     )
@@ -67,7 +78,7 @@ export const getOrganizationArticles = async (
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getOrganizationArticles(organizationName, page, perPage)
+          return getOrganizationArticles(organizationName, page, perPage, apiKey)
         }
       }
     }
@@ -80,6 +91,7 @@ export const getUserArticles = async (
   username: string,
   page: number,
   perPage: number,
+  apiKey?: string,
 ): Promise<IDevToArticle[]> => {
   try {
     const result = await axios.get(`https://dev.to/api/articles`, {
@@ -87,6 +99,10 @@ export const getUserArticles = async (
         username,
         page,
         per_page: perPage,
+      },
+      headers: {
+        Accept: 'application/vnd.forem.api-v1+json',
+        'api-key': apiKey || '',
       },
     })
     return result.data
@@ -98,7 +114,7 @@ export const getUserArticles = async (
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getUserArticles(username, page, perPage)
+          return getUserArticles(username, page, perPage, apiKey)
         }
       }
     }

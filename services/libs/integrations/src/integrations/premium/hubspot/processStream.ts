@@ -1,4 +1,4 @@
-import { ProcessStreamHandler } from '@/types'
+import { ProcessStreamHandler } from '../../../types'
 import {
   HubspotEntity,
   HubspotStream,
@@ -15,11 +15,16 @@ import { getAllCompanies } from './api/companies'
 import { RequestThrottler } from '@crowd/common'
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
-  const throttler = new RequestThrottler(100, 10000, ctx.log)
+  const throttler = new RequestThrottler(99, 11000, ctx.log)
 
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
 
-  if (ctx.stream.identifier === HubspotStream.MEMBERS) {
+  // hubspot might have long running root stream, change stream queue message visibility to 7 hours
+  await ctx.setMessageVisibilityTimeout(60 * 60 * 7)
+
+  const streams = ctx.stream.data as HubspotStream[]
+
+  if (streams.includes(HubspotStream.MEMBERS)) {
     const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.MEMBERS,
       settings.hubspotId,
@@ -66,7 +71,9 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       contactsPage = await contactsGenerator.next()
     }
-  } else if (ctx.stream.identifier === HubspotStream.ORGANIZATIONS) {
+  }
+
+  if (streams.includes(HubspotStream.ORGANIZATIONS)) {
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.ORGANIZATIONS,
       settings.hubspotId,
@@ -96,8 +103,6 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       companyPage = await companyGenerator.next()
     }
-  } else {
-    await ctx.abortWithError(`Unknown root stream identifier: ${ctx.stream.identifier}`)
   }
 }
 

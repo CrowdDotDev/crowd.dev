@@ -7,7 +7,9 @@
           class="w-5 h-5 enrichment-icon"
           color="#111827"
         />
-        <span class="text-gray-900 font-semibold text-sm">Member enrichment</span>
+        <span class="text-gray-900 font-semibold text-sm"
+          >Contact enrichment</span
+        >
       </div>
       <el-tooltip placement="top" content="Learn more">
         <a
@@ -16,33 +18,34 @@
           href="https://docs.crowd.dev/docs/member-enrichment"
           target="_blank"
           rel="noopener noreferrer"
-        ><i class="ri-question-line text-lg" /></a>
+          ><i class="ri-question-line text-lg"
+        /></a>
       </el-tooltip>
     </div>
 
     <div class="mt-4 mb-5 text-2xs text-gray-600">
-      Get more insights about this member by enriching it
-      with attributes such as emails, seniority, OSS
-      contributions and much more.
+      Get more insights about this contact by enriching it with attributes such
+      as emails, seniority, OSS contributions and much more.
     </div>
 
     <el-tooltip
       placement="top"
-      content="Member enrichment requires an associated GitHub profile or Email"
-      :disabled="!isEnrichmentDisabled"
+      content="Contact enrichment requires an associated GitHub profile or Email"
+      :disabled="!isEnrichmentDisabled || !isEnrichmentFeatureEnabled()"
       popper-class="max-w-[260px]"
     >
       <span v-if="isFindGitHubFeatureEnabled">
         <el-button
           v-if="!isEnrichmentDisabled"
           class="btn btn--primary btn--full !h-8"
-          :disabled=" isEditLockedForSampleData"
+          :disabled="isEditLockedForSampleData"
           @click="onEnrichmentClick"
-        >Enrich member</el-button>
+          >Enrich member</el-button
+        >
         <el-button
-          v-else 
+          v-else
           class="btn btn--primary btn--full !h-8"
-          :disabled=" isEditLockedForSampleData"
+          :disabled="isEditLockedForSampleData"
           @click="onFindGithubClick"
         >
           <i class="ri-github-fill pr-2" /> Find GitHub
@@ -51,18 +54,16 @@
       <span v-else>
         <el-button
           class="btn btn--primary btn--full !h-8"
-          :disabled="
-            isEnrichmentDisabled
-              || isEditLockedForSampleData
-          "
+          :disabled="isEnrichmentActionDisabled"
           @click="onEnrichmentClick"
-        >Enrich member</el-button>
+        >
+          <span v-if="isEnrichmentFeatureEnabled()">Enrich contact</span>
+          <span v-else>Upgrade plan</span>
+        </el-button>
       </span>
     </el-tooltip>
 
-    <div
-      class="w-full text-center italic text-gray-500 text-3xs mt-2"
-    >
+    <div class="w-full text-center italic text-gray-500 text-3xs mt-2">
       * requires a GitHub profile or Email
     </div>
     <app-member-find-github-drawer
@@ -73,16 +74,16 @@
 </template>
 
 <script setup>
-import { computed, defineProps, ref } from 'vue';
-import {
-  mapActions,
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
-import AppSvg from '@/shared/svg/svg.vue';
-import { MemberPermissions } from '../member-permissions';
-import AppMemberFindGithubDrawer from './member-find-github-drawer.vue'
-import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
+import { computed, defineProps, onMounted, ref } from "vue";
+import { mapActions, mapGetters } from "@/shared/vuex/vuex.helpers";
+import AppSvg from "@/shared/svg/svg.vue";
+import { isEnrichmentFeatureEnabled } from "@/modules/member/member-enrichment";
+import { useRouter } from "vue-router";
+import { MemberPermissions } from "../member-permissions";
+import AppMemberFindGithubDrawer from "./member-find-github-drawer.vue";
+import { FeatureFlag, FEATURE_FLAGS } from "@/featureFlag";
 
+const router = useRouter();
 const props = defineProps({
   member: {
     type: Object,
@@ -90,32 +91,45 @@ const props = defineProps({
   },
 });
 
-const { doEnrich } = mapActions('member');
-const { currentTenant, currentUser } = mapGetters('auth');
+const { doEnrich } = mapActions("member");
+const { doRefreshCurrentUser } = mapActions("auth");
+const { currentTenant, currentUser } = mapGetters("auth");
 
 const isFindGitHubFeatureEnabled = FeatureFlag.isFlagEnabled(
-        FEATURE_FLAGS.findGitHub,
-    )
+  FEATURE_FLAGS.findGitHub
+);
 
 const isEnrichmentDisabled = computed(
-  () => !props.member.username?.github?.length
-    && !props.member.emails?.length,
+  () => !props.member.username?.github?.length && !props.member.emails?.length
 );
 
 const openFindGitHubDrawer = ref(false);
 
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
-).editLockedForSampleData);
+const isEditLockedForSampleData = computed(
+  () =>
+    new MemberPermissions(currentTenant.value, currentUser.value)
+      .editLockedForSampleData
+);
+
+const isEnrichmentActionDisabled = computed(
+  () => isEnrichmentDisabled.value || isEditLockedForSampleData.value
+);
+
+onMounted(() => {
+  doRefreshCurrentUser({});
+});
 
 const onEnrichmentClick = async () => {
+  if (!isEnrichmentFeatureEnabled()) {
+    router.push("/settings?activeTab=plans");
+    return;
+  }
   await doEnrich(props.member.id);
 };
 
 const onFindGithubClick = () => {
   openFindGitHubDrawer.value = true;
-}
+};
 </script>
 
 <style lang="scss">

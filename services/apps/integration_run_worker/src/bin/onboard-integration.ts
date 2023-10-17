@@ -1,19 +1,22 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
+import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import IntegrationRunRepository from '@/repo/integrationRun.repo'
+import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { IntegrationState } from '@crowd/types'
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
 const parameter = processArguments[0]
+const isOnboarding = processArguments[1] ? processArguments[1] === 'true' : true
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
   await emitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())
@@ -42,13 +45,13 @@ setImmediate(async () => {
         continue
       }
 
-      log.info(`Triggering integration run for ${integrationId}!`)
+      log.info(`Triggering integration run for ${integrationId}, onboarding=${isOnboarding}!`)
 
       await emitter.triggerIntegrationRun(
         integration.tenantId,
         integration.type,
         integration.id,
-        true,
+        isOnboarding,
       )
     } else {
       log.error({ integrationId }, 'Integration not found!')

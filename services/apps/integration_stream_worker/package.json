@@ -6,17 +6,21 @@
     "start": "SERVICE=integration-stream-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=integration-stream-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9231 -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug": "SERVICE=integration-stream-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9231 -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "start:watch:local": "./node_modules/.bin/nodemon --watch src --ext ts --exec npm run start:debug:local",
-    "start:watch": "./node_modules/.bin/nodemon --watch src --ext ts --exec npm run start:debug",
-    "dev:local": "./node_modules/.bin/concurrently \"npm run start:watch:local\" \"../../scripts/watch_libs.sh --service integration_stream_worker\"",
-    "dev": "./node_modules/.bin/concurrently \"npm run start:watch\" \"../../scripts/watch_libs.sh --service integration_stream_worker\"",
+    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug:local",
+    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug",
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
     "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
     "format-check": "./node_modules/.bin/prettier --check .",
     "tsc-check": "./node_modules/.bin/tsc --noEmit",
     "script:process-stream": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-stream.ts",
-    "script:process-all-failed-webhooks": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-failed-webhooks.ts",
-    "script:process-webhook": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-webhook.ts"
+    "script:process-webhook": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-webhook.ts",
+    "script:process-all-streams": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-streams.ts",
+    "script:process-all-webhooks": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-webhooks.ts",
+    "script:trigger-all-failed-webhooks": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-failed-webhooks.ts",
+    "script:trigger-webhook": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-webhook.ts",
+    "script:trigger-all-streams": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/trigger-all-streams.ts",
+    "script:trigger-all-streams-for-integration": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/trigger-all-streams-for-integration.ts",
+    "script:process-all-streams-for-integration": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-all-streams-for-integration.ts"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
@@ -25,6 +29,7 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",
+    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
@@ -35,7 +40,6 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "concurrently": "^8.0.1",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
     "eslint": "^8.39.0",

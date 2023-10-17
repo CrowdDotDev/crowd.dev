@@ -1,16 +1,23 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
-import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from '../conf'
+import IntegrationStreamService from '../service/integrationStreamService'
 import { DbStore, getDbConnection } from '@crowd/database'
+import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import { WebhookState, WebhookType } from '@crowd/types'
+import { getRedisClient } from '@crowd/redis'
+import {
+  IntegrationDataWorkerEmitter,
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  getSqsClient,
+} from '@crowd/sqs'
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
 if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: webhookId')
+  log.error('Expected 1 argument: webhookIds')
   process.exit(1)
 }
 
@@ -18,35 +25,35 @@ const webhookIds = processArguments[0].split(',')
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
-  await emitter.init()
+
+  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
+  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
+  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, tracer, log)
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, tracer, log)
+
+  await runWorkerEmiiter.init()
+  await dataWorkerEmitter.init()
+  await streamWorkerEmitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
-  const repo = new IncomingWebhookRepository(store, log)
+
+  const service = new IntegrationStreamService(
+    redisClient,
+    runWorkerEmiiter,
+    dataWorkerEmitter,
+    streamWorkerEmitter,
+    store,
+    log,
+  )
 
   for (const webhookId of webhookIds) {
-    const info = await repo.getWebhookById(webhookId)
-
-    if (info) {
-      log.info({ webhookId }, 'Found webhook!')
-
-      if (![WebhookType.GITHUB, WebhookType.GROUPSIO, WebhookType.DISCORD].includes(info.type)) {
-        log.error({ webhookId }, 'Webhook is not a supported type!')
-        process.exit(1)
-      }
-
-      if (info.state !== WebhookState.PENDING) {
-        log.info({ webhookId }, 'Webhook is not pending, resetting...')
-        await repo.markWebhookPending(webhookId)
-      }
-
-      log.info({ webhookId }, 'Triggering webhook processing...')
-      await emitter.triggerWebhookProcessing(info.tenantId, info.platform, info.id)
-      log.info({ webhookId }, 'Triggered webhook processing!')
-    } else {
-      log.error({ webhookId }, 'Webhook not found!')
-      process.exit(1)
+    try {
+      await service.processWebhookStream(webhookId)
+    } catch (err) {
+      log.error({ webhookId, err }, 'Failed to process webhook stream!')
     }
   }
+
+  process.exit(0)
 })

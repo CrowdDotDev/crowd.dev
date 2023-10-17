@@ -19,7 +19,6 @@ export interface SearchCriteria {
 
 export enum FeatureFlag {
   AUTOMATIONS = 'automations',
-  COMMUNITY_HELP_CENTER_PRO = 'community-help-center-pro',
   EAGLE_EYE = 'eagle-eye',
   CSV_EXPORT = 'csv-export',
   LINKEDIN = 'linkedin',

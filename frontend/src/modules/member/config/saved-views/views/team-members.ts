@@ -1,8 +1,8 @@
 import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const teamMembers: SavedView = {
-  id: 'team-members',
-  label: 'Team members',
+  id: 'team-contacts',
+  label: 'Team contacts',
   filter: {
     search: '',
     relation: 'and',
