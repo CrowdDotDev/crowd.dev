@@ -192,7 +192,7 @@
                   </div>
                 </template>
                 <div
-                  v-if="showGraph && preview && model.settings.chartType
+                  v-if="preview && model.settings.chartType
                     && model.settings.query
                   "
                   class="preview px-4"
@@ -336,7 +336,6 @@ export default {
       additionalSettingsVisible: false,
       previewExpanded: false,
       preview: null,
-      showGraph: false,
     };
   },
 
@@ -418,7 +417,7 @@ export default {
 
     .el-collapse-item:not(.is-disabled) {
       .preview-collapse {
-        @apply cursor-pointer text-gray-600;
+        @apply text-2xs uppercase cursor-pointer text-gray-600;
 
         &:hover {
           @apply text-gray-900;
@@ -428,7 +427,7 @@ export default {
     }
     .el-collapse-item.is-disabled {
       .preview-collapse {
-        @apply cursor-not-allowed text-gray-400;
+        @apply text-2xs uppercase cursor-not-allowed text-gray-400;
       }
     }
 
