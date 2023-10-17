@@ -11,7 +11,7 @@
         loading: loading,
       }"
       :editable="editable"
-      :data="data"
+      :data="processedData"
       @trigger-duplicate-widget="handleDuplicate"
       @trigger-edit-widget="handleEdit"
       @trigger-delete-widget="handleDelete"
@@ -24,7 +24,7 @@
         subtitle: showSubtitle ? subtitle : null,
         settings: editable ? {} : undefined,
         type: 'cubejs',
-        data: data,
+        data: processedData,
         loading: loading,
         suffix: widget.suffix,
         unit: widget.unit,
@@ -58,7 +58,7 @@
           <component
             :is="componentType"
             ref="chart"
-            :data="data"
+            :data="processedData"
             v-bind="{ ...chartOptions, dataset }"
           />
         </div>
@@ -71,7 +71,7 @@
         <component
           :is="componentType"
           ref="chart"
-          :data="data"
+          :data="processedData"
           v-bind="{ ...chartOptions, dataset }"
         />
       </div>
@@ -128,6 +128,7 @@ export default {
   data() {
     return {
       dataset: null,
+      processedData: [],
     };
   },
   computed: {
@@ -178,55 +179,63 @@ export default {
       }
       return null;
     },
+  },
+  watch: {
+    resultSet: {
+      immediate: true,
+      deep: true,
+      handler(newResultSet) {
+        setTimeout(() => {
+          if (this.loading && !newResultSet) {
+            this.processedData = ['number'].includes(this.chartType) ? {} : [];
+            return;
+          }
 
-    data() {
-      if (this.loading) {
-        return ['number'].includes(this.chartType) ? {} : [];
-      }
+          let newData;
 
-      let data;
+          if (['line', 'area'].includes(this.chartType)) {
+            newData = this.series(newResultSet);
+          }
 
-      if (['line', 'area'].includes(this.chartType)) {
-        data = this.series(this.resultSet);
-      }
+          if (this.chartType === 'pie') {
+            newData = this.pairs(newResultSet);
+          }
 
-      if (this.chartType === 'pie') {
-        data = this.pairs(this.resultSet);
-      }
+          if (this.chartType === 'bar') {
+            newData = this.seriesPairs(newResultSet);
+          }
 
-      if (this.chartType === 'bar') {
-        data = this.seriesPairs(this.resultSet);
-      }
+          if (this.chartType === 'table') {
+            newData = this.tableData(newResultSet);
+          }
 
-      if (this.chartType === 'table') {
-        data = this.tableData(this.resultSet);
-      }
+          if (this.chartType === 'number') {
+          // if widget type is 'number' we pick the last value of the array
+            newData = {
+              value:
+              newResultSet.series().length > 0
+                ? newResultSet.series()[0].series[
+                  newResultSet.series()[0].series.length
+                      - 1
+                ].value
+                : 0,
+            };
+          }
 
-      if (this.chartType === 'number') {
-        // if widget type is 'number' we pick the last value of the array
-        data = {
-          value:
-            this.resultSet.series().length > 0
-              ? this.resultSet.series()[0].series[
-                this.resultSet.series()[0].series.length
-                    - 1
-              ].value
-              : 0,
-        };
-      }
+          if (
+          // Sort X axis of engagement level based charts
+            this.query.dimensions.length > 0
+          && this.query.dimensions[0].includes('score')
+          && (!this.query.timeDimensions.length
+            || (this.query.timeDimensions.length > 0
+              && !this.query.timeDimensions[0].granularity))
+          ) {
+            newData = this.sortEngagementLevelAxisX(newData);
+          }
 
-      if (
-        // Sort X axis of engagement level based charts
-        this.query.dimensions.length > 0
-        && this.query.dimensions[0].includes('score')
-        && (!this.query.timeDimensions.length
-          || (this.query.timeDimensions.length > 0
-            && !this.query.timeDimensions[0].granularity))
-      ) {
-        data = this.sortEngagementLevelAxisX(data);
-      }
-
-      return data;
+          this.processedData = newData;
+        }, 0);
+      },
     },
   },
   mounted() {
