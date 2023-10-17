@@ -28,5 +28,5 @@ export interface SavedViewCreate {
   visibility: string;
   placement: string;
   config: Filter & Record<string, any>
-  order: number;
+  order?: number;
 }

@@ -7,7 +7,7 @@
       :total="members.total"
       :route="{
         name: 'member',
-        query: filterQueryService().setQuery(allMembers.filter),
+        query: filterQueryService().setQuery(allContacts.config),
       }"
       button-title="All contacts"
       report-name="Members report"
@@ -96,7 +96,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allMembers.filter,
+                    ...allContacts.config,
                     joinedDate: {
                       value: periodRange,
                       operator: 'between',
@@ -184,7 +184,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allMembers.filter,
+                    ...allContacts.config,
                     lastActivityDate: {
                       value: periodRange,
                       operator: 'between',
@@ -240,7 +240,7 @@ export default {
       activeMembersCount,
       formatDateToTimeAgo,
       filterQueryService,
-      allMembers,
+      allContacts,
     };
   },
   computed: {

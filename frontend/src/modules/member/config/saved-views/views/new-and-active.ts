@@ -4,20 +4,27 @@ import moment from 'moment';
 const newAndActive: SavedView = {
   id: 'new-and-active',
   name: 'New and active',
+  placement: 'member',
   visibility: 'tenant',
-  placement: 'organization',
   config: {
     search: '',
     relation: 'and',
     order: {
-      prop: 'joinedAt',
+      prop: 'lastActive',
       order: 'descending',
     },
     settings: {
-      teamOrganization: 'exclude',
+      bot: 'exclude',
+      teamMember: 'exclude',
+      organization: 'exclude',
     },
 
     joinedDate: {
+      operator: 'gt',
+      value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
+    },
+
+    lastActivityDate: {
       operator: 'gt',
       value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
     },

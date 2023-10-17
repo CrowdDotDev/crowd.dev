@@ -49,9 +49,9 @@
 </template>
 
 <script setup lang="ts">
-import { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { VueDraggableNext } from 'vue-draggable-next';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
@@ -87,7 +87,7 @@ const onListChange = () => {
     ),
   ).then(() => {
     emit('reload');
-  })
+  });
 };
 
 const edit = (view: SavedView) => {

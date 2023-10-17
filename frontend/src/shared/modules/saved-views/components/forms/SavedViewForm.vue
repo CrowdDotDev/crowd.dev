@@ -49,10 +49,39 @@
 
         <!-- Filters -->
         <section class="px-6">
-          <div class="py-6">
+          <div class="py-6 flex items-center justify-between">
             <h6 class="text-base font-semibold">
               Filters
             </h6>
+            <el-dropdown v-if="filterList.length > 0" placement="bottom-end">
+              <p class="text-xs leading-5 font-medium text-gray-900">
+                Matching {{ form.relation === 'and' ? 'all' : 'any' }} <i class="ri-arrow-down-s-line" />
+              </p>
+              <template #dropdown>
+                <el-dropdown-item
+                  class="flex items-center justify-between"
+                  :class="{ 'bg-brand-50': form.relation === 'and' }"
+                  @click="form.relation = 'and'"
+                >
+                  Matching all
+                  <i
+                    :class="form.relation === 'and' ? 'opacity-100' : 'opacity-0'"
+                    class="ri-check-line !text-brand-500 !mr-0 ml-1"
+                  />
+                </el-dropdown-item>
+                <el-dropdown-item
+                  class="flex items-center justify-between"
+                  :class="{ 'bg-brand-50': form.relation === 'or' }"
+                  @click="form.relation = 'or'"
+                >
+                  Matching any
+                  <i
+                    :class="form.relation === 'or' ? 'opacity-100' : 'opacity-0'"
+                    class="ri-check-line !text-brand-500 !mr-0 ml-1"
+                  />
+                </el-dropdown-item>
+              </template>
+            </el-dropdown>
           </div>
           <div>
             <div v-for="filter of filterList" :key="filter" class="flex items-center mb-3">
@@ -94,7 +123,7 @@
                       </template>
                     </el-input>
                   </div>
-                  <div class="m-2">
+                  <div class="m-2 max-h-56 overflow-auto">
                     <el-dropdown-item
                       v-for="[key, filterConfig] of filteredFilters"
                       :key="key"
@@ -212,11 +241,7 @@ const isDrawerOpen = computed<boolean>({
 const settingsDefaultValue = computed<Record<string, any>>(() => {
   const settingsObject = { ...props.config.settings };
   Object.entries(settingsObject).forEach(([key, setting]) => {
-    if (setting.inSettings && setting.settingsComponent) {
-      settingsObject[key] = settingsObject[key].defaultValue;
-    } else {
-      delete settingsObject[key];
-    }
+    settingsObject[key] = settingsObject[key].defaultValue;
   });
   return settingsObject;
 });
@@ -338,7 +363,7 @@ const submit = (): void => {
     name: form.name,
     config: {
       search: '',
-      relation: 'and',
+      relation: form.relation,
       order: {
         prop: form.sorting.prop,
         order: form.sorting.order,

@@ -1,10 +1,10 @@
 import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
-const allOrganizations: SavedView = {
-  id: 'all-organizations',
-  name: 'All organizations',
+const teamMembers: SavedView = {
+  id: 'team-contacts',
+  name: 'Team contacts',
+  placement: 'member',
   visibility: 'tenant',
-  placement: 'organization',
   config: {
     search: '',
     relation: 'and',
@@ -13,9 +13,11 @@ const allOrganizations: SavedView = {
       order: 'descending',
     },
     settings: {
-      teamOrganization: 'exclude',
+      bot: 'exclude',
+      teamMember: 'filter',
+      organization: 'exclude',
     },
   },
 };
 
-export default allOrganizations;
+export default teamMembers;
