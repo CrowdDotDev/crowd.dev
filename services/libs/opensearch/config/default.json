@@ -1,0 +1,7 @@
+{
+  "service": {},
+  "db": {},
+  "sqs": {},
+  "redis": {},
+  "opensearch": {}
+}
