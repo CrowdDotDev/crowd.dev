@@ -27,4 +27,12 @@ printf '%s\0' $CLI_HOME/../libs/*/ | xargs -0 -n1 -P$N -I{} bash -c '
     fi
 '
 
+printf '%s\0' $CLI_HOME/../archetypes/*/ | xargs -0 -n1 -P$N -I{} bash -c '
+    if [ -f "{}/package.json" ]; then
+        archetype=$(basename {})
+        printf "${YELLOW}Installing packages for archetype: $archetype! $FLAGS${RESET}\n"
+        (cd {} && npm ci $FLAGS)
+    fi
+'
+
 printf "${GREEN}All library packages installed!${RESET}\n"
