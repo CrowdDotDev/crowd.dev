@@ -204,18 +204,17 @@ function getInitialModel(record) {
   return JSON.parse(
     JSON.stringify(
       formSchema.initialValues({
+        ...(record || {}),
         name: record ? record.name : '',
         displayName: record ? record.displayName || record.name : '',
         headline: record ? record.headline : '',
         description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
-        employees: record ? record.employees : null,
-        location: record ? record.location : null,
-        website: record ? record.website : null,
         identities: record ? [...record.identities.map((i) => ({
+          ...i,
           platform: i.platform,
           name: i.name,
-          username: i.url ? i.url.split('/').at(-1) : '',
+          username: i.url ? i.url.split('/').at(-1) : null,
           url: i.url,
         }))] : [],
         revenueRange: record ? record.revenueRange : {},
@@ -227,29 +226,6 @@ function getInitialModel(record) {
           record && record.phoneNumbers?.length > 0
             ? record.phoneNumbers
             : [''],
-        type: record ? record.type : null,
-        size: record ? record.size : null,
-        industry: record ? record.industry : null,
-        founded: record ? record.founded : null,
-        profiles: record ? record.profiles : null,
-        affiliatedProfiles: record ? record.affiliatedProfiles : null,
-        allSubsidiaries: record ? record.allSubsidiaries : null,
-        alternativeDomains: record ? record.alternativeDomains : null,
-        alternativeNames: record ? record.alternativeNames : null,
-        averageEmployeeTenure: record ? record.averageEmployeeTenure : null,
-        averageTenureByLevel: record ? record.averageTenureByLevel : null,
-        averageTenureByRole: record ? record.averageTenureByRole : null,
-        directSubsidiaries: record ? record.directSubsidiaries : null,
-        employeeChurnRate: record ? record.employeeChurnRate : null,
-        employeeCountByCountry: record ? record.employeeCountByCountry : null,
-        employeeCountByMonth: record ? record.employeeCountByMonth : null,
-        employeeGrowthRate: record ? record.employeeGrowthRate : null,
-        gicsSector: record ? record.gicsSector : null,
-        grossAdditionsByMonth: record ? record.grossAdditionsByMonth : null,
-        grossDeparturesByMonth: record ? record.grossDeparturesByMonth : null,
-        immediateParent: record ? record.immediateParent : null,
-        tags: record ? record.tags : null,
-        ultimateParent: record ? record.ultimateParent : null,
       }),
     ),
   );
@@ -377,6 +353,7 @@ function onCancel() {
 
 async function onSubmit() {
   isFormSubmitting.value = true;
+
   const data = {
     manuallyCreated: true,
     ...formModel.value,
@@ -388,7 +365,8 @@ async function onSubmit() {
       }
       return acc;
     }, []),
-    identities: formModel.value.identities.filter((i) => i.username.length > 0).map((i) => ({
+    identities: formModel.value.identities.filter((i) => i.username?.length > 0 || i.organizationId).map((i) => ({
+      ...i,
       platform: i.platform,
       url: i.url,
       name: i.name,

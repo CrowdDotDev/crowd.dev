@@ -152,6 +152,8 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       },
     })
 
+    const updatedAt = new Date()
+
     const prepared = RepositoryBase.prepare(
       {
         ...data,
@@ -159,19 +161,21 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
           data?.weakIdentities?.length > 0 && {
             weakIdentities: JSON.stringify(data.weakIdentities),
           }),
-        updatedAt: new Date(),
+        updatedAt,
       },
       dynamicColumnSet,
     )
     const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
 
-    const condition = this.format('where id = $(id) and "tenantId" = $(tenantId)', {
-      id,
-      tenantId,
-    })
-    const result = await this.db().result(`${query} ${condition}`)
-
-    this.checkUpdateRowCount(result.rowCount, 1)
+    const condition = this.format(
+      'where id = $(id) and "tenantId" = $(tenantId) and "updatedAt" < $(updatedAt)',
+      {
+        id,
+        tenantId,
+        updatedAt,
+      },
+    )
+    await this.db().result(`${query} ${condition}`)
   }
 
   public async getIdentities(memberId: string, tenantId: string): Promise<IMemberIdentity[]> {

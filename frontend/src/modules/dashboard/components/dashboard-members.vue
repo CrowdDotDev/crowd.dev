@@ -68,17 +68,13 @@
               <span
                 v-if="
                   member.lastActivity
-                    && getPlatformDetails(
-                      member.lastActivity.platform,
-                    )
                 "
               >joined
                 {{ formatDateToTimeAgo(member.joinedAt) }}
                 on
                 {{
-                  getPlatformDetails(
-                    member.lastActivity.platform,
-                  ).name
+                  getPlatformDetails(member.lastActivity.platform)?.name
+                    ?? member.lastActivity.platform
                 }}</span>
             </app-dashboard-member-item>
             <app-dashboard-empty-state

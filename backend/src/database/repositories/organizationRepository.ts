@@ -1,4 +1,5 @@
 import lodash, { chunk } from 'lodash'
+import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
@@ -27,6 +28,11 @@ import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
+interface IOrganizationIdentityOpensearch {
+  string_platform: string
+  string_name: string
+}
+
 interface IOrganizationPartialAggregatesOpensearch {
   _source: {
     uuid_organizationId: string
@@ -38,10 +44,12 @@ interface IOrganizationPartialAggregatesOpensearch {
   }
 }
 
-interface IOrganizationIdOpensearch {
+interface ISimilarOrganization {
   _score: number
   _source: {
     uuid_organizationId: string
+    nested_identities: IOrganizationIdentityOpensearch[]
+    nested_weakIdentities: IOrganizationIdentityOpensearch[]
   }
 }
 
@@ -53,8 +61,6 @@ interface IOrganizationNoMerge {
   organizationId: string
   noMergeId: string
 }
-
-type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
   static async filterByPayingTenant(
@@ -1162,28 +1168,48 @@ class OrganizationRepository {
       return 10
     }
 
-    const normalizeScore = (max: number, min: number, score: number): number => {
-      if (score > 100) {
-        return 1
+    const calculateSimilarity = (
+      primaryOrganization: IOrganizationPartialAggregatesOpensearch,
+      similarOrganization: ISimilarOrganization,
+    ): number => {
+      let smallestEditDistance: number = null
+
+      let similarPrimaryIdentity: IOrganizationIdentityOpensearch = null
+
+      // find the smallest edit distance between both identity arrays
+      for (const primaryIdentity of primaryOrganization._source.nested_identities) {
+        // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
+        if (
+          similarOrganization._source.nested_weakIdentities.length > 0 &&
+          similarOrganization._source.nested_weakIdentities.some(
+            (weakIdentity) =>
+              weakIdentity.string_name === primaryIdentity.string_name &&
+              weakIdentity.string_platform === primaryIdentity.string_platform,
+          )
+        ) {
+          return 0.95
+        }
+        for (const secondaryIdentity of similarOrganization._source.nested_identities) {
+          const currentLevenstheinDistance = getLevenshteinDistance(
+            primaryIdentity.string_name,
+            secondaryIdentity.string_name,
+          )
+          if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
+            smallestEditDistance = currentLevenstheinDistance
+            similarPrimaryIdentity = primaryIdentity
+          }
+        }
       }
 
-      if (max === min) {
-        return (40 + Math.floor(Math.random() * 26) - 10) / 100
+      // calculate similarity percentage
+      const identityLength = similarPrimaryIdentity.string_name.length
+
+      if (identityLength < smallestEditDistance) {
+        // if levensthein distance is bigger than the word itself, it might be a prefix match, return medium similarity
+        return (Math.floor(Math.random() * 21) + 20) / 100
       }
 
-      const normalizedScore = (score - min) / (max - min)
-
-      // randomize the cases where score === max and score === min
-      if (normalizedScore === 1) {
-        return Math.floor(Math.random() * (76 - 50) + 50) / 100
-      }
-
-      // normalization is resolved to 0, randomize it
-      if (normalizedScore === 0) {
-        return Math.floor(Math.random() * (41 - 20) + 20) / 100
-      }
-
-      return normalizedScore
+      return Math.floor(((identityLength - smallestEditDistance) / identityLength) * 100) / 100
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -1433,10 +1459,10 @@ class OrganizationRepository {
             collapse: {
               field: 'uuid_organizationId',
             },
-            _source: ['uuid_organizationId'],
+            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities'],
           }
 
-          const organizationsToMerge: IOrganizationIdOpensearch[] =
+          const organizationsToMerge: ISimilarOrganization[] =
             (
               await options.opensearch.search({
                 index: OpenSearchIndex.ORGANIZATIONS,
@@ -1444,6 +1470,7 @@ class OrganizationRepository {
               })
             ).body?.hits?.hits || []
 
+          /*
           const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
             (acc, organizationToMerge) => {
               if (!acc.minScore || organizationToMerge._score < acc.minScore) {
@@ -1458,10 +1485,11 @@ class OrganizationRepository {
             },
             { maxScore: null, minScore: null },
           )
+          */
 
           for (const organizationToMerge of organizationsToMerge) {
             yieldChunk.push({
-              similarity: normalizeScore(maxScore, minScore, organizationToMerge._score),
+              similarity: calculateSimilarity(organization, organizationToMerge),
               organizations: [
                 organization._source.uuid_organizationId,
                 organizationToMerge._source.uuid_organizationId,
@@ -1541,7 +1569,7 @@ class OrganizationRepository {
         organizations: [i, organizationToMergeResults[idx]],
         similarity: orgs[idx].similarity,
       }))
-      return { rows: result, count: orgs[0].total_count / 2, limit, offset }
+      return { rows: result, count: orgs[0].total_count, limit, offset }
     }
 
     return { rows: [{ organizations: [], similarity: 0 }], count: 0, limit, offset }
