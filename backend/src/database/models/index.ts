@@ -58,6 +58,9 @@ function models() {
       dialect: DB_CONFIG.dialect,
       dialectOptions: {
         application_name: SERVICE,
+        connectionTimeoutMillis: 5000,
+        query_timeout: 30000,
+        idle_in_transaction_session_timeout: 10000,
       },
       port: DB_CONFIG.port,
       replication: {
