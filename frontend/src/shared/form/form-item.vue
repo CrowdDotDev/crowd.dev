@@ -109,3 +109,9 @@ export default {
   name: 'AppFormItem',
 };
 </script>
+
+<style scoped>
+div.is-error {
+  margin-bottom: 40px;
+}
+</style>
