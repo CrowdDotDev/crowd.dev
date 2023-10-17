@@ -1,8 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '@crowd/types'
 import { getNangoToken } from '../../../nango'
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotAssociationType, HubspotEndpoint, IHubspotAssociation } from '../types'
+import { RequestThrottler } from '@crowd/common'
 
 export const getContactAssociations = async (
   nangoId: string,
@@ -10,20 +11,24 @@ export const getContactAssociations = async (
   type: HubspotAssociationType,
   contactId: string,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
+  throttler: RequestThrottler,
 ): Promise<IHubspotAssociation[]> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
     url: `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}/associations/${association}`,
   }
   try {
-    ctx.log.debug({ nangoId }, `Fetching contact associations [${association}] from HubSpot`)
+    ctx.log.debug(
+      { nangoId },
+      `Fetching contact associations [${association}] of contact ${contactId} from HubSpot`,
+    )
 
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
     config.headers = { Authorization: `Bearer ${accessToken}` }
 
-    const response = (await axios(config)).data
+    const result = await throttler.throttle(() => axios(config))
 
-    const contactAssociations: IHubspotAssociation[] = response.results
+    const contactAssociations: IHubspotAssociation[] = result?.data?.results || []
 
     return contactAssociations.filter((a) => a.type === type)
   } catch (err) {

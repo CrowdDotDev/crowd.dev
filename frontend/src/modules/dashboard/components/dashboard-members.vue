@@ -2,14 +2,14 @@
   <div class="panel !p-6">
     <!-- header -->
     <app-dashboard-widget-header
-      title="Members"
+      title="Contacts"
       :total-loading="members.loadingRecent"
       :total="members.total"
       :route="{
         name: 'member',
         query: filterQueryService().setQuery(allMembers.filter),
       }"
-      button-title="All members"
+      button-title="All contacts"
       report-name="Members report"
     />
 
@@ -22,7 +22,7 @@
             <h6
               class="text-sm leading-5 font-semibold mb-1"
             >
-              New members
+              New contacts
             </h6>
             <app-dashboard-count
               :loading="members.loadingRecent"
@@ -68,17 +68,13 @@
               <span
                 v-if="
                   member.lastActivity
-                    && getPlatformDetails(
-                      member.lastActivity.platform,
-                    )
                 "
               >joined
                 {{ formatDateToTimeAgo(member.joinedAt) }}
                 on
                 {{
-                  getPlatformDetails(
-                    member.lastActivity.platform,
-                  ).name
+                  getPlatformDetails(member.lastActivity.platform)?.name
+                    ?? member.lastActivity.platform
                 }}</span>
             </app-dashboard-member-item>
             <app-dashboard-empty-state
@@ -86,7 +82,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No new members during this period
+              No new contacts during this period
             </app-dashboard-empty-state>
             <div
               v-if="recentMembers.length >= 5"
@@ -120,7 +116,7 @@
             <h6
               class="text-sm leading-5 font-semibold mb-1"
             >
-              Active members
+              Active contacts
             </h6>
             <app-dashboard-count
               :loading="members.loadingActive"
@@ -174,7 +170,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No active members during this period
+              No active contacts during this period
             </app-dashboard-empty-state>
             <div
               v-if="activeMembers.length >= 5"

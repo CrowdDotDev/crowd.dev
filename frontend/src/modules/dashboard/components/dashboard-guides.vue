@@ -79,9 +79,6 @@
     </section>
   </div>
   <app-dashboard-guide-modal v-model="selectedGuide" />
-  <app-dashboard-guide-eagle-eye-modal
-    v-model="eagleEyeModalOpened"
-  />
 </template>
 
 <script setup>
@@ -96,7 +93,6 @@ import {
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import AppDashboardGuideEagleEyeModal from '@/modules/dashboard/components/guide/dashboard-guide-eagle-eye-modal.vue';
 import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service';
 import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store';
 import { TenantEventService } from '@/shared/events/tenant-event.service';
@@ -113,23 +109,11 @@ const { getGuides } = storeQuickStartGuides;
 const activeView = ref(null);
 const selectedGuide = ref(null);
 
-const eagleEyeModalOpened = ref(false);
 const onboardingGuidesDismissed = ref(false);
 
 const hasSampleData = computed(
   () => currentTenant.value?.hasSampleData,
 );
-const minCommunitySize = computed(() => {
-  if (!currentTenant.value?.communitySize) {
-    return null;
-  }
-  // If community size bigger than 5000
-  const [min] = currentTenant.value.communitySize
-    .split(/[><-]/g)
-    .filter((sub) => sub.length > 0)
-    .map((el) => +el);
-  return min;
-});
 
 const dismissGuides = () => {
   ConfirmDialog({
@@ -163,20 +147,12 @@ const showModals = () => {
 
   // Check if it can open eagle eye onboarding modal
   const {
-    isEagleEyeGuideDismissed,
     isQuickstartGuideDismissed,
   } = currentTenantUser.value.settings;
-  if (
-    minCommunitySize.value
-    && minCommunitySize.value < 5000
-    && !isEagleEyeGuideDismissed
-    && !eagleEyeModalOpened.value
-  ) {
-    eagleEyeModalOpened.value = true;
-  }
 
   // Check if onboarding guides dismissed
   onboardingGuidesDismissed.value = isQuickstartGuideDismissed || false;
+
   if (!onboardingGuidesDismissed.value) {
     activeView.value = notcompletedGuides.value?.length
       ? notcompletedGuides.value[0].key

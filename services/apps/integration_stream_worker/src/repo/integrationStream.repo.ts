@@ -1,16 +1,117 @@
 import { generateUUIDv1 } from '@crowd/common'
-import { DbStore, RepositoryBase } from '@crowd/database'
+import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IProcessableStream, IStreamData } from './integrationStream.data'
 import {
   IntegrationRunState,
   IntegrationStreamDataState,
   IntegrationStreamState,
+  WebhookState,
+  WebhookType,
 } from '@crowd/types'
+import {
+  IInsertableWebhookStream,
+  IProcessableStream,
+  IStreamData,
+  getInsertWebhookStreamColumnSet,
+} from './integrationStream.data'
+import { IWebhookData } from './incomingWebhook.data'
 
 export default class IntegrationStreamRepository extends RepositoryBase<IntegrationStreamRepository> {
+  private readonly insertWebhookStreamColumnSet: DbColumnSet
+
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
+
+    this.insertWebhookStreamColumnSet = getInsertWebhookStreamColumnSet(this.dbInstance)
+  }
+
+  public async getOldWebhooksToProcess(limit: number): Promise<IWebhookData[]> {
+    try {
+      const results = await this.db().any(
+        `
+        select  iw.id,
+                iw."tenantId",
+                iw."integrationId",
+                iw.state,
+                iw.type,
+                iw.payload,
+                iw."createdAt" as "createdAt",
+                i.platform as "platform"
+        from "incomingWebhooks" iw
+                 inner join integrations i on iw."integrationId" = i.id
+                 left join integration.streams s on iw.id = s."webhookId"
+        where s.id is null
+          and iw.type <> $(discourseType)
+          and iw.state = $(pendingState)
+          and iw."createdAt" < now() - interval '1 hour'
+        limit ${limit};
+        `,
+        {
+          discourseType: WebhookType.DISCOURSE,
+          pendingState: WebhookState.PENDING,
+        },
+      )
+
+      return results
+    } catch (err) {
+      this.log.error(err, 'Error getting old webhooks to process')
+      throw err
+    }
+  }
+
+  public async getOldStreamsToProcess(limit: number): Promise<string[]> {
+    try {
+      const results = await this.db().any(
+        `
+        select id
+        from integration.streams s
+        where (
+                (state = $(errorState) and retries <= $(maxRetries))
+                or
+                (state = $(pendingState))
+                or
+                (state = $(delayedState) and "delayedUntil" < now())
+            )
+          and "updatedAt" < now() - interval '1 hour'
+        order by case when "webhookId" is not null then 0 else 1 end,
+                 "webhookId" asc,
+                 "updatedAt" desc
+        limit ${limit};
+        `,
+        {
+          errorState: IntegrationStreamState.ERROR,
+          pendingState: IntegrationStreamState.PENDING,
+          delayedState: IntegrationStreamState.DELAYED,
+          maxRetries: 5,
+        },
+      )
+
+      return results.map((s) => s.id)
+    } catch (err) {
+      this.log.error(err, 'Error getting old streams to process')
+      throw err
+    }
+  }
+
+  public async touchUpdatedAt(streamIds: string[]): Promise<void> {
+    if (streamIds.length === 0) {
+      return
+    }
+
+    try {
+      await this.db().none(
+        `
+        update integration.streams set "updatedAt" = now()
+        where id in ($(streamIds:csv))
+      `,
+        {
+          streamIds,
+        },
+      )
+    } catch (err) {
+      this.log.error(err, 'Failed to touch updatedAt for streams!')
+      throw err
+    }
   }
 
   public async getPendingDelayedStreams(
@@ -321,17 +422,35 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     return null
   }
 
+  public async publishWebhookStreams(records: IInsertableWebhookStream[]): Promise<void> {
+    const preparedObjects = RepositoryBase.prepareBatch(
+      records.map((w) => {
+        return {
+          identifier: w.identifier,
+          webhookId: w.webhookId,
+          data: w.data ? JSON.stringify(w.data) : null,
+          integrationId: w.integrationId,
+          tenantId: w.tenantId,
+          state: IntegrationStreamState.PENDING,
+        }
+      }),
+      this.insertWebhookStreamColumnSet,
+    )
+    const query = this.dbInstance.helpers.insert(preparedObjects, this.insertWebhookStreamColumnSet)
+    await this.db().any(query)
+  }
+
   public async publishWebhookStream(
     identifier: string,
     webhookId: string,
     data: unknown,
     integrationId: string,
     tenantId: string,
-  ): Promise<string | null> {
-    const result = await this.db().oneOrNone(
+  ): Promise<string> {
+    const result = await this.db().one(
       `
-    insert into integration.streams("parentId", "runId", "webhookId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
-    values (null, null, $(webhookId)::uuid, $(state), $(identifier), $(data)::json, $(tenantId), $(integrationId), null)
+    insert into integration.streams("webhookId", state, identifier, data, "tenantId", "integrationId")
+    values ($(webhookId)::uuid, $(state), $(identifier), $(data)::json, $(tenantId), $(integrationId))
     returning id;
     `,
       {
@@ -344,11 +463,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       },
     )
 
-    if (result) {
-      return result.id
-    }
-
-    return null
+    return result.id
   }
 
   public async getStreamIdByWebhookId(webhookId: string): Promise<string | undefined> {

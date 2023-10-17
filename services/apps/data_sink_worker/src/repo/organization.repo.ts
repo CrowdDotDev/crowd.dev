@@ -13,7 +13,12 @@ import {
   getUpdateOrganizationColumnSet,
 } from './organization.data'
 import { generateUUIDv1 } from '@crowd/common'
-import { IOrganizationIdentity, SyncStatus, IOrganization } from '@crowd/types'
+import {
+  IOrganizationIdentity,
+  SyncStatus,
+  IOrganization,
+  IOrganizationIdSource,
+} from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
@@ -264,6 +269,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                     oi.platform = $(platform)
                     and oi."sourceId" = $(sourceId)
                     and os."segmentId" =  $(segmentId)
+              order by oi."updatedAt" desc
+              limit 1
           )
       select  o.id,
               o.description,
@@ -292,7 +299,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return result
   }
 
-  public async findByDomain(
+  public async findOrCreateByDomain(
     tenantId: string,
     segmentId: string,
     domain: string,
@@ -323,11 +330,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         organizations o
       WHERE
         o."tenantId" = $(tenantId) AND 
-        (
-          o.website ILIKE $(protocolDomain) OR
-          o.website ILIKE $(domainWithWww) OR
-          o.website ILIKE $(domain)
-        ) AND
+        o.website = $(domain) AND
         o.id IN (
           SELECT os."organizationId"
           FROM "organizationSegments" os
@@ -336,15 +339,47 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `,
       {
         tenantId,
-        protocolDomain: `%://${domain}`,
-        domainWithWww: `%://www.${domain}`,
         domain,
         segmentId,
       },
     )
 
     if (results.length === 0) {
-      return null
+      const data = {
+        displayName: domain,
+        website: domain,
+        identities: [
+          {
+            platform: 'email',
+            name: domain,
+          },
+        ],
+        url: null,
+        description: null,
+        emails: null,
+        logo: null,
+        tags: null,
+        github: null,
+        twitter: null,
+        linkedin: null,
+        crunchbase: null,
+        employees: null,
+        location: null,
+        type: null,
+        size: null,
+        headline: null,
+        industry: null,
+        founded: null,
+        attributes: null,
+        weakIdentities: [],
+      }
+
+      const orgId = await this.insert(tenantId, data)
+
+      return {
+        id: orgId,
+        ...data,
+      }
     }
 
     results.sort((a, b) => {
@@ -354,6 +389,44 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     })
 
     return results[0]
+  }
+
+  public async findByDomain(tenantId: string, domain: string): Promise<IOrganization> {
+    const result = await this.db().oneOrNone(
+      `
+      SELECT
+        o.id,
+        o.description,
+        o.emails,
+        o.logo,
+        o.tags,
+        o.github,
+        o.twitter,
+        o.linkedin,
+        o.crunchbase,
+        o.employees,
+        o.location,
+        o.website,
+        o.type,
+        o.size,
+        o.headline,
+        o.industry,
+        o.founded,
+        o.attributes,
+        o."weakIdentities"
+      FROM
+        organizations o
+      WHERE
+        o."tenantId" = $(tenantId) AND 
+        o.website = $(domain)
+      `,
+      {
+        tenantId,
+        domain,
+      },
+    )
+
+    return result
   }
 
   public async insert(tenantId: string, data: IDbInsertOrganizationData): Promise<string> {
@@ -385,6 +458,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         table: 'organizations',
       },
     })
+    const updatedAt = new Date()
     const prepared = RepositoryBase.prepare(
       {
         ...data,
@@ -392,17 +466,18 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           data?.weakIdentities?.length > 0 && {
             weakIdentities: JSON.stringify(data.weakIdentities),
           }),
-        updatedAt: new Date(),
+        updatedAt,
       },
       dynamicColumnSet,
     )
 
     const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
-    const condition = this.format('where id = $(id)', { id })
+    const condition = this.format('where id = $(id) and "updatedAt" < $(updatedAt)', {
+      id,
+      updatedAt,
+    })
 
-    const result = await this.db().result(`${query} ${condition}`)
-
-    this.checkUpdateRowCount(result.rowCount, 1)
+    await this.db().result(`${query} ${condition}`)
   }
 
   public async addIdentity(
@@ -451,7 +526,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     await this.db().none(query, parameters)
   }
 
-  public async addToMember(memberId: string, orgs: IOrganization[]): Promise<void> {
+  public async addToMember(memberId: string, orgs: IOrganizationIdSource[]): Promise<void> {
     const parameters: Record<string, unknown> = {
       memberId,
     }

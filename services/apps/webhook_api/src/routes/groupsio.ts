@@ -1,9 +1,12 @@
-import { asyncWrap } from '@/middleware/error'
-import { WebhooksRepository } from '@/repos/webhooks.repo'
+import { asyncWrap } from '../middleware/error'
+import { WebhooksRepository } from '../repos/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
+import { getServiceTracer } from '@crowd/tracing'
 import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { WebhookType } from '@crowd/types'
 import express from 'express'
+
+const tracer = getServiceTracer()
 
 export const installGroupsIoRoutes = async (app: express.Express) => {
   let emitter: IntegrationStreamWorkerEmitter
@@ -15,14 +18,15 @@ export const installGroupsIoRoutes = async (app: express.Express) => {
       const data = req.body
 
       // TODO: Validate signature - need to get secret from groups io for Linux
+      const groupName = data?.group?.name
 
-      if (!data?.group?.name) {
+      if (!groupName) {
         throw new Error400BadRequest('Missing group name!')
       }
 
       const repo = new WebhooksRepository(req.dbStore, req.log)
 
-      const integration = await repo.findGroupsIoIntegrationByGroupName(data.group.name)
+      const integration = await repo.findGroupsIoIntegrationByGroupName(groupName)
 
       if (integration) {
         req.log.info({ integrationId: integration.id }, 'Incoming Groups.io Webhook!')
@@ -39,7 +43,7 @@ export const installGroupsIoRoutes = async (app: express.Express) => {
         )
 
         if (!emitter) {
-          emitter = new IntegrationStreamWorkerEmitter(req.sqs, req.log)
+          emitter = new IntegrationStreamWorkerEmitter(req.sqs, tracer, req.log)
           await emitter.init()
         }
 
@@ -47,7 +51,7 @@ export const installGroupsIoRoutes = async (app: express.Express) => {
 
         res.sendStatus(204)
       } else {
-        req.log.error({ event }, 'No integration found for incoming Groups.io Webhook!')
+        req.log.error({ event, groupName }, 'No integration found for incoming Groups.io Webhook!')
         res.status(200).send({
           message: 'No integration found for incoming Groups.io Webhook!',
         })

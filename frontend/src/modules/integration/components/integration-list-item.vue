@@ -116,7 +116,7 @@
 <script setup>
 import { useStore } from 'vuex';
 import { computed, onMounted, ref } from 'vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';

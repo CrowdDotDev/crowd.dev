@@ -220,11 +220,12 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                       where mo."memberId" in ($(ids:csv))
                                         and mo."deletedAt" is null
                                         and o."deletedAt" is null
-                                        and exists (select 1
+                                        and (exists (select 1
                                           from activities a
                                           where a."memberId" = mo."memberId"
                                             and a."organizationId" = mo."organizationId"
-                                            and a."segmentId" = os."segmentId")
+                                            and a."segmentId" = os."segmentId") or
+                                            exists (select 1 from members where id = mo."memberId" and "manuallyCreated"))
                                       group by mo."memberId", os."segmentId"),
             identities as (select mi."memberId",
                                   json_agg(

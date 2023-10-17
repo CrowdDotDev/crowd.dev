@@ -1,6 +1,6 @@
-import { DB_CONFIG } from '@/conf'
-import { ActivitySyncService } from '@/service/activity.sync.service'
-import { OpenSearchService } from '@/service/opensearch.service'
+import { DB_CONFIG } from '../conf'
+import { ActivitySyncService } from '../service/activity.sync.service'
+import { OpenSearchService } from '../service/opensearch.service'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 

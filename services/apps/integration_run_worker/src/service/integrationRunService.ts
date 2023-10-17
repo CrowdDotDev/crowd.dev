@@ -1,4 +1,3 @@
-import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import {
@@ -15,11 +14,11 @@ import {
   IntegrationSyncWorkerEmitter,
 } from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
+import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
-import { AutomationRepository } from '@/repo/automation.repo'
+import { AutomationRepository } from '../repo/automation.repo'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -78,25 +77,6 @@ export default class IntegrationRunService extends LoggerBase {
           await this.repo.markRunError(runId, {
             location: 'all-streams-processed',
             message: 'Some streams failed!',
-          })
-
-          await sendSlackAlert({
-            slackURL: SLACK_ALERTING_CONFIG().url,
-            alertType: SlackAlertTypes.INTEGRATION_ERROR,
-            integration: {
-              id: runInfo.integrationId,
-              platform: runInfo.integrationType,
-              tenantId: runInfo.tenantId,
-            },
-            userContext: {
-              currentTenant: {
-                name: runInfo.name,
-                plan: runInfo.plan,
-                isTrial: runInfo.isTrialPlan,
-              },
-            },
-            log: this.log,
-            frameworkVersion: 'new',
           })
 
           if (runInfo.onboarding) {

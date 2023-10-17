@@ -1,4 +1,4 @@
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { IHubspotContact, IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
@@ -27,9 +27,27 @@ export const getCompanies = async (
     },
   }
 
+  // If we're not onboarding, only get data that was updated in last 8 hours
+  if (!ctx.onboarding) {
+    const date = new Date()
+    date.setHours(date.getHours() - 8)
+
+    config.params.filterGroups = JSON.stringify([
+      {
+        filters: [
+          {
+            value: date.getTime(),
+            propertyName: 'hs_lastmodifieddate',
+            operator: 'GT',
+          },
+        ],
+      },
+    ])
+  }
+
   try {
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ nangoId, accessToken }, 'Fetching contacts from HubSpot')
 

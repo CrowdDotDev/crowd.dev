@@ -1,4 +1,4 @@
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
@@ -29,7 +29,7 @@ export const getContactById = async (
     ctx.log.debug({ nangoId, contactId }, 'Fetching contact by id from HubSpot')
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ accessToken }, `nango token`)
     config.headers.Authorization = `Bearer ${accessToken}`
