@@ -2,7 +2,7 @@ import { SavedViewsSetting } from '@/shared/modules/saved-views/types/SavedViews
 import { includeFilterRenderer } from '@/modules/member/config/saved-views/settings/common/includeFilterRenderer';
 import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common/types/IncludeEnum';
 
-const config: SavedViewsSetting<IncludeEnum> = {
+const organization: SavedViewsSetting<IncludeEnum> = {
   inSettings: false,
   defaultValue: IncludeEnum.EXCLUDE,
   queryUrlParser(value: string): IncludeEnum {
@@ -13,4 +13,4 @@ const config: SavedViewsSetting<IncludeEnum> = {
   },
 };
 
-export default config;
+export default organization;

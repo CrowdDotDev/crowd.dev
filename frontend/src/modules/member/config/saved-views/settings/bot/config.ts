@@ -3,7 +3,7 @@ import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common
 import { includeFilterRenderer } from '@/modules/member/config/saved-views/settings/common/includeFilterRenderer';
 import MemberBotSetting from './MemberBotSetting.vue';
 
-const config: SavedViewsSetting<IncludeEnum> = {
+const bot: SavedViewsSetting<IncludeEnum> = {
   inSettings: true,
   settingsComponent: MemberBotSetting,
   defaultValue: IncludeEnum.EXCLUDE,
@@ -15,4 +15,4 @@ const config: SavedViewsSetting<IncludeEnum> = {
   },
 };
 
-export default config;
+export default bot;

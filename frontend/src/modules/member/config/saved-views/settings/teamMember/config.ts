@@ -3,7 +3,7 @@ import { includeFilterRenderer } from '@/modules/member/config/saved-views/setti
 import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common/types/IncludeEnum';
 import MemberTeamMemberSetting from './MemberTeamMemberSetting.vue';
 
-const config: SavedViewsSetting<IncludeEnum> = {
+const teamMember: SavedViewsSetting<IncludeEnum> = {
   inSettings: true,
   settingsComponent: MemberTeamMemberSetting,
   defaultValue: IncludeEnum.EXCLUDE,
@@ -15,4 +15,4 @@ const config: SavedViewsSetting<IncludeEnum> = {
   },
 };
 
-export default config;
+export default teamMember;
