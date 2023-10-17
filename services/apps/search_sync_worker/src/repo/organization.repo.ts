@@ -113,7 +113,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             md."memberCount",
             i.identities,
             coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
-            coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
+            coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds",
+            o."weakIdentities"
       from organizations o
               left join member_data md on o.id = md."organizationId"
               left join identities i on o.id = i."organizationId"

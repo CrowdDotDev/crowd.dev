@@ -45,18 +45,18 @@
 - [Book a call](#📞-book-a-call)
 
 ## About crowd.dev
-crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand - be it in community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
+crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand, be it in community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
 
 crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data. 
 
 **To our **users**:**
 - You can get actively involved, contribute to our roadmap, and turn crowd.dev into the tool you always wanted.
 - We are open regarding what we are building, allowing you to take a look inside, and making sure we handle your data in a privacy-preserving way.
-- You will never be locked in by us. Our interests as a company are aligned with yours and we need to make sure that we always deliver enough value to your with our commercial offering in relation to our pricing.
+- You will never be locked in by us. Our interests as a company are aligned with you and we need to make sure that we always deliver enough value to you with our commercial offering in relation to our pricing.
 
 **To our developer community:**
 - You can self-host crowd.dev to centralize data for your community or company while keeping full control over your data.
-- Our product is build for extensibilty. If you can think of any use cases that you want to build with the data we collect and store for you, please go ahead and build it! We will be here to help out if you need us.
+- Our product is built for extensibilty. If you can think of any use cases that you want to build with the data we collect and store for you, please go ahead and build it! We will be here to help out if you need us.
 - You can actively contribute to crowd.dev (e.g. integrations), and we will be supporting you along the journey. Just take a look at our [Contributing guide](https://github.com/CrowdDotDev/crowd.dev/blob/main/CONTRIBUTING.md).
 
 ## ✨ Features
@@ -69,14 +69,14 @@ crowd.dev is open-source, built with developers in mind, available for both host
 - **User enrichment** with 25+ attributes, including emails, social profiles, work experience, and technical skills. [cloud only]
 - **Organization enrichment** with 50+ attributes, including industry, headcount, and revenue. [cloud only]
 - **Sentiment analysis and conversation detection** to stay on top of what's going on in your open source community. [cloud only]
-- **[Eagle Eye](https://www.crowd.dev/eagle-eye)**: Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically [cloud only]
+- **[Eagle Eye](https://www.crowd.dev/eagle-eye)**: Monitor dev-focused community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically [cloud only]
 
 
 ## 🚀 Getting started
 
 ### Cloud version
 
-Our <a href="https://app.crowd.dev/">cloud version</a> is a fast, easy and free way to get started with crowd.dev.
+Our <a href="https://app.crowd.dev/">cloud version</a> is a fast, easy, and free way to get started with crowd.dev.
 
 ### Self-hosted version
 

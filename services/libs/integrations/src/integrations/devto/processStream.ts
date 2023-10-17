@@ -8,13 +8,11 @@ import {
   IDevToArticleData,
   IDevToRootOrganizationStreamData,
   IDevToRootUserStreamData,
-  DevToPlatformSettings,
 } from './types'
 import { getUserIdsFromComments, setFullUser } from './utils'
 
 const getDevApiKey = (ctx: IProcessStreamContext) => {
-  const DEVTO_CONFIG = ctx?.platformSettings as DevToPlatformSettings
-  return DEVTO_CONFIG.apiKey || ''
+  return ctx.integration.token
 }
 
 const getDevToArticle = async (ctx: IProcessStreamContext, id: number): Promise<IDevToArticle> => {

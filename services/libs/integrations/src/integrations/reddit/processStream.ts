@@ -156,7 +156,11 @@ const processMoreCommentStream: ProcessStreamHandler = async (ctx) => {
     ctx,
   )
 
-  const comments = response.json.data.things
+  const comments = response?.json?.data?.things
+
+  if (!comments) {
+    return
+  }
 
   if (comments.length === 0) {
     return

@@ -10,7 +10,7 @@ for (const job of jobs) {
   const cronJob = new CronJob(
     job.cronTime,
     async () => {
-      tracer.startActiveSpan(`ProcessingJob:${job.name}`, async (span) => {
+      await tracer.startActiveSpan(`ProcessingJob:${job.name}`, async (span) => {
         log.info({ job: job.name }, 'Triggering job.')
         try {
           await job.onTrigger(log)
