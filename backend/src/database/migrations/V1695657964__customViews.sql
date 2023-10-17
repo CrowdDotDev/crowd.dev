@@ -31,11 +31,9 @@ create or replace function create_custom_view_and_order(p_name text, p_config js
 declare
   custom_view_id uuid;
 begin
-  with custom_view as (
   insert into "customViews" (id, name, visibility, config, placement, "tenantId", "createdById", "updatedById", "createdAt", "updatedAt")
   values (uuid_generate_v4(), p_name, 'tenant', p_config, p_placement, p_tenant_id, p_created_by_id, p_created_by_id, now(), now())
-    returning id
-  )
+  returning id into custom_view_id;
 
   insert into "customViewOrders" (id, "order", "customViewId", "userId", "createdAt", "updatedAt")
   values (uuid_generate_v4(), null, custom_view_id, p_created_by_id, now(), now());
