@@ -65,7 +65,7 @@
                     onInputChange(newValue, key, value, ii)
                   "
                 >
-                  <template #prepend>
+                  <template v-if="value.urlPrefix" #prepend>
                     <span>{{ value.urlPrefix }}</span>
                     <span class="text-red-500">*</span>
                   </template>
@@ -235,6 +235,14 @@ const identitiesForm = reactive({
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base btn--hackernews',
   },
+  git: {
+    enabled:
+      props.modelValue.username?.git !== undefined
+      || false,
+    urlPrefix: '',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--git',
+  },
   stackoverflow: {
     enabled:
       props.modelValue.username?.stackoverflow
@@ -250,6 +258,9 @@ function findPlatform(platform) {
 }
 
 function editingDisabled(platform) {
+  if (['git'].includes(platform)) {
+    return false;
+  }
   return props.record
     ? props.record.activeOn.includes(platform)
     : false;
@@ -285,7 +296,7 @@ function onInputChange(newValue, key, value, index) {
       ...props.modelValue.attributes,
       url: {
         ...props.modelValue.attributes?.url,
-        [key]: `https://${value.urlPrefix}${newValue}`,
+        [key]: value.urlPrefix ? `https://${value.urlPrefix}${newValue}` : undefined,
       },
     };
   }
