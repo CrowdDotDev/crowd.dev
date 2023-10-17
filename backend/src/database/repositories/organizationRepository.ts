@@ -1139,8 +1139,9 @@ class OrganizationRepository {
     let updatedRowsCount = 0
 
     do {
-
-      options.log.info(`[Move Activities] - Moving ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`)
+      options.log.info(
+        `[Move Activities] - Moving ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
+      )
 
       const query = `
         UPDATE "activities" 
