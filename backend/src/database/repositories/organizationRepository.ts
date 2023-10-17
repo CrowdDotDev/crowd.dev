@@ -1140,7 +1140,7 @@ class OrganizationRepository {
 
     do {
       options.log.info(
-        `[Move Activities] - Moving ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
+        `[Move Activities] - Moving maximum of ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
       )
 
       const query = `
