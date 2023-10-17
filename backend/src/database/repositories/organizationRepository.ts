@@ -1162,7 +1162,7 @@ class OrganizationRepository {
         transaction,
       })
 
-      updatedRowsCount = rowCount ?? 0  
+      updatedRowsCount = rowCount ?? 0
     } while (updatedRowsCount === batchSize)
   }
 
