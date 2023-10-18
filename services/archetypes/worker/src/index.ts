@@ -50,16 +50,16 @@ export class ServiceWorker extends Service {
     return this._postgres
   }
 
-  override async start() {
-    // We first need to ensure a standard service can run given the config and
-    // environment variables.
+  // We first need to ensure a standard service can be initialized given the config
+  // and environment variables.
+  override async init() {
     try {
-      await super.start()
+      await super.init()
     } catch (err) {
       throw new Error(err)
     }
 
-    // We can now start tasks specific to a consumer service. Before actually
+    // We can now init tasks specific to a consumer service. Before actually
     // starting the service, we need to ensure required environment variables
     // are set.
     const missing = []
@@ -123,8 +123,10 @@ export class ServiceWorker extends Service {
         throw new Error(err)
       }
     }
+  }
 
-    // If we made it here, we can run the Temporal worker.
+  // Actually start the Temporal worker.
+  async start() {
     try {
       await this._worker.run()
     } catch (err) {
