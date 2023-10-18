@@ -89,8 +89,8 @@ We currently support all our integrations for self-hosting. For each one of them
 
 #### <a name="requirements">Requirements</a>
 
-- Node v16.16.0
-- Docker and docker-compose
+- [Node](https://nodejs.org/en) v16.16.0
+- [Docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/)
 
 #### <a name="getting_started">Getting started</a>
 
