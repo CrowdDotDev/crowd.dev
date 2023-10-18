@@ -7,6 +7,7 @@ import { handleDiscordError } from './errorHandler'
 async function getMessages(
   input: DiscordGetMessagesInput,
   ctx: IProcessStreamContext,
+  showErrors = true,
 ): Promise<DiscordParsedReponse> {
   const rateLimiter = getRateLimiter(ctx)
 
@@ -39,6 +40,14 @@ async function getMessages(
       timeUntilReset,
     }
   } catch (err) {
+    if (!showErrors) {
+      return {
+        records: [],
+        nextPage: '',
+        limit: 0,
+        timeUntilReset: 0,
+      }
+    }
     const newErr = handleDiscordError(err, config, { input }, ctx)
     if (newErr) {
       throw newErr
