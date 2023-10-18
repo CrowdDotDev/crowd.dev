@@ -23,7 +23,9 @@ async function getThreads(
     return response.data.threads
   } catch (err) {
     const newErr = handleDiscordError(err, config, { input }, ctx)
-    throw newErr
+    if (newErr) {
+      throw newErr
+    }
   }
 }
 

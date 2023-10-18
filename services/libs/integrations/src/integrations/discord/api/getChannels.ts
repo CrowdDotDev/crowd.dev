@@ -77,7 +77,9 @@ async function getChannels(
     return result
   } catch (err) {
     const newErr = handleDiscordError(err, config, { input }, ctx)
-    throw newErr
+    if (newErr) {
+      throw newErr
+    }
   }
 }
 

@@ -25,6 +25,8 @@ export const getChannel = async (
     return response.data
   } catch (err) {
     const newErr = handleDiscordError(err, config, { channelId }, ctx)
-    throw newErr
+    if (newErr) {
+      throw newErr
+    }
   }
 }

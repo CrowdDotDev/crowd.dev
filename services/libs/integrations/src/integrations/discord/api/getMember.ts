@@ -28,6 +28,8 @@ export const getMember = async (
     return response.data
   } catch (err) {
     const newErr = handleDiscordError(err, config, { guildId, userId }, ctx)
-    throw newErr
+    if (newErr) {
+      throw newErr
+    }
   }
 }
