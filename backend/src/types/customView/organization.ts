@@ -1,5 +1,4 @@
 import { ICustomView, CustomViewPlacement, CustomViewVisibility } from '@crowd/types'
-import moment from 'moment'
 
 const newAndActiveOrgs: ICustomView = {
   name: 'New and active',
@@ -16,7 +15,7 @@ const newAndActiveOrgs: ICustomView = {
 
     joinedDate: {
       operator: 'gt',
-      value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
+      value: "lastMonth",
     },
   },
   visibility: CustomViewVisibility.TENANT,

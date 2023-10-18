@@ -47,9 +47,9 @@ begin
   for tenant in (select id, "createdById" from tenants)
   loop
     -- Member custom views
-    perform create_custom_view_and_order('New and active', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"},"settings": {"bot": "exclude","teamMember": "exclude","organization": "exclude"},"joinedDate": {"operator": "gt","value": "2021-12-10"},"lastActivityDate": {"operator": "gt","value": "2021-12-10"}}', 'member', tenant.id, tenant."createdById");
+    perform create_custom_view_and_order('New and active', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"},"settings": {"bot": "exclude","teamMember": "exclude","organization": "exclude"},"joinedDate": {"operator": "gt","value": "lastMonth"},"lastActivityDate": {"operator": "gt","value": "lastMonth"}}', 'member', tenant.id, tenant."createdById");
 
-    perform create_custom_view_and_order('Slipping away', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"},"settings": {"bot": "exclude","teamMember": "exclude","organization": "exclude"},"engagementLevel": {"value": ["fan", "ultra"],"include": true},"lastActivityDate": {"operator": "lt","value": "2021-12-10"}}', 'member', tenant.id, tenant."createdById");
+    perform create_custom_view_and_order('Slipping away', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"},"settings": {"bot": "exclude","teamMember": "exclude","organization": "exclude"},"engagementLevel": {"value": ["fan", "ultra"],"include": true},"lastActivityDate": {"operator": "lt","value": "lastMonth"}}', 'member', tenant.id, tenant."createdById");
 
     perform create_custom_view_and_order('Most engaged', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"}, "settings": {"bot": "exclude", "teamMember": "exclude", "organization": "exclude"}, "engagementLevel": {"value": ["fan", "ultra"], "include": true}}', 'member', tenant.id, tenant."createdById");
 
@@ -58,9 +58,7 @@ begin
     perform create_custom_view_and_order('Team members', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"}, "settings": {"bot": "exclude", "teamMember": "filter", "organization": "exclude"}}', 'member', tenant.id, tenant."createdById");
 
     -- Organization custom views
-    -- TODO: SQL doesn't support dynamic values like moment.subtract(1, 'month').format('YYYY-MM-DD')
-
-    perform create_custom_view_and_order('New and active', '{"search": "", "relation": "and", "order": {"prop": "joinedAt", "order": "descending"}, "settings": {"teamOrganization": "exclude"}, "joinedDate": {"operator": "gt", "value": "2021-12-10"}}', 'organization', tenant.id, tenant."createdById");
+    perform create_custom_view_and_order('New and active', '{"search": "", "relation": "and", "order": {"prop": "joinedAt", "order": "descending"}, "settings": {"teamOrganization": "exclude"}, "joinedDate": {"operator": "gt", "value": "lastMonth"}}', 'organization', tenant.id, tenant."createdById");
 
     perform create_custom_view_and_order('Most members', '{"search": "", "relation": "and", "order": {"prop": "memberCount", "order": "descending"}, "settings": {"teamOrganization": "exclude"}}', 'organization', tenant.id, tenant."createdById");
 

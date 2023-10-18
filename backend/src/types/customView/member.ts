@@ -1,7 +1,5 @@
 import { ICustomView, CustomViewPlacement, CustomViewVisibility } from '@crowd/types'
 
-import moment from 'moment'
-
 const newAndActive: ICustomView = {
   name: 'New and active',
   config: {
@@ -18,11 +16,11 @@ const newAndActive: ICustomView = {
     },
     joinedDate: {
       operator: 'gt',
-      value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
+      value: "lastMonth",
     },
     lastActivityDate: {
       operator: 'gt',
-      value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
+      value: "lastMonth",
     },
   },
   visibility: CustomViewVisibility.TENANT,
@@ -49,7 +47,7 @@ const slippingAway: ICustomView = {
     },
     lastActivityDate: {
       operator: 'lt',
-      value: moment().subtract(1, 'month').format('YYYY-MM-DD'),
+      value: "lastMonth",
     },
   },
   visibility: CustomViewVisibility.TENANT,
