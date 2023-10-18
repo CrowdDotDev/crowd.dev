@@ -37,7 +37,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         this.log.trace({ messageType: message.type }, 'Processing message!')
 
         const service = new DataSinkService(
-          new DbStore(this.log, this.dbConn),
+          new DbStore(this.log, this.dbConn, undefined, false),
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
           this.redisClient,
