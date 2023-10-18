@@ -1,4 +1,6 @@
 import { FilterOperator } from '@/shared/modules/filters/types/FilterOperator';
+import { FilterTimeOptions } from '@/shared/modules/filters/types/FilterTimeOptions';
+import moment from 'moment/moment';
 
 export enum FilterDateOperator {
   EQ = 'eq',
@@ -33,5 +35,26 @@ export const dateFilterOperators: FilterOperator[] = [
   {
     label: 'not between',
     value: FilterDateOperator.NOT_BETWEEN,
+  },
+];
+
+export const dateFilterTimePickerOptions: FilterTimeOptions[] = [
+  {
+    value: 'lastweek',
+    label: 'Last week',
+    getDate: () => moment().subtract(1, 'week').format('YYYY-MM-DD'),
+
+  },
+  {
+    value: 'lastmonth',
+    label: 'Last month',
+    getDate: () => moment().subtract(1, 'month').format('YYYY-MM-DD'),
+
+  },
+  {
+    value: 'lastyear',
+    label: 'Last year',
+    getDate: () => moment().subtract(1, 'year').format('YYYY-MM-DD'),
+
   },
 ];

@@ -1,25 +1,57 @@
 <template>
   <div v-if="form">
-    <div class="p-4 pb-5">
-      <cr-filter-inline-select
-        v-model="form.operator"
-        :prefix="`${props.config.label}:`"
-        class="mb-3"
-        :options="operators"
-      />
-      <div class="filter-date-field" data-qa="filter-date-input">
+    <div class="p-4">
+      <div v-if="!props.datepickerType || props.datepickerType === 'date'">
+        <el-select
+          v-model="timePicker"
+          placeholder="Select property"
+          class="w-full"
+          placement="bottom-end"
+          :teleported="false"
+        >
+          <template #prefix>
+            <span class="!text-sm !text-gray-400">When:</span>
+          </template>
+          <el-option
+            v-for="time of dateFilterTimePickerOptions"
+            :key="time.value"
+            :value="time.value"
+            :label="time.label"
+          />
+          <el-option
+            value="custom"
+            label="Custom"
+          />
+        </el-select>
+      </div>
+      <div v-if="isCustom" class="flex items-start" :class="!props.datepickerType || props.datepickerType === 'date' ? 'pt-4' : ''">
+        <el-select
+          v-model="form.operator"
+          class="min-w-[7rem] w-28 operator-select"
+          placement="bottom-start"
+          :teleported="false"
+        >
+          <el-option
+            v-for="operator of operators"
+            :key="operator.value"
+            :value="operator.value"
+            :label="operator.label"
+          />
+        </el-select>
         <el-date-picker
           v-model="form.value"
           :placeholder="isBetween ? 'Select date range' : 'Select date'"
           :value-format="props.dateFormat ?? 'YYYY-MM-DD'"
           :format="props.dateFormat ?? 'YYYY-MM-DD'"
           popper-class="date-picker-popper"
+          class="datepicker-input !w-full"
           v-bind="betweenProps"
           :teleported="false"
           @blur="$v.value.$touch"
           @change="$v.value.$touch"
         />
       </div>
+      <div class="filter-date-field" data-qa="filter-date-input" />
     </div>
   </div>
 </template>
@@ -33,8 +65,11 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import { dateFilterOperators, FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
-import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
+import {
+  dateFilterOperators,
+  dateFilterTimePickerOptions,
+  FilterDateOperator,
+} from '@/shared/modules/filters/config/constants/date.constants';
 
 const props = defineProps<{
   modelValue: DateFilterValue,
@@ -62,7 +97,35 @@ const rules: any = {
   },
 };
 
-const checkIfBetween = (operator) => [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
+const $v = useVuelidate(rules, form);
+
+const timePickerOptionValues = dateFilterTimePickerOptions.map((v) => v.value);
+
+const timePicker = computed({
+  get() {
+    if (typeof form.value.value === 'string' && timePickerOptionValues.includes(form.value.value)) {
+      return form.value.value;
+    }
+    return 'custom';
+  },
+  set(value: string) {
+    if (timePickerOptionValues.includes(value)) {
+      form.value = {
+        value,
+        operator: FilterDateOperator.GT,
+      };
+    } else {
+      form.value = {
+        value: '',
+        operator: FilterDateOperator.EQ,
+      };
+    }
+  },
+});
+
+const isCustom = computed(() => !(typeof form.value.value === 'string' && timePickerOptionValues.includes(form.value.value)));
+
+const checkIfBetween = (operator: string) => [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
 
 const isBetween = computed(() => checkIfBetween(form.value.operator));
 
@@ -72,8 +135,6 @@ const operators = computed(() => {
   }
   return dateFilterOperators;
 });
-
-const $v = useVuelidate(rules, form);
 
 const betweenProps = computed(() => (!isBetween.value
   ? {
@@ -109,30 +170,15 @@ export default {
 </script>
 
 <style lang="scss">
-.filter-date-field {
-  .el-input__wrapper,
-  .el-input__wrapper.is-focus,
-  .el-input__wrapper:hover {
-    @apply bg-gray-50 shadow-none rounded-md border border-gray-50 transition w-full #{!important};
-
-    input {
-      &,
-      &:hover,
-      &:focus {
-        border: none !important;
-        @apply bg-gray-50 shadow-none outline-none h-full min-h-8;
-      }
-    }
+.operator-select{
+  .el-input__wrapper{
+    @apply rounded-r-none border-r-0 #{!important};
   }
 }
 
-.el-form-item.is-error {
-  .filter-date-field {
-    .el-input__wrapper,
-    .el-input__wrapper.is-focus,
-    .el-input__wrapper:hover{
-      border-color: var(--el-color-danger) !important;
-    }
+.datepicker-input {
+  &, .el-input__wrapper{
+    @apply w-full h-10 rounded-l-none #{!important};
   }
 }
 </style>
