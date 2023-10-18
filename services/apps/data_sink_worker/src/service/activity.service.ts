@@ -17,10 +17,12 @@ import IntegrationRepository from '../repo/integration.repo'
 import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
-import { acquireLock, releaseLock } from '@crowd/redis'
 
 const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
 const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
+
+const acquireLock = async () => {}
+const releaseLock = async () => {}
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
