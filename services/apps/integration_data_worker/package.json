@@ -22,6 +22,7 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",
+    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
     "@crowd/alerting": "file:../../libs/alerting",
     "@types/config": "^3.3.0",

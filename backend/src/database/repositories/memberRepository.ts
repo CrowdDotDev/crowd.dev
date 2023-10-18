@@ -135,13 +135,7 @@ class MemberRepository {
       transaction,
     })
 
-    await MemberRepository.updateMemberOrganizations(
-      record,
-      data.organizations,
-      true,
-      transaction,
-      options,
-    )
+    await MemberRepository.updateMemberOrganizations(record, data.organizations, true, options)
 
     await record.setTasks(data.tasks || [], {
       transaction,
@@ -692,7 +686,6 @@ class MemberRepository {
       record,
       data.organizations,
       data.organizationsReplace,
-      transaction,
       options,
     )
 
@@ -709,11 +702,11 @@ class MemberRepository {
     }
 
     if (data.affiliations) {
-      await this.setAffiliations(id, data.affiliations, options)
+      await MemberRepository.setAffiliations(id, data.affiliations, options)
     }
 
     if (options.currentSegments && options.currentSegments.length > 0) {
-      await MemberRepository.includeMemberToSegments(record.id, { ...options, transaction })
+      await MemberRepository.includeMemberToSegments(record.id, options)
     }
 
     const seq = SequelizeRepository.getSequelize(options)
@@ -1019,7 +1012,7 @@ class MemberRepository {
       }
     }
 
-    data.affiliations = await this.getAffiliations(id, options)
+    data.affiliations = await MemberRepository.getAffiliations(id, options)
 
     return data
   }
@@ -3251,10 +3244,9 @@ class MemberRepository {
 
     output.affiliations = await this.getAffiliations(record.id, options)
 
-    const manualSyncRemote = await new MemberSyncRemoteRepository({
-      ...options,
-      transaction,
-    }).findMemberManualSync(record.id)
+    const manualSyncRemote = await new MemberSyncRemoteRepository(options).findMemberManualSync(
+      record.id,
+    )
 
     for (const syncRemote of manualSyncRemote) {
       if (output.attributes?.syncRemote) {
@@ -3273,7 +3265,6 @@ class MemberRepository {
     record,
     organizations,
     replace,
-    transaction,
     options: IRepositoryOptions,
   ) {
     if (!organizations) {
@@ -3299,10 +3290,7 @@ class MemberRepository {
       )
 
       for (const item of toDelete) {
-        await MemberRepository.deleteWorkExperience((item as any).id, {
-          transaction,
-          ...options,
-        })
+        await MemberRepository.deleteWorkExperience((item as any).id, options)
       }
     }
 
@@ -3317,15 +3305,9 @@ class MemberRepository {
           dateEnd: org.endDate,
           source: org.source,
         },
-        {
-          transaction,
-          ...options,
-        },
+        options,
       )
-      await OrganizationRepository.includeOrganizationToSegments(org.id, {
-        transaction,
-        ...options,
-      })
+      await OrganizationRepository.includeOrganizationToSegments(org.id, options)
     }
   }
 

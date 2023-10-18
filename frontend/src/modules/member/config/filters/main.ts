@@ -14,9 +14,11 @@ import reach from './reach/config';
 import tags from './tags/config';
 import memberName from './memberName/config';
 import jobTitle from './jobTitle/config';
+import organizations from './organizations/config';
 
 export const memberFilters: Record<string, FilterConfig> = {
   memberName,
+  organizations,
   noOfActivities,
   noOfOSSContributions,
   jobTitle,

@@ -34,11 +34,8 @@ export class GithubTokenRotator {
     }
   }
 
-  public async getToken(): Promise<string | null> {
-    if (this.tokens.length === 0) {
-      throw new Error('No tokens configured in token rotator')
-    }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getToken(integrationId: string, err?: any): Promise<string | null> {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     let minResetTime = Infinity
 
@@ -58,28 +55,20 @@ export class GithubTokenRotator {
     if (waitTime <= 60) {
       return new Promise((resolve) => {
         setTimeout(async () => {
-          resolve(await this.getToken())
+          resolve(await this.getToken(integrationId))
         }, waitTime * 1000)
       })
     }
 
-    throw new RateLimitError(
-      waitTime + Math.floor(Math.random() * 120) + 60,
-      'token-rotator',
-      `No available tokens in GitHubTokenRotator. Please wait for ${waitTime} seconds`,
-    )
-  }
-
-  public async returnToken(token: string): Promise<void> {
-    if (this.tokens.length === 0) {
-      throw new Error('No tokens configured in token rotator')
-    }
-
-    const tokenInfo: TokenInfo = JSON.parse(
-      (await this.cache.hget(GithubTokenRotator.CACHE_KEY, token)) || '',
-    )
-    if (tokenInfo) {
-      await this.cache.hset(GithubTokenRotator.CACHE_KEY, token, JSON.stringify(tokenInfo))
+    // no tokens available, throwing error
+    if (err) {
+      throw err
+    } else {
+      throw new RateLimitError(
+        waitTime,
+        'token-rotator',
+        `No tokens available for integration ${integrationId}, please try again later.`,
+      )
     }
   }
 
@@ -119,32 +108,4 @@ export class GithubTokenRotator {
       await this.updateTokenInfo(token, remaining, reset)
     }
   }
-
-  //   public async apiRequest(
-  //     url: string,
-  //     method: 'get' | 'post' | 'put' | 'delete',
-  //     data?: any,
-  //   ): Promise<any> {
-  //     const token = await this.getToken()
-  //     if (!token) {
-  //       throw new Error('No available tokens')
-  //     }
-
-  //     try {
-  //       const response = await axios({
-  //         url,
-  //         method,
-  //         data,
-  //         headers: { Authorization: `token ${token}` },
-  //       })
-
-  //       const remaining = parseInt(response.headers['x-ratelimit-remaining'])
-  //       const reset = parseInt(response.headers['x-ratelimit-reset'])
-  //       await this.updateTokenInfo(token, remaining, reset)
-
-  //       return response.data
-  //     } finally {
-  //       await this.returnToken(token)
-  //     }
-  //   }
 }
