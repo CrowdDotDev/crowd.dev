@@ -1,13 +1,12 @@
 <!-- PROJECT LOGO -->
-<p align="center">
+<p align="left">
   <a href="https://github.com/CrowdDotDev/crowd.dev">  </a>
 
-  <img src="https://github.com/CrowdDotDev/crowd.dev/assets/41432658/e5970c3a-095c-46ea-b93b-eb517bcd8a4f" alt="crowd.dev icon" width="120px">
+  <img src="https://github.com/CrowdDotDev/crowd.dev/assets/22342669/d69ce848-6919-49bd-b9cc-0d53cb8884da" alt="crowd.dev icon" width="200px">
 
-
-  <h2 align="center">Effortlessly centralize community, product, and customer data</h2>
+  <h2 align="left">Effortlessly centralize community, product, and customer data</h2>
   
-  <p align="center">
+  <p align="left">
     <br>
     <a href="https://crowd.dev/sign-up">🌐 Cloud version (beta)</a>
     ·
@@ -25,8 +24,7 @@
 
 <!-- BODY -->
 
-<img src="https://user-images.githubusercontent.com/41432658/198830271-cbe6d3c7-0c46-4539-98cc-b13c495ddedf.png" alt="UI Home screen">
-
+<img src="https://github.com/CrowdDotDev/crowd.dev/assets/22342669/845fc5b0-aba7-40fe-950e-85ef567cec65" alt="UI Home screen">
 
 ## Table of Contents
 - [About crowd.dev](#about-crowddev)
