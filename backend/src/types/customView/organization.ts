@@ -15,7 +15,7 @@ const newAndActiveOrgs: ICustomView = {
 
     joinedDate: {
       operator: 'gt',
-      value: "lastMonth",
+      value: 'lastMonth',
     },
   },
   visibility: CustomViewVisibility.TENANT,

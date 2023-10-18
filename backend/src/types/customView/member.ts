@@ -16,11 +16,11 @@ const newAndActive: ICustomView = {
     },
     joinedDate: {
       operator: 'gt',
-      value: "lastMonth",
+      value: 'lastMonth',
     },
     lastActivityDate: {
       operator: 'gt',
-      value: "lastMonth",
+      value: 'lastMonth',
     },
   },
   visibility: CustomViewVisibility.TENANT,
@@ -47,7 +47,7 @@ const slippingAway: ICustomView = {
     },
     lastActivityDate: {
       operator: 'lt',
-      value: "lastMonth",
+      value: 'lastMonth',
     },
   },
   visibility: CustomViewVisibility.TENANT,
