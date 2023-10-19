@@ -132,7 +132,7 @@ async function createActivitiesForMembers(memberIds: string[], organizationId: s
           neutral: 0.02,
           mixed: 0.0,
           label: 'positive',
-          sentiment: 0.98,
+          sentiment: 98,
         },
         isContribution: true,
         username: 'test',
@@ -256,6 +256,9 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
       await createActivitiesForMembers(memberIds, organizationCreated.id, mockIRepositoryOptions)
+      await mockIRepositoryOptions.database.sequelize.query(
+        'REFRESH MATERIALIZED VIEW mv_activities_cube',
+      )
 
       organizationCreated = await OrganizationRepository.findById(
         organizationCreated.id,

@@ -489,7 +489,7 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
-  async update(id, data) {
+  async update(id, data, overrideIdentities = false) {
     let tx
 
     try {
@@ -531,7 +531,7 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const record = await OrganizationRepository.update(id, data, repoOptions)
+      const record = await OrganizationRepository.update(id, data, repoOptions, overrideIdentities)
 
       await SequelizeRepository.commitTransaction(tx)
 
