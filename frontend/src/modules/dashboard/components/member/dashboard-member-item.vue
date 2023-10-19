@@ -26,7 +26,7 @@
         custom-class="text-xs leading-5 font-medium text-gray-900 group-hover:text-brand-500 transition"
       />
     </div>
-    <p class="text-2xs leading-4 !text-gray-500 pl-3">
+    <p class="text-2xs leading-4 !text-gray-500 pl-3 text-right">
       <slot />
     </p>
   </router-link>
