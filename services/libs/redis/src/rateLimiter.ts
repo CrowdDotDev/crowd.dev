@@ -19,6 +19,10 @@ export class RateLimiter implements IRateLimiter {
     const requestCount = value === null ? 0 : parseInt(value)
     const canMakeRequest = requestCount < this.maxRequests
 
+    if (requestCount === 0) {
+      await this.cache.set(this.counterKey, '0', this.timeWindowSeconds)
+    }
+
     if (!canMakeRequest) {
       const sleepTime = this.timeWindowSeconds + Math.floor(Math.random() * this.maxRequests)
       throw new RateLimitError(sleepTime, endpoint)
@@ -26,7 +30,7 @@ export class RateLimiter implements IRateLimiter {
   }
 
   public async incrementRateLimit() {
-    await this.cache.increment(this.counterKey, 1, this.timeWindowSeconds)
+    await this.cache.increment(this.counterKey, 1)
   }
 }
 
