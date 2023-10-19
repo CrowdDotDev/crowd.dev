@@ -24,7 +24,7 @@ export class RateLimiter implements IRateLimiter {
     }
 
     if (!canMakeRequest) {
-      const sleepTime = this.timeWindowSeconds + Math.floor(Math.random() * this.maxRequests)
+      const sleepTime = this.timeWindowSeconds + Math.floor(Math.random() * this.timeWindowSeconds)
       throw new RateLimitError(sleepTime, endpoint)
     }
   }
