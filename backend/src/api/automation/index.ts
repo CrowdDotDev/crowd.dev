@@ -29,10 +29,7 @@ export default (app) => {
     },
     safeWrap(require('./automationSlackCallback').default),
   )
-  app.post(
-    '/tenant/:tenantId/automation',
-    safeWrap(require('./automationCreate').default),
-  )
+  app.post('/tenant/:tenantId/automation', safeWrap(require('./automationCreate').default))
   app.put(
     '/tenant/:tenantId/automation/:automationId',
     safeWrap(require('./automationUpdate').default),
