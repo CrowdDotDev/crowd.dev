@@ -82,7 +82,7 @@ const showDivider = computed(
 const getPlatformDetails = (platform) => {
   const config = CrowdIntegrations.getConfig(platform) || {};
   return {
-    trackEventName: 'Click Contact Contact',
+    trackEventName: "Click Organization's Identity",
     trackEventChannel: config.name || platform,
     tooltipLabel: `${config.name || platform} profile`,
     asLink: config.showProfileLink,
