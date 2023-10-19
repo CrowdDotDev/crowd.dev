@@ -4,7 +4,6 @@ import { ServiceConsumer, Options } from '@crowd/consumer'
 const config: Config = {
   producer: {
     enabled: false,
-    idempotent: true,
   },
   temporal: {
     enabled: true,
@@ -26,6 +25,7 @@ const options: Options = {
 const svc = new ServiceConsumer(config, options)
 
 setImmediate(async () => {
+  await svc.init()
   await svc.start()
 
   // await svc.consumer.run({
