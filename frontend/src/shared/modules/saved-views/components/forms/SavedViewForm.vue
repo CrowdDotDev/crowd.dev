@@ -180,7 +180,7 @@
           class="btn btn--md btn--primary"
           :loading="sending"
           :disabled="$v.$invalid
-            || !hasFormChanged"
+            || (isEdit && !hasFormChanged)"
           @click="submit()"
         >
           {{ isEdit ? 'Update' : 'Add view' }}
