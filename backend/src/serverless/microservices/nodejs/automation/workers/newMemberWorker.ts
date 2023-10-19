@@ -1,4 +1,5 @@
 import { getServiceChildLogger } from '@crowd/logging'
+import { AutomationTrigger } from '@crowd/types'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
@@ -7,7 +8,6 @@ import getUserContext from '../../../../../database/utils/getUserContext'
 import {
   AutomationData,
   AutomationState,
-  AutomationTrigger,
   AutomationType,
   NewMemberSettings,
 } from '../../../../../types/automationTypes'

@@ -1,18 +1,18 @@
+import { AutomationState, AutomationSyncTrigger, IAutomationData } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { AutomationState, AutomationSyncTrigger, IAutomation } from '@crowd/types'
-import AuditLogRepository from './auditLogRepository'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import Error404 from '../../errors/Error404'
-import { AutomationCriteria, AutomationData } from '../../types/automationTypes'
-import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
-import { FeatureFlag, PageData } from '../../types/common'
-import { RepositoryBase } from './repositoryBase'
 import { PLAN_LIMITS } from '@/feature-flags/isFeatureEnabled'
+import Error404 from '../../errors/Error404'
+import { AutomationCriteria } from '../../types/automationTypes'
+import { FeatureFlag, PageData } from '../../types/common'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import { RepositoryBase } from './repositoryBase'
+import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
 
 const { Op } = Sequelize
 
 export default class AutomationRepository extends RepositoryBase<
-  AutomationData,
+  IAutomationData,
   string,
   DbAutomationInsertData,
   DbAutomationUpdateData,
@@ -22,7 +22,7 @@ export default class AutomationRepository extends RepositoryBase<
     super(options, true)
   }
 
-  override async create(data: DbAutomationInsertData): Promise<AutomationData> {
+  override async create(data: DbAutomationInsertData): Promise<IAutomationData> {
     const currentUser = this.currentUser
 
     const tenant = this.currentTenant
@@ -57,7 +57,7 @@ export default class AutomationRepository extends RepositoryBase<
     return this.findById(record.id)
   }
 
-  override async update(id, data: DbAutomationUpdateData): Promise<AutomationData> {
+  override async update(id, data: DbAutomationUpdateData): Promise<IAutomationData> {
     const currentUser = this.currentUser
 
     const currentTenant = this.currentTenant
@@ -132,7 +132,7 @@ export default class AutomationRepository extends RepositoryBase<
     )
   }
 
-  override async findById(id: string): Promise<AutomationData> {
+  override async findById(id: string): Promise<IAutomationData> {
     const results = await this.findAndCountAll({
       id,
       offset: 0,
@@ -150,7 +150,7 @@ export default class AutomationRepository extends RepositoryBase<
     throw new Error('More than one row returned when fetching by automation unique ID!')
   }
 
-  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<AutomationData>> {
+  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<IAutomationData>> {
     // get current tenant that was used to make a request
     const currentTenant = this.currentTenant
 
@@ -230,7 +230,7 @@ export default class AutomationRepository extends RepositoryBase<
     }
 
     const count = parseInt((results[0] as any).paginatedItemsCount, 10)
-    const rows: AutomationData[] = results.map((r) => {
+    const rows: IAutomationData[] = results.map((r) => {
       const row = r as any
       return {
         id: row.id,
