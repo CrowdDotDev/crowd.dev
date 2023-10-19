@@ -42,7 +42,9 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
   } else {
     let parsedValue = moment.utc(mappedValue).startOf('day').toISOString();
 
-    if ([FilterDateOperator.GT].includes(operator)) {
+    if (['last24h'].includes(value as string)) {
+      parsedValue = mappedValue as string;
+    } else if ([FilterDateOperator.GT].includes(operator)) {
       parsedValue = moment.utc(mappedValue).endOf('day').toISOString();
     }
 
