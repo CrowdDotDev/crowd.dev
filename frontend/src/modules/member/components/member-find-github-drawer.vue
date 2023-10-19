@@ -6,7 +6,9 @@
     custom-class="identities-drawer"
   >
     <template #content>
-      <p class="text-sm text-gray-600 mb-6">We have found the following profiles on GitHub that could match {{ member.displayName }}. You can select the correct one to add it to the member.</p>
+      <p class="text-sm text-gray-600 mb-6">
+        We have found the following profiles on GitHub that could match {{ member.displayName }}. You can select the correct one to add it to the member.
+      </p>
       <div v-for="suggestion in suggestions" key="suggestion.url" class="flex items-center">
         <div
           class="py-2 flex justify-between w-full px-4 cursor-pointer hover:bg-gray-50 rounded-md hover:shadow-sm"
@@ -101,8 +103,6 @@ const drawerModel = computed({
 });
 
 const title = computed(() => `Find the GitHub identity for ${props.member.displayName}`);
-
-
 
 const loading = ref(false);
 

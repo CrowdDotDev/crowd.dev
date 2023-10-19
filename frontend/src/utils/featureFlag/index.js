@@ -1,18 +1,18 @@
-import { UnleashClient } from "unleash-proxy-client";
-import { useLogRocket } from "@/utils/logRocket";
-import config from "@/config";
-import { store } from "@/store";
+import { UnleashClient } from 'unleash-proxy-client';
+import { useLogRocket } from '@/utils/logRocket';
+import config from '@/config';
+import { store } from '@/store';
 
 export const FEATURE_FLAGS = {
-  eagleEye: "eagle-eye",
-  organizations: "organizations",
-  automations: "automations",
-  linkedin: "linkedin",
-  memberEnrichment: "member-enrichment",
-  csvExport: "csv-export",
-  hubspot: "hubspot",
-  findGitHub: "find-github",
-  logRocket: "log-rocket",
+  eagleEye: 'eagle-eye',
+  organizations: 'organizations',
+  automations: 'automations',
+  linkedin: 'linkedin',
+  memberEnrichment: 'member-enrichment',
+  csvExport: 'csv-export',
+  hubspot: 'hubspot',
+  findGitHub: 'find-github',
+  logRocket: 'log-rocket',
 };
 
 class FeatureFlagService {
@@ -23,8 +23,8 @@ class FeatureFlagService {
       const unleashConfig = {
         url: `${config.unleash.url}/api/frontend`,
         clientKey: config.unleash.apiKey,
-        appName: "crowd-web-app",
-        environment: "production",
+        appName: 'crowd-web-app',
+        environment: 'production',
       };
       this.unleash = new UnleashClient(unleashConfig);
     }
@@ -45,18 +45,18 @@ class FeatureFlagService {
       this.updateContext(context);
     }
 
-    this.unleash.on("ready", () => {
+    this.unleash.on('ready', () => {
       initLogRocket();
 
-      store.dispatch("tenant/doUpdateFeatureFlag", {
+      store.dispatch('tenant/doUpdateFeatureFlag', {
         isReady: true,
       });
     });
 
-    this.unleash.on("error", (error) => {
+    this.unleash.on('error', (error) => {
       captureException(error);
 
-      store.dispatch("tenant/doUpdateFeatureFlag", {
+      store.dispatch('tenant/doUpdateFeatureFlag', {
         hasError: true,
       });
     });
@@ -66,7 +66,7 @@ class FeatureFlagService {
     if (config.isCommunityVersion) {
       return true;
     }
-    console.log("unleash", flag, this.unleash.isEnabled(flag));
+    console.log('unleash', flag, this.unleash.isEnabled(flag));
     return this.unleash.isEnabled(flag);
   }
 
@@ -101,16 +101,16 @@ class FeatureFlagService {
 
   premiumFeatureCopy() {
     if (config.isCommunityVersion) {
-      return "Enterprise";
+      return 'Enterprise';
     }
-    return "Scale";
+    return 'Scale';
   }
 
   scaleFeatureCopy() {
     if (config.isCommunityVersion) {
-      return "Enterprise";
+      return 'Enterprise';
     }
-    return "Scale";
+    return 'Scale';
   }
 }
 
