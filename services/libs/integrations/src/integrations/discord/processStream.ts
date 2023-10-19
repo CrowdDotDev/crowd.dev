@@ -202,7 +202,7 @@ const processMembersStream: ProcessStreamHandler = async (ctx) => {
       guildId: data.guildId,
       token: getDiscordToken(ctx),
       page: data.page,
-      perPage: 500,
+      perPage: 1000,
     },
     ctx,
   )
@@ -241,7 +241,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
       channelId: data.channelId,
       token: getDiscordToken(ctx),
       page: data.page,
-      perPage: 500,
+      perPage: 100,
     },
     ctx,
   )
