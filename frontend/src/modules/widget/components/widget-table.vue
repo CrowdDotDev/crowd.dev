@@ -1,6 +1,7 @@
 <template>
   <div class="widget-table">
     <app-widget
+      :show="show"
       :config="config"
       :editable="editable"
       @trigger-duplicate-widget="
@@ -40,6 +41,10 @@ export default {
     'app-widget': Widget,
   },
   props: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
     config: {
       type: Object,
       default: () => {},

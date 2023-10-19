@@ -32,6 +32,12 @@ export const handleDiscordError = (
 
     return new RateLimitError(rateLimitResetSeconds, url, err)
   }
+
+  if (err && err.response && err.response.status === 403) {
+    logger.warn('No access to resourse, ignoring it', { input, err })
+    return undefined
+  }
+
   logger.error(err, { input }, `Error while calling Discord API URL: ${url}`)
   return err
 }

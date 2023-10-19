@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@crowd/common": "file:../common",
+    "@crowd/tracing": "file:../tracing",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1"
   }

@@ -1,10 +1,11 @@
 import { Logger } from '@crowd/logging'
 import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
+import { Tracer } from '@crowd/tracing'
 
 export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public async triggerMemberSync(tenantId: string, memberId: string) {

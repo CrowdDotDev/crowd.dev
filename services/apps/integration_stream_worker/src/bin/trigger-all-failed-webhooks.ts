@@ -1,16 +1,18 @@
 import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
+import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationStreamWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
 const batchSize = 500
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, log)
+  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, tracer, log)
   await emitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())

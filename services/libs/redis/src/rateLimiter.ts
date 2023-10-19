@@ -19,14 +19,18 @@ export class RateLimiter implements IRateLimiter {
     const requestCount = value === null ? 0 : parseInt(value)
     const canMakeRequest = requestCount < this.maxRequests
 
+    if (requestCount === 0) {
+      await this.cache.set(this.counterKey, '0', this.timeWindowSeconds)
+    }
+
     if (!canMakeRequest) {
-      const sleepTime = this.timeWindowSeconds + Math.floor(Math.random() * this.maxRequests)
+      const sleepTime = this.timeWindowSeconds + Math.floor(Math.random() * this.timeWindowSeconds)
       throw new RateLimitError(sleepTime, endpoint)
     }
   }
 
   public async incrementRateLimit() {
-    await this.cache.increment(this.counterKey, 1, this.timeWindowSeconds)
+    await this.cache.increment(this.counterKey, 1)
   }
 }
 
@@ -37,7 +41,7 @@ export class ConcurrentRequestLimiter implements IConcurrentRequestLimiter {
     private readonly maxConcurrentRequests: number,
     private readonly requestKey: string,
     // cache key will be deleted after this time since last increment / decrement
-    private readonly maxLockTimeSeconds = 30,
+    private readonly maxLockTimeSeconds = 50,
   ) {
     this.cache = cache
     this.maxConcurrentRequests = maxConcurrentRequests
@@ -45,7 +49,11 @@ export class ConcurrentRequestLimiter implements IConcurrentRequestLimiter {
     this.maxLockTimeSeconds = maxLockTimeSeconds
   }
 
-  public async checkConcurrentRequestLimit(integrationId: string, retries = 200, sleepTimeMs = 50) {
+  public async checkConcurrentRequestLimit(
+    integrationId: string,
+    retries = 1000,
+    sleepTimeMs = 50,
+  ) {
     const key = this.getRequestKey(integrationId)
     let currentRequests: number
     let canMakeRequest: boolean

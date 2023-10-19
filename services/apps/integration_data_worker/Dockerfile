@@ -20,6 +20,9 @@ RUN npm run build
 WORKDIR /usr/crowd/service/libs/logging
 RUN npm run build
 
+WORKDIR /usr/crowd/service/libs/tracing
+RUN npm run build
+
 WORKDIR /usr/crowd/service/libs/database
 RUN npm run build
 
@@ -48,6 +51,9 @@ COPY ./libs/types/package.json ./libs/types/package-lock.json ./libs/types/tscon
 
 COPY --from=builder /usr/crowd/service/libs/logging/dist ./libs/logging/dist
 COPY ./libs/logging/package.json ./libs/logging/package-lock.json ./libs/logging/tsconfig.json ./libs/logging/
+
+COPY --from=builder /usr/crowd/service/libs/tracing/dist ./libs/tracing/dist
+COPY ./libs/tracing/package.json ./libs/tracing/package-lock.json ./libs/tracing/tsconfig.json ./libs/tracing/
 
 COPY --from=builder /usr/crowd/service/libs/database/dist ./libs/database/dist
 COPY ./libs/database/package.json ./libs/database/package-lock.json ./libs/database/tsconfig.json ./libs/database/
