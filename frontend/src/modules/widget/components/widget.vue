@@ -33,7 +33,7 @@
         v-loading="loading"
         class="app-page-spinner !relative top-2"
       />
-      <slot v-else />
+      <slot v-else-if="show" />
     </div>
     <el-dropdown
       v-if="config.settings"
@@ -88,6 +88,10 @@ import { i18n } from '@/i18n';
 export default {
   name: 'AppWidget',
   props: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
     config: {
       type: Object,
       default: () => ({
