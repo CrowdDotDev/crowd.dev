@@ -42,7 +42,6 @@ const identities: MultiSelectFilterConfig = {
 
     // Handle the conditions
     if (platformIdentities.length > 0 && emailFilter.length === 0) {
-      console.log('ONLY PLATFORMS RANNN!!!!');
       // Only platforms selected
       filter = {
         or: platformIdentities.map((identity) => ({
@@ -51,12 +50,10 @@ const identities: MultiSelectFilterConfig = {
       };
     } else if (platformIdentities.length === 0 && emailFilter.length > 0) {
       // Only emails selected
-      console.log('ONLY EMAILSSS RANNN!!!!');
       filter = {
         emails: { ne: null },
       };
     } else if (platformIdentities.length > 0 && emailFilter.length > 0) {
-      console.log('BOTH RANNN!!!!');
       // Both platforms and emails selected
       filter = {
         // [
