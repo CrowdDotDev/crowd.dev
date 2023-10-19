@@ -42,7 +42,7 @@ export default class AutomationRepository extends RepositoryBase<
         state:
           existingActiveAutomations.count >= PLAN_LIMITS[tenant.plan][FeatureFlag.AUTOMATIONS]
             ? AutomationState.DISABLED
-            : data.state,
+            : AutomationState.ACTIVE,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -256,10 +256,11 @@ export default class AutomationRepository extends RepositoryBase<
     }
   }
 
-  static async countAll(database: any, tenantId: string): Promise<number> {
+  static async countAllActive(database: any, tenantId: string): Promise<number> {
     const automationCount = await database.automation.count({
       where: {
         tenantId,
+        state: AutomationState.ACTIVE,
       },
       useMaster: true,
     })

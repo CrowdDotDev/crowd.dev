@@ -39,11 +39,8 @@ export default class AutomationService extends ServiceBase<
     const txOptions = await this.getTxRepositoryOptions()
 
     try {
-      // create an active automation
-      const result = await new AutomationRepository(txOptions).create({
-        ...req,
-        state: AutomationState.ACTIVE,
-      })
+      // create an automation
+      const result = await new AutomationRepository(txOptions).create(req)
 
       // check automation type, if hubspot trigger an automation onboard
       if (req.type === AutomationType.HUBSPOT) {
