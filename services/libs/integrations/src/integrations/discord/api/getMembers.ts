@@ -1,11 +1,13 @@
 import axios from 'axios'
 import { DiscordApiMember, DiscordGetMembersInput, DiscordGetMembersOutput } from '../types'
 import { IProcessStreamContext } from '../../../types'
+import { getRateLimiter } from './handleRateLimit'
 
 async function getMembers(
   input: DiscordGetMembersInput,
   ctx: IProcessStreamContext,
 ): Promise<DiscordGetMembersOutput> {
+  const rateLimiter = getRateLimiter(ctx)
   try {
     let url = `https://discord.com/api/v10/guilds/${input.guildId}/members?limit=${input.perPage}`
     if (input.page !== undefined && input.page !== '') {
@@ -19,6 +21,8 @@ async function getMembers(
       },
     }
 
+    await rateLimiter.checkRateLimit('getMembers')
+    await rateLimiter.incrementRateLimit()
     const response = await axios(config)
     const records: DiscordApiMember[] = response.data
     const limit = parseInt(response.headers['x-ratelimit-remaining'], 10)

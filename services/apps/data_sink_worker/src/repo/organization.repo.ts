@@ -269,6 +269,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                     oi.platform = $(platform)
                     and oi."sourceId" = $(sourceId)
                     and os."segmentId" =  $(segmentId)
+              order by oi."updatedAt" desc
+              limit 1
           )
       select  o.id,
               o.description,
@@ -456,6 +458,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         table: 'organizations',
       },
     })
+    const updatedAt = new Date()
     const prepared = RepositoryBase.prepare(
       {
         ...data,
@@ -463,17 +466,18 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           data?.weakIdentities?.length > 0 && {
             weakIdentities: JSON.stringify(data.weakIdentities),
           }),
-        updatedAt: new Date(),
+        updatedAt,
       },
       dynamicColumnSet,
     )
 
     const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
-    const condition = this.format('where id = $(id)', { id })
+    const condition = this.format('where id = $(id) and "updatedAt" < $(updatedAt)', {
+      id,
+      updatedAt,
+    })
 
-    const result = await this.db().result(`${query} ${condition}`)
-
-    this.checkUpdateRowCount(result.rowCount, 1)
+    await this.db().result(`${query} ${condition}`)
   }
 
   public async addIdentity(

@@ -435,6 +435,7 @@ const en = {
     cubejs: {
       tooltip: {
         Activities: 'Activity',
+        Contacts: 'Contact',
         Members: 'Contact',
         Conversations: 'Conversation',
         Organizations: 'Organization',
