@@ -73,7 +73,7 @@ hr {
 }
 
 .custom-spinner::before {
-  @apply border-2 border-gray-100 border-b-gray-900 border-l-gray-900 border-r-gray-900 rounded-full h-10 w-10 absolute;
+  @apply border-2 border-gray-100 border-b-gray-900 border-x-gray-900 rounded-full h-8 w-8 absolute;
   top: 10%;
   left: 10%;
   transform: translate3d(-50%, -50%, 0);
