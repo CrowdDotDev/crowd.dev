@@ -55,12 +55,12 @@ begin
 
     perform create_custom_view_and_order('Influential', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"}, "settings": {"bot": "exclude", "teamMember": "exclude", "organization": "exclude"}, "reach": {"operator": "gte", "value": 500}}', 'member', tenant.id, tenant."createdById");
 
-    perform create_custom_view_and_order('Team members', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"}, "settings": {"bot": "exclude", "teamMember": "filter", "organization": "exclude"}}', 'member', tenant.id, tenant."createdById");
+    perform create_custom_view_and_order('Team contacts', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"}, "settings": {"bot": "exclude", "teamMember": "filter", "organization": "exclude"}}', 'member', tenant.id, tenant."createdById");
 
     -- Organization custom views
     perform create_custom_view_and_order('New and active', '{"search": "", "relation": "and", "order": {"prop": "joinedAt", "order": "descending"}, "settings": {"teamOrganization": "exclude"}, "joinedDate": {"operator": "gt", "value": "lastMonth"}}', 'organization', tenant.id, tenant."createdById");
 
-    perform create_custom_view_and_order('Most members', '{"search": "", "relation": "and", "order": {"prop": "memberCount", "order": "descending"}, "settings": {"teamOrganization": "exclude"}}', 'organization', tenant.id, tenant."createdById");
+    perform create_custom_view_and_order('Most contacts', '{"search": "", "relation": "and", "order": {"prop": "memberCount", "order": "descending"}, "settings": {"teamOrganization": "exclude"}}', 'organization', tenant.id, tenant."createdById");
 
     perform create_custom_view_and_order('Team organizations', '{"search": "", "relation": "and", "order": {"prop": "lastActive", "order": "descending"}, "settings": {"teamOrganization": "filter"}}', 'organization', tenant.id, tenant."createdById");
   end loop;
