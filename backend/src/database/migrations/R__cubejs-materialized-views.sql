@@ -29,8 +29,12 @@ SELECT
         WHEN (a.sentiment->>'sentiment')::integer < 34 THEN 'negative'
         WHEN (a.sentiment->>'sentiment')::integer > 66 THEN 'positive'
         ELSE 'neutral'
-    END::VARCHAR(8) AS "sentimentMood"
+    END::VARCHAR(8) AS "sentimentMood",
+    a."organizationId",
+    a."segmentId",
+    a."conversationId"
 FROM activities a
+WHERE a."deletedAt" IS NULL
 ;
 
 DROP MATERIALIZED VIEW IF EXISTS mv_organizations_cube;
@@ -57,6 +61,7 @@ FROM segments
 
 CREATE INDEX IF NOT EXISTS mv_members_cube_tenant ON mv_members_cube ("tenantId");
 CREATE INDEX IF NOT EXISTS mv_activities_cube_timestamp ON mv_activities_cube (timestamp);
+CREATE INDEX IF NOT EXISTS mv_activities_cube_org_id ON mv_activities_cube ("organizationId");
 
 CREATE UNIQUE INDEX IF NOT EXISTS mv_members_cube_id ON mv_members_cube (id);
 CREATE UNIQUE INDEX IF NOT EXISTS mv_activities_cube_id ON mv_activities_cube (id);
