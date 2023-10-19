@@ -94,7 +94,7 @@
 <script setup lang="ts">
 import {
   computed,
-  onMounted, ref, watch,
+  onMounted, ref,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
@@ -205,9 +205,9 @@ const checkIfTabConfigMatch = () => {
   }
 };
 
-watch(() => props.modelValue, () => {
-  checkIfTabConfigMatch();
-}, { deep: true });
+// watch(() => props.modelValue, () => {
+//   checkIfTabConfigMatch();
+// }, { deep: true });
 
 // View management
 const views = ref<SavedView[]>([]);
