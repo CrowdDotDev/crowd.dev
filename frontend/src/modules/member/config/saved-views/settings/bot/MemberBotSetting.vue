@@ -1,14 +1,14 @@
 <template>
   <article>
     <p class="text-xs font-semibold leading-5 mb-3">
-      Bot members visibility
+      Bot contacts visibility
     </p>
     <el-radio-group v-model="value">
       <el-radio :label="IncludeEnum.EXCLUDE" class="!h-5">
-        <span class="text-xs">Exclude bot members</span>
+        <span class="text-xs">Exclude bot contacts</span>
       </el-radio>
       <el-radio :label="IncludeEnum.INCLUDE" class="!h-5">
-        <span class="text-xs">Include bot members</span>
+        <span class="text-xs">Include bot contacts</span>
       </el-radio>
     </el-radio-group>
   </article>
@@ -39,13 +39,3 @@ export default {
   name: 'CrMemberTeamMemberSetting',
 };
 </script>
-
-<style lang="scss" scoped>
-.tabs {
-  width: calc(100% - 72px);
-
-  &.is-shrink{
-    width: calc(100% - 262px);
-  }
-}
-</style>

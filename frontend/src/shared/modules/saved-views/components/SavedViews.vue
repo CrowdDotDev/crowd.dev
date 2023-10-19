@@ -24,7 +24,7 @@
       </el-dropdown>
     </div>
     <div id="tabs" class="tabs flex-grow" :class="{ 'is-shrink': hasChanged }">
-      <el-tabs v-if="views.length > 0" v-model="selectedTab" @tab-change="onTabChange($event)">
+      <el-tabs v-model="selectedTab" @tab-change="onTabChange($event)">
         <el-tab-pane
           :label="props.config.defaultView.name"
           name=""
@@ -64,7 +64,7 @@
           <i class="ri-add-line text-lg text-gray-400 h-5 flex items-center" />
         </el-button>
       </el-tooltip>
-      <el-popover v-if="views.length > 0" trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
+      <el-popover trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
         <template #reference>
           <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0">
             <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
@@ -194,7 +194,7 @@ const reset = () => {
 };
 
 // Change tab if filters match
-watch(() => props.modelValue, (filter: Filter) => {
+const checkIfTabConfigMatch = () => {
   if (compareFilterToCurrentValues(props.config.defaultView.config)) {
     selectedTab.value = '';
     return;
@@ -203,6 +203,10 @@ watch(() => props.modelValue, (filter: Filter) => {
   if (matchingView) {
     selectedTab.value = matchingView.id;
   }
+};
+
+watch(() => props.modelValue, () => {
+  checkIfTabConfigMatch();
 }, { deep: true });
 
 // View management
@@ -221,6 +225,7 @@ const getViews = () => {
       setTimeout(() => {
         views.value = [...res];
         checkIfScrollableTabs();
+        checkIfTabConfigMatch();
       }, 0);
     })
     .catch(() => {
@@ -293,7 +298,7 @@ export default {
   width: calc(100% - 72px);
 
   &.is-shrink{
-    width: calc(100% - 262px);
+    width: calc(100% - 303px);
   }
 }
 </style>

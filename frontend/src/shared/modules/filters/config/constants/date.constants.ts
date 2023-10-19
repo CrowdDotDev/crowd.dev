@@ -40,21 +40,23 @@ export const dateFilterOperators: FilterOperator[] = [
 
 export const dateFilterTimePickerOptions: FilterTimeOptions[] = [
   {
-    value: 'lastWeek',
-    label: 'Last week',
+    value: 'last7days',
+    label: 'Last 7 days',
     getDate: () => moment().subtract(1, 'week').format('YYYY-MM-DD'),
-
+  },
+  {
+    value: 'last14days',
+    label: 'Last 14 days',
+    getDate: () => moment().subtract(14, 'day').format('YYYY-MM-DD'),
   },
   {
     value: 'lastMonth',
-    label: 'Last month',
-    getDate: () => moment().subtract(1, 'month').format('YYYY-MM-DD'),
-
+    label: 'Last 30 days',
+    getDate: () => moment().subtract(30, 'day').format('YYYY-MM-DD'),
   },
   {
-    value: 'lastYear',
-    label: 'Last year',
-    getDate: () => moment().subtract(1, 'year').format('YYYY-MM-DD'),
-
+    value: 'last90days',
+    label: 'Last 90 days',
+    getDate: () => moment().subtract(90, 'day').format('YYYY-MM-DD'),
   },
 ];

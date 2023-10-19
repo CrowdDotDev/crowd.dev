@@ -18,7 +18,7 @@ export const memberSavedViews: SavedViewsConfig = {
     organization,
   },
   sorting: {
-    displayName: 'Member',
+    displayName: 'Contact',
     activityCount: '# of activities',
     score: 'Engagement level',
     lastActive: 'Last activity',

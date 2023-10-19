@@ -179,7 +179,8 @@
           type="primary"
           class="btn btn--md btn--primary"
           :loading="sending"
-          :disabled="$v.$invalid"
+          :disabled="$v.$invalid
+            || !hasFormChanged"
           @click="submit()"
         >
           {{ isEdit ? 'Update' : 'Add view' }}
@@ -203,6 +204,7 @@ import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import formChangeDetector from '@/shared/form/form-change';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -265,8 +267,8 @@ const form = reactive<SavedViewForm>({
   filters: {},
   settings: { ...settingsDefaultValue.value },
   sorting: {
-    prop: props.config.defaultView.config.order.prop,
-    order: props.config.defaultView.config.order.order,
+    prop: Object.keys(props.config.sorting).length > 0 ? Object.keys(props.config.sorting)[0] : props.config.defaultView.config.order.prop,
+    order: 'descending',
   },
 });
 
@@ -277,6 +279,7 @@ const rules = {
 };
 
 const $v = useVuelidate(rules, form);
+const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
 const settings = computed<Record<string, any>>(() => {
   const settingsObject = { ...props.config.settings };
@@ -324,10 +327,10 @@ const fillForm = () => {
     form.relation = relation;
     form.sorting.prop = order.prop;
     form.sorting.order = order.order;
-    form.filters = restFilters || {};
-    form.settings = settings || {};
+    form.filters = { ...restFilters } || {};
+    form.settings = { ...settings } || {};
     filterList.value = Object.keys(restFilters);
-    console.log(restFilters);
+    formSnapshot();
   }
 };
 
@@ -338,10 +341,12 @@ const reset = () => {
   form.filters = {};
   form.settings = { ...settingsDefaultValue.value };
   form.sorting = {
-    prop: props.config.defaultView.config.order.prop,
-    order: props.config.defaultView.config.order.order,
+    prop: Object.keys(props.config.sorting).length > 0 ? Object.keys(props.config.sorting)[0] : props.config.defaultView.config.order.prop,
+    order: 'descending',
   };
+  filterList.value = [];
   $v.value.$reset();
+  formSnapshot();
 };
 
 watch(() => props.view, () => {

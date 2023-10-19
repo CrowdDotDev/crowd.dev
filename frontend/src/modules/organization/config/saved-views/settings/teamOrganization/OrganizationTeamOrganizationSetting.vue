@@ -42,13 +42,3 @@ export default {
   name: 'CrMemberTeamMemberSetting',
 };
 </script>
-
-<style lang="scss" scoped>
-.tabs {
-  width: calc(100% - 72px);
-
-  &.is-shrink{
-    width: calc(100% - 262px);
-  }
-}
-</style>

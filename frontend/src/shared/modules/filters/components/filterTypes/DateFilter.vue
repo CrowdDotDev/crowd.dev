@@ -10,7 +10,7 @@
           :teleported="false"
         >
           <template #prefix>
-            <span class="!text-sm !text-gray-400">When:</span>
+            <span class="!text-sm !text-gray-400 leading-5">When:</span>
           </template>
           <el-option
             v-for="time of dateFilterTimePickerOptions"
@@ -27,7 +27,7 @@
       <div v-if="isCustom" class="flex items-start" :class="!props.datepickerType || props.datepickerType === 'date' ? 'pt-4' : ''">
         <el-select
           v-model="form.operator"
-          class="min-w-[7rem] w-28 operator-select"
+          class="operator-select"
           placement="bottom-start"
           :teleported="false"
         >
@@ -172,13 +172,13 @@ export default {
 <style lang="scss">
 .operator-select{
   .el-input__wrapper{
-    @apply rounded-r-none border-r-0 #{!important};
+    @apply rounded-r-none border-r-0 h-10 #{!important};
   }
 }
 
 .datepicker-input {
   &, .el-input__wrapper{
-    @apply w-full h-10 rounded-l-none #{!important};
+    @apply w-full h-10 rounded-l-none h-10 #{!important};
   }
 }
 </style>

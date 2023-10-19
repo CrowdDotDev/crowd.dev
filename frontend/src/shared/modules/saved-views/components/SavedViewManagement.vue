@@ -23,24 +23,30 @@
             <span class="text-sm leading-5 text-black">{{ view.name }}</span>
           </div>
           <div class="flex items-center">
-            <div
-              class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer"
-              @click="edit(view)"
-            >
-              <i class="ri-pencil-line text-sm text-gray-400 group-hover:text-gray-600" />
-            </div>
-            <div
-              class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer"
-              @click="duplicate(view)"
-            >
-              <i class="ri-file-copy-line text-sm text-gray-400 group-hover:text-gray-600" />
-            </div>
-            <div
-              class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer"
-              @click="remove(view)"
-            >
-              <i class="ri-delete-bin-line text-sm text-gray-400 group-hover:text-gray-600" />
-            </div>
+            <el-tooltip placement="top" content="Edit view">
+              <div
+                class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
+                @click="edit(view)"
+              >
+                <i class="ri-pencil-line text-sm text-gray-400 group-hover:text-gray-600" />
+              </div>
+            </el-tooltip>
+            <el-tooltip placement="top" content="Duplicate view">
+              <div
+                class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
+                @click="duplicate(view)"
+              >
+                <i class="ri-file-copy-line text-sm text-gray-400 group-hover:text-gray-600" />
+              </div>
+            </el-tooltip>
+            <el-tooltip placement="top" content="Delete view">
+              <div
+                class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
+                @click="remove(view)"
+              >
+                <i class="ri-delete-bin-line text-sm text-gray-400 group-hover:text-gray-600" />
+              </div>
+            </el-tooltip>
           </div>
         </article>
       </vue-draggable-next>

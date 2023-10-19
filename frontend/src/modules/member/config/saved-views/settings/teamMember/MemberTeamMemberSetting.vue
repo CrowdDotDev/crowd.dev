@@ -1,17 +1,17 @@
 <template>
   <article>
     <p class="text-xs font-semibold leading-5 mb-3">
-      Team members visibility
+      Team contacts visibility
     </p>
     <el-radio-group v-model="value">
       <el-radio :label="IncludeEnum.EXCLUDE" class="!h-5">
-        <span class="text-xs">Exclude team members</span>
+        <span class="text-xs">Exclude team contacts</span>
       </el-radio>
       <el-radio :label="IncludeEnum.INCLUDE" class="!h-5">
-        <span class="text-xs">Include team members</span>
+        <span class="text-xs">Include team contacts</span>
       </el-radio>
       <el-radio :label="IncludeEnum.FILTER" class="!h-5">
-        <span class="text-xs">Team members only</span>
+        <span class="text-xs">Team contacts only</span>
       </el-radio>
     </el-radio-group>
   </article>
@@ -42,13 +42,3 @@ export default {
   name: 'CrMemberTeamMemberSetting',
 };
 </script>
-
-<style lang="scss" scoped>
-.tabs {
-  width: calc(100% - 72px);
-
-  &.is-shrink{
-    width: calc(100% - 262px);
-  }
-}
-</style>

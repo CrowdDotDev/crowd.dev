@@ -15,7 +15,7 @@ export interface MemberState {
 
 const state: MemberState = {
   filters: {
-    ...allContacts.filter,
+    ...allContacts.config,
   },
   savedFilterBody: {},
   customAttributes: [],
