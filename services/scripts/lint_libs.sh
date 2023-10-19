@@ -12,3 +12,11 @@ for lib_dir in $CLI_HOME/../libs/*/; do
     (cd "$lib_dir" && npm run lint && npm run format-check && npm run tsc-check && say "Library $lib: linter, prettier and typescript checked!" && nl)    
   fi
 done
+
+for archetype_dir in $CLI_HOME/../archetypes/*/; do
+  if [ -f "${archetype_dir}package.json" ]; then
+    archetype=$(basename $archetype_dir)
+    yell "Checking linting, prettier and typescript for archetype: $archetype!"
+    (cd "$archetype_dir" && npm run lint && npm run format-check && npm run tsc-check && say "Archetype $archetype: linter, prettier and typescript checked!" && nl)    
+  fi
+done
