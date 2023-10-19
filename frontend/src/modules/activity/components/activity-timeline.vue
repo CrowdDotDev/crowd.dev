@@ -156,7 +156,7 @@
           <p
             class="text-xs leading-5 text-center italic text-gray-400"
           >
-            This member has no activities in {{ getPlatformDetails(platform)?.name || 'the platform' }}
+            This contact has no activities in {{ getPlatformDetails(platform)?.name || 'custom platforms' }}
           </p>
         </div>
       </el-timeline>
