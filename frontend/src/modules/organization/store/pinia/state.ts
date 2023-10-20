@@ -13,7 +13,7 @@ export interface OrganizationState {
 
 const state: OrganizationState = {
   filters: {
-    ...allOrganizations.filter,
+    ...allOrganizations.config,
   },
   savedFilterBody: {},
   organizations: [],

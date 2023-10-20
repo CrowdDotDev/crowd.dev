@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { DiscordApiMessage, DiscordParsedReponse, DiscordGetMessagesInput } from '../types'
 import { IProcessStreamContext } from '../../../types'
-import { getRateLimiter } from './handleRateLimit'
 import { handleDiscordError } from './errorHandler'
 
 async function getMessages(
@@ -9,8 +8,6 @@ async function getMessages(
   ctx: IProcessStreamContext,
   showErrors = true,
 ): Promise<DiscordParsedReponse> {
-  const rateLimiter = getRateLimiter(ctx)
-
   let url = `https://discord.com/api/v10/channels/${input.channelId}/messages?limit=${input.perPage}`
   if (input.page !== undefined && input.page !== '') {
     url += `&before=${input.page}`
@@ -25,8 +22,6 @@ async function getMessages(
   }
 
   try {
-    await rateLimiter.checkRateLimit('getMessages')
-    await rateLimiter.incrementRateLimit()
     const response = await axios(config)
     const records: DiscordApiMessage[] = response.data
 
