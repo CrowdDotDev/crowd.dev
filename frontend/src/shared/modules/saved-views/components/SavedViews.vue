@@ -66,7 +66,7 @@
       </el-tooltip>
       <el-popover trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
         <template #reference>
-          <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0">
+          <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0" data-tooltip="Manage views">
             <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
           </el-button>
         </template>
@@ -94,7 +94,7 @@
 <script setup lang="ts">
 import {
   computed,
-  onMounted, ref,
+  onMounted, onUnmounted, ref,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
@@ -284,6 +284,11 @@ const createNewView = () => {
 
 onMounted(() => {
   getViews();
+  window.addEventListener('resize', checkIfScrollableTabs);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkIfScrollableTabs);
 });
 </script>
 
@@ -295,7 +300,7 @@ export default {
 
 <style lang="scss" scoped>
 .tabs {
-  width: calc(100% - 72px);
+  width: calc(100% - 113px);
 
   &.is-shrink{
     width: calc(100% - 303px);
