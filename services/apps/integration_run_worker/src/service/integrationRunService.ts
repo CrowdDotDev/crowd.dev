@@ -405,6 +405,7 @@ export default class IntegrationRunService extends LoggerBase {
         status: runInfo.integrationState,
         settings: runInfo.integrationSettings,
         token: runInfo.integrationToken,
+        refreshToken: runInfo.integrationRefreshToken,
       },
 
       // this is for controling manual one off runs
