@@ -21,6 +21,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
             i.status   as "integrationState",
             i."integrationIdentifier",
             i.token   as "integrationToken",
+            i."refreshToken" as "integrationRefreshToken",
             r.state    as "runState",
             d."streamId",
             d."runId",
