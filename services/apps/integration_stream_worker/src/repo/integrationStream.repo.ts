@@ -195,6 +195,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
             i.status   as "integrationState",
             i."integrationIdentifier",
             i.token   as "integrationToken",
+            i."refreshToken" as "integrationRefreshToken",
             r.state    as "runState",
             s."runId",
             s."tenantId",

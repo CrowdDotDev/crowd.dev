@@ -296,6 +296,7 @@ export default class IntegrationStreamService extends LoggerBase {
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,
+        refreshToken: streamInfo.integrationRefreshToken,
       },
 
       stream: {
@@ -470,6 +471,7 @@ export default class IntegrationStreamService extends LoggerBase {
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,
+        refreshToken: streamInfo.integrationRefreshToken,
       },
 
       stream: {
