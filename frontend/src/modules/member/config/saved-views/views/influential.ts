@@ -2,8 +2,10 @@ import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const influential: SavedView = {
   id: 'influential',
-  label: 'Influential',
-  filter: {
+  name: 'Influential',
+  placement: 'member',
+  visibility: 'tenant',
+  config: {
     search: '',
     relation: 'and',
     order: {
@@ -15,7 +17,6 @@ const influential: SavedView = {
       teamMember: 'exclude',
       organization: 'exclude',
     },
-
     reach: {
       operator: 'gte',
       value: 500,

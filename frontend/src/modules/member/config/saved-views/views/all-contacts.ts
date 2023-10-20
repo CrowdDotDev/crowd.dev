@@ -1,9 +1,11 @@
 import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
-const allMembers: SavedView = {
+const allContacts: SavedView = {
   id: 'all-contacts',
-  label: 'All contacts',
-  filter: {
+  name: 'All contacts',
+  placement: 'member',
+  visibility: 'tenant',
+  config: {
     search: '',
     relation: 'and',
     order: {
@@ -18,4 +20,4 @@ const allMembers: SavedView = {
   },
 };
 
-export default allMembers;
+export default allContacts;
