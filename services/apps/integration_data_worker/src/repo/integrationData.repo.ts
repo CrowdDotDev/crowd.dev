@@ -169,7 +169,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  ublic async updateIntegrationToken(runId: string, token: string): Promise<void> {
+  public async updateIntegrationToken(runId: string, token: string): Promise<void> {
     const result = await this.db().result(
       `
       update "integrations"
