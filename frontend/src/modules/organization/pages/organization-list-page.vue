@@ -51,7 +51,9 @@
       <cr-saved-views
         v-model="filters"
         :config="organizationSavedViews"
-        :views="organizationViews"
+        :static-views="organizationViews"
+        :filters="organizationFilters"
+        placement="organization"
         @update:model-value="organizationFilter.alignFilterList($event)"
       />
       <cr-filter

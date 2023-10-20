@@ -3,6 +3,7 @@ import { timeout } from '@crowd/common'
 import { DiscordApiChannel, DiscordGetChannelsInput, DiscordGetMessagesInput } from '../types'
 import getMessages from './getMessages'
 import { IProcessStreamContext } from '../../../types'
+import { handleDiscordError } from './errorHandler'
 
 /**
  * Try if a channel is readable
@@ -31,15 +32,15 @@ async function getChannels(
   ctx: IProcessStreamContext,
   tryChannels = true,
 ): Promise<DiscordApiChannel[]> {
-  try {
-    const config = {
-      method: 'get',
-      url: `https://discord.com/api/v10/guilds/${input.guildId}/channels?`,
-      headers: {
-        Authorization: input.token,
-      },
-    }
+  const config = {
+    method: 'get',
+    url: `https://discord.com/api/v10/guilds/${input.guildId}/channels?`,
+    headers: {
+      Authorization: input.token,
+    },
+  }
 
+  try {
     const response = await axios(config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = response.data
@@ -69,8 +70,10 @@ async function getChannels(
 
     return result
   } catch (err) {
-    ctx.log.error({ err, input }, 'Error while getting channels from Discord')
-    throw err
+    const newErr = handleDiscordError(err, config, { input }, ctx)
+    if (newErr) {
+      throw newErr
+    }
   }
 }
 

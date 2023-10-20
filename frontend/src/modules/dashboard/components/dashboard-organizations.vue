@@ -7,7 +7,7 @@
       :total="organizations.total"
       :route="{
         name: 'organization',
-        query: filterQueryService().setQuery(allOrganizations.filter),
+        query: filterQueryService().setQuery(allOrganizations.config),
       }"
       button-title="All organizations"
       report-name="Organizations report"
@@ -79,7 +79,7 @@
                 :to="{
                   name: 'organization',
                   query: filterQueryService().setQuery({
-                    ...allOrganizations.filter,
+                    ...allOrganizations.config,
                     joinedDate: {
                       value: periodRange,
                       operator: 'between',
@@ -159,7 +159,7 @@
                 :to="{
                   name: 'organization',
                   query: filterQueryService().setQuery({
-                    ...allOrganizations.filter,
+                    ...allOrganizations.config,
                     lastActivityDate: {
                       value: periodRange,
                       operator: 'between',
