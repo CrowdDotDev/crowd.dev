@@ -146,6 +146,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         FROM organizations o
         LEFT JOIN member_data md ON o.id = md."organizationId"
         LEFT JOIN identities i ON o.id = i."organizationId"
+        LEFT JOIN to_merge_data tmd on o.id = tmd."organizationId"
+        LEFT JOIN no_merge_data nmd on o.id = nmd."organizationId"
         WHERE o.id IN ($(ids:csv))
           AND o."deletedAt" IS NULL
           AND (md."organizationId" IS NOT NULL
