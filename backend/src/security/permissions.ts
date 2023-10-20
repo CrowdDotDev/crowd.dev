@@ -1139,22 +1139,46 @@ class Permissions {
       customViewCreate: {
         id: 'customViewCreate',
         allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [plans.essential, plans.growth, plans.eagleEye, plans.enterprise],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.eagleEye,
+          plans.enterprise,
+          plans.scale,
+        ],
       },
       customViewEdit: {
         id: 'customViewEdit',
         allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [plans.essential, plans.growth, plans.eagleEye, plans.enterprise],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.eagleEye,
+          plans.enterprise,
+          plans.scale,
+        ],
       },
       customViewDestroy: {
         id: 'customViewDestroy',
         allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [plans.essential, plans.growth, plans.eagleEye, plans.enterprise],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.eagleEye,
+          plans.enterprise,
+          plans.scale,
+        ],
       },
       customViewRead: {
         id: 'customViewRead',
         allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [plans.essential, plans.growth, plans.eagleEye, plans.enterprise],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.eagleEye,
+          plans.enterprise,
+          plans.scale,
+        ],
       },
     }
   }
