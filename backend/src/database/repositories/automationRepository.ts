@@ -42,7 +42,7 @@ export default class AutomationRepository extends RepositoryBase<
         state:
           existingActiveAutomations.count >= PLAN_LIMITS[tenant.plan][FeatureFlag.AUTOMATIONS]
             ? AutomationState.DISABLED
-            : AutomationState.ACTIVE,
+            : data.state,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
