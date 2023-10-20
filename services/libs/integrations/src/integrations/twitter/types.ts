@@ -3,3 +3,9 @@ export enum TwitterActivityType {
   MENTION = 'mention',
   FOLLOW = 'follow',
 }
+
+export interface TwitterPlatformSettings {
+  clientId: string
+  clientSecret: string
+  callbackUrl: string
+}
