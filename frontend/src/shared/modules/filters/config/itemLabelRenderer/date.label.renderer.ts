@@ -19,8 +19,8 @@ export const dateItemLabelRenderer = (property: string, { value, operator }: Dat
   let operatorTextDisplay = operatorText[operator].length > 0 ? `${operatorText[operator]} ` : '';
 
   if (dateOption) {
-    valueText = dateOption.label.toLowerCase();
-    operatorTextDisplay = 'in ';
+    valueText = dateOption.label;
+    operatorTextDisplay = '';
   } else {
     const isBetween = [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
     if (isBetween) {
