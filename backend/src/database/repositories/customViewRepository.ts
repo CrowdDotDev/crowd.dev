@@ -166,7 +166,17 @@ class CustomViewRepository {
 
     const where = {
       ...lodash.pick(query, ['visibility']),
-      tenantId: tenant.id,
+      [Op.or]: [
+        {
+          visibility: 'tenant',
+          tenantId: tenant.id,
+        },
+        {
+          visibility: 'user',
+          createdById: currentUser.id,
+          tenantId: tenant.id,
+        },
+      ],
     }
 
     if (query?.placement) {
