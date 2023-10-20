@@ -3,7 +3,6 @@ import { timeout } from '@crowd/common'
 import { DiscordApiChannel, DiscordGetChannelsInput, DiscordGetMessagesInput } from '../types'
 import getMessages from './getMessages'
 import { IProcessStreamContext } from '../../../types'
-import { getRateLimiter } from './handleRateLimit'
 import { handleDiscordError } from './errorHandler'
 
 /**
@@ -33,8 +32,6 @@ async function getChannels(
   ctx: IProcessStreamContext,
   tryChannels = true,
 ): Promise<DiscordApiChannel[]> {
-  const rateLimiter = getRateLimiter(ctx)
-
   const config = {
     method: 'get',
     url: `https://discord.com/api/v10/guilds/${input.guildId}/channels?`,
@@ -44,9 +41,6 @@ async function getChannels(
   }
 
   try {
-    await rateLimiter.checkRateLimit('getChannels')
-    await rateLimiter.incrementRateLimit()
-
     const response = await axios(config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = response.data
