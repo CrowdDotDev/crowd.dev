@@ -161,6 +161,7 @@ export default class IntegrationRunService extends LoggerBase {
                 status: runInfo.integrationState,
                 settings: runInfo.integrationSettings,
                 token: runInfo.integrationToken,
+                refreshToken: runInfo.integrationRefreshToken,
               },
               automations: syncAutomations,
               tenantId: runInfo.tenantId,
