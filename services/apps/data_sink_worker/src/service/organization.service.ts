@@ -134,6 +134,14 @@ export class OrganizationService extends LoggerBase {
         // check organization exists by domain
         if (cached.website) {
           existing = await txRepo.findByDomain(tenantId, cached.website)
+
+          // also check domain in identities
+          if (!existing) {
+            existing = await txRepo.findByIdentity(tenantId, {
+              name: websiteNormalizer(cached.website),
+              platform: 'email',
+            })
+          }
         }
 
         // if domain is not found, check existence by sent identities
