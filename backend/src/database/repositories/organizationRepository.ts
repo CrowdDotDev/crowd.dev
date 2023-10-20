@@ -1166,7 +1166,7 @@ class OrganizationRepository {
     fromOrganizationId: string,
     toOrganizationId: string,
     options: IRepositoryOptions,
-    batchSize = 10000,
+    batchSize = 1000,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
