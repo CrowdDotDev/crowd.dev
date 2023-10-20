@@ -513,6 +513,13 @@ export default class IntegrationStreamService extends LoggerBase {
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)
       },
+      updateIntegrationToken: async (token: string) => {
+        await this.updateIntegrationToken(streamId, token)
+      },
+
+      updateIntegrationRefreshToken: async (refreshToken: string) => {
+        await this.updateIntegrationRefreshToken(streamId, refreshToken)
+      },
 
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting stream processing with error!')
@@ -579,6 +586,41 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       }
 
+      throw err
+    }
+  }
+
+  private async updateIntegrationToken(streamId: string, token: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration token!')
+      await this.repo.updateIntegrationToken(streamId, token)
+    } catch (err) {
+      await this.triggerRunError(
+        streamId,
+        'run-stream-update-token',
+        'Error while updating token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationRefreshToken(
+    streamId: string,
+    refreshToken: string,
+  ): Promise<void> {
+    try {
+      this.log.debug('Updating integration refresh token!')
+      await this.repo.updateIntegrationRefreshToken(streamId, refreshToken)
+    } catch (err) {
+      await this.triggerRunError(
+        streamId,
+        'run-stream-update-refresh-token',
+        'Error while updating refresh token!',
+        undefined,
+        err,
+      )
       throw err
     }
   }

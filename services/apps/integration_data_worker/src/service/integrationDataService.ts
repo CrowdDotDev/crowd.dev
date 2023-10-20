@@ -158,6 +158,14 @@ export default class IntegrationDataService extends LoggerBase {
         await this.updateIntegrationSettings(dataId, settings)
       },
 
+      updateIntegrationToken: async (token: string) => {
+        await this.updateIntegrationToken(dataId, token)
+      },
+
+      updateIntegrationRefreshToken: async (refreshToken: string) => {
+        await this.updateIntegrationRefreshToken(dataId, refreshToken)
+      },
+
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting stream processing with error!')
         await this.triggerDataError(dataId, 'data-abort', message, metadata, error)
@@ -302,6 +310,38 @@ export default class IntegrationDataService extends LoggerBase {
         dataId,
         'run-data-update-settings',
         'Error while updating settings!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationToken(dataId: string, token: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration token!')
+      await this.repo.updateIntegrationToken(dataId, token)
+    } catch (err) {
+      await this.triggerRunError(
+        dataId,
+        'run-data-update-token',
+        'Error while updating token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationRefreshToken(dataId: string, refreshToken: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration refresh token!')
+      await this.repo.updateIntegrationRefreshToken(dataId, refreshToken)
+    } catch (err) {
+      await this.triggerRunError(
+        dataId,
+        'run-data-update-refresh-token',
+        'Error while updating refresh token!',
         undefined,
         err,
       )

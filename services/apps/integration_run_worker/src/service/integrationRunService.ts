@@ -428,6 +428,14 @@ export default class IntegrationRunService extends LoggerBase {
       updateIntegrationSettings: async (settings: unknown) => {
         await this.updateIntegrationSettings(runId, settings)
       },
+
+      updateIntegrationToken: async (token: string) => {
+        await this.updateIntegrationToken(runId, token)
+      },
+
+      updateIntegrationRefreshToken: async (refreshToken: string) => {
+        await this.updateIntegrationRefreshToken(runId, refreshToken)
+      },
     }
 
     this.log.debug('Marking run as in progress!')
@@ -464,6 +472,38 @@ export default class IntegrationRunService extends LoggerBase {
         runId,
         'run-update-settings',
         'Error while updating settings!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationToken(runId: string, token: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration token!')
+      await this.repo.updateIntegrationToken(runId, token)
+    } catch (err) {
+      await this.triggerRunError(
+        runId,
+        'run-update-token',
+        'Error while updating token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationRefreshToken(runId: string, refreshToken: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration refresh token!')
+      await this.repo.updateIntegrationRefreshToken(runId, refreshToken)
+    } catch (err) {
+      await this.triggerRunError(
+        runId,
+        'run-update-refresh-token',
+        'Error while updating refresh token!',
         undefined,
         err,
       )

@@ -28,6 +28,8 @@ export interface IIntegrationContext {
 
   publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
   updateIntegrationSettings: (settings: unknown) => Promise<void>
+  updateIntegrationToken: (token: string) => Promise<void>
+  updateIntegrationRefreshToken: (refreshToken: string) => Promise<void>
 
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }

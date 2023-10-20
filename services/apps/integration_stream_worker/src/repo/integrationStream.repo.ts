@@ -353,6 +353,40 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
+  public async updateIntegrationToken(runId: string, token: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set token = $(token),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        token,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationRefreshToken(runId: string, refreshToken: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set "refreshToken" = $(refreshToken),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        refreshToken,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
   public async publishData(streamId: string, data: unknown): Promise<string> {
     const id = generateUUIDv1()
 
