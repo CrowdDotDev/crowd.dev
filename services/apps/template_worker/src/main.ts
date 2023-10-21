@@ -6,7 +6,7 @@ const config: Config = {
     enabled: false,
   },
   temporal: {
-    enabled: true,
+    enabled: false,
   },
   redis: {
     enabled: false,
@@ -15,12 +15,13 @@ const config: Config = {
 
 const options: Options = {
   postgres: {
-    enabled: true,
+    enabled: false,
   },
 }
 
 const svc = new ServiceWorker(config, options)
 
 setImmediate(async () => {
+  await svc.init()
   await svc.start()
 })
