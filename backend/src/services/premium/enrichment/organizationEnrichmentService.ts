@@ -177,6 +177,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
         if (existingOrg && existingOrg.id !== org.id) {
           await orgService.merge(existingOrg.id, org.id)
+          unmergedOrgs.push({...org, id: existingOrg.id })
         } else {
           unmergedOrgs.push(org)
         }
