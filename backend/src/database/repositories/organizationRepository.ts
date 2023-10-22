@@ -1,4 +1,5 @@
 import lodash, { chunk } from 'lodash'
+import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
@@ -27,6 +28,11 @@ import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
 
+interface IOrganizationIdentityOpensearch {
+  string_platform: string
+  string_name: string
+}
+
 interface IOrganizationPartialAggregatesOpensearch {
   _source: {
     uuid_organizationId: string
@@ -38,10 +44,12 @@ interface IOrganizationPartialAggregatesOpensearch {
   }
 }
 
-interface IOrganizationIdOpensearch {
+interface ISimilarOrganization {
   _score: number
   _source: {
     uuid_organizationId: string
+    nested_identities: IOrganizationIdentityOpensearch[]
+    nested_weakIdentities: IOrganizationIdentityOpensearch[]
   }
 }
 
@@ -53,8 +61,6 @@ interface IOrganizationNoMerge {
   organizationId: string
   noMergeId: string
 }
-
-type MinMaxScores = { maxScore: number; minScore: number }
 
 class OrganizationRepository {
   static async filterByPayingTenant(
@@ -494,6 +500,25 @@ class OrganizationRepository {
     })
   }
 
+  static async excludeOrganizationsFromAllSegments(
+    organizationIds: string[],
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const bulkDeleteOrganizationSegments = `DELETE FROM "organizationSegments" WHERE "organizationId" in (:organizationIds);`
+
+    await seq.query(bulkDeleteOrganizationSegments, {
+      replacements: {
+        organizationIds,
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
   static async removeMemberRole(role: IMemberOrganization, options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
@@ -556,7 +581,7 @@ class OrganizationRepository {
     })
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -654,14 +679,17 @@ class OrganizationRepository {
     }
 
     if (data.segments) {
-      await OrganizationRepository.includeOrganizationToSegments(record.id, {
-        ...options,
-        transaction,
-      })
+      await OrganizationRepository.includeOrganizationToSegments(record.id, options)
     }
 
     if (data.identities && data.identities.length > 0) {
-      await this.setIdentities(id, data.identities, options)
+      if (overrideIdentities) {
+        await this.setIdentities(id, data.identities, options)
+      } else {
+        for (const identity of data.identities) {
+          await this.addIdentity(id, identity, options)
+        }
+      }
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
@@ -680,6 +708,8 @@ class OrganizationRepository {
     isTeam: boolean,
     options: IRepositoryOptions,
   ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
     await options.database.sequelize.query(
       `update members as m
       set attributes = jsonb_set("attributes", '{isTeamMember}', '{"default": ${isTeam}}'::jsonb)
@@ -696,41 +726,59 @@ class OrganizationRepository {
           tenantId: options.currentTenant.id,
         },
         type: QueryTypes.UPDATE,
+        transaction,
       },
     )
   }
 
-  static async destroy(id, options: IRepositoryOptions, force = false) {
+  static async destroy(
+    id,
+    options: IRepositoryOptions,
+    force = false,
+    destroyIfOnlyNoSegmentsLeft = true,
+  ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    await OrganizationRepository.excludeOrganizationsFromSegments([id], {
-      ...options,
+    const record = await options.database.organization.findOne({
+      where: {
+        id,
+        tenantId: currentTenant.id,
+      },
       transaction,
     })
-    const org = await this.findById(id, options)
 
-    if (org.segments.length === 0) {
-      const record = await options.database.organization.findOne({
-        where: {
-          id,
-          tenantId: currentTenant.id,
-        },
+    if (!record) {
+      throw new Error404()
+    }
+
+    if (destroyIfOnlyNoSegmentsLeft) {
+      await OrganizationRepository.excludeOrganizationsFromSegments([id], {
+        ...options,
         transaction,
       })
+      const org = await this.findById(id, options)
 
-      if (!record) {
-        throw new Error404()
+      if (org.segments.length === 0) {
+        await record.destroy({
+          transaction,
+          force,
+        })
       }
+    } else {
+      await OrganizationRepository.excludeOrganizationsFromAllSegments([id], {
+        ...options,
+        transaction,
+      })
 
       await record.destroy({
         transaction,
         force,
       })
-
-      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
+
+    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async setIdentities(
@@ -755,7 +803,7 @@ class OrganizationRepository {
     )
 
     for (const identity of identities) {
-      await this.addIdentity(organizationId, identity, options)
+      await OrganizationRepository.addIdentity(organizationId, identity, options)
     }
   }
 
@@ -1118,31 +1166,44 @@ class OrganizationRepository {
     fromOrganizationId: string,
     toOrganizationId: string,
     options: IRepositoryOptions,
+    batchSize = 10000,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-
     const seq = SequelizeRepository.getSequelize(options)
-
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
-      update "activities" 
-      set 
-        "organizationId" = :newOrganizationId
-      where 
-        "tenantId" = :tenantId and 
-        "organizationId" = :oldOrganizationId 
-    `
+    let updatedRowsCount = 0
 
-    await seq.query(query, {
-      replacements: {
-        tenantId: tenant.id,
-        oldOrganizationId: fromOrganizationId,
-        newOrganizationId: toOrganizationId,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
+    do {
+      options.log.info(
+        `[Move Activities] - Moving maximum of ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
+      )
+
+      const query = `
+        UPDATE "activities" 
+        SET "organizationId" = :newOrganizationId
+        WHERE id IN (
+          SELECT id 
+          FROM "activities" 
+          WHERE "tenantId" = :tenantId 
+            AND "organizationId" = :oldOrganizationId
+          LIMIT :limit
+        )
+      `
+
+      const [, rowCount] = await seq.query(query, {
+        replacements: {
+          tenantId: tenant.id,
+          oldOrganizationId: fromOrganizationId,
+          newOrganizationId: toOrganizationId,
+          limit: batchSize,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      })
+
+      updatedRowsCount = rowCount ?? 0
+    } while (updatedRowsCount === batchSize)
   }
 
   static async *getMergeSuggestions(
@@ -1162,28 +1223,48 @@ class OrganizationRepository {
       return 10
     }
 
-    const normalizeScore = (max: number, min: number, score: number): number => {
-      if (score > 100) {
-        return 1
+    const calculateSimilarity = (
+      primaryOrganization: IOrganizationPartialAggregatesOpensearch,
+      similarOrganization: ISimilarOrganization,
+    ): number => {
+      let smallestEditDistance: number = null
+
+      let similarPrimaryIdentity: IOrganizationIdentityOpensearch = null
+
+      // find the smallest edit distance between both identity arrays
+      for (const primaryIdentity of primaryOrganization._source.nested_identities) {
+        // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
+        if (
+          similarOrganization._source.nested_weakIdentities.length > 0 &&
+          similarOrganization._source.nested_weakIdentities.some(
+            (weakIdentity) =>
+              weakIdentity.string_name === primaryIdentity.string_name &&
+              weakIdentity.string_platform === primaryIdentity.string_platform,
+          )
+        ) {
+          return 0.95
+        }
+        for (const secondaryIdentity of similarOrganization._source.nested_identities) {
+          const currentLevenstheinDistance = getLevenshteinDistance(
+            primaryIdentity.string_name,
+            secondaryIdentity.string_name,
+          )
+          if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
+            smallestEditDistance = currentLevenstheinDistance
+            similarPrimaryIdentity = primaryIdentity
+          }
+        }
       }
 
-      if (max === min) {
-        return (40 + Math.floor(Math.random() * 26) - 10) / 100
+      // calculate similarity percentage
+      const identityLength = similarPrimaryIdentity.string_name.length
+
+      if (identityLength < smallestEditDistance) {
+        // if levensthein distance is bigger than the word itself, it might be a prefix match, return medium similarity
+        return (Math.floor(Math.random() * 21) + 20) / 100
       }
 
-      const normalizedScore = (score - min) / (max - min)
-
-      // randomize the cases where score === max and score === min
-      if (normalizedScore === 1) {
-        return Math.floor(Math.random() * (76 - 50) + 50) / 100
-      }
-
-      // normalization is resolved to 0, randomize it
-      if (normalizedScore === 0) {
-        return Math.floor(Math.random() * (41 - 20) + 20) / 100
-      }
-
-      return normalizedScore
+      return Math.floor(((identityLength - smallestEditDistance) / identityLength) * 100) / 100
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -1433,10 +1514,10 @@ class OrganizationRepository {
             collapse: {
               field: 'uuid_organizationId',
             },
-            _source: ['uuid_organizationId'],
+            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities'],
           }
 
-          const organizationsToMerge: IOrganizationIdOpensearch[] =
+          const organizationsToMerge: ISimilarOrganization[] =
             (
               await options.opensearch.search({
                 index: OpenSearchIndex.ORGANIZATIONS,
@@ -1444,6 +1525,7 @@ class OrganizationRepository {
               })
             ).body?.hits?.hits || []
 
+          /*
           const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
             (acc, organizationToMerge) => {
               if (!acc.minScore || organizationToMerge._score < acc.minScore) {
@@ -1458,10 +1540,11 @@ class OrganizationRepository {
             },
             { maxScore: null, minScore: null },
           )
+          */
 
           for (const organizationToMerge of organizationsToMerge) {
             yieldChunk.push({
-              similarity: normalizeScore(maxScore, minScore, organizationToMerge._score),
+              similarity: calculateSimilarity(organization, organizationToMerge),
               organizations: [
                 organization._source.uuid_organizationId,
                 organizationToMerge._source.uuid_organizationId,
@@ -1490,29 +1573,49 @@ class OrganizationRepository {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const orgs = await options.database.sequelize.query(
-      `SELECT 
-      "organizationsToMerge".id, 
-      "organizationsToMerge"."toMergeId",
-      "organizationsToMerge"."total_count",
-      "organizationsToMerge"."similarity"
-    FROM 
-    (
-      SELECT DISTINCT ON (Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id)))) 
-          org.id, 
-          otm."toMergeId", 
-          org."createdAt", 
-          COUNT(*) OVER() AS total_count,
+      `WITH
+      cte AS (
+        SELECT
+          Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))) as hash,
+          org.id,
+          otm."toMergeId",
+          org."createdAt",
           otm."similarity"
         FROM organizations org
-        INNER JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
+        JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
+        JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
-        ORDER BY Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))), org.id
-      ) AS "organizationsToMerge" 
-    ORDER BY 
-      "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id 
-    LIMIT :limit OFFSET :offset
+          AND to_merge_segments."segmentId" IN (:segmentIds)
+      ),
+      
+      count_cte AS (
+        SELECT COUNT(DISTINCT hash) AS total_count
+        FROM cte
+      ),
+      
+      final_select AS (
+        SELECT DISTINCT ON (hash)
+          id,
+          "toMergeId",
+          "createdAt",
+          "similarity"
+        FROM cte
+        ORDER BY hash, id
+      )
+      
+      SELECT
+        "organizationsToMerge".id,
+        "organizationsToMerge"."toMergeId",
+        count_cte."total_count",
+        "organizationsToMerge"."similarity"
+      FROM
+        final_select AS "organizationsToMerge",
+        count_cte
+      ORDER BY
+        "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id
+      LIMIT :limit OFFSET :offset
     `,
       {
         replacements: {
@@ -1541,7 +1644,7 @@ class OrganizationRepository {
         organizations: [i, organizationToMergeResults[idx]],
         similarity: orgs[idx].similarity,
       }))
-      return { rows: result, count: orgs[0].total_count / 2, limit, offset }
+      return { rows: result, count: orgs[0].total_count, limit, offset }
     }
 
     return { rows: [{ organizations: [], similarity: 0 }], count: 0, limit, offset }
@@ -1905,90 +2008,99 @@ class OrganizationRepository {
     }
 
     // query for all leaf segment ids
-    let segmentsSubQuery = `
-    select id
-    from segments
-    where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+    let extraCTEs = `
+      leaf_segment_ids AS (
+        select id
+        from segments
+        where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+      ),
     `
 
     if (segmentId) {
       // we load data for a specific segment (can be leaf, parent or grand parent id)
       replacements.segmentId = segmentId
-      segmentsSubQuery = `
-      with input_segment as (select id,
-                                    slug,
-                                    "parentSlug",
-                                    "grandparentSlug"
-                            from segments
-                            where id = :segmentId
-                              and "tenantId" = :tenantId),
-                            segment_level as (select case
-                                        when "parentSlug" is not null and "grandparentSlug" is not null
-                                            then 'child'
-                                        when "parentSlug" is not null and "grandparentSlug" is null
-                                            then 'parent'
-                                        when "parentSlug" is null and "grandparentSlug" is null
-                                            then 'grandparent'
-                                        end as level,
-                                    id,
-                                    slug,
-                                    "parentSlug",
-                                    "grandparentSlug"
-                            from input_segment)
-                            select s.id
-                            from segments s
-                            join
-                            segment_level sl
-                            on
-                            (sl.level = 'child' and s.id = sl.id) or
-                            (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null) or
-                            (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)`
+      extraCTEs = `
+        input_segment AS (
+          select
+            id,
+            slug,
+            "parentSlug",
+            "grandparentSlug"
+          from segments
+          where id = :segmentId
+            and "tenantId" = :tenantId
+        ),
+        segment_level AS (
+          select
+            case
+              when "parentSlug" is not null and "grandparentSlug" is not null
+                  then 'child'
+              when "parentSlug" is not null and "grandparentSlug" is null
+                  then 'parent'
+              when "parentSlug" is null and "grandparentSlug" is null
+                  then 'grandparent'
+              end as level,
+            id,
+            slug,
+            "parentSlug",
+            "grandparentSlug"
+          from input_segment
+        ),
+        leaf_segment_ids AS (
+          select s.id
+          from segments s
+          join segment_level sl on (sl.level = 'child' and s.id = sl.id)
+              or (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null)
+              or (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)
+        ),
+      `
     }
 
     const query = `
-    with leaf_segment_ids as (${segmentsSubQuery}),
-    member_data as (select a."organizationId",
-        count(distinct a."memberId")                                                        as "memberCount",
-        count(distinct a.id)                                                        as "activityCount",
-        case
-            when array_agg(distinct a.platform) = array [null] then array []::text[]
-            else array_agg(distinct a.platform) end                                 as "activeOn",
-        max(a.timestamp)                                                            as "lastActive",
-        min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
-    from leaf_segment_ids ls
-          join activities a
-                    on a."segmentId" = ls.id and a."organizationId" = :id and
-                      a."deletedAt" is null
-          join "organizationSegments" os on a."segmentId" = os."segmentId" and os."organizationId" = :id
-          join members m on a."memberId" = m.id and m."deletedAt" is null
-          join "memberOrganizations" mo on m.id = mo."memberId" and mo."organizationId" = :id and mo."dateEnd" is null
-    group by a."organizationId"),
-    organization_segments as (select "organizationId", array_agg("segmentId") as "segments"
+      WITH
+        ${extraCTEs}
+        member_data AS (
+          select
+            a."organizationId",
+            count(distinct a."memberId")                                                        as "memberCount",
+            count(distinct a.id)                                                        as "activityCount",
+            case
+                when array_agg(distinct a.platform::TEXT) = array [null] then array []::text[]
+                else array_agg(distinct a.platform::TEXT) end                                 as "activeOn",
+            max(a.timestamp)                                                            as "lastActive",
+            min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
+          from leaf_segment_ids ls
+          join mv_activities_cube a on a."segmentId" = ls.id and a."organizationId" = :id
+          group by a."organizationId"
+        ),
+        organization_segments as (
+          select "organizationId", array_agg("segmentId") as "segments"
           from "organizationSegments"
           where "organizationId" = :id
-          group by "organizationId"),
-    identities as (
-      SELECT oi."organizationId", jsonb_agg(oi) AS "identities"
-      FROM "organizationIdentities" oi
-      WHERE oi."organizationId" = :id
-      GROUP BY "organizationId"
-    )
-    select 
-      o.*,
-      coalesce(md."activityCount", 0)::integer as "activityCount",
-      coalesce(md."memberCount", 0)::integer   as "memberCount",
-      coalesce(md."activeOn", '{}')            as "activeOn",
-      coalesce(i.identities, '{}')            as identities,
-      coalesce(os.segments, '{}')              as segments,
-      md."lastActive",
-      md."joinedAt"
-    from organizations o
-    left join member_data md on md."organizationId" = o.id
-    left join organization_segments os on os."organizationId" = o.id
-    left join identities i on i."organizationId" = o.id
-    where o.id = :id
-    and o."tenantId" = :tenantId;
-`
+          group by "organizationId"
+        ),
+        identities as (
+          SELECT oi."organizationId", jsonb_agg(oi) AS "identities"
+          FROM "organizationIdentities" oi
+          WHERE oi."organizationId" = :id
+          GROUP BY "organizationId"
+        )
+        select
+          o.*,
+          coalesce(md."activityCount", 0)::integer as "activityCount",
+          coalesce(md."memberCount", 0)::integer   as "memberCount",
+          coalesce(md."activeOn", '{}')            as "activeOn",
+          coalesce(i.identities, '{}')            as identities,
+          coalesce(os.segments, '{}')              as segments,
+          md."lastActive",
+          md."joinedAt"
+        from organizations o
+        left join member_data md on md."organizationId" = o.id
+        left join organization_segments os on os."organizationId" = o.id
+        left join identities i on i."organizationId" = o.id
+        where o.id = :id
+        and o."tenantId" = :tenantId;
+    `
 
     const results = await sequelize.query(query, {
       replacements,
@@ -2002,10 +2114,9 @@ class OrganizationRepository {
 
     const result = results[0] as any
 
-    const manualSyncRemote = await new OrganizationSyncRemoteRepository({
-      ...options,
-      transaction,
-    }).findOrganizationManualSync(result.id)
+    const manualSyncRemote = await new OrganizationSyncRemoteRepository(
+      options,
+    ).findOrganizationManualSync(result.id)
 
     for (const syncRemote of manualSyncRemote) {
       if (result.attributes?.syncRemote) {

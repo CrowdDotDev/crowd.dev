@@ -10,7 +10,7 @@ import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
 import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
-import { processIntegration, processIntegrationCheck, processWebhook } from './worker/integrations'
+import { processIntegration, processWebhook } from './worker/integrations'
 
 /* eslint-disable no-constant-condition */
 
@@ -57,7 +57,7 @@ async function handleDelayedMessages() {
     const message = await receive(true)
 
     if (message) {
-      tracer.startActiveSpan('ProcessDelayedMessage', async (span) => {
+      await tracer.startActiveSpan('ProcessDelayedMessage', async (span) => {
         try {
           const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
           const messageLogger = getChildLogger('messageHandler', serviceLogger, {
@@ -130,7 +130,7 @@ async function handleMessages() {
   handlerLogger.info('Listening for messages!')
 
   const processSingleMessage = async (message: Message): Promise<void> => {
-    tracer.startActiveSpan('ProcessMessage', async (span) => {
+    await tracer.startActiveSpan('ProcessMessage', async (span) => {
       const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
       const messageLogger = getChildLogger('messageHandler', serviceLogger, {
@@ -158,9 +158,6 @@ async function handleMessages() {
         let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
 
         switch (msg.type) {
-          case NodeWorkerMessageType.INTEGRATION_CHECK:
-            processFunction = processIntegrationCheck
-            break
           case NodeWorkerMessageType.INTEGRATION_PROCESS:
             processFunction = processIntegration
             break

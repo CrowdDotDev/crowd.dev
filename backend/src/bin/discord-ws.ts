@@ -58,7 +58,7 @@ async function spawnClient(
 
     logger.info({ payload }, 'Processing Discord WS Message!')
 
-    tracer.startActiveSpan('ProcessDiscordWSMessage', async (span) => {
+    await tracer.startActiveSpan('ProcessDiscordWSMessage', async (span) => {
       try {
         const integration = (await IntegrationRepository.findByIdentifier(
           guildId,

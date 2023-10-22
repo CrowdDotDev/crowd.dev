@@ -53,7 +53,7 @@ export const plans = {
       title: 'Scale',
       description:
         'Commercialize your open source product',
-      price: '$950/year',
+      price: '$950/month',
       priceInfo: 'annual payment',
       featuresNote: 'Everything in Essential, plus:',
       features: [
