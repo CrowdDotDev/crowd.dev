@@ -1,7 +1,13 @@
 import { GenerateStreamsHandler } from '../../types'
 import { IGenerateStreamsContext } from '../../types'
 import axios from 'axios'
-import { TwitterPlatformSettings } from './types'
+import {
+  TwitterPlatformSettings,
+  TwitterIntegrationsSettings,
+  TwitterMentionsStreamData,
+  TwitterHashtagStreamData,
+  TwitterStreamType,
+} from './types'
 
 const refreshToken = async (ctx: IGenerateStreamsContext) => {
   const refreshToken = ctx.integration.refreshToken
@@ -21,10 +27,8 @@ const refreshToken = async (ctx: IGenerateStreamsContext) => {
 
     const { access_token, refresh_token } = response.data
 
-    await ctx.updateIntegrationSettings({
-      accessToken: access_token,
-      refreshToken: refresh_token,
-    })
+    await ctx.updateIntegrationToken(access_token)
+    await ctx.updateIntegrationRefreshToken(refresh_token)
   } catch (e) {
     ctx.abortRunWithError(
       'Error refreshing Twitter token, aborting run',
@@ -37,6 +41,23 @@ const refreshToken = async (ctx: IGenerateStreamsContext) => {
   }
 }
 
-const handler: GenerateStreamsHandler = async (ctx) => {}
+const handler: GenerateStreamsHandler = async (ctx) => {
+  await refreshToken(ctx)
+
+  const settings = ctx.integration.settings as TwitterIntegrationsSettings
+  const hashtags = settings.hashtags
+
+  // first let's kick off mentions stream
+  await ctx.publishStream<TwitterMentionsStreamData>(TwitterStreamType.MENTIONS, {
+    page: '',
+  })
+
+  for (const hashtag of hashtags) {
+    await ctx.publishStream<TwitterHashtagStreamData>(`${TwitterStreamType.HASHTAG}:${hashtag}`, {
+      hashtag,
+      page: '',
+    })
+  }
+}
 
 export default handler
