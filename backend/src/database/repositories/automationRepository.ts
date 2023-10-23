@@ -256,10 +256,11 @@ export default class AutomationRepository extends RepositoryBase<
     }
   }
 
-  static async countAll(database: any, tenantId: string): Promise<number> {
+  static async countAllActive(database: any, tenantId: string): Promise<number> {
     const automationCount = await database.automation.count({
       where: {
         tenantId,
+        state: AutomationState.ACTIVE,
       },
       useMaster: true,
     })

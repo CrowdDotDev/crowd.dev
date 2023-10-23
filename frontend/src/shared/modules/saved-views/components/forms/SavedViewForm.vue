@@ -42,7 +42,7 @@
         <section v-if="Object.keys(settings).length > 0" class="px-6">
           <div class="border-b border-gray-200 pb-1">
             <div v-for="(setting, settingsKey) in settings" :key="settingsKey" class="pb-3">
-              <component :is="setting.settingsComponent" v-model="form.settings[settingsKey]" />
+              <component :is="setting.settingsComponent" v-model="form.settings[settingsKey]" :settings="form.settings" />
             </div>
           </div>
         </section>
