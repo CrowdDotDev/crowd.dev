@@ -412,11 +412,16 @@
                   >
                     <div class="h-full flex items-center justify-center w-full">
                       <button
+                        :id="`buttonRef-${scope.row.id}`"
+                        :ref="(el) => setActionBtnsRef(el, scope.row.id)"
                         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
                         type="button"
-                        @click.prevent.stop
+                        @click.prevent.stop="() => onActionBtnClick(scope.row)"
                       >
-                        <i class="text-xl ri-more-fill" />
+                        <i
+                          :id="`buttonRefIcon-${scope.row.id}`"
+                          class="text-xl ri-more-fill"
+                        />
                       </button>
                     </div>
                   </router-link>
@@ -438,6 +443,24 @@
         </div>
       </div>
     </div>
+    <el-popover
+      ref="memberDropdownPopover"
+      placement="bottom-end"
+      popper-class="popover-dropdown"
+      :virtual-ref="actionBtnRefs[selectedActionMember?.id]"
+      trigger="click"
+      :visible="showMemberDropdownPopover"
+      virtual-triggering
+      @hide="onHide"
+    >
+      <div v-click-outside="onClickOutside">
+        <app-member-dropdown-content
+          v-if="selectedActionMember"
+          :member="selectedActionMember"
+          @merge="isMergeDialogOpen = selectedActionMember"
+        />
+      </div>
+    </el-popover>
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
     <app-tag-popover v-model="isEditTagsDialogOpen" :member="editTagMember" @reload="fetchMembers({ reload: true })" />
   </div>
@@ -449,6 +472,7 @@ import { useRouter } from 'vue-router';
 import {
   computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
+import { ClickOutside as vClickOutside } from 'element-plus';
 import { storeToRefs } from 'pinia';
 import { i18n } from '@/i18n';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
@@ -462,7 +486,7 @@ import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialo
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberBadge from '../member-badge.vue';
-import AppMemberDropdown from '../member-dropdown.vue';
+import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberIdentities from '../member-identities.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
@@ -482,6 +506,11 @@ const isCursorDown = ref(false);
 const isMergeDialogOpen = ref(null);
 const isEditTagsDialogOpen = ref(false);
 const editTagMember = ref(null);
+
+const showMemberDropdownPopover = ref(false);
+const memberDropdownPopover = ref(null);
+const actionBtnRefs = ref({});
+const selectedActionMember = ref(null);
 
 const props = defineProps({
   hasIntegrations: {
@@ -582,6 +611,34 @@ document.onmouseup = () => {
   // according to wether the mouse is hovering the table or not
   isScrollbarVisible.value = isTableHovered.value;
   isCursorDown.value = false;
+};
+
+const setActionBtnsRef = (el, id) => {
+  if (el) {
+    actionBtnRefs.value[id] = el;
+  }
+};
+
+const onActionBtnClick = (id) => {
+  showMemberDropdownPopover.value = !showMemberDropdownPopover.value;
+
+  if (selectedActionMember.value) {
+    setTimeout(() => {
+      selectedActionMember.value = null;
+    }, 200);
+  } else {
+    selectedActionMember.value = id;
+  }
+};
+
+const onClickOutside = (el) => {
+  if (!el.target?.id.includes('buttonRef')) {
+    showMemberDropdownPopover.value = false;
+
+    setTimeout(() => {
+      selectedActionMember.value = null;
+    }, 200);
+  }
 };
 
 function handleEditTagsDialog(member) {
@@ -751,5 +808,10 @@ export default {
 }
 .el-table__body {
   height: 1px;
+}
+
+.popover-dropdown {
+  padding: 0.5rem !important;
+  width: fit-content !important;
 }
 </style>
