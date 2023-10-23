@@ -1,27 +1,23 @@
 import { getChildLogger } from '@crowd/logging'
-import { Context } from '@temporalio/activity'
 import { dbStore, redis, serviceLog } from '../main'
 import { AutomationService } from '../services/automation.service'
 
-export async function triggerAutomationExecution(
-  tenantId: string,
+export async function triggerMemberAutomationExecution(
   automationId: string,
   memberId: string,
 ): Promise<void> {
-  const workflowExecution = Context.current().info.workflowExecution
-  const workflowId = workflowExecution.workflowId
-  const runId = workflowExecution.runId
-
-  const log = getChildLogger('triggerAutomationExecution', serviceLog, {
-    workflowId,
-    runId,
+  const log = getChildLogger('triggerMemberAutomationExecution', serviceLog, {
     automationId,
-    tenantId,
     memberId,
   })
 
   const service = new AutomationService(dbStore, redis, log)
-  await service.triggerAutomationExecution(tenantId, automationId)
+  const payload = await service.getMember(memberId)
+  if (!payload) {
+    log.warn('Member not found, skipping execution')
+    return
+  }
+  await service.triggerAutomationExecution(automationId, memberId, payload)
 }
 
 // returns automation ids to trigger
@@ -29,13 +25,7 @@ export async function detectNewMemberAutomations(
   tenantId: string,
   memberId: string,
 ): Promise<string[]> {
-  const workflowExecution = Context.current().info.workflowExecution
-  const workflowId = workflowExecution.workflowId
-  const runId = workflowExecution.runId
-
   const log = getChildLogger('detectNewMemberAutomations', serviceLog, {
-    workflowId,
-    runId,
     tenantId,
     memberId,
   })

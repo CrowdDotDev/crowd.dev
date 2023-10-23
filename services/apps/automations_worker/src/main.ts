@@ -23,6 +23,11 @@ const svc = new ServiceWorker(config, options)
 export const dbStore = svc.postgres
 export const serviceLog = svc.log
 export const redis = svc.redis
+export const FRONTEND_URL = process.env.CROWD_API_FRONTEND_URL
+
+if (!FRONTEND_URL) {
+  throw new Error('CROWD_API_FRONTEND_URL is not set')
+}
 
 setImmediate(async () => {
   await svc.init()
