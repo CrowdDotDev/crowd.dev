@@ -446,6 +446,11 @@ export default class OrganizationService extends LoggerBase {
       if (existing) {
         await OrganizationRepository.checkIdentities(data, this.options, existing.id)
 
+        // Set displayName if it doesn't exist
+        if (!existing.displayName) {
+          data.displayName = cache.name
+        }
+
         record = await OrganizationRepository.update(
           existing.id,
           { ...data, ...cache },
