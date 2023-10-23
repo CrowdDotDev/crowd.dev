@@ -4,7 +4,7 @@ import { IProcessStreamContext } from '../../../types'
 import { PlatformType } from '@crowd/types'
 import { RedditGetCommentsInput, RedditCommentsResponse } from '../types'
 import { timeout } from '@crowd/common'
-import { getRateLimiter } from './handleRateLimit'
+import { handleRedditError } from './errorHandler'
 
 /**
  * Get the comment tree of a post.
@@ -16,22 +16,18 @@ async function getComments(
   input: RedditGetCommentsInput,
   ctx: IProcessStreamContext,
 ): Promise<RedditCommentsResponse> {
+  let config: AxiosRequestConfig
   try {
-    const rateLimiter = getRateLimiter(ctx)
-
     ctx.log.info({ message: 'Fetching comments from a post in a sub-reddit', input })
 
     // Wait for 1.5s for rate limits.
     // eslint-disable-next-line no-promise-executor-return
     await timeout(1500)
 
-    // Check if we can make a request - if not, it will throw a RateLimitError
-    await rateLimiter.checkRateLimit('getComments')
-
     // Gett an access token from Nango
     const accessToken = await getNangoToken(input.nangoId, PlatformType.REDDIT, ctx)
 
-    const config: AxiosRequestConfig = {
+    config = {
       method: 'get',
       url: `http://oauth.reddit.com/r/${input.subreddit}/comments/${input.postId}.json`,
       params: {
@@ -42,14 +38,12 @@ async function getComments(
       },
     }
 
-    // we are going to make a request, so increment the rate limit
-    await rateLimiter.incrementRateLimit()
-
     const response: RedditCommentsResponse = (await axios(config)).data
     return response
   } catch (err) {
     ctx.log.error({ err, input }, 'Error while getting comments in subreddit')
-    throw err
+    const newErr = handleRedditError(err, config, input, ctx)
+    throw newErr
   }
 }
 

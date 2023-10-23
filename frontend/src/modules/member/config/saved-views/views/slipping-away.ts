@@ -3,8 +3,10 @@ import moment from 'moment';
 
 const slippingAway: SavedView = {
   id: 'slipping-away',
-  label: 'Slipping away',
-  filter: {
+  name: 'Slipping away',
+  placement: 'member',
+  visibility: 'tenant',
+  config: {
     search: '',
     relation: 'and',
     order: {
