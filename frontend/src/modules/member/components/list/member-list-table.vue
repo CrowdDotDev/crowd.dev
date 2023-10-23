@@ -411,10 +411,13 @@
                     class="block w-full"
                   >
                     <div class="h-full flex items-center justify-center w-full">
-                      <app-member-dropdown
-                        :member="scope.row"
-                        @merge="isMergeDialogOpen = scope.row"
-                      />
+                      <button
+                        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+                        type="button"
+                        @click.prevent.stop
+                      >
+                        <i class="text-xl ri-more-fill" />
+                      </button>
                     </div>
                   </router-link>
                 </template>
