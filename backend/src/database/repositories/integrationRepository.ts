@@ -510,6 +510,32 @@ class IntegrationRepository {
 
     rows = await this._populateRelationsForRows(rows)
 
+    const seq = SequelizeRepository.getSequelize(options)
+
+    // Some integrations (i.e GitHub, Discord, Discourse, Groupsio) receive new data via webhook post-onboarding.
+    // We track their last processedAt separately, and not using updatedAt.
+    const results = await seq.query(
+      `select "integrationId", max("processedAt") as "processedAt" from "incomingWebhooks" 
+      where "integrationId" in (:integrationIds) and state = 'PROCESSED'
+      group by "integrationId"`,
+      {
+        replacements: {
+          integrationIds: rows.map((row) => row.id),
+        },
+        type: QueryTypes.SELECT,
+        transaction: SequelizeRepository.getTransaction(options),
+      },
+    ) as any[]
+
+    const processedAtMap = results.reduce((map, item) => {
+      map[item.integrationId] = item.processedAt
+      return map
+    }, {})
+
+    rows.forEach((row) => {
+      row.lastProcessedAt = processedAtMap[row.id] || row.updatedAt
+    })
+
     return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
