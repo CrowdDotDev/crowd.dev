@@ -514,7 +514,7 @@ class IntegrationRepository {
 
     // Some integrations (i.e GitHub, Discord, Discourse, Groupsio) receive new data via webhook post-onboarding.
     // We track their last processedAt separately, and not using updatedAt.
-    const results = await seq.query(
+    const results = (await seq.query(
       `select "integrationId", max("processedAt") as "processedAt" from "incomingWebhooks" 
       where "integrationId" in (:integrationIds) and state = 'PROCESSED'
       group by "integrationId"`,
@@ -525,7 +525,7 @@ class IntegrationRepository {
         type: QueryTypes.SELECT,
         transaction: SequelizeRepository.getTransaction(options),
       },
-    ) as any[]
+    )) as any[]
 
     const processedAtMap = results.reduce((map, item) => {
       map[item.integrationId] = item.processedAt
@@ -533,6 +533,7 @@ class IntegrationRepository {
     }, {})
 
     rows.forEach((row) => {
+      // Either use the last processedAt, or fall back updatedAt
       row.lastProcessedAt = processedAtMap[row.id] || row.updatedAt
     })
 
