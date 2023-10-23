@@ -2,7 +2,7 @@
   <!-- Edit -->
   <button
     :disabled="isEditLockedForSampleData"
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     type="button"
     @click="handleCommand({
       action: 'organizationEdit',
@@ -16,7 +16,7 @@
 
   <!-- Merge organization -->
   <button
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     type="button"
     :disabled="isEditLockedForSampleData"
     @click="handleCommand({
@@ -39,7 +39,7 @@
     <span>
       <button
         v-if="!isSyncingWithHubspot(organization)"
-        class="h-10 el-dropdown-menu__item"
+        class="h-10 el-dropdown-menu__item w-full"
         type="button"
         :disabled="!isHubspotConnected || (!organization.website && !organization.attributes?.sourceId?.hubspot) || !isHubspotEnabled"
         @click="handleCommand({
@@ -54,7 +54,7 @@
       </button>
       <button
         v-else
-        class="h-10 el-dropdown-menu__item"
+        class="h-10 el-dropdown-menu__item w-full"
         type="button"
         :disabled="!isHubspotConnected"
         @click="handleCommand({
@@ -73,7 +73,7 @@
   <!-- Mark as Team Organization -->
   <button
     v-if="!organization.isTeamOrganization"
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     type="button"
     :disabled="isEditLockedForSampleData"
     @click="handleCommand({
@@ -91,7 +91,7 @@
   <button
     v-if="organization.isTeamOrganization"
     type="button"
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     @click="handleCommand({
       action: 'markOrganizationTeam',
@@ -108,7 +108,7 @@
 
   <!-- Delete -->
   <button
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isDeleteLockedForSampleData"
     type="button"
     @click="handleCommand({
