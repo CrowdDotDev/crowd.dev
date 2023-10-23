@@ -65,7 +65,7 @@ class CustomViewRepository {
 
     // don't allow other users private custom views to be updated
     if (record.visibility === 'user' && record.createdById !== currentUser.id) {
-      throw new Error('Update not allowed!')
+      throw new Error('Update not allowed as custom view was not created by user!')
     }
 
     // we don't allow placement to be updated
@@ -119,7 +119,7 @@ class CustomViewRepository {
 
     // don't allow other users private custom views to be deleted
     if (record.visibility === 'user' && record.createdById !== currentUser.id) {
-      throw new Error('Deletion not allowed!')
+      throw new Error('Deletion not allowed as custom view was not created by user!')
     }
 
     // update who deleted the custom view
