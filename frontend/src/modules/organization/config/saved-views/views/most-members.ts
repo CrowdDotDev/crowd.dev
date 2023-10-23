@@ -2,8 +2,10 @@ import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const mostMembers: SavedView = {
   id: 'most-contacts',
-  label: 'Most contacts',
-  filter: {
+  name: 'Most contacts',
+  visibility: 'tenant',
+  placement: 'organization',
+  config: {
     search: '',
     relation: 'and',
     order: {
