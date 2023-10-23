@@ -240,12 +240,12 @@ const mergeSuggestion = () => {
     return;
   }
   sendingMerge.value = true;
-  primary.value = 0;
   MemberService.merge(
     membersToMerge.value.members[primary.value],
     membersToMerge.value.members[(primary.value + 1) % 2],
   )
     .then(() => {
+      primary.value = 0;
       Message.success('Contacts merged successfuly');
       fetch();
     })
