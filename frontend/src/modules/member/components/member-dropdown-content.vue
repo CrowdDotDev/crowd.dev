@@ -214,7 +214,7 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 
-defineEmits(['merge']);
+const emit = defineEmits(['merge', 'closeDropdown']);
 const props = defineProps({
   member: {
     type: Object,
@@ -226,7 +226,7 @@ const store = useStore();
 const route = useRoute();
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doFind, doDestroy, doEnrich } = mapActions('member');
+const { doFind, doEnrich } = mapActions('member');
 
 const memberStore = useMemberStore();
 const { fetchMembers } = memberStore;
@@ -278,7 +278,12 @@ const doDestroyWithConfirm = async (id) => {
       icon: 'ri-delete-bin-line',
     });
 
-    await doDestroy(id);
+    await MemberService.destroyAll([id]);
+
+    Message.success('Contact successfully deleted');
+
+    emit('closeDropdown');
+
     await fetchMembers({ reload: true });
   } catch (error) {
     // no
@@ -296,6 +301,8 @@ const handleCommand = async (command) => {
     const sync = command.action === 'syncHubspot';
     (sync ? HubspotApiService.syncMember(command.member.id) : HubspotApiService.stopSyncMember(command.member.id))
       .then(() => {
+        emit('closeDropdown');
+
         if (route.name === 'member') {
           fetchMembers({ reload: true });
         } else {
@@ -321,6 +328,9 @@ const handleCommand = async (command) => {
         },
       },
     });
+
+    emit('closeDropdown');
+
     await fetchMembers({ reload: true });
 
     Message.success('Contact updated successfully');
@@ -339,6 +349,9 @@ const handleCommand = async (command) => {
         },
       },
     });
+
+    emit('closeDropdown');
+
     await fetchMembers({ reload: true });
     Message.success('Contact updated successfully');
     if (route.name === 'member') {
@@ -347,12 +360,17 @@ const handleCommand = async (command) => {
       doFind(command.member.id);
     }
   } else if (command.action === 'memberMerge') {
+    emit('closeDropdown');
     emit('merge');
   } else if (command.action === 'memberEnrich') {
     await doEnrich(command.member.id);
+
+    emit('closeDropdown');
+
     await fetchMembers({ reload: true });
   }
 
+  emit('closeDropdown');
   return null;
 };
 

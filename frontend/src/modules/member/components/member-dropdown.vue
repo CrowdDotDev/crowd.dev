@@ -15,7 +15,8 @@
       <template #dropdown>
         <app-member-dropdown-content
           :member="member"
-          @merge="$emit('merge')"
+          @merge="emit('merge')"
+          @close-dropdown="emit('closeDropdown')"
         />
       </template>
     </el-dropdown>
@@ -27,7 +28,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
-defineEmits('merge');
+const emit = defineEmits(['merge', 'closeDropdown']);
 defineProps({
   member: {
     type: Object,

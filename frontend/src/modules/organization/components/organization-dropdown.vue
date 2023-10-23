@@ -16,6 +16,7 @@
         <app-organization-dropdown-content
           :organization="organization"
           @merge="emit('merge')"
+          @close-dropdown="emit('closeDropdown')"
         />
       </template>
     </el-dropdown>
@@ -39,6 +40,7 @@ defineProps({
 
 const emit = defineEmits([
   'merge',
+  'closeDropdown',
 ]);
 
 const { currentUser, currentTenant } = mapGetters('auth');

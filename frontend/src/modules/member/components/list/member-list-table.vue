@@ -458,6 +458,7 @@
           v-if="selectedActionMember"
           :member="selectedActionMember"
           @merge="isMergeDialogOpen = selectedActionMember"
+          @close-dropdown="closeDropdown"
         />
       </div>
     </el-popover>
@@ -619,25 +620,30 @@ const setActionBtnsRef = (el, id) => {
   }
 };
 
-const onActionBtnClick = (id) => {
-  showMemberDropdownPopover.value = !showMemberDropdownPopover.value;
-
-  if (selectedActionMember.value) {
-    setTimeout(() => {
-      selectedActionMember.value = null;
-    }, 200);
-  } else {
-    selectedActionMember.value = id;
-  }
-};
-
-const onClickOutside = (el) => {
-  if (!el.target?.id.includes('buttonRef')) {
+const onActionBtnClick = (member) => {
+  if (selectedActionMember.value?.id === member.id) {
     showMemberDropdownPopover.value = false;
 
     setTimeout(() => {
       selectedActionMember.value = null;
     }, 200);
+  } else {
+    showMemberDropdownPopover.value = true;
+    selectedActionMember.value = member;
+  }
+};
+
+const closeDropdown = () => {
+  showMemberDropdownPopover.value = false;
+
+  setTimeout(() => {
+    selectedActionMember.value = null;
+  }, 200);
+};
+
+const onClickOutside = (el) => {
+  if (!el.target?.id.includes('buttonRef')) {
+    closeDropdown();
   }
 };
 

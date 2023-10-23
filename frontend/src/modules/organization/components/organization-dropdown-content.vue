@@ -160,6 +160,7 @@ defineProps({
 
 const emit = defineEmits([
   'merge',
+  'closeDropdown',
 ]);
 
 const store = useStore();
@@ -211,6 +212,8 @@ const doDestroyWithConfirm = async (id) => {
     Message.success(
       i18n('entities.organization.destroy.success'),
     );
+    emit('closeDropdown');
+
     await fetchOrganizations({
       reload: true,
     });
@@ -224,6 +227,7 @@ const handleCommand = (command) => {
   if (command.action === 'organizationDelete') {
     return doDestroyWithConfirm(command.organization.id);
   } if (command.action === 'organizationEdit') {
+    emit('closeDropdown');
     router.push({
       name: 'organizationEdit',
       params: {
@@ -231,6 +235,7 @@ const handleCommand = (command) => {
       },
     });
   } else if (command.action === 'organizationMerge') {
+    emit('closeDropdown');
     emit('merge');
   } else if (
     command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
@@ -239,6 +244,7 @@ const handleCommand = (command) => {
     const sync = command.action === 'syncHubspot';
     (sync ? HubspotApiService.syncOrganization(command.organization.id) : HubspotApiService.stopSyncOrganization(command.organization.id))
       .then(() => {
+        emit('closeDropdown');
         if (
           router.currentRoute.value.name === 'organization'
         ) {
@@ -262,6 +268,7 @@ const handleCommand = (command) => {
       isTeamOrganization: command.value,
     }).then(() => {
       Message.success('Organization updated successfully');
+      emit('closeDropdown');
 
       if (
         router.currentRoute.value.name === 'organization'
@@ -274,6 +281,8 @@ const handleCommand = (command) => {
       }
     });
   }
+
+  emit('closeDropdown');
   return null;
 };
 </script>
