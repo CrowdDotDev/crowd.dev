@@ -9,17 +9,20 @@ const config: Config = {
     enabled: false,
   },
   redis: {
-    enabled: false,
+    enabled: true,
   },
 }
 
 const options: Options = {
   postgres: {
-    enabled: false,
+    enabled: true,
   },
 }
 
-export const svc = new ServiceWorker(config, options)
+const svc = new ServiceWorker(config, options)
+export const dbStore = svc.postgres
+export const serviceLog = svc.log
+export const redis = svc.redis
 
 setImmediate(async () => {
   await svc.init()

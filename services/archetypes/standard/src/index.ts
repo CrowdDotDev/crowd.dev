@@ -1,11 +1,11 @@
-import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 import { Connection, Client as TemporalClient } from '@temporalio/client'
-import { Unleash as UnleashClient, initialize as InitUnleash } from 'unleash-client'
+import { Kafka, Producer as KafkaProducer } from 'kafkajs'
+import { initialize as InitUnleash, Unleash as UnleashClient } from 'unleash-client'
 
-import { getServiceTracer, Tracer } from '@crowd/tracing'
-import { getServiceLogger, Logger } from '@crowd/logging'
-import { acquireLock, releaseLock, getRedisClient, RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
+import { getServiceLogger, Logger } from '@crowd/logging'
+import { acquireLock, getRedisClient, RedisClient, releaseLock } from '@crowd/redis'
+import { getServiceTracer, Tracer } from '@crowd/tracing'
 
 // Retrieve automatically configured tracer and logger.
 const tracer = getServiceTracer()
@@ -60,7 +60,6 @@ export class Service {
   protected _kafka: Kafka | null
   protected _temporal: TemporalClient | null
 
-  protected _redisCache: RedisCache | null
   protected _redisClient: RedisClient | null
 
   constructor(config: Config) {
@@ -102,12 +101,12 @@ export class Service {
     return this._temporal
   }
 
-  get redis(): RedisCache | null {
+  get redis(): RedisClient | null {
     if (!this.config.redis.enabled) {
       return null
     }
 
-    return this._redisCache
+    return this._redisClient
   }
 
   // Redis utility to acquire a lock. Redis must be enabled in the service.
@@ -227,8 +226,6 @@ export class Service {
           username: process.env['CROWD_REDIS_USER'],
           password: process.env['CROWD_REDIS_PASSWORD'],
         })
-
-        this._redisCache = new RedisCache(this.name, this._redisClient, this.log)
       } catch (err) {
         throw new Error(err)
       }

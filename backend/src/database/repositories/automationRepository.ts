@@ -270,13 +270,13 @@ export default class AutomationRepository extends RepositoryBase<
   public async findSyncAutomations(
     tenantId: string,
     platform: string,
-  ): Promise<IAutomation[] | null> {
+  ): Promise<IAutomationData[] | null> {
     const seq = this.seq
 
     const transaction = this.transaction
 
     const pageSize = 10
-    const syncAutomations: IAutomation[] = []
+    const syncAutomations: IAutomationData[] = []
 
     let results
     let offset

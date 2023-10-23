@@ -1,16 +1,16 @@
 import { getServiceChildLogger } from '@crowd/logging'
-import { AutomationTrigger } from '@crowd/types'
+import {
+  AutomationState,
+  AutomationTrigger,
+  AutomationType,
+  IAutomationData,
+  NewMemberSettings,
+} from '@crowd/types'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 import getUserContext from '../../../../../database/utils/getUserContext'
-import {
-  AutomationData,
-  AutomationState,
-  AutomationType,
-  NewMemberSettings,
-} from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
 
 const log = getServiceChildLogger('newMemberWorker')
@@ -22,7 +22,7 @@ const log = getServiceChildLogger('newMemberWorker')
  */
 export const shouldProcessMember = async (
   member: any,
-  automation: AutomationData,
+  automation: IAutomationData,
 ): Promise<boolean> => {
   const settings = automation.settings as NewMemberSettings
 
