@@ -3,8 +3,10 @@ import moment from 'moment';
 
 const newAndActive: SavedView = {
   id: 'new-and-active',
-  label: 'New and active',
-  filter: {
+  name: 'New and active',
+  visibility: 'tenant',
+  placement: 'organization',
+  config: {
     search: '',
     relation: 'and',
     order: {

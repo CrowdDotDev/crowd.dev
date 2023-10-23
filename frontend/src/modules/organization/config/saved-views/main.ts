@@ -4,12 +4,19 @@ import newAndActive from './views/new-and-active';
 import mostMembers from './views/most-members';
 import teamOrganizations from './views/team-organizations';
 
-import teamOrganization from './settings/teamOrganization';
+import teamOrganization from './settings/teamOrganization/config';
 
 export const organizationSavedViews: SavedViewsConfig = {
   defaultView: allOrganizations,
   settings: {
     teamOrganization,
+  },
+  sorting: {
+    displayName: 'Organization',
+    memberCount: '# contacts',
+    activityCount: '# activities',
+    joinedAt: 'Joined date',
+    founded: 'Founded',
   },
 };
 

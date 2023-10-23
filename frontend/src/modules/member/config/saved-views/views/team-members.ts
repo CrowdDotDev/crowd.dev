@@ -2,8 +2,10 @@ import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const teamMembers: SavedView = {
   id: 'team-contacts',
-  label: 'Team contacts',
-  filter: {
+  name: 'Team contacts',
+  placement: 'member',
+  visibility: 'tenant',
+  config: {
     search: '',
     relation: 'and',
     order: {

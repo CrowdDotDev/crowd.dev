@@ -133,9 +133,9 @@ export class Service {
     return releaseLock(this._redisClient, key, value)
   }
 
-  async start() {
-    // Before actually starting the service we need to ensure required environment
-    // variables are set.
+  // Before actually starting the service we need to ensure required environment
+  // variables are set.
+  async init() {
     const missing = []
     envvars.base.forEach((envvar) => {
       if (!process.env[envvar]) {
