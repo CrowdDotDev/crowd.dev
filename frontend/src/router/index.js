@@ -56,7 +56,7 @@ export const createRouter = () => {
         });
     };
 
-    router.beforeEach(async (to, from) => {
+    router.beforeEach(async (to, from, next) => {
       if (to.name && to.name !== from.name) {
         ProgressBar.start();
       }
