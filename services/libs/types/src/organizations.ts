@@ -3,6 +3,7 @@ import { OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
   id?: string
+  displayName?: string
   url?: string
   description?: string
   emails?: string[]
