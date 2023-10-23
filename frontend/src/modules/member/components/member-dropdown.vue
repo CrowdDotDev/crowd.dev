@@ -22,40 +22,27 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
+<script setup>
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
-export default {
-  name: 'AppMemberDropdown',
-  components: {
-    AppMemberDropdownContent,
+defineEmits('merge');
+defineProps({
+  member: {
+    type: Object,
+    default: () => {},
   },
-  props: {
-    member: {
-      type: Object,
-      default: () => {},
-    },
-  },
-  emits: [
-    'merge',
-  ],
-  computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-    }),
-    isReadOnly() {
-      return (
-        new MemberPermissions(
-          this.currentTenant,
-          this.currentUser,
-        ).edit === false
-      );
-    },
-  },
-};
+});
+
+const { currentTenant, currentUser } = mapGetters('auth');
+
+const isReadOnly = computed(() => (
+  new MemberPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit === false
+));
 </script>
 
 <style lang="scss">

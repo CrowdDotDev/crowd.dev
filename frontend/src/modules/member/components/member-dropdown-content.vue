@@ -11,14 +11,15 @@
         isEditLockedForSampleData,
     }"
   >
-    <div
-      class="h-10 el-dropdown-menu__item mb-1"
+    <button
+      class="h-10 el-dropdown-menu__item w-full mb-1"
       :disabled="isEditLockedForSampleData"
+      type="button"
     >
       <i
         class="ri-pencil-line text-base mr-2"
       /><span class="text-xs">Edit contact</span>
-    </div>
+    </button>
   </router-link>
   <el-tooltip
     placement="top"
@@ -29,9 +30,10 @@
     popper-class="max-w-[260px]"
   >
     <span>
-      <div
-        class="h-10 el-dropdown-menu__item mb-1"
+      <button
+        class="h-10 el-dropdown-menu__item w-full mb-1"
         :disabled="isEnrichmentActionDisabled"
+        type="button"
         @click="handleCommand({
           action: 'memberEnrich',
           member,
@@ -52,12 +54,13 @@
             ? 'Re-enrich contact'
             : 'Enrich contact'
         }}</span>
-      </div>
+      </button>
     </span>
   </el-tooltip>
-  <div
-    class="h-10 el-dropdown-menu__item"
+  <button
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
+    type="button"
     @click="handleCommand({
       action: 'memberMerge',
       member,
@@ -66,7 +69,7 @@
     <i class="ri-group-line text-base mr-2" /><span
       class="text-xs"
     >Merge contact</span>
-  </div>
+  </button>
 
   <!-- Hubspot -->
   <el-tooltip
@@ -76,10 +79,11 @@
     popper-class="max-w-[260px]"
   >
     <span>
-      <div
+      <button
         v-if="!isSyncingWithHubspot"
-        class="h-10 el-dropdown-menu__item"
+        class="h-10 el-dropdown-menu__item w-full"
         :disabled="isHubspotActionDisabled"
+        type="button"
         @click="handleCommand({
           action: 'syncHubspot',
           member,
@@ -89,11 +93,12 @@
         <span
           class="text-xs pl-2"
         >Sync with HubSpot</span>
-      </div>
-      <div
+      </button>
+      <button
         v-else
-        class="h-10 el-dropdown-menu__item"
+        class="h-10 el-dropdown-menu__item w-full"
         :disabled="isHubspotActionDisabled"
+        type="button"
         @click="handleCommand({
           action: 'stopSyncHubspot',
           member,
@@ -103,14 +108,15 @@
         <span
           class="text-xs pl-2"
         >Stop sync with HubSpot</span>
-      </div>
+      </button>
     </span>
   </el-tooltip>
 
-  <div
+  <button
     v-if="!member.attributes.isTeamMember?.default"
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
+    type="button"
     @click="handleCommand({
       action: 'memberMarkAsTeamMember',
       member,
@@ -120,11 +126,12 @@
     <i
       class="ri-bookmark-line text-base mr-2"
     /><span class="text-xs">Mark as team contact</span>
-  </div>
-  <div
+  </button>
+  <button
     v-if="member.attributes.isTeamMember?.default"
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
+    type="button"
     @click="handleCommand({
       action: 'memberMarkAsTeamMember',
       member,
@@ -134,11 +141,12 @@
     <i
       class="ri-bookmark-2-line text-base mr-2"
     /><span class="text-xs">Unmark as team contact</span>
-  </div>
-  <div
+  </button>
+  <button
     v-if="!member.attributes.isBot?.default"
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
+    type="button"
     @click="handleCommand({
       action: 'memberMarkAsBot',
       member,
@@ -147,11 +155,12 @@
     <i class="ri-robot-line text-base mr-2" /><span
       class="text-xs"
     >Mark as bot</span>
-  </div>
-  <div
+  </button>
+  <button
     v-if="member.attributes.isBot?.default"
-    class="h-10 el-dropdown-menu__item"
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
+    type="button"
     @click="handleCommand({
       action: 'memberUnmarkAsBot',
       member,
@@ -160,11 +169,12 @@
     <i class="ri-robot-line text-base mr-2" /><span
       class="text-xs"
     >Unmark as bot</span>
-  </div>
+  </button>
   <el-divider class="border-gray-200" />
-  <div
-    class="h-10 el-dropdown-menu__item"
+  <button
+    class="h-10 el-dropdown-menu__item w-full"
     :disabled="isDeleteLockedForSampleData"
+    type="button"
     @click="handleCommand({
       action: 'memberDelete',
       member,
@@ -181,12 +191,14 @@
         'text-red-500': !isDeleteLockedForSampleData,
       }"
     >Delete contact</span>
-  </div>
+  </button>
 </template>
 
-<script>
-import { mapActions, mapGetters } from 'vuex';
-import { mapActions as piniaMapActions } from 'pinia';
+<script setup>
+import {
+  mapActions,
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
@@ -198,175 +210,155 @@ import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { isEnrichmentFeatureEnabled } from '@/modules/member/member-enrichment';
 import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
 
-export default {
-  name: 'AppMemberDropdown',
-  components: {
-    AppSvg,
+defineEmits(['merge']);
+const props = defineProps({
+  member: {
+    type: Object,
+    default: () => {},
   },
-  props: {
-    member: {
-      type: Object,
-      default: () => {},
-    },
-  },
-  emits: [
-    'merge',
-  ],
-  data() {
-    return {
-      isMergeLoading: false,
-      pair: [],
-    };
-  },
+});
 
-  computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-    }),
-    isEditLockedForSampleData() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).editLockedForSampleData;
-    },
-    isDeleteLockedForSampleData() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
-      ).destroyLockedForSampleData;
-    },
-    isEnrichmentDisabledForMember() {
-      return (
-        !this.member.username?.github?.length
-            && !this.member.emails?.length
-      );
-    },
-    isEnrichmentActionDisabled() {
-      return this.isEnrichmentDisabledForMember || this.isEditLockedForSampleData || !this.isEnrichmentFeatureEnabled();
-    },
-    isSyncingWithHubspot() {
-      return this.member.attributes?.syncRemote?.hubspot || false;
-    },
-    isHubspotConnected() {
-      const hubspot = CrowdIntegrations.getMappedConfig('hubspot', this.$store);
-      const enabledFor = hubspot.settings?.enabledFor || [];
-      return hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS);
-    },
-    isHubspotDisabledForMember() {
-      return props.member.emails.length === 0;
-    },
-    isHubspotFeatureEnabled() {
-      return FeatureFlag.isFlagEnabled(
-        FEATURE_FLAGS.hubspot,
-      );
-    },
-    isHubspotActionDisabled() {
-      return !this.isHubspotConnected || this.isHubspotDisabledForMember || !this.isHubspotFeatureEnabled;
-    },
-  },
-  methods: {
-    ...mapActions({
-      doFind: 'member/doFind',
-      doDestroy: 'member/doDestroy',
-      doEnrich: 'member/doEnrich',
-    }),
-    ...piniaMapActions(useMemberStore, ['fetchMembers']),
-    async doDestroyWithConfirm(id) {
-      try {
-        await ConfirmDialog({
-          type: 'danger',
-          title: 'Delete contact',
-          message:
+const store = useStore();
+const route = useRoute();
+
+const { currentUser, currentTenant } = mapGetters('auth');
+const { doFind, doDestroy, doEnrich } = mapActions('member');
+
+const memberStore = useMemberStore();
+const { fetchMembers } = memberStore;
+
+const isEditLockedForSampleData = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+).editLockedForSampleData);
+
+const isDeleteLockedForSampleData = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+).destroyLockedForSampleData);
+
+const isEnrichmentDisabledForMember = computed(() => (
+  !props.member.username?.github?.length
+            && !props.member.emails?.length
+));
+
+const isEnrichmentActionDisabled = computed(() => isEnrichmentDisabledForMember.value
+  || isEditLockedForSampleData.value || !isEnrichmentFeatureEnabled());
+
+const isSyncingWithHubspot = computed(() => props.member.attributes?.syncRemote?.hubspot || false);
+
+const isHubspotConnected = computed(() => {
+  const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+  const enabledFor = hubspot.settings?.enabledFor || [];
+
+  return hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS);
+});
+
+const isHubspotDisabledForMember = computed(() => props.member.emails.length === 0);
+
+const isHubspotFeatureEnabled = computed(() => FeatureFlag.isFlagEnabled(
+  FEATURE_FLAGS.hubspot,
+));
+
+const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value || !isHubspotFeatureEnabled.value);
+
+const doDestroyWithConfirm = async (id) => {
+  try {
+    await ConfirmDialog({
+      type: 'danger',
+      title: 'Delete contact',
+      message:
             "Are you sure you want to proceed? You can't undo this action",
-          confirmButtonText: 'Confirm',
-          cancelButtonText: 'Cancel',
-          icon: 'ri-delete-bin-line',
-        });
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      icon: 'ri-delete-bin-line',
+    });
 
-        await this.doDestroy(id);
-        await this.fetchMembers({ reload: true });
-      } catch (error) {
-        // no
-      }
-      return null;
-    },
-    async handleCommand(command) {
-      if (command.action === 'memberDelete') {
-        await this.doDestroyWithConfirm(command.member.id);
-      } else if (
-        command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
-      ) {
-        // Hubspot
-        const sync = command.action === 'syncHubspot';
-        (sync ? HubspotApiService.syncMember(command.member.id) : HubspotApiService.stopSyncMember(command.member.id))
-          .then(() => {
-            if (this.$route.name === 'member') {
-              this.fetchMembers({ reload: true });
-            } else {
-              this.doFind(command.member.id);
-            }
-            if (sync) {
-              Message.success('Contact is now syncing with HubSpot');
-            } else {
-              Message.success('Contact syncing stopped');
-            }
-          })
-          .catch(() => {
-            Message.error('There was an error');
-          });
-      } else if (
-        command.action === 'memberMarkAsTeamMember'
-      ) {
-        await MemberService.update(command.member.id, {
-          attributes: {
-            ...command.member.attributes,
-            isTeamMember: {
-              default: command.value,
-            },
-          },
-        });
-        await this.fetchMembers({ reload: true });
-
-        Message.success('Contact updated successfully');
-
-        if (this.$route.name === 'member') {
-          await this.fetchMembers({ reload: true });
-        } else {
-          this.doFind(command.member.id);
-        }
-      } else if (command.action === 'memberMarkAsBot' || command.action === 'memberUnmarkAsBot') {
-        await MemberService.update(command.member.id, {
-          attributes: {
-            ...command.member.attributes,
-            isBot: {
-              default: command.action === 'memberMarkAsBot',
-            },
-          },
-        });
-        await this.fetchMembers({ reload: true });
-        Message.success('Contact updated successfully');
-        if (this.$route.name === 'member') {
-          await this.fetchMembers({ reload: true });
-        } else {
-          this.doFind(command.member.id);
-        }
-      } else if (command.action === 'memberMerge') {
-        this.$emit('merge');
-      } else if (command.action === 'memberEnrich') {
-        await this.doEnrich(command.member.id);
-        await this.fetchMembers({ reload: true });
-      }
-
-      return null;
-    },
-    isEnrichmentFeatureEnabled,
-  },
+    await doDestroy(id);
+    await fetchMembers({ reload: true });
+  } catch (error) {
+    // no
+  }
+  return null;
 };
+
+const handleCommand = async (command) => {
+  if (command.action === 'memberDelete') {
+    await doDestroyWithConfirm(command.member.id);
+  } else if (
+    command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
+  ) {
+    // Hubspot
+    const sync = command.action === 'syncHubspot';
+    (sync ? HubspotApiService.syncMember(command.member.id) : HubspotApiService.stopSyncMember(command.member.id))
+      .then(() => {
+        if (route.name === 'member') {
+          fetchMembers({ reload: true });
+        } else {
+          doFind(command.member.id);
+        }
+        if (sync) {
+          Message.success('Contact is now syncing with HubSpot');
+        } else {
+          Message.success('Contact syncing stopped');
+        }
+      })
+      .catch(() => {
+        Message.error('There was an error');
+      });
+  } else if (
+    command.action === 'memberMarkAsTeamMember'
+  ) {
+    await MemberService.update(command.member.id, {
+      attributes: {
+        ...command.member.attributes,
+        isTeamMember: {
+          default: command.value,
+        },
+      },
+    });
+    await fetchMembers({ reload: true });
+
+    Message.success('Contact updated successfully');
+
+    if (route.name === 'member') {
+      await fetchMembers({ reload: true });
+    } else {
+      doFind(command.member.id);
+    }
+  } else if (command.action === 'memberMarkAsBot' || command.action === 'memberUnmarkAsBot') {
+    await MemberService.update(command.member.id, {
+      attributes: {
+        ...command.member.attributes,
+        isBot: {
+          default: command.action === 'memberMarkAsBot',
+        },
+      },
+    });
+    await fetchMembers({ reload: true });
+    Message.success('Contact updated successfully');
+    if (route.name === 'member') {
+      await fetchMembers({ reload: true });
+    } else {
+      doFind(command.member.id);
+    }
+  } else if (command.action === 'memberMerge') {
+    emit('merge');
+  } else if (command.action === 'memberEnrich') {
+    await doEnrich(command.member.id);
+    await fetchMembers({ reload: true });
+  }
+
+  return null;
+};
+
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .el-dropdown__popper .el-dropdown__list {
   @apply p-2;
 }
@@ -374,5 +366,13 @@ export default {
 // Override divider margin
 .el-divider--horizontal {
   @apply my-2;
+}
+
+.el-dropdown-menu__item:disabled {
+  @apply cursor-not-allowed text-gray-400;
+}
+
+.el-dropdown-menu__item:disabled:hover {
+  @apply bg-white;
 }
 </style>
