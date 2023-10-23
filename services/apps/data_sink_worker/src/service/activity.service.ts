@@ -1,6 +1,6 @@
 import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
 import MemberRepository from '../repo/member.repo'
-import { isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -80,8 +80,8 @@ export default class ActivityService extends LoggerBase {
           username: activity.username,
           sentiment,
           attributes: activity.attributes || {},
-          body: activity.body,
-          title: activity.title,
+          body: escapeNullByte(activity.body),
+          title: escapeNullByte(activity.title),
           channel: activity.channel,
           url: activity.url,
           organizationId: activity.organizationId,
