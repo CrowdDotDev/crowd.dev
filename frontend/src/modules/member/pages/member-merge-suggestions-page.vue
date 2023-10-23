@@ -201,6 +201,7 @@ const fetch = (page) => {
       count.value = res.count;
       [membersToMerge.value] = res.rows;
       const { members } = membersToMerge.value;
+      primary.value = 0;
       // Set member with maximum identities and activities as primary
       if (members.length > 2 && ((members[0].identities.length < members[1].identities.length)
         || (members[0].activityCount < members[1].activityCount))) {
