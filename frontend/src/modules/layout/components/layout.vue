@@ -1,6 +1,7 @@
 <template>
   <el-container>
-    <app-menu />
+<!--    <app-menu />-->
+    <app-menu-v2 />
     <el-container v-if="currentTenant" :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
         <div
@@ -130,11 +131,13 @@ import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
 
 import AppMenu from '@/modules/layout/components/menu.vue';
+import AppMenuV2 from '@/modules/layout/components/menu-v2.vue';
 
 export default {
   name: 'AppLayout',
 
   components: {
+    AppMenuV2,
     AppMenu,
     Banner,
   },
