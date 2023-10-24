@@ -73,6 +73,7 @@ export default class MemberService extends LoggerBase {
           attributes,
           weakIdentities: data.weakIdentities || [],
           identities: data.identities,
+          reach: MemberService.calculateReach({}, data.reach),
         })
 
         await txRepo.addToSegment(id, tenantId, segmentId)
@@ -499,6 +500,14 @@ export default class MemberService extends LoggerBase {
       }
     }
 
+    let reach: Partial<Record<PlatformType, number>> | undefined
+    if (member.reach) {
+      const temp = MemberService.calculateReach(dbMember.reach, member.reach)
+      if (!isEqual(temp, dbMember.reach)) {
+        reach = temp
+      }
+    }
+
     return {
       emails,
       joinedAt,
@@ -508,6 +517,22 @@ export default class MemberService extends LoggerBase {
       // we don't want to update the display name if it's already set
       // returned value should be undefined here otherwise it will cause an update!
       displayName: dbMember.displayName ? undefined : member.displayName,
+      reach,
     }
+  }
+
+  private static calculateReach(
+    oldReach: Partial<Record<PlatformType | 'total', number>>,
+    newReach: Partial<Record<PlatformType, number>>,
+  ) {
+    // Totals are recomputed, so we delete them first
+    delete oldReach.total
+    const out = mergeWith({}, oldReach, newReach)
+    if (Object.keys(out).length === 0) {
+      return { total: -1 }
+    }
+    // Total is the sum of all attributes
+    out.total = Object.values(out).reduce((a: number, b: number) => a + b, 0)
+    return out
   }
 }

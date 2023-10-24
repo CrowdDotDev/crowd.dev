@@ -38,6 +38,9 @@ const processTweetsWithMentions: ProcessDataHandler = async (ctx) => {
         },
       }),
     },
+    reach: {
+      [PlatformType.TWITTER]: data.member.public_metrics.followers_count,
+    },
   }
 
   const out: IActivityData = {
@@ -92,6 +95,9 @@ const processTweetsWithHashtags: ProcessDataHandler = async (ctx) => {
           [PlatformType.TWITTER]: data.member.description,
         },
       }),
+    },
+    reach: {
+      [PlatformType.TWITTER]: data.member.public_metrics.followers_count,
     },
   }
 
