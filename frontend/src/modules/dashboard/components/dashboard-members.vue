@@ -7,7 +7,7 @@
       :total="members.total"
       :route="{
         name: 'member',
-        query: filterQueryService().setQuery(allMembers.filter),
+        query: filterQueryService().setQuery(allContacts.config),
       }"
       button-title="All contacts"
       report-name="Members report"
@@ -68,17 +68,13 @@
               <span
                 v-if="
                   member.lastActivity
-                    && getPlatformDetails(
-                      member.lastActivity.platform,
-                    )
                 "
               >joined
                 {{ formatDateToTimeAgo(member.joinedAt) }}
                 on
                 {{
-                  getPlatformDetails(
-                    member.lastActivity.platform,
-                  ).name
+                  getPlatformDetails(member.lastActivity.platform)?.name
+                    ?? member.lastActivity.platform
                 }}</span>
             </app-dashboard-member-item>
             <app-dashboard-empty-state
@@ -96,7 +92,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allMembers.filter,
+                    ...allContacts.config,
                     joinedDate: {
                       value: periodRange,
                       operator: 'between',
@@ -184,7 +180,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allMembers.filter,
+                    ...allContacts.config,
                     lastActivityDate: {
                       value: periodRange,
                       operator: 'between',
@@ -221,8 +217,7 @@ import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import newAndActive from '@/modules/member/config/saved-views/views/new-and-active';
-import allMembers from '@/modules/member/config/saved-views/views/all-members';
+import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 
 export default {
   name: 'AppDashboardMember',
@@ -241,8 +236,7 @@ export default {
       activeMembersCount,
       formatDateToTimeAgo,
       filterQueryService,
-      newAndActive,
-      allMembers,
+      allContacts,
     };
   },
   computed: {

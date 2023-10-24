@@ -57,7 +57,7 @@ async function handleDelayedMessages() {
     const message = await receive(true)
 
     if (message) {
-      tracer.startActiveSpan('ProcessDelayedMessage', async (span) => {
+      await tracer.startActiveSpan('ProcessDelayedMessage', async (span) => {
         try {
           const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
           const messageLogger = getChildLogger('messageHandler', serviceLogger, {
@@ -130,7 +130,7 @@ async function handleMessages() {
   handlerLogger.info('Listening for messages!')
 
   const processSingleMessage = async (message: Message): Promise<void> => {
-    tracer.startActiveSpan('ProcessMessage', async (span) => {
+    await tracer.startActiveSpan('ProcessMessage', async (span) => {
       const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
       const messageLogger = getChildLogger('messageHandler', serviceLogger, {

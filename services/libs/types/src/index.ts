@@ -46,3 +46,6 @@ export * from './automations'
 export * from './query'
 
 export * from './sync'
+
+export * from './enums/customViews'
+export * from './customView'

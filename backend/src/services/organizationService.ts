@@ -92,6 +92,20 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
+      // if toMerge has website - also add it as an identity to the original org
+      // for identifying further organizations, and website information of toMerge is not lost
+      if (toMerge.website) {
+        await OrganizationRepository.addIdentity(
+          originalId,
+          {
+            name: toMerge.website,
+            platform: 'email',
+            integrationId: null,
+          },
+          repoOptions,
+        )
+      }
+
       // remove aggregate fields and relationships
       original = removeExtraFields(original)
       toMerge = removeExtraFields(toMerge)
@@ -137,7 +151,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       // Delete toMerge organization
-      await OrganizationRepository.destroy(toMergeId, repoOptions, true)
+      await OrganizationRepository.destroy(toMergeId, repoOptions, true, false)
 
       await SequelizeRepository.commitTransaction(tx)
 
@@ -412,6 +426,17 @@ export default class OrganizationService extends LoggerBase {
       // check if organization already exists using website or primary identity
       if (cache.website) {
         existing = await OrganizationRepository.findByDomain(cache.website, this.options)
+
+        // also check domain in identities
+        if (!existing) {
+          existing = await OrganizationRepository.findByIdentity(
+            {
+              name: websiteNormalizer(cache.website),
+              platform: 'email',
+            },
+            this.options,
+          )
+        }
       }
 
       if (!existing) {
@@ -420,6 +445,11 @@ export default class OrganizationService extends LoggerBase {
 
       if (existing) {
         await OrganizationRepository.checkIdentities(data, this.options, existing.id)
+
+        // Set displayName if it doesn't exist
+        if (!existing.displayName) {
+          data.displayName = cache.name
+        }
 
         record = await OrganizationRepository.update(
           existing.id,
@@ -489,7 +519,7 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
-  async update(id, data) {
+  async update(id, data, overrideIdentities = false) {
     let tx
 
     try {
@@ -531,7 +561,7 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const record = await OrganizationRepository.update(id, data, repoOptions)
+      const record = await OrganizationRepository.update(id, data, repoOptions, overrideIdentities)
 
       await SequelizeRepository.commitTransaction(tx)
 
