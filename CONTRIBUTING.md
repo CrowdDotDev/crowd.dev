@@ -68,7 +68,7 @@ Any contributions you make are **greatly appreciated**. ❤️
 
 ## How to contribute to development
 
-We welcome any contribution to crowd.dev. Before you start with your first issue, please consider the folloing points:
+We welcome any contribution to crowd.dev. Before you start with your first issue, please consider the following points:
 
 - For your first contribution we recommend taking a look at our [good first issues 🥂](https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue+%F0%9F%A5%82%22).
 - Other issues that are well suited for contribution have the tag [help wanted 🙏](https://github.com/CrowdDotDev/crowd.dev/labels/help%20wanted%20%F0%9F%99%8F).
