@@ -38,15 +38,15 @@
       </el-tabs>
     </div>
     <div v-if="isEnabled" class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
-      <el-button v-if="hasChanged && selectedTab !== ''" class="btn btn-brand btn-brand--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
+      <el-button v-if="hasChanged" class="btn btn-brand btn-brand--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
         Reset view
       </el-button>
-      <el-dropdown v-if="hasChanged && selectedTab !== ''" placement="bottom-end">
+      <el-dropdown v-if="hasChanged" placement="bottom-end">
         <el-button class="btn btn-brand btn-brand--transparent btn--sm !h-8 !leading-5 mr-2">
           Save as...
         </el-button>
         <template #dropdown>
-          <el-dropdown-item v-if="selectedTab.length > 0 && selectedTab !== props.config.defaultView.id" @click="update()">
+          <el-dropdown-item v-if="selectedTab.length > 0 && selectedTab !== props.config.defaultView.id && selectedTab !== ''" @click="update()">
             <div class="w-40">
               <i class="ri-loop-left-line text-gray-400 text-base mr-2" />Update view
             </div>
