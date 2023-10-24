@@ -54,7 +54,7 @@
       <cr-saved-views
         v-model="filters"
         :config="memberSavedViews"
-        :filters="memberFilters"
+        :filters="{ ...memberFilters, ...customAttributesFilter }"
         :static-views="memberViews"
         placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
