@@ -92,6 +92,7 @@ const onListChange = () => {
       }),
     ),
   ).then(() => {
+    (window as any).analytics.track('Custom views rearanged');
     emit('reload');
   });
 };
@@ -117,6 +118,10 @@ const remove = (view: SavedView) => {
     .then(() => {
       SavedViewsService.delete(view.id)
         .then(() => {
+          (window as any).analytics.track('Custom view deleted', {
+            placement: view.placement,
+            name: view.name,
+          });
           emit('reload');
           Message.success('View successfully deleted');
         })

@@ -20,3 +20,9 @@ export const truncateText = (text, characters = 200, suffix = '') => {
   }
   return text;
 };
+
+/** trim and replace multiple/double spaces with a single space
+ * '   Emma  Ray   ' ==> 'Emma Ray
+ * 'Emma  Ray' ==> 'Emman Ray
+*/
+export const trimAndReduceSpaces = (str) => str.trim().replace(/\s+/g, ' ');
