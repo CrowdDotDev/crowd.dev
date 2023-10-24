@@ -13,10 +13,10 @@ const logger = getServiceLogger()
 
 // List all required environment variables, grouped per "component".
 const envvars = {
-  base: ['CROWD_SERVICE', 'CROWD_UNLEASH_URL', 'CROWD_UNLEASH_API_TOKEN'],
+  base: ['SERVICE'],
   producer: ['CROWD_KAFKA_BROKERS'],
   temporal: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE'],
-  redis: ['CROWD_REDIS_HOST', 'CROWD_REDIS_PORT', 'CROWD_REDIS_USER', 'CROWD_REDIS_PASSWORD'],
+  redis: ['CROWD_REDIS_HOST', 'CROWD_REDIS_PORT', 'CROWD_REDIS_USERNAME', 'CROWD_REDIS_PASSWORD'],
 }
 
 /*
@@ -55,7 +55,7 @@ export class Service {
   readonly config: Config
   readonly integrations: IIntegrationDescriptor[]
 
-  protected _unleash: UnleashClient
+  protected _unleash?: UnleashClient
 
   protected _kafka: Kafka | null
   protected _temporal: TemporalClient | null
@@ -63,7 +63,7 @@ export class Service {
   protected _redisClient: RedisClient | null
 
   constructor(config: Config) {
-    this.name = process.env['CROWD_SERVICE']
+    this.name = process.env['SERVICE']
     this.tracer = tracer
     this.log = logger
     this.config = config
@@ -78,7 +78,7 @@ export class Service {
     }
   }
 
-  get unleash(): UnleashClient {
+  get unleash(): UnleashClient | undefined {
     return this._unleash
   }
 
@@ -184,13 +184,15 @@ export class Service {
       await this.stop()
     })
 
-    this._unleash = InitUnleash({
-      appName: this.name,
-      url: process.env['CROWD_UNLEASH_URL'],
-      customHeaders: {
-        Authorization: process.env['CROWD_UNLEASH_API_TOKEN'],
-      },
-    })
+    if (process.env['CROWD_UNLEASH_URL'] && process.env['CROWD_UNLEASH_API_TOKEN']) {
+      this._unleash = InitUnleash({
+        appName: this.name,
+        url: process.env['CROWD_UNLEASH_URL'],
+        customHeaders: {
+          Authorization: process.env['CROWD_UNLEASH_API_TOKEN'],
+        },
+      })
+    }
 
     if (this.config.producer.enabled) {
       try {
@@ -223,7 +225,7 @@ export class Service {
         this._redisClient = await getRedisClient({
           host: process.env['CROWD_REDIS_HOST'],
           port: process.env['CROWD_REDIS_PORT'],
-          username: process.env['CROWD_REDIS_USER'],
+          username: process.env['CROWD_REDIS_USERNAME'],
           password: process.env['CROWD_REDIS_PASSWORD'],
         })
       } catch (err) {
