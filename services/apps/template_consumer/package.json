@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@crowd/archetype-consumer": "file:../../archetypes/consumer",
+    "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@types/node": "^20.8.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
