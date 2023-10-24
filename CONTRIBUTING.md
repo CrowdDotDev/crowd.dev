@@ -7,7 +7,7 @@ Contributions are what make the open source community such an amazing place to l
 - Try the crowd.dev platform & API and give feedback by [creating new issues](https://github.com/CrowdDotDev/crowd.dev/issues/new/choose)
 - Help with [open issues](https://github.com/CrowdDotDev/crowd.dev/issues)
 - Add a new integration following our [framework](https://docs.crowd.dev/docs/integration-framework)
-- Help create tutorials and blog posts
+- Help create tutorials and [blog](https://www.crowd.dev/blog) posts
 - Improve [documentation](https://docs.crowd.dev/docs) by fixing incomplete or missing docs, bad wording, examples or explanations
 
 Any contributions you make are **greatly appreciated**. ❤️
