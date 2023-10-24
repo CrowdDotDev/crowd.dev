@@ -2,6 +2,7 @@
   <div>
     <el-dropdown
       v-if="!isReadOnly"
+      ref="dropdown"
       trigger="click"
       placement="bottom-end"
     >
@@ -16,7 +17,7 @@
         <app-member-dropdown-content
           :member="member"
           @merge="emit('merge')"
-          @close-dropdown="emit('closeDropdown')"
+          @close-dropdown="onDropdownClose"
         />
       </template>
     </el-dropdown>
@@ -26,6 +27,7 @@
 <script setup>
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberPermissions } from '@/modules/member/member-permissions';
+import { computed, ref } from 'vue';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
 const emit = defineEmits(['merge', 'closeDropdown']);
@@ -38,12 +40,19 @@ defineProps({
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
+const dropdown = ref();
+
 const isReadOnly = computed(() => (
   new MemberPermissions(
     currentTenant.value,
     currentUser.value,
   ).edit === false
 ));
+
+const onDropdownClose = () => {
+  dropdown.value?.handleClose();
+  emit('closeDropdown');
+};
 </script>
 
 <style lang="scss">

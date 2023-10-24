@@ -2,6 +2,7 @@
   <div>
     <el-dropdown
       v-if="!isReadOnly && organization"
+      ref="dropdown"
       trigger="click"
       placement="bottom-end"
     >
@@ -16,7 +17,7 @@
         <app-organization-dropdown-content
           :organization="organization"
           @merge="emit('merge')"
-          @close-dropdown="emit('closeDropdown')"
+          @close-dropdown="onDropdownClose"
         />
       </template>
     </el-dropdown>
@@ -24,7 +25,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import {
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
@@ -45,12 +46,19 @@ const emit = defineEmits([
 
 const { currentUser, currentTenant } = mapGetters('auth');
 
+const dropdown = ref();
+
 const isReadOnly = computed(
   () => new OrganizationPermissions(
     currentTenant.value,
     currentUser.value,
   ).edit === false,
 );
+
+const onDropdownClose = () => {
+  dropdown.value?.handleClose();
+  emit('closeDropdown');
+};
 </script>
 
 <script>
