@@ -241,6 +241,15 @@ export class OrganizationService extends LoggerBase {
 
         const identities = await txRepo.getIdentities(id, tenantId)
 
+        // create identities with incoming website
+        if (data.website) {
+          data.identities.push({
+            name: websiteNormalizer(data.website),
+            platform: 'email',
+            integrationId,
+          })
+        }
+
         for (const identity of data.identities) {
           const identityExists = identities.find(
             (i) => i.name === identity.name && i.platform === identity.platform,
