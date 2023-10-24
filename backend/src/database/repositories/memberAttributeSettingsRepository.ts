@@ -42,6 +42,11 @@ class MemberAttributeSettingsRepository {
     }
     const output = record.get({ plain: true })
 
+    // Only include first 10 options. TODO:: Implement autocomplete endpoints for options
+    if (output.options && output.options.length > 10) {
+      output.options = output.options.slice(0, 10)
+    }
+
     return output
   }
 
