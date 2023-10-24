@@ -23,6 +23,9 @@ const envvars = {
 Config is used to configure the service.
 */
 export interface Config {
+  // Additional environment variables required by the service to properly run.
+  envvars?: string[]
+
   // Enable and configure the Kafka producer, if needed.
   producer: {
     enabled: boolean
@@ -70,11 +73,14 @@ export class Service {
     this.config = config
     this.integrations = INTEGRATION_SERVICES
 
+    // TODO: Handle SSL and SASL configuration.
     if (config.producer.enabled && process.env['CROWD_KAFKA_BROKERS']) {
       const brokers = process.env['CROWD_KAFKA_BROKERS']
       this._kafka = new Kafka({
         clientId: this.name,
         brokers: brokers.split(','),
+        // sasl
+        // ssl
       })
     }
   }
@@ -138,6 +144,12 @@ export class Service {
   async init() {
     const missing = []
     envvars.base.forEach((envvar) => {
+      if (!process.env[envvar]) {
+        missing.push(envvar)
+      }
+    })
+
+    this.config.envvars.forEach((envvar) => {
       if (!process.env[envvar]) {
         missing.push(envvar)
       }
