@@ -1,5 +1,5 @@
 import express from 'express'
-import { OrganizationSyncService } from '@crowd/opensearch'
+import { OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
 
@@ -8,9 +8,10 @@ const router = express.Router()
 router.post(
   '/sync/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
     const { organizationIds } = req.body
@@ -26,9 +27,10 @@ router.post(
 router.post(
   '/sync/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
 
@@ -45,9 +47,10 @@ router.post(
 router.delete(
   '/cleanup/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
 
@@ -64,9 +67,10 @@ router.delete(
 router.delete(
   '/cleanup/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
 

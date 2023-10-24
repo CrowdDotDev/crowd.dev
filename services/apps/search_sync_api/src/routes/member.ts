@@ -1,5 +1,5 @@
 import express from 'express'
-import { MemberSyncService } from '@crowd/opensearch'
+import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
 
@@ -8,10 +8,11 @@ const router = express.Router()
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
     const { memberIds } = req.body
@@ -28,10 +29,11 @@ router.post(
 router.post(
   '/sync/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
 
@@ -48,10 +50,11 @@ router.post(
 router.post(
   '/sync/organization/members',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
 
@@ -68,10 +71,11 @@ router.post(
 router.delete(
   '/cleanup/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
 
@@ -88,10 +92,11 @@ router.delete(
 router.delete(
   '/cleanup/members',
   asyncWrap(async (req: ApiRequest, res) => {
+    const openSearchService = new OpenSearchService(req.log)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      req.opensearch,
+      openSearchService,
       req.log,
     )
 

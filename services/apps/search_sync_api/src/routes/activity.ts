@@ -1,5 +1,5 @@
 import express from 'express'
-import { ActivitySyncService } from '@crowd/opensearch'
+import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
 import { ApiRequest } from '../middleware/index'
 import { asyncWrap } from 'middleware/error'
 
@@ -8,7 +8,8 @@ const router = express.Router()
 router.post(
   '/sync/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
+    const openSearchService = new OpenSearchService(req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
     const { activityIds } = req.body
     try {
       await activitySyncService.syncActivities(activityIds)
@@ -22,7 +23,8 @@ router.post(
 router.post(
   '/sync/tenant/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
+    const openSearchService = new OpenSearchService(req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { tenantId } = req.body
     try {
@@ -37,7 +39,8 @@ router.post(
 router.post(
   '/sync/organization/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
+    const openSearchService = new OpenSearchService(req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { organizationId } = req.body
     try {
@@ -52,7 +55,8 @@ router.post(
 router.delete(
   '/cleanup/tenant/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
+    const openSearchService = new OpenSearchService(req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { tenantId } = req.body
     try {
@@ -67,7 +71,8 @@ router.delete(
 router.delete(
   '/cleanup/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
+    const openSearchService = new OpenSearchService(req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { activityId } = req.body
     try {
