@@ -208,10 +208,10 @@ export default {
     // Rendered available options should be dependent on the current query
     availableOptions() {
       if (this.currentQuery) {
-        return this.filteredOptions;
+        return this.filteredOptions.slice(0, 10);
       }
 
-      return this.localOptions;
+      return this.localOptions.slice(0, 10);
     },
   },
 
