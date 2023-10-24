@@ -11,7 +11,7 @@
     "baseUrl": "./src",
     "paths": {
       "@crowd/*": ["../../../libs/*/src"],
-      "@crowd/archetype-*": ["../../../archetypes/*/src"],
+      "@crowd/archetype-*": ["../../../archetypes/*/src"]
     }
   },
   "include": ["src/**/*"]
