@@ -1,6 +1,12 @@
 import { ProcessDataHandler } from '../../types'
 import { TwitterPublishData, TwitterStreamType, TwitterActivityType } from './types'
-import { IActivityData, IMemberData, PlatformType, MemberAttributeName } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  PlatformType,
+  MemberAttributeName,
+  IntegrationResultType,
+} from '@crowd/types'
 import { TWITTER_GRID } from './grid'
 
 const processTweetsWithMentions: ProcessDataHandler = async (ctx) => {
@@ -120,6 +126,48 @@ const processTweetsWithHashtags: ProcessDataHandler = async (ctx) => {
   await ctx.publishActivity(out)
 }
 
+const processMemberReachUpdate: ProcessDataHandler = async (ctx) => {
+  const data = ctx.data as TwitterPublishData
+
+  const member: IMemberData = {
+    identities: [
+      {
+        username: data.member.username,
+        platform: PlatformType.TWITTER,
+        sourceId: data.member.id,
+      },
+    ],
+    attributes: {
+      [MemberAttributeName.SOURCE_ID]: {
+        [PlatformType.TWITTER]: data.member.id,
+      },
+      [MemberAttributeName.URL]: {
+        [PlatformType.TWITTER]: `https://twitter.com/${data.member.username}`,
+      },
+      ...(data.member.profile_image_url && {
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.TWITTER]: data.member.profile_image_url,
+        },
+      }),
+      ...(data.member.location && {
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.TWITTER]: data.member.location,
+        },
+      }),
+      ...(data.member.description && {
+        [MemberAttributeName.BIO]: {
+          [PlatformType.TWITTER]: data.member.description,
+        },
+      }),
+    },
+    reach: {
+      [PlatformType.TWITTER]: data.member.public_metrics.followers_count,
+    },
+  }
+
+  await ctx.publishCustom(member, IntegrationResultType.TWITTER_MEMBER_REACH)
+}
+
 const handler: ProcessDataHandler = async (ctx) => {
   const metadata = ctx.data as TwitterPublishData
   const type = metadata.type
@@ -130,6 +178,9 @@ const handler: ProcessDataHandler = async (ctx) => {
       break
     case TwitterStreamType.HASHTAG:
       await processTweetsWithHashtags(ctx)
+      break
+    case TwitterStreamType.REACH:
+      await processMemberReachUpdate(ctx)
       break
     default:
       ctx.abortWithError('Uknown API Data stream type', { data: ctx.data })

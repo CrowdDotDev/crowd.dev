@@ -154,6 +154,24 @@ export default class DataSinkService extends LoggerBase {
           break
         }
 
+        case IntegrationResultType.TWITTER_MEMBER_REACH: {
+          const service = new MemberService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.log,
+          )
+          const memberData = data.data as IMemberData
+
+          await service.processMemberUpdate(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            memberData,
+          )
+          break
+        }
+
         default: {
           throw new Error(`Unknown result type: ${data.type}`)
         }

@@ -393,6 +393,74 @@ export default class MemberService extends LoggerBase {
     }
   }
 
+  public async processMemberUpdate(
+    tenantId: string,
+    integrationId: string,
+    platform: PlatformType,
+    member: IMemberData,
+  ): Promise<void> {
+    this.log = getChildLogger('MemberService.processMemberUpdate', this.log, {
+      integrationId,
+      tenantId,
+    })
+
+    try {
+      this.log.debug('Processing member update.')
+
+      if (!member.identities || member.identities.length === 0) {
+        const errorMessage = `Member can't be updated. It is missing identities fields.`
+        this.log.warn(errorMessage)
+        return
+      }
+
+      await this.store.transactionally(async (txStore) => {
+        const txRepo = new MemberRepository(txStore, this.log)
+        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        const txService = new MemberService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.log,
+        )
+
+        const dbIntegration = await txIntegrationRepo.findById(integrationId)
+        const segmentId = dbIntegration.segmentId
+
+        // first try finding the member using the identity
+        const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
+        const dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
+
+        if (dbMember) {
+          this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+
+          await txService.update(
+            dbMember.id,
+            tenantId,
+            segmentId,
+            integrationId,
+            {
+              attributes: member.attributes,
+              emails: member.emails || [],
+              joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
+              weakIdentities: member.weakIdentities || undefined,
+              identities: member.identities,
+              organizations: member.organizations,
+              displayName: member.displayName || undefined,
+              reach: member.reach || undefined,
+            },
+            dbMember,
+            false,
+          )
+        } else {
+          this.log.debug('No member found for updating. This member update process had no affect.')
+        }
+      })
+    } catch (err) {
+      this.log.error(err, 'Error while processing a member update!')
+      throw err
+    }
+  }
+
   private async checkForStrongWeakIdentities(
     repo: MemberRepository,
     tenantId: string,

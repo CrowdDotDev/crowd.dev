@@ -7,21 +7,43 @@ import {
   TwitterMentionsStreamData,
   TwitterHashtagStreamData,
   TwitterStreamType,
+  TwitterReachStreamData,
 } from './types'
+
+const CHECK_REACH_EVERY_IN_SECONDS = 24 * 60 * 60
+
+// It should return true once a day
+const reachNeedsUpdate = async (ctx: IGenerateStreamsContext) => {
+  if (ctx.onboarding) return false
+
+  const key = `twitter:reach:${ctx.integration.id}`
+
+  const lastUpdate = await ctx.cache.get(key)
+
+  if (!lastUpdate) {
+    await ctx.cache.set(key, Date.now().toString(), CHECK_REACH_EVERY_IN_SECONDS)
+    return true
+  }
+
+  return false
+}
 
 const refreshToken = async (ctx: IGenerateStreamsContext) => {
   const refreshToken = ctx.integration.refreshToken
   const TWITTER_CONFIG = ctx.platformSettings as TwitterPlatformSettings
 
   try {
+    const encodedCredentials = Buffer.from(
+      `${TWITTER_CONFIG.clientId}:${TWITTER_CONFIG.clientSecret}`,
+    ).toString('base64')
     const response = await axios.post('https://api.twitter.com/2/oauth2/token', null, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${encodedCredentials}`,
       },
       params: {
         refresh_token: refreshToken,
         grant_type: 'refresh_token',
-        client_id: TWITTER_CONFIG.clientId,
       },
     })
 
@@ -30,7 +52,7 @@ const refreshToken = async (ctx: IGenerateStreamsContext) => {
     await ctx.updateIntegrationToken(access_token)
     await ctx.updateIntegrationRefreshToken(refresh_token)
   } catch (e) {
-    ctx.abortRunWithError(
+    await ctx.abortRunWithError(
       'Error refreshing Twitter token, aborting run',
       {
         refreshToken,
@@ -57,6 +79,11 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       hashtag,
       page: '',
     })
+  }
+
+  // check if we need to update reach
+  if (await reachNeedsUpdate(ctx)) {
+    await ctx.publishStream<TwitterReachStreamData>(TwitterStreamType.REACH, {})
   }
 }
 

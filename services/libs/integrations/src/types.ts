@@ -13,6 +13,7 @@ import {
   IRateLimiter,
   IConcurrentRequestLimiter,
 } from '@crowd/types'
+import { DbConnection, DbTransaction } from '@crowd/database'
 
 import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
 import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
@@ -67,6 +68,8 @@ export interface IProcessStreamContext extends IIntegrationContext {
   publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+
+  getDbConnection: () => DbConnection | DbTransaction
 
   /**
    * Global cache that is shared between all integrations

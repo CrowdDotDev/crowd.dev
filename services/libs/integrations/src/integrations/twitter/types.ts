@@ -7,11 +7,13 @@ export enum TwitterActivityType {
 export enum TwitterStreamType {
   MENTIONS = 'mentions',
   HASHTAG = 'hashtag',
+  REACH = 'reach',
 }
 
 export interface TwitterPublishData {
   type: TwitterStreamType
-  data: TwitterParsedPost
+  data?: TwitterParsedPost
+  member?: TwitterMember
   hashtag?: string
 }
 
@@ -33,6 +35,10 @@ export interface TwitterMentionsStreamData {
 export interface TwitterHashtagStreamData {
   hashtag: string
   page: string
+}
+
+export interface TwitterReachStreamData {
+  usernames?: string[]
 }
 
 export interface TwitterGetPostsByHashtagInput {

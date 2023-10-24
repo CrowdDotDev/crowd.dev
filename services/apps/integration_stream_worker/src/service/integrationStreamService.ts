@@ -1,5 +1,5 @@
 import { addSeconds, singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { DbConnection, DbStore, DbTransaction } from '@crowd/database'
 import {
   INTEGRATION_SERVICES,
   IProcessStreamContext,
@@ -519,6 +519,10 @@ export default class IntegrationStreamService extends LoggerBase {
 
       updateIntegrationRefreshToken: async (refreshToken: string) => {
         await this.updateIntegrationRefreshToken(streamId, refreshToken)
+      },
+
+      getDbConnection: (): DbConnection | DbTransaction => {
+        return this.repo.db()
       },
 
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
