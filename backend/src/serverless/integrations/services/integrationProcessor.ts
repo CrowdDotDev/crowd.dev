@@ -19,9 +19,7 @@ export class IntegrationProcessor extends LoggerBase {
   constructor(options: IServiceOptions, redisEmitterClient?: RedisClient) {
     super(options.log)
 
-    const integrationServices = [
-      new DiscourseIntegrationService(),
-    ]
+    const integrationServices = [new DiscourseIntegrationService()]
 
     this.log.debug(
       { supportedIntegrations: integrationServices.map((i) => i.type) },
