@@ -55,6 +55,7 @@
         v-model="filters"
         :config="memberSavedViews"
         :filters="memberFilters"
+        :custom-filters="customAttributesFilter"
         :static-views="memberViews"
         placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
