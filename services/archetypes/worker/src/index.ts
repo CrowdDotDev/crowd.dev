@@ -10,12 +10,12 @@ import { getDbConnection, DbStore } from '@crowd/database'
 const envvars = {
   worker: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE', 'CROWD_TEMPORAL_TASKQUEUE'],
   postgres: [
-    'CROWD_POSTGRES_READER_HOST',
-    'CROWD_POSTGRES_WRITER_HOST',
-    'CROWD_POSTGRES_PORT',
-    'CROWD_POSTGRES_USER',
-    'CROWD_POSTGRES_PASSWORD',
-    'CROWD_POSTGRES_DATABASE',
+    'CROWD_DB_READ_HOST',
+    'CROWD_DB_WRITE_HOST',
+    'CROWD_DB_PORT',
+    'CROWD_DB_USERNAME',
+    'CROWD_DB_PASSWORD',
+    'CROWD_DB_DATABASE',
   ],
 }
 
@@ -116,11 +116,11 @@ export class ServiceWorker extends Service {
     if (this.options.postgres.enabled) {
       try {
         const dbConnection = await getDbConnection({
-          host: process.env['CROWD_POSTGRES_READER_HOST'],
-          port: Number(process.env['CROWD_POSTGRES_PORT']),
-          user: process.env['CROWD_POSTGRES_USER'],
-          password: process.env['CROWD_POSTGRES_PASSWORD'],
-          database: process.env['CROWD_POSTGRES_DATABASE'],
+          host: process.env['CROWD_DB_READ_HOST'],
+          port: Number(process.env['CROWD_DB_PORT']),
+          user: process.env['CROWD_DB_USERNAME'],
+          password: process.env['CROWD_DB_PASSWORD'],
+          database: process.env['CROWD_DB_DATABASE'],
         })
 
         this._postgresReader = new DbStore(this.log, dbConnection)
@@ -130,11 +130,11 @@ export class ServiceWorker extends Service {
 
       try {
         const dbConnection = await getDbConnection({
-          host: process.env['CROWD_POSTGRES_WRITER_HOST'],
-          port: Number(process.env['CROWD_POSTGRES_PORT']),
-          user: process.env['CROWD_POSTGRES_USER'],
-          password: process.env['CROWD_POSTGRES_PASSWORD'],
-          database: process.env['CROWD_POSTGRES_DATABASE'],
+          host: process.env['CROWD_DB_WRITE_HOST'],
+          port: Number(process.env['CROWD_DB_PORT']),
+          user: process.env['CROWD_DB_USERNAME'],
+          password: process.env['CROWD_DB_PASSWORD'],
+          database: process.env['CROWD_DB_DATABASE'],
         })
 
         this._postgresWriter = new DbStore(this.log, dbConnection)
