@@ -1788,6 +1788,7 @@ class OrganizationRepository {
             SELECT "memberId" 
             FROM "memberOrganizations" 
             WHERE "organizationId" = :toOrganizationId
+            AND "deletedAt" IS NULL
         );
       `,
       {

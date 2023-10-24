@@ -392,6 +392,16 @@ const submit = (): void => {
       .then(() => {
         SavedViewsService.update((props.view as SavedView).id, data)
           .then(() => {
+            (window as any).analytics.track('Custom view updated', {
+              placement: props.placement,
+              name: form.name,
+              visibility: form.shared ? 'tenant' : 'user',
+              relation: form.relation,
+              orderProperty: form.sorting.prop,
+              orderDirection: form.sorting.order,
+              settings: form.settings,
+              filters: form.filters,
+            });
             isDrawerOpen.value = false;
             reset();
             Message.success('View updated successfully!');
@@ -407,13 +417,24 @@ const submit = (): void => {
   } else {
     SavedViewsService.create(data)
       .then(() => {
-        isDrawerOpen.value = false;
-        reset();
         if (isDuplicate.value) {
           Message.success('View duplicated successfully!');
         } else {
           Message.success('View successfully created!');
         }
+        (window as any).analytics.track('Custom view created', {
+          placement: props.placement,
+          name: form.name,
+          visibility: form.shared ? 'tenant' : 'user',
+          relation: form.relation,
+          orderProperty: form.sorting.prop,
+          orderDirection: form.sorting.order,
+          settings: form.settings,
+          filters: form.filters,
+          duplicated: isDuplicate.value,
+        });
+        isDrawerOpen.value = false;
+        reset();
         emit('reload');
       })
       .catch(() => {

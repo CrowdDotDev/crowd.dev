@@ -2,7 +2,7 @@ import path from 'path'
 
 import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '@temporalio/worker'
 
-import { Config, Service } from '@crowd/standard'
+import { Config, Service } from '@crowd/archetype-standard'
 import { getDbConnection, DbStore } from '@crowd/database'
 
 // List all required environment variables, grouped per "component".
@@ -10,6 +10,7 @@ import { getDbConnection, DbStore } from '@crowd/database'
 const envvars = {
   worker: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE', 'CROWD_TEMPORAL_TASKQUEUE'],
   postgres: [
+    'CROWD_DB_READ_HOST',
     'CROWD_DB_WRITE_HOST',
     'CROWD_DB_PORT',
     'CROWD_DB_USERNAME',
@@ -34,7 +35,8 @@ export class ServiceWorker extends Service {
   readonly options: Options
 
   protected _worker: TemporalWorker
-  protected _postgres: DbStore
+  protected _postgresReader: DbStore
+  protected _postgresWriter: DbStore
 
   constructor(config: Config, opts: Options) {
     super(config)
@@ -42,12 +44,15 @@ export class ServiceWorker extends Service {
     this.options = opts
   }
 
-  get postgres(): DbStore | null {
+  get postgres(): { reader: DbStore; writer: DbStore } | null {
     if (!this.options.postgres.enabled) {
       return null
     }
 
-    return this._postgres
+    return {
+      reader: this._postgresReader,
+      writer: this._postgresWriter,
+    }
   }
 
   // We first need to ensure a standard service can be initialized given the config
@@ -111,6 +116,20 @@ export class ServiceWorker extends Service {
     if (this.options.postgres.enabled) {
       try {
         const dbConnection = await getDbConnection({
+          host: process.env['CROWD_DB_READ_HOST'],
+          port: Number(process.env['CROWD_DB_PORT']),
+          user: process.env['CROWD_DB_USERNAME'],
+          password: process.env['CROWD_DB_PASSWORD'],
+          database: process.env['CROWD_DB_DATABASE'],
+        })
+
+        this._postgresReader = new DbStore(this.log, dbConnection)
+      } catch (err) {
+        throw new Error(err)
+      }
+
+      try {
+        const dbConnection = await getDbConnection({
           host: process.env['CROWD_DB_WRITE_HOST'],
           port: Number(process.env['CROWD_DB_PORT']),
           user: process.env['CROWD_DB_USERNAME'],
@@ -118,7 +137,7 @@ export class ServiceWorker extends Service {
           database: process.env['CROWD_DB_DATABASE'],
         })
 
-        this._postgres = new DbStore(this.log, dbConnection)
+        this._postgresWriter = new DbStore(this.log, dbConnection)
       } catch (err) {
         throw new Error(err)
       }
@@ -137,9 +156,9 @@ export class ServiceWorker extends Service {
   // Stop allows to gracefully stop the service. Order for closing connections
   // matters. We need to stop the Temporal worker before closing other connections.
   protected override async stop() {
-    this._worker.shutdown()
     if (this.options.postgres.enabled) {
-      this._postgres.dbInstance.end()
+      this._postgresWriter.dbInstance.end()
+      this._postgresReader.dbInstance.end()
     }
 
     await super.stop()
