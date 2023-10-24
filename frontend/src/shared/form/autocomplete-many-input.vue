@@ -132,6 +132,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    optionsLimit: {
+      type: Number,
+      default: null,
+    },
   },
   emits: ['remove-tag', 'update:modelValue'],
   data() {
@@ -208,10 +212,10 @@ export default {
     // Rendered available options should be dependent on the current query
     availableOptions() {
       if (this.currentQuery) {
-        return this.filteredOptions.slice(0, 10);
+        return this.optionsLimit ? this.filteredOptions.slice(0, this.optionsLimit) : this.filteredOptions;
       }
 
-      return this.localOptions.slice(0, 10);
+      return this.optionsLimit ? this.localOptions.slice(0, this.optionsLimit) : this.localOptions;
     },
   },
 
