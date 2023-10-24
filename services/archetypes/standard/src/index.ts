@@ -196,7 +196,11 @@ export class Service {
       await this.stop()
     })
 
-    if (process.env['CROWD_UNLEASH_URL'] && process.env['CROWD_UNLEASH_BACKEND_API_KEY']) {
+    if (
+      process.env['CROWD_EDITION'] === 'crowd-hosted' &&
+      process.env['CROWD_UNLEASH_URL'] &&
+      process.env['CROWD_UNLEASH_BACKEND_API_KEY']
+    ) {
       this._unleash = InitUnleash({
         appName: this.name,
         url: process.env['CROWD_UNLEASH_URL'],
