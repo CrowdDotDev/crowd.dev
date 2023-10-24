@@ -88,7 +88,7 @@
               <cr-filter-item
                 v-model="form.filters[filter]"
                 v-model:open="openedFilter"
-                :config="props.filters[filter]"
+                :config="allFilters[filter]"
                 :hide-remove="true"
                 class="flex-grow"
                 chip-classes="w-full !h-10"
@@ -314,6 +314,11 @@ const filteredFilters = computed(() => Object.entries(props.filters)
 
 const filteredCustomFilters = computed(() => (props.customFilters ? Object.entries(props.customFilters)
   .filter(([_, config]: [string, FilterConfig]) => config.label.toLowerCase().includes(dropdownSearch.value.toLowerCase())) : []));
+
+const allFilters = computed(() => ({
+  ...props.filters,
+  ...(props.customFilters || {}),
+}));
 
 // Filter list management
 const filterList = ref<string[]>([]);
