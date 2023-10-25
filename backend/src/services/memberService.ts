@@ -30,10 +30,10 @@ import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
 import SettingsService from './settingsService'
-import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '../types/common'
 import SegmentRepository from '../database/repositories/segmentRepository'
+import { getSearchSyncApiClient } from '@/httpClients/searchSyncApiClient'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -199,7 +199,7 @@ export default class MemberService extends LoggerBase {
     fireSync: boolean = true,
   ) {
     const logger = this.options.log
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncApi = await getSearchSyncApiClient()
 
     const errorDetails: any = {}
 
@@ -435,7 +435,7 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+        await searchSyncApi.triggerMemberSync(record.id)
       }
 
       if (!existing && fireCrowdWebhooks) {
@@ -629,10 +629,9 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(tx)
 
       try {
-        // TODO replace this with synchroneous call
-        const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, originalId)
-        await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+        const searchSyncApi = await getSearchSyncApiClient()
+        await searchSyncApi.triggerMemberSync(originalId)
+        await searchSyncApi.triggerRemoveMember(toMergeId)
       } catch (emitError) {
         this.log.error(
           emitError,
@@ -745,20 +744,14 @@ export default class MemberService extends LoggerBase {
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     try {
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      const searchSyncApi = await getSearchSyncApiClient()
 
       await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
 
       for (const suggestion of suggestions) {
-        await searchSyncEmitter.triggerMemberSync(
-          this.options.currentTenant.id,
-          suggestion.members[0],
-        )
-        await searchSyncEmitter.triggerMemberSync(
-          this.options.currentTenant.id,
-          suggestion.members[1],
-        )
+        await searchSyncApi.triggerMemberSync(suggestion.members[0])
+        await searchSyncApi.triggerMemberSync(suggestion.members[1])
       }
       return { status: 200 }
     } catch (error) {
@@ -776,7 +769,7 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
@@ -798,8 +791,8 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberOneId)
-      await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
+      await searchSyncApi.triggerMemberSync(memberOneId)
+      await searchSyncApi.triggerMemberSync(memberTwoId)
 
       return { status: 200 }
     } catch (error) {
@@ -847,7 +840,7 @@ export default class MemberService extends LoggerBase {
 
   async update(id, data) {
     let transaction
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
@@ -909,8 +902,7 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
       try {
-        // TODO replace this with synchroneous call
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, record.id)
+        await searchSyncApi.triggerMemberSync(record.id)
       } catch (emitErr) {
         this.log.error(
           emitErr,
@@ -946,7 +938,7 @@ export default class MemberService extends LoggerBase {
 
   async destroyBulk(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       await MemberRepository.destroyBulk(
@@ -965,13 +957,13 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+      await searchSyncApi.triggerRemoveMember(id)
     }
   }
 
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       for (const id of ids) {
@@ -992,7 +984,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncEmitter.triggerRemoveMember(this.options.currentTenant.id, id)
+      await searchSyncApi.triggerRemoveMember(id)
     }
   }
 

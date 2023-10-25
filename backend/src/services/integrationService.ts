@@ -36,7 +36,6 @@ import IntegrationRunRepository from '../database/repositories/integrationRunRep
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
-  getSearchSyncWorkerEmitter,
 } from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
@@ -51,6 +50,7 @@ import {
   GroupsioGetToken,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
+import { getSearchSyncApiClient } from '@/httpClients/searchSyncApiClient'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -623,8 +623,8 @@ export default class IntegrationService {
     )
 
     // send it to opensearch because in member.update we bypass while passing transactions
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-    await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, member.id)
+    const searchSyncApi = await getSearchSyncApiClient()
+    await searchSyncApi.triggerMemberSync(member.id)
   }
 
   async hubspotStopSyncOrganization(payload: IHubspotManualSyncPayload) {

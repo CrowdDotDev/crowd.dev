@@ -90,7 +90,7 @@ router.delete(
 )
 
 router.delete(
-  '/cleanup/members',
+  '/cleanup/member',
   asyncWrap(async (req: ApiRequest, res) => {
     const openSearchService = new OpenSearchService(req.log)
     const memberSyncService = new MemberSyncService(

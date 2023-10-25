@@ -35,7 +35,7 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { getSearchSyncApiClient } from '@/httpClients/searchSyncApiClient'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -144,7 +144,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncApi = await getSearchSyncApiClient()
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -159,7 +159,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberId)
+        await searchSyncApi.triggerMemberSync(memberId)
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (
@@ -236,7 +236,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         await this.getAttributes()
       }
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      const searchSyncApi = await getSearchSyncApiClient()
 
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(options)
@@ -357,7 +357,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      await searchSyncEmitter.triggerMemberSync(options.currentTenant.id, result.id)
+      await searchSyncApi.triggerMemberSync(result.id)
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)
