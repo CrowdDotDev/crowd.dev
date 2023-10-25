@@ -9,18 +9,17 @@ import {
   NewMemberSettings,
   WebhookSettings,
 } from '@crowd/types'
-import { ActivityRepository, IActivityData } from '../repos/activity.repo'
 import { AutomationRepository, IRelevantAutomationData } from '../repos/automation.repo'
-import { IMemberData, MemberRepository } from '../repos/member.repo'
 import request from 'superagent'
 import { newMemberBlocks } from './slack/newMemberBlocks'
 import { newActivityBlocks } from './slack/newActivityBlocks'
+import { IMemberData, IActivityData } from '../repos/types'
+import { DataRepository } from '../repos/data.repo'
 
 export class AutomationService {
   private readonly log: Logger
   private readonly automationRepo: AutomationRepository
-  private readonly memberRepo: MemberRepository
-  private readonly activityRepo: ActivityRepository
+  private readonly dataRepo: DataRepository
 
   private readonly automationCache: RedisCache
   private readonly memberCache: RedisCache
@@ -30,7 +29,7 @@ export class AutomationService {
     this.log = getChildLogger(this.constructor.name, parentLog)
 
     this.automationRepo = new AutomationRepository(dbStore, this.log)
-    this.memberRepo = new MemberRepository(dbStore, this.log)
+    this.dataRepo = new DataRepository(dbStore, this.log)
 
     this.automationCache = new RedisCache('automations:definitions', redis, this.log)
     this.memberCache = new RedisCache('automations:members', redis, this.log)
@@ -121,14 +120,19 @@ export class AutomationService {
       }
     }
 
-    if (process && !settings.teamMemberActivities && activity.isTeamMember) {
+    if (
+      process &&
+      !settings.teamMemberActivities &&
+      activity.member.attributes.isTeamMember &&
+      activity.member.attributes.isTeamMember.default
+    ) {
       this.log.warn(
         `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a team member!`,
       )
       process = false
     }
 
-    if (activity?.isBot) {
+    if (activity?.member?.attributes?.isBot && activity?.member?.attributes?.isBot.default) {
       this.log.warn(
         `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a bot, cannot be processed automaticaly!`,
       )
@@ -423,13 +427,12 @@ export class AutomationService {
   async getMember(memberId: string): Promise<IMemberData | null> {
     const cached = await this.memberCache.get(memberId)
     if (!cached) {
-      // TODO match payload data from backend folder
-      const member = await this.memberRepo.get(memberId)
-      if (!member) {
+      const members = await this.dataRepo.getMembers([memberId])
+      if (members.length === 0) {
         return null
       }
 
-      return member
+      return members[0]
     }
 
     return JSON.parse(cached)
@@ -442,13 +445,12 @@ export class AutomationService {
   async getActivity(activityId: string): Promise<IActivityData | null> {
     const cached = await this.activityCache.get(activityId)
     if (!cached) {
-      // TODO match payload data from backend folder
-      const activity = await this.activityRepo.get(activityId)
-      if (!activity) {
+      const activities = await this.dataRepo.getActivities([activityId])
+      if (activities.length === 0) {
         return null
       }
 
-      return activity
+      return activities[0]
     }
 
     return JSON.parse(cached)

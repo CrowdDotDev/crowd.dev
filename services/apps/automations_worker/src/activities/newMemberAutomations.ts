@@ -11,7 +11,7 @@ export async function triggerMemberAutomationExecution(
     memberId,
   })
 
-  const service = new AutomationService(dbStore, redis, log)
+  const service = new AutomationService(dbStore.writer, redis, log)
   const payload = await service.getMember(memberId)
   if (!payload) {
     log.warn('Member not found, skipping execution')
@@ -30,6 +30,6 @@ export async function detectNewMemberAutomations(
     memberId,
   })
 
-  const service = new AutomationService(dbStore, redis, log)
+  const service = new AutomationService(dbStore.reader, redis, log)
   return service.detectNewMemberAutomations(tenantId, memberId)
 }

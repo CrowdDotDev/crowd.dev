@@ -14,8 +14,9 @@
     "tsc-check": "./node_modules/.bin/tsc --noEmit"
   },
   "dependencies": {
+    "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@crowd/archetype-worker": "file:../../archetypes/worker",
-    "@temporalio/activity": "^1.8.6",
+    "@crowd/logging": "file:../../libs/logging",
     "@temporalio/workflow": "~1.8.6",
     "@types/config": "^3.3.1",
     "@types/node": "^20.8.2",

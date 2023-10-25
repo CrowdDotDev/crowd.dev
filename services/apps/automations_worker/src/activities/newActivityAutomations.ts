@@ -11,7 +11,7 @@ export async function triggerActivityAutomationExecution(
     activityId,
   })
 
-  const service = new AutomationService(dbStore, redis, log)
+  const service = new AutomationService(dbStore.writer, redis, log)
   const payload = await service.getActivity(activityId)
   if (!payload) {
     log.warn('Activity not found, skipping execution')
@@ -30,6 +30,6 @@ export async function detectNewActivityAutomations(
     activityId,
   })
 
-  const service = new AutomationService(dbStore, redis, log)
+  const service = new AutomationService(dbStore.reader, redis, log)
   return service.detectNewActivityAutomations(tenantId, activityId)
 }
