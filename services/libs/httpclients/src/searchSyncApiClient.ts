@@ -1,11 +1,13 @@
 import axios from 'axios'
+import { SERVICE_CONFIG } from 'conf'
 
+const config = SERVICE_CONFIG()
 export class SearchSyncApiClient {
   private searchSyncApi
 
   constructor() {
     this.searchSyncApi = axios.create({
-      baseURL: process.env.SEARCH_SYNC_API_URL,
+      baseURL: config.searchSyncApiUrl,
     })
   }
 

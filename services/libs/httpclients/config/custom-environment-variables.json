@@ -1,0 +1,10 @@
+{
+  "service": {
+    "edition": "CROWD_EDITION",
+    "searchSyncApiUrl": "SEARCH_SYNC_API_URL"
+  },
+  "db": {},
+  "sqs": {},
+  "redis": {},
+  "opensearch": {}
+}
