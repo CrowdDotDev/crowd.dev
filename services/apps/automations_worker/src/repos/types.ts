@@ -24,11 +24,11 @@ export interface IActivityData {
   // a bunch more but we just passing them as the payload - not needed here for now
 
   parentId: string | null
-  parent: unknown // TODO
+  parent: unknown
   memberId: string
-  member: IMemberData // TODO
+  member: IMemberData
   objectMemberId: string | null
-  objectMember: unknown // TODO
+  objectMember: unknown
   organizationId: string | null
-  organization: unknown // TODO
+  organization: unknown
 }

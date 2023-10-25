@@ -2,6 +2,7 @@ import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import {
+  AutomationExecutionState,
   AutomationState,
   AutomationTrigger,
   AutomationType,
@@ -161,7 +162,7 @@ export class AutomationService {
   async detectNewMemberAutomations(tenantId: string, memberId: string): Promise<string[]> {
     this.log.debug('Detecting new member automations!')
 
-    // todo load automations for this tenant and this type from database
+    // load automations for this tenant and this type from database
     const relevantAutomations = await this.automationRepo.findRelevant(
       tenantId,
       AutomationTrigger.NEW_MEMBER,
@@ -207,7 +208,7 @@ export class AutomationService {
   async detectNewActivityAutomations(tenantId: string, activityId: string): Promise<string[]> {
     this.log.debug('Detecting new member automations!')
 
-    // todo load automations for this tenant and this type from database
+    // load automations for this tenant and this type from database
     const relevantAutomations = await this.automationRepo.findRelevant(
       tenantId,
       AutomationTrigger.NEW_ACTIVITY,
@@ -284,10 +285,30 @@ export class AutomationService {
 
     try {
       executeMethod(automation, eventId, payload)
-      // TODO store execution result
+      await this.automationRepo.createExecution({
+        automationId: automation.id,
+        type: automation.type,
+        trigger: automation.trigger,
+        tenantId: automation.tenantId,
+        executedAt: new Date(),
+        state: AutomationExecutionState.SUCCESS,
+        eventId,
+        payload,
+        error: undefined,
+      })
     } catch (err) {
       this.log.error(err, 'Error while executing automation!')
-      // TODO store execution error
+      await this.automationRepo.createExecution({
+        automationId: automation.id,
+        type: automation.type,
+        trigger: automation.trigger,
+        tenantId: automation.tenantId,
+        executedAt: new Date(),
+        state: AutomationExecutionState.ERROR,
+        eventId,
+        payload,
+        error: err,
+      })
       throw err
     }
   }

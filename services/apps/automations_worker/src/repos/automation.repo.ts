@@ -11,6 +11,7 @@ import {
 
 export interface IRelevantAutomationData {
   id: string
+  tenantId: string
   type: AutomationType
   settings: AutomationSettings
   trigger: AutomationTrigger
@@ -59,6 +60,7 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
     const result = await this.db().oneOrNone(
       `
       select a.id, 
+             a."tenantId",
              a.type, 
              a.trigger, 
              a.settings,
@@ -82,9 +84,15 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
   ): Promise<IRelevantAutomationData[]> {
     const results = await this.db().any(
       `
-    select id, type, trigger, settings
-    from automations
-    where "tenantId" = $(tenantId) and trigger = $(trigger) and state = $(state)
+      select a.id, 
+             a."tenantId",
+             a.type, 
+             a.trigger, 
+             a.settings,
+             t."slackWebHook"
+      from automations a 
+        inner join tenants t on t.id = a."tenantId"
+      where a."tenantId" = $(tenantId) and a.trigger = $(trigger) and a.state = $(state)
     `,
       {
         tenantId,

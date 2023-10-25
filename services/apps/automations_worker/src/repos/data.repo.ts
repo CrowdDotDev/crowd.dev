@@ -229,8 +229,28 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         }),
       )
 
-      // TODO load activity aggregates
-      // TODO load last activity
+      // load activity aggregates
+      promises.push(
+        this.getMemberActivityAggregates(memberIds).then((aggs) => {
+          for (const member of results) {
+            const agg = single(aggs, (a) => a.memberId === member.id)
+            delete agg.memberId
+            Object.assign(member, agg)
+          }
+        }),
+      )
+
+      // load last activity
+      const lastActivityIds = results.filter((r) => r.lastActivityId).map((r) => r.lastActivityId)
+      if (lastActivityIds.length > 0) {
+        promises.push(
+          this.getActivities(lastActivityIds, false).then((activities) => {
+            for (const member of results.filter((r) => r.lastActivityId)) {
+              member.lastActivity = single(activities, (a) => a.id === member.lastActivityId)
+            }
+          }),
+        )
+      }
 
       // load tags
       promises.push(
@@ -298,6 +318,41 @@ export class DataRepository extends RepositoryBase<DataRepository> {
     }
 
     await Promise.all(promises)
+
+    return results
+  }
+
+  async getMemberActivityAggregates(memberIds: string[]): Promise<any[]> {
+    const results = await this.db().any(
+      `
+      select  "memberId",
+              (select id
+                from activities a2
+                where a2."memberId" = activities."memberId"
+                order by timestamp desc
+                limit 1)                                                                          as "lastActiveId",
+              max(timestamp)                                                                      as "lastActive",
+              count(id)                                                                           as "activityCount",
+              array_agg(distinct concat(platform, ':', type)) filter (where platform is not null) as "activityTypes",
+              array_agg(distinct platform) filter (where platform is not null)                    as "activeOn",
+              count(distinct "timestamp"::date)                                                   as "activeDaysCount",
+              round(avg(
+                            case
+                                when (sentiment ->> 'sentiment'::text) is not null then
+                                    (sentiment ->> 'sentiment'::text)::double precision
+                                else
+                                    null::double precision
+                                end
+                    )::numeric, 2)                                                                as "averageSentiment"
+        from activities
+        where "memberId" in ($(memberIds:csv))
+          and "deletedAt" is null
+        group by "memberId";
+      `,
+      {
+        memberIds,
+      },
+    )
 
     return results
   }
