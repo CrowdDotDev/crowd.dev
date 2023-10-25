@@ -7,6 +7,10 @@ on:
         description: Deploy search-sync-worker service?
         required: true
         type: boolean
+      deploy_search_sync_api:
+          description: Deploy search-sync-api service?
+          required: true
+          type: boolean
       deploy_integration_sync_worker:
         description: Deploy integration-sync-worker service?
         required: true
@@ -48,6 +52,27 @@ jobs:
         id: image-builder
         with:
           image: search-sync-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+  
+  build-and-push-search-sync-api:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_search_sync_api }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: search-sync-api
 
       - name: Set docker image output
         id: image
@@ -132,6 +157,24 @@ jobs:
         with:
           service: search-sync-worker
           image: ${{ needs.build-and-push-search-sync-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-search-sync-api:
+    needs: build-and-push-search-sync-api
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_search_sync_api }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: search-sync-api
+          image: ${{ needs.build-and-push-search-sync-api.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-integration-sync-worker:
