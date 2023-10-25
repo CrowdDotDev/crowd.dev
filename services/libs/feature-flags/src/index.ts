@@ -1,5 +1,7 @@
+import { EDITION } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import { Unleash } from 'unleash-client'
+import { Edition, FeatureFlag } from '@crowd/types'
+import { Context, Unleash } from 'unleash-client'
 
 export interface IUnleashConfig {
   url: string
@@ -46,6 +48,27 @@ export const getUnleashClient = async (cfg: IUnleashConfig): Promise<Unleash> =>
   })
 
   return unleash
+}
+
+export const isFeatureEnabled = async (
+  flag: FeatureFlag,
+  contextLoader: () => Promise<Context>,
+  client?: Unleash,
+): Promise<boolean> => {
+  if (flag === FeatureFlag.SEGMENTS) {
+    return EDITION === Edition.LFX
+  }
+
+  if ([Edition.COMMUNITY, Edition.LFX].includes(EDITION)) {
+    return true
+  }
+
+  if (!client) {
+    throw new Error('Unleash client is not initialized!')
+  }
+
+  const enabled = unleash.isEnabled(flag, await contextLoader())
+  return enabled
 }
 
 export * from 'unleash-client'

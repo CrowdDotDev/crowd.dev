@@ -19,7 +19,9 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@crowd/common": "file:../common",
     "@crowd/logging": "file:../logging",
+    "@crowd/types": "file:../types",
     "unleash-client": "^3.18.1"
   }
 }
