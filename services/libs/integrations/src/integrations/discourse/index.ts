@@ -9,7 +9,6 @@ import { PlatformType } from '@crowd/types'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.DISCOURSE,
   memberAttributes: DISCOURSE_MEMBER_ATTRIBUTES,
-  checkEvery: 60,
   generateStreams,
   processStream,
   processData,
