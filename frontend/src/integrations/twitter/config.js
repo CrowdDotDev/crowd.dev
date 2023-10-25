@@ -10,7 +10,7 @@ export default {
   description:
     'Connect Twitter to sync profile information, followers, and relevant tweets.',
   image:
-    'https://icons8.com/icon/fJp7hepMryiw/twitterx',
+    'https://vectorseek.com/wp-content/uploads/2023/07/Twitter-X-New-Logo-Vector-2.png',
   connectComponent: config.isTwitterIntegrationEnabled ? TwitterConnect2 : TwitterConnect,
   url: ({ username }) => (username ? `https://twitter.com/${username}` : null),
   chartColor: '#1D9BF0',
