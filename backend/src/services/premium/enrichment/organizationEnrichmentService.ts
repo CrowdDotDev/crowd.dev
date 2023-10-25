@@ -118,7 +118,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
           }
           const data = await this.getEnrichment({
             website: instance.website,
-            name: identityForEnrichment.name,
+            name: identityForEnrichment?.name,
           })
           if (data) {
             const org = this.convertEnrichedDataToOrg(data, instance)
@@ -128,7 +128,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
               tenantId: this.tenantId,
               identities: instance.identities,
             })
-            enrichedCacheOrganizations.push({ ...org, name: identityForEnrichment.name })
+            enrichedCacheOrganizations.push({ ...org, name: identityForEnrichment?.name })
           } else {
             const lastEnrichedAt = new Date()
             enrichedOrganizations.push({
