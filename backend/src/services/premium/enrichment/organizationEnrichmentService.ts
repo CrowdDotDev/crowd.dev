@@ -104,7 +104,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
           identityPlatforms.includes(p),
         )[0]
 
-        if (platformToUseForEnrichment) {
+        if (platformToUseForEnrichment || instance.website) {
           const identityForEnrichment = instance.identities.find(
             (i) => i.platform === platformToUseForEnrichment,
           )
@@ -112,11 +112,11 @@ export default class OrganizationEnrichmentService extends LoggerBase {
           if (verbose) {
             count += 1
             this.log.info(
-              `(${count}/${this.maxOrganizationsLimit}). Enriching ${identityForEnrichment.name}`,
+              `(${count}/${this.maxOrganizationsLimit}). Enriching ${instance.displayName}`,
             )
             this.log.debug(instance)
           }
-          const data = await this.getEnrichment({ ...instance, name: identityForEnrichment.name })
+          const data = await this.getEnrichment({ website: instance.website, name: identityForEnrichment.name })
           if (data) {
             const org = this.convertEnrichedDataToOrg(data, instance)
             enrichedOrganizations.push({
