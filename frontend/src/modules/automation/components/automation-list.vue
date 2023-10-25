@@ -195,7 +195,7 @@ onMounted(() => {
 
 <script>
 export default {
-  name: 'AppAutomationListPage',
+  name: 'AppAutomationList',
 };
 </script>
 

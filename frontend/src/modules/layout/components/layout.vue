@@ -1,7 +1,7 @@
 <template>
   <el-container>
-<!--    <app-menu />-->
-    <app-menu-v2 />
+    <app-menu-v2 v-if="menuV2Enabled" />
+    <app-menu v-else />
     <el-container v-if="currentTenant" :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
         <div
@@ -132,6 +132,7 @@ import Banner from '@/shared/banner/banner.vue';
 
 import AppMenu from '@/modules/layout/components/menu.vue';
 import AppMenuV2 from '@/modules/layout/components/menu-v2.vue';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 export default {
   name: 'AppLayout',
@@ -171,6 +172,11 @@ export default {
       showOrganizationsAlertBanner: 'tenant/showOrganizationsAlertBanner',
       showBanner: 'tenant/showBanner',
     }),
+    menuV2Enabled() {
+      return FeatureFlag.isFlagEnabled(
+        FeatureFlag.flags.menuV2,
+      );
+    },
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
         (i) => i.name,
