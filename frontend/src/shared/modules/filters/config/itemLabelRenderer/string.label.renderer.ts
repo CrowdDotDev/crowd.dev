@@ -3,10 +3,9 @@ import { FilterStringOperator, stringOperatorLabels } from '@/shared/modules/fil
 
 export const stringItemLabelRenderer = (
   property: string,
-  { value, include, operator }: StringFilterValue,
+  { value, operator }: StringFilterValue,
 ): string => {
-  const excludeText = !include ? ' (exclude)' : '';
   const valueText = operator !== FilterStringOperator.EQ ? `${stringOperatorLabels[operator]} ${value}` : value;
 
-  return `<b>${property}${excludeText}:</b>${valueText}`;
+  return `<b>${property}:</b>${valueText}`;
 };

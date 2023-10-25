@@ -88,7 +88,7 @@
               <cr-filter-item
                 v-model="form.filters[filter]"
                 v-model:open="openedFilter"
-                :config="props.filters[filter]"
+                :config="allFilters[filter]"
                 :hide-remove="true"
                 class="flex-grow"
                 chip-classes="w-full !h-10"
@@ -126,6 +126,20 @@
                   <div class="m-2 max-h-56 overflow-auto">
                     <el-dropdown-item
                       v-for="[key, filterConfig] of filteredFilters"
+                      :key="key"
+                      :disabled="filterList.includes(key)"
+                      @click="addFilter(key)"
+                    >
+                      {{ filterConfig.label }}
+                    </el-dropdown-item>
+                    <div
+                      v-if="filteredCustomFilters.length > 0"
+                      class="el-dropdown-title !my-3"
+                    >
+                      Custom Attributes
+                    </div>
+                    <el-dropdown-item
+                      v-for="[key, filterConfig] of filteredCustomFilters"
                       :key="key"
                       :disabled="filterList.includes(key)"
                       @click="addFilter(key)"
@@ -210,6 +224,7 @@ const props = defineProps<{
   modelValue: boolean,
   config: SavedViewsConfig,
   filters: Record<string, FilterConfig>,
+  customFilters?: Record<string, FilterConfig>,
   placement: string,
   view: SavedView | SavedViewCreate | null,
 }>();
@@ -296,6 +311,14 @@ const dropdownSearch = ref<string>('');
 
 const filteredFilters = computed(() => Object.entries(props.filters)
   .filter(([_, config]: [string, FilterConfig]) => config.label.toLowerCase().includes(dropdownSearch.value.toLowerCase())));
+
+const filteredCustomFilters = computed(() => (props.customFilters ? Object.entries(props.customFilters)
+  .filter(([_, config]: [string, FilterConfig]) => config.label.toLowerCase().includes(dropdownSearch.value.toLowerCase())) : []));
+
+const allFilters = computed(() => ({
+  ...props.filters,
+  ...(props.customFilters || {}),
+}));
 
 // Filter list management
 const filterList = ref<string[]>([]);

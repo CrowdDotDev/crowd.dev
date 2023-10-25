@@ -106,6 +106,9 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     joinedAt: {
       type: OpensearchFieldType.DATE,
     },
+    lastEnrichedAt: {
+      type: OpensearchFieldType.DATE,
+    },
     lastActive: {
       type: OpensearchFieldType.DATE,
     },

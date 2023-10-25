@@ -84,6 +84,7 @@
     v-model="isFormOpen"
     :config="props.config"
     :filters="props.filters"
+    :custom-filters="props.customFilters"
     :placement="props.placement"
     :view="editView"
     @update:model-value="editView = null"
@@ -110,6 +111,7 @@ const props = defineProps<{
   modelValue: Filter,
   config: SavedViewsConfig,
   filters: Record<string, FilterConfig>,
+  customFilters?: Record<string, FilterConfig>,
   placement: string,
   staticViews: SavedView[],
 }>();
