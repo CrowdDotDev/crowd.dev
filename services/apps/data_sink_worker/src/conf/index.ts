@@ -1,12 +1,10 @@
-import { ITemporalConfig } from '@crowd/temporal'
 import { IDatabaseConfig } from '@crowd/database'
-import { ISqsClientConfig } from '@crowd/sqs'
-import { ISentimentClientConfig } from '@crowd/sentiment'
-import config from 'config'
-import { IRedisConfiguration } from '@crowd/redis'
 import { IUnleashConfig } from '@crowd/feature-flags'
-import { EDITION } from '@crowd/common'
-import { Edition } from '@crowd/types'
+import { IRedisConfiguration } from '@crowd/redis'
+import { ISentimentClientConfig } from '@crowd/sentiment'
+import { ISqsClientConfig } from '@crowd/sqs'
+import { ITemporalConfig } from '@crowd/temporal'
+import config from 'config'
 export interface ISlackAlertingConfig {
   url: string
 }
@@ -60,18 +58,20 @@ let unleashConfig: IUnleashConfig | undefined
 export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
   if (unleashConfig) return unleashConfig
 
-  if (EDITION === Edition.CROWD_HOSTED) {
-    unleashConfig = config.get<IUnleashConfig>('unleash')
-  }
+  unleashConfig = config.get<IUnleashConfig>('unleash')
 
   return unleashConfig
 }
 
-let temporalConfig: ITemporalConfig | undefined
-export const TEMPORAL_CONFIG = (): ITemporalConfig | undefined => {
+export interface IDataSinkWorkerTemporalConfig extends ITemporalConfig {
+  automationsTaskQueue: string
+}
+
+let temporalConfig: IDataSinkWorkerTemporalConfig | undefined
+export const TEMPORAL_CONFIG = (): IDataSinkWorkerTemporalConfig | undefined => {
   if (temporalConfig) return temporalConfig
 
-  temporalConfig = config.get<ITemporalConfig>('temporal')
+  temporalConfig = config.get<IDataSinkWorkerTemporalConfig>('temporal')
 
   return temporalConfig
 }

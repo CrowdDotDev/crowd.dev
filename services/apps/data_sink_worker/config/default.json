@@ -3,5 +3,7 @@
   "sqs": {},
   "redis": {},
   "unleash": {},
-  "temporal": {}
+  "temporal": {
+    "automationsTaskQueue": "automations"
+  }
 }

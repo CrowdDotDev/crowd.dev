@@ -12,7 +12,11 @@ export interface IUnleashConfig {
 const log = getServiceChildLogger('feature-flags')
 
 let unleash: Unleash | undefined
-export const getUnleashClient = async (cfg: IUnleashConfig): Promise<Unleash> => {
+export const getUnleashClient = async (cfg: IUnleashConfig): Promise<Unleash | undefined> => {
+  if (EDITION !== Edition.CROWD_HOSTED) {
+    return undefined
+  }
+
   if (unleash) {
     return unleash
   }
