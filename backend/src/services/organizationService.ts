@@ -1,6 +1,7 @@
 import { websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
+import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
@@ -19,7 +20,6 @@ import {
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
-import { getSearchSyncApiClient } from '@/httpClients/searchSyncApiClient'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions

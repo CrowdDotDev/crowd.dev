@@ -5,7 +5,7 @@ import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 
 const tracer = getServiceTracer()
@@ -28,19 +28,11 @@ setImmediate(async () => {
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
   await nodejsWorkerEmitter.init()
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
-  await searchSyncWorkerEmitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const service = new DataSinkService(
-    store,
-    nodejsWorkerEmitter,
-    searchSyncWorkerEmitter,
-    redisClient,
-    log,
-  )
+  const service = new DataSinkService(store, nodejsWorkerEmitter, redisClient, log)
 
   const repo = new DataSinkRepository(store, log)
   for (const resultId of resultIds) {

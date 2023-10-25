@@ -2,12 +2,8 @@ import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import {
-  DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
+import { getSearchSyncApiClient } from '@crowd/httpclients'
+import { DataSinkWorkerEmitter, NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import MemberRepository from '../repo/member.repo'
 import DataSinkRepository from '../repo/dataSink.repo'
 import MemberService from '../service/member.service'
@@ -42,11 +38,10 @@ setImmediate(async () => {
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
   await nodejsWorkerEmitter.init()
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
-  await searchSyncWorkerEmitter.init()
-
-  const memberService = new MemberService(store, nodejsWorkerEmitter, searchSyncWorkerEmitter, log)
+  const memberService = new MemberService(store, nodejsWorkerEmitter, log)
   const orgService = new OrganizationService(store, log)
+
+  const searchSyncApi = await getSearchSyncApiClient()
 
   const limit = 100
   let offset = 0
@@ -86,10 +81,10 @@ setImmediate(async () => {
             orgService.addToMember(tenantId, segmentId, member.id, orgs)
 
             for (const org of orgs) {
-              await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
+              await searchSyncApi.triggerOrganizationSync(org.id)
             }
 
-            await searchSyncWorkerEmitter.triggerMemberSync(tenantId, member.id)
+            await searchSyncApi.triggerMemberSync(member.id)
           }
         }
 

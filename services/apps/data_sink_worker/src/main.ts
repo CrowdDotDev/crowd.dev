@@ -1,7 +1,7 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG, REDIS_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
@@ -28,13 +28,11 @@ setImmediate(async () => {
   }
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
 
   const queue = new WorkerQueueReceiver(
     sqsClient,
     dbConnection,
     nodejsWorkerEmitter,
-    searchSyncWorkerEmitter,
     redisClient,
     tracer,
     log,
@@ -43,20 +41,13 @@ setImmediate(async () => {
 
   try {
     await nodejsWorkerEmitter.init()
-    await searchSyncWorkerEmitter.init()
 
     let processing = false
     setInterval(async () => {
       try {
         if (!processing) {
           processing = true
-          await processOldResultsJob(
-            dbConnection,
-            redisClient,
-            nodejsWorkerEmitter,
-            searchSyncWorkerEmitter,
-            log,
-          )
+          await processOldResultsJob(dbConnection, redisClient, nodejsWorkerEmitter, log)
         }
       } catch (err) {
         log.error(err, 'Failed to process old results!')

@@ -6,6 +6,7 @@ import moment from 'moment-timezone'
 import validator from 'validator'
 import { IOrganization, MemberAttributeType } from '@crowd/types'
 import { isDomainExcluded } from '@crowd/common'
+import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -33,7 +34,6 @@ import SettingsService from './settingsService'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import { FeatureFlag } from '../types/common'
 import SegmentRepository from '../database/repositories/segmentRepository'
-import { getSearchSyncApiClient } from '@/httpClients/searchSyncApiClient'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions

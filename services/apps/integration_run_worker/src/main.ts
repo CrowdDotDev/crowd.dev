@@ -5,7 +5,6 @@ import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   IntegrationSyncWorkerEmitter,
-  SearchSyncWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
@@ -27,7 +26,6 @@ setImmediate(async () => {
 
   const runWorkerEmitter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, tracer, log)
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
   const integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(sqsClient, tracer, log)
 
   const apiPubSubEmitter = new ApiPubSubEmitter(redisClient, log)
@@ -38,7 +36,6 @@ setImmediate(async () => {
     dbConnection,
     streamWorkerEmitter,
     runWorkerEmitter,
-    searchSyncWorkerEmitter,
     integrationSyncWorkerEmitter,
     apiPubSubEmitter,
     tracer,
@@ -49,7 +46,6 @@ setImmediate(async () => {
   try {
     await streamWorkerEmitter.init()
     await runWorkerEmitter.init()
-    await searchSyncWorkerEmitter.init()
     await integrationSyncWorkerEmitter.init()
     await queue.start()
   } catch (err) {

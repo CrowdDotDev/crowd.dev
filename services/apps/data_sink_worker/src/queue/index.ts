@@ -4,7 +4,6 @@ import { DbConnection, DbStore } from '@crowd/database'
 import {
   DATA_SINK_WORKER_QUEUE_SETTINGS,
   NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
@@ -22,7 +21,6 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     client: SqsClient,
     private readonly dbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     tracer: Tracer,
     parentLog: Logger,
@@ -39,7 +37,6 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         const service = new DataSinkService(
           new DbStore(this.log, this.dbConn),
           this.nodejsWorkerEmitter,
-          this.searchSyncWorkerEmitter,
           this.redisClient,
           this.log,
         )

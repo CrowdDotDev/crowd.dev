@@ -1,7 +1,7 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
@@ -21,7 +21,6 @@ export default class DataSinkService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {
@@ -105,7 +104,6 @@ export default class DataSinkService extends LoggerBase {
           const service = new ActivityService(
             this.store,
             this.nodejsWorkerEmitter,
-            this.searchSyncWorkerEmitter,
             this.redisClient,
             this.log,
           )
@@ -124,12 +122,7 @@ export default class DataSinkService extends LoggerBase {
         }
 
         case IntegrationResultType.MEMBER_ENRICH: {
-          const service = new MemberService(
-            this.store,
-            this.nodejsWorkerEmitter,
-            this.searchSyncWorkerEmitter,
-            this.log,
-          )
+          const service = new MemberService(this.store, this.nodejsWorkerEmitter, this.log)
           const memberData = data.data as IMemberData
 
           await service.processMemberEnrich(

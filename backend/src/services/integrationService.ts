@@ -17,6 +17,7 @@ import {
   getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
+import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
 import Error400 from '../errors/Error400'
@@ -50,7 +51,6 @@ import {
   GroupsioGetToken,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
-import { getSearchSyncApiClient } from '@/httpClients/searchSyncApiClient'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 

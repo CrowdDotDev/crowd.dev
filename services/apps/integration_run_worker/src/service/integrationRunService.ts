@@ -10,9 +10,9 @@ import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  SearchSyncWorkerEmitter,
   IntegrationSyncWorkerEmitter,
 } from '@crowd/sqs'
+import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
@@ -29,7 +29,6 @@ export default class IntegrationRunService extends LoggerBase {
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
@@ -337,8 +336,10 @@ export default class IntegrationRunService extends LoggerBase {
           await txRepo.deleteSampleData(runInfo.tenantId)
         })
 
-        await this.searchSyncWorkerEmitter.triggerActivityCleanup(runInfo.tenantId)
-        await this.searchSyncWorkerEmitter.triggerMemberCleanup(runInfo.tenantId)
+        const searchSyncApi = await getSearchSyncApiClient()
+
+        await searchSyncApi.triggerActivityCleanup(runInfo.tenantId)
+        await searchSyncApi.triggerMemberCleanup(runInfo.tenantId)
       } catch (err) {
         this.log.error({ err }, 'Error while deleting sample data!')
         await this.triggerRunError(

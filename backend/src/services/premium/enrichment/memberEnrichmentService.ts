@@ -12,6 +12,7 @@ import {
   PlatformType,
   OrganizationSource,
 } from '@crowd/types'
+import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
@@ -35,7 +36,6 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import { getSearchSyncApiClient } from '@/httpClients/searchSyncApiClient'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions

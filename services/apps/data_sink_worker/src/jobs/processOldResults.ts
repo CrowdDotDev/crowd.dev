@@ -3,24 +3,17 @@ import DataSinkService from '../service/dataSink.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient, processWithLock } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter } from '@crowd/sqs'
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
   redis: RedisClient,
   nodejsWorkerEmitter: NodejsWorkerEmitter,
-  searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
   log: Logger,
 ): Promise<void> => {
   const store = new DbStore(log, dbConn)
   const repo = new DataSinkRepository(store, log)
-  const service = new DataSinkService(
-    store,
-    nodejsWorkerEmitter,
-    searchSyncWorkerEmitter,
-    redis,
-    log,
-  )
+  const service = new DataSinkService(store, nodejsWorkerEmitter, redis, log)
 
   const loadNextBatch = async (): Promise<string[]> => {
     return await processWithLock(redis, 'process-old-results', 5 * 60, 3 * 60, async () => {
