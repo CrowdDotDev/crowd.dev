@@ -60,10 +60,20 @@ export interface NewMemberSettings {
   platforms: string[]
 }
 
+export interface HubspotSettings {
+  contactList: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filter: any
+}
+
 /**
  * Union type to contain all different types of settings
  */
-export type AutomationSettings = WebhookSettings | NewActivitySettings | NewMemberSettings
+export type AutomationSettings =
+  | WebhookSettings
+  | NewActivitySettings
+  | NewMemberSettings
+  | HubspotSettings
 
 export interface IAutomationData {
   id: string
