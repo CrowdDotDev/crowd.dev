@@ -116,7 +116,10 @@ export default class OrganizationEnrichmentService extends LoggerBase {
             )
             this.log.debug(instance)
           }
-          const data = await this.getEnrichment({ website: instance.website, name: identityForEnrichment.name })
+          const data = await this.getEnrichment({
+            website: instance.website,
+            name: identityForEnrichment.name,
+          })
           if (data) {
             const org = this.convertEnrichedDataToOrg(data, instance)
             enrichedOrganizations.push({
