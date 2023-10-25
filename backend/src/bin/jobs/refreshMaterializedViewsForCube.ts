@@ -14,7 +14,7 @@ const job: CrowdJob = {
       return
     }
 
-    // initialize database with 15 minutes timeout
+    // initialize database with 15 minutes query timeout
     const database = await databaseInit(1000 * 60 * 15)
 
     const materializedViews = [
