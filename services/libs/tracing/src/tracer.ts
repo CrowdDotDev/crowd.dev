@@ -15,8 +15,9 @@ import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
 import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
 import { KafkaJsInstrumentation } from 'opentelemetry-instrumentation-kafkajs'
-import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis'
+import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis-4'
 import { SequelizeInstrumentation } from 'opentelemetry-instrumentation-sequelize'
+import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
 
 let sdk: NodeSDK | undefined
 let isInitialized = false
@@ -54,6 +55,7 @@ export const getServiceTracer = (): Tracer => {
       new KafkaJsInstrumentation(),
       new RedisInstrumentation(),
       new SequelizeInstrumentation(),
+      new PgInstrumentation(),
     ],
   })
 

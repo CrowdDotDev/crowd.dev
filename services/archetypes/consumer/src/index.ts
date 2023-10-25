@@ -1,6 +1,6 @@
 import { Consumer as KafkaConsumer } from 'kafkajs'
 
-import { Config, Service } from '@crowd/standard'
+import { Config, Service } from '@crowd/archetype-standard'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
@@ -39,16 +39,16 @@ export class ServiceConsumer extends Service {
     return this._consumer
   }
 
-  override async start() {
-    // We first need to ensure a standard service can run given the config and
-    // environment variables.
+  // We first need to ensure a standard service can be initialized given the config
+  // and environment variables.
+  override async init() {
     try {
-      await super.start()
+      await super.init()
     } catch (err) {
       throw new Error(err)
     }
 
-    // We can now start tasks specific to a consumer service. Before actually
+    // We can now init tasks specific to a consumer service. Before actually
     // starting the service, we need to ensure required environment variables
     // are set.
     const missing = []
@@ -70,8 +70,17 @@ export class ServiceConsumer extends Service {
         retry: this.options.retryPolicy,
       })
 
-      const topics = process.env['CROWD_KAFKA_TOPICS']
       await this._consumer.connect()
+    } catch (err) {
+      throw new Error(err)
+    }
+  }
+
+  // Actually start the consumer's subscription.
+  async start() {
+    const topics = process.env['CROWD_KAFKA_TOPICS']
+
+    try {
       await this._consumer.subscribe({
         topics: topics.split(','),
       })

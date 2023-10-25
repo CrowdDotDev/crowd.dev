@@ -5,7 +5,7 @@
       v-model:visible="isOpen"
       teleported
       placement="bottom-start"
-      width="320"
+      width="420"
       trigger="click"
       :popper-class="`!p-0 filter-list-item-popper filter-${props.config.type} filter-${props.config.id}`"
     >

@@ -1,12 +1,12 @@
-import { Config } from '@crowd/standard'
-import { ServiceWorker, Options } from '@crowd/worker'
+import { Config } from '@crowd/archetype-standard'
+import { ServiceWorker, Options } from '@crowd/archetype-worker'
 
 const config: Config = {
   producer: {
     enabled: false,
   },
   temporal: {
-    enabled: true,
+    enabled: false,
   },
   redis: {
     enabled: false,
@@ -15,12 +15,13 @@ const config: Config = {
 
 const options: Options = {
   postgres: {
-    enabled: true,
+    enabled: false,
   },
 }
 
 const svc = new ServiceWorker(config, options)
 
 setImmediate(async () => {
+  await svc.init()
   await svc.start()
 })

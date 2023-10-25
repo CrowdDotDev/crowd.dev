@@ -1,6 +1,6 @@
 import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
 import MemberRepository from '../repo/member.repo'
-import { isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { getSearchSyncApiClient } from '@crowd/httpclients'
@@ -81,8 +81,8 @@ export default class ActivityService extends LoggerBase {
           username: activity.username,
           sentiment,
           attributes: activity.attributes || {},
-          body: activity.body,
-          title: activity.title,
+          body: escapeNullByte(activity.body),
+          title: escapeNullByte(activity.title),
           channel: activity.channel,
           url: activity.url,
           organizationId: activity.organizationId,
@@ -156,8 +156,8 @@ export default class ActivityService extends LoggerBase {
             username: toUpdate.username || original.username,
             sentiment: toUpdate.sentiment || original.sentiment,
             attributes: toUpdate.attributes || original.attributes,
-            body: toUpdate.body || original.body,
-            title: toUpdate.title || original.title,
+            body: escapeNullByte(toUpdate.body || original.body),
+            title: escapeNullByte(toUpdate.title || original.title),
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
             organizationId: toUpdate.organizationId || original.organizationId,

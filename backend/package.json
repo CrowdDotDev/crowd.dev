@@ -41,7 +41,8 @@
     "script:unleash-init": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/unleash-init.ts",
     "script:enrich-members-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/enrich-members-and-organizations.ts",
     "script:enrich-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/enrich-organizations-synchronous.ts",
-    "script:generate-merge-suggestions": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/generate-merge-suggestions.ts"
+    "script:generate-merge-suggestions": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/generate-merge-suggestions.ts",
+    "script:merge-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/merge-organizations.ts"
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",

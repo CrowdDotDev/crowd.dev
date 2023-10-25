@@ -1,10 +1,9 @@
-import { Config } from '@crowd/standard'
-import { ServiceConsumer, Options } from '@crowd/consumer'
+import { Config } from '@crowd/archetype-standard'
+import { ServiceConsumer, Options } from '@crowd/archetype-consumer'
 
 const config: Config = {
   producer: {
     enabled: false,
-    idempotent: true,
   },
   temporal: {
     enabled: true,
@@ -26,6 +25,7 @@ const options: Options = {
 const svc = new ServiceConsumer(config, options)
 
 setImmediate(async () => {
+  await svc.init()
   await svc.start()
 
   // await svc.consumer.run({

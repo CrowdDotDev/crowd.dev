@@ -13,16 +13,19 @@ const logger = getServiceLogger()
 
 // List all required environment variables, grouped per "component".
 const envvars = {
-  base: ['CROWD_SERVICE', 'CROWD_UNLEASH_URL', 'CROWD_UNLEASH_API_TOKEN'],
+  base: ['SERVICE', 'CROWD_UNLEASH_URL', 'CROWD_UNLEASH_BACKEND_API_KEY'],
   producer: ['CROWD_KAFKA_BROKERS'],
   temporal: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE'],
-  redis: ['CROWD_REDIS_HOST', 'CROWD_REDIS_PORT', 'CROWD_REDIS_USER', 'CROWD_REDIS_PASSWORD'],
+  redis: ['CROWD_REDIS_HOST', 'CROWD_REDIS_PORT', 'CROWD_REDIS_USERNAME', 'CROWD_REDIS_PASSWORD'],
 }
 
 /*
 Config is used to configure the service.
 */
 export interface Config {
+  // Additional environment variables required by the service to properly run.
+  envvars?: string[]
+
   // Enable and configure the Kafka producer, if needed.
   producer: {
     enabled: boolean
@@ -64,17 +67,20 @@ export class Service {
   protected _redisClient: RedisClient | null
 
   constructor(config: Config) {
-    this.name = process.env['CROWD_SERVICE']
+    this.name = process.env['SERVICE']
     this.tracer = tracer
     this.log = logger
     this.config = config
     this.integrations = INTEGRATION_SERVICES
 
+    // TODO: Handle SSL and SASL configuration.
     if (config.producer.enabled && process.env['CROWD_KAFKA_BROKERS']) {
       const brokers = process.env['CROWD_KAFKA_BROKERS']
       this._kafka = new Kafka({
         clientId: this.name,
         brokers: brokers.split(','),
+        // sasl
+        // ssl
       })
     }
   }
@@ -133,11 +139,17 @@ export class Service {
     return releaseLock(this._redisClient, key, value)
   }
 
-  async start() {
-    // Before actually starting the service we need to ensure required environment
-    // variables are set.
+  // Before actually starting the service we need to ensure required environment
+  // variables are set.
+  async init() {
     const missing = []
     envvars.base.forEach((envvar) => {
+      if (!process.env[envvar]) {
+        missing.push(envvar)
+      }
+    })
+
+    this.config.envvars.forEach((envvar) => {
       if (!process.env[envvar]) {
         missing.push(envvar)
       }
@@ -189,7 +201,7 @@ export class Service {
       appName: this.name,
       url: process.env['CROWD_UNLEASH_URL'],
       customHeaders: {
-        Authorization: process.env['CROWD_UNLEASH_API_TOKEN'],
+        Authorization: process.env['CROWD_UNLEASH_BACKEND_API_KEY'],
       },
     })
 
@@ -224,7 +236,7 @@ export class Service {
         this._redisClient = await getRedisClient({
           host: process.env['CROWD_REDIS_HOST'],
           port: process.env['CROWD_REDIS_PORT'],
-          username: process.env['CROWD_REDIS_USER'],
+          username: process.env['CROWD_REDIS_USERNAME'],
           password: process.env['CROWD_REDIS_PASSWORD'],
         })
 
