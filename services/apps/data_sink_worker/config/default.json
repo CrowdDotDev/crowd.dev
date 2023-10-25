@@ -1,5 +1,7 @@
 {
   "db": {},
   "sqs": {},
-  "redis": {}
+  "redis": {},
+  "unleash": {},
+  "temporal": {}
 }

@@ -1,9 +1,12 @@
-import { IRedisConfiguration } from './../../../../libs/redis/src/types'
+import { ITemporalConfig } from '@crowd/temporal'
 import { IDatabaseConfig } from '@crowd/database'
 import { ISqsClientConfig } from '@crowd/sqs'
 import { ISentimentClientConfig } from '@crowd/sentiment'
 import config from 'config'
-
+import { IRedisConfiguration } from '@crowd/redis'
+import { IUnleashConfig } from '@crowd/feature-flags'
+import { EDITION } from '@crowd/common'
+import { Edition } from '@crowd/types'
 export interface ISlackAlertingConfig {
   url: string
 }
@@ -51,4 +54,24 @@ export const SENTIMENT_CONFIG = (): ISentimentClientConfig | undefined => {
   }
 
   return sentimentConfig
+}
+
+let unleashConfig: IUnleashConfig | undefined
+export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
+  if (unleashConfig) return unleashConfig
+
+  if (EDITION === Edition.CROWD_HOSTED) {
+    unleashConfig = config.get<IUnleashConfig>('unleash')
+  }
+
+  return unleashConfig
+}
+
+let temporalConfig: ITemporalConfig | undefined
+export const TEMPORAL_CONFIG = (): ITemporalConfig | undefined => {
+  if (temporalConfig) return temporalConfig
+
+  temporalConfig = config.get<ITemporalConfig>('temporal')
+
+  return temporalConfig
 }
