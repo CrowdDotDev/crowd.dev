@@ -30,7 +30,7 @@ export async function getAndSendNextEmails(): Promise<void> {
         workflowId: 'email-send-' + user.tenantId + '-' + user.userId,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-        workflowExecutionTimeout: '1 hour',
+        workflowExecutionTimeout: '15 minutes',
         retry: {
           backoffCoefficient: 2,
           maximumAttempts: 10,

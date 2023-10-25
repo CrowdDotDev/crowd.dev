@@ -46,7 +46,7 @@ setImmediate(async () => {
       spec: {
         intervals: [
           {
-            every: '1 minutes',
+            every: '30 minutes',
           },
         ],
       },
@@ -58,6 +58,7 @@ setImmediate(async () => {
         type: 'startWorkflow',
         workflowType: getAndSendNextEmails,
         taskQueue: 'emails',
+        workflowExecutionTimeout: '5 minutes',
       },
     })
   } catch (err) {
