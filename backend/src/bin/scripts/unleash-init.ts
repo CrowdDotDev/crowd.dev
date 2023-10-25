@@ -224,6 +224,25 @@ const constaintConfiguration = {
     ],
   ],
   [FeatureFlag.SEGMENTS]: [],
+
+  // temporal
+  [FeatureFlag.TEMPORAL_AUTOMATIONS]: [
+    [
+      {
+        values: [
+          Plans.values.scale,
+          Plans.values.eagleEye,
+          Plans.values.enterprise,
+          Plans.values.essential,
+          Plans.values.growth,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
 }
 
 let seq: any

@@ -7,6 +7,9 @@ export enum FeatureFlag {
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
+
+  // temporal
+  TEMPORAL_AUTOMATIONS = 'temporal-automations',
 }
 
 export enum FeatureFlagRedisKey {
