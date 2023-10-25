@@ -1,11 +1,11 @@
-import { Connection, Client as TemporalClient } from '@temporalio/client'
 import { Kafka, Producer as KafkaProducer } from 'kafkajs'
-import { initialize as InitUnleash, Unleash as UnleashClient } from 'unleash-client'
 
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { getServiceLogger, Logger } from '@crowd/logging'
 import { acquireLock, getRedisClient, RedisClient, releaseLock } from '@crowd/redis'
 import { getServiceTracer, Tracer } from '@crowd/tracing'
+import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
+import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 
 // Retrieve automatically configured tracer and logger.
 const tracer = getServiceTracer()
@@ -201,12 +201,10 @@ export class Service {
       process.env['CROWD_UNLEASH_URL'] &&
       process.env['CROWD_UNLEASH_BACKEND_API_KEY']
     ) {
-      this._unleash = InitUnleash({
-        appName: this.name,
+      this._unleash = await getUnleashClient({
         url: process.env['CROWD_UNLEASH_URL'],
-        customHeaders: {
-          Authorization: process.env['CROWD_UNLEASH_BACKEND_API_KEY'],
-        },
+        appName: this.name,
+        apiKey: process.env['CROWD_UNLEASH_BACKEND_API_KEY'],
       })
     }
 
@@ -218,16 +216,10 @@ export class Service {
       }
     }
 
-    // TODO: Handle TLS for Temporal Cloud.
     if (this.config.temporal.enabled) {
       try {
-        const connection = await Connection.connect({
-          address: process.env['CROWD_TEMPORAL_SERVER_URL'],
-          // tls:
-        })
-
-        this._temporal = new TemporalClient({
-          connection: connection,
+        this._temporal = await getTemporalClient({
+          serverUrl: process.env['CROWD_TEMPORAL_SERVER_URL'],
           namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
           identity: this.name,
         })
