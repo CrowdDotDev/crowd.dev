@@ -10,7 +10,7 @@ export default async function getFeatureFlagTenantContext(
   redis: RedisClient,
   log: Logger,
 ) {
-  const automationCount = await AutomationRepository.countAll(database, tenant.id)
+  const automationCount = await AutomationRepository.countAllActive(database, tenant.id)
   const csvExportCountCache = new RedisCache(FeatureFlagRedisKey.CSV_EXPORT_COUNT, redis, log)
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,

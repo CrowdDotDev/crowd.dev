@@ -7,7 +7,7 @@ Contributions are what make the open source community such an amazing place to l
 - Try the crowd.dev platform & API and give feedback by [creating new issues](https://github.com/CrowdDotDev/crowd.dev/issues/new/choose)
 - Help with [open issues](https://github.com/CrowdDotDev/crowd.dev/issues)
 - Add a new integration following our [framework](https://docs.crowd.dev/docs/integration-framework)
-- Help create tutorials and blog posts
+- Help create tutorials and [blog](https://www.crowd.dev/blog) posts
 - Improve [documentation](https://docs.crowd.dev/docs) by fixing incomplete or missing docs, bad wording, examples or explanations
 
 Any contributions you make are **greatly appreciated**. ❤️
@@ -68,7 +68,7 @@ Any contributions you make are **greatly appreciated**. ❤️
 
 ## How to contribute to development
 
-We welcome any contribution to crowd.dev. Before you start with your first issue, please consider the folloing points:
+We welcome any contribution to crowd.dev. Before you start with your first issue, please consider the following points:
 
 - For your first contribution we recommend taking a look at our [good first issues 🥂](https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue+%F0%9F%A5%82%22).
 - Other issues that are well suited for contribution have the tag [help wanted 🙏](https://github.com/CrowdDotDev/crowd.dev/labels/help%20wanted%20%F0%9F%99%8F).
