@@ -1,7 +1,7 @@
 import { getServiceLogger } from '@crowd/logging'
 import cors from 'cors'
 import express from 'express'
-import { DB_CONFIG, SEARCH_SYNC_API_CONFIG, REDIS_CONFIG, OPENSEARCH_CONFIG } from './conf'
+import { DB_CONFIG, REDIS_CONFIG, OPENSEARCH_CONFIG } from '@crowd/opensearch'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
@@ -13,6 +13,7 @@ import { getDbConnection } from '@crowd/database'
 import { opensearchMiddleware } from 'middleware/opensearch'
 import { getRedisClient } from '@crowd/redis'
 import { redisMiddleware } from 'middleware/redis'
+import { SEARCH_SYNC_API_CONFIG } from 'conf'
 
 const log = getServiceLogger()
 const config = SEARCH_SYNC_API_CONFIG()
@@ -43,9 +44,7 @@ setImmediate(async () => {
 
   app.use(errorMiddleware())
 
-  const PORT = config.port || 8083
-
-  app.listen(PORT, () => {
-    log.info(`Search Sync API listening on port ${PORT}!`)
+  app.listen(config.port, () => {
+    log.info(`Search Sync API listening on port ${config.port}!`)
   })
 })

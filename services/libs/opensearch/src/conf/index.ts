@@ -1,6 +1,5 @@
 import { IDatabaseConfig } from '@crowd/database'
 import { IRedisConfiguration } from '@crowd/redis'
-import { ISqsClientConfig } from '@crowd/sqs'
 import config from 'config'
 
 export interface IOpenSearchConfig {
@@ -28,14 +27,6 @@ export const OPENSEARCH_CONFIG = (): IOpenSearchConfig => {
 
   openSearchConfig = config.get<IOpenSearchConfig>('opensearch')
   return openSearchConfig
-}
-
-let sqsConfig: ISqsClientConfig
-export const SQS_CONFIG = (): ISqsClientConfig => {
-  if (sqsConfig) return sqsConfig
-
-  sqsConfig = config.get<ISqsClientConfig>('sqs')
-  return sqsConfig
 }
 
 let dbConfig: IDatabaseConfig
