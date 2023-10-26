@@ -8,10 +8,10 @@
           />
         </div>
         <div class="pl-3">
-          <h6 class="text-sm leading-4 !font-medium mb-1 text-black">
+          <h6 class="text-sm leading-4 !font-medium mb-1 text-black whitespace-nowrap">
             {{ props.tenant.name }}
           </h6>
-          <div class="flex items-center">
+          <div class="flex items-center flex-nowrap">
             <p class="text-2xs text-gray-500">
               {{ getPlan(props.tenant.plan) }}
             </p>

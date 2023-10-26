@@ -5,15 +5,15 @@
       placement="right-start"
       :width="340"
       trigger="click"
-      popper-class="!p-0"
+      popper-class="!p-0 transform translate-x-1"
     >
       <template #reference>
         <cr-menu-workspace-card
-          class="h-14 px-4 hover:bg-gray-50"
+          class="h-14 pl-4 pr-3.5 hover:bg-gray-50"
           :tenant="currentTenant"
           :class="isDropdownOpen ? 'bg-gray-50' : ''"
         >
-          <i class="ri-settings-3-line text-lg text-gray-300" />
+          <i class="ri-settings-3-line text-lg text-gray-300 transform -translate-x-0.5 block" />
         </cr-menu-workspace-card>
       </template>
       <div>

@@ -29,7 +29,7 @@
           :active-class="!disableActiveClass ? '!bg-gray-100 font-medium !text-gray-900' : ''"
           :class="props.linkClass"
         >
-          <i v-if="link.icon" :class="[link.icon, props.iconClass]" class="text-lg mr-4" />
+          <i v-if="link.icon" :class="[link.icon, props.iconClass]" class="text-lg mr-3" />
           <span class="!text-gray-900">
             {{ link.label }}
           </span>
@@ -46,7 +46,7 @@
           @click="link.click && link.click()"
         >
           <div class="flex items-center">
-            <i v-if="link.icon" :class="[link.icon, props.iconClass]" class="text-lg mr-4" />
+            <i v-if="link.icon" :class="[link.icon, props.iconClass]" class="text-lg mr-3" />
             <span class="!text-gray-900">
               {{ link.label }}
             </span>

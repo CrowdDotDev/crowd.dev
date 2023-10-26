@@ -27,8 +27,8 @@ export const mainMenu: MenuLink[] = [
 
 // Bottom menu
 export const bottomMenu: MenuLink[] = [
-  integrations,
   automations,
+  integrations,
 ];
 
 // Support menu

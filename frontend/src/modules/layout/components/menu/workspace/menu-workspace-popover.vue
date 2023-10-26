@@ -15,8 +15,8 @@
             link-class="!p-3 !h-10 !mb-0 !mt-1 !text-xs"
           />
           <div class="px-1">
-            <div class="p-3 h-10 text-sm text-black mt-1 rounded hover:bg-gray-50 cursor-pointer" @click.stop="emit('edit', tenant)">
-              Workspace settings
+            <div class="p-3 h-10 text-xs text-black mt-1 rounded hover:bg-gray-50 cursor-pointer" @click.stop="emit('edit', tenant)">
+              Edit workspace
             </div>
           </div>
         </div>

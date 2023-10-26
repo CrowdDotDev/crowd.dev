@@ -1,22 +1,25 @@
 <template>
   <div
-    class="h-14 flex items-center transition group pl-5 pr-3"
+    class="h-14 flex items-center transition group pl-4 pr-4"
   >
-    <router-link to="/">
-      <img
-        key="logo"
-        class="h-6 !opacity-100"
-        src="/images/logo/crowd-mini.svg"
-        alt="crowd.dev logo"
-      />
+    <router-link to="/" class="w-8 flex justify-center">
+      <div>
+        <img
+          key="logo"
+          class="h-6 !opacity-100"
+          src="/images/logo/crowd-mini.svg"
+          alt="crowd.dev logo"
+        />
+      </div>
     </router-link>
     <el-button
-      class="absolute btn btn--icon--sm btn--transparent !h-8 w-8 flex items-center toggle-menu-button transition !bg-white hover:!bg-gray-100 z-10"
-      :class="props.collapsed ? 'right-4' : 'right-3'"
+      class="absolute btn btn--icon--sm btn--transparent !h-8 w-8 flex items-center
+      toggle-menu-button transition !bg-white !text-gray-300 hover:!bg-gray-100 hover:!text-black z-10 right-4 !border-0"
       @click="emit('toggle-menu')"
     >
       <i
-        class="ri-layout-left-2-line text-lg leading-none text-gray-300"
+        class="text-lg leading-none "
+        :class="props.collapsed ? 'ri-layout-left-line' : 'ri-layout-left-2-line'"
       />
     </el-button>
   </div>

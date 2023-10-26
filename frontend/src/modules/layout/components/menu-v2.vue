@@ -1,7 +1,7 @@
 <template>
-  <el-aside class="app-menu" width="fit-content">
+  <el-aside class="crowd-menu" width="fit-content">
     <el-menu
-      class="flex flex-col h-full justify-between"
+      class="flex flex-col h-full justify-between border-gray-100"
       :collapse="isCollapsed"
       :router="true"
     >
@@ -11,7 +11,7 @@
       <!-- Workspace Dropdown -->
       <cr-menu-workspace v-if="currentTenant" />
 
-      <div class="px-3 py-4 flex flex-col grow">
+      <div class="px-3 pt-4 pb-2 flex flex-col grow">
         <!-- Menu items -->
         <cr-menu-links class="mb-2" :links="mainMenu" :collapsed="isCollapsed" link-class="text-sm" />
 
@@ -69,12 +69,10 @@ export default {
 };
 </script>
 
-<!--<style>-->
-<!--//.app-menu{-->
-<!--//  .horizontal-collapse-transition, .el-menu&#45;&#45;collapse{-->
-<!--//    .toggle-menu-button {-->
-<!--//      @apply opacity-0 hover:opacity-100;-->
-<!--//    }-->
-<!--//  }-->
-<!--//}-->
-<!--</style>-->
+<style>
+.crowd-menu{
+  .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container) {
+    width: 281px;
+  }
+}
+</style>
