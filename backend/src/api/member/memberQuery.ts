@@ -33,7 +33,7 @@ export default async (req, res) => {
   }
 
   if (req.body.filter && Object.keys(req.body.filter).length > 0) {
-    track('Member Advanced Fitler', { ...req.body }, { ...req })
+    track('Member Advanced Filter', { ...req.body }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)

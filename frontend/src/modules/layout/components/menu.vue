@@ -600,10 +600,6 @@ export default {
     }
   }
 
-  .horizontal-collapse-transition .custom-btn {
-    display: none;
-  }
-
   .horizontal-collapse-transition .expand-btn {
     display: none;
   }

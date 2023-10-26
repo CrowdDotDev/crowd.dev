@@ -128,10 +128,8 @@ import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
 import AppAutomationForm from '@/modules/automation/components/automation-form.vue';
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
-import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 
 import { useStore } from 'vuex';
 import config from '@/config';
@@ -158,37 +156,12 @@ const {
 } = storeToRefs(automationStore);
 const { getAutomations, changeAutomationFilter } = automationStore;
 
-const { currentTenant } = mapGetters('auth');
-
 const store = useStore();
 const fetchIntegrations = () => store.dispatch('integration/doFetch');
-
-/**
- * Check if tenant has feature flag enabled
- */
-const canAddAutomation = () => {
-  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-    FeatureFlag.flags.automations,
-  );
-
-  if (!isFeatureEnabled) {
-    const planWorkflowCountMax = getWorkflowMax(
-      currentTenant.value.plan,
-    );
-
-    showWorkflowLimitDialog({ planWorkflowCountMax });
-  }
-
-  return isFeatureEnabled;
-};
 
 // Executions drawer
 const createAutomation = (type) => {
   if (!automationTypes[type].canCreate(store)) {
-    return;
-  }
-
-  if (!canAddAutomation()) {
     return;
   }
 
@@ -222,7 +195,7 @@ onMounted(() => {
 
 <script>
 export default {
-  name: 'AppAutomationListPage',
+  name: 'AppAutomationList',
 };
 </script>
 
