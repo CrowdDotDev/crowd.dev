@@ -169,6 +169,9 @@ const processReachStream: ProcessStreamHandler = async (ctx) => {
 }
 
 const handler: ProcessStreamHandler = async (ctx) => {
+  if (!ctx.stream.identifier) {
+    throw new Error('Stream identifier is required')
+  }
   const streamIdentifier = ctx.stream.identifier.split(':')
 
   switch (streamIdentifier[0]) {
