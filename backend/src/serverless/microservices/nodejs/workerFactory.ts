@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
-import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
+import { AutomationTrigger, AutomationType, Edition, FeatureFlag } from '@crowd/types'
+import { getUnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -27,7 +28,7 @@ import { integrationDataCheckerWorker } from './integration-data-checker/integra
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
-import { API_CONFIG } from '../../../conf'
+import { API_CONFIG, UNLEASH_CONFIG } from '../../../conf'
 
 /**
  * Worker factory for spawning different microservices
@@ -37,6 +38,12 @@ import { API_CONFIG } from '../../../conf'
  */
 
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
+  const unleash = await getUnleashClient({
+    url: UNLEASH_CONFIG.url,
+    appName: event.service,
+    apiKey: UNLEASH_CONFIG.backendApiKey,
+  })
+
   const { service, tenant } = event as any
   switch (service.toLowerCase()) {
     case 'stripe-webhooks':
@@ -46,6 +53,18 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'weekly-analytics-emails':
       return weeklyAnalyticsEmailsWorker(tenant)
     case 'eagle-eye-email-digest':
+      if (
+        isFeatureEnabled(
+          FeatureFlag.TEMPORAL_EMAILS,
+          async () => ({
+            tenant,
+          }),
+          unleash,
+        )
+      ) {
+        return {}
+      }
+
       const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
       return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user, eagleEyeDigestMessage.tenant)
     case 'integration-data-checker':
