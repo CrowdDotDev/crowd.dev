@@ -84,7 +84,7 @@ export default async (req, res) => {
       },
     })
 
-   const streamEmitter = await getIntegrationStreamWorkerEmitter()
+    const streamEmitter = await getIntegrationStreamWorkerEmitter()
 
     await streamEmitter.triggerWebhookProcessing(
       integration.tenantId,
