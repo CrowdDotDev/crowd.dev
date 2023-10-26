@@ -11,13 +11,12 @@
       />
     </router-link>
     <el-button
-      class="absolute btn btn--icon--sm btn--transparent !h-8 w-8 flex items-center transition-none"
-      :class="props.collapsed ? 'right-4 opacity-0 hover:opacity-100' : 'right-3'"
+      class="absolute btn btn--icon--sm btn--transparent !h-8 w-8 flex items-center toggle-menu-button transition !bg-white hover:!bg-gray-100 z-10"
+      :class="props.collapsed ? 'right-4' : 'right-3'"
       @click="emit('toggle-menu')"
     >
       <i
-        :class="props.collapsed ? 'ri-arrow-right-s-line' : 'ri-layout-left-2-line'"
-        class=" text-lg leading-none text-gray-300"
+        class="ri-layout-left-2-line text-lg leading-none text-gray-300"
       />
     </el-button>
   </div>

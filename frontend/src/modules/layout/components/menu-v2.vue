@@ -13,15 +13,17 @@
 
       <div class="px-3 py-4 flex flex-col grow">
         <!-- Menu items -->
-        <cr-menu-links class="mb-2" :links="mainMenu" :collapsed="isCollapsed" />
+        <cr-menu-links class="mb-2" :links="mainMenu" :collapsed="isCollapsed" link-class="text-sm" />
 
-        <div class="border-t border-gray-100 mb-4" />
+        <div class="border-t border-gray-200 mb-4" />
 
-        <cr-menu-links :links="bottomMenu" :collapsed="isCollapsed" />
+        <cr-menu-links :links="bottomMenu" :collapsed="isCollapsed" link-class="text-sm" />
 
         <div class="grow" />
         <!-- Support popover -->
-        <cr-menu-support :collapsed="isCollapsed" />
+        <div class="px-1">
+          <cr-menu-support :collapsed="isCollapsed" />
+        </div>
       </div>
     </el-menu>
   </el-aside>
@@ -67,5 +69,12 @@ export default {
 };
 </script>
 
-<style lang="scss">
-</style>
+<!--<style>-->
+<!--//.app-menu{-->
+<!--//  .horizontal-collapse-transition, .el-menu&#45;&#45;collapse{-->
+<!--//    .toggle-menu-button {-->
+<!--//      @apply opacity-0 hover:opacity-100;-->
+<!--//    }-->
+<!--//  }-->
+<!--//}-->
+<!--</style>-->

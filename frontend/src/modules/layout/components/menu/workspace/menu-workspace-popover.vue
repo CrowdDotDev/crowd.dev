@@ -2,7 +2,7 @@
   <div>
     <!-- Workspace list -->
     <section v-for="(tenant, ti) of tenants" :key="tenant.id">
-      <div v-if="ti > 0" class="my-1 border-b border-gray-100" />
+      <div v-if="ti > 0" class="my-1 border-b border-gray-200" />
       <div class="p-2">
         <cr-menu-workspace-card class="h-14 px-3 hover:bg-gray-50" :tenant="tenant" @click="doSwitchTenant(tenant)">
           <i v-if="currentTenant.id === tenant.id" class="ri-check-line text-lg text-black" />

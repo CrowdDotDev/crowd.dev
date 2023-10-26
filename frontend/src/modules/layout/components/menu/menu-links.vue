@@ -29,8 +29,8 @@
           :active-class="!disableActiveClass ? '!bg-gray-100 font-medium !text-gray-900' : ''"
           :class="props.linkClass"
         >
-          <i v-if="link.icon" :class="link.icon" class="text-lg mr-4" />
-          <span class="text-sm !text-gray-900">
+          <i v-if="link.icon" :class="[link.icon, props.iconClass]" class="text-lg mr-4" />
+          <span class="!text-gray-900">
             {{ link.label }}
           </span>
         </router-link>
@@ -46,8 +46,8 @@
           @click="link.click && link.click()"
         >
           <div class="flex items-center">
-            <i v-if="link.icon" :class="link.icon" class="text-lg mr-4" />
-            <span class="text-sm !text-gray-900">
+            <i v-if="link.icon" :class="[link.icon, props.iconClass]" class="text-lg mr-4" />
+            <span class="!text-gray-900">
               {{ link.label }}
             </span>
           </div>
@@ -67,6 +67,7 @@ const props = defineProps<{
   collapsed: boolean,
   links: MenuLink[],
   linkClass?: string,
+  iconClass?: string,
   disableActiveClass?: boolean,
 }>();
 
