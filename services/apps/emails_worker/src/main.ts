@@ -8,13 +8,13 @@ import { getAndSendNextEmails } from './workflows'
 
 const config: Config = {
   envvars: [
-    'CROWD_FRONTEND_URL',
+    'CROWD_API_FRONTEND_URL',
     'CROWD_EAGLE_EYE_URL',
     'CROWD_EAGLE_EYE_API_KEY',
-    'CROWD_SENDGRID_API_KEY',
-    'CROWD_SENDGRID_TEMPLATE_EAGLEEYE_DIGEST',
-    'CROWD_SENDGRID_FROM_NAME',
-    'CROWD_SENDGRID_FROM_EMAIL',
+    'CROWD_SENDGRID_KEY',
+    'CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST',
+    'CROWD_SENDGRID_NAME_FROM',
+    'CROWD_SENDGRID_EMAIL_FROM',
   ],
   producer: {
     enabled: false,
@@ -38,7 +38,7 @@ export const svc = new ServiceWorker(config, options)
 setImmediate(async () => {
   await svc.init()
 
-  sendgrid.setApiKey(process.env['CROWD_SENDGRID_API_KEY'])
+  sendgrid.setApiKey(process.env['CROWD_SENDGRID_KEY'])
 
   try {
     await svc.temporal.schedule.create({
