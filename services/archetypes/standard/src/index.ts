@@ -1,11 +1,11 @@
 import { Kafka, Producer as KafkaProducer } from 'kafkajs'
-import { Connection, Client as TemporalClient } from '@temporalio/client'
-import { Unleash as UnleashClient, initialize as InitUnleash } from 'unleash-client'
 
-import { getServiceTracer, Tracer } from '@crowd/tracing'
-import { getServiceLogger, Logger } from '@crowd/logging'
-import { acquireLock, releaseLock, getRedisClient, RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
+import { getServiceLogger, Logger } from '@crowd/logging'
+import { acquireLock, getRedisClient, RedisClient, releaseLock } from '@crowd/redis'
+import { getServiceTracer, Tracer } from '@crowd/tracing'
+import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
+import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 
 // Retrieve automatically configured tracer and logger.
 const tracer = getServiceTracer()
@@ -13,7 +13,7 @@ const logger = getServiceLogger()
 
 // List all required environment variables, grouped per "component".
 const envvars = {
-  base: ['SERVICE', 'CROWD_UNLEASH_URL', 'CROWD_UNLEASH_BACKEND_API_KEY'],
+  base: ['SERVICE'],
   producer: ['CROWD_KAFKA_BROKERS'],
   temporal: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE'],
   redis: ['CROWD_REDIS_HOST', 'CROWD_REDIS_PORT', 'CROWD_REDIS_USERNAME', 'CROWD_REDIS_PASSWORD'],
@@ -58,12 +58,11 @@ export class Service {
   readonly config: Config
   readonly integrations: IIntegrationDescriptor[]
 
-  protected _unleash: UnleashClient
+  protected _unleash?: UnleashClient
 
   protected _kafka: Kafka | null
   protected _temporal: TemporalClient | null
 
-  protected _redisCache: RedisCache | null
   protected _redisClient: RedisClient | null
 
   constructor(config: Config) {
@@ -85,7 +84,7 @@ export class Service {
     }
   }
 
-  get unleash(): UnleashClient {
+  get unleash(): UnleashClient | undefined {
     return this._unleash
   }
 
@@ -108,12 +107,12 @@ export class Service {
     return this._temporal
   }
 
-  get redis(): RedisCache | null {
+  get redis(): RedisClient | null {
     if (!this.config.redis.enabled) {
       return null
     }
 
-    return this._redisCache
+    return this._redisClient
   }
 
   // Redis utility to acquire a lock. Redis must be enabled in the service.
@@ -197,13 +196,17 @@ export class Service {
       await this.stop()
     })
 
-    this._unleash = InitUnleash({
-      appName: this.name,
-      url: process.env['CROWD_UNLEASH_URL'],
-      customHeaders: {
-        Authorization: process.env['CROWD_UNLEASH_BACKEND_API_KEY'],
-      },
-    })
+    if (
+      process.env['CROWD_EDITION'] === 'crowd-hosted' &&
+      process.env['CROWD_UNLEASH_URL'] &&
+      process.env['CROWD_UNLEASH_BACKEND_API_KEY']
+    ) {
+      this._unleash = await getUnleashClient({
+        url: process.env['CROWD_UNLEASH_URL'],
+        appName: this.name,
+        apiKey: process.env['CROWD_UNLEASH_BACKEND_API_KEY'],
+      })
+    }
 
     if (this.config.producer.enabled) {
       try {
@@ -213,16 +216,10 @@ export class Service {
       }
     }
 
-    // TODO: Handle TLS for Temporal Cloud.
     if (this.config.temporal.enabled) {
       try {
-        const connection = await Connection.connect({
-          address: process.env['CROWD_TEMPORAL_SERVER_URL'],
-          // tls:
-        })
-
-        this._temporal = new TemporalClient({
-          connection: connection,
+        this._temporal = await getTemporalClient({
+          serverUrl: process.env['CROWD_TEMPORAL_SERVER_URL'],
           namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
           identity: this.name,
         })
@@ -239,8 +236,6 @@ export class Service {
           username: process.env['CROWD_REDIS_USERNAME'],
           password: process.env['CROWD_REDIS_PASSWORD'],
         })
-
-        this._redisCache = new RedisCache(this.name, this._redisClient, this.log)
       } catch (err) {
         throw new Error(err)
       }

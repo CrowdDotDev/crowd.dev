@@ -1,21 +1,33 @@
 import DataSinkRepository from '../repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
 import { DbConnection, DbStore } from '@crowd/database'
+import { Unleash } from '@crowd/feature-flags'
 import { SearchSyncApiClient } from '@crowd/httpclients'
 import { Logger } from '@crowd/logging'
 import { RedisClient, processWithLock } from '@crowd/redis'
 import { NodejsWorkerEmitter } from '@crowd/sqs'
+import { Client as TemporalClient } from '@crowd/temporal'
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
   redis: RedisClient,
   nodejsWorkerEmitter: NodejsWorkerEmitter,
   searchSyncApi: SearchSyncApiClient,
+  unleash: Unleash | undefined,
+  temporal: TemporalClient,
   log: Logger,
 ): Promise<void> => {
   const store = new DbStore(log, dbConn)
   const repo = new DataSinkRepository(store, log)
-  const service = new DataSinkService(store, nodejsWorkerEmitter, redis, searchSyncApi, log)
+  const service = new DataSinkService(
+    store,
+    nodejsWorkerEmitter,
+    redis,
+    unleash,
+    temporal,
+    searchSyncApi,
+    log,
+  )
 
   const loadNextBatch = async (): Promise<string[]> => {
     return await processWithLock(redis, 'process-old-results', 5 * 60, 3 * 60, async () => {

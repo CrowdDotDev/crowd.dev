@@ -5,7 +5,7 @@ import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { SearchSyncApiClient } from '@crowd/httpclients'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { IActivityData, PlatformType } from '@crowd/types'
+import { FeatureFlag, IActivityData, PlatformType } from '@crowd/types'
 import ActivityRepository from '../repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
@@ -19,6 +19,9 @@ import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
 import { acquireLock, releaseLock } from '@crowd/redis'
+import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import { TEMPORAL_CONFIG } from '../conf'
 
 const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
 const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
@@ -30,6 +33,8 @@ export default class ActivityService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
@@ -90,7 +95,40 @@ export default class ActivityService extends LoggerBase {
 
         return id
       })
-      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
+
+      if (
+        await isFeatureEnabled(
+          FeatureFlag.TEMPORAL_AUTOMATIONS,
+          async () => {
+            return {
+              tenantId,
+            }
+          },
+          this.unleash,
+        )
+      ) {
+        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+          workflowId: `new-activity-automation-${id}`,
+          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: 100,
+          },
+          args: [
+            {
+              tenantId,
+              activityId: id,
+            },
+          ],
+        })
+        this.log.info(
+          { workflowId: handle.workflowId },
+          'Started temporal workflow to process new activity automation!',
+        )
+      } else {
+        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
+      }
+
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
@@ -383,12 +421,16 @@ export default class ActivityService extends LoggerBase {
             txStore,
             this.nodejsWorkerEmitter,
             this.searchSyncApi,
+            this.unleash,
+            this.temporal,
             this.log,
           )
           const txActivityService = new ActivityService(
             txStore,
             this.nodejsWorkerEmitter,
             this.redisClient,
+            this.unleash,
+            this.temporal,
             this.searchSyncApi,
             this.log,
           )

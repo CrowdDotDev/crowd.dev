@@ -3,7 +3,7 @@ import {
   IActivityData,
   IntegrationResultType,
   Entity,
-  IAutomation,
+  IAutomationData,
 } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import {
@@ -35,7 +35,7 @@ export interface IIntegrationContext {
 export interface IIntegrationStartRemoteSyncContext {
   integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
   integration: IIntegration
-  automations: IAutomation[]
+  automations: IAutomationData[]
   tenantId: string
   log: Logger
 }
@@ -45,7 +45,7 @@ export interface IIntegrationProcessRemoteSyncContext {
   integration: IIntegration
   log: Logger
   serviceSettings: IIntegrationServiceSettings
-  automation?: IAutomation
+  automation?: IAutomationData
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {

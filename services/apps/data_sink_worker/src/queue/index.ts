@@ -15,6 +15,8 @@ import {
 } from '@crowd/types'
 import DataSinkService from '../service/dataSink.service'
 import { RedisClient } from '@crowd/redis'
+import { Unleash } from '@crowd/feature-flags'
+import { Client as TemporalClient } from '@crowd/temporal'
 import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
@@ -23,6 +25,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly dbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     private readonly searchSyncApi: SearchSyncApiClient,
     tracer: Tracer,
     parentLog: Logger,
@@ -40,6 +44,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           new DbStore(this.log, this.dbConn),
           this.nodejsWorkerEmitter,
           this.redisClient,
+          this.unleash,
+          this.temporal,
           this.searchSyncApi,
           this.log,
         )

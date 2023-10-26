@@ -196,6 +196,10 @@
     "baseUrl": "CROWD_ANALYTICS_BASE_URL",
     "apiToken": "CROWD_ANALYTICS_API_TOKEN"
   },
+  "temporal": {
+    "serverUrl": "CROWD_TEMPORAL_SERVER_URL",
+    "namespace": "CROWD_TEMPORAL_NAMESPACE"
+  },
   "searchSyncApi": {
     "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
   }

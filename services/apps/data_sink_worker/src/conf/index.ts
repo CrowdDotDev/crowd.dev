@@ -1,10 +1,11 @@
-import { IRedisConfiguration } from './../../../../libs/redis/src/types'
 import { IDatabaseConfig } from '@crowd/database'
-import { ISqsClientConfig } from '@crowd/sqs'
+import { IUnleashConfig } from '@crowd/feature-flags'
+import { IRedisConfiguration } from '@crowd/redis'
 import { ISentimentClientConfig } from '@crowd/sentiment'
+import { ISqsClientConfig } from '@crowd/sqs'
+import { ITemporalConfig } from '@crowd/temporal'
 import config from 'config'
 import { ISearchSyncApiConfig } from '@crowd/httpclients'
-
 export interface ISlackAlertingConfig {
   url: string
 }
@@ -52,6 +53,28 @@ export const SENTIMENT_CONFIG = (): ISentimentClientConfig | undefined => {
   }
 
   return sentimentConfig
+}
+
+let unleashConfig: IUnleashConfig | undefined
+export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
+  if (unleashConfig) return unleashConfig
+
+  unleashConfig = config.get<IUnleashConfig>('unleash')
+
+  return unleashConfig
+}
+
+export interface IDataSinkWorkerTemporalConfig extends ITemporalConfig {
+  automationsTaskQueue: string
+}
+
+let temporalConfig: IDataSinkWorkerTemporalConfig | undefined
+export const TEMPORAL_CONFIG = (): IDataSinkWorkerTemporalConfig | undefined => {
+  if (temporalConfig) return temporalConfig
+
+  temporalConfig = config.get<IDataSinkWorkerTemporalConfig>('temporal')
+
+  return temporalConfig
 }
 
 export const SEARCH_SYNC_API_CONFIG = (): ISearchSyncApiConfig => {

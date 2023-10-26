@@ -19,6 +19,10 @@ on:
         description: Deploy webhook-api service?
         required: true
         type: boolean
+      deploy_automations_worker:
+        description: Deploy automations-worker service?
+        required: true
+        type: boolean
       deploy_script_executor:
         description: Deploy script-executor service?
         required: true
@@ -120,6 +124,27 @@ jobs:
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
+  build-and-push-automations-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_automations_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: automations-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
   build-and-push-script-executor:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_script_executor }}
@@ -211,6 +236,24 @@ jobs:
         with:
           service: webhook-api
           image: ${{ needs.build-and-push-webhook-api.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-automations-worker:
+    needs: build-and-push-automations-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_automations_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: automations-worker
+          image: ${{ needs.build-and-push-automations-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-script-executor:

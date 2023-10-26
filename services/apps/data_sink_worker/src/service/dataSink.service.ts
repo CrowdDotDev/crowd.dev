@@ -14,6 +14,8 @@ import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
+import { Unleash } from '@crowd/feature-flags'
+import { Client as TemporalClient } from '@crowd/temporal'
 import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export default class DataSinkService extends LoggerBase {
@@ -23,6 +25,8 @@ export default class DataSinkService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
@@ -107,6 +111,8 @@ export default class DataSinkService extends LoggerBase {
             this.store,
             this.nodejsWorkerEmitter,
             this.redisClient,
+            this.unleash,
+            this.temporal,
             this.searchSyncApi,
             this.log,
           )
@@ -129,6 +135,8 @@ export default class DataSinkService extends LoggerBase {
             this.store,
             this.nodejsWorkerEmitter,
             this.searchSyncApi,
+            this.unleash,
+            this.temporal,
             this.log,
           )
           const memberData = data.data as IMemberData

@@ -2,9 +2,10 @@ import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { PlatformType } from '@crowd/types'
+import { FeatureFlag, PlatformType } from '@crowd/types'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { getSearchSyncApiClient } from '@/utils/apiClients'
-import { IS_DEV_ENV, IS_TEST_ENV, GITHUB_CONFIG } from '../conf'
+import { IS_DEV_ENV, IS_TEST_ENV, GITHUB_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -22,6 +23,7 @@ import merge from './helpers/merge'
 import MemberService from './memberService'
 import SegmentService from './segmentService'
 import MemberAffiliationService from './memberAffiliationService'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -186,11 +188,36 @@ export default class ActivityService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          await sendNewActivityNodeSQSMessage(
-            this.options.currentTenant.id,
-            record.id,
-            record.segmentId,
-          )
+          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
+            const handle = await this.options.temporal.workflow.start(
+              'processNewActivityAutomation',
+              {
+                workflowId: `new-activity-automation-${record.id}`,
+                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+                workflowIdReusePolicy:
+                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+                retry: {
+                  maximumAttempts: 100,
+                },
+                args: [
+                  {
+                    tenantId: this.options.currentTenant.id,
+                    activityId: record.id,
+                  },
+                ],
+              },
+            )
+            this.log.info(
+              { workflowId: handle.workflowId },
+              'Started temporal workflow to process new activity automation!',
+            )
+          } else {
+            await sendNewActivityNodeSQSMessage(
+              this.options.currentTenant.id,
+              record.id,
+              record.segmentId,
+            )
+          }
         } catch (err) {
           this.log.error(
             err,
