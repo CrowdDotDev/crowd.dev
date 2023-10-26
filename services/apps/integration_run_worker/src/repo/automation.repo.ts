@@ -1,6 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { AutomationSyncTrigger, IAutomation } from '@crowd/types'
+import { AutomationSyncTrigger, IAutomationData } from '@crowd/types'
 
 export class AutomationRepository extends RepositoryBase<AutomationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -10,9 +10,9 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
   public async findSyncAutomations(
     tenantId: string,
     platform: string,
-  ): Promise<IAutomation[] | null> {
+  ): Promise<IAutomationData[] | null> {
     const pageSize = 10
-    const syncAutomations: IAutomation[] = []
+    const syncAutomations: IAutomationData[] = []
 
     let results
     let offset

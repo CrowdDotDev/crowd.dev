@@ -1,4 +1,4 @@
-import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
+import { AutomationTrigger, AutomationType } from '@crowd/types'
 
 export type BaseNodeMicroserviceMessage = {
   service: string

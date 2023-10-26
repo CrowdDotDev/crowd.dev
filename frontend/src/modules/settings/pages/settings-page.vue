@@ -2,7 +2,7 @@
   <app-page-wrapper>
     <div class="settings">
       <h4>
-        Settings
+        Manage workspace
       </h4>
       <el-tabs v-model="computedActiveTab" class="mt-10">
         <el-tab-pane
@@ -16,7 +16,7 @@
             class="pt-4"
           />
         </el-tab-pane>
-        <el-tab-pane label="Automations" name="automations">
+        <el-tab-pane v-if="!menuV2Enabled" label="Automations" name="automations">
           <app-automation-list-page
             v-if="activeTab === 'automations'"
           />
@@ -39,8 +39,9 @@ import { mapGetters } from 'vuex';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import AppPlansPage from '@/modules/settings/pages/plans-page.vue';
 import UserListPage from '@/modules/user/pages/user-list-page.vue';
-import AutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
+import AutomationListPage from '@/modules/automation/components/automation-list.vue';
 import { UserPermissions } from '@/modules/user/user-permissions';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 export default {
   name: 'AppSettingsPage',
@@ -68,6 +69,11 @@ export default {
         this.currentTenant,
         this.currentUser,
       ).read;
+    },
+    menuV2Enabled() {
+      return FeatureFlag.isFlagEnabled(
+        FeatureFlag.flags.menuV2,
+      );
     },
     computedActiveTab: {
       get() {

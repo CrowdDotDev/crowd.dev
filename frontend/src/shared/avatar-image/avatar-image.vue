@@ -1,7 +1,7 @@
 <template>
   <img
     v-if="showImage"
-    :src="src"
+    v-lazy="src"
     alt="Avatar Logo"
     @error="handleImageError"
   >

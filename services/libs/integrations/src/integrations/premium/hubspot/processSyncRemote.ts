@@ -4,7 +4,13 @@ import {
   ProcessIntegrationSyncHandler,
 } from '../../../types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
-import { AutomationSyncTrigger, Entity, IMember, IOrganization } from '@crowd/types'
+import {
+  AutomationSyncTrigger,
+  Entity,
+  HubspotSettings,
+  IMember,
+  IOrganization,
+} from '@crowd/types'
 import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
 import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
 import { RequestThrottler } from '@crowd/common'
@@ -85,7 +91,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
 
         await addContactsToList(
           nangoId,
-          ctx.automation.settings.contactList,
+          (ctx.automation.settings as HubspotSettings).contactList,
           vids,
           integrationContext,
           throttler,

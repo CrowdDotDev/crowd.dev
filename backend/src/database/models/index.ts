@@ -45,7 +45,7 @@ function getCredentials(): Credentials {
   }
 }
 
-function models() {
+function models(queryTimeoutMilliseconds: number) {
   const database = {} as any
 
   const credentials = getCredentials()
@@ -59,7 +59,7 @@ function models() {
       dialectOptions: {
         application_name: SERVICE,
         connectionTimeoutMillis: 5000,
-        query_timeout: 30000,
+        query_timeout: queryTimeoutMilliseconds,
         idle_in_transaction_session_timeout: 10000,
       },
       port: DB_CONFIG.port,
@@ -119,6 +119,8 @@ function models() {
     require('./note').default,
     require('./memberActivityAggregatesMV').default,
     require('./segment').default,
+    require('./customView').default,
+    require('./customViewOrder').default,
   ]
 
   for (const notInitmodel of modelClasses) {

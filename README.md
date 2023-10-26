@@ -40,13 +40,13 @@
 - [Book a call](#📞-book-a-call)
 
 ## About crowd.dev
-crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand, be it in community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
+crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand, be it in the community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
 
 crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data. 
 
 **To our **users**:**
 - You can get actively involved, contribute to our roadmap, and turn crowd.dev into the tool you always wanted.
-- We are open regarding what we are building, allowing you to take a look inside, and making sure we handle your data in a privacy-preserving way.
+- We are open regarding what we are building, allowing you to take a look inside and making sure we handle your data in a privacy-preserving way.
 - You will never be locked in by us. Our interests as a company are aligned with you and we need to make sure that we always deliver enough value to you with our commercial offering in relation to our pricing.
 
 **To our developer community:**
@@ -63,7 +63,7 @@ crowd.dev is open-source, built with developers in mind, available for both host
 - **2-way CRM sync & Slack alerts** to get notified about intent events in real-time. [cloud only]
 - **User enrichment** with 25+ attributes, including emails, social profiles, work experience, and technical skills. [cloud only]
 - **Organization enrichment** with 50+ attributes, including industry, headcount, and revenue. [cloud only]
-- **Sentiment analysis and conversation detection** to stay on top of what's going on in your open source community. [cloud only]
+- **Sentiment analysis and conversation detection** to stay on top of what's going on in your open-source community. [cloud only]
 - **[Eagle Eye](https://www.crowd.dev/eagle-eye)**: Monitor dev-focused community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically [cloud only]
 
 
@@ -83,14 +83,14 @@ Our services can be deployed using Kubernetes, as well as a lightweight developm
 
 #### Integrations
 
-We currently support all our integrations for self-hosting. For each one of them you will need to create your own application. You can see the steps for each integration in our [self-hosting integrations guide](https://docs.crowd.dev/docs/self-hosting).
+We currently support all our integrations for self-hosting. For each one of them, you will need to create your own application. You can see the steps for each integration in our [self-hosting integrations guide](https://docs.crowd.dev/docs/self-hosting).
 
 ### Development environment
 
 #### <a name="requirements">Requirements</a>
 
-- Node v16.16.0
-- Docker and docker-compose
+- [Node](https://nodejs.org/en) v16.16.0
+- [Docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/)
 
 #### <a name="getting_started">Getting started</a>
 
@@ -114,7 +114,7 @@ cd scripts
 ./cli clean-start-dev
 ```
 
-App will be available at http://localhost:8081
+The app will be available at http://localhost:8081
 
 For more information on development, you can <a href="https://docs.crowd.dev/docs/docker-compose-single-machine-development-with-docker-images">check our docs</a>.
 
@@ -134,7 +134,7 @@ There are many ways you can contribute to crowd.dev! Here are a few options:
 
 - Star this repo
 - Create issues every time you feel something is missing or goes wrong
-- Upvote issues with 👍 reaction so we know what's the demand for particular issue to prioritize it within roadmap
+- Upvote issues with 👍 reaction so we know what's the demand for a particular issue to prioritize it within the roadmap
 
 If you would like to contribute to the development of the project, please refer to our [Contributing guide](https://github.com/CrowdDotDev/crowd.dev/blob/main/CONTRIBUTING.md).
 
