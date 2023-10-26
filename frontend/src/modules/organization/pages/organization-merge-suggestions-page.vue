@@ -203,6 +203,7 @@ const fetch = (page) => {
       const { organizations } = organizationsToMerge.value;
       // Set organization with maximum identities and activities as primary
       const [firstOrganization, secondOrganization] = organizations;
+      primary.value = 0;
       if (firstOrganization && secondOrganization && ((firstOrganization.identities.length < secondOrganization.identities.length)
         || (firstOrganization.activityCount < secondOrganization.activityCount))) {
         primary.value = 1;
@@ -241,12 +242,12 @@ const mergeSuggestion = () => {
     return;
   }
   sendingMerge.value = true;
-  primary.value = 0;
   OrganizationService.mergeOrganizations(
     organizationsToMerge.value.organizations[primary.value].id,
     organizationsToMerge.value.organizations[(primary.value + 1) % 2].id,
   )
     .then(() => {
+      primary.value = 0;
       Message.success('Organizations merged successfuly');
       fetch();
     })

@@ -1,3 +1,5 @@
+import { ITemporalConfig } from '@crowd/temporal'
+
 export enum ServiceType {
   API = 'api',
   NODEJS_WORKER = 'nodejs-worker',
@@ -239,4 +241,8 @@ export interface CrowdAnalyticsConfiguration {
   tenantId: string
   baseUrl: string
   apiToken: string
+}
+
+export interface IBackendTemporalConfig extends ITemporalConfig {
+  automationsTaskQueue: string
 }

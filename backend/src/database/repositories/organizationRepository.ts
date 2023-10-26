@@ -4,6 +4,7 @@ import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
 import {
+  FeatureFlag,
   IEnrichableOrganization,
   IMemberOrganization,
   IOrganization,
@@ -22,7 +23,6 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '@/types/common'
 import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
 
@@ -500,6 +500,25 @@ class OrganizationRepository {
     })
   }
 
+  static async excludeOrganizationsFromAllSegments(
+    organizationIds: string[],
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const bulkDeleteOrganizationSegments = `DELETE FROM "organizationSegments" WHERE "organizationId" in (:organizationIds);`
+
+    await seq.query(bulkDeleteOrganizationSegments, {
+      replacements: {
+        organizationIds,
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
   static async removeMemberRole(role: IMemberOrganization, options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
@@ -712,37 +731,54 @@ class OrganizationRepository {
     )
   }
 
-  static async destroy(id, options: IRepositoryOptions, force = false) {
+  static async destroy(
+    id,
+    options: IRepositoryOptions,
+    force = false,
+    destroyIfOnlyNoSegmentsLeft = true,
+  ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    await OrganizationRepository.excludeOrganizationsFromSegments([id], {
-      ...options,
+    const record = await options.database.organization.findOne({
+      where: {
+        id,
+        tenantId: currentTenant.id,
+      },
       transaction,
     })
-    const org = await this.findById(id, options)
 
-    if (org.segments.length === 0) {
-      const record = await options.database.organization.findOne({
-        where: {
-          id,
-          tenantId: currentTenant.id,
-        },
+    if (!record) {
+      throw new Error404()
+    }
+
+    if (destroyIfOnlyNoSegmentsLeft) {
+      await OrganizationRepository.excludeOrganizationsFromSegments([id], {
+        ...options,
         transaction,
       })
+      const org = await this.findById(id, options)
 
-      if (!record) {
-        throw new Error404()
+      if (org.segments.length === 0) {
+        await record.destroy({
+          transaction,
+          force,
+        })
       }
+    } else {
+      await OrganizationRepository.excludeOrganizationsFromAllSegments([id], {
+        ...options,
+        transaction,
+      })
 
       await record.destroy({
         transaction,
         force,
       })
-
-      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
+
+    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async setIdentities(
@@ -1752,6 +1788,7 @@ class OrganizationRepository {
             SELECT "memberId" 
             FROM "memberOrganizations" 
             WHERE "organizationId" = :toOrganizationId
+            AND "deletedAt" IS NULL
         );
       `,
       {

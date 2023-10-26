@@ -1,10 +1,10 @@
 import Sequelize, { QueryTypes } from 'sequelize'
 import { getServiceLogger } from '@crowd/logging'
 import { generateUUIDv1 } from '@crowd/common'
+import { FeatureFlag } from '@crowd/types'
 import { UnleashContextField } from '../../types/unleashContext'
 import { UNLEASH_CONFIG } from '../../conf'
 import Plans from '../../security/plans'
-import { FeatureFlag } from '../../types/common'
 import { PLAN_LIMITS } from '../../feature-flags/isFeatureEnabled'
 
 /* eslint-disable no-console */
@@ -224,6 +224,25 @@ const constaintConfiguration = {
     ],
   ],
   [FeatureFlag.SEGMENTS]: [],
+
+  // temporal
+  [FeatureFlag.TEMPORAL_AUTOMATIONS]: [
+    [
+      {
+        values: [
+          Plans.values.scale,
+          Plans.values.eagleEye,
+          Plans.values.enterprise,
+          Plans.values.essential,
+          Plans.values.growth,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
 }
 
 let seq: any

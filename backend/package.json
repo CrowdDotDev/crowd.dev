@@ -41,7 +41,8 @@
     "script:unleash-init": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/unleash-init.ts",
     "script:enrich-members-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/enrich-members-and-organizations.ts",
     "script:enrich-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/enrich-organizations-synchronous.ts",
-    "script:generate-merge-suggestions": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/generate-merge-suggestions.ts"
+    "script:generate-merge-suggestions": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/generate-merge-suggestions.ts",
+    "script:merge-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/merge-organizations.ts"
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",
@@ -50,6 +51,7 @@
     "@aws-sdk/s3-request-presigner": "^3.229.0",
     "@aws-sdk/url-parser": "^3.226.0",
     "@aws-sdk/util-format-url": "^3.226.0",
+    "@crowd/temporal": "file:../services/libs/temporal",
     "@crowd/alerting": "file:../services/libs/alerting",
     "@crowd/common": "file:../services/libs/common",
     "@crowd/integrations": "file:../services/libs/integrations",
@@ -59,6 +61,7 @@
     "@crowd/sqs": "file:../services/libs/sqs",
     "@crowd/tracing": "file:../services/libs/tracing",
     "@crowd/types": "file:../services/libs/types",
+    "@crowd/feature-flags": "file:../services/libs/feature-flags",
     "@cubejs-client/core": "^0.30.4",
     "@google-cloud/storage": "5.3.0",
     "@octokit/auth-app": "^3.6.1",
@@ -131,7 +134,6 @@
     "superagent": "^8.0.0",
     "swagger-ui-dist": "4.1.3",
     "tsconfig-paths": "^4.2.0",
-    "unleash-client": "^3.18.1",
     "utf-8-validate": "^5.0.10",
     "uuid": "^9.0.0",
     "validator": "^13.7.0",

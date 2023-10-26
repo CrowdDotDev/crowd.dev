@@ -1,3 +1,4 @@
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
 import MemberRepository from '../repo/member.repo'
 import {
@@ -14,6 +15,7 @@ import {
   PlatformType,
   OrganizationSource,
   IOrganizationIdSource,
+  FeatureFlag,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
@@ -23,12 +25,16 @@ import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
+import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
+import { TEMPORAL_CONFIG } from '../conf'
 
 export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -119,7 +125,39 @@ export default class MemberService extends LoggerBase {
         }
       })
 
-      await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
+      if (
+        await isFeatureEnabled(
+          FeatureFlag.TEMPORAL_AUTOMATIONS,
+          async () => {
+            return {
+              tenantId,
+            }
+          },
+          this.unleash,
+        )
+      ) {
+        const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
+          workflowId: `new-member-automation-${id}`,
+          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: 100,
+          },
+
+          args: [
+            {
+              tenantId,
+              memberId: id,
+            },
+          ],
+        })
+        this.log.info(
+          { workflowId: handle.workflowId },
+          'Started temporal workflow to process new member automation!',
+        )
+      } else {
+        await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
+      }
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
@@ -332,6 +370,8 @@ export default class MemberService extends LoggerBase {
           txStore,
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
+          this.unleash,
+          this.temporal,
           this.log,
         )
 

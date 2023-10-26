@@ -110,6 +110,11 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     ctx,
   )
 
+  if (fromDiscordApi.length === 0) {
+    ctx.log.warn(`No avaliable channels found for guild ${guildId}, skipping...`)
+    return
+  }
+
   for (const channel of fromDiscordApi) {
     try {
       const config = {
