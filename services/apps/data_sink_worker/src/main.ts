@@ -57,7 +57,13 @@ setImmediate(async () => {
       try {
         if (!processing) {
           processing = true
-          await processOldResultsJob(dbConnection, redisClient, nodejsWorkerEmitter, log)
+          await processOldResultsJob(
+            dbConnection,
+            redisClient,
+            nodejsWorkerEmitter,
+            searchSyncApi,
+            log,
+          )
         }
       } catch (err) {
         log.error(err, 'Failed to process old results!')
