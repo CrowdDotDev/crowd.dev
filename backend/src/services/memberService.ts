@@ -446,7 +446,7 @@ export default class MemberService extends LoggerBase {
             const handle = await this.options.temporal.workflow.start(
               'processNewMemberAutomation',
               {
-                workflowId: `member-${record.id}`,
+                workflowId: `new-member-automation-${record.id}`,
                 taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
                 workflowIdReusePolicy:
                   WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,

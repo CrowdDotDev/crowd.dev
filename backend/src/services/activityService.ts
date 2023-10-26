@@ -192,7 +192,7 @@ export default class ActivityService extends LoggerBase {
             const handle = await this.options.temporal.workflow.start(
               'processNewActivityAutomation',
               {
-                workflowId: `activity-${record.id}`,
+                workflowId: `new-activity-automation-${record.id}`,
                 taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
                 workflowIdReusePolicy:
                   WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
