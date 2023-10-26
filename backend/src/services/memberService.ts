@@ -4,8 +4,9 @@ import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { IOrganization, MemberAttributeType } from '@crowd/types'
+import { FeatureFlag, IOrganization, MemberAttributeType } from '@crowd/types'
 import { isDomainExcluded } from '@crowd/common'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -32,8 +33,8 @@ import OrganizationService from './organizationService'
 import SettingsService from './settingsService'
 import { getSearchSyncWorkerEmitter } from '../serverless/utils/serviceSQS'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '../types/common'
 import SegmentRepository from '../database/repositories/segmentRepository'
+import { TEMPORAL_CONFIG } from '@/conf'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -441,7 +442,33 @@ export default class MemberService extends LoggerBase {
       if (!existing && fireCrowdWebhooks) {
         try {
           const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id, segment.id)
+          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
+            const handle = await this.options.temporal.workflow.start(
+              'processNewMemberAutomation',
+              {
+                workflowId: `new-member-automation-${record.id}`,
+                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+                workflowIdReusePolicy:
+                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+                retry: {
+                  maximumAttempts: 100,
+                },
+
+                args: [
+                  {
+                    tenantId: this.options.currentTenant.id,
+                    memberId: record.id,
+                  },
+                ],
+              },
+            )
+            this.log.info(
+              { workflowId: handle.workflowId },
+              'Started temporal workflow to process new member automation!',
+            )
+          } else {
+            await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id, segment.id)
+          }
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }

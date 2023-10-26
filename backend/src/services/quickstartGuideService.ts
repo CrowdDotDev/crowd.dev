@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize'
 import lodash from 'lodash'
 import { LoggerBase } from '@crowd/logging'
+import { FeatureFlag } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import {
@@ -13,7 +14,6 @@ import IntegrationRepository from '../database/repositories/integrationRepositor
 import MemberService from './memberService'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import ReportRepository from '../database/repositories/reportRepository'
-import { FeatureFlag } from '../types/common'
 
 export default class QuickstartGuideService extends LoggerBase {
   options: IServiceOptions

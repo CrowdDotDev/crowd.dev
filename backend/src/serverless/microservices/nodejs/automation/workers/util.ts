@@ -1,6 +1,6 @@
+import { AutomationType } from '@crowd/types'
 import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
-import { AutomationType } from '../../../../../types/automationTypes'
 import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 
 export const sendWebhookProcessRequest = async (

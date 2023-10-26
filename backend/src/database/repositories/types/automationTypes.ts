@@ -1,11 +1,11 @@
-import { AutomationSyncTrigger } from '@crowd/types'
 import {
   AutomationExecutionState,
   AutomationSettings,
   AutomationState,
+  AutomationSyncTrigger,
   AutomationTrigger,
   AutomationType,
-} from '../../../types/automationTypes'
+} from '@crowd/types'
 
 export interface DbAutomationInsertData {
   name: string
