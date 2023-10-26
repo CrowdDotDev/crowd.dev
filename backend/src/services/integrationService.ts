@@ -17,7 +17,7 @@ import {
   getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
-import { getSearchSyncApiClient } from '@crowd/httpclients'
+import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
 import Error400 from '../errors/Error400'

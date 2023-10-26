@@ -8,15 +8,17 @@ import { IS_DEV_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { IIndexRequest, ISearchHit } from './opensearch.data'
-import { OPENSEARCH_CONFIG } from '../conf'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
+import { IOpenSearchConfig } from '@crowd/types'
 
 export class OpenSearchService extends LoggerBase {
   public readonly client: Client
   private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
+  private readonly config: IOpenSearchConfig
 
-  constructor(parentLog: Logger) {
+  constructor(parentLog: Logger, config: IOpenSearchConfig) {
     super(parentLog)
+    this.config = config
 
     const indexNames = Object.values(OpenSearchIndex)
     indexNames.forEach((name) => {
@@ -24,24 +26,23 @@ export class OpenSearchService extends LoggerBase {
       this.indexVersionMap.set(name, `${name}_v${version}`)
     })
 
-    const config = OPENSEARCH_CONFIG()
-    if (config.region) {
+    if (this.config.region) {
       this.client = new Client({
-        node: config.node,
+        node: this.config.node,
         ...AwsSigv4Signer({
-          region: config.region,
+          region: this.config.region,
           service: 'es',
           getCredentials: async () => {
             return {
-              accessKeyId: config.accessKeyId,
-              secretAccessKey: config.secretAccessKey,
+              accessKeyId: this.config.accessKeyId,
+              secretAccessKey: this.config.secretAccessKey,
             }
           },
         }),
       })
     } else {
       this.client = new Client({
-        node: config.node,
+        node: this.config.node,
       })
     }
   }

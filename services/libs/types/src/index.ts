@@ -49,3 +49,5 @@ export * from './sync'
 
 export * from './enums/customViews'
 export * from './customView'
+
+export * from './service'

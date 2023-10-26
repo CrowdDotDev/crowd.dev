@@ -2,13 +2,15 @@ import express from 'express'
 import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
 import { ApiRequest } from '../middleware/index'
 import { asyncWrap } from 'middleware/error'
+import { OPENSEARCH_CONFIG } from 'conf'
 
 const router = express.Router()
+const opensearchConfig = OPENSEARCH_CONFIG()
 
 router.post(
   '/sync/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
     const { activityIds } = req.body
     try {
@@ -23,7 +25,7 @@ router.post(
 router.post(
   '/sync/tenant/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { tenantId } = req.body
@@ -39,7 +41,7 @@ router.post(
 router.post(
   '/sync/organization/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { organizationId } = req.body
@@ -55,7 +57,7 @@ router.post(
 router.delete(
   '/cleanup/tenant/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { tenantId } = req.body
@@ -71,7 +73,7 @@ router.delete(
 router.delete(
   '/cleanup/activity',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
 
     const { activityId } = req.body

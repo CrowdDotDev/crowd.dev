@@ -1,13 +1,12 @@
 import axios from 'axios'
-import { SERVICE_CONFIG } from 'conf'
+import { ISearchSyncApiConfig } from './types'
 
-const config = SERVICE_CONFIG()
 export class SearchSyncApiClient {
   private searchSyncApi
 
-  constructor() {
+  constructor(config: ISearchSyncApiConfig) {
     this.searchSyncApi = axios.create({
-      baseURL: config.searchSyncApiUrl,
+      baseURL: config.baseUrl,
     })
   }
 
@@ -150,13 +149,4 @@ export class SearchSyncApiClient {
       tenantId,
     })
   }
-}
-
-let searchSyncApiClient: SearchSyncApiClient
-export const getSearchSyncApiClient = async (): Promise<SearchSyncApiClient> => {
-  if (!searchSyncApiClient) {
-    searchSyncApiClient = new SearchSyncApiClient()
-  }
-
-  return searchSyncApiClient
 }

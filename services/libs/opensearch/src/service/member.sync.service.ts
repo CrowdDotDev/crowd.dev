@@ -1,4 +1,3 @@
-import { SERVICE_CONFIG } from '../conf'
 import { IDbMemberSyncData } from '../repo/member.data'
 import { MemberRepository } from '../repo/member.repo'
 import { IDbSegmentInfo } from '../repo/segment.data'
@@ -8,7 +7,7 @@ import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/c
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { Edition, IMemberAttribute, MemberAttributeType } from '@crowd/types'
+import { Edition, IMemberAttribute, IServiceConfig, MemberAttributeType } from '@crowd/types'
 import { IMemberSyncResult } from './member.sync.data'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
@@ -18,14 +17,17 @@ export class MemberSyncService {
   private log: Logger
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
+  private readonly serviceConfig: IServiceConfig
 
   constructor(
     redisClient: RedisClient,
     store: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
+    serviceConfig: IServiceConfig,
   ) {
     this.log = getChildLogger('member-sync-service', parentLog)
+    this.serviceConfig = serviceConfig
 
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
@@ -313,7 +315,7 @@ export class MemberSyncService {
   public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
     this.log.debug({ memberIds }, 'Syncing members!')
 
-    const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
+    const isMultiSegment = this.serviceConfig.edition === Edition.LFX
 
     let docCount = 0
     let memberCount = 0

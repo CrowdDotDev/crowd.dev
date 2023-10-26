@@ -10,7 +10,7 @@ import {
   IOrganizationCache,
   PlatformType,
 } from '@crowd/types'
-import { getSearchSyncApiClient } from '@crowd/httpclients'
+import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'

@@ -3,6 +3,7 @@ import { IDatabaseConfig } from '@crowd/database'
 import { ISqsClientConfig } from '@crowd/sqs'
 import { ISentimentClientConfig } from '@crowd/sentiment'
 import config from 'config'
+import { ISearchSyncApiConfig } from '@crowd/httpclients'
 
 export interface ISlackAlertingConfig {
   url: string
@@ -51,4 +52,8 @@ export const SENTIMENT_CONFIG = (): ISentimentClientConfig | undefined => {
   }
 
   return sentimentConfig
+}
+
+export const SEARCH_SYNC_API_CONFIG = (): ISearchSyncApiConfig => {
+  return config.get<ISearchSyncApiConfig>('searchSyncApi')
 }

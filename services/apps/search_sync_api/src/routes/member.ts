@@ -2,18 +2,22 @@ import express from 'express'
 import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
+import { OPENSEARCH_CONFIG, SERVICE_CONFIG } from 'conf'
 
 const router = express.Router()
+const opensearchConfig = OPENSEARCH_CONFIG()
+const serviceConfig = SERVICE_CONFIG()
 
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
       openSearchService,
       req.log,
+      serviceConfig,
     )
     const { memberIds } = req.body
 
@@ -29,12 +33,13 @@ router.post(
 router.post(
   '/sync/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
       openSearchService,
       req.log,
+      serviceConfig,
     )
 
     const { tenantId } = req.body
@@ -50,12 +55,13 @@ router.post(
 router.post(
   '/sync/organization/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
       openSearchService,
       req.log,
+      serviceConfig,
     )
 
     const { organizationId } = req.body
@@ -71,12 +77,13 @@ router.post(
 router.delete(
   '/cleanup/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
       openSearchService,
       req.log,
+      serviceConfig,
     )
 
     const { tenantId } = req.body
@@ -92,12 +99,13 @@ router.delete(
 router.delete(
   '/cleanup/member',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log)
+    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
       openSearchService,
       req.log,
+      serviceConfig,
     )
 
     const { memberId } = req.body

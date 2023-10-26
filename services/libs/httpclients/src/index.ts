@@ -1,1 +1,2 @@
-export * from './factoryMethods'
+export * from './types'
+export * from './searchSyncApiClient'

@@ -1,13 +1,13 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import { DB_CONFIG, SEARCH_SYNC_API_CONFIG, SQS_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { DataSinkWorkerEmitter, NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import MemberRepository from '../repo/member.repo'
 import DataSinkRepository from '../repo/dataSink.repo'
 import MemberService from '../service/member.service'
 import { OrganizationService } from '../service/organization.service'
+import { SearchSyncApiClient } from '@crowd/httpclients'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -38,10 +38,10 @@ setImmediate(async () => {
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
   await nodejsWorkerEmitter.init()
 
-  const memberService = new MemberService(store, nodejsWorkerEmitter, log)
-  const orgService = new OrganizationService(store, log)
+  const searchSyncApi = new SearchSyncApiClient(SEARCH_SYNC_API_CONFIG())
 
-  const searchSyncApi = await getSearchSyncApiClient()
+  const memberService = new MemberService(store, nodejsWorkerEmitter, searchSyncApi, log)
+  const orgService = new OrganizationService(store, log)
 
   const limit = 100
   let offset = 0

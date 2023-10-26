@@ -12,13 +12,13 @@ import {
   IntegrationStreamWorkerEmitter,
   IntegrationSyncWorkerEmitter,
 } from '@crowd/sqs'
-import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
 import { AutomationRepository } from '../repo/automation.repo'
+import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -31,6 +31,7 @@ export default class IntegrationRunService extends LoggerBase {
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
+    private readonly searchSyncApi: SearchSyncApiClient,
     private readonly store: DbStore,
     parentLog: Logger,
   ) {
@@ -336,10 +337,8 @@ export default class IntegrationRunService extends LoggerBase {
           await txRepo.deleteSampleData(runInfo.tenantId)
         })
 
-        const searchSyncApi = await getSearchSyncApiClient()
-
-        await searchSyncApi.triggerActivityCleanup(runInfo.tenantId)
-        await searchSyncApi.triggerMemberCleanup(runInfo.tenantId)
+        await this.searchSyncApi.triggerActivityCleanup(runInfo.tenantId)
+        await this.searchSyncApi.triggerMemberCleanup(runInfo.tenantId)
       } catch (err) {
         this.log.error({ err }, 'Error while deleting sample data!')
         await this.triggerRunError(

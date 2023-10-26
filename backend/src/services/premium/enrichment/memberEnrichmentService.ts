@@ -12,7 +12,7 @@ import {
   PlatformType,
   OrganizationSource,
 } from '@crowd/types'
-import { getSearchSyncApiClient } from '@crowd/httpclients'
+import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'

@@ -1,7 +1,6 @@
 import { getServiceLogger } from '@crowd/logging'
 import cors from 'cors'
 import express from 'express'
-import { DB_CONFIG, REDIS_CONFIG, OPENSEARCH_CONFIG } from '@crowd/opensearch'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
@@ -13,7 +12,7 @@ import { getDbConnection } from '@crowd/database'
 import { opensearchMiddleware } from 'middleware/opensearch'
 import { getRedisClient } from '@crowd/redis'
 import { redisMiddleware } from 'middleware/redis'
-import { SEARCH_SYNC_API_CONFIG } from 'conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG } from './conf'
 
 const log = getServiceLogger()
 const config = SEARCH_SYNC_API_CONFIG()
@@ -22,7 +21,7 @@ setImmediate(async () => {
   const app = express()
   const redis = await getRedisClient(REDIS_CONFIG(), true)
   const opensearch = getOpensearchClient(OPENSEARCH_CONFIG())
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
   const dbConnection = await getDbConnection(DB_CONFIG(), 3)
 
   app.use(cors({ origin: true }))

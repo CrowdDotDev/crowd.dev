@@ -18,6 +18,7 @@ import {
   StreamProcessedQueueMessage,
 } from '@crowd/types'
 import IntegrationRunService from '../service/integrationRunService'
+import { SearchSyncApiClient } from '@crowd/httpclients'
 
 /* eslint-disable no-case-declarations */
 
@@ -30,6 +31,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
+    private readonly searchSyncApi: SearchSyncApiClient,
     tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -48,6 +50,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           this.runWorkerEmitter,
           this.integrationSyncWorkerEmitter,
           this.apiPubSubEmitter,
+          this.searchSyncApi,
           new DbStore(this.log, this.dbConn),
           this.log,
         )

@@ -1,5 +1,6 @@
 import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
+import { ISearchSyncApiConfig } from '@crowd/httpclients'
 import {
   SQSConfiguration,
   S3Configuration,
@@ -134,3 +135,6 @@ export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
 
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
+
+export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
+  config.get<ISearchSyncApiConfig>('searchSyncApi')

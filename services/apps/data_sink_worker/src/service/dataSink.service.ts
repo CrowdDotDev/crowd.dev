@@ -14,6 +14,7 @@ import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
+import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -22,6 +23,7 @@ export default class DataSinkService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -105,6 +107,7 @@ export default class DataSinkService extends LoggerBase {
             this.store,
             this.nodejsWorkerEmitter,
             this.redisClient,
+            this.searchSyncApi,
             this.log,
           )
           const activityData = data.data as IActivityData
@@ -122,7 +125,12 @@ export default class DataSinkService extends LoggerBase {
         }
 
         case IntegrationResultType.MEMBER_ENRICH: {
-          const service = new MemberService(this.store, this.nodejsWorkerEmitter, this.log)
+          const service = new MemberService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncApi,
+            this.log,
+          )
           const memberData = data.data as IMemberData
 
           await service.processMemberEnrich(

@@ -15,6 +15,7 @@ import {
 } from '@crowd/types'
 import DataSinkService from '../service/dataSink.service'
 import { RedisClient } from '@crowd/redis'
+import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
@@ -22,6 +23,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly dbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly searchSyncApi: SearchSyncApiClient,
     tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -38,6 +40,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           new DbStore(this.log, this.dbConn),
           this.nodejsWorkerEmitter,
           this.redisClient,
+          this.searchSyncApi,
           this.log,
         )
 

@@ -1,4 +1,5 @@
 import { IDatabaseConfig } from '@crowd/database'
+import { ISearchSyncApiConfig } from '@crowd/httpclients'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
 import config from 'config'
@@ -84,4 +85,8 @@ export const PLATFORM_CONFIG = (platform: string): unknown | undefined => {
     platformMap.set(platform, null)
     return undefined
   }
+}
+
+export const SEARCH_SYNC_API_CONFIG = (): ISearchSyncApiConfig => {
+  return config.get<ISearchSyncApiConfig>('searchSyncApi')
 }

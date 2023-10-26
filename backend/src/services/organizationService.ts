@@ -1,7 +1,7 @@
 import { websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
-import { getSearchSyncApiClient } from '@crowd/httpclients'
+import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'

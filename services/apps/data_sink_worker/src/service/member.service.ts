@@ -7,7 +7,6 @@ import {
   isDomainExcluded,
 } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { getSearchSyncApiClient } from '@crowd/httpclients'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
   IMemberData,
@@ -24,11 +23,13 @@ import { NodejsWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
+import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -120,14 +121,13 @@ export default class MemberService extends LoggerBase {
       })
 
       await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
-      const searchSyncApi = await getSearchSyncApiClient()
 
       if (fireSync) {
-        await searchSyncApi.triggerMemberSync(id)
+        await this.searchSyncApi.triggerMemberSync(id)
       }
 
       for (const org of organizations) {
-        await searchSyncApi.triggerOrganizationSync(org.id)
+        await this.searchSyncApi.triggerOrganizationSync(org.id)
       }
 
       return id
@@ -148,7 +148,6 @@ export default class MemberService extends LoggerBase {
     releaseMemberLock?: () => Promise<void>,
   ): Promise<void> {
     try {
-      const searchSyncApi = await getSearchSyncApiClient()
       const { updated, organizations } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
@@ -247,11 +246,11 @@ export default class MemberService extends LoggerBase {
       })
 
       if (updated && fireSync) {
-        await searchSyncApi.triggerMemberSync(id)
+        await this.searchSyncApi.triggerMemberSync(id)
       }
 
       for (const org of organizations) {
-        await searchSyncApi.triggerOrganizationSync(org.id)
+        await this.searchSyncApi.triggerOrganizationSync(org.id)
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
@@ -330,7 +329,12 @@ export default class MemberService extends LoggerBase {
       await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
-        const txService = new MemberService(txStore, this.nodejsWorkerEmitter, this.log)
+        const txService = new MemberService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncApi,
+          this.log,
+        )
 
         const dbIntegration = await txIntegrationRepo.findById(integrationId)
         const segmentId = dbIntegration.segmentId

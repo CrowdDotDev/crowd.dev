@@ -1,4 +1,3 @@
-import { SERVICE_CONFIG } from '../conf'
 import { IDbOrganizationSyncData } from '../repo/organization.data'
 import { OrganizationRepository } from '../repo/organization.repo'
 import { IDbSegmentInfo } from '../repo/segment.data'
@@ -10,18 +9,22 @@ import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
+import { IServiceConfig } from '@crowd/types'
 
 export class OrganizationSyncService {
   private log: Logger
   private readonly orgRepo: OrganizationRepository
   private readonly segmentRepo: SegmentRepository
+  private readonly serviceConfig: IServiceConfig
 
   constructor(
     store: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
+    serviceConfig: IServiceConfig,
   ) {
     this.log = getChildLogger('organization-sync-service', parentLog)
+    this.serviceConfig = serviceConfig
 
     this.orgRepo = new OrganizationRepository(store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
@@ -247,7 +250,7 @@ export class OrganizationSyncService {
   public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     this.log.debug({ organizationIds }, 'Syncing organizations!')
 
-    const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
+    const isMultiSegment = this.serviceConfig.edition === Edition.LFX
 
     let docCount = 0
     let organizationCount = 0
