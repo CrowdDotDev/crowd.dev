@@ -1,5 +1,5 @@
 <template>
-  <el-aside class="crowd-menu" width="fit-content">
+  <el-aside class="crowd-menu min-h-screen" width="fit-content">
     <el-menu
       class="flex flex-col h-full justify-between border-gray-100"
       :collapse="isCollapsed"

@@ -2,6 +2,8 @@
   <div>
     <el-popover
       ref="popover"
+      v-model:visible="isDropdownOpen"
+
       placement="right-start"
       :width="340"
       trigger="click"
@@ -11,7 +13,7 @@
         <cr-menu-workspace-card
           class="h-14 pl-4 pr-3.5 hover:bg-gray-50"
           :tenant="currentTenant"
-          :class="isDropdownOpen ? 'bg-gray-50' : ''"
+          :class="isDropdownOpen ? '!bg-gray-50' : ''"
         >
           <i class="ri-settings-3-line text-lg text-gray-300 transform -translate-x-0.5 block" />
         </cr-menu-workspace-card>

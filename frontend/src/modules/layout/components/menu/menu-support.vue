@@ -2,7 +2,7 @@
   <el-popover
     placement="right-end"
     :width="260"
-    trigger="click"
+    trigger="hover"
     popper-class="!pt-2 !px-1 !pb-1 transform translate-x-1"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
