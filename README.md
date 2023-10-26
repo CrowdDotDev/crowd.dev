@@ -45,12 +45,12 @@ crowd.dev is the Developer Data Platform (DDP) that enables companies to central
 crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data. 
 
 **To our **users**:**
-- You can self-host crowd.dev to centralize data for your community or company while keeping full control over your data.
+- You can get actively involved, contribute to our roadmap, and turn crowd.dev into the tool you always wanted.
 - We are open regarding what we are building, allowing you to take a look inside, and making sure we handle your data in a privacy-preserving way.
 - You will never be locked in by us. Our interests as a company are aligned with you and we need to make sure that we always deliver enough value to you with our commercial offering in relation to our pricing.
 
 **To our developer community:**
-- You can actively engage, contribute to our roadmap, and shape crowd.dev into the tool you've always desired.
+- You can self-host crowd.dev to centralize data for your community or company while keeping full control over your data.
 - Our product is built for extensibility. If you can think of any use cases that you want to build with the data we collect and store for you, please go ahead and build it! We will be here to help out if you need us.
 - You can actively contribute to crowd.dev (e.g. integrations), and we will be supporting you along the journey. Just take a look at our [Contributing guide](https://github.com/CrowdDotDev/crowd.dev/blob/main/CONTRIBUTING.md).
 
