@@ -2072,6 +2072,9 @@ class OrganizationRepository {
             min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
           from leaf_segment_ids ls
           join mv_activities_cube a on a."segmentId" = ls.id and a."organizationId" = :id
+          join members m on a."memberId" = m.id and m."deletedAt" is null
+          join "memberOrganizations" mo on m.id = mo."memberId" and a."organizationId" = mo."organizationId"
+          and mo."deletedAt" is null and mo."dateEnd" is null
           group by a."organizationId"
         ),
         organization_segments as (
