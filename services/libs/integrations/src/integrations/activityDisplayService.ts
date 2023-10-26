@@ -1,24 +1,20 @@
-import { DiscordActivityType, UNKNOWN_ACTIVITY_TYPE_DISPLAY } from '@crowd/integrations'
-import { LoggerBase, getServiceChildLogger } from '@crowd/logging'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {
   ActivityDisplayVariant,
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
   PlatformType,
 } from '@crowd/types'
-import lodash from 'lodash'
-import { IServiceOptions } from './IServiceOptions'
+import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from './activityTypes'
+import { DiscordActivityType } from './discord/types'
+import merge from 'lodash.merge'
+import cloneDeep from 'lodash.clonedeep'
+import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('ActivityDisplayService')
 
-export default class ActivityDisplayService extends LoggerBase {
-  options: IServiceOptions
-
-  constructor(options: IServiceOptions) {
-    super(options.log)
-    this.options = options
-  }
-
+export class ActivityDisplayService {
   static getInterpolatableVariables(
     string: string,
     interpolatableVariables: string[] = [],
@@ -107,7 +103,7 @@ export default class ActivityDisplayService extends LoggerBase {
         return UNKNOWN_ACTIVITY_TYPE_DISPLAY
       }
 
-      const allActivityTypes = lodash.merge(activityTypes.custom, activityTypes.default)
+      const allActivityTypes = merge(activityTypes.custom, activityTypes.default)
 
       if (
         activity.platform === PlatformType.DISCORD &&
@@ -121,7 +117,7 @@ export default class ActivityDisplayService extends LoggerBase {
       // we're cloning because we'll use the same object to do the interpolation
       const displayOptions: ActivityTypeDisplayProperties =
         allActivityTypes[activity.platform] && allActivityTypes[activity.platform][activity.type]
-          ? lodash.cloneDeep(allActivityTypes[activity.platform][activity.type].display)
+          ? cloneDeep(allActivityTypes[activity.platform][activity.type].display)
           : null
 
       if (!displayOptions) {

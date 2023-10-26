@@ -25,6 +25,8 @@
     "axios": "^1.5.1",
     "config": "^3.3.9",
     "html-to-mrkdwn-ts": "^1.1.0",
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.merge": "^4.6.2",
     "superagent": "^8.1.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
