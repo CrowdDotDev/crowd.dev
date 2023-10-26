@@ -6,7 +6,6 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
-import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 
 const identities: MultiSelectFilterConfig = {
   id: 'identities',
