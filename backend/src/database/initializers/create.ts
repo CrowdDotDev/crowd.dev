@@ -3,7 +3,7 @@ import models from '../models'
 
 const log = getServiceLogger()
 
-models()
+models(1000 * 30)
   .sequelize.sync({ alter: true })
   .then(() => {
     log.info('Database tables created!')

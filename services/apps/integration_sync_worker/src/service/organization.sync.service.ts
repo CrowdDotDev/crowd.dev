@@ -1,5 +1,5 @@
 import { NANGO_CONFIG } from '../conf'
-import { Entity, IOrganization, IOrganizationSyncRemoteData } from '@crowd/types'
+import { Entity, HubspotSettings, IOrganization, IOrganizationSyncRemoteData } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -213,7 +213,8 @@ export class OrganizationSyncService extends LoggerBase {
     const integration: IDbIntegration = await this.integrationRepo.findById(integrationId)
     const automation = await this.automationRepo.findById(automationId)
 
-    const syncOrganizationMembers = automation.settings?.syncCompanyContacts === true
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const syncOrganizationMembers = (automation.settings as any)?.syncCompanyContacts === true
 
     const organizationsIdsSyncedToReturn = []
 
@@ -231,7 +232,7 @@ export class OrganizationSyncService extends LoggerBase {
           tenantId,
           [integration.segmentId],
           integration.platform,
-          automation.settings.filter,
+          (automation.settings as HubspotSettings).filter,
           batchSize,
           offset,
         )

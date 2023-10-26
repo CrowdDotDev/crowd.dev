@@ -2,7 +2,7 @@
   <app-page-wrapper size="narrow">
     <div class="profile-form-page">
       <h4 class="mb-6">
-        Profile settings
+        Account settings
       </h4>
       <el-container
         class="bg-white rounded-lg shadow shadow-black/15"
