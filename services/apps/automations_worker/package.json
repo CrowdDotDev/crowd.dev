@@ -16,6 +16,8 @@
   "dependencies": {
     "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@crowd/archetype-worker": "file:../../archetypes/worker",
+    "@crowd/common": "file:../../libs/common",
+    "@crowd/types": "file:../../libs/types",
     "@temporalio/workflow": "~1.8.6",
     "@types/config": "^3.3.1",
     "@types/node": "^20.8.2",

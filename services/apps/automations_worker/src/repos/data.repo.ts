@@ -142,7 +142,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       `
       select *
       from organizations
-      where id in $(organizationIds:csv) and "deletedAt" is null
+      where id in ($(organizationIds:csv)) and "deletedAt" is null
       `,
       {
         organizationIds,
@@ -170,7 +170,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         m."tenantId",
         m."createdById"
     from members m
-    where m.id in ($(memberId:csv))
+    where m.id in ($(memberIds:csv))
       and m."deletedAt" is null;
     `,
       {
@@ -389,7 +389,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       `
       select "memberId", "toMergeId"
       from "memberToMerge"
-      where "memberId" in ($(memberIds):csv);
+      where "memberId" in ($(memberIds:csv));
       `,
       {
         memberIds,
@@ -404,7 +404,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       `
       select "memberId", "noMergeId"
       from "memberNoMerge"
-      where "memberId" in ($(memberIds):csv);
+      where "memberId" in ($(memberIds:csv));
       `,
       {
         memberIds,

@@ -1,17 +1,17 @@
 import { getChildLogger } from '@crowd/logging'
-import { dbStore, redis, serviceLog } from '../main'
+import { svc } from '../main'
 import { AutomationService } from '../services/automation.service'
 
 export async function triggerMemberAutomationExecution(
   automationId: string,
   memberId: string,
 ): Promise<void> {
-  const log = getChildLogger('triggerMemberAutomationExecution', serviceLog, {
+  const log = getChildLogger('triggerMemberAutomationExecution', svc.log, {
     automationId,
     memberId,
   })
 
-  const service = new AutomationService(dbStore.writer, redis, log)
+  const service = new AutomationService(svc.postgres.writer, svc.redis, log)
   const payload = await service.getMember(memberId)
   if (!payload) {
     log.warn('Member not found, skipping execution')
@@ -25,11 +25,11 @@ export async function detectNewMemberAutomations(
   tenantId: string,
   memberId: string,
 ): Promise<string[]> {
-  const log = getChildLogger('detectNewMemberAutomations', serviceLog, {
+  const log = getChildLogger('detectNewMemberAutomations', svc.log, {
     tenantId,
     memberId,
   })
 
-  const service = new AutomationService(dbStore.reader, redis, log)
+  const service = new AutomationService(svc.postgres.reader, svc.redis, log)
   return service.detectNewMemberAutomations(tenantId, memberId)
 }

@@ -96,7 +96,7 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (
-        isFeatureEnabled(
+        await isFeatureEnabled(
           FeatureFlag.TEMPORAL_AUTOMATIONS,
           async () => {
             return {

@@ -9,7 +9,7 @@ import {
 
 export {
   processNewActivityAutomation,
-  triggerActivityAutomationExecution,
   processNewMemberAutomation,
+  triggerActivityAutomationExecution,
   triggerMemberAutomationExecution,
 }

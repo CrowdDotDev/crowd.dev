@@ -126,7 +126,7 @@ export default class MemberService extends LoggerBase {
       })
 
       if (
-        isFeatureEnabled(
+        await isFeatureEnabled(
           FeatureFlag.TEMPORAL_AUTOMATIONS,
           async () => {
             return {
