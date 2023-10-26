@@ -16,6 +16,7 @@
   "dependencies": {
     "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@crowd/archetype-worker": "file:../../archetypes/worker",
+    "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@sendgrid/mail": "~7.7.0",
     "@temporalio/activity": "~1.8.6",
     "@temporalio/client": "~1.8.6",
