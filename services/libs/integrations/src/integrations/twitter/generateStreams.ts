@@ -13,7 +13,7 @@ import {
 const CHECK_REACH_EVERY_IN_SECONDS = 24 * 60 * 60
 
 // It should return true once a day
-const reachNeedsUpdate = async (ctx: IGenerateStreamsContext) => {
+const reachNeedsUpdate = async (ctx: IGenerateStreamsContext): Promise<boolean> => {
   if (ctx.onboarding) return false
 
   const key = `twitter:reach:${ctx.integration.id}`
@@ -28,7 +28,7 @@ const reachNeedsUpdate = async (ctx: IGenerateStreamsContext) => {
   return false
 }
 
-const refreshToken = async (ctx: IGenerateStreamsContext) => {
+const refreshToken = async (ctx: IGenerateStreamsContext): Promise<void> => {
   const refreshToken = ctx.integration.refreshToken
   const TWITTER_CONFIG = ctx.platformSettings as TwitterPlatformSettings
 
