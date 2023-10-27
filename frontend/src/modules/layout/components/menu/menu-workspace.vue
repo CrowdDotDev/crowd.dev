@@ -15,7 +15,7 @@
           :tenant="currentTenant"
           :class="isDropdownOpen ? '!bg-gray-50' : ''"
         >
-          <i class="ri-settings-3-line text-lg text-gray-300 transform -translate-x-0.5 block" />
+          <i class="ri-settings-3-line text-lg text-gray-300 transform -translate-x-0.5 block mr-1.5" />
         </cr-menu-workspace-card>
       </template>
       <div>

@@ -1,6 +1,6 @@
 <template>
   <el-container>
-    <app-menu-v2 v-if="menuV2Enabled" />
+    <app-menu-v2 v-if="menuV2Enabled()" />
     <app-menu v-else />
     <el-container v-if="currentTenant" :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
@@ -172,11 +172,7 @@ export default {
       showOrganizationsAlertBanner: 'tenant/showOrganizationsAlertBanner',
       showBanner: 'tenant/showBanner',
     }),
-    menuV2Enabled() {
-      return FeatureFlag.isFlagEnabled(
-        FeatureFlag.flags.menuV2,
-      );
-    },
+
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
         (i) => i.name,
@@ -239,6 +235,11 @@ export default {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
     }),
+    menuV2Enabled() {
+      return FeatureFlag.isFlagEnabled(
+        FeatureFlag.flags.menuV2,
+      );
+    },
 
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values

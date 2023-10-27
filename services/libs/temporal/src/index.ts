@@ -4,6 +4,9 @@ export interface ITemporalConfig {
   serverUrl: string
   namespace: string
   identity: string
+  rootCa?: string
+  certificate?: string
+  privateKey?: string
 }
 
 let client: Client | undefined
@@ -12,10 +15,18 @@ export const getTemporalClient = async (cfg: ITemporalConfig): Promise<Client> =
     return client
   }
 
-  // TODO: Handle TLS for Temporal Cloud.
   const connection = await Connection.connect({
     address: cfg.serverUrl,
-    // tls
+    tls:
+      cfg.rootCa && cfg.certificate && cfg.privateKey
+        ? {
+            serverRootCACertificate: Buffer.from(cfg.rootCa, 'base64'),
+            clientCertPair: {
+              crt: Buffer.from(cfg.certificate, 'base64'),
+              key: Buffer.from(cfg.privateKey, 'base64'),
+            },
+          }
+        : undefined,
   })
 
   client = new Client({

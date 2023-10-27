@@ -1,38 +1,40 @@
 <template>
   <div>
-    <!-- Workspace list -->
-    <section v-for="(tenant, ti) of tenants" :key="tenant.id">
-      <div v-if="ti > 0" class="my-1 border-b border-gray-200" />
-      <div class="p-2">
-        <cr-menu-workspace-card class="h-14 px-3 hover:bg-gray-50" :tenant="tenant" @click="doSwitchTenant(tenant)">
-          <i v-if="currentTenant.id === tenant.id" class="ri-check-line text-lg text-black" />
-        </cr-menu-workspace-card>
-        <div v-if="currentTenant.id === tenant.id" class="pt-1 -mx-1">
-          <cr-menu-links
-            :collapsed="false"
-            :links="tenantMenu"
-            :disable-active-class="true"
-            link-class="!p-3 !h-10 !mb-0 !mt-1 !text-xs"
-          />
-          <div class="px-1">
-            <div class="p-3 h-10 text-xs text-black mt-1 rounded hover:bg-gray-50 cursor-pointer" @click.stop="emit('edit', tenant)">
-              Edit workspace
+    <div class="max-h-[40rem] overflow-auto">
+      <!-- Workspace list -->
+      <section v-for="(tenant, ti) of tenants" :key="tenant.id">
+        <div v-if="ti > 0" class="my-1 border-b border-gray-200" />
+        <div class="p-2">
+          <cr-menu-workspace-card class="h-14 px-3 hover:bg-gray-50" :tenant="tenant" @click="doSwitchTenant(tenant)">
+            <i v-if="currentTenant.id === tenant.id" class="ri-check-line text-lg text-black" />
+          </cr-menu-workspace-card>
+          <div v-if="currentTenant.id === tenant.id" class="pt-1 -mx-1">
+            <cr-menu-links
+              :collapsed="false"
+              :links="tenantMenu"
+              :disable-active-class="true"
+              link-class="!p-3 !h-10 !mb-0 !mt-1 !text-xs"
+            />
+            <div class="px-1">
+              <div class="p-3 h-10 text-xs text-black mt-1 rounded hover:bg-gray-50 cursor-pointer" @click.stop="emit('edit', tenant)">
+                Edit workspace
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Add workspace -->
-    <section class="px-2 pb-3 border-b border-gray-100">
-      <div
-        class="px-3 h-10 text-sm font-normal rounded hover:bg-gray-50 cursor-pointer flex items-center text-brand-500"
-        @click="emit('add')"
-      >
-        <i class="ri-add-fill text-base text-brand-500 mr-3" />
-        <span>Add workspace</span>
-      </div>
-    </section>
+      <!-- Add workspace -->
+      <section class="px-2 pb-3 border-b border-gray-100">
+        <div
+          class="px-3 h-10 text-sm font-normal rounded hover:bg-gray-50 cursor-pointer flex items-center text-brand-500"
+          @click="emit('add')"
+        >
+          <i class="ri-add-fill text-base text-brand-500 mr-3" />
+          <span>Add workspace</span>
+        </div>
+      </section>
+    </div>
 
     <!-- User settings -->
     <section class="px-2 pb-2 pt-1">
