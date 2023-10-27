@@ -7,8 +7,7 @@ import Errors from '@/shared/error/errors';
 const workspaceDetails: OnboardStepConfig = {
   name: 'Workspace details',
   component: AppOnboardWorkspaceDetailsStep,
-  hasValidation: true,
-  cta: () => 'Continue',
+  cta: 'Continue',
   textColor: (currentStep: number) => ({
     'text-gray-400': currentStep < 1,
     'text-brand-400': currentStep > 1,

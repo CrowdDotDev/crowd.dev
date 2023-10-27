@@ -1,5 +1,13 @@
 <template>
   <div class="relative">
+    <div class="flex gap-3 mb-6 justify-start bg-gray-100 border border-gray-200 rounded-lg py-2.5 px-3 -mt-4">
+      <div class="flex items-center justify-center h-5">
+        <i class="ri-information-line text-gray-600 text-base" />
+      </div>
+      <div class="text-gray-600 text-xs">
+        Sync your community data to get the most out of crowd.dev. Connect at least 1 integration in order to create your workspace.
+      </div>
+    </div>
     <div
       v-if="loading"
       class="flex items-center justify-center"
@@ -55,8 +63,16 @@ import {
 
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppOnboardIntegrationItem from '@/modules/onboard/components/onboard-integration-item.vue';
+import { minValue } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
 
 const emit = defineEmits(['allowRedirect', 'inviteColleagues']);
+const props = defineProps({
+  modelValue: {
+    type: Object,
+    default: () => {},
+  },
+});
 
 const store = useStore();
 
@@ -68,6 +84,12 @@ const integrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
 const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
   .filter((i) => i.onboard?.highlight && !!i.onboard));
 const showGithubDialog = ref(false);
+
+useVuelidate({
+  activeIntegrations: {
+    minValue: minValue(1),
+  },
+}, props.modelValue);
 
 onMounted(async () => {
   const params = new URLSearchParams(window.location.search);

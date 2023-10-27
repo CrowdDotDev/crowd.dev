@@ -10,7 +10,7 @@
         <h3
           class="text-lg font-semibold leading-8"
         >
-          Howdie<span v-if="currentUser">, {{ currentUser.fullName }}</span>
+          Howdie<span v-if="currentUser?.fullName">, {{ currentUser.fullName }}</span>
         </h3>
         <p class="text-sm text-gray-600 leading-5">
           Let's setup your workspace.
@@ -20,7 +20,7 @@
   </div>
 
   <div class="flex justify-center py-8 border-b border-gray-200 sticky top-0 bg-gray-50 z-10">
-    <div class="flex justify-between items-center limit-width">
+    <div class="flex gap-10 items-center limit-width">
       <div
         v-for="(step, index) in Object.values(onboardingSteps)"
         :key="step.name"
@@ -46,12 +46,7 @@
     <main class="limit-width">
       <component
         :is="stepConfig.component"
-        v-if="stepConfig.hasValidation"
         v-model="form"
-      />
-      <component
-        :is="stepConfig.component"
-        v-else
         @allow-redirect="onConnect"
         @invite-colleagues="onInviteColleagues"
       />
@@ -60,14 +55,22 @@
 
   <div class="fixed bottom-0 w-full bg-white flex justify-center py-4 px-8 border-t border-gray-200">
     <div class="limit-width">
-      <el-button
-        class="btn btn--primary btn--md btn--full"
-        :disabled="$v.$invalid || loadingSubmitAction"
-        @click="onBtnClick"
+      <el-tooltip
+        placement="top"
+        :disabled="!stepConfig.ctaTooltip || !$v.$invalid"
+        :content="stepConfig.ctaTooltip"
       >
-        <span class="text-base">{{ stepConfig.cta(!!activeIntegrations?.length) }}</span>
-        <i class="ri-arrow-right-line text-white text-lg ml-3" />
-      </el-button>
+        <div>
+          <el-button
+            class="btn btn--primary btn--lg btn--full"
+            :disabled="$v.$invalid || loadingSubmitAction"
+            @click="onBtnClick"
+          >
+            <span class="text-base">{{ stepConfig.cta }}</span>
+            <i class="ri-arrow-right-line text-white text-lg ml-3" />
+          </el-button>
+        </div>
+      </el-tooltip>
     </div>
   </div>
 </template>
@@ -95,6 +98,7 @@ const allowRedirect = ref(false);
 const currentStep = ref(1);
 const form = reactive({
   tenantName: currentTenant.value?.name,
+  activeIntegrations: 0,
   invitedUsers: [{
     emails: [],
     roles: ['admin'],
@@ -149,6 +153,8 @@ watch(currentTenant, (tenant, oldTenant) => {
 
 // If currentTenant and activeIntegrations, set second step as the active one
 watch(activeIntegrations, (integrations) => {
+  form.activeIntegrations = integrations.length;
+
   if (integrations.length && currentStep.value < 2) {
     currentStep.value = 2;
   }
