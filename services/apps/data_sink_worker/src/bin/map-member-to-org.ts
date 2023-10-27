@@ -1,4 +1,10 @@
-import { DB_CONFIG, SEARCH_SYNC_API_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
+import {
+  DB_CONFIG,
+  SEARCH_SYNC_API_CONFIG,
+  SQS_CONFIG,
+  TEMPORAL_CONFIG,
+  UNLEASH_CONFIG,
+} from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
