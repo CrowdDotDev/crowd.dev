@@ -76,6 +76,7 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
   public async findIntegrationByPlatformAndTenantId(
     platform: PlatformType,
     tenantId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<(IDbIntegrationData & { settings: any }) | null> {
     const result = await this.db().oneOrNone(
       `
