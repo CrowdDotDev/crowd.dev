@@ -222,7 +222,6 @@ export class Service {
           serverUrl: process.env['CROWD_TEMPORAL_SERVER_URL'],
           namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
           identity: this.name,
-          rootCa: process.env['CROWD_TEMPORAL_ROOT_CA'],
           certificate: process.env['CROWD_TEMPORAL_CERTIFICATE'],
           privateKey: process.env['CROWD_TEMPORAL_PRIVATE_KEY'],
         })
