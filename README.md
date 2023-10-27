@@ -5,7 +5,7 @@
   <img src="https://github.com/CrowdDotDev/crowd.dev/assets/41432658/e5970c3a-095c-46ea-b93b-eb517bcd8a4f" alt="crowd.dev icon" width="120px">
 
 
-  <h2 align="center">Effortlessly centralize community, product, and customer data.</h2>
+  <h2 align="center">Effortlessly centralize community, product, and customer data</h2>
   
   <p align="center">
     <br>
@@ -40,7 +40,7 @@
 - [Book a call](#📞-book-a-call)
 
 ## About crowd.dev
-crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand, be it in community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-degree view of  the developers who engage with your product and community, the companies they work for, and where  they stand in their personal customer journey. 
+crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand, be it in community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-degree view of  the developers who engage with your product and community, the companies they work for, and where they stand in their personal customer journey. 
 
 crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data. 
 
