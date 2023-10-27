@@ -88,11 +88,23 @@ export class ServiceWorker extends Service {
       throw new Error(`Missing environment variables: ${missing.join(', ')}`)
     }
 
-    // TODO: Handle TLS for Temporal Cloud.
     try {
+      const rootCa = process.env['CROWD_TEMPORAL_ROOT_CA']
+      const certificate = process.env['CROWD_TEMPORAL_CERTIFICATE']
+      const privateKey = process.env['CROWD_TEMPORAL_PRIVATE_KEY']
+
       const connection = await NativeConnection.connect({
         address: process.env['CROWD_TEMPORAL_SERVER_URL'],
-        // tls:
+        tls:
+          rootCa && certificate && privateKey
+            ? {
+                serverRootCACertificate: Buffer.from(rootCa, 'base64'),
+                clientCertPair: {
+                  crt: Buffer.from(certificate, 'base64'),
+                  key: Buffer.from(privateKey, 'base64'),
+                },
+              }
+            : undefined,
       })
 
       const workflowBundle = await bundleWorkflowCode({
