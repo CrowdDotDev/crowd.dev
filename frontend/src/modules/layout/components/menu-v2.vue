@@ -69,7 +69,7 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss">
 .crowd-menu{
   .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container) {
     width: 281px;
