@@ -89,16 +89,23 @@ export class ServiceWorker extends Service {
     }
 
     try {
-      const rootCa = process.env['CROWD_TEMPORAL_ROOT_CA']
       const certificate = process.env['CROWD_TEMPORAL_CERTIFICATE']
       const privateKey = process.env['CROWD_TEMPORAL_PRIVATE_KEY']
+
+      this.log.info(
+        {
+          address: process.env['CROWD_TEMPORAL_SERVER_URL'],
+          certificate: certificate ? 'yes' : 'no',
+          privateKey: privateKey ? 'yes' : 'no',
+        },
+        'Connecting to Temporal server as a worker!',
+      )
 
       const connection = await NativeConnection.connect({
         address: process.env['CROWD_TEMPORAL_SERVER_URL'],
         tls:
-          rootCa && certificate && privateKey
+          certificate && privateKey
             ? {
-                serverRootCACertificate: Buffer.from(rootCa, 'base64'),
                 clientCertPair: {
                   crt: Buffer.from(certificate, 'base64'),
                   key: Buffer.from(privateKey, 'base64'),
