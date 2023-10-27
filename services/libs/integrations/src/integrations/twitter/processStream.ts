@@ -12,10 +12,43 @@ import getProfiles from './api/getProfiles'
 import { PlatformType, RateLimitError } from '@crowd/types'
 import { processPaginated } from '@crowd/common'
 import { generateUUIDv4 } from '@crowd/common'
+import { DbConnection, DbTransaction } from '@crowd/database'
 
 interface ReachSelection {
   id: string
   username: string
+}
+
+const fetchIntegrationMembersPaginated = async (
+  db: DbConnection | DbTransaction,
+  integrationId: string,
+  platform: PlatformType,
+  page: number,
+  perPage: number,
+) => {
+  const result = await db.any(
+    `
+          SELECT
+            m."memberId" as id,
+            m.username as username
+          FROM
+            "memberIdentities" m
+          WHERE
+            m."tenantId"= (select "tenantId" from integrations where id = $(integrationId) )
+            and m.platform = $(platform)
+          ORDER BY
+            m."memberId"
+          LIMIT $(perPage)
+          OFFSET $(offset)
+        `,
+    {
+      integrationId,
+      platform,
+      perPage,
+      offset: (page - 1) * perPage,
+    },
+  )
+  return result
 }
 
 const processMentionsStream: ProcessStreamHandler = async (ctx) => {
@@ -106,30 +139,13 @@ const processReachStream: ProcessStreamHandler = async (ctx) => {
 
     await processPaginated<ReachSelection>(
       async (page) => {
-        const result = await db.any(
-          `
-          SELECT
-            m."memberId" as id,
-            m.username as username
-          FROM
-            "memberIdentities" m
-          WHERE
-            m."tenantId"= (select "tenantId" from integrations where id = $(integrationId) )
-            and m.platform = $(platform)
-          ORDER BY
-            m."memberId"
-          LIMIT $(perPage)
-          OFFSET $(offset)
-        `,
-          {
-            integrationId: ctx.integration.id,
-            platform: PlatformType.TWITTER,
-            perPage,
-            offset: (page - 1) * perPage,
-          },
+        return await fetchIntegrationMembersPaginated(
+          db,
+          ctx.integration.id,
+          PlatformType.TWITTER,
+          page,
+          perPage,
         )
-
-        return result
       },
       async (members) => {
         const usernames = members.map((m) => m.username)
