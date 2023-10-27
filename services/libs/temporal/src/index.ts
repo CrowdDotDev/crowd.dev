@@ -22,10 +22,8 @@ export const getTemporalClient = async (cfg: ITemporalConfig): Promise<Client> =
       serverUrl: cfg.serverUrl,
       namespace: cfg.namespace,
       identity: cfg.identity,
-      certificate: cfg.certificate
-        ? Buffer.from(cfg.certificate, 'base64').toString('ascii')
-        : 'none',
-      privateKey: cfg.privateKey ? Buffer.from(cfg.privateKey, 'base64').toString('ascii') : 'none',
+      certificate: cfg.certificate ? 'yes' : 'no',
+      privateKey: cfg.privateKey ? 'yes' : 'no',
     },
     'Creating temporal client!',
   )

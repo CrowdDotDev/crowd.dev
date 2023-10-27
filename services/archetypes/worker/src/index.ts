@@ -95,8 +95,8 @@ export class ServiceWorker extends Service {
       this.log.info(
         {
           address: process.env['CROWD_TEMPORAL_SERVER_URL'],
-          certificate: certificate ? Buffer.from(certificate, 'base64').toString('ascii') : 'none',
-          privateKey: privateKey ? Buffer.from(privateKey, 'base64').toString('ascii') : 'none',
+          certificate: certificate ? 'yes' : 'no',
+          privateKey: privateKey ? 'yes' : 'no',
         },
         'Connecting to Temporal server as a worker!',
       )
