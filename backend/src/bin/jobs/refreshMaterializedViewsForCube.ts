@@ -1,6 +1,6 @@
 import { Logger, logExecutionTimeV2 } from '@crowd/logging'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
+import { databaseInit } from '../../database/databaseConnection'
 
 let processing = false
 
@@ -13,7 +13,9 @@ const job: CrowdJob = {
     } else {
       return
     }
-    const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
+
+    // initialize database with 15 minutes query timeout
+    const database = await databaseInit(1000 * 60 * 15)
 
     const materializedViews = [
       'mv_members_cube',
@@ -25,7 +27,7 @@ const job: CrowdJob = {
     for (const view of materializedViews) {
       await logExecutionTimeV2(
         () =>
-          dbOptions.database.sequelize.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY "${view}"`, {
+          database.sequelize.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY "${view}"`, {
             useMaster: true,
           }),
         log,

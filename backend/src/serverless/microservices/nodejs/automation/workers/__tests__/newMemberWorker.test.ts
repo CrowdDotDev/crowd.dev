@@ -1,15 +1,15 @@
 import { generateUUIDv4 as uuid } from '@crowd/common'
 import {
-  AutomationData,
   AutomationState,
   AutomationTrigger,
   AutomationType,
+  IAutomationData,
   NewMemberSettings,
-} from '../../../../../../types/automationTypes'
-import { PlatformType } from '@crowd/types'
+  PlatformType,
+} from '@crowd/types'
 import { shouldProcessMember } from '../newMemberWorker'
 
-function createAutomationData(settings: NewMemberSettings): AutomationData {
+function createAutomationData(settings: NewMemberSettings): IAutomationData {
   return {
     id: uuid(),
     name: 'Member test',

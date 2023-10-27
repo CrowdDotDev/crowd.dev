@@ -145,7 +145,7 @@
     size="2extra-large"
   >
     <template #content>
-      <div id="embbeded-script" class="w-full px-3 pb-3" />
+      <div id="embbeded-script" class="w-full px-3 pb-3 min-h-20" />
     </template>
   </app-dialog>
 </template>
@@ -227,7 +227,7 @@ const displayCalDialog = () => {
 
 const handleOnCtaClick = ({ key, ctaAction }) => {
   // Send an event with plan request
-  window.analytics.track('Change Plan Riequest', {
+  window.analytics.track('Change Plan Request', {
     tenantId: currentTenant.value.id,
     tenantName: currentTenant.value.name,
     requestedPlan: key,
