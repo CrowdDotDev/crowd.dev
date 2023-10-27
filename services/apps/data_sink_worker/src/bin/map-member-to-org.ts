@@ -13,7 +13,7 @@ import MemberService from '../service/member.service'
 import DataSinkRepository from '../repo/dataSink.repo'
 import { OrganizationService } from '../service/organization.service'
 import { getUnleashClient } from '@crowd/feature-flags'
-import { getTemporalClient } from '@crowd/temporal'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -30,7 +30,11 @@ const memberId = processArguments[0]
 setImmediate(async () => {
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
 
-  const temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  let temporal: TemporalClient | undefined
+  // temp for production
+  if (TEMPORAL_CONFIG().serverUrl) {
+    temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  }
 
   const sqsClient = getSqsClient(SQS_CONFIG())
   const emitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)

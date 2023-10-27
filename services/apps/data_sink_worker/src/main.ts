@@ -15,7 +15,7 @@ import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getRedisClient } from '@crowd/redis'
 import { processOldResultsJob } from './jobs/processOldResults'
 import { getUnleashClient } from '@crowd/feature-flags'
-import { getTemporalClient } from '@crowd/temporal'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -28,7 +28,11 @@ setImmediate(async () => {
 
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
 
-  const temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  let temporal: TemporalClient | undefined
+  // temp for production
+  if (TEMPORAL_CONFIG().serverUrl) {
+    temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  }
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
