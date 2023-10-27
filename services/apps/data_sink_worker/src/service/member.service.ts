@@ -33,9 +33,9 @@ export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
-    private readonly searchSyncApi: SearchSyncApiClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
+    private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -370,9 +370,9 @@ export default class MemberService extends LoggerBase {
         const txService = new MemberService(
           txStore,
           this.nodejsWorkerEmitter,
-          this.searchSyncApi,
           this.unleash,
           this.temporal,
+          this.searchSyncApi,
           this.log,
         )
 

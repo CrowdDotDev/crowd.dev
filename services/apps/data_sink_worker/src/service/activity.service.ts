@@ -420,9 +420,9 @@ export default class ActivityService extends LoggerBase {
           const txMemberService = new MemberService(
             txStore,
             this.nodejsWorkerEmitter,
-            this.searchSyncApi,
             this.unleash,
             this.temporal,
+            this.searchSyncApi,
             this.log,
           )
           const txActivityService = new ActivityService(

@@ -134,9 +134,9 @@ export default class DataSinkService extends LoggerBase {
           const service = new MemberService(
             this.store,
             this.nodejsWorkerEmitter,
-            this.searchSyncApi,
             this.unleash,
             this.temporal,
+            this.searchSyncApi,
             this.log,
           )
           const memberData = data.data as IMemberData

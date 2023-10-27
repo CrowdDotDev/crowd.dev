@@ -71,9 +71,9 @@ setImmediate(async () => {
             dbConnection,
             redisClient,
             nodejsWorkerEmitter,
+            searchSyncApi,
             unleash,
             temporal,
-            searchSyncApi,
             log,
           )
         }

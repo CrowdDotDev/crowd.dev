@@ -5,6 +5,7 @@ import {
   SENTIMENT_CONFIG,
   TEMPORAL_CONFIG,
   UNLEASH_CONFIG,
+  SEARCH_SYNC_API_CONFIG,
 } from '../conf'
 import DataSinkRepository from '../repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
@@ -16,6 +17,7 @@ import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getTemporalClient } from '@crowd/temporal'
+import { SearchSyncApiClient } from '@crowd/httpclients'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -45,12 +47,15 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
+  const searchSyncApi = new SearchSyncApiClient(SEARCH_SYNC_API_CONFIG())
+
   const service = new DataSinkService(
     store,
     nodejsWorkerEmitter,
     redisClient,
     unleash,
     temporal,
+    searchSyncApi,
     log,
   )
 
