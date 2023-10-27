@@ -5,7 +5,7 @@ import { getRedisClient } from '@crowd/redis'
 import { Unleash, getUnleashClient } from '@crowd/feature-flags'
 import { Edition } from '@crowd/types'
 import { SERVICE } from '@crowd/common'
-import { getTemporalClient } from '@crowd/temporal'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { API_CONFIG, IS_TEST_ENV, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../../conf'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
@@ -44,6 +44,11 @@ export default class SequelizeRepository {
       })
     }
 
+    let temporal: TemporalClient | undefined
+    if (TEMPORAL_CONFIG.serverUrl) {
+      temporal = await getTemporalClient(TEMPORAL_CONFIG)
+    }
+
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
@@ -54,7 +59,7 @@ export default class SequelizeRepository {
       language: 'en',
       redis: await getRedisClient(REDIS_CONFIG, true),
       unleash,
-      temporal: await getTemporalClient(TEMPORAL_CONFIG),
+      temporal,
     }
   }
 

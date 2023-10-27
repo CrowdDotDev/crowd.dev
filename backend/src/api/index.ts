@@ -108,12 +108,15 @@ setImmediate(async () => {
     })
   }
 
-  // Bind temporal to request
-  const temporal = await getTemporalClient(TEMPORAL_CONFIG)
-  app.use((req: any, res, next) => {
-    req.temporal = temporal
-    next()
-  })
+  // temp check for production
+  if (TEMPORAL_CONFIG.serverUrl) {
+    // Bind temporal to request
+    const temporal = await getTemporalClient(TEMPORAL_CONFIG)
+    app.use((req: any, res, next) => {
+      req.temporal = temporal
+      next()
+    })
+  }
 
   // initialize passport strategies
   app.use(passportStrategyMiddleware)
