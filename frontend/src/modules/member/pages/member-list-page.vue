@@ -56,7 +56,6 @@
         :config="memberSavedViews"
         :filters="memberFilters"
         :custom-filters="customAttributesFilter"
-        :static-views="memberViews"
         placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
       />
@@ -96,7 +95,7 @@ import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
-import { memberSavedViews, memberViews } from '../config/saved-views/main';
+import { memberSavedViews } from '../config/saved-views/main';
 
 const memberStore = useMemberStore();
 const { getMemberCustomAttributes, fetchMembers } = memberStore;

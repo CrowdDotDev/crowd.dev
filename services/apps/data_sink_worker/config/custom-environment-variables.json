@@ -26,5 +26,16 @@
     "password": "CROWD_REDIS_PASSWORD",
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
+  },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "apiKey": "CROWD_UNLEASH_BACKEND_API_KEY"
+  },
+  "temporal": {
+    "serverUrl": "CROWD_TEMPORAL_SERVER_URL",
+    "namespace": "CROWD_TEMPORAL_NAMESPACE",
+    "rootCa": "CROWD_TEMPORAL_ROOT_CA",
+    "certificate": "CROWD_TEMPORAL_CERTIFICATE",
+    "privateKey": "CROWD_TEMPORAL_PRIVATE_KEY"
   }
 }

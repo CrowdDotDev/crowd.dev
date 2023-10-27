@@ -4,6 +4,7 @@ import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
 import {
+  FeatureFlag,
   IEnrichableOrganization,
   IMemberOrganization,
   IOrganization,
@@ -22,7 +23,6 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '@/types/common'
 import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
 

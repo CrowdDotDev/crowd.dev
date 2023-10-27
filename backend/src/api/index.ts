@@ -1,30 +1,38 @@
-import express from 'express'
-import bodyParser from 'body-parser'
-import cors from 'cors'
-import helmet from 'helmet'
-import bunyanMiddleware from 'bunyan-middleware'
-import * as http from 'http'
-import { Unleash } from 'unleash-client'
-import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
+import { SERVICE } from '@crowd/common'
+import { getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
-import { ApiWebsocketMessage, Edition } from '@crowd/types'
 import { getOpensearchClient } from '@crowd/opensearch'
+import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
 import { getServiceTracer } from '@crowd/tracing'
-import { API_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG, OPENSEARCH_CONFIG } from '../conf'
+import { ApiWebsocketMessage, Edition } from '@crowd/types'
+import bodyParser from 'body-parser'
+import bunyanMiddleware from 'bunyan-middleware'
+import cors from 'cors'
+import express from 'express'
+import helmet from 'helmet'
+import * as http from 'http'
+import { getTemporalClient } from '@crowd/temporal'
+import {
+  API_CONFIG,
+  OPENSEARCH_CONFIG,
+  REDIS_CONFIG,
+  TEMPORAL_CONFIG,
+  UNLEASH_CONFIG,
+} from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
-import { tenantMiddleware } from '../middlewares/tenantMiddleware'
-import { segmentMiddleware } from '../middlewares/segmentMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
-import { createRateLimiter } from './apiRateLimiter'
-import { languageMiddleware } from '../middlewares/languageMiddleware'
-import authSocial from './auth/authSocial'
-import setupSwaggerUI from './apiDocumentation'
-import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
+import { languageMiddleware } from '../middlewares/languageMiddleware'
+import { opensearchMiddleware } from '../middlewares/opensearchMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
+import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddleware'
+import { segmentMiddleware } from '../middlewares/segmentMiddleware'
+import { tenantMiddleware } from '../middlewares/tenantMiddleware'
+import setupSwaggerUI from './apiDocumentation'
+import { createRateLimiter } from './apiRateLimiter'
+import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
-import { opensearchMiddleware } from '../middlewares/opensearchMiddleware'
 
 const serviceLogger = getServiceLogger()
 getServiceTracer()
@@ -88,37 +96,24 @@ setImmediate(async () => {
 
   // Bind unleash to request
   if (UNLEASH_CONFIG.url && API_CONFIG.edition === Edition.CROWD_HOSTED) {
-    const unleash = new Unleash({
-      url: `${UNLEASH_CONFIG.url}/api`,
-      appName: 'crowd-api',
-      customHeaders: {
-        Authorization: UNLEASH_CONFIG.backendApiKey,
-      },
-    })
-
-    unleash.on('error', (err) => {
-      serviceLogger.error(err, 'Unleash client error!')
-    })
-
-    let isReady = false
-
-    setInterval(async () => {
-      if (!isReady) {
-        serviceLogger.error('Unleash client is not ready yet, exiting...')
-        process.exit(1)
-      }
-    }, 60 * 1000)
-
-    await new Promise<void>((resolve) => {
-      unleash.on('ready', () => {
-        serviceLogger.info('Unleash client is ready!')
-        isReady = true
-        resolve()
-      })
+    const unleash = await getUnleashClient({
+      url: UNLEASH_CONFIG.url,
+      apiKey: UNLEASH_CONFIG.backendApiKey,
+      appName: SERVICE,
     })
 
     app.use((req: any, res, next) => {
       req.unleash = unleash
+      next()
+    })
+  }
+
+  // temp check for production
+  if (TEMPORAL_CONFIG.serverUrl) {
+    // Bind temporal to request
+    const temporal = await getTemporalClient(TEMPORAL_CONFIG)
+    app.use((req: any, res, next) => {
+      req.temporal = temporal
       next()
     })
   }

@@ -1,0 +1,16 @@
+FROM node:16-slim 
+
+WORKDIR /usr/crowd/app
+
+COPY ./services/scripts ./services/scripts
+COPY ./services/archetypes/ ./services/archetypes/
+COPY ./services/libs/ ./services/libs/
+RUN cd services/scripts && ./install_lib_packages.sh
+
+COPY ./services/apps/automations_worker/package.json ./services/apps/automations_worker/package-lock.json ./services/apps/automations_worker/tsconfig.json  ./services/apps/automations_worker/
+# COPY ./services/apps/automations_worker/config ./services/apps/automations_worker/config
+COPY ./services/apps/automations_worker/src ./services/apps/automations_worker/src
+
+RUN cd services/apps/automations_worker && npm ci
+
+RUN npm cache clean --force
