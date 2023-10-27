@@ -1,8 +1,35 @@
 import Plans from '@/security/plans';
 import config from '@/config';
+import { renderCal } from '@/utils/cals';
 
 const crowdHostedPlans = Plans.values;
 const communityPlans = Plans.communityValues;
+
+const intoToCrowdDevCal = ({
+  displayCalDialog,
+}) => {
+  displayCalDialog();
+  setTimeout(() => {
+    renderCal({
+      calLink: 'team/CrowdDotDev/sales',
+    });
+  }, 0);
+};
+
+const customPlanCal = ({
+  displayCalDialog,
+}) => {
+  displayCalDialog();
+  setTimeout(() => {
+    renderCal({
+      calLink: 'team/CrowdDotDev/sales',
+    });
+  }, 0);
+};
+
+const openCustomerPortalLink = () => {
+  window.open(config.stripe.customerPortalLink, '_blank');
+};
 
 /**
  * ctaLabel: Copy shown in the CTA dependent on the active plan.
@@ -34,18 +61,10 @@ export const plans = {
         [Plans.values.enterprise]: 'Downgrade to Essential',
       },
       ctaAction: {
-        [Plans.values.eagleEye]: () => {
-          window.open(config.stripe.customerPortalLink, '_blank');
-        },
-        [Plans.values.growth]: () => {
-          window.open(config.stripe.customerPortalLink, '_blank');
-        },
-        [Plans.values.scale]: () => {
-          window.open(config.stripe.customerPortalLink, '_blank');
-        },
-        [Plans.values.enterprise]: () => {
-          window.open(config.stripe.customerPortalLink, '_blank');
-        },
+        [Plans.values.eagleEye]: openCustomerPortalLink,
+        [Plans.values.growth]: openCustomerPortalLink,
+        [Plans.values.scale]: openCustomerPortalLink,
+        [Plans.values.enterprise]: openCustomerPortalLink,
       },
     },
     {
@@ -73,27 +92,10 @@ export const plans = {
         [Plans.values.enterprise]: 'Downgrade to Scale',
       },
       ctaAction: {
-        [Plans.values.eagleEye]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/intro-to-crowd-dev',
-            '_blank',
-          );
-        },
-        [Plans.values.essential]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/intro-to-crowd-dev',
-            '_blank',
-          );
-        },
-        [Plans.values.growth]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/intro-to-crowd-dev',
-            '_blank',
-          );
-        },
-        [Plans.values.enterprise]: () => {
-          window.open(config.stripe.customerPortalLink, '_blank');
-        },
+        [Plans.values.eagleEye]: intoToCrowdDevCal,
+        [Plans.values.essential]: intoToCrowdDevCal,
+        [Plans.values.growth]: intoToCrowdDevCal,
+        [Plans.values.enterprise]: openCustomerPortalLink,
       },
     },
     {
@@ -118,30 +120,10 @@ export const plans = {
         [Plans.values.scale]: 'Get a quote',
       },
       ctaAction: {
-        [Plans.values.eagleEye]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/custom-plan',
-            '_blank',
-          );
-        },
-        [Plans.values.essential]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/custom-plan',
-            '_blank',
-          );
-        },
-        [Plans.values.growth]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/custom-plan',
-            '_blank',
-          );
-        },
-        [Plans.values.scale]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/custom-plan',
-            '_blank',
-          );
-        },
+        [Plans.values.eagleEye]: customPlanCal,
+        [Plans.values.essential]: customPlanCal,
+        [Plans.values.growth]: customPlanCal,
+        [Plans.values.scale]: customPlanCal,
       },
     },
   ],
@@ -164,9 +146,7 @@ export const plans = {
         [Plans.communityValues.custom]: 'Downgrage to Community',
       },
       ctaAction: {
-        [Plans.communityValues.custom]: () => {
-          window.open(config.stripe.customerPortalLink, '_blank');
-        },
+        [Plans.communityValues.custom]: openCustomerPortalLink,
       },
     },
     {
@@ -188,12 +168,7 @@ export const plans = {
         [Plans.communityValues.community]: 'Book a call',
       },
       ctaAction: {
-        [Plans.communityValues.community]: () => {
-          window.open(
-            'https://cal.com/team/CrowdDotDev/custom-plan',
-            '_blank',
-          );
-        },
+        [Plans.communityValues.community]: customPlanCal,
       },
     },
   ],

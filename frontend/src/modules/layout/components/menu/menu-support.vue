@@ -2,7 +2,7 @@
   <el-popover
     placement="right-end"
     :width="260"
-    trigger="hover"
+    trigger="click"
     popper-class="!pt-2 !px-1 !pb-1 transform translate-x-1"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
@@ -10,7 +10,7 @@
     <template #reference>
       <div class="-mr-4 pr-4">
         <el-tooltip
-          :disabled="!props.collapsed"
+          :disabled="!props.collapsed || isDropdownOpen"
           :hide-after="50"
           content="Help & support"
           effect="dark"

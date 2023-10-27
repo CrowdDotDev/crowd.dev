@@ -16,7 +16,7 @@ import { getRedisClient } from '@crowd/redis'
 import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getUnleashClient } from '@crowd/feature-flags'
-import { getTemporalClient } from '@crowd/temporal'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { SearchSyncApiClient } from '@crowd/httpclients'
 
 const tracer = getServiceTracer()
@@ -34,7 +34,11 @@ const resultIds = processArguments[0].split(',')
 setImmediate(async () => {
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
 
-  const temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  let temporal: TemporalClient | undefined
+  // temp for production
+  if (TEMPORAL_CONFIG().serverUrl) {
+    temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  }
 
   const sqsClient = getSqsClient(SQS_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG())
