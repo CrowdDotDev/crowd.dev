@@ -24,7 +24,8 @@ const sections = [
   },
   {
     header: `Fix wrongly merged orgs using snapshot data - This is a development script, never run it in k8s context!`,
-    content: 'Fix wrongly merged orgs using snapshot data - This is a development script, never run it in k8s context!',
+    content:
+      'Fix wrongly merged orgs using snapshot data - This is a development script, never run it in k8s context!',
   },
   {
     header: 'Options',
@@ -39,7 +40,6 @@ if (parameters.help) {
   console.log(usage)
 } else {
   setImmediate(async () => {
-
     const snapshotDb = null // we should get a connection to the snapshot db to get the destroyed data
     const prodDb = await databaseInit()
 
@@ -56,7 +56,6 @@ if (parameters.help) {
         useMaster: true,
       },
     )
-
 
     const deletedOrganizationId = orgs?.[0]?.[0]?.organizationId
 
@@ -90,7 +89,6 @@ if (parameters.help) {
             transaction: tx,
           },
         )
-
 
         if (result.length === 0 || result[0].length === 0) {
           // create the merged organization
@@ -194,12 +192,12 @@ if (parameters.help) {
                 weakIdentities: orgRow[0][0].weakIdentities
                   ? JSON.stringify(orgRow[0][0].weakIdentities)
                   : null,
-                  directSubsidiaries: null,
-                  affiliatedProfiles: null,
-                  allSubsidiaries: null,
-                  alternativeDomains: null,
-                  alternativeNames: null,
-                  profiles: null,
+                directSubsidiaries: null,
+                affiliatedProfiles: null,
+                allSubsidiaries: null,
+                alternativeDomains: null,
+                alternativeNames: null,
+                profiles: null,
               },
               type: QueryTypes.INSERT,
               transaction: tx,
@@ -275,7 +273,6 @@ if (parameters.help) {
           },
         )
 
-
         const memberIds = result3.map((res) => res.memberId)
 
         // update activity organizations that belong to these members
@@ -311,7 +308,9 @@ if (parameters.help) {
         )
 
         await tx.commit()
-        console.log(`Organization ${deletedOrganizationId} unmerged from organization ${identityToProcess.organizationId}`)
+        console.log(
+          `Organization ${deletedOrganizationId} unmerged from organization ${identityToProcess.organizationId}`,
+        )
       }
     } catch (e) {
       console.log(e)

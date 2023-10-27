@@ -57,9 +57,8 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const PDLClient = new PDLJS({ apiKey: this.apiKey })
     let data: null | IEnrichmentResponse
     try {
+      const payload: Partial<EnrichmentParams> = {}
 
-      const payload: Partial<EnrichmentParams> = {} 
-      
       if (name) {
         payload.name = name
       }
@@ -73,7 +72,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       if (data.website === 'undefined.es') {
         return null
       }
-  
+
       data.name = name
     } catch (error) {
       this.options.log.error({ name, website, locality }, 'PDL Data Unavalable', error)
@@ -189,17 +188,17 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         let existingOrg
         let orgService
 
-       if (org.website) {
-         existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
-         orgService = new OrganizationService({ ...this.options, transaction })
-       }
+        if (org.website) {
+          existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          orgService = new OrganizationService({ ...this.options, transaction })
+        }
 
-       if (existingOrg && existingOrg.id !== org.id) {
-         await orgService.merge(existingOrg.id, org.id)
-         unmergedOrgs.push({ ...org, id: existingOrg.id })
-       } else {
-         unmergedOrgs.push(org)
-       }
+        if (existingOrg && existingOrg.id !== org.id) {
+          await orgService.merge(existingOrg.id, org.id)
+          unmergedOrgs.push({ ...org, id: existingOrg.id })
+        } else {
+          unmergedOrgs.push(org)
+        }
       }
 
       // Check if two or more orgs in the umergedOrgs list have same website
