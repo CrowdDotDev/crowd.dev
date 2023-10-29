@@ -9,8 +9,7 @@ import { RoleEnum } from '@/modules/user/types/Roles';
 const inviteColleagues: OnboardStepConfig = {
   name: 'Invite colleagues',
   component: AppOnboardInviteColleaguesStep,
-  hasValidation: true,
-  cta: () => 'Finish setup',
+  cta: 'Finish setup',
   textColor: (currentStep: number) => ({
     'text-gray-400': currentStep < 3,
     'text-brand-400': currentStep > 3,
@@ -70,14 +69,6 @@ const inviteColleagues: OnboardStepConfig = {
         });
 
         return store.dispatch('auth/doRefreshCurrentUser');
-      })
-      // Populate tenant with sample data if user hasn't connected any integrations
-      .then(() => {
-        if (activeIntegrations.length) {
-          return Promise.resolve();
-        }
-
-        return TenantService.populateSampleData(currentTenant.id);
       })
       // Redirect to Book a demo page
       .then(() => {
