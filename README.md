@@ -1,4 +1,5 @@
 <!-- PROJECT LOGO -->
+<div id="top"></div>
 <p align="center">
   <a href="https://github.com/CrowdDotDev/crowd.dev">  </a>
 
@@ -155,3 +156,5 @@ We take security very seriously. If you come across any security vulnerabilities
 Call with a crowd.dev team member to learn more about our product and make sure you get the most out of it.
 
 <a href="https://cal.com/team/CrowdDotDev/intro-to-crowd-dev/"><img alt="Book us with Cal.com" src="https://cal.com/book-with-cal-dark.svg" /></a>
+
+<p align="right"><a href="#top">🔼 Back to top</a></p>
