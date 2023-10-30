@@ -1,6 +1,6 @@
 import { NANGO_CONFIG, SERVICE_CONFIG } from '../conf'
 import { MemberRepository } from '../repo/member.repo'
-import { Entity, IMember, OpenSearchIndex } from '@crowd/types'
+import { Entity, HubspotSettings, IMember, OpenSearchIndex } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -307,7 +307,7 @@ export class MemberSyncService extends LoggerBase {
     ])
 
     const parseOptions = {
-      filter: automation.settings.filter,
+      filter: (automation.settings as HubspotSettings).filter,
       limit: batchSize,
       offset: 0,
       orderBy: 'createdAt_DESC',
@@ -369,7 +369,7 @@ export class MemberSyncService extends LoggerBase {
     let offset
 
     this.log.trace(
-      { filter: automation.settings.filter },
+      { filter: (automation.settings as HubspotSettings).filter },
       'Trying to sync members that conform to sent filter!',
     )
 

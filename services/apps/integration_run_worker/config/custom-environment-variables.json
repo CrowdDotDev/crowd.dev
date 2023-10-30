@@ -34,5 +34,10 @@
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
+  },
+  "twitter": {
+    "clientId": "CROWD_TWITTER_CLIENT_ID",
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET",
+    "callbackUrl": "CROWD_TWITTER_CALLBACK_URL"
   }
 }
