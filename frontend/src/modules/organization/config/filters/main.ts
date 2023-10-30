@@ -1,5 +1,6 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
+import { trimAndReduceSpaces } from '@/utils/string';
 import noOfMembers from './noOfMembers/config';
 import noOfActivities from './noOfActivities/config';
 import activeOn from './activeOn/config';
@@ -48,7 +49,7 @@ export const organizationSearchFilter: SearchFilterConfig = {
     return [
       {
         or: [
-          { displayName: { textContains: value } },
+          { displayName: { textContains: trimAndReduceSpaces(value) } },
         ],
       },
     ];

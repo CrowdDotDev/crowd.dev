@@ -1,7 +1,7 @@
 <template>
   <div class="s panel" :class="computedClass">
     <div class="flex items-center justify-between">
-      <img :alt="integration.name" :src="integration.image" class="h-6 mb-4" />
+      <img :alt="integration.name" :src="integration.image" class="h-6 w-6 mb-4" />
       <div>
         <div class="mb-1 flex justify-end">
           <span v-if="isDone" class="badge badge--green">Connected</span>
@@ -179,8 +179,8 @@ const isNeedsToBeReconnected = computed(
 );
 
 const lastSynced = computed(() => ({
-  absolute: moment(props.integration.updatedAt).format('MMM DD, YYYY HH:mm'),
-  relative: `last synced ${moment(props.integration.updatedAt).fromNow()}`,
+  absolute: moment(props.integration.lastProcessedAt).format('MMM DD, YYYY HH:mm'),
+  relative: `last synced ${moment(props.integration.lastProcessedAt).fromNow()}`,
 }));
 
 const loadingDisconnect = ref(false);

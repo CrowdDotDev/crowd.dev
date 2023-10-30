@@ -121,8 +121,8 @@ watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
 
 <style lang="scss" scoped>
 aside {
-  width: 16.25rem;
-  min-width: 16.25rem;
+  width: 18.25rem;
+  min-width: 18.25rem;
 }
 .home-content {
   max-width: 60rem;

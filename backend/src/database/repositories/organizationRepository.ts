@@ -4,6 +4,7 @@ import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
 import {
+  FeatureFlag,
   IEnrichableOrganization,
   IMemberOrganization,
   IOrganization,
@@ -22,7 +23,6 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '@/types/common'
 import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
 
@@ -75,7 +75,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                         group by a."organizationId"
                         having count(id) > 0),
      identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
@@ -158,7 +157,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                           and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
                         group by a."organizationId"
                         having count(id) > 0),
@@ -343,7 +341,8 @@ class OrganizationRepository {
           const existingOrg = existingOrgs.find((o) => o.id === org.id)
           if (existingOrg && existingOrg.tags) {
             // Merge existing and new tags without duplicates
-            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+            const incomingTags = org.tags || []
+            org.tags = lodash.uniq([...existingOrg.tags, ...incomingTags])
           }
           return org
         })
@@ -1778,10 +1777,10 @@ class OrganizationRepository {
     }
 
     // update rest of the o2 members
-    await seq.query(
+    const remainingRoles = (await seq.query(
       `
-      UPDATE "memberOrganizations"
-        SET "organizationId" = :toOrganizationId
+        SELECT *
+        FROM "memberOrganizations"
         WHERE "organizationId" = :fromOrganizationId 
         AND "deletedAt" IS NULL
         AND "memberId" NOT IN (
@@ -1796,10 +1795,26 @@ class OrganizationRepository {
           toOrganizationId,
           fromOrganizationId,
         },
-        type: QueryTypes.UPDATE,
+        type: QueryTypes.SELECT,
         transaction,
       },
-    )
+    )) as IMemberOrganization[]
+
+    for (const role of remainingRoles) {
+      await this.removeMemberRole(role, options)
+      await this.addMemberRole(
+        {
+          title: role.title,
+          dateStart: role.dateStart,
+          dateEnd: role.dateEnd,
+          memberId: role.memberId,
+          organizationId: toOrganizationId,
+          source: role.source,
+          deletedAt: role.deletedAt,
+        },
+        options,
+      )
+    }
   }
 
   static async getOrganizationSegments(

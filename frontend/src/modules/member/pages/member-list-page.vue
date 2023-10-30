@@ -53,7 +53,9 @@
       <cr-saved-views
         v-model="filters"
         :config="memberSavedViews"
-        :views="memberViews"
+        :filters="memberFilters"
+        :custom-filters="customAttributesFilter"
+        placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
       />
       <cr-filter
@@ -104,7 +106,7 @@ import AppMemberListTable from '@/modules/member/components/list/member-list-tab
 import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
-import { memberSavedViews, memberViews } from '../config/saved-views/main';
+import { memberSavedViews } from '../config/saved-views/main';
 
 const router = useRouter();
 

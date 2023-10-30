@@ -1,9 +1,7 @@
-import { Unleash } from 'unleash-client'
-import { Edition } from '@crowd/types'
-import { API_CONFIG } from '../conf'
-import { FeatureFlag } from '../types/common'
-import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
+import { isFeatureEnabled } from '@crowd/feature-flags'
+import { FeatureFlag } from '@crowd/types'
 import Plans from '../security/plans'
+import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
 
 export const PLAN_LIMITS = {
   [Plans.values.essential]: {
@@ -30,25 +28,9 @@ export const PLAN_LIMITS = {
   },
 }
 
-export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {
-  if (featureFlag === FeatureFlag.SEGMENTS) {
-    return API_CONFIG.edition === Edition.LFX
-  }
-
-  if ([Edition.COMMUNITY, Edition.LFX].includes(API_CONFIG.edition as Edition)) {
-    return true
-  }
-
-  const context = await getFeatureFlagTenantContext(
-    req.currentTenant,
-    req.database,
-    req.redis,
-    req.log,
+export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> =>
+  isFeatureEnabled(
+    featureFlag,
+    async () => getFeatureFlagTenantContext(req.currentTenant, req.database, req.redis, req.log),
+    req.unleash,
   )
-
-  const unleash: Unleash = req.unleash
-
-  const enabled = unleash.isEnabled(featureFlag, context)
-
-  return enabled
-}

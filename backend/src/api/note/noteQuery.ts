@@ -24,7 +24,7 @@ export default async (req, res) => {
   const payload = await new NoteService(req).query(req.body)
 
   if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-    track('Notes Advanced Fitler', { ...payload }, { ...req })
+    track('Notes Advanced Filter', { ...payload }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)

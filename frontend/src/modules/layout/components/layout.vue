@@ -76,9 +76,9 @@ export default {
       // Please use Strings, Numbers, or Bools for value types.
       window.pendo.initialize({
         visitor: {
-          id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
-          email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email
-          full_name: this.currentUser.fullName, // Recommended if using Pendo Feedback
+          id: this.currentUser?.id, // Required if user is logged in, default creates anonymous ID
+          email: this.currentUser?.email, // Recommended if using Pendo Feedback, or NPS Email
+          full_name: this.currentUser?.fullName, // Recommended if using Pendo Feedback
           // role:         // Optional
 
           // You can add any additional visitor level key-values here,

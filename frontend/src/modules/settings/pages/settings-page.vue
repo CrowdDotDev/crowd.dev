@@ -2,11 +2,11 @@
   <app-page-wrapper>
     <div class="settings">
       <h4>
-        Settings
+        Manage workspace
       </h4>
       <el-tabs v-model="computedActiveTab" class="mt-10">
         <el-tab-pane label="Automations" name="automations">
-          <app-automation-list-page
+          <app-automation-list
             v-if="activeTab === 'automations'"
           />
         </el-tab-pane>
@@ -23,14 +23,14 @@
 <script>
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppAutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
+import AppAutomationList from '@/modules/automation/components/automation-list.vue';
 
 export default {
   name: 'AppSettingsPage',
 
   components: {
     AppApiKeysPage,
-    AppAutomationListPage,
+    AppAutomationList,
   },
 
   data() {

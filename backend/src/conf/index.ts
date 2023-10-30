@@ -35,6 +35,7 @@ import {
   SSOConfiguration,
   WeeklyEmailsConfiguration,
   CrowdAnalyticsConfiguration,
+  IBackendTemporalConfig,
 } from './configTypes'
 
 // TODO-kube
@@ -137,3 +138,6 @@ export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
 
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
+
+export const TEMPORAL_CONFIG: IBackendTemporalConfig =
+  config.get<IBackendTemporalConfig>('temporal')
