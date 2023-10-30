@@ -15,34 +15,76 @@ import { API_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
 import SettingsRepository from '../repositories/settingsRepository'
 import { SegmentStatus } from '../../types/segmentTypes'
 
+const logger = getServiceLogger()
+
 export default class SequelizeTestUtils {
   static async wipeDatabase(db) {
     db = await this.getDatabase(db)
-    await db.sequelize.query(`
-      truncate table
-        tenants,
-        integrations,
-        activities,
-        members,
-        automations,
-        "automationExecutions",
-        conversations,
-        notes,
-        reports,
-        organizations,
-        "organizationCaches",
-        settings,
-        tags,
-        tasks,
-        users,
-        files,
-        microservices,
-        "eagleEyeContents",
-        "eagleEyeActions",
-        "auditLogs",
-        "memberEnrichmentCache"
-      cascade;
-    `)
+
+    const tables = [
+      '"organizationIdentities"',
+      '"activityTasks"',
+      '"automationExecutions"',
+      '"conversationSettings"',
+      '"auditLogs"',
+      '"automations"',
+      '"settings"',
+      '"activities"',
+      '"files"',
+      '"memberNoMerge"',
+      '"memberNotes"',
+      '"notes"',
+      '"memberTags"',
+      '"memberTasks"',
+      '"microservices"',
+      '"memberToMerge"',
+      '"taskAssignees"',
+      '"integrations"',
+      '"eagleEyeContents"',
+      '"eagleEyeActions"',
+      '"tasks"',
+      '"tags"',
+      '"reports"',
+      '"widgets"',
+
+      '"memberAttributeSettings"',
+      '"memberEnrichmentCache"',
+      '"memberSegmentAffiliations"',
+      '"memberSegments"',
+      '"memberOrganizations"',
+      '"membersSyncRemote"',
+      '"memberIdentities"',
+      '"members"',
+
+      '"recurringEmailsHistory"',
+      '"integrationRuns"',
+      '"integrationStreams"',
+      '"segmentActivityChannels"',
+      '"conversations"',
+      '"incomingWebhooks"',
+      '"githubRepos"',
+
+      '"organizationCaches"',
+      '"organizationsSyncRemote"',
+      '"organizationSegments"',
+      '"organizationToMerge"',
+      '"organizationNoMerge"',
+      '"organizations"',
+
+      '"tenantUsers"',
+      '"segments"',
+      '"tenants"',
+      '"users"',
+    ]
+
+    try {
+      for (const table of tables) {
+        await db.sequelize.query(`delete from ${table};`)
+      }
+    } catch (e) {
+      logger.error(e)
+      throw e
+    }
   }
 
   static async refreshMaterializedViews(db) {
