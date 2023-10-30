@@ -341,7 +341,8 @@ class OrganizationRepository {
           const existingOrg = existingOrgs.find((o) => o.id === org.id)
           if (existingOrg && existingOrg.tags) {
             // Merge existing and new tags without duplicates
-            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+            const incomingTags = org.tags || []
+            org.tags = lodash.uniq([...existingOrg.tags, ...incomingTags])
           }
           return org
         })
