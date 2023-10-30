@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { Edition } from '@crowd/types'
+import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -14,7 +14,6 @@ import {
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
 } from './messageTypes'
-import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'

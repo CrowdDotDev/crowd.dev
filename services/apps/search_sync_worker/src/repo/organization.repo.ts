@@ -45,7 +45,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                 a."memberId",
                 a.timestamp,
                 a.platform::TEXT
-            FROM mv_activities_cube a
+            FROM activities a
             JOIN members m ON a."memberId" = m.id
                 AND m."deletedAt" IS NULL
             JOIN "memberOrganizations" mo ON m.id = mo."memberId"

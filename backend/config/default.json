@@ -57,5 +57,8 @@
   "sso": {},
   "crowdAnalytics": {
     "isEnabled": "false"
+  },
+  "temporal": {
+    "automationsTaskQueue": "automations"
   }
 }

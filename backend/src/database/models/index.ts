@@ -119,6 +119,8 @@ function models(queryTimeoutMilliseconds: number) {
     require('./note').default,
     require('./memberActivityAggregatesMV').default,
     require('./segment').default,
+    require('./customView').default,
+    require('./customViewOrder').default,
   ]
 
   for (const notInitmodel of modelClasses) {

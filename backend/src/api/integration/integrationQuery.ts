@@ -24,7 +24,7 @@ export default async (req, res) => {
   const payload = await new IntegrationService(req).query(req.body)
 
   if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-    track('Integrations Advanced Fitler', { ...payload }, { ...req })
+    track('Integrations Advanced Filter', { ...payload }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)

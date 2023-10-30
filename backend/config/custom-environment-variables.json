@@ -199,5 +199,11 @@
     "tenantId": "CROWD_ANALYTICS_TENANT_ID",
     "baseUrl": "CROWD_ANALYTICS_BASE_URL",
     "apiToken": "CROWD_ANALYTICS_API_TOKEN"
+  },
+  "temporal": {
+    "serverUrl": "CROWD_TEMPORAL_SERVER_URL",
+    "namespace": "CROWD_TEMPORAL_NAMESPACE",
+    "certificate": "CROWD_TEMPORAL_CERTIFICATE",
+    "privateKey": "CROWD_TEMPORAL_PRIVATE_KEY"
   }
 }

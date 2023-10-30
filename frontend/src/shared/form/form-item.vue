@@ -10,7 +10,7 @@
       <label
         v-if="label"
         :for="formId"
-        class="text-xs mb-1 font-medium leading-5 block text-gray-900"
+        class="text-xs mb-1 font-semibold leading-5 block text-gray-900"
       >{{ label }}
         <span
           v-if="required"
