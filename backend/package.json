@@ -51,6 +51,7 @@
     "@aws-sdk/s3-request-presigner": "^3.229.0",
     "@aws-sdk/url-parser": "^3.226.0",
     "@aws-sdk/util-format-url": "^3.226.0",
+    "@crowd/temporal": "file:../services/libs/temporal",
     "@crowd/alerting": "file:../services/libs/alerting",
     "@crowd/common": "file:../services/libs/common",
     "@crowd/integrations": "file:../services/libs/integrations",

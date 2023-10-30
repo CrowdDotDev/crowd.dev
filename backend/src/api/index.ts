@@ -11,7 +11,14 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import * as http from 'http'
-import { API_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { getTemporalClient } from '@crowd/temporal'
+import {
+  API_CONFIG,
+  OPENSEARCH_CONFIG,
+  REDIS_CONFIG,
+  TEMPORAL_CONFIG,
+  UNLEASH_CONFIG,
+} from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
@@ -97,6 +104,16 @@ setImmediate(async () => {
 
     app.use((req: any, res, next) => {
       req.unleash = unleash
+      next()
+    })
+  }
+
+  // temp check for production
+  if (TEMPORAL_CONFIG.serverUrl) {
+    // Bind temporal to request
+    const temporal = await getTemporalClient(TEMPORAL_CONFIG)
+    app.use((req: any, res, next) => {
+      req.temporal = temporal
       next()
     })
   }

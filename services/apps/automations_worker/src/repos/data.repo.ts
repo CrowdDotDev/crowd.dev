@@ -1,10 +1,12 @@
-import { distinct } from './../../../../libs/common/src/array'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { single, distinct } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { single } from '../../../../libs/common/src/array'
 import { IActivityData, IMemberData } from './types'
+import cloneDeep from 'lodash.clonedeep'
+import merge from 'lodash.merge'
+import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 
 export class DataRepository extends RepositoryBase<DataRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -47,10 +49,24 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         activityIds,
       },
     )
+    const promises = []
+
+    if (results.length === 0) {
+      return []
+    }
+
+    promises.push(
+      this.getActivityTypes(distinct(results.map((r) => r.tenantId))).then((types) => {
+        for (const activity of results) {
+          activity.display = ActivityDisplayService.getDisplayOptions(
+            activity,
+            types.get(activity.tenantId),
+          )
+        }
+      }),
+    )
 
     if (loadChildTables) {
-      const promises = []
-
       // load parent
       const parentActivityIds = results.filter((r) => r.parentId).map((r) => r.parentId)
       if (parentActivityIds.length > 0) {
@@ -142,7 +158,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       `
       select *
       from organizations
-      where id in $(organizationIds:csv) and "deletedAt" is null
+      where id in ($(organizationIds:csv)) and "deletedAt" is null
       `,
       {
         organizationIds,
@@ -170,7 +186,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         m."tenantId",
         m."createdById"
     from members m
-    where m.id in ($(memberId:csv))
+    where m.id in ($(memberIds:csv))
       and m."deletedAt" is null;
     `,
       {
@@ -389,7 +405,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       `
       select "memberId", "toMergeId"
       from "memberToMerge"
-      where "memberId" in ($(memberIds):csv);
+      where "memberId" in ($(memberIds:csv));
       `,
       {
         memberIds,
@@ -404,7 +420,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       `
       select "memberId", "noMergeId"
       from "memberNoMerge"
-      where "memberId" in ($(memberIds):csv);
+      where "memberId" in ($(memberIds:csv));
       `,
       {
         memberIds,
@@ -493,5 +509,37 @@ export class DataRepository extends RepositoryBase<DataRepository> {
     )
 
     return results
+  }
+
+  async getActivityTypes(tenantIds: string[]): Promise<Map<string, any>> {
+    const results = await this.db().any(
+      `select "tenantId", "customActivityTypes" from segments where "tenantId" in ($(tenantIds:csv));`,
+      {
+        tenantIds,
+      },
+    )
+
+    const map = new Map<string, any>()
+
+    for (const tenantId of tenantIds) {
+      const res: Record<string, unknown> = {}
+
+      res.default = cloneDeep(DEFAULT_ACTIVITY_TYPE_SETTINGS)
+
+      let customActivityTypes = {}
+      for (const result of results.filter((r) => r.tenantId === tenantId)) {
+        customActivityTypes = merge(customActivityTypes, result.customActivityTypes)
+      }
+
+      if (Object.keys(customActivityTypes).length > 0) {
+        res.custom = customActivityTypes
+      } else {
+        res.custom = {}
+      }
+
+      map.set(tenantId, res)
+    }
+
+    return map
   }
 }

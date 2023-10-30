@@ -96,7 +96,7 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (
-        isFeatureEnabled(
+        await isFeatureEnabled(
           FeatureFlag.TEMPORAL_AUTOMATIONS,
           async () => {
             return {
@@ -107,7 +107,7 @@ export default class ActivityService extends LoggerBase {
         )
       ) {
         const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-          workflowId: `activity-${id}`,
+          workflowId: `new-activity-automation-${id}`,
           taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
           workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
           retry: {

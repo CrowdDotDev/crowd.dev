@@ -1,6 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { AutomationTrigger, AutomationType, Edition, FeatureFlag } from '@crowd/types'
-import { getUnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
+import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,

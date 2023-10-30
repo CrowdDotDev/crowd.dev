@@ -126,7 +126,7 @@ export default class MemberService extends LoggerBase {
       })
 
       if (
-        isFeatureEnabled(
+        await isFeatureEnabled(
           FeatureFlag.TEMPORAL_AUTOMATIONS,
           async () => {
             return {
@@ -137,7 +137,7 @@ export default class MemberService extends LoggerBase {
         )
       ) {
         const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
-          workflowId: `member-${id}`,
+          workflowId: `new-member-automation-${id}`,
           taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
           workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
           retry: {

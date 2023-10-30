@@ -56,5 +56,8 @@
   "auth0": {},
   "crowdAnalytics": {
     "isEnabled": "false"
+  },
+  "temporal": {
+    "automationsTaskQueue": "automations"
   }
 }

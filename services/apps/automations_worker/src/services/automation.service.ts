@@ -284,7 +284,7 @@ export class AutomationService {
     }
 
     try {
-      executeMethod(automation, eventId, payload)
+      executeMethod.bind(this)(automation, eventId, payload)
       await this.automationRepo.createExecution({
         automationId: automation.id,
         type: automation.type,

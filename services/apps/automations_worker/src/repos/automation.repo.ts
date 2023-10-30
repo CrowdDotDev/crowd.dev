@@ -8,6 +8,7 @@ import {
   AutomationTrigger,
   AutomationType,
 } from '@crowd/types'
+import { generateUUIDv1 } from '@crowd/common'
 
 export interface IRelevantAutomationData {
   id: string
@@ -38,6 +39,7 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
 
     this.insertExecutionColumnSet = new this.dbInstance.helpers.ColumnSet(
       [
+        'id',
         'automationId',
         'type',
         'tenantId',
@@ -64,9 +66,9 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
              a.type, 
              a.trigger, 
              a.settings,
-             t."slackWebHook"
+             s."slackWebHook"
       from automations a 
-        inner join tenants t on t.id = a."tenantId"
+        inner join settings s on s."tenantId" = a."tenantId"
       where a.id = $(automationId)
       `,
       {
@@ -89,9 +91,9 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
              a.type, 
              a.trigger, 
              a.settings,
-             t."slackWebHook"
+             s."slackWebHook"
       from automations a 
-        inner join tenants t on t.id = a."tenantId"
+        inner join settings s on s."tenantId" = a."tenantId"
       where a."tenantId" = $(tenantId) and a.trigger = $(trigger) and a.state = $(state)
     `,
       {
@@ -122,7 +124,8 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
   }
 
   async createExecution(data: IDbAutomationExecutionInsertData): Promise<void> {
-    const prepared = RepositoryBase.prepare(data, this.insertExecutionColumnSet)
+    const id = generateUUIDv1()
+    const prepared = RepositoryBase.prepare({ id, ...data }, this.insertExecutionColumnSet)
     const query = this.dbInstance.helpers.insert(prepared, this.insertExecutionColumnSet)
     await this.db().none(query)
   }

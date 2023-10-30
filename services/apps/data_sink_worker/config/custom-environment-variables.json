@@ -33,6 +33,8 @@
   },
   "temporal": {
     "serverUrl": "CROWD_TEMPORAL_SERVER_URL",
-    "namespace": "CROWD_TEMPORAL_NAMESPACE"
+    "namespace": "CROWD_TEMPORAL_NAMESPACE",
+    "certificate": "CROWD_TEMPORAL_CERTIFICATE",
+    "privateKey": "CROWD_TEMPORAL_PRIVATE_KEY"
   }
 }

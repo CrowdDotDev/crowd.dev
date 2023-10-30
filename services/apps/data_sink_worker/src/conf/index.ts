@@ -1,3 +1,4 @@
+import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { IRedisConfiguration } from '@crowd/redis'
@@ -58,7 +59,7 @@ let unleashConfig: IUnleashConfig | undefined
 export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
   if (unleashConfig) return unleashConfig
 
-  unleashConfig = config.get<IUnleashConfig>('unleash')
+  unleashConfig = Object.assign({ appName: SERVICE }, config.get<IUnleashConfig>('unleash'))
 
   return unleashConfig
 }
