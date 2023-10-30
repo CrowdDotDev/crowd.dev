@@ -40,7 +40,8 @@
 - [Book a call](#📞-book-a-call)
 
 ## About crowd.dev
-crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand, be it in the community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
+
+crowd.dev is the Developer Data Platform (DDP) that enables companies to centralize all interaction points developers have with their product and brand, whether it's in the community (e.g., Stack Overflow or Reddit), the product (open-source or SaaS), or commercial channels (e.g., HubSpot). The platform retrieves data from various sources, normalizes it, matches identities across platforms, and enriches it with third-party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
 
 crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data. 
 
