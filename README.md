@@ -43,12 +43,12 @@
 
 crowd.dev is the Developer Data Platform (DDP) that enables companies to centralize all interaction points developers have with their product and brand, whether it's in the community (e.g., Stack Overflow or Reddit), the product (open-source or SaaS), or commercial channels (e.g., HubSpot). The platform retrieves data from various sources, normalizes it, matches identities across platforms, and enriches it with third-party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
 
-crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data. 
+Crowd.dev is an open-source platform designed with developers in mind. It is available for both hosted and self-hosted deployments, supports extensions, and provides complete control over your data.
 
 **To our **users**:**
 - You can get actively involved, contribute to our roadmap, and turn crowd.dev into the tool you always wanted.
 - We are open regarding what we are building, allowing you to take a look inside and making sure we handle your data in a privacy-preserving way.
-- You will never be locked in by us. Our interests as a company are aligned with you and we need to make sure that we always deliver enough value to you with our commercial offering in relation to our pricing.
+- We ensure that you will never be tied down by our services. Our company's interests are closely aligned with yours, and we are committed to consistently providing you with substantial value through our commercial offerings in relation to our pricing.
 
 **To our developer community:**
 - You can self-host crowd.dev to centralize data for your community or company while keeping full control over your data.
