@@ -1777,10 +1777,10 @@ class OrganizationRepository {
     }
 
     // update rest of the o2 members
-    await seq.query(
+    const remainingRoles = (await seq.query(
       `
-      UPDATE "memberOrganizations"
-        SET "organizationId" = :toOrganizationId
+        SELECT *
+        FROM "memberOrganizations"
         WHERE "organizationId" = :fromOrganizationId 
         AND "deletedAt" IS NULL
         AND "memberId" NOT IN (
@@ -1795,10 +1795,26 @@ class OrganizationRepository {
           toOrganizationId,
           fromOrganizationId,
         },
-        type: QueryTypes.UPDATE,
+        type: QueryTypes.SELECT,
         transaction,
       },
-    )
+    )) as IMemberOrganization[]
+
+    for (const role of remainingRoles) {
+      await this.removeMemberRole(role, options)
+      await this.addMemberRole(
+        {
+          title: role.title,
+          dateStart: role.dateStart,
+          dateEnd: role.dateEnd,
+          memberId: role.memberId,
+          organizationId: toOrganizationId,
+          source: role.source,
+          deletedAt: role.deletedAt,
+        },
+        options,
+      )
+    }
   }
 
   static async getOrganizationSegments(
