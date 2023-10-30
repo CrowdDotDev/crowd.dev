@@ -79,6 +79,7 @@ export default class MemberService extends LoggerBase {
           attributes,
           weakIdentities: data.weakIdentities || [],
           identities: data.identities,
+          reach: MemberService.calculateReach({}, data.reach),
         })
 
         await txRepo.addToSegment(id, tenantId, segmentId)
@@ -432,6 +433,76 @@ export default class MemberService extends LoggerBase {
     }
   }
 
+  public async processMemberUpdate(
+    tenantId: string,
+    integrationId: string,
+    platform: PlatformType,
+    member: IMemberData,
+  ): Promise<void> {
+    this.log = getChildLogger('MemberService.processMemberUpdate', this.log, {
+      integrationId,
+      tenantId,
+    })
+
+    try {
+      this.log.debug('Processing member update.')
+
+      if (!member.identities || member.identities.length === 0) {
+        const errorMessage = `Member can't be updated. It is missing identities fields.`
+        this.log.warn(errorMessage)
+        return
+      }
+
+      await this.store.transactionally(async (txStore) => {
+        const txRepo = new MemberRepository(txStore, this.log)
+        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        const txService = new MemberService(
+          txStore,
+          this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
+          this.unleash,
+          this.temporal,
+          this.log,
+        )
+
+        const dbIntegration = await txIntegrationRepo.findById(integrationId)
+        const segmentId = dbIntegration.segmentId
+
+        // first try finding the member using the identity
+        const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
+        const dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
+
+        if (dbMember) {
+          this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+
+          await txService.update(
+            dbMember.id,
+            tenantId,
+            segmentId,
+            integrationId,
+            {
+              attributes: member.attributes,
+              emails: member.emails || [],
+              joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
+              weakIdentities: member.weakIdentities || undefined,
+              identities: member.identities,
+              organizations: member.organizations,
+              displayName: member.displayName || undefined,
+              reach: member.reach || undefined,
+            },
+            dbMember,
+            false,
+          )
+        } else {
+          this.log.debug('No member found for updating. This member update process had no affect.')
+        }
+      })
+    } catch (err) {
+      this.log.error(err, 'Error while processing a member update!')
+      throw err
+    }
+  }
+
   private async checkForStrongWeakIdentities(
     repo: MemberRepository,
     tenantId: string,
@@ -539,6 +610,14 @@ export default class MemberService extends LoggerBase {
       }
     }
 
+    let reach: Partial<Record<PlatformType, number>> | undefined
+    if (member.reach) {
+      const temp = MemberService.calculateReach(dbMember.reach, member.reach)
+      if (!isEqual(temp, dbMember.reach)) {
+        reach = temp
+      }
+    }
+
     return {
       emails,
       joinedAt,
@@ -548,6 +627,22 @@ export default class MemberService extends LoggerBase {
       // we don't want to update the display name if it's already set
       // returned value should be undefined here otherwise it will cause an update!
       displayName: dbMember.displayName ? undefined : member.displayName,
+      reach,
     }
+  }
+
+  private static calculateReach(
+    oldReach: Partial<Record<PlatformType | 'total', number>>,
+    newReach: Partial<Record<PlatformType, number>>,
+  ) {
+    // Totals are recomputed, so we delete them first
+    delete oldReach.total
+    const out = mergeWith({}, oldReach, newReach)
+    if (Object.keys(out).length === 0) {
+      return { total: -1 }
+    }
+    // Total is the sum of all attributes
+    out.total = Object.values(out).reduce((a: number, b: number) => a + b, 0)
+    return out
   }
 }
