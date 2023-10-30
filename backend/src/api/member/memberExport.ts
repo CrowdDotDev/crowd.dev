@@ -1,11 +1,11 @@
 import { RedisCache } from '@crowd/redis'
+import { FeatureFlagRedisKey } from '@crowd/types'
 import { getSecondsTillEndOfMonth } from '../../utils/timing'
 import Permissions from '../../security/permissions'
 import identifyTenant from '../../segment/identifyTenant'
 import track from '../../segment/track'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import { FeatureFlagRedisKey } from '../../types/common'
 
 /**
  * POST /tenant/{tenantId}/member/export

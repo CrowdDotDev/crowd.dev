@@ -57,7 +57,7 @@ export const createRouter = () => {
     };
 
     router.beforeEach(async (to, from, next) => {
-      if (to.name) {
+      if (to.name && to.name !== from.name) {
         ProgressBar.start();
       }
       const matchedRoute = to.matched.find(

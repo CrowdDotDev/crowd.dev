@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-end justify-between mb-6 h-8">
-    <div v-if="isEnabled && scrollableTabs" class="border-b-2 border-r border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
+    <div v-if="scrollableTabs" class="border-b-2 border-r border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
       <el-dropdown placement="bottom-start">
         <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0 mr-2">
           <i class="ri-list-unordered text-lg text-gray-400 h-5 flex items-center" />
@@ -37,16 +37,16 @@
         />
       </el-tabs>
     </div>
-    <div v-if="isEnabled" class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
-      <el-button v-if="hasChanged && selectedTab !== ''" class="btn btn-brand btn-brand--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
+    <div class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
+      <el-button v-if="hasChanged" class="btn btn-brand btn-brand--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
         Reset view
       </el-button>
-      <el-dropdown v-if="hasChanged && selectedTab !== ''" placement="bottom-end">
+      <el-dropdown v-if="hasChanged" placement="bottom-end">
         <el-button class="btn btn-brand btn-brand--transparent btn--sm !h-8 !leading-5 mr-2">
           Save as...
         </el-button>
         <template #dropdown>
-          <el-dropdown-item v-if="selectedTab.length > 0 && selectedTab !== props.config.defaultView.id" @click="update()">
+          <el-dropdown-item v-if="selectedTab.length > 0 && selectedTab !== props.config.defaultView.id && selectedTab !== ''" @click="update()">
             <div class="w-40">
               <i class="ri-loop-left-line text-gray-400 text-base mr-2" />Update view
             </div>
@@ -84,6 +84,7 @@
     v-model="isFormOpen"
     :config="props.config"
     :filters="props.filters"
+    :custom-filters="props.customFilters"
     :placement="props.placement"
     :view="editView"
     @update:model-value="editView = null"
@@ -103,23 +104,17 @@ import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/Save
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import CrSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
-import { FeatureFlag } from '@/utils/featureFlag';
 import Message from '@/shared/message/message';
 
 const props = defineProps<{
   modelValue: Filter,
   config: SavedViewsConfig,
   filters: Record<string, FilterConfig>,
+  customFilters?: Record<string, FilterConfig>,
   placement: string,
-  staticViews: SavedView[],
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
-
-// Feature flag
-const isEnabled = computed(() => FeatureFlag.isFlagEnabled(
-  FeatureFlag.flags.customViews,
-));
 
 // Drawer
 const isFormOpen = ref<boolean>(false);
@@ -213,10 +208,6 @@ const checkIfTabConfigMatch = () => {
 const views = ref<SavedView[]>([]);
 
 const getViews = () => {
-  if (!isEnabled.value) {
-    views.value = props.staticViews;
-    return;
-  }
   SavedViewsService.query({
     placement: [props.placement],
   })
