@@ -12,7 +12,7 @@ const tracer = getServiceTracer()
 export const installDiscourseRoutes = async (app: express.Express) => {
   let emitter: IntegrationStreamWorkerEmitter
   app.post(
-    '/discourse/:tenantId',
+    '/discourse/:tenantId/',
     asyncWrap(async (req, res) => {
       const signature = req.headers['x-discourse-event-signature']
       if (!signature) {
