@@ -75,7 +75,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                         group by a."organizationId"
                         having count(id) > 0),
      identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
@@ -158,7 +157,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                           and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
                         group by a."organizationId"
                         having count(id) > 0),
