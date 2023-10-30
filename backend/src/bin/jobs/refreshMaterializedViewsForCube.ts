@@ -1,6 +1,6 @@
 import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { CrowdJob } from '../../types/jobTypes'
-import { databaseInit } from '../../database/databaseConnection'
+import { databaseInitNoCache } from '../../database/databaseConnection'
 
 let processingRefreshCubeMVs = false
 
@@ -19,7 +19,7 @@ const job: CrowdJob = {
 
     try {
       // initialize database with 15 minutes query timeout
-      const database = await databaseInit(1000 * 60 * 15)
+      const database = await databaseInitNoCache(1000 * 60 * 15)
 
       const materializedViews = [
         'mv_members_cube',

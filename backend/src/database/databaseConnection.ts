@@ -12,3 +12,7 @@ export async function databaseInit(queryTimeoutMilliseconds: number = 30000) {
 
   return cached
 }
+
+export async function databaseInitNoCache(queryTimeoutMilliseconds: number = 30000) {
+  return models(queryTimeoutMilliseconds)
+}
