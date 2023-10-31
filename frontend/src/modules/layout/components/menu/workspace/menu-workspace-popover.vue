@@ -52,6 +52,24 @@
         </div>
       </div>
 
+      <div
+        class="px-3 h-10 text-sm font-normal rounded flex items-center justify-between text-purple-600"
+        @click.stop.prevent
+      >
+        <div>
+          <i class="ri-code-s-slash-line text-base text-purple-700 mr-3" />
+          <span>Developer Mode</span>
+        </div>
+        <div>
+          <el-switch
+            v-model="isDeveloperModeActive"
+            size="small"
+            class="custom-switch"
+            @change="updateDeveloperMode"
+          />
+        </div>
+      </div>
+
       <!-- Account settings -->
       <router-link
         :to="{ name: 'editProfile' }"
@@ -80,12 +98,18 @@ import { TenantModel } from '@/modules/tenant/types/TenantModel';
 import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
 import { tenantMenu } from '@/modules/layout/config/menu';
 import { computed } from 'vue';
+import { useUserStore } from '@/modules/user/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const emit = defineEmits<{(e:'add'): any, (e: 'edit', value: TenantModel): any}>();
 
 const { rows } = mapGetters('tenant');
 const { currentTenant, currentUser, currentUserAvatar } = mapGetters('auth');
 const { doSelectTenant, doSignout } = mapActions('auth');
+
+const userStore = useUserStore();
+const { isDeveloperModeActive } = storeToRefs(userStore);
+const { updateDeveloperMode } = userStore;
 
 const tenants = computed<TenantModel[]>(() => {
   const currentTenantId = currentTenant.value.id;
@@ -104,3 +128,9 @@ export default {
   name: 'CrMenuWorkspacePopover',
 };
 </script>
+
+<style lang="scss">
+.custom-switch.el-switch.is-checked .el-switch__core {
+    @apply bg-purple-500 border-purple-500;
+}
+</style>

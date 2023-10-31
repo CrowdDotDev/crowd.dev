@@ -6,6 +6,14 @@
           <cr-filter-dropdown v-model="filterList" :config="props.config" :custom-config="props.customConfig || {}" @open="open = $event" />
         </template>
       </cr-filter-search>
+      <el-button
+        v-if="isDeveloperModeActive"
+        class="btn btn-brand--secondary !bg-purple-100 !text-purple-600 ml-2"
+        @click="copyToClipboard"
+      >
+        <i class="ri-clipboard-line" />
+        <span>Copy JSON Filter</span>
+      </el-button>
     </div>
     <div class="flex items-center flex-wrap">
       <template v-for="(filter, fi) of filterList" :key="filter">
@@ -53,6 +61,9 @@ import { useRoute, useRouter } from 'vue-router';
 import { filterApiService } from '@/shared/modules/filters/services/filter-api.service';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { useUserStore } from '@/modules/user/store/pinia';
+import Message from '@/shared/message/message';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -67,6 +78,9 @@ const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', 
 
 const router = useRouter();
 const route = useRoute();
+
+const userStore = useUserStore();
+const { isDeveloperModeActive } = storeToRefs(userStore);
 
 const open = ref('');
 
@@ -153,6 +167,14 @@ onMounted(() => {
 defineExpose({
   alignFilterList,
 });
+
+const copyToClipboard = async () => {
+  await navigator.clipboard.writeText(JSON.stringify(filters.value));
+
+  Message.success(
+    'Filters payload successfully copied to your clipboard',
+  );
+};
 </script>
 
 <script lang="ts">
