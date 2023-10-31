@@ -144,11 +144,11 @@ async function getOrganizationData(ctx: IProcessStreamContext, company: string):
   })
 
   if (fromAPI) {
-    await cache.set(prefix(company), JSON.stringify(fromAPI), 60 * 60)
+    await cache.set(prefix(company), JSON.stringify(fromAPI), 24 * 60 * 60)
     return fromAPI
   }
 
-  await cache.set(prefix(company), 'null', 60 * 60)
+  await cache.set(prefix(company), 'null', 24 * 60 * 60)
   return null
 }
 
