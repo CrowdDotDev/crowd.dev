@@ -17,7 +17,7 @@ import IntegrationRepository from '../repo/integration.repo'
 import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
-import { acquireLock, releaseLock } from '@crowd/redis'
+// import { acquireLock, releaseLock } from '@crowd/redis'
 import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { TEMPORAL_CONFIG } from '../conf'
@@ -25,8 +25,18 @@ import { TEMPORAL_CONFIG } from '../conf'
 const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
 const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
 
-const acquireLock = async () => {}
-const releaseLock = async () => {}
+const acquireLock = async (
+  client: RedisClient,
+  key: string,
+  value: string,
+  expireAfterSeconds: number,
+  timeoutAfterSeconds: number,
+) => {
+  // do nothing
+}
+const releaseLock = async (client: RedisClient, key: string, value: string) => {
+  // do nothing
+}
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
