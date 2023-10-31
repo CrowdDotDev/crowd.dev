@@ -13,6 +13,7 @@ export const FEATURE_FLAGS = {
   hubspot: 'hubspot',
   logRocket: 'log-rocket',
   menuV2: 'menu-v2',
+  developerMode: 'developer-mode',
 };
 
 class FeatureFlagService {
