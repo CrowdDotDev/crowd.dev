@@ -120,17 +120,50 @@ async function getMemberData(ctx: IProcessStreamContext, login: string): Promise
   })
 }
 
+async function getOrganizationData(ctx: IProcessStreamContext, company: string): Promise<any> {
+  if (company === '' || company === null || company === undefined) {
+    return ''
+  }
+
+  const cache = ctx.globalCache
+  const prefix = (x: string) => `github-org:${x}`
+
+  const existing = await cache.get(prefix(company))
+  if (existing) {
+    if (existing === 'null') {
+      return ''
+    }
+
+    return existing
+  }
+
+  const token = await getGithubToken(ctx)
+  const fromAPI = await getOrganization(company, token, getTokenRotator(ctx), {
+    concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
+    integrationId: ctx.integration.id,
+  })
+
+  if (fromAPI) {
+    await cache.set(prefix(company), JSON.stringify(fromAPI), 60 * 60)
+    return fromAPI
+  }
+
+  await cache.set(prefix(company), 'null', 60 * 60)
+  return ''
+}
+
 async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promise<string> {
   if (IS_TEST_ENV) {
     return ''
   }
 
-  // here we use cache for tenantId-integrationType
+  // here we use global cache - it is shared between all integrations
   // So in LFX case different integration will have access to the same cache
   // But this is fine
-  const cache = ctx.cache
+  const cache = ctx.globalCache
+  const prefix = (x: string) => `github-login:${x}`
 
-  const existing = await cache.get(login)
+  const existing = await cache.get(prefix(login))
   if (existing) {
     if (existing === 'null') {
       return ''
@@ -142,11 +175,11 @@ async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promis
   const member = await getMemberData(ctx, login)
   const email = (member && member.email ? member.email : '').trim()
   if (email && email.length > 0) {
-    await cache.set(login, email, 60 * 60)
+    await cache.set(prefix(login), email, 60 * 60)
     return email
   }
 
-  await cache.set(login, 'null', 60 * 60)
+  await cache.set(prefix(login), 'null', 60 * 60)
   return ''
 }
 
