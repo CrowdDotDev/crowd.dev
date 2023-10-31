@@ -4,7 +4,6 @@
 
   <img src="https://github.com/CrowdDotDev/crowd.dev/assets/41432658/e5970c3a-095c-46ea-b93b-eb517bcd8a4f" alt="crowd.dev icon" width="120px">
 
-
   <h2 align="center">Effortlessly centralize community, product, and customer data</h2>
   
   <p align="center">
@@ -27,8 +26,8 @@
 
 <img src="https://github.com/CrowdDotDev/crowd.dev/assets/22342669/845fc5b0-aba7-40fe-950e-85ef567cec65" alt="UI Home screen">
 
-
 ## Table of Contents
+
 - [About crowd.dev](#about-crowddev)
 - [Features](#✨-features)
 - [Getting started](#🚀-getting-started)
@@ -40,18 +39,21 @@
 - [Book a call](#📞-book-a-call)
 
 ## About crowd.dev
-crowd.dev is the developer data platform (DDP) that lets companies centralize all touch points developers have with their product and brand, be it in the community (e.g. Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g. HubSpot). The platform pulls data from a variety of different sources, normalizes it, matches identities across platforms, and enriches it with 3rd party data. The result is a unified 360-view of who the developers are that engage with your product and community, which companies they work for, and where they stand in their personal customer journey. 
 
-crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data. 
+crowd.dev is the Developer Data Platform(DDP) that allows companies to centralize all touch points developers have with their product and brand, whether in the community (e.g., Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g., HubSpot).The platform pulls data from various sources, normalizes it, matches identities across platforms, and enriches it with third-party data. The result is a unified 360-degree view of the developers who engage with your product and community, the companies they work for, and their position in their personal customer journey.
+
+crowd.dev is open-source, built with developers in mind, available for both hosted and self-hosted deployments, open to extensions, and offers full control over your data.
 
 **To our **users**:**
-- You can get actively involved, contribute to our roadmap, and turn crowd.dev into the tool you always wanted.
-- We are open regarding what we are building, allowing you to take a look inside and making sure we handle your data in a privacy-preserving way.
-- You will never be locked in by us. Our interests as a company are aligned with you and we need to make sure that we always deliver enough value to you with our commercial offering in relation to our pricing.
+
+- You can get actively involved, contribute to our roadmap, and turn crowd.dev into the tool you've always wanted.
+- We are open about what we are building, allowing you to take a look inside, and ensuring that we handle your data in a privacy-preserving way.
+- Our interests as a company are aligned with yours, and we need to ensure that we always deliver enough value to you with our commercial offering in relation to our pricing.
 
 **To our developer community:**
+
 - You can self-host crowd.dev to centralize data for your community or company while keeping full control over your data.
-- Our product is built for extensibility. If you can think of any use cases that you want to build with the data we collect and store for you, please go ahead and build it! We will be here to help out if you need us.
+- Our product is built for extensibility. If you can think of any use cases that you want to build with the data we collect and store for you, please go ahead and build them! We will be here to help out if you need us.
 - You can actively contribute to crowd.dev (e.g. integrations), and we will be supporting you along the journey. Just take a look at our [Contributing guide](https://github.com/CrowdDotDev/crowd.dev/blob/main/CONTRIBUTING.md).
 
 ## ✨ Features
@@ -65,7 +67,6 @@ crowd.dev is open-source, built with developers in mind, available for both host
 - **Organization enrichment** with 50+ attributes, including industry, headcount, and revenue. [cloud only]
 - **Sentiment analysis and conversation detection** to stay on top of what's going on in your open-source community. [cloud only]
 - **[Eagle Eye](https://www.crowd.dev/eagle-eye)**: Monitor dev-focused community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically [cloud only]
-
 
 ## 🚀 Getting started
 
@@ -114,7 +115,7 @@ cd scripts
 ./cli clean-start-dev
 ```
 
-The app will be available at http://localhost:8081
+This app will be available at http://localhost:8081
 
 For more information on development, you can <a href="https://docs.crowd.dev/docs/docker-compose-single-machine-development-with-docker-images">check our docs</a>.
 
@@ -122,11 +123,9 @@ For more information on development, you can <a href="https://docs.crowd.dev/doc
 
 You can find more features on our [public roadmap](https://crowd.dev/roadmap). Feel free to also [open an issue](https://crowd.dev/open-an-issue) for anything you're missing.
 
-
 ## 🔔 Stay up-to-date
 
 crowd.dev is still in beta and we ship new features every week. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
-
 
 ## ✍️ Contribution
 
@@ -144,7 +143,7 @@ All contributions are highly appreciated. 🙏
 
 Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 
-Our self-hosted version can be run and deployed by default following the permissive Apache 2.0 license. All premium components will be hidden and inactive with the default configuration. You can run, deploy, and contribute to the app without fearing to violate the premium license. Check out the [premium self-hosted features docs](https://docs.crowd.dev/docs/premium-self-hosted-apps) to know more about the premium self-hosted features.
+Our self-hosted version can be run and deployed by default under the permissive Apache 2.0 license. All premium components will be hidden and inactive with the default configuration. You can run, deploy, and contribute to the app without fearing a violation of the premium license. Check out the [premium self-hosted features docs](https://docs.crowd.dev/docs/premium-self-hosted-apps) to know more about the premium self-hosted features.
 
 ## 🔒 Security
 
@@ -152,6 +151,6 @@ We take security very seriously. If you come across any security vulnerabilities
 
 ## 📞 Book a call
 
-Call with a crowd.dev team member to learn more about our product and make sure you get the most out of it.
+Schedule a call with a crowd.dev team member to learn more about our product and ensure you get the most out of it.
 
 <a href="https://cal.com/team/CrowdDotDev/intro-to-crowd-dev/"><img alt="Book us with Cal.com" src="https://cal.com/book-with-cal-dark.svg" /></a>

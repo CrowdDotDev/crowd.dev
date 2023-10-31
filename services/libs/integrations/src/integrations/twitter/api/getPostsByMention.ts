@@ -1,12 +1,12 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import moment from 'moment'
-import { Logger } from '@crowd/logging'
 import {
   TwitterGetPostsByMentionInput,
   TwitterGetPostsOutput,
   TwitterParsedPosts,
-} from '../../types/twitterTypes'
+  TwitterPlatformSettings,
+} from '../types'
 import { handleTwitterError } from './errorHandler'
+import { IProcessStreamContext } from '../../../types'
 
 /**
  * Get paginated posts by mention
@@ -15,8 +15,12 @@ import { handleTwitterError } from './errorHandler'
  */
 const getPostsByMention = async (
   input: TwitterGetPostsByMentionInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<TwitterGetPostsOutput> => {
+  const TWITTER_CONFIG = ctx.platformSettings as TwitterPlatformSettings
+  const maxRetrospectInSeconds = parseInt(TWITTER_CONFIG.maxRetrospectInSeconds) || 7380
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `https://api.twitter.com/2/users/${input.profileId}/mentions`,
@@ -26,6 +30,9 @@ const getPostsByMention = async (
       'media.fields': 'duration_ms,height,media_key,preview_image_url,type,url,width,alt_text',
       'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
       expansions: 'attachments.media_keys,author_id',
+      ...(!ctx.onboarding && {
+        start_time: new Date(Date.now() - maxRetrospectInSeconds * 1000).toISOString(),
+      }),
     },
     headers: {
       Authorization: `Bearer ${input.token}`,
@@ -44,7 +51,8 @@ const getPostsByMention = async (
     if (response.headers['x-rate-limit-remaining'] && response.headers['x-rate-limit-reset']) {
       limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
       const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
-      timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
+      const currentTime = new Date().getTime()
+      timeUntilReset = Math.floor((resetTs - currentTime) / 1000)
     } else {
       limit = 0
       timeUntilReset = 0
@@ -87,7 +95,7 @@ const getPostsByMention = async (
       timeUntilReset,
     }
   } catch (err) {
-    const newErr = handleTwitterError(err, config, input, logger)
+    const newErr = handleTwitterError(err, config, input, ctx.log)
     throw newErr
   }
 }

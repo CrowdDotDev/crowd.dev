@@ -150,7 +150,7 @@ const en = {
         title: 'Contributors',
       },
       create: {
-        success: 'Contributor successfully saved',
+        success: 'Contributor added successfully',
         error: 'There was an error creating the contributor',
         message: 'View contributor',
       },
