@@ -7,7 +7,7 @@
         </template>
       </cr-filter-search>
       <el-button
-        v-if="isDeveloperModeActive"
+        v-if="isDeveloperModeActive && developerModeEnabled()"
         class="btn btn-brand--secondary !bg-purple-100 !text-purple-600 ml-2"
         @click="copyToClipboard"
       >
@@ -64,6 +64,7 @@ import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsC
 import { useUserStore } from '@/modules/user/store/pinia';
 import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -175,6 +176,10 @@ const copyToClipboard = async () => {
     'Filters payload successfully copied to your clipboard',
   );
 };
+
+const developerModeEnabled = () => FeatureFlag.isFlagEnabled(
+  FeatureFlag.flags.developerMode,
+);
 </script>
 
 <script lang="ts">

@@ -53,6 +53,7 @@
       </div>
 
       <div
+        v-if="developerModeEnabled()"
         class="px-3 h-10 text-sm font-normal rounded flex items-center justify-between text-purple-600"
         @click.stop.prevent
       >
@@ -100,6 +101,7 @@ import { tenantMenu } from '@/modules/layout/config/menu';
 import { computed } from 'vue';
 import { useUserStore } from '@/modules/user/store/pinia';
 import { storeToRefs } from 'pinia';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 const emit = defineEmits<{(e:'add'): any, (e: 'edit', value: TenantModel): any}>();
 
@@ -121,6 +123,10 @@ const tenants = computed<TenantModel[]>(() => {
 const doSwitchTenant = (tenant: TenantModel) => {
   doSelectTenant({ tenant });
 };
+
+const developerModeEnabled = () => FeatureFlag.isFlagEnabled(
+  FeatureFlag.flags.developerMode,
+);
 </script>
 
 <script lang="ts">
