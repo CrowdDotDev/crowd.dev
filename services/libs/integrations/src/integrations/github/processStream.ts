@@ -122,7 +122,7 @@ async function getMemberData(ctx: IProcessStreamContext, login: string): Promise
 
 async function getOrganizationData(ctx: IProcessStreamContext, company: string): Promise<any> {
   if (company === '' || company === null || company === undefined) {
-    return ''
+    return null
   }
 
   const cache = ctx.globalCache
@@ -131,10 +131,10 @@ async function getOrganizationData(ctx: IProcessStreamContext, company: string):
   const existing = await cache.get(prefix(company))
   if (existing) {
     if (existing === 'null') {
-      return ''
+      return null
     }
 
-    return existing
+    return JSON.parse(existing)
   }
 
   const token = await getGithubToken(ctx)
@@ -149,7 +149,7 @@ async function getOrganizationData(ctx: IProcessStreamContext, company: string):
   }
 
   await cache.set(prefix(company), 'null', 60 * 60)
-  return ''
+  return null
 }
 
 async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promise<string> {
@@ -212,12 +212,7 @@ export const prepareMember = async (
       orgs = [{ name: 'crowd.dev' }]
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
-      const token = await getGithubToken(ctx)
-      const fromAPI = await getOrganization(company, token, getTokenRotator(ctx), {
-        concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
-        integrationId: ctx.integration.id,
-      })
-
+      const fromAPI = await getOrganizationData(ctx, company)
       orgs = fromAPI
     }
   }
