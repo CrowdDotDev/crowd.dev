@@ -5,7 +5,7 @@
       <h4 class="text-base leading-6 font-semibold">
         My open tasks ({{ tasks.length }})
       </h4>
-      <div v-if="tasks.length > 0 || suggestedTasks.length > 0" class="flex items-center">
+      <div class="flex items-center">
         <el-tooltip
           effect="dark"
           content="All tasks"
