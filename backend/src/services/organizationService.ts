@@ -353,9 +353,10 @@ export default class OrganizationService extends LoggerBase {
       const shouldDoEnrich = await this.shouldEnrich(enrichP)
 
       const primaryIdentity = data.identities[0]
+      const nameToCheckInCache = (data as any).name || primaryIdentity.name
 
       // check cache existing by name
-      let cache = await organizationCacheRepository.findByName(primaryIdentity.name, {
+      let cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
         ...this.options,
         transaction,
       })
@@ -445,6 +446,11 @@ export default class OrganizationService extends LoggerBase {
 
       if (existing) {
         await OrganizationRepository.checkIdentities(data, this.options, existing.id)
+
+        // Set displayName if it doesn't exist
+        if (!existing.displayName) {
+          data.displayName = cache.name
+        }
 
         record = await OrganizationRepository.update(
           existing.id,

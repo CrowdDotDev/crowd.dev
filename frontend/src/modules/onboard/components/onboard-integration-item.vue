@@ -6,7 +6,7 @@
   >
     <div class="flex gap-16">
       <div class="flex gap-3 items-start flex-grow">
-        <img :alt="integration.name" :src="integration.image" class="h-5" />
+        <img :alt="integration.name" :src="integration.image" class="h-5 w-5" />
         <div class="flex flex-col gap-1">
           <span class="text-black text-sm font-semibold">{{ integration.name }}</span>
           <span class="text-gray-500 text-xs">{{ integration.onboard?.description }}</span>

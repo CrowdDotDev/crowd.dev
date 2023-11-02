@@ -2,11 +2,20 @@ import { getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, SENTIMENT_CONFIG, SQS_CONFIG, REDIS_CONFIG } from './conf'
+import {
+  DB_CONFIG,
+  SENTIMENT_CONFIG,
+  SQS_CONFIG,
+  REDIS_CONFIG,
+  UNLEASH_CONFIG,
+  TEMPORAL_CONFIG,
+} from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getRedisClient } from '@crowd/redis'
 import { processOldResultsJob } from './jobs/processOldResults'
+import { getUnleashClient } from '@crowd/feature-flags'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -16,6 +25,14 @@ const PROCESSING_INTERVAL_MINUTES = 5
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
+
+  const unleash = await getUnleashClient(UNLEASH_CONFIG())
+
+  let temporal: TemporalClient | undefined
+  // temp for production
+  if (TEMPORAL_CONFIG().serverUrl) {
+    temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  }
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
@@ -36,6 +53,8 @@ setImmediate(async () => {
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     redisClient,
+    unleash,
+    temporal,
     tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
@@ -55,6 +74,8 @@ setImmediate(async () => {
             redisClient,
             nodejsWorkerEmitter,
             searchSyncWorkerEmitter,
+            unleash,
+            temporal,
             log,
           )
         }

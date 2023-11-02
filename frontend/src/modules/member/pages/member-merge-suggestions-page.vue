@@ -201,8 +201,9 @@ const fetch = (page) => {
       count.value = res.count;
       [membersToMerge.value] = res.rows;
       const { members } = membersToMerge.value;
+      primary.value = 0;
       // Set member with maximum identities and activities as primary
-      if (members.length > 2 && ((members[0].identities.length < members[1].identities.length)
+      if (members.length >= 2 && ((members[0].identities.length < members[1].identities.length)
         || (members[0].activityCount < members[1].activityCount))) {
         primary.value = 1;
       }
@@ -240,12 +241,12 @@ const mergeSuggestion = () => {
     return;
   }
   sendingMerge.value = true;
-  primary.value = 0;
   MemberService.merge(
     membersToMerge.value.members[primary.value],
     membersToMerge.value.members[(primary.value + 1) % 2],
   )
     .then(() => {
+      primary.value = 0;
       Message.success('Contacts merged successfuly');
       fetch();
     })

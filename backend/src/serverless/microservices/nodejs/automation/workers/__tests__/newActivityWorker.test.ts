@@ -1,15 +1,15 @@
 import { generateUUIDv4 as uuid } from '@crowd/common'
 import {
-  AutomationData,
   AutomationState,
   AutomationTrigger,
   AutomationType,
+  IAutomationData,
   NewActivitySettings,
-} from '../../../../../../types/automationTypes'
-import { PlatformType } from '@crowd/types'
+  PlatformType,
+} from '@crowd/types'
 import { shouldProcessActivity } from '../newActivityWorker'
 
-function createAutomationData(settings: NewActivitySettings): AutomationData {
+function createAutomationData(settings: NewActivitySettings): IAutomationData {
   return {
     id: uuid(),
     name: 'Activity test',

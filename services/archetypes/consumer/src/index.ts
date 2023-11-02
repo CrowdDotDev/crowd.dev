@@ -1,6 +1,6 @@
 import { Consumer as KafkaConsumer } from 'kafkajs'
 
-import { Config, Service } from '@crowd/standard'
+import { Config, Service } from '@crowd/archetype-standard'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.

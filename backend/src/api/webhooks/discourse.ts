@@ -3,9 +3,8 @@ import IntegrationRepository from '../../database/repositories/integrationReposi
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import { WebhookType } from '../../types/webhooks'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 import { verifyWebhookSignature } from '../../utils/crypto'
+import { getIntegrationStreamWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 export default async (req, res) => {
   const signature = req.headers['x-discourse-event-signature']
@@ -85,9 +84,12 @@ export default async (req, res) => {
       },
     })
 
-    await sendNodeWorkerMessage(
+    const streamEmitter = await getIntegrationStreamWorkerEmitter()
+
+    await streamEmitter.triggerWebhookProcessing(
       integration.tenantId,
-      new NodeWorkerProcessWebhookMessage(integration.tenantId, result.id),
+      integration.platform,
+      result.id,
     )
 
     await req.responseHandler.success(req, res, {}, 204)

@@ -42,5 +42,10 @@
   },
   "devto": {
     "apiKey": "CROWD_DEVTO_API_KEY"
+  },
+  "twitter": {
+    "clientId": "CROWD_TWITTER_CLIENT_ID",
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET",
+    "callbackUrl": "CROWD_TWITTER_CALLBACK_URL"
   }
 }

@@ -5,22 +5,39 @@
       <h4 class="text-base leading-6 font-semibold">
         My open tasks ({{ tasks.length }})
       </h4>
-      <el-tooltip
-        v-if="tasks.length > 0 || suggestedTasks.length > 0"
-        effect="dark"
-        content="Add task"
-        placement="top-start"
-      >
-        <el-button
-          v-if="taskCreatePermission"
-          class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
-          @click="addTask()"
+      <div class="flex items-center">
+        <el-tooltip
+          effect="dark"
+          content="All tasks"
+          placement="top-start"
         >
-          <i
-            class="ri-add-line text-lg leading-none text-gray-600"
-          />
-        </el-button>
-      </el-tooltip>
+          <router-link :to="{ name: 'task' }" class="mr-2">
+            <el-button
+              class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
+              @click="addTask()"
+            >
+              <i
+                class="ri-list-check-3 text-lg leading-none text-gray-600"
+              />
+            </el-button>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          effect="dark"
+          content="Add task"
+          placement="top-start"
+        >
+          <el-button
+            v-if="taskCreatePermission"
+            class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
+            @click="addTask()"
+          >
+            <i
+              class="ri-add-line text-lg leading-none text-gray-600"
+            />
+          </el-button>
+        </el-tooltip>
+      </div>
     </div>
     <!-- tasks list -->
     <div>

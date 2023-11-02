@@ -1,5 +1,5 @@
 import { addSeconds, singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { DbConnection, DbStore, DbTransaction } from '@crowd/database'
 import {
   INTEGRATION_SERVICES,
   IProcessStreamContext,
@@ -296,6 +296,7 @@ export default class IntegrationStreamService extends LoggerBase {
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,
+        refreshToken: streamInfo.integrationRefreshToken,
       },
 
       stream: {
@@ -470,6 +471,7 @@ export default class IntegrationStreamService extends LoggerBase {
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,
+        refreshToken: streamInfo.integrationRefreshToken,
       },
 
       stream: {
@@ -505,11 +507,27 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       },
       setMessageVisibilityTimeout: async (newTimeout: number) => {
+        if (!receiptHandle) {
+          // this stream was triggerd manually (not from SQS), skipping visibility change
+          this.log.trace('No receipt handle provided, cannot change message visibility!')
+          return
+        }
         this.log.trace(`Changing message visibility of ${receiptHandle} to ${newTimeout}!`)
         await this.streamWorkerEmitter.setMessageVisibilityTimeout(receiptHandle, newTimeout)
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)
+      },
+      updateIntegrationToken: async (token: string) => {
+        await this.updateIntegrationToken(streamId, token)
+      },
+
+      updateIntegrationRefreshToken: async (refreshToken: string) => {
+        await this.updateIntegrationRefreshToken(streamId, refreshToken)
+      },
+
+      getDbConnection: (): DbConnection | DbTransaction => {
+        return this.repo.db()
       },
 
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
@@ -577,6 +595,41 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       }
 
+      throw err
+    }
+  }
+
+  private async updateIntegrationToken(streamId: string, token: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration token!')
+      await this.repo.updateIntegrationToken(streamId, token)
+    } catch (err) {
+      await this.triggerRunError(
+        streamId,
+        'run-stream-update-token',
+        'Error while updating token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationRefreshToken(
+    streamId: string,
+    refreshToken: string,
+  ): Promise<void> {
+    try {
+      this.log.debug('Updating integration refresh token!')
+      await this.repo.updateIntegrationRefreshToken(streamId, refreshToken)
+    } catch (err) {
+      await this.triggerRunError(
+        streamId,
+        'run-stream-update-refresh-token',
+        'Error while updating refresh token!',
+        undefined,
+        err,
+      )
       throw err
     }
   }

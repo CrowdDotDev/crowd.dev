@@ -140,10 +140,18 @@
       </div>
     </div>
   </div>
+  <app-dialog
+    v-model="isCalDialogOpen"
+    size="2extra-large"
+  >
+    <template #content>
+      <div id="embbeded-script" class="w-full px-3 pb-3 min-h-20" />
+    </template>
+  </app-dialog>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import config from '@/config';
 import Plans from '@/security/plans';
@@ -161,6 +169,8 @@ const isCommunitPremiumVersion = config.communityPremium === 'true';
 const { doRefreshCurrentUser } = mapActions('auth');
 
 const store = useStore();
+
+const isCalDialogOpen = ref(false);
 
 const currentTenant = computed(
   () => store.getters['auth/currentTenant'],
@@ -211,6 +221,10 @@ const onManageBillingClick = () => {
   window.open(config.stripe.customerPortalLink, '_blank');
 };
 
+const displayCalDialog = () => {
+  isCalDialogOpen.value = true;
+};
+
 const handleOnCtaClick = ({ key, ctaAction }) => {
   // Send an event with plan request
   window.analytics.track('Change Plan Request', {
@@ -219,7 +233,9 @@ const handleOnCtaClick = ({ key, ctaAction }) => {
     requestedPlan: key,
   });
 
-  ctaAction[activePlan.value]();
+  ctaAction[activePlan.value]({
+    displayCalDialog,
+  });
 };
 </script>
 

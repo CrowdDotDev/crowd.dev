@@ -14,6 +14,8 @@ import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
+import { Unleash } from '@crowd/feature-flags'
+import { Client as TemporalClient } from '@crowd/temporal'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -23,6 +25,8 @@ export default class DataSinkService extends LoggerBase {
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -107,6 +111,8 @@ export default class DataSinkService extends LoggerBase {
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
             this.redisClient,
+            this.unleash,
+            this.temporal,
             this.log,
           )
           const activityData = data.data as IActivityData
@@ -128,6 +134,8 @@ export default class DataSinkService extends LoggerBase {
             this.store,
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
+            this.unleash,
+            this.temporal,
             this.log,
           )
           const memberData = data.data as IMemberData
@@ -150,6 +158,26 @@ export default class DataSinkService extends LoggerBase {
             resultInfo.integrationId,
             resultInfo.platform,
             organizationData,
+          )
+          break
+        }
+
+        case IntegrationResultType.TWITTER_MEMBER_REACH: {
+          const service = new MemberService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.unleash,
+            this.temporal,
+            this.log,
+          )
+          const memberData = data.data as IMemberData
+
+          await service.processMemberUpdate(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            memberData,
           )
           break
         }

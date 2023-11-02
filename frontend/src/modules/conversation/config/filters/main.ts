@@ -1,5 +1,6 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
+import { trimAndReduceSpaces } from '@/utils/string';
 import noOfActivities from './noOfActivities/config';
 import channel from './channel/config';
 import dateStarted from './dateStarted/config';
@@ -19,7 +20,7 @@ export const conversationSearchFilter: SearchFilterConfig = {
     return [
       {
         or: [
-          { title: { textContains: value } },
+          { title: { textContains: trimAndReduceSpaces(value) } },
         ],
       },
     ];

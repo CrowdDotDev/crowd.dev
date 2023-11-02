@@ -65,3 +65,6 @@ export class BatchProcessor<T> {
     }
   }
 }
+
+export const escapeNullByte = (str: string | null | undefined): string =>
+  str ? str.replace(/\0/g, 'u0000') : str
