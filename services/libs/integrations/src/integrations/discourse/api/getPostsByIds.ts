@@ -1,10 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { RateLimitError } from '@crowd/types'
-import type { DiscourseConnectionParams } from '../../types/discourseTypes'
-import { DiscoursePostsByIdsResponse, DiscoursePostsByIdsInput } from '../../types/discourseTypes'
+import {
+  DiscourseConnectionParams,
+  DiscoursePostsByIdsResponse,
+  DiscoursePostsByIdsInput,
+} from '../types'
+import { IProcessStreamContext } from '../../../types'
 
-const serializeObjectToQueryString = (params: Object) =>
+const serializeArrayToQueryString = (params: object) =>
   Object.entries(params)
     .map(([key, value]) => {
       if (Array.isArray(value)) {
@@ -21,9 +24,9 @@ const serializeObjectToQueryString = (params: Object) =>
 export const getDiscoursePostsByIds = async (
   params: DiscourseConnectionParams,
   input: DiscoursePostsByIdsInput,
-  logger: Logger,
+  ctx: IProcessStreamContext,
 ): Promise<DiscoursePostsByIdsResponse> => {
-  logger.info({
+  ctx.log.info({
     message: 'Fetching posts by ids from Discourse',
     params,
     input,
@@ -33,8 +36,9 @@ export const getDiscoursePostsByIds = async (
     post_ids: input.post_ids,
   }
 
-  const queryString = serializeObjectToQueryString(queryParameters)
+  const queryString = serializeArrayToQueryString(queryParameters)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `${params.forumHostname}/t/${input.topic_id}/posts.json?${queryString}`,
@@ -52,7 +56,7 @@ export const getDiscoursePostsByIds = async (
       // wait 5 mins
       throw new RateLimitError(5 * 60, 'discourse/getpostsbyids')
     }
-    logger.error({ err, params, input }, 'Error while getting posts by ids from Discourse ')
+    ctx.log.error({ err, params, input }, 'Error while getting posts by ids from Discourse ')
     throw err
   }
 }

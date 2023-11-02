@@ -1,18 +1,19 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { Logger } from '@crowd/logging'
 import { RateLimitError } from '@crowd/types'
-import type { DiscourseConnectionParams } from '../../types/discourseTypes'
-import { DiscourseCategoryResponse, DiscourseTopicsInput } from '../../types/discourseTypes'
+import { DiscourseConnectionParams, DiscourseTopicsInput, DiscourseTopicResponse } from '../types'
+import { IProcessStreamContext } from '../../../types'
 
 export const getDiscourseTopics = async (
   params: DiscourseConnectionParams,
   input: DiscourseTopicsInput,
-  logger: Logger,
-): Promise<DiscourseCategoryResponse> => {
-  logger.info({
-    message: 'Fetching topics from Discourse',
+  ctx: IProcessStreamContext,
+): Promise<DiscourseTopicResponse> => {
+  ctx.log.info({
+    message: 'Fetching categories from Discourse',
     forumHostName: params.forumHostname,
   })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `${params.forumHostname}/c/${input.category_slug}/${input.category_id}.json`,
@@ -33,7 +34,7 @@ export const getDiscourseTopics = async (
       // wait 5 mins
       throw new RateLimitError(5 * 60, 'discourse/gettopics')
     }
-    logger.error({ err, params }, 'Error while getting Discourse topics')
+    ctx.log.error({ err, params }, 'Error while getting Discourse categories')
     throw err
   }
 }
