@@ -113,7 +113,10 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
           if (parameters.memberIds) {
             const memberIds = parameters.memberIds.split(',')
             await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
-            log.info({ tenantId }, `Enrichment message for ${memberIds.length} sent to nodejs-worker!`)
+            log.info(
+              { tenantId },
+              `Enrichment message for ${memberIds.length} sent to nodejs-worker!`,
+            )
           } else {
             let offset = 0
             let totalMembers = 0
@@ -141,11 +144,9 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
 
               offset += limit
             } while (totalMembers > offset)
-
           }
 
           log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
-
         }
 
         if (enrichOrganizations) {
