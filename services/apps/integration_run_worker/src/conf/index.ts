@@ -1,5 +1,5 @@
 import { IDatabaseConfig } from '@crowd/database'
-import { ISearchSyncApiConfig } from '@crowd/httpclients'
+import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
 import config from 'config'

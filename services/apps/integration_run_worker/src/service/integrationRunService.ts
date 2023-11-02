@@ -10,6 +10,7 @@ import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
+  SearchSyncWorkerEmitter,
   IntegrationSyncWorkerEmitter,
 } from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
@@ -18,7 +19,6 @@ import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
 import { AutomationRepository } from '../repo/automation.repo'
-import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -29,9 +29,9 @@ export default class IntegrationRunService extends LoggerBase {
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
-    private readonly searchSyncApi: SearchSyncApiClient,
     private readonly store: DbStore,
     parentLog: Logger,
   ) {
@@ -337,8 +337,8 @@ export default class IntegrationRunService extends LoggerBase {
           await txRepo.deleteSampleData(runInfo.tenantId)
         })
 
-        await this.searchSyncApi.triggerActivityCleanup(runInfo.tenantId)
-        await this.searchSyncApi.triggerMemberCleanup(runInfo.tenantId)
+        await this.searchSyncWorkerEmitter.triggerActivityCleanup(runInfo.tenantId)
+        await this.searchSyncWorkerEmitter.triggerMemberCleanup(runInfo.tenantId)
       } catch (err) {
         this.log.error({ err }, 'Error while deleting sample data!')
         await this.triggerRunError(

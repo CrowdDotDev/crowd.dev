@@ -6,6 +6,7 @@ import {
   NodejsWorkerEmitter,
   SqsClient,
   SqsQueueReceiver,
+  SearchSyncWorkerEmitter,
 } from '@crowd/sqs'
 import {
   CreateAndProcessActivityResultQueueMessage,
@@ -17,7 +18,6 @@ import DataSinkService from '../service/dataSink.service'
 import { RedisClient } from '@crowd/redis'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
-import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
@@ -27,7 +27,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
-    private readonly searchSyncApi: SearchSyncApiClient,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -43,10 +43,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         const service = new DataSinkService(
           new DbStore(this.log, this.dbConn),
           this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
           this.redisClient,
           this.unleash,
           this.temporal,
-          this.searchSyncApi,
           this.log,
         )
 

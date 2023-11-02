@@ -15,7 +15,7 @@ import DataSinkRepository from '../repo/dataSink.repo'
 import { OrganizationService } from '../service/organization.service'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { SearchSyncApiClient } from '../../../../libs/httpclients/src/searchSyncApiClient'
+import { SearchSyncApiClient } from '../../../../libs/opensearch/src/apiClient'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()

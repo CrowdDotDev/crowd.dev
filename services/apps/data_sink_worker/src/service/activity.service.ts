@@ -3,7 +3,6 @@ import MemberRepository from '../repo/member.repo'
 import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { SearchSyncApiClient } from '@crowd/httpclients'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
 import { FeatureFlag, IActivityData, PlatformType } from '@crowd/types'
 import ActivityRepository from '../repo/activity.repo'
@@ -11,7 +10,7 @@ import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import { NodejsWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
 import IntegrationRepository from '../repo/integration.repo'
@@ -32,10 +31,10 @@ export default class ActivityService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
-    private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -132,13 +131,13 @@ export default class ActivityService extends LoggerBase {
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
-        await this.searchSyncApi.triggerMemberSync(activity.memberId)
-        await this.searchSyncApi.triggerActivitySync(id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
       }
 
       if (affectedIds.length > 0) {
         for (const affectedId of affectedIds.filter((i) => i !== id)) {
-          await this.searchSyncApi.triggerActivitySync(affectedId)
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId)
         }
       }
 
@@ -211,8 +210,8 @@ export default class ActivityService extends LoggerBase {
         await this.conversationService.processActivity(tenantId, segmentId, id)
 
         if (fireSync) {
-          await this.searchSyncApi.triggerMemberSync(activity.memberId)
-          await this.searchSyncApi.triggerActivitySync(id)
+          await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
         }
       }
     } catch (err) {
@@ -420,18 +419,18 @@ export default class ActivityService extends LoggerBase {
           const txMemberService = new MemberService(
             txStore,
             this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
             this.unleash,
             this.temporal,
-            this.searchSyncApi,
             this.log,
           )
           const txActivityService = new ActivityService(
             txStore,
             this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
             this.redisClient,
             this.unleash,
             this.temporal,
-            this.searchSyncApi,
             this.log,
           )
           const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
@@ -490,7 +489,7 @@ export default class ActivityService extends LoggerBase {
 
                 // delete activity
                 await txRepo.delete(dbActivity.id)
-                await this.searchSyncApi.triggerRemoveActivity(dbActivity.id)
+                await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
                 createActivity = true
               }
 
@@ -607,7 +606,10 @@ export default class ActivityService extends LoggerBase {
 
                     // delete activity
                     await txRepo.delete(dbActivity.id)
-                    await this.searchSyncApi.triggerRemoveActivity(dbActivity.id)
+                    await this.searchSyncWorkerEmitter.triggerRemoveActivity(
+                      tenantId,
+                      dbActivity.id,
+                    )
                     createActivity = true
                   }
 
@@ -862,12 +864,12 @@ export default class ActivityService extends LoggerBase {
         }
       })
 
-      await this.searchSyncApi.triggerMemberSync(memberId)
+      await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
       if (objectMemberId) {
-        await this.searchSyncApi.triggerMemberSync(objectMemberId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId)
       }
       if (activityId) {
-        await this.searchSyncApi.triggerActivitySync(activityId)
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')

@@ -1,7 +1,7 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
@@ -16,7 +16,6 @@ import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
-import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -24,10 +23,10 @@ export default class DataSinkService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
-    private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -110,10 +109,10 @@ export default class DataSinkService extends LoggerBase {
           const service = new ActivityService(
             this.store,
             this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
             this.redisClient,
             this.unleash,
             this.temporal,
-            this.searchSyncApi,
             this.log,
           )
           const activityData = data.data as IActivityData
@@ -134,9 +133,9 @@ export default class DataSinkService extends LoggerBase {
           const service = new MemberService(
             this.store,
             this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
             this.unleash,
             this.temporal,
-            this.searchSyncApi,
             this.log,
           )
           const memberData = data.data as IMemberData

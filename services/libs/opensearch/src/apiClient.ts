@@ -1,5 +1,7 @@
 import axios from 'axios'
-import { ISearchSyncApiConfig } from './types'
+export interface ISearchSyncApiConfig {
+  baseUrl: string
+}
 
 export class SearchSyncApiClient {
   private searchSyncApi

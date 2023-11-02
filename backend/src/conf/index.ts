@@ -1,6 +1,6 @@
 import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
-import { ISearchSyncApiConfig } from '@crowd/httpclients'
+import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import {
   SQSConfiguration,
   S3Configuration,

@@ -21,21 +21,20 @@ import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
-import { NodejsWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
 import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
 import { TEMPORAL_CONFIG } from '../conf'
-import { SearchSyncApiClient } from '@crowd/httpclients'
 
 export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
-    private readonly searchSyncApi: SearchSyncApiClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -161,11 +160,11 @@ export default class MemberService extends LoggerBase {
       }
 
       if (fireSync) {
-        await this.searchSyncApi.triggerMemberSync(id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
       for (const org of organizations) {
-        await this.searchSyncApi.triggerOrganizationSync(org.id)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
       }
 
       return id
@@ -284,11 +283,11 @@ export default class MemberService extends LoggerBase {
       })
 
       if (updated && fireSync) {
-        await this.searchSyncApi.triggerMemberSync(id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
       }
 
       for (const org of organizations) {
-        await this.searchSyncApi.triggerOrganizationSync(org.id)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
@@ -370,9 +369,9 @@ export default class MemberService extends LoggerBase {
         const txService = new MemberService(
           txStore,
           this.nodejsWorkerEmitter,
+          this.searchSyncWorkerEmitter,
           this.unleash,
           this.temporal,
-          this.searchSyncApi,
           this.log,
         )
 

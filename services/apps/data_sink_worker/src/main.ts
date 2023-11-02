@@ -1,7 +1,7 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { NodejsWorkerEmitter, getSqsClient, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import {
   DB_CONFIG,
   SENTIMENT_CONFIG,
@@ -9,7 +9,6 @@ import {
   REDIS_CONFIG,
   UNLEASH_CONFIG,
   TEMPORAL_CONFIG,
-  SEARCH_SYNC_API_CONFIG,
 } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
@@ -17,7 +16,6 @@ import { getRedisClient } from '@crowd/redis'
 import { processOldResultsJob } from './jobs/processOldResults'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { SearchSyncApiClient } from '@crowd/httpclients'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -48,7 +46,7 @@ setImmediate(async () => {
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
 
-  const searchSyncApi = new SearchSyncApiClient(SEARCH_SYNC_API_CONFIG())
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
 
   const queue = new WorkerQueueReceiver(
     sqsClient,
@@ -57,7 +55,7 @@ setImmediate(async () => {
     redisClient,
     unleash,
     temporal,
-    searchSyncApi,
+    searchSyncWorkerEmitter,
     tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
@@ -65,6 +63,7 @@ setImmediate(async () => {
 
   try {
     await nodejsWorkerEmitter.init()
+    await searchSyncWorkerEmitter.init()
 
     let processing = false
     setInterval(async () => {
@@ -75,7 +74,7 @@ setImmediate(async () => {
             dbConnection,
             redisClient,
             nodejsWorkerEmitter,
-            searchSyncApi,
+            searchSyncWorkerEmitter,
             unleash,
             temporal,
             log,

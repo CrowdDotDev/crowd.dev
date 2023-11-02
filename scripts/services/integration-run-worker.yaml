@@ -54,7 +54,6 @@ services:
       - ../../services/libs/sentiment/src:/usr/crowd/app/services/libs/sentiment/src
       - ../../services/libs/sqs/src:/usr/crowd/app/services/libs/sqs/src
       - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src
-      - ../../services/libs/httpclients/src:/usr/crowd/app/services/libs/httpclients/src
       - ../../services/apps/integration_run_worker/src:/usr/crowd/app/services/apps/integration_run_worker/src
 
 networks:

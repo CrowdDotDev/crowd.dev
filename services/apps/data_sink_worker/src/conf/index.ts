@@ -6,7 +6,7 @@ import { ISentimentClientConfig } from '@crowd/sentiment'
 import { ISqsClientConfig } from '@crowd/sqs'
 import { ITemporalConfig } from '@crowd/temporal'
 import config from 'config'
-import { ISearchSyncApiConfig } from '@crowd/httpclients'
+import { ISearchSyncApiConfig } from '@crowd/opensearch'
 export interface ISlackAlertingConfig {
   url: string
 }

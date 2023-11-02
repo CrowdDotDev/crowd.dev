@@ -15,7 +15,7 @@ import MemberService from '../service/member.service'
 import { OrganizationService } from '../service/organization.service'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { SearchSyncApiClient } from '@crowd/httpclients'
+import { SearchSyncApiClient } from '@crowd/opensearch'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()

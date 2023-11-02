@@ -17,7 +17,7 @@ import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { SearchSyncApiClient } from '@crowd/httpclients'
+import { SearchSyncApiClient } from '@crowd/opensearch'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()

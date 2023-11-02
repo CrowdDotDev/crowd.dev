@@ -5,12 +5,12 @@ import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   IntegrationSyncWorkerEmitter,
+  SearchSyncWorkerEmitter,
   getSqsClient,
 } from '@crowd/sqs'
-import { DB_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG, SQS_CONFIG } from './conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { ApiPubSubEmitter, getRedisClient } from '@crowd/redis'
-import { SearchSyncApiClient } from '@crowd/httpclients'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -27,11 +27,10 @@ setImmediate(async () => {
 
   const runWorkerEmitter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, tracer, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
   const integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(sqsClient, tracer, log)
 
   const apiPubSubEmitter = new ApiPubSubEmitter(redisClient, log)
-
-  const searchSyncApi = new SearchSyncApiClient(SEARCH_SYNC_API_CONFIG())
 
   const queue = new WorkerQueueReceiver(
     sqsClient,
@@ -39,9 +38,9 @@ setImmediate(async () => {
     dbConnection,
     streamWorkerEmitter,
     runWorkerEmitter,
+    searchSyncWorkerEmitter,
     integrationSyncWorkerEmitter,
     apiPubSubEmitter,
-    searchSyncApi,
     tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
@@ -50,6 +49,7 @@ setImmediate(async () => {
   try {
     await streamWorkerEmitter.init()
     await runWorkerEmitter.init()
+    await searchSyncWorkerEmitter.init()
     await integrationSyncWorkerEmitter.init()
     await queue.start()
   } catch (err) {
