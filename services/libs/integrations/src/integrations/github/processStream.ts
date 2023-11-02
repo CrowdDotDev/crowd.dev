@@ -175,11 +175,11 @@ async function getMemberEmail(ctx: IProcessStreamContext, login: string): Promis
   const member = await getMemberData(ctx, login)
   const email = (member && member.email ? member.email : '').trim()
   if (email && email.length > 0) {
-    await cache.set(prefix(login), email, 60 * 60)
+    await cache.set(prefix(login), email, 24 * 60 * 60)
     return email
   }
 
-  await cache.set(prefix(login), 'null', 60 * 60)
+  await cache.set(prefix(login), 'null', 24 * 60 * 60)
   return ''
 }
 
