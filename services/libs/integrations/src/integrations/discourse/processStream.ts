@@ -79,7 +79,7 @@ const processTopicsFromCategoryStream: ProcessStreamHandler = async (ctx) => {
       )
     })
 
-    // we aslo need to trigger nextPageStream
+    // we aslo need to publish new stream to get next page of topics
     await ctx.publishStream<DiscourseTopicsFromCategoryStreamData>(
       `${DiscourseStreamType.TOPICS_FROM_CATEGORY}:${metadata.category_id}`,
       {
@@ -173,7 +173,7 @@ const processPostsByIds: ProcessStreamHandler = async (ctx) => {
     )
 
     if (!user) {
-      return
+      continue
     }
 
     await ctx.publishData<DiscoursePublishPostData>({
