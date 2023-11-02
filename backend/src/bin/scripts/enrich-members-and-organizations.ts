@@ -46,6 +46,13 @@ const options = [
     defaultValue: false,
     description: 'Enrich members of the tenant',
   },
+  {
+    name: 'memberIds',
+    alias: 'i',
+    type: String,
+    description:
+      'Comma separated member ids that you would like to enrich - If this option is not present, script will enrich all members given limit.',
+  },
 ]
 const sections = [
   {
@@ -103,25 +110,42 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         )
 
         if (enrichMembers) {
-          let offset = 0
-          let totalMembers = 0
-
-          do {
-            const { ids: memberIds, count: membersCount } =
-              await MemberRepository.getMemberIdsandCount(
-                { limit, offset, countOnly: false },
-                optionsWithTenant,
-              )
-
-            totalMembers = membersCount
-            log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
-
+          if (parameters.memberIds) {
+            const memberIds = parameters.memberIds.split(',')
             await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+            log.info({ tenantId }, `Enrichment message for ${memberIds.length} sent to nodejs-worker!`)
+          } else {
+            let offset = 0
+            let totalMembers = 0
 
-            offset += limit
-          } while (totalMembers > offset)
+            do {
+              let memberIds
+              let membersCount
+
+              if (parameters.memberIds) {
+                memberIds = parameters.memberIds.split(',')
+                membersCount = memberIds.length
+              } else {
+                const { ids, count } = await MemberRepository.getMemberIdsandCount(
+                  { limit, offset, countOnly: false },
+                  optionsWithTenant,
+                )
+                memberIds = ids
+                membersCount = count
+              }
+
+              totalMembers = membersCount
+              log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
+
+              await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+
+              offset += limit
+            } while (totalMembers > offset)
+
+          }
 
           log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
+
         }
 
         if (enrichOrganizations) {
