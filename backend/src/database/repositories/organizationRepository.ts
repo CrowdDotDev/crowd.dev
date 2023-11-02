@@ -1524,23 +1524,6 @@ class OrganizationRepository {
               })
             ).body?.hits?.hits || []
 
-          /*
-          const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
-            (acc, organizationToMerge) => {
-              if (!acc.minScore || organizationToMerge._score < acc.minScore) {
-                acc.minScore = organizationToMerge._score
-              }
-
-              if (!acc.maxScore || organizationToMerge._score > acc.maxScore) {
-                acc.maxScore = organizationToMerge._score
-              }
-
-              return acc
-            },
-            { maxScore: null, minScore: null },
-          )
-          */
-
           for (const organizationToMerge of organizationsToMerge) {
             yieldChunk.push({
               similarity: calculateSimilarity(organization, organizationToMerge),
@@ -1728,6 +1711,8 @@ class OrganizationRepository {
 
           return (
             mo.memberId === memberOrganization.memberId &&
+            mo.dateStart !== null &&
+            mo.dateEnd !== null &&
             ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
               (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
               (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
