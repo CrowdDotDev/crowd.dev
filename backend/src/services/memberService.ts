@@ -635,7 +635,7 @@ export default class MemberService extends LoggerBase {
 
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
-      await txService.update(originalId, toUpdate)
+      await txService.update(originalId, toUpdate, false)
 
       // update activities to belong to the originalId member
       await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
@@ -865,7 +865,7 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async update(id, data) {
+  async update(id, data, syncToOpensearch = true) {
     let transaction
     const searchSyncApi = await getSearchSyncApiClient()
 
@@ -928,16 +928,19 @@ export default class MemberService extends LoggerBase {
       const record = await MemberRepository.update(id, data, repoOptions)
 
       await SequelizeRepository.commitTransaction(transaction)
-      try {
-        await searchSyncApi.triggerMemberSync(record.id)
-      } catch (emitErr) {
-        this.log.error(
-          emitErr,
-          { tenantId: this.options.currentTenant.id, memberId: record.id },
-          'Error while triggering member sync changes!',
-        )
-      }
 
+      if (syncToOpensearch) {
+        try {
+          await searchSyncApi.triggerMemberSync(record.id)
+        } catch (emitErr) {
+          this.log.error(
+            emitErr,
+            { tenantId: this.options.currentTenant.id, memberId: record.id },
+            'Error while triggering member sync changes!',
+          )
+        }
+      }
+    
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {
