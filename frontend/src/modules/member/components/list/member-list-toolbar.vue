@@ -226,16 +226,19 @@ const handleMergeMembers = async () => {
   Message.info(
     null,
     {
-      title: 'Contacts are being enriched',
+      title: 'Contacts are being merged',
     },
   );
 
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
+      Message.closeAll();
       Message.success('Contacts merged successfuly');
+
       fetchMembers({ reload: true });
     })
     .catch(() => {
+      Message.closeAll();
       Message.error('Error merging contacts');
     });
 };
@@ -333,14 +336,17 @@ const doMarkAsTeamMember = async (value) => {
     },
   })))
     .then(() => {
-      fetchMembers({ reload: true });
+      Message.closeAll();
       Message.success(
         `Contact${
           selectedMembers.value.length > 1 ? 's' : ''
         } updated successfully`,
       );
+
+      fetchMembers({ reload: true });
     })
     .catch(() => {
+      Message.closeAll();
       Message.error('Error updating contacts');
     });
 };

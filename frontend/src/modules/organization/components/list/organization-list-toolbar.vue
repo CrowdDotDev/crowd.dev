@@ -175,12 +175,24 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
 const handleMergeOrganizations = async () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
 
+  Message.info(
+    null,
+    {
+      title: 'Organizations are being merged',
+    },
+  );
+
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
     .then(() => {
+      Message.closeAll();
       Message.success('Organizations merged successfuly');
+
       fetchOrganizations({ reload: true });
     })
-    .catch(() => Message.error('There was an error merging organizations'));
+    .catch(() => {
+      Message.closeAll();
+      Message.error('There was an error merging organizations');
+    });
 };
 
 const handleDoExport = async () => {
@@ -252,6 +264,7 @@ const handleCommand = async (command) => {
         isTeamOrganization: command.value,
       })),
     ).then(() => {
+      Message.closeAll();
       Message.success(
         `${pluralize(
           'Organization',
@@ -265,6 +278,7 @@ const handleCommand = async (command) => {
       });
     })
       .catch(() => {
+        Message.closeAll();
         Message.error('Error updating organizations');
       });
   }
