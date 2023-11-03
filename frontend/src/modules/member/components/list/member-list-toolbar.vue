@@ -221,8 +221,15 @@ const markAsTeamMemberOptions = computed(() => {
 const isEnrichmentActionDisabled = computed(() => !elegibleEnrichmentMembersIds.value.length
   || isEditLockedForSampleData.value || !isEnrichmentFeatureEnabled());
 
-const handleMergeMembers = () => {
+const handleMergeMembers = async () => {
   const [firstMember, secondMember] = selectedMembers.value;
+  Message.info(
+    null,
+    {
+      title: 'Contacts are being enriched',
+    },
+  );
+
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
       Message.success('Contacts merged successfuly');
@@ -309,8 +316,15 @@ const handleAddTags = async () => {
   bulkTagsUpdateVisible.value = true;
 };
 
-const doMarkAsTeamMember = (value) => {
-  Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
+const doMarkAsTeamMember = async (value) => {
+  Message.info(
+    null,
+    {
+      title: 'Contacts are being updated',
+    },
+  );
+
+  return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
     attributes: {
       ...member.attributes,
       isTeamMember: {
@@ -325,6 +339,9 @@ const doMarkAsTeamMember = (value) => {
           selectedMembers.value.length > 1 ? 's' : ''
         } updated successfully`,
       );
+    })
+    .catch(() => {
+      Message.error('Error updating contacts');
     });
 };
 

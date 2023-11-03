@@ -172,10 +172,14 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   })
   .then(() => fetchOrganizations({ reload: true }));
 
-const handleMergeOrganizations = () => {
+const handleMergeOrganizations = async () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
+
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
-    .then(() => fetchOrganizations({ reload: true }))
+    .then(() => {
+      Message.success('Organizations merged successfuly');
+      fetchOrganizations({ reload: true });
+    })
     .catch(() => Message.error('There was an error merging organizations'));
 };
 
@@ -236,6 +240,13 @@ const handleCommand = async (command) => {
   } else if (command.action === 'mergeOrganizations') {
     await handleMergeOrganizations();
   } else if (command.action === 'markAsTeamOrganization') {
+    Message.info(
+      null,
+      {
+        title: 'Organizations are being updated',
+      },
+    );
+
     Promise.all(
       selectedOrganizations.value.map((row) => OrganizationService.update(row.id, {
         isTeamOrganization: command.value,
@@ -252,7 +263,10 @@ const handleCommand = async (command) => {
       fetchOrganizations({
         reload: true,
       });
-    });
+    })
+      .catch(() => {
+        Message.error('Error updating organizations');
+      });
   }
 };
 </script>
