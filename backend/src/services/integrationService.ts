@@ -3,7 +3,7 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { IntegrationRunState, PlatformType } from '@crowd/types'
+import { PlatformType } from '@crowd/types'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -27,13 +27,10 @@ import IntegrationRepository from '../database/repositories/integrationRepositor
 import Error542 from '../errors/Error542'
 import track from '../segment/track'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
-import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import Error404 from '../errors/Error404'
-import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
@@ -1347,7 +1344,6 @@ export default class IntegrationService {
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
       integration = await this.createOrUpdate(
@@ -1368,21 +1364,22 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Twitter message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration
@@ -1441,7 +1438,6 @@ export default class IntegrationService {
   async discourseConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
       integration = await this.createOrUpdate(
@@ -1459,21 +1455,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Discourse message to int-run-worker!',
+    )
+
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration

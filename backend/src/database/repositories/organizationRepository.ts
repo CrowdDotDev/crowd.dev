@@ -75,7 +75,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                         group by a."organizationId"
                         having count(id) > 0),
      identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
@@ -158,7 +157,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                           and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
                         group by a."organizationId"
                         having count(id) > 0),
@@ -343,7 +341,8 @@ class OrganizationRepository {
           const existingOrg = existingOrgs.find((o) => o.id === org.id)
           if (existingOrg && existingOrg.tags) {
             // Merge existing and new tags without duplicates
-            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+            const incomingTags = org.tags || []
+            org.tags = lodash.uniq([...existingOrg.tags, ...incomingTags])
           }
           return org
         })
@@ -1525,23 +1524,6 @@ class OrganizationRepository {
               })
             ).body?.hits?.hits || []
 
-          /*
-          const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
-            (acc, organizationToMerge) => {
-              if (!acc.minScore || organizationToMerge._score < acc.minScore) {
-                acc.minScore = organizationToMerge._score
-              }
-
-              if (!acc.maxScore || organizationToMerge._score > acc.maxScore) {
-                acc.maxScore = organizationToMerge._score
-              }
-
-              return acc
-            },
-            { maxScore: null, minScore: null },
-          )
-          */
-
           for (const organizationToMerge of organizationsToMerge) {
             yieldChunk.push({
               similarity: calculateSimilarity(organization, organizationToMerge),
@@ -1729,6 +1711,8 @@ class OrganizationRepository {
 
           return (
             mo.memberId === memberOrganization.memberId &&
+            mo.dateStart !== null &&
+            mo.dateEnd !== null &&
             ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
               (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
               (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
@@ -1778,10 +1762,10 @@ class OrganizationRepository {
     }
 
     // update rest of the o2 members
-    await seq.query(
+    const remainingRoles = (await seq.query(
       `
-      UPDATE "memberOrganizations"
-        SET "organizationId" = :toOrganizationId
+        SELECT *
+        FROM "memberOrganizations"
         WHERE "organizationId" = :fromOrganizationId 
         AND "deletedAt" IS NULL
         AND "memberId" NOT IN (
@@ -1796,10 +1780,26 @@ class OrganizationRepository {
           toOrganizationId,
           fromOrganizationId,
         },
-        type: QueryTypes.UPDATE,
+        type: QueryTypes.SELECT,
         transaction,
       },
-    )
+    )) as IMemberOrganization[]
+
+    for (const role of remainingRoles) {
+      await this.removeMemberRole(role, options)
+      await this.addMemberRole(
+        {
+          title: role.title,
+          dateStart: role.dateStart,
+          dateEnd: role.dateEnd,
+          memberId: role.memberId,
+          organizationId: toOrganizationId,
+          source: role.source,
+          deletedAt: role.deletedAt,
+        },
+        options,
+      )
+    }
   }
 
   static async getOrganizationSegments(

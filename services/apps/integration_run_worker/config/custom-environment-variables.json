@@ -37,5 +37,10 @@
   },
   "searchSyncApi": {
     "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
+  },
+  "twitter": {
+    "clientId": "CROWD_TWITTER_CLIENT_ID",
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET",
+    "callbackUrl": "CROWD_TWITTER_CALLBACK_URL"
   }
 }
