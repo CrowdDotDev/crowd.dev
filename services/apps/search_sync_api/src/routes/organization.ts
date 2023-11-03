@@ -49,7 +49,7 @@ router.post(
   }),
 )
 
-router.delete(
+router.post(
   '/cleanup/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
     const openSearchService = new OpenSearchService(req.log, openSearchConfig)
@@ -70,7 +70,7 @@ router.delete(
   }),
 )
 
-router.delete(
+router.post(
   '/cleanup/organization',
   asyncWrap(async (req: ApiRequest, res) => {
     const openSearchService = new OpenSearchService(req.log, openSearchConfig)
@@ -83,7 +83,7 @@ router.delete(
 
     const { organizationId } = req.body
     try {
-      await organizationSyncService.cleanupOrganizationIndex(organizationId)
+      await organizationSyncService.removeOrganization(organizationId)
       res.sendStatus(200)
     } catch (error) {
       res.status(500).send(error.message)

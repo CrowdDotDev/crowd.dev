@@ -54,7 +54,7 @@ router.post(
   }),
 )
 
-router.delete(
+router.post(
   '/cleanup/tenant/activities',
   asyncWrap(async (req: ApiRequest, res) => {
     const openSearchService = new OpenSearchService(req.log, opensearchConfig)
@@ -70,7 +70,7 @@ router.delete(
   }),
 )
 
-router.delete(
+router.post(
   '/cleanup/activity',
   asyncWrap(async (req: ApiRequest, res) => {
     const openSearchService = new OpenSearchService(req.log, opensearchConfig)

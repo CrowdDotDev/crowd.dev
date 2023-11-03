@@ -118,11 +118,11 @@ export default class OrganizationService extends LoggerBase {
       // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
       // because of website unique constraint
       if (toUpdate.website && toUpdate.website === toMerge.website) {
-        await txService.update(toMergeId, { website: null })
+        await txService.update(toMergeId, { website: null }, false, false)
       }
 
       // Update original organization
-      await txService.update(originalId, toUpdate)
+      await txService.update(originalId, toUpdate, false, false)
 
       // update members that belong to source organization to destination org
       await OrganizationRepository.moveMembersBetweenOrganizations(
@@ -520,7 +520,7 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
-  async update(id, data, overrideIdentities = false) {
+  async update(id, data, overrideIdentities = false, syncToOpensearch = true) {
     let tx
 
     try {
@@ -566,16 +566,19 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      try {
-        const searchSyncApi = await getSearchSyncApiClient()
-        await searchSyncApi.triggerOrganizationSync(record.id)
-      } catch (emitErr) {
-        this.log.error(
-          emitErr,
-          { tenantId: this.options.currentTenant.id, organizationId: record.id },
-          'Error while emitting organization sync!',
-        )
+      if (syncToOpensearch) {
+        try {
+          const searchSyncApi = await getSearchSyncApiClient()
+          await searchSyncApi.triggerOrganizationSync(record.id)
+        } catch (emitErr) {
+          this.log.error(
+            emitErr,
+            { tenantId: this.options.currentTenant.id, organizationId: record.id },
+            'Error while emitting organization sync!',
+          )
+        }
       }
+    
 
       return record
     } catch (error) {

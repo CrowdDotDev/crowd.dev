@@ -47,7 +47,7 @@ export class SearchSyncApiClient {
       throw new Error('memberId is required!')
     }
 
-    await this.searchSyncApi.delete('/cleanup/member', {
+    await this.searchSyncApi.post('/cleanup/member', {
       memberId,
     })
   }
@@ -57,7 +57,7 @@ export class SearchSyncApiClient {
       throw new Error('tenantId is required!')
     }
 
-    await this.searchSyncApi.delete('/cleanup/tenant/members', {
+    await this.searchSyncApi.post('/cleanup/tenant/members', {
       tenantId,
     })
   }
@@ -97,7 +97,7 @@ export class SearchSyncApiClient {
       throw new Error('activityId is required!')
     }
 
-    await this.searchSyncApi.delete('/cleanup/activity', {
+    await this.searchSyncApi.post('/cleanup/activity', {
       activityId,
     })
   }
@@ -107,7 +107,7 @@ export class SearchSyncApiClient {
       throw new Error('tenantId is required!')
     }
 
-    await this.searchSyncApi.delete('/cleanup/tenant/activities', {
+    await this.searchSyncApi.post('/cleanup/tenant/activities', {
       tenantId,
     })
   }
@@ -137,7 +137,7 @@ export class SearchSyncApiClient {
       throw new Error('organizationId is required!')
     }
 
-    await this.searchSyncApi.delete('/cleanup/organization', {
+    await this.searchSyncApi.post('/cleanup/organization', {
       organizationId,
     })
   }
@@ -147,7 +147,7 @@ export class SearchSyncApiClient {
       throw new Error('tenantId is required!')
     }
 
-    await this.searchSyncApi.delete('/cleanup/tenant/organizations', {
+    await this.searchSyncApi.post('/cleanup/tenant/organizations', {
       tenantId,
     })
   }
