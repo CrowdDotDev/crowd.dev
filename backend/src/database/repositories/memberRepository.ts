@@ -3208,7 +3208,7 @@ class MemberRepository {
         })
       )[0]?.get({ plain: true }) ?? null
 
-    output.lastActive = output.lastActivity.timestamp ?? null
+    output.lastActive = output.lastActivity?.timestamp ?? null
 
     output.numberOfOpenSourceContributions = output.contributions?.length ?? 0
 
