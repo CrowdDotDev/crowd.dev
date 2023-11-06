@@ -12,6 +12,8 @@
       <cr-menu-workspace v-if="currentTenant" />
 
       <div class="px-3 pt-4 pb-2 flex flex-col grow">
+        <cr-menu-quickstart :collapsed="isCollapsed" />
+        <div class="border-t border-gray-200 mb-3 mt-1" />
         <!-- Menu items -->
         <cr-menu-links class="mb-2" :links="mainMenu" :collapsed="isCollapsed" link-class="text-sm" />
 
@@ -40,6 +42,7 @@ import CrMenuWorkspace from '@/modules/layout/components/menu/menu-workspace.vue
 import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
 import { bottomMenu, mainMenu } from '@/modules/layout/config/menu';
 import CrMenuSupport from '@/modules/layout/components/menu/menu-support.vue';
+import CrMenuQuickstart from '@/modules/layout/components/menu/menu-quickstart.vue';
 
 const store = useStore();
 const { currentTenant } = mapGetters('auth');

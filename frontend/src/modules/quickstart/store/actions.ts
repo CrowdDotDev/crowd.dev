@@ -1,17 +1,17 @@
 import * as loom from '@loomhq/loom-embed';
-import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service';
+import { QuickstartGuideService } from '@/modules/quickstart/services/quickstart-guide.service';
 
-export default {
+export const actions = {
   getGuides() {
     return QuickstartGuideService.fetch()
       .then((guides) => Promise.all(
         Object.entries(guides).map(([key, guide]) => {
-          if (guide.completed) {
-            return Promise.resolve({
-              ...guide,
-              key,
-            });
-          }
+          // if (guide.completed) {
+          //   return Promise.resolve({
+          //     ...guide,
+          //     key,
+          //   });
+          // }
           try {
             return loom
               .oembed(guide.videoLink, {
