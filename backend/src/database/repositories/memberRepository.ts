@@ -874,6 +874,7 @@ class MemberRepository {
   ): Promise<ActivityAggregates> {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
         SELECT
@@ -893,12 +894,14 @@ class MemberRepository {
         )::numeric, 2):: float AS "averageSentiment"
         FROM activities a
         WHERE a."memberId" = :memberId
+        and a."tenantId" = :tenantId
         GROUP BY a."memberId", a."segmentId"
     `
 
     const data: ActivityAggregates[] = await seq.query(query, {
       replacements: {
         memberId,
+        tenantId: currentTenant.id
       },
       type: QueryTypes.SELECT,
       transaction,
