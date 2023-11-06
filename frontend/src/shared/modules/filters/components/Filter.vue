@@ -12,7 +12,7 @@
         @click="copyToClipboard"
       >
         <i class="ri-clipboard-line" />
-        <span>Copy JSON Filter</span>
+        <span>Copy JSON query</span>
       </el-button>
     </div>
     <div class="flex items-center flex-wrap">
