@@ -14,7 +14,7 @@ export const receiveMessage = async (
   params.WaitTimeSeconds = 15
   params.VisibilityTimeout = 15
 
-  const result = await sqs.receiveMessage(params).promise()
+  const result = await sqs.receiveMessage(params)
 
   if (result.Messages && result.Messages.length === 1) {
     return result.Messages[0]
@@ -24,8 +24,8 @@ export const receiveMessage = async (
 }
 
 export const deleteMessage = async (params: DeleteMessageCommandInput): Promise<void> => {
-  await sqs.deleteMessage(params).promise()
+  await sqs.deleteMessage(params)
 }
 
 export const sendMessage = async (params: SendMessageCommandInput): Promise<SendMessageCommandOutput> =>
-  sqs.sendMessage(params).promise()
+  sqs.sendMessage(params)

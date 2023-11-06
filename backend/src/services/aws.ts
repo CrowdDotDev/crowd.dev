@@ -265,7 +265,7 @@ export async function detectSentiment(text) {
       LanguageCode: 'en',
       Text: text,
     }
-    const fromAWS = await comprehendInstance.detectSentiment(params).promise()
+    const fromAWS = await comprehendInstance.detectSentiment(params)
     const positive = 100 * fromAWS.SentimentScore.Positive
     const negative = 100 * fromAWS.SentimentScore.Negative
     return {
@@ -292,7 +292,7 @@ export async function detectSentimentBatch(textArray) {
       LanguageCode: 'en',
       TextList: textArray,
     }
-    const fromAWSBatch = await comprehendInstance.batchDetectSentiment(params).promise()
+    const fromAWSBatch = await comprehendInstance.batchDetectSentiment(params)
 
     const batchSentimentResults = fromAWSBatch.ResultList.map((i) => {
       const positive = 100 * i.SentimentScore.Positive
