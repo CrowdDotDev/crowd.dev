@@ -45,6 +45,7 @@ const en = {
       invalidToken: 'Invalid or expired password reset link',
       error: `Invalid email`,
     },
+    passwordInvalid: 'Passwords must have at least one letter, one number, one symbol, and be at least 8 characters long.',
     emailAddressVerificationEmail: {
       invalidToken: 'Invalid or expired email verification link.',
       error: `Email not recognized.`,

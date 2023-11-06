@@ -540,6 +540,7 @@ export default class UserRepository {
         mapToModel: true,
       },
     )
+    console.log(record)
     record = record[0]
 
     record = await this._populateRelations(record, options, {
@@ -547,11 +548,21 @@ export default class UserRepository {
         status: 'active',
       },
     })
+
     record = {
       ...record,
       ...record.json,
     }
     delete record.json
+
+    // Remove sensitive fields
+    delete record.password
+    delete record.emailVerificationToken
+    delete record.emailVerificationTokenExpiresAt
+    delete record.providerId
+    delete record.passwordResetToken
+    delete record.passwordResetTokenExpiresAt
+    delete record.jwtTokenInvalidBefore
 
     if (!record) {
       throw new Error404()

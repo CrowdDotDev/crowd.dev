@@ -105,6 +105,11 @@ export class TenantService {
     return response.data;
   }
 
+  static async findName(id) {
+    const response = await authAxios.get(`/tenant/${id}/name`);
+    return response.data;
+  }
+
   static async findByUrl(url) {
     const response = await authAxios.get('/tenant/url', {
       params: { url },
