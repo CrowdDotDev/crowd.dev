@@ -49,6 +49,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.441.0",
+    "@aws-sdk/client-lambda": "^3.441.0",
+    "@aws-sdk/client-s3": "^3.441.0",
+    "@aws-sdk/client-sfn": "^3.441.0",
+    "@aws-sdk/client-sqs": "^3.441.0",
     "@aws-sdk/hash-node": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
     "@aws-sdk/s3-request-presigner": "^3.441.0",
