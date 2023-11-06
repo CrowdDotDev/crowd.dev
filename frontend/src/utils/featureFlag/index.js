@@ -12,7 +12,6 @@ export const FEATURE_FLAGS = {
   csvExport: 'csv-export',
   hubspot: 'hubspot',
   logRocket: 'log-rocket',
-  menuV2: 'menu-v2',
   developerMode: 'developer-mode',
 };
 
