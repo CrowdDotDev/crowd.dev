@@ -1948,7 +1948,6 @@ describe('MemberService tests', () => {
       )
 
       // Sequelize returns associations as array of models, we need to get plain objects
-      mergedMember.activities = mergedMember.activities.map((i) => i.get({ plain: true }))
       mergedMember.tags = mergedMember.tags.map((i) => i.get({ plain: true }))
       mergedMember.organizations = mergedMember.organizations.map((i) =>
         SequelizeTestUtils.objectWithoutKey(i.get({ plain: true }), ['memberOrganizations']),
@@ -2040,7 +2039,6 @@ describe('MemberService tests', () => {
         contributions: null,
         displayName: 'Anil',
         identities: [PlatformType.GITHUB, PlatformType.DISCORD],
-        activities: [activityCreated],
         attributes: {
           ...member1.attributes,
           ...member2.attributes,
