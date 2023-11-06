@@ -540,7 +540,6 @@ export default class UserRepository {
         mapToModel: true,
       },
     )
-    console.log(record)
     record = record[0]
 
     record = await this._populateRelations(record, options, {

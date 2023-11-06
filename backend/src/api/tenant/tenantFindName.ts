@@ -4,8 +4,7 @@ import Error404 from '../../errors/Error404'
 
 export default async (req, res) => {
   // This endpoint is unauthenticated on purpose, but public reprots.
-  let payload
-  payload = await new TenantService(req).findById(req.params.id)
+  const payload = await new TenantService(req).findById(req.params.id)
 
   if (payload) {
     if (req.currentUser) {
