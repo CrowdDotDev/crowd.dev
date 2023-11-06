@@ -1,4 +1,4 @@
-import { MessageBodyAttributeMap } from 'aws-sdk/clients/sqs'
+import { MessageAttributeValue } from "@aws-sdk/client-sqs";
 import moment from 'moment'
 import { getServiceChildLogger } from '@crowd/logging'
 import { AutomationTrigger } from '@crowd/types'
@@ -24,7 +24,7 @@ export const sendNodeWorkerMessage = async (
   }
 
   // we can only delay for 15 minutes then we have to re-delay message
-  let attributes: MessageBodyAttributeMap
+  let attributes: Record<string, MessageAttributeValue>
   let delay: number
   let delayed = false
   if (delaySeconds) {

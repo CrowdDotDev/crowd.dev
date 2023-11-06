@@ -1,4 +1,9 @@
-import AWS, { SQS } from 'aws-sdk'
+import AWS from 'aws-sdk';
+import { Comprehend } from "@aws-sdk/client-comprehend";
+import { Lambda } from "@aws-sdk/client-lambda";
+import { S3 } from "@aws-sdk/client-s3";
+import { SFN } from "@aws-sdk/client-sfn";
+import { SQS } from "@aws-sdk/client-sqs";
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
 import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../conf'
 
@@ -18,11 +23,21 @@ if (KUBE_MODE) {
   }
 
   sqsInstance = IS_DEV_ENV
-    ? new AWS.SQS({
-        endpoint: `http://${SQS_CONFIG.host}:${SQS_CONFIG.port}`,
-        ...awsSqsConfig,
-      })
-    : new AWS.SQS(awsSqsConfig)
+    ? new SQS({
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    },
+
+    // The transformation for endpoint is not implemented.
+    // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+    // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
+    endpoint: `http://${SQS_CONFIG.host}:${SQS_CONFIG.port}`,
+
+    ...awsSqsConfig,
+    region: 'eu-central-1'
+  })
+    : new SQS(awsSqsConfig)
 
   if (S3_CONFIG.aws) {
     const awsS3Config = {
@@ -32,24 +47,59 @@ if (KUBE_MODE) {
     }
 
     s3Instance = IS_DEV_ENV
-      ? new AWS.S3({
-          s3ForcePathStyle: true,
-          endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
-          apiVersion: '2012-10-17',
-          ...awsS3Config,
-        })
-      : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
+      ? new S3({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      // The key s3ForcePathStyle is renamed to forcePathStyle.
+      forcePathStyle: true,
+
+      // The transformation for endpoint is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
+      endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
+
+      // The transformation for apiVersion is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for apiVersion.
+      apiVersion: '2012-10-17',
+
+      ...awsS3Config,
+      region: 'eu-central-1'
+    })
+      : new S3({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      // The transformation for apiVersion is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for apiVersion.
+      apiVersion: '2012-10-17',
+
+      ...awsS3Config,
+      region: 'eu-central-1'
+    })
   }
 
   comprehendInstance = COMPREHEND_CONFIG.aws.accessKeyId
-    ? new AWS.Comprehend({
-        accessKeyId: COMPREHEND_CONFIG.aws.accessKeyId,
-        secretAccessKey: COMPREHEND_CONFIG.aws.secretAccessKey,
-        region: COMPREHEND_CONFIG.aws.region,
-      })
+    ? new Comprehend({
+    credentials: {
+      accessKeyId: COMPREHEND_CONFIG.aws.accessKeyId,
+      secretAccessKey: COMPREHEND_CONFIG.aws.secretAccessKey
+    },
+
+    region: COMPREHEND_CONFIG.aws.region
+  })
     : undefined
 } else {
   if (process.env.SERVICE === 'default') {
+    // JS SDK v3 does not support global configuration.
+    // Codemod has attempted to pass values to each service client in this file.
+    // You may need to update clients outside of this file, if they use global config.
     AWS.config.update({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -59,36 +109,121 @@ if (KUBE_MODE) {
 
   sqsInstance =
     process.env.NODE_ENV === 'development'
-      ? new AWS.SQS({
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-        })
-      : new AWS.SQS()
+      ? new SQS({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      // The transformation for endpoint is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
+      endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+
+      region: 'eu-central-1'
+    })
+      : new SQS({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      region: 'eu-central-1'
+    })
 
   s3Instance =
     process.env.NODE_ENV === 'development'
-      ? new AWS.S3({
-          region: `eu-west-1`,
-          s3ForcePathStyle: true,
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-          apiVersion: '2012-10-17',
-        })
-      : new AWS.S3({ apiVersion: '2012-10-17' })
+      ? new S3({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      region: `eu-west-1`,
+
+      // The key s3ForcePathStyle is renamed to forcePathStyle.
+      forcePathStyle: true,
+
+      // The transformation for endpoint is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
+      endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+
+      // The transformation for apiVersion is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for apiVersion.
+      apiVersion: '2012-10-17'
+    })
+      : new S3({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      // The transformation for apiVersion is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for apiVersion.
+      apiVersion: '2012-10-17',
+
+      region: 'eu-central-1'
+    })
 
   lambdaInstance =
     process.env.NODE_ENV === 'development'
-      ? new AWS.Lambda({
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-        })
-      : new AWS.Lambda()
+      ? new Lambda({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
 
-  notLocalLambdaInstance = new AWS.Lambda()
+      // The transformation for endpoint is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
+      endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+
+      region: 'eu-central-1'
+    })
+      : new Lambda({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      region: 'eu-central-1'
+    })
+
+  notLocalLambdaInstance = new Lambda({
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    },
+
+    region: 'eu-central-1'
+  })
 
   stepFunctionsInstance =
     process.env.NODE_ENV === 'development'
-      ? new AWS.StepFunctions({
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-        })
-      : new AWS.StepFunctions()
+      ? new SFN({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      // The transformation for endpoint is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
+      endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+
+      region: 'eu-central-1'
+    })
+      : new SFN({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      region: 'eu-central-1'
+    })
 
   comprehendInstance =
     process.env.AWS_ACCESS_KEY_ID !== 'aws-key-id' &&
@@ -97,7 +232,14 @@ if (KUBE_MODE) {
     process.env.AWS_SECRET_ACCESS_KEY !== 'none' &&
     process.env.AWS_ACCESS_KEY_ID !== undefined &&
     process.env.AWS_SECRET_ACCESS_KEY !== undefined
-      ? new AWS.Comprehend()
+      ? new Comprehend({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      },
+
+      region: 'eu-central-1'
+    })
       : undefined
 }
 
@@ -176,7 +318,6 @@ export const getCurrentQueueSize = async (sqs: SQS, queue: string): Promise<numb
       QueueUrl: queue,
       AttributeNames: ['ApproximateNumberOfMessages'],
     })
-    .promise()
 
   if (result.Attributes) {
     return parseInt(result.Attributes.ApproximateNumberOfMessages, 10)

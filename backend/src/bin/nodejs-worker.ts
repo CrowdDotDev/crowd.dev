@@ -1,7 +1,7 @@
 import { timeout } from '@crowd/common'
 import { Logger, getChildLogger, getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
-import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
+import { DeleteMessageCommandInput, Message, ReceiveMessageCommandInput } from "@aws-sdk/client-sqs";
 import moment from 'moment'
 import { SQS_CONFIG } from '../conf'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
@@ -27,7 +27,7 @@ process.on('SIGTERM', async () => {
 })
 
 const receive = (delayed?: boolean): Promise<Message | undefined> => {
-  const params: ReceiveMessageRequest = {
+  const params: ReceiveMessageCommandInput = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     MessageAttributeNames: !delayed
       ? undefined
@@ -38,7 +38,7 @@ const receive = (delayed?: boolean): Promise<Message | undefined> => {
 }
 
 const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void> => {
-  const params: DeleteMessageRequest = {
+  const params: DeleteMessageCommandInput = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     ReceiptHandle: receiptHandle,
   }

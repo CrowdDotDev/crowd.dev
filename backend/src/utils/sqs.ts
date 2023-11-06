@@ -1,14 +1,14 @@
 import {
-  DeleteMessageRequest,
+  DeleteMessageCommandInput,
   Message,
-  ReceiveMessageRequest,
-  SendMessageRequest,
-  SendMessageResult,
-} from 'aws-sdk/clients/sqs'
+  ReceiveMessageCommandInput,
+  SendMessageCommandInput,
+  SendMessageCommandOutput,
+} from "@aws-sdk/client-sqs";
 import { sqs } from '../services/aws'
 
 export const receiveMessage = async (
-  params: ReceiveMessageRequest,
+  params: ReceiveMessageCommandInput,
 ): Promise<Message | undefined> => {
   params.MaxNumberOfMessages = 1
   params.WaitTimeSeconds = 15
@@ -23,9 +23,9 @@ export const receiveMessage = async (
   return undefined
 }
 
-export const deleteMessage = async (params: DeleteMessageRequest): Promise<void> => {
+export const deleteMessage = async (params: DeleteMessageCommandInput): Promise<void> => {
   await sqs.deleteMessage(params).promise()
 }
 
-export const sendMessage = async (params: SendMessageRequest): Promise<SendMessageResult> =>
+export const sendMessage = async (params: SendMessageCommandInput): Promise<SendMessageCommandOutput> =>
   sqs.sendMessage(params).promise()
