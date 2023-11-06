@@ -904,9 +904,6 @@ class MemberRepository {
       transaction,
     })
 
-    options.log.info('Aggregates: ')
-    options.log.info(data)
-
     return data?.[0] || null
   }
 
