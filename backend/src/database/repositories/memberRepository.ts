@@ -3193,11 +3193,11 @@ class MemberRepository {
 
     const activityAggregates = await MemberRepository.getActivityAggregates(output.id, options)
 
-    output.activeOn = activityAggregates.activeOn || []
-    output.activityCount = activityAggregates.activityCount || 0
-    output.activityTypes = activityAggregates.activityTypes || []
-    output.activeDaysCount = activityAggregates.activeDaysCount || 0
-    output.averageSentiment = activityAggregates.averageSentiment || 0
+    output.activeOn = activityAggregates?.activeOn || []
+    output.activityCount = activityAggregates?.activityCount || 0
+    output.activityTypes = activityAggregates?.activityTypes || []
+    output.activeDaysCount = activityAggregates?.activeDaysCount || 0
+    output.averageSentiment = activityAggregates?.averageSentiment || 0
 
     output.lastActivity =
       (
