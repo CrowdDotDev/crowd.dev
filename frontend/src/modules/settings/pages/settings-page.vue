@@ -16,11 +16,6 @@
             class="pt-4"
           />
         </el-tab-pane>
-        <el-tab-pane v-if="!menuV2Enabled" label="Automations" name="automations">
-          <app-automation-list-page
-            v-if="activeTab === 'automations'"
-          />
-        </el-tab-pane>
         <el-tab-pane label="API Keys" name="api-keys">
           <app-api-keys-page
             v-if="activeTab === 'api-keys'"
@@ -69,11 +64,6 @@ export default {
         this.currentTenant,
         this.currentUser,
       ).read;
-    },
-    menuV2Enabled() {
-      return FeatureFlag.isFlagEnabled(
-        FeatureFlag.flags.menuV2,
-      );
     },
     computedActiveTab: {
       get() {
