@@ -4,7 +4,7 @@ import {
   ReceiveMessageCommandInput,
   SendMessageCommandInput,
   SendMessageCommandOutput,
-} from "@aws-sdk/client-sqs";
+} from '@aws-sdk/client-sqs';
 import { sqs } from '../services/aws'
 
 export const receiveMessage = async (

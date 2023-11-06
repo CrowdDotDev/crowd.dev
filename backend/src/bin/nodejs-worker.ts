@@ -1,7 +1,7 @@
 import { timeout } from '@crowd/common'
 import { Logger, getChildLogger, getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
-import { DeleteMessageCommandInput, Message, ReceiveMessageCommandInput } from "@aws-sdk/client-sqs";
+import { DeleteMessageCommandInput, Message, ReceiveMessageCommandInput } from '@aws-sdk/client-sqs';
 import moment from 'moment'
 import { SQS_CONFIG } from '../conf'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'

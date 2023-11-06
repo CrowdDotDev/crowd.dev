@@ -1,9 +1,9 @@
 import AWS from 'aws-sdk';
-import { Comprehend } from "@aws-sdk/client-comprehend";
-import { Lambda } from "@aws-sdk/client-lambda";
-import { S3 } from "@aws-sdk/client-s3";
-import { SFN } from "@aws-sdk/client-sfn";
-import { SQS } from "@aws-sdk/client-sqs";
+import { Comprehend } from '@aws-sdk/client-comprehend';
+import { Lambda } from '@aws-sdk/client-lambda';
+import { S3 } from '@aws-sdk/client-s3';
+import { SFN } from '@aws-sdk/client-sfn';
+import { SQS } from '@aws-sdk/client-sqs';
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
 import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../conf'
 

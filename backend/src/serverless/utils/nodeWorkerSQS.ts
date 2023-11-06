@@ -1,4 +1,4 @@
-import { MessageAttributeValue } from "@aws-sdk/client-sqs";
+import { MessageAttributeValue } from '@aws-sdk/client-sqs';
 import moment from 'moment'
 import { getServiceChildLogger } from '@crowd/logging'
 import { AutomationTrigger } from '@crowd/types'
