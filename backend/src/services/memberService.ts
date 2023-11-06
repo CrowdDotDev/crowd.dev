@@ -940,7 +940,7 @@ export default class MemberService extends LoggerBase {
           )
         }
       }
-    
+
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {

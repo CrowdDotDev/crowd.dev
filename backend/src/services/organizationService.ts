@@ -578,7 +578,6 @@ export default class OrganizationService extends LoggerBase {
           )
         }
       }
-    
 
       return record
     } catch (error) {
