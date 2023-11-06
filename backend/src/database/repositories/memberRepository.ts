@@ -3191,14 +3191,13 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const { activeOn, activityCount, activeDaysCount, averageSentiment, activityTypes } =
-      await MemberRepository.getActivityAggregates(output.id, options)
+    const activityAggregates = await MemberRepository.getActivityAggregates(output.id, options)
 
-    output.activeOn = activeOn || []
-    output.activityCount = activityCount || 0
-    output.activityTypes = activityTypes || []
-    output.activeDaysCount = activeDaysCount || 0
-    output.averageSentiment = averageSentiment || 0
+    output.activeOn = activityAggregates.activeOn || []
+    output.activityCount = activityAggregates.activityCount || 0
+    output.activityTypes = activityAggregates.activityTypes || []
+    output.activeDaysCount = activityAggregates.activeDaysCount || 0
+    output.averageSentiment = activityAggregates.averageSentiment || 0
 
     output.lastActivity =
       (
