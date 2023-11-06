@@ -901,7 +901,7 @@ class MemberRepository {
     const data: ActivityAggregates[] = await seq.query(query, {
       replacements: {
         memberId,
-        tenantId: currentTenant.id
+        tenantId: currentTenant.id,
       },
       type: QueryTypes.SELECT,
       transaction,
