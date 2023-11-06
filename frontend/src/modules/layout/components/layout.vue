@@ -128,9 +128,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
-
 import AppMenu from '@/modules/layout/components/menu.vue';
-import { FeatureFlag } from '@/utils/featureFlag';
 
 export default {
   name: 'AppLayout',

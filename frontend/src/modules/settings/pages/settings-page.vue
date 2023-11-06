@@ -34,9 +34,7 @@ import { mapGetters } from 'vuex';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import AppPlansPage from '@/modules/settings/pages/plans-page.vue';
 import UserListPage from '@/modules/user/pages/user-list-page.vue';
-import AutomationListPage from '@/modules/automation/components/automation-list.vue';
 import { UserPermissions } from '@/modules/user/user-permissions';
-import { FeatureFlag } from '@/utils/featureFlag';
 
 export default {
   name: 'AppSettingsPage',
@@ -45,7 +43,6 @@ export default {
     AppApiKeysPage,
     AppPlansPage,
     'app-user-list-page': UserListPage,
-    'app-automation-list-page': AutomationListPage,
   },
 
   data() {
