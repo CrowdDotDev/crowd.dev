@@ -1,10 +1,9 @@
-import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
 import sendgrid from '@sendgrid/mail'
 
 import { Config } from '@crowd/archetype-standard'
 import { ServiceWorker, Options } from '@crowd/archetype-worker'
 
-import { getAndSendNextEmails } from './workflows'
+import { scheduleEmailEagleEyeDigest, scheduleEmailAnalyticsWeekly } from './schedules'
 
 const config: Config = {
   envvars: [
@@ -13,6 +12,7 @@ const config: Config = {
     'CROWD_EAGLE_EYE_API_KEY',
     'CROWD_SENDGRID_KEY',
     'CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST',
+    'CROWD_SENDGRID_TEMPLATE_WEEKLY_ANALYTICS',
     'CROWD_SENDGRID_NAME_FROM',
     'CROWD_SENDGRID_EMAIL_FROM',
   ],
@@ -40,35 +40,8 @@ setImmediate(async () => {
 
   sendgrid.setApiKey(process.env['CROWD_SENDGRID_KEY'])
 
-  try {
-    await svc.temporal.schedule.create({
-      scheduleId: 'email-digest',
-      spec: {
-        intervals: [
-          {
-            every: '30 minutes',
-          },
-        ],
-      },
-      policies: {
-        overlap: ScheduleOverlapPolicy.BUFFER_ONE,
-        catchupWindow: '1 minute',
-      },
-      action: {
-        type: 'startWorkflow',
-        workflowType: getAndSendNextEmails,
-        taskQueue: 'emails',
-        workflowExecutionTimeout: '5 minutes',
-      },
-    })
-  } catch (err) {
-    if (err instanceof ScheduleAlreadyRunning) {
-      svc.log.info('Schedule already registered in Temporal.')
-      svc.log.info('Configuration may have changed since. Please make sure they are in sync.')
-    } else {
-      throw new Error(err)
-    }
-  }
+  await scheduleEmailEagleEyeDigest()
+  await scheduleEmailAnalyticsWeekly()
 
   await svc.start()
 })

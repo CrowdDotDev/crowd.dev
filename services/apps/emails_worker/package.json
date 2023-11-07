@@ -21,8 +21,9 @@
     "@temporalio/activity": "~1.8.6",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",
-    "@types/node": "^20.8.2",
     "axios": "~1.5.1",
+    "html-to-text": "~9.0.5",
+    "lodash": "~4.17.21",
     "moment": "~2.29.4",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
@@ -30,6 +31,7 @@
     "uuid": "~9.0.1"
   },
   "devDependencies": {
+    "@types/node": "^20.8.2",
     "@types/uuid": "~9.0.6",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",

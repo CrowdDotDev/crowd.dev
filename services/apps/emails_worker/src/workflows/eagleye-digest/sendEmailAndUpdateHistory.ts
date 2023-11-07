@@ -1,25 +1,27 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../activities'
-import { UserTenant } from '../types'
+import * as activities from '../../activities'
+import { UserTenant } from '../../types/user'
 
 // Configure timeouts and retry policies to fetch content from third-party sources.
-const { fetchFromEagleEye, fetchFromDatabase } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '5 seconds',
-})
+const { eagleeyeFetchFromEagleEye, eagleeyeFetchFromDatabase } = proxyActivities<typeof activities>(
+  {
+    startToCloseTimeout: '5 seconds',
+  },
+)
 
 // Configure timeouts and retry policies to build the content of the email to send.
-const { buildEmailContent } = proxyActivities<typeof activities>({
+const { eagleeyeBuildEmailContent } = proxyActivities<typeof activities>({
   startToCloseTimeout: '5 seconds',
 })
 
 // Configure timeouts and retry policies to actually send the email.
-const { sendEmail } = proxyActivities<typeof activities>({
+const { eagleeyeSendEmail } = proxyActivities<typeof activities>({
   startToCloseTimeout: '5 seconds',
 })
 
 // Configure timeouts and retry policies to update email history in the database.
-const { updateEmailHistory, updateNextEmailAt } = proxyActivities<typeof activities>({
+const { updateEmailHistory, eagleeyeUpdateNextEmailAt } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
 })
 
@@ -34,8 +36,8 @@ sendEmailAndUpdateHistory is a Temporal workflow that:
 */
 export async function sendEmailAndUpdateHistory(row: UserTenant): Promise<void> {
   const [fetchedFromEagleEye, fetchedFromDatabase] = await Promise.all([
-    fetchFromEagleEye(row),
-    fetchFromDatabase(row),
+    eagleeyeFetchFromEagleEye(row),
+    eagleeyeFetchFromDatabase(row),
   ])
 
   // No need to continue the workflow if no data was fetched.
@@ -43,7 +45,7 @@ export async function sendEmailAndUpdateHistory(row: UserTenant): Promise<void> 
     return
   }
 
-  const content = await buildEmailContent({
+  const content = await eagleeyeBuildEmailContent({
     fromDatabase: fetchedFromDatabase,
     fromEagleEye: fetchedFromEagleEye,
   })
@@ -53,7 +55,7 @@ export async function sendEmailAndUpdateHistory(row: UserTenant): Promise<void> 
     return
   }
 
-  const email = await sendEmail({
+  const email = await eagleeyeSendEmail({
     userId: row.userId,
     tenantId: row.tenantId,
     settings: row.settings,
@@ -63,10 +65,14 @@ export async function sendEmailAndUpdateHistory(row: UserTenant): Promise<void> 
   await Promise.all([
     updateEmailHistory({
       ...row,
+      type: 'eagle-eye-digest',
+      emails: [row.settings.eagleEye.emailDigest?.email],
       sentAt: email.sentAt,
     }),
-    updateNextEmailAt({
+    eagleeyeUpdateNextEmailAt({
       ...row,
+      type: 'eagle-eye-digest',
+      emails: [row.settings.eagleEye.emailDigest?.email],
       sentAt: email.sentAt,
     }),
   ])

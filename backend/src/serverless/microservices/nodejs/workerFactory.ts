@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
-import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
+import { AutomationTrigger, AutomationType, Edition, FeatureFlag } from '@crowd/types'
+import { getUnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -50,6 +51,18 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'sendgrid-webhooks':
       return processSendgridWebhook(event)
     case 'weekly-analytics-emails':
+      if (
+        isFeatureEnabled(
+          FeatureFlag.TEMPORAL_EMAILS,
+          async () => ({
+            tenant,
+          }),
+          unleash,
+        )
+      ) {
+        return {}
+      }
+
       return weeklyAnalyticsEmailsWorker(tenant)
     case 'eagle-eye-email-digest':
       if (

@@ -11,7 +11,7 @@ export interface Content {
 }
 
 export interface EmailToSend extends UserTenant {
-  content: EagleEyePostWithActions[]
+  content: EagleEyePostWithActions[] | object
 }
 
 export interface EmailSent {

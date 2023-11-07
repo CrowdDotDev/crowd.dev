@@ -1,15 +1,15 @@
-import axios, { AxiosResponse } from 'axios'
 import moment from 'moment'
-import sendgrid, { MailDataRequired } from '@sendgrid/mail'
+import axios, { AxiosResponse } from 'axios'
 
 import {
   EagleEyePostWithActions,
   EagleEyeRawPost,
-} from '../../../../../backend/src/types/eagleEyeTypes'
+} from '../../../../../../backend/src/types/eagleEyeTypes'
 
-import { svc } from '../main'
-import { UserTenant, Content, EmailToSend, EmailSent } from '../types'
-import { switchDate } from '../utils/date'
+import { svc } from '../../main'
+import { Content } from '../../types/email'
+import { UserTenant } from '../../types/user'
+import { switchDate } from '../../utils/date'
 
 /*
 fetchFromEagleEye is a Temporal activity that fetches the content to push inside
@@ -108,39 +108,4 @@ export async function buildEmailContent(posts: Content): Promise<EagleEyePostWit
   })
 
   return content
-}
-
-/*
-sendEmail is a Temporal activity that sends an email to a user's email address
-using the SendGrid API.
-*/
-export async function sendEmail(toSend: EmailToSend): Promise<EmailSent> {
-  const email: MailDataRequired = {
-    to: toSend.settings.eagleEye.emailDigest.email,
-    from: {
-      name: process.env['CROWD_SENDGRID_NAME_FROM'],
-      email: process.env['CROWD_SENDGRID_EMAIL_FROM'],
-    },
-    templateId: process.env['CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST'],
-    dynamicTemplateData: {
-      content: toSend.content,
-      frequency: toSend.settings.eagleEye.emailDigest.frequency,
-      date: moment().format('D MMM YYYY'),
-      appHost: process.env['CROWD_API_FRONTEND_URL'],
-    },
-    customArgs: {
-      tenantId: toSend.tenantId,
-      userId: toSend.userId,
-    },
-  }
-
-  try {
-    await sendgrid.send(email)
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return {
-    sentAt: new Date(),
-  }
 }

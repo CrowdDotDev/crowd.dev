@@ -1,8 +1,8 @@
 import { FeatureFlag } from '@crowd/types'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 
-import { svc } from '../main'
-import { UserTenant } from '../types'
+import { svc } from '../../main'
+import { UserTenant } from '../../types/user'
 
 /*
 getNextEmails is a Temporal activity that fetches all users along their EagleEye

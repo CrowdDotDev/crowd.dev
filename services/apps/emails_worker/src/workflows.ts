@@ -1,4 +1,12 @@
-import { getAndSendNextEmails } from './workflows/getAndSendNextEmails'
-import { sendEmailAndUpdateHistory } from './workflows/sendEmailAndUpdateHistory'
+import { getAndSendNextEmails as eagleeyeGetAndSendNextEmails } from './workflows/eagleye-digest/getAndSendNextEmails'
+import { sendEmailAndUpdateHistory as eagleeyeSendEmailAndUpdateHistory } from './workflows/eagleye-digest/sendEmailAndUpdateHistory'
 
-export { getAndSendNextEmails, sendEmailAndUpdateHistory }
+import { getAndSendNextEmails as weeklyGetAndSendNextEmails } from './workflows/weekly-analytics/getAndSendNextEmails'
+import { sendEmailAndUpdateHistory as weeklySendEmailAndUpdateHistory } from './workflows/weekly-analytics/sendEmailAndUpdateHistory'
+
+export {
+  eagleeyeGetAndSendNextEmails,
+  eagleeyeSendEmailAndUpdateHistory,
+  weeklyGetAndSendNextEmails,
+  weeklySendEmailAndUpdateHistory,
+}

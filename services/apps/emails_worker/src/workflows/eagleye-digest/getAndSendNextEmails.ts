@@ -5,7 +5,7 @@ import {
   ChildWorkflowCancellationType,
 } from '@temporalio/workflow'
 
-import * as activities from '../activities/getNextEmails'
+import * as activities from '../../activities/eagleeye-digest/getNextEmails'
 import { sendEmailAndUpdateHistory } from './sendEmailAndUpdateHistory'
 
 // Configure timeouts and retry policies to fetch emails to send.
@@ -27,7 +27,7 @@ export async function getAndSendNextEmails(): Promise<void> {
   await Promise.all(
     users.map((user) => {
       return startChild(sendEmailAndUpdateHistory, {
-        workflowId: 'email-send-' + user.tenantId + '-' + user.userId,
+        workflowId: 'email-eagleeye-digest/' + user.tenantId + '/' + user.userId,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
         workflowExecutionTimeout: '15 minutes',
