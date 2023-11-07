@@ -3,13 +3,13 @@ import DataSinkService from '../service/dataSink.service'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
+import { RedisClient, processWithLock } from '@crowd/redis'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import { Client as TemporalClient } from '@crowd/temporal'
 import { timeout } from '@crowd/common'
 
 const MAX_CONCURRENT_PROMISES = 10
-const MAX_RESULTS_TO_LOAD = 1000
+const MAX_RESULTS_TO_LOAD = 100
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
@@ -34,9 +34,11 @@ export const processOldResultsJob = async (
 
   let current = 0
   const loadNextBatch = async (): Promise<string[]> => {
-    const resultIds = await repo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
-    await repo.touchUpdatedAt(resultIds)
-    return resultIds
+    return await processWithLock(redis, 'process-old-results', 5 * 60, 5 * 60, async () => {
+      const resultIds = await repo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
+      await repo.touchUpdatedAt(resultIds)
+      return resultIds
+    })
   }
 
   let resultsToProcess = await loadNextBatch()
