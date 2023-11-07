@@ -53,5 +53,5 @@ export * from './customView'
 export * from './enums/featureFlags'
 
 export * from './temporal'
-
 export * from './enums/tenants'
+export * from './service'

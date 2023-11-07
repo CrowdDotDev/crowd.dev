@@ -45,6 +45,7 @@ setImmediate(async () => {
   }
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
+
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
 
   const queue = new WorkerQueueReceiver(

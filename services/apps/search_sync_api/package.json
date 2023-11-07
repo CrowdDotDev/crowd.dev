@@ -1,0 +1,44 @@
+{
+  "name": "@crowdapp/search-sync-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "SERVICE=search-sync-api TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=search-sync-api TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9236 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug": "SERVICE=search-sync-api TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9236 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug:local",
+    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug",
+    "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
+    "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
+    "format-check": "./node_modules/.bin/prettier --check .",
+    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@crowd/common": "file:../../libs/common",
+    "@crowd/opensearch": "file:../../libs/opensearch",
+    "@crowd/database": "file:../../libs/database",
+    "@crowd/redis": "file:../../libs/redis",
+    "@crowd/logging": "file:../../libs/logging",
+    "@crowd/types": "file:../../libs/types",
+    "@types/config": "^3.3.0",
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.16.3",
+    "bunyan-middleware": "^1.0.2",
+    "config": "^3.3.9",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.4",
+    "@opensearch-project/opensearch": "^1.2.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8"
+  }
+}
