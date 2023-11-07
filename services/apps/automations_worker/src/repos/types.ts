@@ -5,6 +5,7 @@ export interface IMemberData {
   tenantId: string
   attributes: any
 
+  score: number
   username: Record<string, string[]>
   identities: string[]
   segments: unknown[]
