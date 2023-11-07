@@ -19,7 +19,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@temporalio/client": "~1.8.6",
-    "@crowd/logging": "file:../logging"
+    "@crowd/logging": "file:../logging",
+    "@temporalio/client": "~1.8.6"
   }
 }
