@@ -2,7 +2,6 @@ import { websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -20,6 +19,7 @@ import {
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
+import SearchSyncService from './searchSyncService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -118,11 +118,11 @@ export default class OrganizationService extends LoggerBase {
       // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
       // because of website unique constraint
       if (toUpdate.website && toUpdate.website === toMerge.website) {
-        await txService.update(toMergeId, { website: null })
+        await txService.update(toMergeId, { website: null }, false, false)
       }
 
       // Update original organization
-      await txService.update(originalId, toUpdate)
+      await txService.update(originalId, toUpdate, false, false)
 
       // update members that belong to source organization to destination org
       await OrganizationRepository.moveMembersBetweenOrganizations(
@@ -155,15 +155,16 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, originalId)
-      await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
+      const searchSyncService = new SearchSyncService(this.options)
+
+      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
+      await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
 
       // sync organization members
-      await searchSyncEmitter.triggerOrganizationMembersSync(originalId)
+      await searchSyncService.triggerOrganizationMembersSync(originalId)
 
       // sync organization activities
-      await searchSyncEmitter.triggerOrganizationActivitiesSync(originalId)
+      await searchSyncService.triggerOrganizationActivitiesSync(originalId)
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }
@@ -302,7 +303,7 @@ export default class OrganizationService extends LoggerBase {
 
   async addToNoMerge(organizationId: string, noMergeId: string): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await OrganizationRepository.addNoMerge(organizationId, noMergeId, {
@@ -316,8 +317,8 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
-      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
+      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
+      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
@@ -503,8 +504,9 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+      const searchSyncService = new SearchSyncService(this.options)
+
+      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
 
       return await this.findById(record.id)
     } catch (error) {
@@ -520,7 +522,7 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
-  async update(id, data, overrideIdentities = false) {
+  async update(id, data, overrideIdentities = false, syncToOpensearch = true) {
     let tx
 
     try {
@@ -566,16 +568,18 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      try {
-        // TODO replace with synchroneous call
-        const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-        await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, record.id)
-      } catch (emitErr) {
-        this.log.error(
-          emitErr,
-          { tenantId: this.options.currentTenant.id, organizationId: record.id },
-          'Error while emitting organization sync!',
-        )
+      if (syncToOpensearch) {
+        try {
+          const searchSyncService = new SearchSyncService(this.options)
+
+          await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+        } catch (emitErr) {
+          this.log.error(
+            emitErr,
+            { tenantId: this.options.currentTenant.id, organizationId: record.id },
+            'Error while emitting organization sync!',
+          )
+        }
       }
 
       return record
@@ -607,10 +611,10 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      const searchSyncService = new SearchSyncService(this.options)
 
       for (const id of ids) {
-        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
+        await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -664,9 +668,10 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      const searchSyncService = new SearchSyncService(this.options)
+
       for (const id of ids) {
-        await searchSyncEmitter.triggerRemoveOrganization(this.options.currentTenant.id, id)
+        await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
