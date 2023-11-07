@@ -5,11 +5,18 @@ import { FeatureFlag } from '@crowd/types'
 import { getSearchSyncApiClient } from '../utils/apiClients'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { IS_TEST_ENV } from '@/conf'
 
 export default class SearchSyncService extends LoggerBase {
   static async getSearchSyncClient(
     options,
   ): Promise<SearchSyncApiClient | SearchSyncWorkerEmitter> {
+
+    // tests can always use the async emitter
+    if (IS_TEST_ENV) {
+      return getSearchSyncWorkerEmitter()
+    }
+
     if (await isFeatureEnabled(FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES, options)) {
       return getSearchSyncApiClient()
     }
