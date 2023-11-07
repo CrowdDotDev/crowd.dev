@@ -205,5 +205,8 @@
     "namespace": "CROWD_TEMPORAL_NAMESPACE",
     "certificate": "CROWD_TEMPORAL_CERTIFICATE",
     "privateKey": "CROWD_TEMPORAL_PRIVATE_KEY"
+  },
+  "searchSyncApi": {
+    "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
   }
 }
