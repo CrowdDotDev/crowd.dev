@@ -1,6 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
+import { IIntegrationResult, IntegrationResultState, TenantPlans } from '@crowd/types'
 import { IFailedResultData, IResultData } from './dataSink.data'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
@@ -64,7 +64,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
         inner join tenants t on t.id = r."tenantId"
         where r.state in ($(pendingState), $(processingState))
           and r."updatedAt" < now() - interval '1 hour'
-        order by case when t."plan" in ('Scale', 'Growth') then 0 else 1 end,
+        order by case when t."plan" in ($(plans:csv)) then 0 else 1 end,
                 case when r."webhookId" is not null then 0 else 1 end,
                 r."webhookId" asc,
                 r."updatedAt" desc
@@ -74,6 +74,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
           pendingState: IntegrationResultState.PENDING,
           processingState: IntegrationResultState.PROCESSING,
           maxRetries: 5,
+          plans: [TenantPlans.Growth, TenantPlans.Scale],
         },
       )
 
