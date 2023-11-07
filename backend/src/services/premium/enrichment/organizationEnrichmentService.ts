@@ -17,7 +17,7 @@ import { IServiceOptions } from '../../IServiceOptions'
 import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import OrganizationService from '@/services/organizationService'
-import SearchSyncService from '@/services/searchSyncService'
+import SearchSyncService, { SyncMode } from '@/services/searchSyncService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
@@ -166,6 +166,8 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
+
       let unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
@@ -227,11 +229,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       )
 
       for (const org of records) {
-        await SearchSyncService.triggerOrganizationSync(
-          this.options.currentTenant.id,
-          org.id,
-          this.options,
-        )
+        await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
       }
 
       await SequelizeRepository.commitTransaction(transaction)

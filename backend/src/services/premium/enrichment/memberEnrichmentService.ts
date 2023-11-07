@@ -35,7 +35,7 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import SearchSyncService from '@/services/searchSyncService'
+import SearchSyncService, { SyncMode } from '@/services/searchSyncService'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -144,6 +144,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
+    const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -158,10 +159,9 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
-        await SearchSyncService.triggerMemberSync(
+        await searchSyncService.triggerMemberSync(
           this.options.currentTenant.id,
           memberId,
-          this.options,
         )
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
@@ -238,6 +238,8 @@ export default class MemberEnrichmentService extends LoggerBase {
       if (!this.attributes) {
         await this.getAttributes()
       }
+
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(options)
@@ -358,10 +360,9 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      await SearchSyncService.triggerMemberSync(
+      await searchSyncService.triggerMemberSync(
         this.options.currentTenant.id,
         result.id,
-        this.options,
       )
 
       result = await memberService.findById(result.id, true, false)

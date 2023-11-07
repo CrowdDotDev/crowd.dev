@@ -200,6 +200,7 @@ export default class MemberService extends LoggerBase {
     fireSync: boolean = true,
   ) {
     const logger = this.options.log
+    const searchSyncService = new SearchSyncService(this.options)
 
     const errorDetails: any = {}
 
@@ -435,11 +436,7 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await SearchSyncService.triggerMemberSync(
-          this.options.currentTenant.id,
-          record.id,
-          this.options,
-        )
+        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
       }
 
       if (!existing && fireCrowdWebhooks) {
@@ -659,16 +656,10 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(tx)
 
       try {
-        await SearchSyncService.triggerMemberSync(
-          this.options.currentTenant.id,
-          originalId,
-          this.options,
-        )
-        await SearchSyncService.triggerRemoveMember(
-          this.options.currentTenant.id,
-          toMergeId,
-          this.options,
-        )
+        const searchSyncService = new SearchSyncService(this.options)
+
+        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
+        await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
       } catch (emitError) {
         this.log.error(
           emitError,
@@ -781,19 +772,19 @@ export default class MemberService extends LoggerBase {
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     try {
+      const searchSyncService = new SearchSyncService(this.options)
+
       await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
 
       for (const suggestion of suggestions) {
-        await SearchSyncService.triggerMemberSync(
+        await searchSyncService.triggerMemberSync(
           this.options.currentTenant.id,
           suggestion.members[0],
-          this.options,
         )
-        await SearchSyncService.triggerMemberSync(
+        await searchSyncService.triggerMemberSync(
           this.options.currentTenant.id,
           suggestion.members[1],
-          this.options,
         )
       }
       return { status: 200 }
@@ -812,6 +803,7 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
@@ -833,16 +825,8 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await SearchSyncService.triggerMemberSync(
-        this.options.currentTenant.id,
-        memberOneId,
-        this.options,
-      )
-      await SearchSyncService.triggerMemberSync(
-        this.options.currentTenant.id,
-        memberTwoId,
-        this.options,
-      )
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberOneId)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
 
       return { status: 200 }
     } catch (error) {
@@ -890,6 +874,7 @@ export default class MemberService extends LoggerBase {
 
   async update(id, data, syncToOpensearch = true) {
     let transaction
+    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
@@ -953,11 +938,7 @@ export default class MemberService extends LoggerBase {
 
       if (syncToOpensearch) {
         try {
-          await SearchSyncService.triggerMemberSync(
-            this.options.currentTenant.id,
-            record.id,
-            this.options,
-          )
+          await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
         } catch (emitErr) {
           this.log.error(
             emitErr,
@@ -994,6 +975,7 @@ export default class MemberService extends LoggerBase {
 
   async destroyBulk(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await MemberRepository.destroyBulk(
@@ -1012,12 +994,13 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await SearchSyncService.triggerRemoveMember(this.options.currentTenant.id, id, this.options)
+      await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       for (const id of ids) {
@@ -1038,7 +1021,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await SearchSyncService.triggerRemoveMember(this.options.currentTenant.id, id, this.options)
+      await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, id)
     }
   }
 
