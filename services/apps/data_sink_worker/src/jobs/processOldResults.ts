@@ -45,37 +45,39 @@ export const processOldResultsJob = async (
 
   let successCount = 0
   let errorCount = 0
+  let i = 0
 
-  for (let i = 0; i < resultsToProcess.length; i++) {
-    const resultId = resultsToProcess[i]
+  while (resultsToProcess.length > 0) {
+    const resultId = resultsToProcess.pop()
 
     while (current == MAX_CONCURRENT_PROMISES) {
       await timeout(1000)
     }
 
-    log.info(`Processing result ${i + 1}/${resultsToProcess.length}`)
+    i += 1
+    log.info(`Processing result ${i}/${resultsToProcess.length}`)
     current += 1
     service
       .processResult(resultId)
       .then(() => {
         current--
         successCount++
-        log.info(`Processed result ${i + 1}/${resultsToProcess.length}`)
+        log.info(`Processed result ${i}/${resultsToProcess.length}`)
       })
       .catch((err) => {
         current--
         errorCount++
-        log.error(err, `Error processing result ${i + 1}/${resultsToProcess.length}!`)
+        log.error(err, `Error processing result ${i}/${resultsToProcess.length}!`)
       })
-  }
 
-  while (current > 0) {
-    await timeout(1000)
-  }
+    if (resultsToProcess.length === 0) {
+      while (current > 0) {
+        await timeout(1000)
+      }
 
-  log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
-
-  if (resultsToProcess.length === 0) {
-    resultsToProcess = await loadNextBatch()
+      log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
+      resultsToProcess = await loadNextBatch()
+      i = 0
+    }
   }
 }
