@@ -7,7 +7,7 @@ import { RedisClient, processWithLock } from '@crowd/redis'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import { Client as TemporalClient } from '@crowd/temporal'
 
-const MAX_CONCURRENT_PROMISES = 3
+const MAX_CONCURRENT_PROMISES = 10
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
