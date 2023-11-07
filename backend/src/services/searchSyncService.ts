@@ -11,7 +11,6 @@ export default class SearchSyncService extends LoggerBase {
   static async getSearchSyncClient(
     options,
   ): Promise<SearchSyncApiClient | SearchSyncWorkerEmitter> {
-
     // tests can always use the async emitter
     if (IS_TEST_ENV) {
       return getSearchSyncWorkerEmitter()
