@@ -34,7 +34,7 @@ export const processOldResultsJob = async (
 
   let current = 0
   const loadNextBatch = async (): Promise<string[]> => {
-    return await processWithLock(redis, 'process-old-results', 3 * 60, 2 * 60, async () => {
+    return await processWithLock(redis, 'process-old-results', 5 * 60, 5 * 60, async () => {
       const resultIds = await repo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
       await repo.touchUpdatedAt(resultIds)
       return resultIds
