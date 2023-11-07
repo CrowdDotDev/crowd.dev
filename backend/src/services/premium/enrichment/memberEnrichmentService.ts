@@ -12,7 +12,6 @@ import {
   PlatformType,
   OrganizationSource,
 } from '@crowd/types'
-import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
@@ -36,6 +35,7 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -144,7 +144,6 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
-    const searchSyncApi = await getSearchSyncApiClient()
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -159,7 +158,11 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
-        await searchSyncApi.triggerMemberSync(memberId)
+        await SearchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          memberId,
+          this.options,
+        )
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (
@@ -235,8 +238,6 @@ export default class MemberEnrichmentService extends LoggerBase {
       if (!this.attributes) {
         await this.getAttributes()
       }
-
-      const searchSyncApi = await getSearchSyncApiClient()
 
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(options)
@@ -357,7 +358,11 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      await searchSyncApi.triggerMemberSync(result.id)
+      await SearchSyncService.triggerMemberSync(
+        this.options.currentTenant.id,
+        result.id,
+        this.options,
+      )
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)

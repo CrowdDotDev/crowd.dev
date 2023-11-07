@@ -10,7 +10,6 @@ import {
   IOrganizationCache,
   PlatformType,
 } from '@crowd/types'
-import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'
@@ -18,6 +17,7 @@ import { IServiceOptions } from '../../IServiceOptions'
 import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import OrganizationService from '@/services/organizationService'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
@@ -166,7 +166,6 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const searchSyncApi = await getSearchSyncApiClient()
       let unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
@@ -228,7 +227,11 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       )
 
       for (const org of records) {
-        await searchSyncApi.triggerOrganizationSync(org.id)
+        await SearchSyncService.triggerOrganizationSync(
+          this.options.currentTenant.id,
+          org.id,
+          this.options,
+        )
       }
 
       await SequelizeRepository.commitTransaction(transaction)

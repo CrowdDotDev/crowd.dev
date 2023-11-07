@@ -4,7 +4,6 @@ import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
 import { FeatureFlag, PlatformType } from '@crowd/types'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { IS_DEV_ENV, IS_TEST_ENV, GITHUB_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -24,6 +23,7 @@ import MemberService from './memberService'
 import SegmentService from './segmentService'
 import MemberAffiliationService from './memberAffiliationService'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import SearchSyncService from './searchSyncService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -56,7 +56,6 @@ export default class ActivityService extends LoggerBase {
     fireSync: boolean = true,
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncApi = await getSearchSyncApiClient()
     const repositoryOptions = { ...this.options, transaction }
 
     try {
@@ -182,8 +181,16 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await searchSyncApi.triggerMemberSync(record.memberId)
-        await searchSyncApi.triggerActivitySync(record.id)
+        await SearchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          record.memberId,
+          this.options,
+        )
+        await SearchSyncService.triggerActivitySync(
+          this.options.currentTenant.id,
+          record.id,
+          this.options,
+        )
       }
 
       if (!existing && fireCrowdWebhooks) {
@@ -395,8 +402,6 @@ export default class ActivityService extends LoggerBase {
    */
 
   async addToConversation(id: string, parentId: string, transaction: Transaction) {
-    const searchSyncApi = await getSearchSyncApiClient()
-
     const parent = await ActivityRepository.findById(parentId, { ...this.options, transaction })
     const child = await ActivityRepository.findById(id, { ...this.options, transaction })
     const conversationService = new ConversationService({
@@ -441,7 +446,11 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
-      await searchSyncApi.triggerActivitySync(parent.id)
+      await SearchSyncService.triggerActivitySync(
+        this.options.currentTenant.id,
+        parent.id,
+        this.options,
+      )
     } else {
       // neither child nor parent is in a conversation, create one from parent
       const conversationTitle = await conversationService.generateTitle(
@@ -470,7 +479,11 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
-      await searchSyncApi.triggerActivitySync(parentId)
+      await SearchSyncService.triggerActivitySync(
+        this.options.currentTenant.id,
+        parentId,
+        this.options,
+      )
       record = await ActivityRepository.update(
         id,
         { conversationId: conversation.id },
@@ -503,7 +516,6 @@ export default class ActivityService extends LoggerBase {
 
   async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
-    const searchSyncApi = await getSearchSyncApiClient()
 
     const errorDetails: any = {}
 
@@ -569,7 +581,11 @@ export default class ActivityService extends LoggerBase {
           )
 
           await ActivityRepository.destroy(activityExists.id, this.options, true)
-          await searchSyncApi.triggerRemoveActivity(activityExists.id)
+          await SearchSyncService.triggerRemoveActivity(
+            this.options.currentTenant.id,
+            activityExists.id,
+            this.options,
+          )
           activityExists = false
           existingMember = false
         }
@@ -635,11 +651,23 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncApi.triggerMemberSync(record.memberId)
-      await searchSyncApi.triggerActivitySync(record.id)
+      await SearchSyncService.triggerMemberSync(
+        this.options.currentTenant.id,
+        record.memberId,
+        this.options,
+      )
+      await SearchSyncService.triggerActivitySync(
+        this.options.currentTenant.id,
+        record.id,
+        this.options,
+      )
 
       if (data.objectMember) {
-        await searchSyncApi.triggerMemberSync(data.objectMember)
+        await SearchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          data.objectMember,
+          this.options,
+        )
       }
 
       return record
@@ -671,7 +699,6 @@ export default class ActivityService extends LoggerBase {
 
   async update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       data.member = await MemberRepository.filterIdInTenant(data.member, {
@@ -693,8 +720,16 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncApi.triggerActivitySync(record.id)
-      await searchSyncApi.triggerMemberSync(record.memberId)
+      await SearchSyncService.triggerActivitySync(
+        this.options.currentTenant.id,
+        record.id,
+        this.options,
+      )
+      await SearchSyncService.triggerMemberSync(
+        this.options.currentTenant.id,
+        record.memberId,
+        this.options,
+      )
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {
@@ -718,8 +753,6 @@ export default class ActivityService extends LoggerBase {
   }
 
   async destroyAll(ids) {
-    const searchSyncApi = await getSearchSyncApiClient()
-
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -737,7 +770,7 @@ export default class ActivityService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncApi.triggerRemoveActivity(id)
+      await SearchSyncService.triggerRemoveActivity(this.options.currentTenant.id, id, this.options)
     }
   }
 

@@ -17,7 +17,6 @@ import {
   getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
-import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
 import Error400 from '../errors/Error400'
@@ -48,6 +47,7 @@ import {
   GroupsioGetToken,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
+import SearchSyncService from './searchSyncService'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -620,8 +620,11 @@ export default class IntegrationService {
     )
 
     // send it to opensearch because in member.update we bypass while passing transactions
-    const searchSyncApi = await getSearchSyncApiClient()
-    await searchSyncApi.triggerMemberSync(member.id)
+    await SearchSyncService.triggerMemberSync(
+      this.options.currentTenant.id,
+      member.id,
+      this.options,
+    )
   }
 
   async hubspotStopSyncOrganization(payload: IHubspotManualSyncPayload) {

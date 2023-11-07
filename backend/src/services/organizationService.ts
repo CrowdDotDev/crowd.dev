@@ -1,7 +1,6 @@
 import { websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
-import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
@@ -20,6 +19,7 @@ import {
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
+import SearchSyncService from './searchSyncService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -155,15 +155,22 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      const searchSyncApi = await getSearchSyncApiClient()
-      await searchSyncApi.triggerOrganizationSync(originalId)
-      await searchSyncApi.triggerRemoveOrganization(toMergeId)
+      await SearchSyncService.triggerOrganizationSync(
+        this.options.currentTenant.id,
+        originalId,
+        this.options,
+      )
+      await SearchSyncService.triggerRemoveOrganization(
+        this.options.currentTenant.id,
+        toMergeId,
+        this.options,
+      )
 
       // sync organization members
-      await searchSyncApi.triggerOrganizationMembersSync(originalId)
+      await SearchSyncService.triggerOrganizationMembersSync(originalId, this.options)
 
       // sync organization activities
-      await searchSyncApi.triggerOrganizationActivitiesSync(originalId)
+      await SearchSyncService.triggerOrganizationActivitiesSync(originalId, this.options)
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }
@@ -302,7 +309,6 @@ export default class OrganizationService extends LoggerBase {
 
   async addToNoMerge(organizationId: string, noMergeId: string): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       await OrganizationRepository.addNoMerge(organizationId, noMergeId, {
@@ -316,8 +322,16 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncApi.triggerOrganizationSync(organizationId)
-      await searchSyncApi.triggerOrganizationSync(noMergeId)
+      await SearchSyncService.triggerOrganizationSync(
+        this.options.currentTenant.id,
+        organizationId,
+        this.options,
+      )
+      await SearchSyncService.triggerOrganizationSync(
+        this.options.currentTenant.id,
+        noMergeId,
+        this.options,
+      )
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
@@ -503,8 +517,11 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncApi = await getSearchSyncApiClient()
-      await searchSyncApi.triggerOrganizationSync(record.id)
+      await SearchSyncService.triggerOrganizationSync(
+        this.options.currentTenant.id,
+        record.id,
+        this.options,
+      )
 
       return await this.findById(record.id)
     } catch (error) {
@@ -568,8 +585,11 @@ export default class OrganizationService extends LoggerBase {
 
       if (syncToOpensearch) {
         try {
-          const searchSyncApi = await getSearchSyncApiClient()
-          await searchSyncApi.triggerOrganizationSync(record.id)
+          await SearchSyncService.triggerOrganizationSync(
+            this.options.currentTenant.id,
+            record.id,
+            this.options,
+          )
         } catch (emitErr) {
           this.log.error(
             emitErr,
@@ -608,10 +628,12 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncApi = await getSearchSyncApiClient()
-
       for (const id of ids) {
-        await searchSyncApi.triggerRemoveOrganization(id)
+        await SearchSyncService.triggerRemoveOrganization(
+          this.options.currentTenant.id,
+          id,
+          this.options,
+        )
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -665,9 +687,12 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncApi = await getSearchSyncApiClient()
       for (const id of ids) {
-        await searchSyncApi.triggerRemoveOrganization(id)
+        await SearchSyncService.triggerRemoveOrganization(
+          this.options.currentTenant.id,
+          id,
+          this.options,
+        )
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)

@@ -7,7 +7,6 @@ import validator from 'validator'
 import { FeatureFlag, IOrganization, MemberAttributeType } from '@crowd/types'
 import { isDomainExcluded } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { getSearchSyncApiClient } from '@/utils/apiClients'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -35,6 +34,7 @@ import SettingsService from './settingsService'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import { TEMPORAL_CONFIG } from '@/conf'
+import SearchSyncService from './searchSyncService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -200,7 +200,6 @@ export default class MemberService extends LoggerBase {
     fireSync: boolean = true,
   ) {
     const logger = this.options.log
-    const searchSyncApi = await getSearchSyncApiClient()
 
     const errorDetails: any = {}
 
@@ -436,7 +435,11 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await searchSyncApi.triggerMemberSync(record.id)
+        await SearchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          record.id,
+          this.options,
+        )
       }
 
       if (!existing && fireCrowdWebhooks) {
@@ -656,9 +659,16 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(tx)
 
       try {
-        const searchSyncApi = await getSearchSyncApiClient()
-        await searchSyncApi.triggerMemberSync(originalId)
-        await searchSyncApi.triggerRemoveMember(toMergeId)
+        await SearchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          originalId,
+          this.options,
+        )
+        await SearchSyncService.triggerRemoveMember(
+          this.options.currentTenant.id,
+          toMergeId,
+          this.options,
+        )
       } catch (emitError) {
         this.log.error(
           emitError,
@@ -771,14 +781,20 @@ export default class MemberService extends LoggerBase {
   async addToMerge(suggestions: IMemberMergeSuggestion[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     try {
-      const searchSyncApi = await getSearchSyncApiClient()
-
       await MemberRepository.addToMerge(suggestions, { ...this.options, transaction })
       await SequelizeRepository.commitTransaction(transaction)
 
       for (const suggestion of suggestions) {
-        await searchSyncApi.triggerMemberSync(suggestion.members[0])
-        await searchSyncApi.triggerMemberSync(suggestion.members[1])
+        await SearchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[0],
+          this.options,
+        )
+        await SearchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          suggestion.members[1],
+          this.options,
+        )
       }
       return { status: 200 }
     } catch (error) {
@@ -796,7 +812,6 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
@@ -818,8 +833,16 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncApi.triggerMemberSync(memberOneId)
-      await searchSyncApi.triggerMemberSync(memberTwoId)
+      await SearchSyncService.triggerMemberSync(
+        this.options.currentTenant.id,
+        memberOneId,
+        this.options,
+      )
+      await SearchSyncService.triggerMemberSync(
+        this.options.currentTenant.id,
+        memberTwoId,
+        this.options,
+      )
 
       return { status: 200 }
     } catch (error) {
@@ -867,7 +890,6 @@ export default class MemberService extends LoggerBase {
 
   async update(id, data, syncToOpensearch = true) {
     let transaction
-    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
@@ -931,7 +953,11 @@ export default class MemberService extends LoggerBase {
 
       if (syncToOpensearch) {
         try {
-          await searchSyncApi.triggerMemberSync(record.id)
+          await SearchSyncService.triggerMemberSync(
+            this.options.currentTenant.id,
+            record.id,
+            this.options,
+          )
         } catch (emitErr) {
           this.log.error(
             emitErr,
@@ -968,7 +994,6 @@ export default class MemberService extends LoggerBase {
 
   async destroyBulk(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       await MemberRepository.destroyBulk(
@@ -987,13 +1012,12 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncApi.triggerRemoveMember(id)
+      await SearchSyncService.triggerRemoveMember(this.options.currentTenant.id, id, this.options)
     }
   }
 
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncApi = await getSearchSyncApiClient()
 
     try {
       for (const id of ids) {
@@ -1014,7 +1038,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncApi.triggerRemoveMember(id)
+      await SearchSyncService.triggerRemoveMember(this.options.currentTenant.id, id, this.options)
     }
   }
 
