@@ -20,6 +20,7 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
+import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -37,7 +38,12 @@ export default class OrganizationService extends LoggerBase {
     return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
   }
 
-  async merge(originalId, toMergeId) {
+  async mergeAsync(originalId, toMergeId) {
+    const tenantId = this.options.currentTenant.id
+    await sendOrgMergeMessage(tenantId, originalId, toMergeId)
+  }
+
+  async mergeSync(originalId, toMergeId) {
     this.options.log.info({ originalId, toMergeId }, 'Merging organizations!')
 
     const removeExtraFields = (organization: IOrganization): IOrganization =>
