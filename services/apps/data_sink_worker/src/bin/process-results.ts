@@ -5,7 +5,6 @@ import {
   SENTIMENT_CONFIG,
   TEMPORAL_CONFIG,
   UNLEASH_CONFIG,
-  SEARCH_SYNC_API_CONFIG,
 } from '../conf'
 import DataSinkRepository from '../repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
@@ -13,11 +12,10 @@ import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { SearchSyncApiClient } from '@crowd/opensearch'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -48,18 +46,19 @@ setImmediate(async () => {
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
   await nodejsWorkerEmitter.init()
 
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
+  await searchSyncWorkerEmitter.init()
+
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
-
-  const searchSyncApi = new SearchSyncApiClient(SEARCH_SYNC_API_CONFIG())
 
   const service = new DataSinkService(
     store,
     nodejsWorkerEmitter,
+    searchSyncWorkerEmitter,
     redisClient,
     unleash,
     temporal,
-    searchSyncApi,
     log,
   )
 
