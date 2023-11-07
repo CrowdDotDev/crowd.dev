@@ -1,7 +1,7 @@
 <template>
   <div class="p-5 bg-gradient-to-b from-purple-50 to-white to-50%">
     <h6 class="text-center text-sm font-semibold pb-5">
-      Any questions or feedback?
+      Need help with onboarding?
     </h6>
     <div class="flex flex-col items-center pb-1">
       <div class="h-12 w-12 rounded-full overflow-hidden mb-2">
@@ -20,7 +20,7 @@
           <i class="ri-mail-line mr-2 text-base h-4 flex items-center" /> Get in touch
         </button>
       </a>
-      <a href="#" target="_blank" class="block">
+      <a href="https://cal.com/team/crowddotdev/get-personalised-onboarding" target="_blank" rel="noopener noreferrer" class="block">
         <button type="button" class="btn btn--sm btn--bordered flex items-center w-full mt-3">
           <i class="ri-calendar-line mr-2 text-base h-4 flex items-center" /> Book a demo
         </button>

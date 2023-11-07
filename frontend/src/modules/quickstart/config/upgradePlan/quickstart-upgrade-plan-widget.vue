@@ -3,12 +3,9 @@
     <div class="flex justify-center pb-4 items-center">
       <i class="ri-arrow-up-circle-line text-brand-500 text-2xl h-8 flex items-center" />
     </div>
-    <h6 class="text-center text-sm font-semibold pb-2">
+    <h6 class="text-center text-sm font-semibold pb-5">
       Unlock the full power of crowd.dev
     </h6>
-    <p class="text-xs text-center text-gray-600 pb-3">
-      Bring your community to a different level with...
-    </p>
     <div class="flex flex-col items-center pb-3">
       <div class="text-xs leading-5 py-px px-2 rounded-full border mb-2 bg-gray-50 border-gray-300">
         10K monthly active contacts

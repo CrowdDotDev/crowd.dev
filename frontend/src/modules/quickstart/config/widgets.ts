@@ -4,7 +4,7 @@ import upgradePlan from './upgradePlan/config';
 
 export interface QuickstartWidget {
   id: string;
-  display: () => boolean;
+  display: (data: { user: any, tenant: any }) => boolean;
   component: any;
 }
 

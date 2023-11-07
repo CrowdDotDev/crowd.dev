@@ -27,7 +27,7 @@ export interface QuickstartGuideSettings {
 }
 
 const connectIntegrationGuide: QuickstartGuide = {
-  title: 'Connect your first 2 integrations',
+  title: 'Connect your first integration',
   body: 'Connect with our built-in integrations to start syncing data from your digital channels.',
   videoLink: 'https://www.loom.com/share/578ea6ef431c48e0b338cf975d3b80bc',
   buttonLink: '/integrations',
@@ -75,8 +75,8 @@ const inviteColleaguesGuide: QuickstartGuide = {
 
 export const DEFAULT_GUIDES = {
   [QuickstartGuideType.CONNECT_INTEGRATION]: connectIntegrationGuide,
+  [QuickstartGuideType.INVITE_COLLEAGUES]: inviteColleaguesGuide,
   [QuickstartGuideType.ENRICH_MEMBER]: enrichMemberGuide,
   [QuickstartGuideType.VIEW_REPORT]: viewReportGuide,
   [QuickstartGuideType.SET_EAGLE_EYE]: setEagleEyeGuide,
-  [QuickstartGuideType.INVITE_COLLEAGUES]: inviteColleaguesGuide,
 }

@@ -12,7 +12,7 @@
         :href="link.url"
         target="_blank"
         rel="noopener noreferrer"
-        class="px-5 py-2.5 flex items-center transition hover:bg-gray-100"
+        class="px-5 py-2.5 flex items-center transition hover:bg-gray-50"
       >
         <i class="text-base text-gray-400 mr-3" :class="link.icon" />
         <span class="text-xs text-black">{{ link.text }}</span>
