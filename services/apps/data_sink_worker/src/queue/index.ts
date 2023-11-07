@@ -4,9 +4,9 @@ import { DbConnection, DbStore } from '@crowd/database'
 import {
   DATA_SINK_WORKER_QUEUE_SETTINGS,
   NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
   SqsClient,
   SqsQueueReceiver,
-  SearchSyncWorkerEmitter,
 } from '@crowd/sqs'
 import {
   CreateAndProcessActivityResultQueueMessage,
