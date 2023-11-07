@@ -62,7 +62,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
         select r.id
         from integration.results r
         inner join tenants t on t.id = r."tenantId"
-        where r.state in ($(pendingState), $(processingState))
+        where r.state = $(pendingState)
           and r."updatedAt" < now() - interval '1 hour'
         order by case when t."plan" in ($(plans:csv)) then 0 else 1 end,
                 case when r."webhookId" is not null then 0 else 1 end,
@@ -72,8 +72,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
         `,
         {
           pendingState: IntegrationResultState.PENDING,
-          processingState: IntegrationResultState.PROCESSING,
-          maxRetries: 5,
           plans: [TenantPlans.Growth, TenantPlans.Scale],
         },
       )
