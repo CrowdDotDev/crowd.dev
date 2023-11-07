@@ -40,6 +40,9 @@ export default class OrganizationService extends LoggerBase {
 
   async mergeAsync(originalId, toMergeId) {
     const tenantId = this.options.currentTenant.id
+
+    await OrganizationRepository.setMergeStatus(originalId, toMergeId, 'pending', this.options)
+
     await sendOrgMergeMessage(tenantId, originalId, toMergeId)
   }
 
@@ -63,6 +66,22 @@ export default class OrganizationService extends LoggerBase {
       let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
 
       if (original.id === toMerge.id) {
+        return {
+          status: 203,
+          mergedId: originalId,
+        }
+      }
+
+      const mergeStatusChanged = await OrganizationRepository.setMergeStatus(
+        originalId,
+        toMergeId,
+        'in-progress',
+        // not using transaction here on purpose,
+        // so this change is visible until we finish
+        this.options,
+      )
+      if (!mergeStatusChanged) {
+        this.log.info('[Merge Organizations] - Merging already in progress!')
         return {
           status: 203,
           mergedId: originalId,
@@ -179,6 +198,9 @@ export default class OrganizationService extends LoggerBase {
       if (tx) {
         await SequelizeRepository.rollbackTransaction(tx)
       }
+
+      await OrganizationRepository.setMergeStatus(originalId, toMergeId, 'ready', this.options)
+
       throw err
     }
   }

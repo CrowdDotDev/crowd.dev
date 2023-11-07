@@ -1562,7 +1562,8 @@ class OrganizationRepository {
           org.id,
           otm."toMergeId",
           org."createdAt",
-          otm."similarity"
+          otm."similarity",
+          otm.status
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
@@ -1570,6 +1571,7 @@ class OrganizationRepository {
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
           AND to_merge_segments."segmentId" IN (:segmentIds)
+          AND otm.status = 'ready'
       ),
       
       count_cte AS (
@@ -1582,7 +1584,8 @@ class OrganizationRepository {
           id,
           "toMergeId",
           "createdAt",
-          "similarity"
+          "similarity",
+          status
         FROM cte
         ORDER BY hash, id
       )
@@ -1591,7 +1594,8 @@ class OrganizationRepository {
         "organizationsToMerge".id,
         "organizationsToMerge"."toMergeId",
         count_cte."total_count",
-        "organizationsToMerge"."similarity"
+        "organizationsToMerge"."similarity",
+        "organizationsToMerge".status
       FROM
         final_select AS "organizationsToMerge",
         count_cte
@@ -2853,6 +2857,34 @@ class OrganizationRepository {
     )
 
     return records
+  }
+
+  static async setMergeStatus(originalId, toMergeId, status, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await options.database.sequelize.query(
+      `
+        UPDATE "organizationToMerge"
+        SET "status" = :status
+        WHERE (
+            ("organizationId" = :originalId AND "toMergeId" = :toMergeId)
+            OR ("organizationId" = :toMergeId AND "toMergeId" = :originalId)
+          )
+          AND "status" != :status
+      `,
+      {
+        replacements: {
+          originalId,
+          toMergeId,
+          status,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
+
+    return rowCount > 0
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
