@@ -25,7 +25,6 @@
     "@crowd/common": "file:../../libs/common",
     "@crowd/conversations": "file:../../libs/conversations",
     "@crowd/database": "file:../../libs/database",
-    "@crowd/httpsclients": "file:../../libs/httpsclients",
     "@crowd/integrations": "file:../../libs/integrations",
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/redis": "file:../../libs/redis",
