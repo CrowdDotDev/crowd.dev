@@ -9,7 +9,7 @@ import { Client as TemporalClient } from '@crowd/temporal'
 import { timeout } from '@crowd/common'
 
 const MAX_CONCURRENT_PROMISES = 10
-const MAX_RESULTS_TO_LOAD = 100
+const MAX_RESULTS_TO_LOAD = 1000
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
