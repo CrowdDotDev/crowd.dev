@@ -7,6 +7,8 @@ import { RedisClient, processWithLock } from '@crowd/redis'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import { Client as TemporalClient } from '@crowd/temporal'
 
+const MAX_CONCURRENT_PROMISES = 3
+
 export const processOldResultsJob = async (
   dbConn: DbConnection,
   redis: RedisClient,
@@ -30,13 +32,13 @@ export const processOldResultsJob = async (
 
   const loadNextBatch = async (): Promise<string[]> => {
     return await processWithLock(redis, 'process-old-results', 5 * 60, 3 * 60, async () => {
-      const resultIds = await repo.getOldResultsToProcess(5)
+      const resultIds = await repo.getOldResultsToProcess(MAX_CONCURRENT_PROMISES)
       await repo.touchUpdatedAt(resultIds)
       return resultIds
     })
   }
 
-  // load 5 oldest results and try process them
+  // load 3 oldest results and try process them
   let resultsToProcess = await loadNextBatch()
 
   let successCount = 0
@@ -45,18 +47,32 @@ export const processOldResultsJob = async (
   while (resultsToProcess.length > 0) {
     log.info(`Detected ${resultsToProcess.length} old results rows to process!`)
 
+    const promises = []
     for (const resultId of resultsToProcess) {
-      try {
-        const result = await service.processResult(resultId)
-        if (result) {
-          successCount++
-        } else {
-          errorCount++
-        }
-      } catch (err) {
-        log.error(err, 'Failed to process result!')
-        errorCount++
+      promises.push(
+        service
+          .processResult(resultId)
+          .then((result) => {
+            if (result) {
+              successCount++
+            } else {
+              errorCount++
+            }
+          })
+          .catch((err) => {
+            log.error(err, 'Failed to process result!')
+            errorCount++
+          }),
+      )
+
+      if (promises.length >= MAX_CONCURRENT_PROMISES) {
+        await Promise.all(promises)
+        promises.length = 0
       }
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises)
     }
 
     log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)

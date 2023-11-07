@@ -59,13 +59,15 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     try {
       const results = await this.db().any(
         `
-        select id
-        from integration.results
-        where state in ($(pendingState), $(processingState))
-          and "updatedAt" < now() - interval '1 hour'
-        order by case when "webhookId" is not null then 0 else 1 end,
-                "webhookId" asc,
-                "updatedAt" desc
+        select r.id
+        from integration.results r
+        inner join tenants t on t.id = r."tenantId"
+        where r.state in ($(pendingState), $(processingState))
+          and r."updatedAt" < now() - interval '1 hour'
+        order by case when t."plan" in ('Scale', 'Growth') then 0 else 1 end,
+                case when r."webhookId" is not null then 0 else 1 end,
+                r."webhookId" asc,
+                r."updatedAt" desc
         limit ${limit};
         `,
         {
