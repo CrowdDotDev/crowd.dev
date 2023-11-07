@@ -32,23 +32,23 @@ export default class SearchSyncService extends LoggerBase {
     if (IS_TEST_ENV) {
       return getSearchSyncWorkerEmitter()
     }
-  
+
     if (this.mode === SyncMode.SYNCHRONOUS) {
       return getSearchSyncApiClient()
     }
-  
+
     if (this.mode === SyncMode.ASYNCHRONOUS) {
       return getSearchSyncWorkerEmitter()
     }
-  
+
     if (this.mode === SyncMode.USE_FEATURE_FLAG) {
       if (await isFeatureEnabled(FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES, this.options)) {
         return getSearchSyncApiClient()
       }
-  
+
       return getSearchSyncWorkerEmitter()
     }
-  
+
     throw new Error(`Unknown mode ${this.mode} !`)
   }
 

@@ -159,10 +159,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
-        await searchSyncService.triggerMemberSync(
-          this.options.currentTenant.id,
-          memberId,
-        )
+        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberId)
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (
@@ -360,10 +357,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      await searchSyncService.triggerMemberSync(
-        this.options.currentTenant.id,
-        result.id,
-      )
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)
