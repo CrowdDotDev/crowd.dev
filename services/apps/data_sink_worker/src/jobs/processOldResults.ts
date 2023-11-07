@@ -43,9 +43,12 @@ export const processOldResultsJob = async (
 
   let resultsToProcess = await loadNextBatch()
 
+  log.info(`Processing ${resultsToProcess.length} old results...`)
+
   let successCount = 0
   let errorCount = 0
   let i = 0
+  let batchLength = resultsToProcess.length
 
   while (resultsToProcess.length > 0) {
     const resultId = resultsToProcess.pop()
@@ -54,20 +57,21 @@ export const processOldResultsJob = async (
       await timeout(1000)
     }
 
+    const currentIndex = i
     i += 1
-    log.info(`Processing result ${i}/${resultsToProcess.length}`)
+    log.info(`Processing result ${currentIndex + 1}/${batchLength}`)
     current += 1
     service
       .processResult(resultId)
       .then(() => {
         current--
         successCount++
-        log.info(`Processed result ${i}/${resultsToProcess.length}`)
+        log.info(`Processed result ${currentIndex + 1}/${batchLength}`)
       })
       .catch((err) => {
         current--
         errorCount++
-        log.error(err, `Error processing result ${i}/${resultsToProcess.length}!`)
+        log.error(err, `Error processing result ${currentIndex + 1}/${batchLength}!`)
       })
 
     if (resultsToProcess.length === 0) {
@@ -77,7 +81,11 @@ export const processOldResultsJob = async (
 
       log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
       resultsToProcess = await loadNextBatch()
+      log.info(`Processing ${resultsToProcess.length} old results...`)
+      successCount = 0
+      errorCount = 0
       i = 0
+      batchLength = resultsToProcess.length
     }
   }
 }
