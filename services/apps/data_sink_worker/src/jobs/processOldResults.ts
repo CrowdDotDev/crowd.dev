@@ -20,7 +20,7 @@ export const processOldResultsJob = async (
   temporal: TemporalClient,
   log: Logger,
 ): Promise<void> => {
-  const store = new DbStore(log, dbConn)
+  const store = new DbStore(log, dbConn, undefined, false)
   const repo = new DataSinkRepository(store, log)
   const service = new DataSinkService(
     store,
