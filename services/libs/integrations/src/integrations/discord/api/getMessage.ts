@@ -52,7 +52,9 @@ export const getMessage = async (
       return null
     } else {
       const newErr = handleDiscordError(err, config, { channelId, messageId }, ctx)
-      throw newErr
+      if (newErr) {
+        throw newErr
+      }
     }
   }
 }

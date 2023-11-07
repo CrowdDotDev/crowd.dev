@@ -10,7 +10,7 @@ export const getDiscourseTopics = async (
   logger: Logger,
 ): Promise<DiscourseCategoryResponse> => {
   logger.info({
-    message: 'Fetching categories from Discourse',
+    message: 'Fetching topics from Discourse',
     forumHostName: params.forumHostname,
   })
   const config: AxiosRequestConfig<any> = {
@@ -33,7 +33,7 @@ export const getDiscourseTopics = async (
       // wait 5 mins
       throw new RateLimitError(5 * 60, 'discourse/gettopics')
     }
-    logger.error({ err, params }, 'Error while getting Discourse categories')
+    logger.error({ err, params }, 'Error while getting Discourse topics')
     throw err
   }
 }

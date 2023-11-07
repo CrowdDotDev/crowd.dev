@@ -195,6 +195,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
             i.status   as "integrationState",
             i."integrationIdentifier",
             i.token   as "integrationToken",
+            i."refreshToken" as "integrationRefreshToken",
             r.state    as "runState",
             s."runId",
             s."tenantId",
@@ -346,6 +347,40 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       {
         streamId,
         settings: JSON.stringify(settings),
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationToken(runId: string, token: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set token = $(token),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        token,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationRefreshToken(runId: string, refreshToken: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set "refreshToken" = $(refreshToken),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        refreshToken,
       },
     )
 

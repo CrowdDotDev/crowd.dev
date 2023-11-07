@@ -11,9 +11,13 @@ export default [
     children: [
       {
         name: 'task',
-        path: '/task',
+        path: '/tasks',
         component: TaskPage,
         exact: true,
+      },
+      {
+        path: '/task',
+        redirect: () => '/tasks',
       },
     ],
   },

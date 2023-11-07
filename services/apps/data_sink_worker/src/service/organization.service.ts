@@ -188,7 +188,7 @@ export class OrganizationService extends LoggerBase {
             'weakIdentities',
           ]
           fields.forEach((field) => {
-            if (field === 'website' && !existing.website) {
+            if (field === 'website' && !existing.website && cached.website) {
               updateData[field] = cached[field]
             } else if (
               field !== 'website' &&

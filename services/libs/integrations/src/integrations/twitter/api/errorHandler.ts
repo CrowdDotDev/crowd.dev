@@ -1,16 +1,20 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
 import { Logger } from '@crowd/logging'
-import { RateLimitError } from '../../../../types/integration/rateLimitError'
+import { RateLimitError } from '@crowd/types'
 
 export const handleTwitterError = (
   err: AxiosError,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: AxiosRequestConfig<any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   input: any,
   logger: Logger,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any => {
   const queryParams: string[] = []
   if (config.params) {
     for (const [key, value] of Object.entries(config.params)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryParams.push(`${key}=${encodeURIComponent(value as any)}`)
     }
   }

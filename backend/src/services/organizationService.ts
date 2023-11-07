@@ -353,9 +353,10 @@ export default class OrganizationService extends LoggerBase {
       const shouldDoEnrich = await this.shouldEnrich(enrichP)
 
       const primaryIdentity = data.identities[0]
+      const nameToCheckInCache = (data as any).name || primaryIdentity.name
 
       // check cache existing by name
-      let cache = await organizationCacheRepository.findByName(primaryIdentity.name, {
+      let cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
         ...this.options,
         transaction,
       })

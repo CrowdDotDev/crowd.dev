@@ -1,7 +1,6 @@
 <template>
   <el-container>
-    <app-menu-v2 v-if="menuV2Enabled()" />
-    <app-menu v-else />
+    <app-menu />
     <el-container v-if="currentTenant" :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
         <div
@@ -129,16 +128,12 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
-
 import AppMenu from '@/modules/layout/components/menu.vue';
-import AppMenuV2 from '@/modules/layout/components/menu-v2.vue';
-import { FeatureFlag } from '@/utils/featureFlag';
 
 export default {
   name: 'AppLayout',
 
   components: {
-    AppMenuV2,
     AppMenu,
     Banner,
   },
@@ -235,12 +230,6 @@ export default {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
     }),
-    menuV2Enabled() {
-      return FeatureFlag.isFlagEnabled(
-        FeatureFlag.flags.menuV2,
-      );
-    },
-
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values
