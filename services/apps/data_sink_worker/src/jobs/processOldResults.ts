@@ -8,6 +8,7 @@ import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import { Client as TemporalClient } from '@crowd/temporal'
 
 const MAX_CONCURRENT_PROMISES = 10
+const MAX_RESULTS_TO_LOAD = 100
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
@@ -32,13 +33,13 @@ export const processOldResultsJob = async (
 
   const loadNextBatch = async (): Promise<string[]> => {
     return await processWithLock(redis, 'process-old-results', 5 * 60, 3 * 60, async () => {
-      const resultIds = await repo.getOldResultsToProcess(MAX_CONCURRENT_PROMISES)
+      const resultIds = await repo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
       await repo.touchUpdatedAt(resultIds)
       return resultIds
     })
   }
 
-  // load 3 oldest results and try process them
+  // load 100 oldest results and try process them
   let resultsToProcess = await loadNextBatch()
 
   let successCount = 0
@@ -48,7 +49,8 @@ export const processOldResultsJob = async (
     log.info(`Detected ${resultsToProcess.length} old results rows to process!`)
 
     const promises = []
-    for (const resultId of resultsToProcess) {
+    for (let i = 0; i < MAX_CONCURRENT_PROMISES && i < resultsToProcess.length; i++) {
+      const resultId = resultsToProcess[i]
       promises.push(
         service
           .processResult(resultId)
@@ -64,19 +66,15 @@ export const processOldResultsJob = async (
             errorCount++
           }),
       )
-
-      if (promises.length >= MAX_CONCURRENT_PROMISES) {
-        await Promise.all(promises)
-        promises.length = 0
-      }
     }
 
-    if (promises.length > 0) {
-      await Promise.all(promises)
-    }
+    await Promise.all(promises)
 
     log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
 
-    resultsToProcess = await loadNextBatch()
+    resultsToProcess = resultsToProcess.slice(MAX_CONCURRENT_PROMISES)
+    if (resultsToProcess.length === 0) {
+      resultsToProcess = await loadNextBatch()
+    }
   }
 }
