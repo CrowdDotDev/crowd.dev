@@ -11,6 +11,7 @@ import {
   MemberEnrichmentAttributes,
   PlatformType,
   OrganizationSource,
+  SyncMode,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
@@ -35,7 +36,7 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import SearchSyncService, { SyncMode } from '@/services/searchSyncService'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -344,14 +345,21 @@ export default class MemberEnrichmentService extends LoggerBase {
             },
             `Calling organizationService.createOrUpdate from memberEnrich!`,
           )
-          const org = await organizationService.createOrUpdate({
-            identities: [
-              {
-                name: workExperience.company,
-                platform: PlatformType.ENRICHMENT,
-              },
-            ],
-          })
+          const org = await organizationService.createOrUpdate(
+            {
+              identities: [
+                {
+                  name: workExperience.company,
+                  platform: PlatformType.ENRICHMENT,
+                },
+              ],
+            },
+            true,
+            {
+              doSync: true,
+              mode: SyncMode.ASYNCHRONOUS,
+            },
+          )
 
           const dateEnd = workExperience.endDate
             ? moment.utc(workExperience.endDate).toISOString()

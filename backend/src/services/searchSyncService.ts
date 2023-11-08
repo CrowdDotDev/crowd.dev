@@ -1,18 +1,12 @@
 import { LoggerBase } from '@crowd/logging'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { SearchSyncWorkerEmitter } from '@crowd/sqs'
-import { FeatureFlag } from '@crowd/types'
+import { FeatureFlag, SyncMode } from '@crowd/types'
 import { getSearchSyncApiClient } from '../utils/apiClients'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { IS_TEST_ENV } from '@/conf'
 import { IServiceOptions } from './IServiceOptions'
-
-export enum SyncMode {
-  SYNCHRONOUS = 'synchronous',
-  ASYNCHRONOUS = 'asynchronous',
-  USE_FEATURE_FLAG = 'use-feature-flag',
-}
 
 export type SearchSyncClient = SearchSyncApiClient | SearchSyncWorkerEmitter
 

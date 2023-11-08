@@ -4,7 +4,7 @@ import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { FeatureFlag, IOrganization, MemberAttributeType } from '@crowd/types'
+import { FeatureFlag, IOrganization, MemberAttributeType, SyncMode } from '@crowd/types'
 import { isDomainExcluded } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
@@ -197,7 +197,7 @@ export default class MemberService extends LoggerBase {
     data,
     existing: boolean | any = false,
     fireCrowdWebhooks: boolean = true,
-    fireSync: boolean = true,
+    syncToOpensearch = true,
   ) {
     const logger = this.options.log
     const searchSyncService = new SearchSyncService(this.options)
@@ -336,6 +336,11 @@ export default class MemberService extends LoggerBase {
             // We createOrUpdate the organization and add it to the list of IDs
             const organizationRecord = await organizationService.createOrUpdate(
               data as IOrganization,
+              true,
+              {
+                doSync: syncToOpensearch,
+                mode: SyncMode.ASYNCHRONOUS,
+              },
             )
             organizations.push({ id: organizationRecord.id })
           }
@@ -360,15 +365,22 @@ export default class MemberService extends LoggerBase {
         const organizationService = new OrganizationService(this.options)
         for (const domain of emailDomains) {
           if (domain) {
-            const org = await organizationService.createOrUpdate({
-              website: domain,
-              identities: [
-                {
-                  name: domain,
-                  platform: 'email',
-                },
-              ],
-            })
+            const org = await organizationService.createOrUpdate(
+              {
+                website: domain,
+                identities: [
+                  {
+                    name: domain,
+                    platform: 'email',
+                  },
+                ],
+              },
+              true,
+              {
+                doSync: syncToOpensearch,
+                mode: SyncMode.ASYNCHRONOUS,
+              },
+            )
 
             if (org) {
               organizations.push({ id: org.id })
@@ -435,7 +447,7 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (fireSync) {
+      if (syncToOpensearch) {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
       }
 
