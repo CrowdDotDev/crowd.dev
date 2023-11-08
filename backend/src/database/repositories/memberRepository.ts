@@ -8,6 +8,9 @@ import {
   OrganizationSource,
   FeatureFlag,
   PageData,
+  SegmentData,
+  SegmentProjectGroupNestedData,
+  SegmentProjectNestedData,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
@@ -15,7 +18,6 @@ import Sequelize, { QueryTypes } from 'sequelize'
 
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { SegmentData, SegmentProjectGroupNestedData, SegmentProjectNestedData } from '@crowd/types'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
