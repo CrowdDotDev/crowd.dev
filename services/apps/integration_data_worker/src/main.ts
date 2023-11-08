@@ -11,7 +11,7 @@ const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 3
-const PROCESSING_INTERVAL_MINUTES = 5
+const PROCESSING_INTERVAL_MINUTES = 2
 
 setImmediate(async () => {
   log.info('Starting integration data worker...')
