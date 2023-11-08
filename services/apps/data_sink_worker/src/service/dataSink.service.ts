@@ -136,6 +136,7 @@ export default class DataSinkService extends LoggerBase {
             this.searchSyncWorkerEmitter,
             this.unleash,
             this.temporal,
+            this.redisClient,
             this.log,
           )
           const memberData = data.data as IMemberData
@@ -169,6 +170,7 @@ export default class DataSinkService extends LoggerBase {
             this.searchSyncWorkerEmitter,
             this.unleash,
             this.temporal,
+            this.redisClient,
             this.log,
           )
           const memberData = data.data as IMemberData

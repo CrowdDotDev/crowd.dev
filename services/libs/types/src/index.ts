@@ -59,3 +59,5 @@ export * from './temporal'
 export * from './eagleeye'
 
 export * from './segments'
+
+export * from './service'

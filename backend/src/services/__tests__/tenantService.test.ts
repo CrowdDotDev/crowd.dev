@@ -83,8 +83,8 @@ describe('TenantService tests', () => {
       const member3 = await memberService.upsert(memberToCreate3)
       let member4 = await memberService.upsert(memberToCreate4)
 
-      await memberService.addToMerge([{ members: [member1.id, member2.id], similarity: null }])
-      await memberService.addToMerge([{ members: [member3.id, member4.id], similarity: null }])
+      await memberService.addToMerge([{ members: [member1.id, member2.id], similarity: 1 }])
+      await memberService.addToMerge([{ members: [member3.id, member4.id], similarity: 0.5 }])
 
       member2 = await memberService.findById(member2.id)
       member4 = await memberService.findById(member4.id)

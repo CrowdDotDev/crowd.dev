@@ -1,4 +1,4 @@
-import { DB_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
@@ -14,6 +14,7 @@ import MemberService from '../service/member.service'
 import { OrganizationService } from '../service/organization.service'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import { getRedisClient } from '@crowd/redis'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -55,12 +56,15 @@ setImmediate(async () => {
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
   await searchSyncWorkerEmitter.init()
 
+  const redisClient = await getRedisClient(REDIS_CONFIG())
+
   const memberService = new MemberService(
     store,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     unleash,
     temporal,
+    redisClient,
     log,
   )
   const orgService = new OrganizationService(store, log)
