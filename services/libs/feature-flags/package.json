@@ -22,6 +22,7 @@
     "@crowd/common": "file:../common",
     "@crowd/logging": "file:../logging",
     "@crowd/types": "file:../types",
+    "@crowd/redis": "file:../redis",
     "unleash-client": "^3.18.1"
   }
 }
