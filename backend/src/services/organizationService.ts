@@ -21,6 +21,11 @@ import {
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
 import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
+import {
+  MergeActionsRepository,
+  MergeActionType,
+  MergeActionState,
+} from '../database/repositories/mergeActionsRepository'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -41,7 +46,7 @@ export default class OrganizationService extends LoggerBase {
   async mergeAsync(originalId, toMergeId) {
     const tenantId = this.options.currentTenant.id
 
-    await OrganizationRepository.setMergeStatus(originalId, toMergeId, 'pending', this.options)
+    await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
 
     await sendOrgMergeMessage(tenantId, originalId, toMergeId)
   }
@@ -72,10 +77,11 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const mergeStatusChanged = await OrganizationRepository.setMergeStatus(
+      const mergeStatusChanged = await MergeActionsRepository.setState(
+        MergeActionType.ORG,
         originalId,
         toMergeId,
-        'in-progress',
+        MergeActionState.IN_PROGRESS,
         // not using transaction here on purpose,
         // so this change is visible until we finish
         this.options,
@@ -180,6 +186,14 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
+      await MergeActionsRepository.setState(
+        MergeActionType.ORG,
+        originalId,
+        toMergeId,
+        MergeActionState.DONE,
+        this.options,
+      )
+
       const searchSyncService = new SearchSyncService(this.options)
 
       await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
@@ -194,12 +208,22 @@ export default class OrganizationService extends LoggerBase {
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
-      this.options.log.error(err, 'Error while merging organizations!')
+      this.options.log.error(err, 'Error while merging organizations!', {
+        originalId,
+        toMergeId,
+      })
+
+      await MergeActionsRepository.setState(
+        MergeActionType.ORG,
+        originalId,
+        toMergeId,
+        MergeActionState.ERROR,
+        this.options,
+      )
+
       if (tx) {
         await SequelizeRepository.rollbackTransaction(tx)
       }
-
-      await OrganizationRepository.setMergeStatus(originalId, toMergeId, 'ready', this.options)
 
       throw err
     }

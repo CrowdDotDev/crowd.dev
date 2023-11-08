@@ -25,6 +25,7 @@ import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
+import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 
 const { Op } = Sequelize
 
@@ -1562,16 +1563,22 @@ class OrganizationRepository {
           org.id,
           otm."toMergeId",
           org."createdAt",
-          otm."similarity",
-          otm.status
+          otm."similarity"
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
         JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
+        LEFT JOIN "mergeActions" ma
+          ON ma.type = :mergeActionType
+          AND ma."tenantId" = :tenantId
+          AND (
+            (ma."primaryId" = org.id AND ma."secondaryId" = otm."toMergeId")
+            OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
+          )
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
           AND to_merge_segments."segmentId" IN (:segmentIds)
-          AND otm.status = 'ready'
+          AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
       ),
       
       count_cte AS (
@@ -1584,8 +1591,7 @@ class OrganizationRepository {
           id,
           "toMergeId",
           "createdAt",
-          "similarity",
-          status
+          "similarity"
         FROM cte
         ORDER BY hash, id
       )
@@ -1594,8 +1600,7 @@ class OrganizationRepository {
         "organizationsToMerge".id,
         "organizationsToMerge"."toMergeId",
         count_cte."total_count",
-        "organizationsToMerge"."similarity",
-        "organizationsToMerge".status
+        "organizationsToMerge"."similarity"
       FROM
         final_select AS "organizationsToMerge",
         count_cte
@@ -1609,6 +1614,8 @@ class OrganizationRepository {
           segmentIds,
           limit,
           offset,
+          mergeActionType: MergeActionType.ORG,
+          mergeActionStatus: MergeActionState.ERROR,
         },
         type: QueryTypes.SELECT,
       },
@@ -2857,34 +2864,6 @@ class OrganizationRepository {
     )
 
     return records
-  }
-
-  static async setMergeStatus(originalId, toMergeId, status, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, rowCount] = await options.database.sequelize.query(
-      `
-        UPDATE "organizationToMerge"
-        SET "status" = :status
-        WHERE (
-            ("organizationId" = :originalId AND "toMergeId" = :toMergeId)
-            OR ("organizationId" = :toMergeId AND "toMergeId" = :originalId)
-          )
-          AND "status" != :status
-      `,
-      {
-        replacements: {
-          originalId,
-          toMergeId,
-          status,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
-      },
-    )
-
-    return rowCount > 0
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

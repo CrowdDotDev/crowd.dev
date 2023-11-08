@@ -45,7 +45,7 @@ async function orgMergeWorker(
   try {
     await organizationService.mergeSync(primaryOrgId, secondaryOrgId)
   } catch (err) {
-    userContext.log.error({ err }, 'Error merging orgs')
+    userContext.log.error(err, 'Error merging orgs')
     success = false
   }
 
