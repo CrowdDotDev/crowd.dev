@@ -1,4 +1,4 @@
-import { webcrypto as crypto } from 'crypto'
+import { webcrypto as crypto } from 'node:crypto'
 
 const CIPHER = 'AES-GCM'
 const IV_LENGTH_BYTES = 12

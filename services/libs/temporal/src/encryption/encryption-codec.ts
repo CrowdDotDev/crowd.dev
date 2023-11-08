@@ -1,4 +1,4 @@
-import { webcrypto as crypto } from 'crypto'
+import { webcrypto as crypto } from 'node:crypto'
 import { METADATA_ENCODING_KEY, Payload, PayloadCodec, ValueError } from '@temporalio/common'
 import { temporal } from '@temporalio/proto'
 import { decode, encode } from '@temporalio/common/lib/encoding'

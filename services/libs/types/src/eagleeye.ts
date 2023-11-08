@@ -15,6 +15,7 @@ export interface EagleEyeAction {
 export interface EagleEyeContent {
   id?: string
   platform: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   post: any
   url: string
   actions?: EagleEyeAction[]

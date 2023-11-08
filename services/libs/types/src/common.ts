@@ -6,6 +6,7 @@ export interface PageData<T> {
 }
 
 export interface QueryData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filter?: any
   orderBy?: string
   limit?: number
