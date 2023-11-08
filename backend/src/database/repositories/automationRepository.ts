@@ -1,4 +1,10 @@
-import { AutomationState, AutomationSyncTrigger, FeatureFlag, IAutomationData, PageData } from '@crowd/types'
+import {
+  AutomationState,
+  AutomationSyncTrigger,
+  FeatureFlag,
+  IAutomationData,
+  PageData,
+} from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { PLAN_LIMITS } from '@/feature-flags/isFeatureEnabled'
 import Error404 from '../../errors/Error404'

@@ -22,10 +22,12 @@ export interface SegmentBase {
   sourceParentId: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SegmentCreateData extends SegmentBase {}
 
 export interface SegmentRawData extends SegmentBase {
   id?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customActivityTypes: any
   activityChannels: { [key: string]: string[] }
   tenantId?: string
@@ -57,6 +59,7 @@ export interface SegmentUpdateData {
   grandparentName?: string
   sourceId?: string
   sourceParentId?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customActivityTypes?: any
   activityChannels?: { [key: string]: string[] }
 }

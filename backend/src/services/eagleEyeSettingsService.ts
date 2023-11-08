@@ -1,7 +1,14 @@
 import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment'
-import { EagleEyeEmailDigestFrequency, EagleEyeEmailDigestSettings, EagleEyeFeedSettings, EagleEyePlatforms, EagleEyePublishedDates, EagleEyeSettings } from '@crowd/types'
+import {
+  EagleEyeEmailDigestFrequency,
+  EagleEyeEmailDigestSettings,
+  EagleEyeFeedSettings,
+  EagleEyePlatforms,
+  EagleEyePublishedDates,
+  EagleEyeSettings,
+} from '@crowd/types'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
