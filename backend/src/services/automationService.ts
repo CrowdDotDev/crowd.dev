@@ -4,6 +4,7 @@ import {
   AutomationType,
   IAutomationData,
   PlatformType,
+  PageData,
 } from '@crowd/types'
 import {
   AutomationCriteria,
@@ -13,7 +14,6 @@ import {
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
-import { PageData } from '../types/common'
 import { ServiceBase } from './serviceBase'
 import { getIntegrationSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import IntegrationRepository from '@/database/repositories/integrationRepository'

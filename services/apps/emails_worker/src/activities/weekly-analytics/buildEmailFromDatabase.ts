@@ -2,28 +2,21 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { convert as convertHtmlToText } from 'html-to-text'
 
-import { ActivityDisplayVariant, PlatformType } from '@crowd/types'
+import {
+  ActivityDisplayVariant,
+  IMember,
+  IOrganization,
+  PlatformType,
+  SegmentRawData,
+} from '@crowd/types'
 import { ActivityDisplayService } from '@crowd/integrations'
 
 import { svc } from '../../main'
 
 import getStage from '../../../../../../backend/src/services/helpers/getStage'
-import { SegmentRawData } from '../../../../../../backend/src/types/segmentTypes'
 
 import { UserTenant } from '../../types/user'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
-
-interface Member {
-  activityCount: number
-  name: string
-  avatarUrl: string
-}
-
-interface Organization {
-  activityCount: number
-  name: string
-  avatarUrl: string
-}
 
 interface ActivityType {
   totalCount: number
@@ -91,8 +84,8 @@ export async function getTenantUsers(input: InputAnalyticsWithTimes): Promise<Us
 getMostActiveMembers is a Temporal activity that returns the tenant's most active
 members for the current week.
 */
-export async function getMostActiveMembers(input: InputAnalyticsWithSegments): Promise<Member[]> {
-  let members: Member[]
+export async function getMostActiveMembers(input: InputAnalyticsWithSegments): Promise<IMember[]> {
+  let members: IMember[]
 
   try {
     members = await svc.postgres.reader.connection().query(
@@ -136,13 +129,13 @@ active organizations for the current week.
 */
 export async function getMostActiveOrganizations(
   input: InputAnalyticsWithSegments,
-): Promise<Organization[]> {
-  let orgs: Organization[]
+): Promise<IOrganization[]> {
+  let orgs: IOrganization[]
 
   try {
     orgs = await svc.postgres.reader.connection().query(
       `select count(a.id) as "activityCount",
-      o.name as name,
+      o."displayName" as name,
       o.logo as "avatarUrl"
     from organizations o
     inner join "memberOrganizations" mo

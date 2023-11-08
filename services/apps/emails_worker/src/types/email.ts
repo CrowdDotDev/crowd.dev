@@ -1,7 +1,4 @@
-import {
-  EagleEyeRawPost,
-  EagleEyePostWithActions,
-} from '../../../../../backend/src/types/eagleEyeTypes'
+import { EagleEyeRawPost, EagleEyePostWithActions } from '@crowd/types'
 
 import { UserTenant } from './user'
 

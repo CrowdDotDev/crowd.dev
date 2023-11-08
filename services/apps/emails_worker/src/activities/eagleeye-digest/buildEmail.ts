@@ -1,10 +1,7 @@
 import moment from 'moment'
 import axios, { AxiosResponse } from 'axios'
 
-import {
-  EagleEyePostWithActions,
-  EagleEyeRawPost,
-} from '../../../../../../backend/src/types/eagleEyeTypes'
+import { EagleEyePostWithActions, EagleEyeRawPost } from '@crowd/types'
 
 import { svc } from '../../main'
 import { Content } from '../../types/email'

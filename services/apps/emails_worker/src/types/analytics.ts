@@ -1,6 +1,6 @@
 import moment from 'moment'
 
-import { SegmentRawData } from '../../../../../backend/src/types/segmentTypes'
+import { SegmentRawData } from '@crowd/types'
 
 export interface InputAnalytics {
   tenantId: string

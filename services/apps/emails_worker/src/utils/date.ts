@@ -4,7 +4,7 @@ import {
   EagleEyePublishedDates,
   EagleEyeEmailDigestFrequency,
   EagleEyeEmailDigestSettings,
-} from '../../../../../backend/src/types/eagleEyeTypes'
+} from '@crowd/types'
 
 export function switchDate(date: string, offset = 0) {
   let dateMoment: moment.Moment

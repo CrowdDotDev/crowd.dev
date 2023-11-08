@@ -1,13 +1,6 @@
 import { LoggerBase } from '@crowd/logging'
 import axios from 'axios'
 import moment from 'moment'
-import { EAGLE_EYE_CONFIG } from '../conf'
-import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import Error400 from '../errors/Error400'
-import track from '../segment/track'
-import { PageData, QueryData } from '../types/common'
 import {
   EagleEyeAction,
   EagleEyeContent,
@@ -15,7 +8,15 @@ import {
   EagleEyePublishedDates,
   EagleEyeRawPost,
   EagleEyeSettings,
-} from '../types/eagleEyeTypes'
+  PageData,
+  QueryData,
+} from '@crowd/types'
+import { EAGLE_EYE_CONFIG } from '../conf'
+import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TenantUserRepository from '../database/repositories/tenantUserRepository'
+import Error400 from '../errors/Error400'
+import track from '../segment/track'
 import { IServiceOptions } from './IServiceOptions'
 
 export interface EagleEyeContentUpsertData extends EagleEyeAction {

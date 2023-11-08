@@ -2,10 +2,8 @@ import lodash from 'lodash'
 import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
-import { ActivityTypeSettings } from '@crowd/types'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import { RepositoryBase } from './repositoryBase'
 import {
+  ActivityTypeSettings,
   SegmentCreateData,
   SegmentData,
   SegmentLevel,
@@ -15,8 +13,11 @@ import {
   SegmentStatus,
   SegmentUpdateChildrenPartialData,
   SegmentUpdateData,
-} from '../../types/segmentTypes'
-import { PageData, QueryData } from '../../types/common'
+  PageData,
+  QueryData,
+} from '@crowd/types'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import { RepositoryBase } from './repositoryBase'
 import Error404 from '../../errors/Error404'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'

@@ -1,4 +1,5 @@
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
+import { SegmentData, SegmentStatus } from '@crowd/types'
 import { TENANT_MODE } from '../conf/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
@@ -23,7 +24,6 @@ import ConversationRepository from '../database/repositories/conversationReposit
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
-import { SegmentData, SegmentStatus } from '../types/segmentTypes'
 import SegmentService from './segmentService'
 import OrganizationService from './organizationService'
 import { defaultCustomViews } from '@/types/customView'

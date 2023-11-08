@@ -8,6 +8,7 @@ export interface IOrganization {
   description?: string
   emails?: string[]
   logo?: string
+  avatarUrl?: string
   tags?: string[]
   github?: IOrganizationSocial
   twitter?: IOrganizationSocial

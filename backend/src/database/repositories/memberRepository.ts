@@ -7,6 +7,7 @@ import {
   SyncStatus,
   OrganizationSource,
   FeatureFlag,
+  PageData,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
@@ -14,21 +15,16 @@ import Sequelize, { QueryTypes } from 'sequelize'
 
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { SegmentData, SegmentProjectGroupNestedData, SegmentProjectNestedData } from '@crowd/types'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import Error404 from '../../errors/Error404'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
-import { PageData } from '../../types/common'
 import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
-import {
-  SegmentData,
-  SegmentProjectGroupNestedData,
-  SegmentProjectNestedData,
-} from '../../types/segmentTypes'
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'

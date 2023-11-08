@@ -11,6 +11,7 @@ import {
   IOrganizationIdentity,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
+  SegmentData,
   SyncStatus,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
@@ -23,7 +24,6 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize

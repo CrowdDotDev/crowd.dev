@@ -1,3 +1,5 @@
+export * from './common'
+
 export * from './queue'
 export * from './queue/integration_run_worker'
 export * from './queue/integration_stream_worker'
@@ -53,3 +55,7 @@ export * from './customView'
 export * from './enums/featureFlags'
 
 export * from './temporal'
+
+export * from './eagleeye'
+
+export * from './segments'

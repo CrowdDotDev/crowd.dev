@@ -1,4 +1,4 @@
-import { EagleEyeSettings } from '../../../../../backend/src/types/eagleEyeTypes'
+import { EagleEyeSettings } from '@crowd/types'
 
 export interface UserTenant {
   userId?: string

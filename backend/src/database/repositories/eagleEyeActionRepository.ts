@@ -1,6 +1,6 @@
 import lodash from 'lodash'
+import { EagleEyeAction, EagleEyeActionType } from '@crowd/types'
 import Error404 from '../../errors/Error404'
-import { EagleEyeAction, EagleEyeActionType } from '../../types/eagleEyeTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
