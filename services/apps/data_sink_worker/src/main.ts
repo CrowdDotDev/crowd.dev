@@ -20,7 +20,7 @@ import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 4
+const MAX_CONCURRENT_PROCESSING = 5
 const PROCESSING_INTERVAL_MINUTES = 4
 
 setImmediate(async () => {

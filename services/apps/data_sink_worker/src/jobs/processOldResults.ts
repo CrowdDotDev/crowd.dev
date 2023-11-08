@@ -8,8 +8,8 @@ import { Client as TemporalClient } from '@crowd/temporal'
 import DataSinkRepository from '../repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
 
-const MAX_CONCURRENT_PROMISES = 20
-const MAX_RESULTS_TO_LOAD = 100
+const MAX_CONCURRENT_PROMISES = 50
+const MAX_RESULTS_TO_LOAD = 200
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
