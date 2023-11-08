@@ -56,6 +56,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   }
 
   public async getOldResultsToProcess(limit: number): Promise<string[]> {
+    this.ensureTransactional()
+
     try {
       const results = await this.db().any(
         `
@@ -68,7 +70,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
                 case when r."webhookId" is not null then 0 else 1 end,
                 r."webhookId" asc,
                 r."updatedAt" desc
-        limit ${limit};
+        limit ${limit}
+        for update skip locked;
         `,
         {
           pendingState: IntegrationResultState.PENDING,
