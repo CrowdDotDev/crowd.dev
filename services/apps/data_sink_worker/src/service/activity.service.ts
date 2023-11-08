@@ -17,31 +17,9 @@ import IntegrationRepository from '../repo/integration.repo'
 import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
-// import { acquireLock, releaseLock } from '@crowd/redis'
 import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { TEMPORAL_CONFIG } from '../conf'
-
-const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
-const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
-
-const acquireLock = async (
-  redisClient: RedisClient,
-  lockKey: string,
-  lockReason: string,
-  lockExpireAfter: number,
-  lockTimeoutAfter: number,
-): Promise<void> => {
-  // empty
-}
-
-const releaseLock = async (
-  redisClient: RedisClient,
-  lockKey: string,
-  lockReason: string,
-): Promise<void> => {
-  // empty
-}
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -477,15 +455,6 @@ export default class ActivityService extends LoggerBase {
             this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
             // process member data
 
-            // acquiring lock for member inside activity exists
-            await acquireLock(
-              this.redisClient,
-              `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
-              'check-member-inside-activity-exists',
-              MEMBER_LOCK_EXPIRE_AFTER,
-              MEMBER_LOCK_TIMEOUT_AFTER,
-            )
-
             let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
             if (dbMember) {
               // we found a member for the identity from the activity
@@ -530,12 +499,6 @@ export default class ActivityService extends LoggerBase {
                 },
                 dbMember,
                 false,
-                async () =>
-                  await releaseLock(
-                    this.redisClient,
-                    `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
-                    'check-member-inside-activity-exists',
-                  ),
               )
 
               if (!createActivity) {
@@ -574,12 +537,6 @@ export default class ActivityService extends LoggerBase {
                 },
                 dbMember,
                 false,
-                async () =>
-                  await releaseLock(
-                    this.redisClient,
-                    `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
-                    'check-member-inside-activity-exists',
-                  ),
               )
 
               memberId = dbActivity.memberId
@@ -882,11 +839,6 @@ export default class ActivityService extends LoggerBase {
           }
         } finally {
           // release locks matter what
-          await releaseLock(
-            this.redisClient,
-            `member:processing:${tenantId}:${platform}:${username}`,
-            'check-member-inside-activity-exists',
-          )
         }
       })
 
