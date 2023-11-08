@@ -287,7 +287,16 @@ export default class MemberEnrichmentService extends LoggerBase {
             const existingMember = await memberService.memberExists(username, platform)
 
             if (existingMember) {
-              await memberService.merge(memberId, existingMember.id)
+              await memberService.merge(memberId, existingMember.id, {
+                doSync: false,
+                mode: SyncMode.ASYNCHRONOUS,
+              })
+
+              // we also need to trigger remove existing member from opensearch, because the transaction isn't commited yet while merging
+              await searchSyncService.triggerRemoveMember(
+                this.options.currentTenant.id,
+                existingMember.id,
+              )
             }
           }
         }
