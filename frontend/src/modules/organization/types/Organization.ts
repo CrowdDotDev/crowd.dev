@@ -1,4 +1,11 @@
+export interface OrganizationAttribute {
+  default: string;
+  sourceId?: any;
+  hubspot?: any;
+}
+
 export interface Organization{
+  attributes: Record<string, OrganizationAttribute>,
   activeOn: string[];
   activityCount: number;
   address: Record<string, string>;
