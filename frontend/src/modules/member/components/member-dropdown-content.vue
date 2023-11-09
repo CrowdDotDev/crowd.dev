@@ -7,8 +7,7 @@
       },
     }"
     :class="{
-      'pointer-events-none cursor-not-allowed':
-        isEditLockedForSampleData,
+      'pointer-events-none cursor-not-allowed': isEditLockedForSampleData,
     }"
   >
     <button
@@ -16,14 +15,15 @@
       :disabled="isEditLockedForSampleData"
       type="button"
     >
-      <i
-        class="ri-pencil-line text-base mr-2"
-      /><span class="text-xs">Edit contributor</span>
+      <i class="ri-pencil-line text-base mr-2" />
+      <span class="text-xs">Edit contributor</span>
     </button>
   </router-link>
   <el-tooltip
     placement="top"
-    content="Contributor enrichment requires an associated GitHub profile or Email"
+    content="
+      Contributor enrichment requires an associated GitHub profile or Email
+    "
     :disabled="!isEnrichmentDisabledForMember"
     popper-class="max-w-[260px]"
   >
@@ -31,16 +31,14 @@
       <button
         class="h-10 el-dropdown-menu__item w-full mb-1"
         type="button"
-        @click="handleCommand({
-          action: 'memberEnrich',
-          member,
-        })"
+        @click="
+          handleCommand({
+            action: Actions.ENRICH_CONTACT,
+            member,
+          })
+        "
       >
-        <app-svg
-          name="enrichment"
-          class="max-w-[16px] h-4"
-          color="#9CA3AF"
-        />
+        <app-svg name="enrichment" class="max-w-[16px] h-4" color="#9CA3AF" />
         <span
           class="ml-2 text-xs"
           :class="{
@@ -58,14 +56,14 @@
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"
-    @click="handleCommand({
-      action: 'memberMerge',
-      member,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.MERGE_CONTACT,
+        member,
+      })
+    "
   >
-    <i class="ri-group-line text-base mr-2" /><span
-      class="text-xs"
-    >Merge contributor</span>
+    <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
   </button>
 
   <!-- Hubspot -->
@@ -75,9 +73,9 @@
     :disabled="isHubspotActionDisabled"
     type="button"
     @click="handleCommand({
-      action: 'syncHubspot',
-      member,
-    })"
+      action: Actions.SYNC_HUBSPOT,
+      member,})
+    "
   >
     <app-svg name="hubspot" class="h-4 w-4 text-current" />
     <span
@@ -90,9 +88,9 @@
     :disabled="isHubspotActionDisabled"
     type="button"
     @click="handleCommand({
-      action: 'stopSyncHubspot',
-      member,
-    })"
+      action: Actions.STOP_SYNC_HUBSPOT,
+      member,})
+    "
   >
     <app-svg name="hubspot" class="h-4 w-4 text-current" />
     <span
@@ -105,68 +103,70 @@
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"
-    @click="handleCommand({
-      action: 'memberMarkAsTeamMember',
-      member,
-      value: true,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
+        member,
+        value: true,
+      })
+    "
   >
-    <i
-      class="ri-bookmark-line text-base mr-2"
-    /><span class="text-xs">Mark as team contributor</span>
+    <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contributor</span>
   </button>
   <button
     v-if="member.attributes.isTeamMember?.default"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"
-    @click="handleCommand({
-      action: 'memberMarkAsTeamMember',
-      member,
-      value: false,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
+        member,
+        value: false,
+      })
+    "
   >
-    <i
-      class="ri-bookmark-2-line text-base mr-2"
-    /><span class="text-xs">Unmark as team contributor</span>
+    <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team contributor</span>
   </button>
   <button
     v-if="!member.attributes.isBot?.default"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"
-    @click="handleCommand({
-      action: 'memberMarkAsBot',
-      member,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.MARK_CONTACT_AS_BOT,
+        member,
+      })
+    "
   >
-    <i class="ri-robot-line text-base mr-2" /><span
-      class="text-xs"
-    >Mark as bot</span>
+    <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Mark as bot</span>
   </button>
   <button
     v-if="member.attributes.isBot?.default"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"
-    @click="handleCommand({
-      action: 'memberUnmarkAsBot',
-      member,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.UNMARK_CONTACT_AS_BOT,
+        member,
+      })
+    "
   >
-    <i class="ri-robot-line text-base mr-2" /><span
-      class="text-xs"
-    >Unmark as bot</span>
+    <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Unmark as bot</span>
   </button>
   <el-divider class="border-gray-200" />
   <button
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isDeleteLockedForSampleData"
     type="button"
-    @click="handleCommand({
-      action: 'memberDelete',
-      member,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.DELETE_CONTACT,
+        member,
+      })
+    "
   >
     <i
       class="ri-delete-bin-line text-base mr-2"
@@ -182,11 +182,8 @@
   </button>
 </template>
 
-<script setup>
-import {
-  mapActions,
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
+<script setup lang="ts">
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
@@ -199,14 +196,23 @@ import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
+import { Member } from '../types/Member';
 
-const emit = defineEmits(['merge', 'closeDropdown']);
-const props = defineProps({
-  member: {
-    type: Object,
-    default: () => {},
-  },
-});
+enum Actions {
+  DELETE_CONTACT = 'deleteContact',
+  SYNC_HUBSPOT = 'syncHubspot',
+  STOP_SYNC_HUBSPOT = 'stopSyncHubspot',
+  MARK_CONTACT_AS_TEAM_CONTACT = 'markContactAsTeamContact',
+  MARK_CONTACT_AS_BOT = 'markContactAsBot',
+  UNMARK_CONTACT_AS_BOT = 'unmarkContactAsBot',
+  MERGE_CONTACT = 'mergeContact',
+  ENRICH_CONTACT = 'enrichContact',
+}
+
+const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void }>();
+const props = defineProps<{
+  member: Member;
+}>();
 
 const store = useStore();
 const route = useRoute();
@@ -215,22 +221,20 @@ const { currentUser, currentTenant } = mapGetters('auth');
 const { doFind, doEnrich } = mapActions('member');
 
 const memberStore = useMemberStore();
-const { fetchMembers } = memberStore;
 
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
-).editLockedForSampleData);
+const isEditLockedForSampleData = computed(
+  () => new MemberPermissions(currentTenant.value, currentUser.value)
+    .editLockedForSampleData,
+);
 
-const isDeleteLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
-).destroyLockedForSampleData);
+const isDeleteLockedForSampleData = computed(
+  () => new MemberPermissions(currentTenant.value, currentUser.value)
+    .destroyLockedForSampleData,
+);
 
-const isEnrichmentDisabledForMember = computed(() => (
-  !props.member.username?.github?.length
-            && !props.member.emails?.length
-));
+const isEnrichmentDisabledForMember = computed(
+  () => !props.member.username?.github?.length && !props.member.emails?.length,
+);
 
 const isSyncingWithHubspot = computed(() => props.member.attributes?.syncRemote?.hubspot || false);
 
@@ -238,121 +242,184 @@ const isHubspotConnected = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
   const enabledFor = hubspot.settings?.enabledFor || [];
 
-  return hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS);
+  return (
+    hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS)
+  );
 });
 
-const isHubspotDisabledForMember = computed(() => props.member.emails.length === 0);
+const isHubspotDisabledForMember = computed(
+  () => props.member.emails.length === 0,
+);
 
 const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
 
-const doDestroyWithConfirm = async (id) => {
-  try {
-    await ConfirmDialog({
+const doManualAction = async ({
+  loadingMessage,
+  actionFn,
+  successMessage,
+  errorMessage,
+}: {
+  loadingMessage?: string;
+  successMessage?: string;
+  errorMessage?: string;
+  actionFn: Promise<any>;
+}) => {
+  emit('closeDropdown');
+
+  if (loadingMessage) {
+    Message.info(null, {
+      title: loadingMessage,
+    });
+  }
+
+  return actionFn
+    .then(() => {
+      if (successMessage) {
+        Message.closeAll();
+        Message.success(successMessage);
+      }
+      Promise.resolve();
+    })
+    .catch(() => {
+      if (errorMessage) {
+        Message.closeAll();
+        Message.error(errorMessage);
+      }
+      Promise.reject();
+    });
+};
+
+const handleCommand = async (command: {
+  action: Actions;
+  member: Member;
+  value?: boolean;
+}) => {
+  // Delete contact
+  if (command.action === Actions.DELETE_CONTACT) {
+    ConfirmDialog({
       type: 'danger',
       title: 'Delete contributor',
-      message:
-            "Are you sure you want to proceed? You can't undo this action",
+      message: "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
       icon: 'ri-delete-bin-line',
+    }).then(() => {
+      doManualAction({
+        loadingMessage: 'Contributor is being deleted',
+        successMessage: 'Contributor successfully deleted',
+        errorMessage: 'Something went wrong',
+        actionFn: MemberService.destroyAll([command.member.id]),
+      }).then(() => {
+        memberStore.fetchMembers({ reload: true });
+      });
     });
 
-    await MemberService.destroyAll([id]);
-
-    Message.success('Contributor successfully deleted');
-
-    emit('closeDropdown');
-
-    await fetchMembers({ reload: true });
-  } catch (error) {
-    // no
+    return;
   }
-  return null;
-};
 
-const handleCommand = async (command) => {
-  if (command.action === 'memberDelete') {
-    await doDestroyWithConfirm(command.member.id);
-  } else if (
-    command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
+  // Sync with hubspot
+  if (
+    command.action === Actions.SYNC_HUBSPOT
+    || command.action === Actions.STOP_SYNC_HUBSPOT
   ) {
-    // Hubspot
-    const sync = command.action === 'syncHubspot';
-    (sync ? HubspotApiService.syncMember(command.member.id) : HubspotApiService.stopSyncMember(command.member.id))
-      .then(() => {
-        emit('closeDropdown');
+    const isSyncing = command.action === Actions.SYNC_HUBSPOT;
 
-        if (route.name === 'member') {
-          fetchMembers({ reload: true });
-        } else {
-          doFind(command.member.id);
-        }
-        if (sync) {
-          Message.success('Contributor is now syncing with HubSpot');
-        } else {
-          Message.success('Contributor syncing stopped');
-        }
-      })
-      .catch(() => {
-        Message.error('There was an error');
-      });
-  } else if (
-    command.action === 'memberMarkAsTeamMember'
+    doManualAction({
+      loadingMessage: isSyncing
+        ? 'Contributor is being synced with Hubspot'
+        : 'Contributor syncing with Hubspot is being stopped',
+      successMessage: isSyncing
+        ? 'Contributor is now syncing with HubSpot'
+        : 'Contributor syncing stopped',
+      errorMessage: 'Something went wrong',
+      actionFn: isSyncing
+        ? HubspotApiService.syncMember(command.member.id)
+        : HubspotApiService.stopSyncMember(command.member.id),
+    }).then(() => {
+      if (route.name === 'member') {
+        memberStore.fetchMembers({ reload: true });
+      } else {
+        doFind(command.member.id);
+      }
+    });
+
+    return;
+  }
+
+  // Mark as team contact
+  if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {
+    doManualAction({
+      loadingMessage: 'Contributor is being updated',
+      successMessage: 'Contributor updated successfully',
+      errorMessage: 'Something went wrong',
+      actionFn: MemberService.update(command.member.id, {
+        attributes: {
+          ...command.member.attributes,
+          isTeamMember: {
+            default: command.value,
+          },
+        },
+      }, command.member.segmentIds),
+    }).then(() => {
+      if (route.name === 'member') {
+        memberStore.fetchMembers({ reload: true });
+      } else {
+        doFind(command.member.id);
+      }
+    });
+
+    return;
+  }
+
+  // Mark as bot
+  if (
+    command.action === Actions.MARK_CONTACT_AS_BOT
+    || command.action === Actions.UNMARK_CONTACT_AS_BOT
   ) {
-    await MemberService.update(command.member.id, {
-      attributes: {
-        ...command.member.attributes,
-        isTeamMember: {
-          default: command.value,
+    doManualAction({
+      loadingMessage: 'Contributor is being updated',
+      successMessage: 'Contributor updated successfully',
+      errorMessage: 'Something went wrong',
+      actionFn: MemberService.update(command.member.id, {
+        attributes: {
+          ...command.member.attributes,
+          isBot: {
+            default: command.action === Actions.MARK_CONTACT_AS_BOT,
+          },
         },
-      },
-    }, command.member.segmentIds);
+      }, command.member.segmentIds),
+    }).then(() => {
+      if (route.name === 'member') {
+        memberStore.fetchMembers({ reload: true });
+      } else {
+        doFind(command.member.id);
+      }
+    });
 
-    emit('closeDropdown');
+    return;
+  }
 
-    await fetchMembers({ reload: true });
-
-    Message.success('Contributor updated successfully');
-
-    if (route.name === 'member') {
-      await fetchMembers({ reload: true });
-    } else {
-      doFind(command.member.id);
-    }
-  } else if (command.action === 'memberMarkAsBot' || command.action === 'memberUnmarkAsBot') {
-    await MemberService.update(command.member.id, {
-      attributes: {
-        ...command.member.attributes,
-        isBot: {
-          default: command.action === 'memberMarkAsBot',
-        },
-      },
-    }, command.member.segmentIds);
-
-    emit('closeDropdown');
-
-    await fetchMembers({ reload: true });
-    Message.success('Contributor updated successfully');
-    if (route.name === 'member') {
-      await fetchMembers({ reload: true });
-    } else {
-      doFind(command.member.id);
-    }
-  } else if (command.action === 'memberMerge') {
+  // Merge contact
+  if (command.action === Actions.MERGE_CONTACT) {
     emit('closeDropdown');
     emit('merge');
-  } else if (command.action === 'memberEnrich') {
-    await doEnrich(command.member.id, command.member.segmentIds);
 
-    emit('closeDropdown');
+    return;
+  }
 
-    await fetchMembers({ reload: true });
+  // Enrich contact
+  if (command.action === Actions.ENRICH_CONTACT) {
+    doManualAction({
+      actionFn: doEnrich(command.member.id, command.member.segmentIds),
+    }).then(() => {
+      memberStore.fetchMembers({ reload: true });
+    });
+
+    return;
   }
 
   emit('closeDropdown');
-  return null;
 };
-
 </script>
 
 <style lang="scss" scoped>
