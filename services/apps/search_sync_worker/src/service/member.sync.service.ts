@@ -122,9 +122,7 @@ export class MemberSyncService extends LoggerBase {
 
       if (toRemove.length > 0) {
         this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
-        for (const id of toRemove) {
-          await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
-        }
+        await this.openSearchService.removeAllFromIndex(toRemove, OpenSearchIndex.MEMBERS)
       }
 
       processed += results.length
