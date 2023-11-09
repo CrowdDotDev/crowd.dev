@@ -1,32 +1,38 @@
 <template>
   <!-- Edit -->
-  <button
-    :disabled="isEditLockedForSampleData"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    @click="handleCommand({
-      action: 'organizationEdit',
-      organization,
-    })"
+  <router-link
+    :to="{
+      name: 'organizationEdit',
+      params: {
+        id: organization.id,
+      },
+    }"
+    :class="{
+      'pointer-events-none cursor-not-allowed': isEditLockedForSampleData,
+    }"
   >
-    <i class="ri-pencil-line text-base mr-2" /><span
-      class="text-xs"
-    >Edit organization</span>
-  </button>
+    <button
+      :disabled="isEditLockedForSampleData"
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+    >
+      <i class="ri-pencil-line text-base mr-2" /><span class="text-xs">Edit organization</span>
+    </button>
+  </router-link>
 
   <!-- Merge organization -->
   <button
     class="h-10 el-dropdown-menu__item w-full"
     type="button"
     :disabled="isEditLockedForSampleData"
-    @click="handleCommand({
-      action: 'organizationMerge',
-      organization,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.MERGE_ORGANIZATION,
+        organization,
+      })
+    "
   >
-    <i class="ri-shuffle-line text-base mr-2" /><span
-      class="text-xs"
-    >Merge organization</span>
+    <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
   </button>
 
   <!-- Hubspot -->
@@ -41,31 +47,36 @@
         v-if="!isSyncingWithHubspot(organization)"
         class="h-10 el-dropdown-menu__item w-full"
         type="button"
-        :disabled="!isHubspotConnected || (!organization.website && !organization.attributes?.sourceId?.hubspot) || !isHubspotEnabled"
-        @click="handleCommand({
-          action: 'syncHubspot',
-          organization,
-        })"
+        :disabled="
+          !isHubspotConnected
+            || (!organization.website
+              && !organization.attributes?.sourceId?.hubspot)
+            || !isHubspotEnabled
+        "
+        @click="
+          handleCommand({
+            action: Actions.SYNC_HUBSPOT,
+            organization,
+          })
+        "
       >
         <app-svg name="hubspot" class="h-4 w-4 text-current" />
-        <span
-          class="text-xs pl-2"
-        >Sync with HubSpot</span>
+        <span class="text-xs pl-2">Sync with HubSpot</span>
       </button>
       <button
         v-else
         class="h-10 el-dropdown-menu__item w-full"
         type="button"
         :disabled="!isHubspotConnected"
-        @click="handleCommand({
-          action: 'stopSyncHubspot',
-          organization,
-        })"
+        @click="
+          handleCommand({
+            action: Actions.STOP_SYNC_HUBSPOT,
+            organization,
+          })
+        "
       >
         <app-svg name="hubspot" class="h-4 w-4 text-current" />
-        <span
-          class="text-xs pl-2"
-        >Stop sync with HubSpot</span>
+        <span class="text-xs pl-2">Stop sync with HubSpot</span>
       </button>
     </span>
   </el-tooltip>
@@ -76,15 +87,15 @@
     class="h-10 el-dropdown-menu__item w-full"
     type="button"
     :disabled="isEditLockedForSampleData"
-    @click="handleCommand({
-      action: 'markOrganizationTeam',
-      organization,
-      value: true,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
+        organization,
+        value: true,
+      })
+    "
   >
-    <i
-      class="ri-bookmark-line text-base mr-2"
-    /><span class="text-xs">Mark as team organization</span>
+    <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
   </button>
 
   <!-- Unmark as Team Organization -->
@@ -93,15 +104,15 @@
     type="button"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
-    @click="handleCommand({
-      action: 'markOrganizationTeam',
-      organization,
-      value: false,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
+        organization,
+        value: false,
+      })
+    "
   >
-    <i
-      class="ri-bookmark-2-line text-base mr-2"
-    /><span class="text-xs">Unmark as team organization</span>
+    <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team organization</span>
   </button>
 
   <el-divider class="border-gray-200 my-2" />
@@ -111,10 +122,12 @@
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isDeleteLockedForSampleData"
     type="button"
-    @click="handleCommand({
-      action: 'organizationDelete',
-      organization,
-    })"
+    @click="
+      handleCommand({
+        action: Actions.DELETE_ORGANIZATION,
+        organization,
+      })
+    "
   >
     <i
       class="ri-delete-bin-line text-base mr-2"
@@ -130,12 +143,10 @@
   </button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import {
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -148,142 +159,179 @@ import { useStore } from 'vuex';
 import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
+import { Organization } from '../types/Organization';
+
+enum Actions {
+  DELETE_ORGANIZATION = 'deleteOrganization',
+  MERGE_ORGANIZATION = 'mergeOrganization',
+  SYNC_HUBSPOT = 'syncHubspot',
+  STOP_SYNC_HUBSPOT = 'stopSyncHubspot',
+  MARK_ORGANIZATION_AS_TEAM_ORGANIZATION = 'markOrganizationAsTeamOrganization',
+}
 
 const router = useRouter();
 
-defineProps({
-  organization: {
-    type: Object,
-    default: () => {},
-  },
-});
-
-const emit = defineEmits([
-  'merge',
-  'closeDropdown',
-]);
+const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void }>();
+defineProps<{
+  organization: Organization;
+}>();
 
 const store = useStore();
 
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();
-const { fetchOrganizations, fetchOrganization } = organizationStore;
 
 const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
-  ).editLockedForSampleData,
+  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
+    .editLockedForSampleData,
 );
 const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
-  ).destroyLockedForSampleData,
+  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
+    .destroyLockedForSampleData,
 );
 
-const isHubspotEnabled = computed(() => FeatureFlag.isFlagEnabled(
-  FEATURE_FLAGS.hubspot,
-));
+const isHubspotEnabled = computed(() => FeatureFlag.isFlagEnabled(FEATURE_FLAGS.hubspot));
 
-const isSyncingWithHubspot = (organization) => organization.attributes?.syncRemote?.hubspot || false;
+const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
 
 const isHubspotConnected = computed(() => {
   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
   const enabledFor = hubspot.settings?.enabledFor || [];
-  return hubspot.status === 'done' && enabledFor.includes(HubspotEntity.ORGANIZATIONS);
+  return (
+    hubspot.status === 'done'
+    && enabledFor.includes(HubspotEntity.ORGANIZATIONS)
+  );
 });
 
-const doDestroyWithConfirm = async (id) => {
-  try {
-    await ConfirmDialog({
+const doManualAction = async ({
+  loadingMessage,
+  actionFn,
+  successMessage,
+  errorMessage,
+}: {
+  loadingMessage?: string;
+  successMessage?: string;
+  errorMessage?: string;
+  actionFn: Promise<any>;
+}) => {
+  emit('closeDropdown');
+
+  if (loadingMessage) {
+    Message.info(null, {
+      title: loadingMessage,
+    });
+  }
+
+  return actionFn
+    .then(() => {
+      if (successMessage) {
+        Message.closeAll();
+        Message.success(successMessage);
+      }
+      Promise.resolve();
+    })
+    .catch(() => {
+      if (errorMessage) {
+        Message.closeAll();
+        Message.error(errorMessage);
+      }
+      Promise.reject();
+    });
+};
+
+const handleCommand = (command: {
+  action: Actions;
+  organization: Organization;
+  value?: boolean;
+}) => {
+  // Delete organization
+  if (command.action === Actions.DELETE_ORGANIZATION) {
+    ConfirmDialog({
       type: 'danger',
       title: 'Delete organization',
-      message:
-        "Are you sure you want to proceed? You can't undo this action",
+      message: "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
       icon: 'ri-delete-bin-line',
+    }).then(() => {
+      doManualAction({
+        loadingMessage: 'Organization is being deleted',
+        successMessage: i18n('entities.organization.destroy.success'),
+        errorMessage: 'Something went wrong',
+        actionFn: OrganizationService.destroyAll([command.organization.id]),
+      }).then(() => {
+        organizationStore.fetchOrganizations({
+          reload: true,
+        });
+      });
     });
 
-    await OrganizationService.destroyAll([id]);
-
-    Message.success(
-      i18n('entities.organization.destroy.success'),
-    );
-    emit('closeDropdown');
-
-    await fetchOrganizations({
-      reload: true,
-    });
-  } catch (error) {
-    console.error(error);
+    return;
   }
-  return null;
-};
 
-const handleCommand = (command) => {
-  if (command.action === 'organizationDelete') {
-    return doDestroyWithConfirm(command.organization.id);
-  } if (command.action === 'organizationEdit') {
-    emit('closeDropdown');
-    router.push({
-      name: 'organizationEdit',
-      params: {
-        id: command.organization.id,
-      },
-    });
-  } else if (command.action === 'organizationMerge') {
+  // Merge organization
+  if (command.action === Actions.MERGE_ORGANIZATION) {
     emit('closeDropdown');
     emit('merge');
-  } else if (
-    command.action === 'syncHubspot' || command.action === 'stopSyncHubspot'
-  ) {
-    // Hubspot
-    const sync = command.action === 'syncHubspot';
-    (sync ? HubspotApiService.syncOrganization(command.organization.id) : HubspotApiService.stopSyncOrganization(command.organization.id))
-      .then(() => {
-        emit('closeDropdown');
-        if (
-          router.currentRoute.value.name === 'organization'
-        ) {
-          fetchOrganizations({
-            reload: true,
-          });
-        } else {
-          fetchOrganization(command.organization.id);
-        }
-        if (sync) {
-          Message.success('Organization is now syncing with HubSpot');
-        } else {
-          Message.success('Organization syncing stopped');
-        }
-      })
-      .catch(() => {
-        Message.error('There was an error');
-      });
-  } else if (command.action === 'markOrganizationTeam') {
-    OrganizationService.update(command.organization.id, {
-      isTeamOrganization: command.value,
-    }).then(() => {
-      Message.success('Organization updated successfully');
-      emit('closeDropdown');
 
-      if (
-        router.currentRoute.value.name === 'organization'
-      ) {
-        fetchOrganizations({
+    return;
+  }
+
+  // Sync with hubspot
+  if (
+    command.action === Actions.SYNC_HUBSPOT
+    || command.action === Actions.STOP_SYNC_HUBSPOT
+  ) {
+    const isSyncing = command.action === Actions.SYNC_HUBSPOT;
+
+    doManualAction({
+      loadingMessage: isSyncing
+        ? 'Organization is being synced with Hubspot'
+        : 'Organization syncing with Hubspot is being stopped',
+      successMessage: isSyncing
+        ? 'Organization is now syncing with HubSpot'
+        : 'Organization syncing stopped',
+      errorMessage: 'Something went wrong',
+      actionFn: isSyncing
+        ? HubspotApiService.syncOrganization(command.organization.id)
+        : HubspotApiService.stopSyncOrganization(command.organization.id),
+    }).then(() => {
+      if (router.currentRoute.value.name === 'organization') {
+        organizationStore.fetchOrganizations({
           reload: true,
         });
       } else {
-        fetchOrganization(command.organization.id);
+        organizationStore.fetchOrganization(command.organization.id);
       }
     });
+
+    return;
+  }
+
+  // Mark as team organization
+  if (command.action === Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION) {
+    doManualAction({
+      loadingMessage: 'Organization is being updated',
+      successMessage: 'Organization updated successfully',
+      errorMessage: 'Something went wrong',
+      actionFn: OrganizationService.update(command.organization.id, {
+        isTeamOrganization: command.value,
+      }),
+    }).then(() => {
+      if (router.currentRoute.value.name === 'organization') {
+        organizationStore.fetchOrganizations({
+          reload: true,
+        });
+      } else {
+        organizationStore.fetchOrganization(command.organization.id);
+      }
+    });
+
+    return;
   }
 
   emit('closeDropdown');
-  return null;
 };
 </script>
 
