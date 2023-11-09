@@ -124,15 +124,15 @@ const mergeSuggestion = () => {
       emit('update:modelValue', null);
 
       if (route.name === 'organizationView') {
-        const keepId = originalOrganizationPrimary.value ? props.modelValue?.id : organizationToMerge.value?.id;
+        const { id } = originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value;
         const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
 
-        fetchOrganization(keepId, segments);
-        router.push({
-          name: 'organizationView',
-          params: {
-            id: keepId,
-          },
+        fetchOrganization(id, segments).then(() => {
+          router.replace({
+            params: {
+              id,
+            },
+          });
         });
       } else if (route.name === 'organization') {
         fetchOrganizations({ reload: true });
