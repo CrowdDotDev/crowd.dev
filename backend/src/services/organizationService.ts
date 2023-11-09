@@ -20,6 +20,12 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
+import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
+import {
+  MergeActionsRepository,
+  MergeActionType,
+  MergeActionState,
+} from '../database/repositories/mergeActionsRepository'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -37,7 +43,15 @@ export default class OrganizationService extends LoggerBase {
     return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
   }
 
-  async merge(originalId, toMergeId) {
+  async mergeAsync(originalId, toMergeId) {
+    const tenantId = this.options.currentTenant.id
+
+    await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
+
+    await sendOrgMergeMessage(tenantId, originalId, toMergeId)
+  }
+
+  async mergeSync(originalId, toMergeId) {
     this.options.log.info({ originalId, toMergeId }, 'Merging organizations!')
 
     const removeExtraFields = (organization: IOrganization): IOrganization =>
@@ -60,6 +74,23 @@ export default class OrganizationService extends LoggerBase {
       this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
 
       if (original.id === toMerge.id) {
+        return {
+          status: 203,
+          mergedId: originalId,
+        }
+      }
+
+      const mergeStatusChanged = await MergeActionsRepository.setState(
+        MergeActionType.ORG,
+        originalId,
+        toMergeId,
+        MergeActionState.IN_PROGRESS,
+        // not using transaction here on purpose,
+        // so this change is visible until we finish
+        this.options,
+      )
+      if (!mergeStatusChanged) {
+        this.log.info('[Merge Organizations] - Merging already in progress!')
         return {
           status: 203,
           mergedId: originalId,
@@ -213,6 +244,14 @@ export default class OrganizationService extends LoggerBase {
 
       this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
 
+      await MergeActionsRepository.setState(
+        MergeActionType.ORG,
+        originalId,
+        toMergeId,
+        MergeActionState.DONE,
+        this.options,
+      )
+
       this.log.info(
         { originalId, toMergeId },
         '[Merge Organizations] - Sending refresh opensearch messages! ',
@@ -237,10 +276,23 @@ export default class OrganizationService extends LoggerBase {
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
-      this.options.log.error(err, 'Error while merging organizations!')
+      this.options.log.error(err, 'Error while merging organizations!', {
+        originalId,
+        toMergeId,
+      })
+
+      await MergeActionsRepository.setState(
+        MergeActionType.ORG,
+        originalId,
+        toMergeId,
+        MergeActionState.ERROR,
+        this.options,
+      )
+
       if (tx) {
         await SequelizeRepository.rollbackTransaction(tx)
       }
+
       throw err
     }
   }

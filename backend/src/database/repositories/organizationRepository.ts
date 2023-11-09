@@ -25,6 +25,7 @@ import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
+import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 
 const { Op } = Sequelize
 
@@ -1567,9 +1568,17 @@ class OrganizationRepository {
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
         JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
+        LEFT JOIN "mergeActions" ma
+          ON ma.type = :mergeActionType
+          AND ma."tenantId" = :tenantId
+          AND (
+            (ma."primaryId" = org.id AND ma."secondaryId" = otm."toMergeId")
+            OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
+          )
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
           AND to_merge_segments."segmentId" IN (:segmentIds)
+          AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
       ),
       
       count_cte AS (
@@ -1605,6 +1614,8 @@ class OrganizationRepository {
           segmentIds,
           limit,
           offset,
+          mergeActionType: MergeActionType.ORG,
+          mergeActionStatus: MergeActionState.ERROR,
         },
         type: QueryTypes.SELECT,
       },
