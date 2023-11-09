@@ -7,6 +7,7 @@ export enum FeatureFlag {
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
+  QUICKSTART_V2 = 'quickstart-v2',
 
   // temporal
   TEMPORAL_AUTOMATIONS = 'temporal-automations',

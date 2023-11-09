@@ -21,6 +21,9 @@ export default (sequelize, DataTypes) => {
       slackWebHook: {
         type: DataTypes.STRING(1024),
       },
+      organizationsViewed: {
+        type: DataTypes.BOOLEAN(),
+      },
       attributeSettings: {
         type: DataTypes.JSONB,
         allowNull: false,

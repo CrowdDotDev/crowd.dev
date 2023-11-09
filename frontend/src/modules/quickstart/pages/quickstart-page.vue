@@ -20,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-
 import CrQuickstartGuides from '@/modules/quickstart/components/quickstart-guides.vue';
 import CrQuickstartWidgets from '@/modules/quickstart/components/quickstart-widgets.vue';
 </script>

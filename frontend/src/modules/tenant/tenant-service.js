@@ -73,6 +73,13 @@ export class TenantService {
     return response.data;
   }
 
+  static async viewOrganizations() {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(`/tenant/${tenantId}/viewOrganizations`);
+
+    return response.data;
+  }
+
   static async acceptInvitation(
     token,
     forceAcceptOtherEmail = false,

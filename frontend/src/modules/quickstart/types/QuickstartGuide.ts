@@ -7,5 +7,6 @@ export interface QuickstartGuide {
   completed: boolean
   key: string;
   loomThumbnailUrl: string;
+  learnMoreLink: string;
   loomHtml: string;
 }

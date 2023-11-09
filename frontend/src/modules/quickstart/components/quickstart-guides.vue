@@ -26,7 +26,10 @@
             class="relative cursor-auto px-6 py-2"
           >
             <template #title>
-              <cr-quickstart-guide-item-head :guide="guide" />
+              <cr-quickstart-guide-item-head
+                :guide="guide"
+                :extended="activeView === guide.key"
+              />
             </template>
             <template #default>
               <cr-quickstart-guide-item-content
@@ -39,7 +42,6 @@
       </el-collapse>
     </section>
   </div>
-  <app-dashboard-guide-modal v-model="selectedGuide" />
 </template>
 
 <script setup>
@@ -47,16 +49,13 @@ import {
   ref, computed, onMounted, watch,
 } from 'vue';
 import { storeToRefs } from 'pinia';
-import AppDashboardGuideModal from '@/modules/dashboard/components/guide/dashboard-guide-modal.vue';
 import {
   mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import { useQuickStartStore } from '@/modules/quickstart/store';
-import { TenantEventService } from '@/shared/events/tenant-event.service';
 import CrQuickstartGuideItemHead from '@/modules/quickstart/components/item/quickstart-guide-item-head.vue';
 import CrQuickstartGuideItemContent from '@/modules/quickstart/components/item/quickstart-guide-item-content.vue';
-import AppLoader from '@/shared/loading/loader.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
 const { currentTenant, currentTenantUser } = mapGetters('auth');
@@ -69,7 +68,6 @@ const { guides, notcompletedGuides } = storeToRefs(
 const { getGuides } = storeQuickStartGuides;
 
 const activeView = ref(null);
-const selectedGuide = ref(null);
 const loading = ref(false);
 
 const hasSampleData = computed(
@@ -82,11 +80,6 @@ const completionPercentage = computed(() => {
 });
 
 const showModals = () => {
-  if (
-    !currentTenantUser.value?.settings
-  ) {
-    return;
-  }
   loading.value = true;
   getGuides({}).then(() => {
     activeView.value = notcompletedGuides.value?.length
@@ -113,23 +106,11 @@ watch(
 
 onMounted(() => {
   doRefreshCurrentUser({}).then(() => {
-    console.log('refreshed');
     if (currentTenantUser.value) {
       showModals();
     }
   });
 });
-
-const onGuideOpen = (guide) => {
-  selectedGuide.value = guide;
-
-  TenantEventService.event({
-    name: 'Onboarding Guide details clicked',
-    properties: {
-      step: guide.key,
-    },
-  });
-};
 </script>
 
 <script>
@@ -149,7 +130,7 @@ export default {
     @apply border-0;
   }
   .el-collapse-item__arrow {
-     @apply block;
+     @apply hidden;
    }
 
 }

@@ -1,18 +1,21 @@
 <template>
   <article class="pt-2 pl-9">
-    <div class="relative">
-      <img v-if="props.guide.loomThumbnailUrl" :alt="props.guide.title" :src="props.guide.loomThumbnailUrl" class="w-full">
-      <div class="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-white to-transparent" />
-    </div>
+    <img :alt="props.guide.title" :src="`/images/quickstart/${props.guide.key}.jpg`" class="w-full">
 
-    <div class="flex items-center justify-center pt-1">
-      <el-button
-        v-if="props.guide.loomHtml"
-        class="btn btn--transparent btn--md mb-4 leading-5 mx-2"
-        @click="emit('open')"
+    <div class="flex items-center justify-center pt-3">
+      <a
+        v-if="props.guide.learnMoreLink"
+        :href="props.guide.learnMoreLink"
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        <i class="ri-book-open-line mr-2" />Learn more
-      </el-button>
+        <el-button
+          class="btn btn--transparent btn--md mb-4 leading-5 mx-2"
+        >
+          <i class="ri-book-open-line mr-2" />Learn more
+        </el-button>
+      </a>
+
       <router-link :to="props.guide.buttonLink">
         <el-button
           v-if="props.guide.buttonText"
@@ -33,8 +36,6 @@ import { QuickstartGuide } from '@/modules/quickstart/types/QuickstartGuide';
 const props = defineProps<{
   guide: QuickstartGuide
 }>();
-
-const emit = defineEmits(['open']);
 
 const trackBtnClick = (step) => {
   TenantEventService.event({

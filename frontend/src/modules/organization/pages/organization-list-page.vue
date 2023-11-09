@@ -89,6 +89,7 @@ import { organizationFilters, organizationSearchFilter } from '@/modules/organiz
 import { organizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { TenantService } from '@/modules/tenant/tenant-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -196,5 +197,6 @@ onMounted(async () => {
   fetchOrganizationsToMergeCount();
   doGetOrganizationCount();
   (window as any).analytics.page('Organization');
+  TenantService.viewOrganizations();
 });
 </script>

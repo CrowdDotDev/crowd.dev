@@ -22,4 +22,5 @@ export default (app) => {
   )
   app.post(`/tenant/:tenantId/sampleData`, safeWrap(require('./tenantGenerateSampleData').default))
   app.delete(`/tenant/:tenantId/sampleData`, safeWrap(require('./tenantDeleteSampleData').default))
+  app.post(`/tenant/:tenantId/viewOrganizations`, safeWrap(require('./tenantViewOrganizations').default))
 }
