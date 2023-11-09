@@ -84,7 +84,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
 
-      if (orgs) {
+      if (orgs && company.length > 0) {
         const organizationPayload = {
           identities: [
             {
@@ -113,7 +113,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         }
 
         member.organizations = [organizationPayload]
-      } else {
+      } else if (company.length > 0) {
         member.organizations = [
           {
             identities: [
