@@ -1,11 +1,15 @@
-import DataSinkRepository from '../repo/dataSink.repo'
-import DataSinkService from '../service/dataSink.service'
+import { timeout } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
-import { RedisClient, processWithLock } from '@crowd/redis'
+import { RedisClient } from '@crowd/redis'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import { Client as TemporalClient } from '@crowd/temporal'
+import DataSinkRepository from '../repo/dataSink.repo'
+import DataSinkService from '../service/dataSink.service'
+
+const MAX_CONCURRENT_PROMISES = 50
+const MAX_RESULTS_TO_LOAD = 200
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
@@ -16,7 +20,7 @@ export const processOldResultsJob = async (
   temporal: TemporalClient,
   log: Logger,
 ): Promise<void> => {
-  const store = new DbStore(log, dbConn)
+  const store = new DbStore(log, dbConn, undefined, false)
   const repo = new DataSinkRepository(store, log)
   const service = new DataSinkService(
     store,
@@ -28,39 +32,60 @@ export const processOldResultsJob = async (
     log,
   )
 
+  let current = 0
   const loadNextBatch = async (): Promise<string[]> => {
-    return await processWithLock(redis, 'process-old-results', 5 * 60, 3 * 60, async () => {
-      const resultIds = await repo.getOldResultsToProcess(5)
-      await repo.touchUpdatedAt(resultIds)
+    return await repo.transactionally(async (txRepo) => {
+      const resultIds = await txRepo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
+      await txRepo.touchUpdatedAt(resultIds)
       return resultIds
     })
   }
 
-  // load 5 oldest results and try process them
   let resultsToProcess = await loadNextBatch()
+
+  log.info(`Processing ${resultsToProcess.length} old results...`)
 
   let successCount = 0
   let errorCount = 0
+  let i = 0
+  let batchLength = resultsToProcess.length
 
   while (resultsToProcess.length > 0) {
-    log.info(`Detected ${resultsToProcess.length} old results rows to process!`)
+    const resultId = resultsToProcess.pop()
 
-    for (const resultId of resultsToProcess) {
-      try {
-        const result = await service.processResult(resultId)
-        if (result) {
-          successCount++
-        } else {
-          errorCount++
-        }
-      } catch (err) {
-        log.error(err, 'Failed to process result!')
-        errorCount++
-      }
+    while (current == MAX_CONCURRENT_PROMISES) {
+      await timeout(1000)
     }
 
-    log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
+    const currentIndex = i
+    i += 1
+    log.info(`Processing result ${currentIndex + 1}/${batchLength}`)
+    current += 1
+    service
+      .processResult(resultId)
+      .then(() => {
+        current--
+        successCount++
+        log.info(`Processed result ${currentIndex + 1}/${batchLength}`)
+      })
+      .catch((err) => {
+        current--
+        errorCount++
+        log.error(err, `Error processing result ${currentIndex + 1}/${batchLength}!`)
+      })
 
-    resultsToProcess = await loadNextBatch()
+    if (resultsToProcess.length === 0) {
+      while (current > 0) {
+        await timeout(1000)
+      }
+
+      log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
+      resultsToProcess = await loadNextBatch()
+      log.info(`Processing ${resultsToProcess.length} old results...`)
+      successCount = 0
+      errorCount = 0
+      i = 0
+      batchLength = resultsToProcess.length
+    }
   }
 }

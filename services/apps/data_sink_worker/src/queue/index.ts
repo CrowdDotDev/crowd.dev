@@ -52,6 +52,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
         switch (message.type) {
           case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
+            // this type of message will be processed by the processOldResultsJob
             await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
             break
           case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {

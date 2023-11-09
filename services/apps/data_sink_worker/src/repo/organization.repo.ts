@@ -459,6 +459,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       },
     })
     const updatedAt = new Date()
+    const oneMinuteAgo = new Date(updatedAt.getTime() - 60 * 1000)
     const prepared = RepositoryBase.prepare(
       {
         ...data,
@@ -472,9 +473,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
 
     const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
-    const condition = this.format('where id = $(id) and "updatedAt" < $(updatedAt)', {
+    const condition = this.format('where id = $(id) and "updatedAt" <= $(oneMinuteAgo)', {
       id,
-      updatedAt,
+      oneMinuteAgo,
     })
 
     await this.db().result(`${query} ${condition}`)
