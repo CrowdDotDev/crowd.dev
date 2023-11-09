@@ -1,5 +1,4 @@
-import CubeJsService from '../../../../../../backend/src/services/cubejs/cubeJsService'
-import CubeJsRepository from '../../../../../../backend/src/cubejs/cubeJsRepository'
+import { CubeJsService, CubeJsRepository } from '@crowd/cubejs'
 
 import { InputAnalyticsWithTimes } from '../../types/analytics'
 

@@ -56,6 +56,7 @@
     "@aws-sdk/util-format-url": "^3.226.0",
     "@crowd/alerting": "file:../services/libs/alerting",
     "@crowd/common": "file:../services/libs/common",
+    "@crowd/cubejs": "file:../services/libs/cubejs",
     "@crowd/feature-flags": "file:../services/libs/feature-flags",
     "@crowd/integrations": "file:../services/libs/integrations",
     "@crowd/logging": "file:../services/libs/logging",

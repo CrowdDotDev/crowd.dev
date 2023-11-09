@@ -16,9 +16,9 @@ import {
   PageData,
   QueryData,
 } from '@crowd/types'
+import { Error404 } from '@crowd/common'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import Error404 from '../../errors/Error404'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
 import SequelizeRepository from './sequelizeRepository'

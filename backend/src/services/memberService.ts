@@ -5,7 +5,7 @@ import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
 import { FeatureFlag, IOrganization, MemberAttributeType } from '@crowd/types'
-import { isDomainExcluded } from '@crowd/common'
+import { isDomainExcluded, Error400 } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -19,7 +19,6 @@ import {
   IMemberMergeSuggestionsType,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
-import Error400 from '../errors/Error400'
 import telemetryTrack from '../segment/telemetryTrack'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import {

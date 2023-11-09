@@ -1,7 +1,3 @@
-/**
- * I18n dictionary for the en.
- */
-
 const ptBR = {
   app: {
     title: 'Aplicação',

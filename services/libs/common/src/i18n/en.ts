@@ -1,7 +1,3 @@
-/**
- * I18n dictionary for the en.
- */
-
 const en = {
   app: {
     title: 'crowd.dev',

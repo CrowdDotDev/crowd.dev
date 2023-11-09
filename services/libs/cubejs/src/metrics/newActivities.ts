@@ -1,20 +1,22 @@
-import CubeJsService from '../../services/cubejs/cubeJsService'
-import CubeDimensions from '../../services/cubejs/cubeDimensions'
-import CubeMeasures from '../../services/cubejs/cubeMeasures'
+import moment from 'moment'
+
+import { CubeJsService } from '../service'
+import CubeDimensions from '../dimensions'
+import CubeMeasures from '../measures'
 
 /**
- * Gets `active members` count for a given date range.
- * Members are active when they have an activity in given date range.
+ * Gets `new activities` count for a given date range.
+ * Activities are new when activity.timestamp is in between given date range.
  * @param cjs cubejs service instance
  * @param startDate
  * @param endDate
  * @returns
  */
 export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: moment.Moment) => {
-  const activeMembers =
+  const newActivities =
     (
       await cjs.load({
-        measures: [CubeMeasures.MEMBER_COUNT],
+        measures: [CubeMeasures.ACTIVITY_COUNT],
         timeDimensions: [
           {
             dimension: CubeDimensions.ACTIVITY_DATE,
@@ -22,7 +24,7 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
           },
         ],
         limit: 1,
-        order: { [CubeDimensions.MEMBER_JOINED_AT]: 'asc' },
+        order: { [CubeDimensions.ACTIVITY_DATE]: 'asc' },
         filters: [
           {
             member: CubeDimensions.IS_TEAM_MEMBER,
@@ -31,7 +33,7 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
           },
         ],
       })
-    )[0][CubeMeasures.MEMBER_COUNT] ?? 0
+    )[0][CubeMeasures.ACTIVITY_COUNT] ?? 0
 
-  return parseInt(activeMembers, 10)
+  return parseInt(newActivities, 10)
 }

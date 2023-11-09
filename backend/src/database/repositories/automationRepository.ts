@@ -6,8 +6,8 @@ import {
   PageData,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
+import { Error404 } from '@crowd/common'
 import { PLAN_LIMITS } from '@/feature-flags/isFeatureEnabled'
-import Error404 from '../../errors/Error404'
 import { AutomationCriteria } from '../../types/automationTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'

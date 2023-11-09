@@ -5,7 +5,7 @@
 // enabled for your account.  You are still allowed to require
 // @cubejs-backend/*-driver packages.
 
-module.exports = {
+export default {
   queryRewrite: (query, { securityContext }) => {
     // Ensure `securityContext` has an `id` property
     if (!securityContext.tenantId) {

@@ -3,6 +3,7 @@ import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
+import { i18n, Error400 } from '@crowd/common'
 import {
   ApiWebsocketMessage,
   MemberAttributeName,
@@ -15,8 +16,6 @@ import {
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
-import Error400 from '../../../errors/Error400'
-import { i18n } from '../../../i18n'
 import track from '../../../segment/track'
 import { Member } from '../../../serverless/integrations/types/messageTypes'
 import { IServiceOptions } from '../../IServiceOptions'

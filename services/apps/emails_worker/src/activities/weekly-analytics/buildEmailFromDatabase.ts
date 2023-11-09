@@ -2,6 +2,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { convert as convertHtmlToText } from 'html-to-text'
 
+import { getEnv } from '@crowd/common'
 import {
   ActivityDisplayVariant,
   IMember,
@@ -12,8 +13,6 @@ import {
 import { ActivityDisplayService } from '@crowd/integrations'
 
 import { svc } from '../../main'
-
-import getStage from '../../../../../../backend/src/services/helpers/getStage'
 
 import { UserTenant } from '../../types/user'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
@@ -29,7 +28,7 @@ interface ActivityType {
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
-}-${getStage()}.s3.eu-central-1.amazonaws.com`
+}-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
 /*
 getSegments is a Temporal activity that returns the tenant's segments.

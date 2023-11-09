@@ -11,11 +11,11 @@ import {
   PageData,
   QueryData,
 } from '@crowd/types'
+import { Error400 } from '@crowd/common'
 import { EAGLE_EYE_CONFIG } from '../conf'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import Error400 from '../errors/Error400'
 import track from '../segment/track'
 import { IServiceOptions } from './IServiceOptions'
 

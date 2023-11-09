@@ -1,6 +1,8 @@
-import CubeJsService from '../../services/cubejs/cubeJsService'
-import CubeDimensions from '../../services/cubejs/cubeDimensions'
-import CubeMeasures from '../../services/cubejs/cubeMeasures'
+import moment from 'moment'
+
+import { CubeJsService } from '../service'
+import CubeDimensions from '../dimensions'
+import CubeMeasures from '../measures'
 
 /**
  * Gets `new conversations` count for a given date range.

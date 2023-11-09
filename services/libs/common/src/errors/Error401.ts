@@ -1,7 +1,7 @@
 import { i18n, i18nExists } from '../i18n'
 
-export default class Error400 extends Error {
-  code: Number
+export default class Error401 extends Error {
+  code: number
 
   constructor(language?, messageCode?, ...args) {
     let message
@@ -13,6 +13,6 @@ export default class Error400 extends Error {
     message = message || i18n(language, 'errors.validation.message')
 
     super(message)
-    this.code = 400
+    this.code = 401
   }
 }

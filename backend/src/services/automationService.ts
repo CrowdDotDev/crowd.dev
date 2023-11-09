@@ -6,6 +6,7 @@ import {
   PlatformType,
   PageData,
 } from '@crowd/types'
+import { Error404 } from '@crowd/common'
 import {
   AutomationCriteria,
   CreateAutomationRequest,
@@ -17,7 +18,6 @@ import AutomationRepository from '../database/repositories/automationRepository'
 import { ServiceBase } from './serviceBase'
 import { getIntegrationSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import IntegrationRepository from '@/database/repositories/integrationRepository'
-import Error404 from '@/errors/Error404'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 import AutomationExecutionRepository from '@/database/repositories/automationExecutionRepository'

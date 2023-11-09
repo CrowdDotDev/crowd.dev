@@ -1,7 +1,7 @@
 import { i18n, i18nExists } from '../i18n'
 
 export default class Error403 extends Error {
-  code: Number
+  code: number
 
   constructor(language?, messageCode?, params?) {
     let message

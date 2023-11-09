@@ -1,9 +1,9 @@
-export default class Error500 extends Error {
-  code: Number
+export default class Error542 extends Error {
+  code: number
 
   constructor(message?) {
     message = message || 'Internal server error'
     super(message)
-    this.code = 500
+    this.code = 542
   }
 }

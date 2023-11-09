@@ -1,6 +1,6 @@
 import * as metrics from './metrics/index'
 
-class CubeJsRepository {
+export class CubeJsRepository {
   static getActiveMembers = metrics.activeMembers
 
   static getNewActivities = metrics.newActivities
@@ -13,5 +13,3 @@ class CubeJsRepository {
 
   static getActiveOrganizations = metrics.activeOrganizations
 }
-
-export default CubeJsRepository

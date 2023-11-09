@@ -7,10 +7,10 @@ import {
   SegmentLevel,
   SegmentUpdateData,
 } from '@crowd/types'
+import { Error400 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import Error400 from '../errors/Error400'
 import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'

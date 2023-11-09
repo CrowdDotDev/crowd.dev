@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid'
 import moment from 'moment'
 
-import Error404 from '../../../errors/Error404'
+import { Error404 } from '@crowd/common'
 import { PlatformType, SegmentStatus } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'

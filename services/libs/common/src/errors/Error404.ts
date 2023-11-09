@@ -1,7 +1,7 @@
 import { i18n, i18nExists } from '../i18n'
 
-export default class Error405 extends Error {
-  code: Number
+export default class Error404 extends Error {
+  code: number
 
   constructor(language?, messageCode?) {
     let message
@@ -13,6 +13,6 @@ export default class Error405 extends Error {
     message = message || i18n(language, 'errors.notFound.message')
 
     super(message)
-    this.code = 405
+    this.code = 404
   }
 }

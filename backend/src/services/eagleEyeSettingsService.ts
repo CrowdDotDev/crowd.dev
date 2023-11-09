@@ -9,9 +9,9 @@ import {
   EagleEyePublishedDates,
   EagleEyeSettings,
 } from '@crowd/types'
+import { Error400 } from '@crowd/common'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import Error400 from '../errors/Error400'
 import track from '../segment/track'
 import { IServiceOptions } from './IServiceOptions'
 
