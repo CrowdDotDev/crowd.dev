@@ -104,6 +104,8 @@ export default class ActivityService extends LoggerBase {
             }
           },
           this.unleash,
+          this.redisClient,
+          60,
         )
       ) {
         const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
@@ -422,6 +424,7 @@ export default class ActivityService extends LoggerBase {
             this.searchSyncWorkerEmitter,
             this.unleash,
             this.temporal,
+            this.redisClient,
             this.log,
           )
           const txActivityService = new ActivityService(

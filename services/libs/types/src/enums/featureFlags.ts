@@ -9,6 +9,9 @@ export enum FeatureFlag {
   SEGMENTS = 'segments',
   QUICKSTART_V2 = 'quickstart-v2',
 
+  // opensearch
+  SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',
+
   // temporal
   TEMPORAL_AUTOMATIONS = 'temporal-automations',
 }

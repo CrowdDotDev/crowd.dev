@@ -16,11 +16,6 @@
             class="pt-4"
           />
         </el-tab-pane>
-        <el-tab-pane v-if="!menuV2Enabled" label="Automations" name="automations">
-          <app-automation-list-page
-            v-if="activeTab === 'automations'"
-          />
-        </el-tab-pane>
         <el-tab-pane label="API Keys" name="api-keys">
           <app-api-keys-page
             v-if="activeTab === 'api-keys'"
@@ -39,9 +34,7 @@ import { mapGetters } from 'vuex';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import AppPlansPage from '@/modules/settings/pages/plans-page.vue';
 import UserListPage from '@/modules/user/pages/user-list-page.vue';
-import AutomationListPage from '@/modules/automation/components/automation-list.vue';
 import { UserPermissions } from '@/modules/user/user-permissions';
-import { FeatureFlag } from '@/utils/featureFlag';
 
 export default {
   name: 'AppSettingsPage',
@@ -50,7 +43,6 @@ export default {
     AppApiKeysPage,
     AppPlansPage,
     'app-user-list-page': UserListPage,
-    'app-automation-list-page': AutomationListPage,
   },
 
   data() {
@@ -69,11 +61,6 @@ export default {
         this.currentTenant,
         this.currentUser,
       ).read;
-    },
-    menuV2Enabled() {
-      return FeatureFlag.isFlagEnabled(
-        FeatureFlag.flags.menuV2,
-      );
     },
     computedActiveTab: {
       get() {
