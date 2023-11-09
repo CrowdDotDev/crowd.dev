@@ -11,7 +11,7 @@
         {{ props.guide.title }}
       </h4>
       <div class="w-full">
-        <p class="text-xs text-gray-500 font-normal" :class="props.extended ? '' : 'h-5 truncate whitespace-wrap'">
+        <p class="text-xs text-gray-500 font-normal whitespace-normal" :class="props.extended ? '' : 'h-5 truncate'">
           {{ props.guide.body }}
         </p>
       </div>

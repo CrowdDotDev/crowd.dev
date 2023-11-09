@@ -63,7 +63,7 @@ const enrichMemberGuide: QuickstartGuide = {
 }
 
 const viewReportGuide: QuickstartGuide = {
-  title: 'Look into a report',
+  title: 'Look into reports',
   body: 'Check our specially crafted default reports and dig into the inner workings of your community.',
   videoLink: 'https://www.loom.com/share/545e7dfc692540d09115ee32653640ca',
   learnMoreLink: 'https://www.loom.com/share/545e7dfc692540d09115ee32653640ca',
@@ -82,7 +82,6 @@ const setEagleEyeGuide: QuickstartGuide = {
   completed: false,
 }
 
-
 const inviteColleaguesGuide: QuickstartGuide = {
   title: 'Invite your colleagues',
   body: 'Invite colleagues to your crowd.dev workspace by giving full access or read-only permissions.',
@@ -95,7 +94,7 @@ const inviteColleaguesGuide: QuickstartGuide = {
 
 const exploreOrganizations: QuickstartGuide = {
   title: 'Explore organizations',
-  body: 'Invite colleagues to your crowd.dev workspace by giving full access...',
+  body: 'Discover organizations with developers engaging with your ecosystem or technology and see which companies fit your ICP.',
   videoLink: 'https://www.loom.com/share/f12d87814e7447edab4282eab6bb3ccf',
   learnMoreLink: 'https://www.loom.com/share/f12d87814e7447edab4282eab6bb3ccf',
   buttonLink: '/organizations',
@@ -105,7 +104,7 @@ const exploreOrganizations: QuickstartGuide = {
 
 const createAutomations: QuickstartGuide = {
   title: 'Create automations',
-  body: 'Invite colleagues to your crowd.dev workspace by giving full access...',
+  body: 'Stop focusing on repetitive tasks and concentrate on building deeper relationships with your community by automating your workflows.',
   videoLink: 'https://www.loom.com/share/f12d87814e7447edab4282eab6bb3ccf',
   learnMoreLink: 'https://www.loom.com/share/f12d87814e7447edab4282eab6bb3ccf',
   buttonLink: '/automations',
@@ -128,4 +127,3 @@ export const DEFAULT_GUIDES_V2 = {
   [QuickstartGuideType.VIEW_REPORT]: viewReportGuide,
   [QuickstartGuideType.CREATE_AUTOMATIONS]: createAutomations,
 }
-
