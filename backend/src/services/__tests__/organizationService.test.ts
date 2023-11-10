@@ -5,42 +5,6 @@ import OrganizationService from '../organizationService'
 
 const db = null
 
-const expectedEnriched = {
-  identities: [
-    {
-      name: 'crowd.dev',
-      platform: 'crowd',
-    },
-  ],
-  description:
-    'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
-  emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
-  phoneNumbers: ['+42 424242'],
-  logo: 'https://logo.clearbit.com/crowd.dev',
-  tags: [],
-  twitter: {
-    handle: 'CrowdDotDev',
-    id: '1362101830923259908',
-    bio: 'Community-led Growth for Developer-first Companies.\nJoin our private beta. 👇',
-    followers: 107,
-    following: 0,
-    location: '🌍 remote',
-    site: 'https://t.co/GRLDhqFWk4',
-    avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
-  },
-  linkedin: {
-    handle: 'company/crowddevhq',
-  },
-  crunchbase: {
-    handle: null,
-  },
-  employees: 5,
-  revenueRange: {
-    min: 0,
-    max: 1,
-  },
-}
-
 describe('OrganizationService tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)

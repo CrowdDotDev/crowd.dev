@@ -4,13 +4,11 @@ import { LoggerBase } from '@crowd/logging'
 import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
-import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
 import MemberRepository from '../database/repositories/memberRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import Error400 from '../errors/Error400'
-import Plans from '../security/plans'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
@@ -33,14 +31,6 @@ export default class OrganizationService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
-  }
-
-  async shouldEnrich(enrichP) {
-    const isPremium = this.options.currentTenant.plan === Plans.values.growth
-    if (!isPremium) {
-      return false
-    }
-    return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
   }
 
   async mergeAsync(originalId, toMergeId) {
