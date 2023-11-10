@@ -457,7 +457,6 @@ export default class OrganizationService extends LoggerBase {
 
           cache = { ...cache, ...updateData } // Update the cached data with the new data
         }
-
       } else {
         // save it to cache
         cache = await organizationCacheRepository.create(
