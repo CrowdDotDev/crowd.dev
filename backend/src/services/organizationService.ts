@@ -13,7 +13,6 @@ import Error400 from '../errors/Error400'
 import Plans from '../security/plans'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
-import { enrichOrganization } from './helpers/enrichment'
 import merge from './helpers/merge'
 import {
   keepPrimary,
@@ -379,7 +378,7 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async createOrUpdate(data: IOrganization, enrichP = true) {
+  async createOrUpdate(data: IOrganization) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     if ((data as any).name && (!data.identities || data.identities.length === 0)) {
@@ -404,8 +403,6 @@ export default class OrganizationService extends LoggerBase {
     }
 
     try {
-      const shouldDoEnrich = await this.shouldEnrich(enrichP)
-
       const primaryIdentity = data.identities[0]
       const nameToCheckInCache = (data as any).name || primaryIdentity.name
 
@@ -450,7 +447,7 @@ export default class OrganizationService extends LoggerBase {
           }
         })
         if (Object.keys(updateData).length > 0) {
-          cache = await organizationCacheRepository.update(cache.id, updateData, {
+          await organizationCacheRepository.update(cache.id, updateData, {
             ...this.options,
             transaction,
           })
@@ -469,29 +466,6 @@ export default class OrganizationService extends LoggerBase {
             transaction,
           },
         )
-      }
-
-      // clearbit enrich
-      if (shouldDoEnrich && !cache.enriched) {
-        try {
-          const enrichedData = await enrichOrganization(primaryIdentity.name)
-
-          // overwrite cache with enriched data, but keep the name because it's serving as a unique identifier
-          data = {
-            ...data, // to keep uncacheable data (like identities, weakIdentities)
-            ...cache,
-            ...enrichedData,
-            name: cache.name,
-            enriched: true,
-          }
-
-          cache = await organizationCacheRepository.update(cache.id, data, {
-            ...this.options,
-            transaction,
-          })
-        } catch (error) {
-          this.log.error(error, `Could not enrich ${primaryIdentity.name}!`)
-        }
       }
 
       if (data.members) {
