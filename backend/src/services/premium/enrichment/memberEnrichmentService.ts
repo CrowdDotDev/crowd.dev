@@ -11,6 +11,7 @@ import {
   MemberEnrichmentAttributes,
   PlatformType,
   OrganizationSource,
+  SyncMode,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
@@ -35,7 +36,7 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import SearchSyncService, { SyncMode } from '@/services/searchSyncService'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -286,7 +287,16 @@ export default class MemberEnrichmentService extends LoggerBase {
             const existingMember = await memberService.memberExists(username, platform)
 
             if (existingMember) {
-              await memberService.merge(memberId, existingMember.id)
+              await memberService.merge(memberId, existingMember.id, {
+                doSync: false,
+                mode: SyncMode.ASYNCHRONOUS,
+              })
+
+              // we also need to trigger remove existing member from opensearch, because the transaction isn't commited yet while merging
+              await searchSyncService.triggerRemoveMember(
+                this.options.currentTenant.id,
+                existingMember.id,
+              )
             }
           }
         }
@@ -331,14 +341,20 @@ export default class MemberEnrichmentService extends LoggerBase {
       const organizationService = new OrganizationService(options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
-          const org = await organizationService.createOrUpdate({
-            identities: [
-              {
-                name: workExperience.company,
-                platform: PlatformType.ENRICHMENT,
-              },
-            ],
-          })
+          const org = await organizationService.createOrUpdate(
+            {
+              identities: [
+                {
+                  name: workExperience.company,
+                  platform: PlatformType.ENRICHMENT,
+                },
+              ],
+            },
+            {
+              doSync: true,
+              mode: SyncMode.ASYNCHRONOUS,
+            },
+          )
 
           const dateEnd = workExperience.endDate
             ? moment.utc(workExperience.endDate).toISOString()
