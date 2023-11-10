@@ -10,7 +10,7 @@ import { processOldDataJob } from './jobs/processOldData'
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 2
+const MAX_CONCURRENT_PROCESSING = 3
 const PROCESSING_INTERVAL_MINUTES = 5
 
 setImmediate(async () => {

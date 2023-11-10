@@ -60,4 +60,6 @@ export * from './eagleeye'
 
 export * from './segments'
 
+export * from './enums/tenants'
+
 export * from './service'

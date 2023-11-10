@@ -41,7 +41,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         this.log.trace({ messageType: message.type }, 'Processing message!')
 
         const service = new DataSinkService(
-          new DbStore(this.log, this.dbConn),
+          new DbStore(this.log, this.dbConn, undefined, false),
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
           this.redisClient,
@@ -52,6 +52,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
 
         switch (message.type) {
           case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
+            // this type of message will be processed by the processOldResultsJob
             await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
             break
           case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
