@@ -60,7 +60,7 @@ function models(queryTimeoutMilliseconds: number) {
         application_name: SERVICE,
         connectionTimeoutMillis: 5000,
         query_timeout: queryTimeoutMilliseconds,
-        idle_in_transaction_session_timeout: 30000,
+        idle_in_transaction_session_timeout: 10000,
       },
       port: DB_CONFIG.port,
       replication: {
@@ -76,7 +76,7 @@ function models(queryTimeoutMilliseconds: number) {
         max: SERVICE === configTypes.ServiceType.API ? 20 : 10,
         min: 0,
         acquire: 50000,
-        idle: 30000,
+        idle: 10000,
       },
       logging: DB_CONFIG.logging
         ? (dbLog) =>
