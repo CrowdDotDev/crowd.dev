@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash'
 import { websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
@@ -422,14 +423,42 @@ export default class OrganizationService extends LoggerBase {
       // if cache exists, merge current data with cache data
       // if it doesn't exist, create it from incoming data
       if (cache) {
-        data = {
-          ...cache,
-          ...data,
-        }
-        cache = await organizationCacheRepository.update(cache.id, data, {
-          ...this.options,
-          transaction,
+        // if exists in cache update it
+        const updateData: Partial<IOrganization> = {}
+        // no need to update name since it's aka primary key
+        const fields = [
+          'url',
+          'description',
+          'emails',
+          'logo',
+          'tags',
+          'github',
+          'twitter',
+          'linkedin',
+          'crunchbase',
+          'employees',
+          'location',
+          'website',
+          'type',
+          'size',
+          'headline',
+          'industry',
+          'founded',
+        ]
+        fields.forEach((field) => {
+          if (data[field] && !isEqual(data[field], cache[field])) {
+            updateData[field] = data[field]
+          }
         })
+        if (Object.keys(updateData).length > 0) {
+          cache = await organizationCacheRepository.update(cache.id, updateData, {
+            ...this.options,
+            transaction,
+          })
+
+          cache = { ...cache, ...updateData } // Update the cached data with the new data
+        }
+
       } else {
         // save it to cache
         cache = await organizationCacheRepository.create(
@@ -505,11 +534,45 @@ export default class OrganizationService extends LoggerBase {
           data.displayName = cache.name
         }
 
-        record = await OrganizationRepository.update(
-          existing.id,
-          { ...data, ...cache },
-          { ...this.options, transaction },
-        )
+        // if it does exists update it
+        const updateData: Partial<IOrganization> = {}
+        const fields = [
+          'displayName',
+          'description',
+          'emails',
+          'logo',
+          'tags',
+          'github',
+          'twitter',
+          'linkedin',
+          'crunchbase',
+          'employees',
+          'location',
+          'website',
+          'type',
+          'size',
+          'headline',
+          'industry',
+          'founded',
+          'attributes',
+          'weakIdentities',
+        ]
+        fields.forEach((field) => {
+          if (field === 'website' && !existing.website && cache.website) {
+            updateData[field] = cache[field]
+          } else if (
+            field !== 'website' &&
+            cache[field] &&
+            !isEqual(cache[field], existing[field])
+          ) {
+            updateData[field] = cache[field]
+          }
+        })
+
+        record = await OrganizationRepository.update(existing.id, updateData, {
+          ...this.options,
+          transaction,
+        })
       } else {
         await OrganizationRepository.checkIdentities(data, this.options)
 
