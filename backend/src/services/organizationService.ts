@@ -425,7 +425,6 @@ export default class OrganizationService extends LoggerBase {
       if (cache) {
         // if exists in cache update it
         const updateData: Partial<IOrganization> = {}
-        // no need to update name since it's aka primary key
         const fields = [
           'url',
           'description',
