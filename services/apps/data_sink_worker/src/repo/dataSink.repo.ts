@@ -1,6 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
+import { IIntegrationResult, IntegrationResultState, TenantPlans } from '@crowd/types'
 import { IFailedResultData, IResultData } from './dataSink.data'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
@@ -56,22 +56,21 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   }
 
   public async getOldResultsToProcess(limit: number): Promise<string[]> {
+    this.ensureTransactional()
+
     try {
       const results = await this.db().any(
         `
-        select id
-        from integration.results
-        where state in ($(pendingState), $(processingState))
-          and "updatedAt" < now() - interval '1 hour'
-        order by case when "webhookId" is not null then 0 else 1 end,
-                "webhookId" asc,
-                "updatedAt" desc
-        limit ${limit};
+        select r.id
+        from integration.results r
+        where r.state = $(pendingState)
+          and r."updatedAt" < now() - interval '1 hour'
+        limit ${limit}
+        for update skip locked;
         `,
         {
           pendingState: IntegrationResultState.PENDING,
-          processingState: IntegrationResultState.PROCESSING,
-          maxRetries: 5,
+          plans: [TenantPlans.Growth, TenantPlans.Scale],
         },
       )
 

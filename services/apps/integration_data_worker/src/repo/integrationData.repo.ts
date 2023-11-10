@@ -61,6 +61,8 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   }
 
   public async getOldDataToProcess(limit: number): Promise<string[]> {
+    this.ensureTransactional()
+
     try {
       const results = await this.db().any(
         `
@@ -77,7 +79,8 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
         order by case when "webhookId" is not null then 0 else 1 end,
                 "webhookId" asc,
                 "updatedAt" desc
-        limit ${limit};
+        limit ${limit}
+        for update skip locked;
         `,
         {
           errorState: IntegrationStreamDataState.ERROR,
