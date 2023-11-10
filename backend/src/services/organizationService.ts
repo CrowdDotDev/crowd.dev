@@ -1,7 +1,13 @@
 import { isEqual } from 'lodash'
 import { websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
-import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
+import {
+  IOrganization,
+  IOrganizationIdentity,
+  ISearchSyncOptions,
+  OrganizationMergeSuggestionType,
+  SyncMode,
+} from '@crowd/types'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -368,7 +374,10 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async createOrUpdate(data: IOrganization) {
+  async createOrUpdate(
+    data: IOrganization,
+    syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.USE_FEATURE_FLAG },
+  ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     if ((data as any).name && (!data.identities || data.identities.length === 0)) {
@@ -581,9 +590,10 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncService = new SearchSyncService(this.options)
-
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+      if (syncOptions.doSync) {
+        const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
+        await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+      }
 
       return await this.findById(record.id)
     } catch (error) {
