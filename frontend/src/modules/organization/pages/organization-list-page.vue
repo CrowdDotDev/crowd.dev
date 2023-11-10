@@ -90,6 +90,7 @@ import { organizationSavedViews } from '@/modules/organization/config/saved-view
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { TenantService } from '@/modules/tenant/tenant-service';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 import { OrganizationPermissions } from '../organization-permissions';
 
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -98,6 +99,8 @@ const { doRefreshCurrentUser } = mapActions('auth');
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
+
+const { getGuides } = useQuickStartStore();
 
 const loading = ref(true);
 const organizationCount = ref(0);
@@ -197,6 +200,9 @@ onMounted(async () => {
   fetchOrganizationsToMergeCount();
   doGetOrganizationCount();
   (window as any).analytics.page('Organization');
-  TenantService.viewOrganizations();
+  TenantService.viewOrganizations()
+    .then(() => {
+      getGuides();
+    });
 });
 </script>

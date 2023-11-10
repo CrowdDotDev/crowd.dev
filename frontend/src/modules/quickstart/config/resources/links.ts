@@ -18,7 +18,7 @@ export const resourcesLinks: ResourceLink[] = [
   {
     text: 'API Reference',
     icon: 'ri-braces-line',
-    url: 'https://legacydocs.crowd.dev/reference/getting-started-with-crowd-dev-api',
+    url: 'https://docs.crowd.dev/reference/readme',
   },
   {
     text: 'Changelog',

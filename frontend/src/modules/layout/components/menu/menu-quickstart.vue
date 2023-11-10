@@ -1,6 +1,7 @@
 <template>
   <div
     v-if="isPrimaryWorkspace && notcompletedGuides.length > 0"
+    class="px-1"
   >
     <el-tooltip
       key="menu-link-quickstart"
@@ -13,15 +14,22 @@
     >
       <router-link
         id="menu-quickstart"
-        :to="{ name: 'quickstart' }"
+        :to="{ name: 'welcomeaboard' }"
         class="rounded-md h-8 transition !text-gray-400 flex items-center whitespace-nowrap
           flex-nowrap px-1.5 hover:bg-gray-50 mb-2 overflow-hidden text-sm"
         active-class="!bg-gray-100 font-medium !text-gray-900"
       >
-        <span class="mr-3 w-5 flex justify-center">👋</span>
-        <span class="!text-gray-900">
-          Welcome aboard
-        </span>
+        <div class="w-5 mr-3 block text-center">
+          👋
+        </div>
+        <div class="flex flex-grow justify-between">
+          <span class="!text-gray-900">
+            Welcome aboard
+          </span>
+          <div class="text-xs font-normal leading-6 px-1 rounded bg-gray-100 text-gray-400">
+            {{ guides.length - notcompletedGuides.length }}/{{ guides.length }}
+          </div>
+        </div>
       </router-link>
     </el-tooltip>
     <div class="border-t border-gray-200 mb-3 mt-1" />
@@ -42,7 +50,7 @@ const { rows } = mapGetters('tenant');
 const { currentTenant } = mapGetters('auth');
 
 const storeQuickStartGuides = useQuickStartStore();
-const { notcompletedGuides } = storeToRefs(storeQuickStartGuides);
+const { notcompletedGuides, guides } = storeToRefs(storeQuickStartGuides);
 const { getGuides } = storeQuickStartGuides;
 
 const isPrimaryWorkspace = computed(() => {

@@ -46,11 +46,10 @@
 
 <script setup>
 import {
-  ref, computed, onMounted, watch,
+  ref, computed, onMounted,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import {
-  mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import { useQuickStartStore } from '@/modules/quickstart/store';
@@ -58,8 +57,7 @@ import CrQuickstartGuideItemHead from '@/modules/quickstart/components/item/quic
 import CrQuickstartGuideItemContent from '@/modules/quickstart/components/item/quickstart-guide-item-content.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
-const { currentTenant, currentTenantUser } = mapGetters('auth');
-const { doRefreshCurrentUser } = mapActions('auth');
+const { currentTenant } = mapGetters('auth');
 
 const storeQuickStartGuides = useQuickStartStore();
 const { guides, notcompletedGuides } = storeToRefs(
@@ -79,7 +77,7 @@ const completionPercentage = computed(() => {
   return (completed / guides.value.length) * 100;
 });
 
-const showModals = () => {
+const fetchGuides = () => {
   loading.value = true;
   getGuides({}).then(() => {
     activeView.value = notcompletedGuides.value?.length
@@ -91,25 +89,8 @@ const showModals = () => {
     });
 };
 
-watch(
-  () => currentTenantUser,
-  (tenantUser) => {
-    if (tenantUser) {
-      showModals();
-    }
-  },
-  {
-    deep: true,
-    immediate: true,
-  },
-);
-
 onMounted(() => {
-  doRefreshCurrentUser({}).then(() => {
-    if (currentTenantUser.value) {
-      showModals();
-    }
-  });
+  fetchGuides();
 });
 </script>
 
@@ -135,3 +116,6 @@ export default {
 
 }
 </style>
+
+
+

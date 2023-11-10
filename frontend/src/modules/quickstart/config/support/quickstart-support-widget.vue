@@ -1,5 +1,5 @@
 <template>
-  <div class="p-5 bg-gradient-to-b from-purple-50 to-white to-50%">
+  <div class="p-5 bg-gradient-to-b from-purple-50 via-white to-white ">
     <h6 class="text-center text-sm font-semibold pb-5">
       Need help with onboarding?
     </h6>

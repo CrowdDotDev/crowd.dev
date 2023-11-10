@@ -13,8 +13,8 @@ export default [
     },
     children: [
       {
-        name: 'quickstart',
-        path: '/quickstart',
+        name: 'welcomeaboard',
+        path: '/welcome-aboard',
         component: QuickstartPage,
         exact: true,
         meta: {

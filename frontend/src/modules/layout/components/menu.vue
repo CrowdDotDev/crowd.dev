@@ -12,7 +12,7 @@
       <cr-menu-workspace v-if="currentTenant" />
 
       <div class="px-3 pt-4 pb-2 flex flex-col grow">
-        <cr-menu-quickstart v-if="isQuickstartEnabled()" :collapsed="isCollapsed" />
+        <cr-menu-quickstart v-if="isQuickstartEnabled" :collapsed="isCollapsed" />
 
         <!-- Menu items -->
         <cr-menu-links class="mb-2" :links="mainMenu" :collapsed="isCollapsed" link-class="text-sm" />
@@ -66,7 +66,7 @@ function toggleMenu() {
   store.dispatch('layout/toggleMenu');
 }
 
-const isQuickstartEnabled = () => FeatureFlag.isFlagEnabled(FeatureFlag.flags.quickstartV2);
+const isQuickstartEnabled = computed(() => FeatureFlag.isFlagEnabled(FeatureFlag.flags.quickstartV2));
 </script>
 
 <script>
