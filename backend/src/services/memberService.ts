@@ -342,7 +342,6 @@ export default class MemberService extends LoggerBase {
             // We createOrUpdate the organization and add it to the list of IDs
             const organizationRecord = await organizationService.createOrUpdate(
               data as IOrganization,
-              true,
               {
                 doSync: syncToOpensearch,
                 mode: SyncMode.ASYNCHRONOUS,
@@ -381,7 +380,6 @@ export default class MemberService extends LoggerBase {
                   },
                 ],
               },
-              true,
               {
                 doSync: syncToOpensearch,
                 mode: SyncMode.ASYNCHRONOUS,

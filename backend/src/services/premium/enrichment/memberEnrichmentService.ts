@@ -350,7 +350,6 @@ export default class MemberEnrichmentService extends LoggerBase {
                 },
               ],
             },
-            true,
             {
               doSync: true,
               mode: SyncMode.ASYNCHRONOUS,
