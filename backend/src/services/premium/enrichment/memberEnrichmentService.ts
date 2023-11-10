@@ -300,9 +300,13 @@ export default class MemberEnrichmentService extends LoggerBase {
       // upsert always takes the existing displayName
       if (!/\W/.test(member.displayName)) {
         if (enrichmentData.first_name && enrichmentData.last_name) {
-          await memberService.update(member.id, {
-            displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
-          })
+          await memberService.update(
+            member.id,
+            {
+              displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
+            },
+            false,
+          )
         }
       }
 
