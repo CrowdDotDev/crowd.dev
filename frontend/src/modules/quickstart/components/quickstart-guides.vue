@@ -128,6 +128,5 @@ export default {
   .el-collapse-item__arrow {
      @apply hidden;
    }
-
 }
 </style>
