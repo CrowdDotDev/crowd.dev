@@ -8,7 +8,13 @@
         <app-loading height="7.5rem" class="mb-1" />
         <app-loading height="7.5rem" />
       </div>
-      <el-collapse v-else v-model="activeView" accordion class="guides">
+      <el-collapse
+        v-else
+        v-model="activeView"
+        accordion
+        class="guides"
+        @change="trackExpandGuide"
+      >
         <el-tooltip
           v-for="guide of guides"
           :key="guide.key"
@@ -34,7 +40,6 @@
             <template #default>
               <cr-quickstart-guide-item-content
                 :guide="guide"
-                @open="onGuideOpen(guide)"
               />
             </template>
           </el-collapse-item>
@@ -56,6 +61,7 @@ import { useQuickStartStore } from '@/modules/quickstart/store';
 import CrQuickstartGuideItemHead from '@/modules/quickstart/components/item/quickstart-guide-item-head.vue';
 import CrQuickstartGuideItemContent from '@/modules/quickstart/components/item/quickstart-guide-item-content.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import { TenantEventService } from '@/shared/events/tenant-event.service';
 
 const { currentTenant } = mapGetters('auth');
 
@@ -89,6 +95,15 @@ const fetchGuides = () => {
     });
 };
 
+const trackExpandGuide = (activeName) => {
+  TenantEventService.event({
+    name: 'Onboarding Guide expanded',
+    properties: {
+      guide: activeName,
+    },
+  });
+};
+
 onMounted(() => {
   fetchGuides();
 });
@@ -116,6 +131,3 @@ export default {
 
 }
 </style>
-
-
-

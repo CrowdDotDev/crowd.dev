@@ -6,12 +6,6 @@ export const actions = {
     return QuickstartGuideService.fetch()
       .then((guides) => Promise.all(
         Object.entries(guides).map(([key, guide]) => {
-          // if (guide.completed) {
-          //   return Promise.resolve({
-          //     ...guide,
-          //     key,
-          //   });
-          // }
           try {
             return loom
               .oembed(guide.videoLink, {
