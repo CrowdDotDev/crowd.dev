@@ -5,7 +5,7 @@
         👋 Welcome aboard
       </h4>
       <p class="text-xs leading-5 text-gray-600">
-        Get to know the crowd.dev product and start uncovering the most out of your community
+        Get to know crowd.dev and start centralizing your community, product, and customer data to provide insights to your go-to-market team.
       </p>
     </div>
     <div class="flex -mx-2.5">

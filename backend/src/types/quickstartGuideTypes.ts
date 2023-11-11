@@ -104,7 +104,7 @@ const exploreOrganizations: QuickstartGuide = {
 
 const createAutomations: QuickstartGuide = {
   title: 'Create automations',
-  body: 'Stop focusing on repetitive tasks and concentrate on building deeper relationships with your community by automating your workflows.',
+  body: 'Stop focusing on repetitive tasks and concentrate on building deeper relationships with your community by automating your workflows via HubSpot syncs, Slack notifications, or Webhooks.',
   videoLink: 'https://www.loom.com/share/f12d87814e7447edab4282eab6bb3ccf',
   learnMoreLink: 'https://docs.crowd.dev/docs/guides/automations',
   buttonLink: '/automations',
