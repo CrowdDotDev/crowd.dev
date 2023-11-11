@@ -139,7 +139,7 @@ export const plans = {
         'Unlimited community contacts & activities',
         'Community management',
         'Community intelligence',
-        'Integrations with GitHub, Discord, Slack, Twitter, DEV, Hacker News',
+        'Integrations with GitHub, Discord, Slack, X/Twitter, DEV, Hacker News',
         'Community support',
       ],
       ctaLabel: {
