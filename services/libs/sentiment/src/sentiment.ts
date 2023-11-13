@@ -27,27 +27,7 @@ export const getSentiment = async (
   text: string,
   isNewSentimentEnabled: boolean = false,
 ): Promise<ISentimentAnalysisResult | undefined> => {
-  if (IS_DEV_ENV) {
-    if (text === undefined) {
-      return undefined
-    }
-    // Return a random number between 0 and 100
-    const score = Math.floor(Math.random() * 100)
-    let label = 'neutral'
-    if (score < 33) {
-      label = 'negative'
-    } else if (score > 66) {
-      label = 'positive'
-    }
-    return {
-      positive: Math.floor(Math.random() * 100),
-      negative: Math.floor(Math.random() * 100),
-      neutral: Math.floor(Math.random() * 100),
-      mixed: Math.floor(Math.random() * 100),
-      sentiment: score,
-      label,
-    }
-  }
+  
 
   if (isNewSentimentEnabled) {
     let result
@@ -96,6 +76,7 @@ export const getSentiment = async (
           ? 50
           : 25,
       label: result[0].label.toLowerCase(),
+      new: true,
     }
   }
 

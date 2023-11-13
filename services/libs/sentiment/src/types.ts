@@ -14,4 +14,5 @@ export interface ISentimentAnalysisResult {
   negative: number
   neutral: number
   mixed: number
+  new?: boolean
 }
