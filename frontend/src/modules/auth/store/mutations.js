@@ -1,11 +1,11 @@
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import formbricks from '@/plugins/formbricks';
+import AuthCurrentTenant from "@/modules/auth/auth-current-tenant";
+import formbricks, { setupFormbricks } from "@/plugins/formbricks";
 
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {
     state.currentUser = payload.currentUser || null;
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
-      payload.currentUser,
+      payload.currentUser
     );
   },
 
@@ -17,33 +17,13 @@ export default {
     state.currentUser = payload.currentUser || null;
 
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
-      payload.currentUser,
+      payload.currentUser
     );
     state.loading = false;
 
     if (state.currentUser) {
-      if (state.currentUser.email) {
-        formbricks.setEmail(state.currentUser.email);
-      }
-      if (state.currentUser.id) {
-        formbricks.setUserId(state.currentUser.id);
-      }
-      if (state.currentUser.fullName) {
-        formbricks.setAttribute('name', state.currentUser.fullName);
-      }
-      if (state.currentUser.createdAt) {
-        formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
-      }
-      const timestampSignup = new Date(
-        state.currentUser.createdAt,
-      ).getTime();
-      const timeStamp4WeeksAgo = new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000;
-      const timeStamp2023 = new Date('2023-01-01').getTime();
-
-      if (timestampSignup >= timeStamp2023
-        && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
-        formbricks.track('pmfSurveyOpen');
-      }
+      // initialize Formbricks
+      setupFormbricks(state.currentUser);
     }
   },
 
@@ -130,33 +110,13 @@ export default {
     state.currentUser = payload.currentUser || null;
 
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
-      payload.currentUser,
+      payload.currentUser
     );
     state.loadingInit = false;
 
     if (state.currentUser) {
-      if (state.currentUser.email) {
-        formbricks.setEmail(state.currentUser.email);
-      }
-      if (state.currentUser.id) {
-        formbricks.setUserId(state.currentUser.id);
-      }
-      if (state.currentUser.fullName) {
-        formbricks.setAttribute('name', state.currentUser.fullName);
-      }
-      if (state.currentUser.createdAt) {
-        formbricks.setAttribute('registrationDate', state.currentUser.createdAt);
-      }
-      const timestampSignup = new Date(
-        state.currentUser.createdAt,
-      ).getTime();
-      const timeStamp4WeeksAgo = new Date().getTime() - 4 * 7 * 24 * 60 * 60 * 1000;
-      const timeStamp2023 = new Date('2023-01-01').getTime();
-
-      if (timestampSignup >= timeStamp2023
-        && timestampSignup <= timeStamp4WeeksAgo && formbricks) {
-        formbricks.track('pmfSurveyOpen');
-      }
+      // initialize Formbricks
+      setupFormbricks(state.currentUser);
     }
   },
 
