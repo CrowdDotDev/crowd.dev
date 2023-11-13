@@ -55,6 +55,9 @@ export default class ActivityService extends LoggerBase {
           }
         },
         this.unleash,
+        this.redisClient,
+        60,
+        tenantId,
       )
 
       const sentiment = await getSentiment(
@@ -248,6 +251,9 @@ export default class ActivityService extends LoggerBase {
         }
       },
       this.unleash,
+      this.redisClient,
+      60,
+      tenantId,
     )
 
     let body: string | undefined
