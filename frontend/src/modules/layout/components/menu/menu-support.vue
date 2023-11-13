@@ -44,47 +44,22 @@
         icon-class="!text-base"
       />
       <el-divider class="!my-2 border-gray-100 -mx-1" />
-      <a
-        id="menu-system-status"
-        href="https://status.crowd.dev/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="rounded-md h-10 transition !text-gray-400 flex items-center justify-between
-          group whitespace-nowrap flex-nowrap mx-1 hover:bg-gray-50 mb-2 cursor-pointer overflow-hidden"
-      >
-        <div class="flex items-center justify-between grow">
-          <span class="text-gray-900 pl-3 text-xs">
-            System Status
-          </span>
-          <app-system-status v-if="status" :status="status" class="mr-2" />
-        </div>
-      </a>
+      <cr-system-status v-if="isDropdownOpen" />
     </div>
   </el-popover>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
 import { supportMenu } from '@/modules/layout/config/menu';
-import AppSystemStatus from '@/modules/layout/components/system-status/system-status.vue';
-import { LayoutService } from '@/modules/layout/layout-service';
-import { Status } from '@/modules/layout/types/SystemStatus';
+import CrSystemStatus from '@/modules/layout/components/system-status/system-status.vue';
 
 const props = defineProps<{
   collapsed: boolean
 }>();
 
 const isDropdownOpen = ref<boolean>(false);
-const status = ref<Status>();
-
-watch(isDropdownOpen, (isOpen) => {
-  if (isOpen) {
-    LayoutService.getSystemStatus().then((response) => {
-      status.value = response.status;
-    });
-  }
-});
 </script>
 
 <script lang="ts">
