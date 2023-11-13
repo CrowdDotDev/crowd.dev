@@ -6,6 +6,7 @@ import {
   CreateAndProcessActivityResultQueueMessage,
   IActivityData,
   ProcessIntegrationResultQueueMessage,
+  CheckResultsQueueMessage,
 } from '@crowd/types'
 import { Tracer } from '@crowd/tracing'
 
@@ -33,5 +34,9 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
       new Date().toISOString(),
       new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, integrationId, activity),
     )
+  }
+
+  public async checkResults() {
+    await this.sendMessage('global', new CheckResultsQueueMessage())
   }
 }
