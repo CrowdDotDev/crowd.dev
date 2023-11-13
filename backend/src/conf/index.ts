@@ -36,7 +36,7 @@ import {
   WeeklyEmailsConfiguration,
   CrowdAnalyticsConfiguration,
   IBackendTemporalConfig,
-  IOpenStatusApiConfig
+  IOpenStatusApiConfig,
 } from './configTypes'
 
 // TODO-kube
@@ -144,4 +144,5 @@ export const TEMPORAL_CONFIG: IBackendTemporalConfig =
 export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
   config.get<ISearchSyncApiConfig>('searchSyncApi')
 
-export const OPEN_STATUS_API_CONFIG: IOpenStatusApiConfig = config.get<IOpenStatusApiConfig>('openStatusApi')
+export const OPEN_STATUS_API_CONFIG: IOpenStatusApiConfig =
+  config.get<IOpenStatusApiConfig>('openStatusApi')
