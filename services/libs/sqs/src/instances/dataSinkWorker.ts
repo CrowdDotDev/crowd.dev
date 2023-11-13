@@ -20,8 +20,13 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     resultId: string,
     sourceId: string,
+    deduplicationId?: string,
   ) {
-    await this.sendMessage(sourceId, new ProcessIntegrationResultQueueMessage(resultId), resultId)
+    await this.sendMessage(
+      sourceId,
+      new ProcessIntegrationResultQueueMessage(resultId),
+      deduplicationId || resultId,
+    )
   }
 
   public async createAndProcessActivityResult(

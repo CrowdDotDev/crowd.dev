@@ -1,7 +1,11 @@
 import { processPaginated, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
 import { LoggerBase, getChildLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter, DataSinkWorkerEmitter } from '@crowd/sqs'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  DataSinkWorkerEmitter,
+} from '@crowd/sqs'
 import { IntegrationRunState, IntegrationType } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import MicroserviceRepository from '@/database/repositories/microserviceRepository'
