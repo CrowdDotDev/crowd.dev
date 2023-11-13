@@ -1,11 +1,11 @@
-import authAxios from '@/shared/axios/auth-axios';
+import Axios from 'axios';
 
 export class LayoutService {
   static async getSystemStatus() {
-    const response = await authAxios.get(
-      'https://api.openstatus.dev/public/status/crowddev',
+    const response = await Axios.get(
+      '/system-status',
     );
 
-    return response.status;
+    return response.data;
   }
 }

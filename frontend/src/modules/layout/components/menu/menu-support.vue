@@ -80,7 +80,9 @@ const status = ref<Status>();
 
 watch(isDropdownOpen, (isOpen) => {
   if (isOpen) {
-    LayoutService.getSystemStatus().then((response) => { status.value = response; });
+    LayoutService.getSystemStatus().then((response) => {
+      status.value = response.status;
+    });
   }
 });
 </script>

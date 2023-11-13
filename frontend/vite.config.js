@@ -54,6 +54,11 @@ export default defineConfig({
           || 'http://localhost:8080',
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      '/system-status': {
+        target: 'https://api.openstatus.dev/public/status/crowddev',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/system-status/, ''),
+      },
     },
     port: 8081,
     host: true,
