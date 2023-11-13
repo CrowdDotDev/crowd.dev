@@ -30,14 +30,14 @@
 
 ## Table of Contents
 - [About crowd.dev](#about-crowddev)
-- [Features](#✨-features)
-- [Getting started](#🚀-getting-started)
-- [Roadmap](#🗺️-roadmap)
-- [Stay up-to-date](#🔔-stay-up-to-date)
-- [Contribution](#✍️-contribution)
-- [License](#⚖️-license)
-- [Security](#🔒-security)
-- [Book a call](#📞-book-a-call)
+- [Features](#features)
+- [Getting started](#getting-started)
+- [Roadmap](#roadmap)
+- [Stay up-to-date](#stay-up-to-date)
+- [Contribution](#contribution)
+- [License](#license)
+- [Security](#security)
+- [Book a call](#book-a-call)
 
 ## About crowd.dev
 crowd.dev is the Developer Data Platform(DDP) that allows companies to centralize all touch points developers have with their product and brand, whether in the community (e.g., Stack Overflow or Reddit), product (open-source or SaaS), or commercial channels (e.g., HubSpot).The platform pulls data from various sources, normalizes it, matches identities across platforms, and enriches it with third-party data. The result is a unified 360-degree view of the developers who engage with your product and community, the companies they work for, and their position in their personal customer journey. 
@@ -54,7 +54,7 @@ crowd.dev is open-source, built with developers in mind, available for both host
 - Our product is built for extensibility. If you can think of any use cases that you want to build with the data we collect and store for you, please go ahead and build them! We will be here to help out if you need us.
 - You can actively contribute to crowd.dev (e.g. integrations), and we will be supporting you along the journey. Just take a look at our [Contributing guide](https://github.com/CrowdDotDev/crowd.dev/blob/main/CONTRIBUTING.md).
 
-## ✨ Features
+## Features
 
 - **Plug & play integrations** to tie all relevant platforms - like GitHub, Discord, Slack, or LinkedIn - together. ([all integrations](https://www.crowd.dev/integrations))
 - **Identity resolution & automated segmentation** to effortlessly understand activities and profiles across platforms.
@@ -67,7 +67,7 @@ crowd.dev is open-source, built with developers in mind, available for both host
 - **[Eagle Eye](https://www.crowd.dev/eagle-eye)**: Monitor dev-focused community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically [cloud only]
 
 
-## 🚀 Getting started
+## Getting started
 
 ### Cloud version
 
@@ -118,17 +118,17 @@ This app will be available at http://localhost:8081
 
 For more information on development, you can <a href="https://docs.crowd.dev/docs/docker-compose-single-machine-development-with-docker-images">check our docs</a>.
 
-## 🗺️ Roadmap
+## Roadmap
 
 You can find more features on our [public roadmap](https://crowd.dev/roadmap). Feel free to also [open an issue](https://crowd.dev/open-an-issue) for anything you're missing.
 
 
-## 🔔 Stay up-to-date
+## Stay up-to-date
 
 crowd.dev is still in beta and we ship new features every week. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
 
 
-## ✍️ Contribution
+## Contribution
 
 There are many ways you can contribute to crowd.dev! Here are a few options:
 
@@ -140,17 +140,17 @@ If you would like to contribute to the development of the project, please refer 
 
 All contributions are highly appreciated. 🙏
 
-## ⚖️ License
+## License
 
 Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 
 Our self-hosted version can be run and deployed by default under the permissive Apache 2.0 license. All premium components will be hidden and inactive with the default configuration. You can run, deploy, and contribute to the app without fearing a violation of the premium license. Check out the [premium self-hosted features docs](https://docs.crowd.dev/docs/premium-self-hosted-apps) to know more about the premium self-hosted features.
 
-## 🔒 Security
+## Security
 
 We take security very seriously. If you come across any security vulnerabilities, please disclose them by sending an email to security@crowd.dev. We appreciate your help in making our platform as secure as possible and are committed to working with you to resolve any issues quickly and efficiently.
 
-## 📞 Book a call
+## Book a call
 
 Schedule a call with a crowd.dev team member to learn more about our product and ensure you get the most out of it.
 

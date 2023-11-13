@@ -8,6 +8,9 @@ export enum FeatureFlag {
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
 
+  // opensearch
+  SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',
+
   // temporal
   TEMPORAL_AUTOMATIONS = 'temporal-automations',
 

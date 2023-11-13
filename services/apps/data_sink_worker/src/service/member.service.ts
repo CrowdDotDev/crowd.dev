@@ -27,6 +27,7 @@ import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
 import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
 import { TEMPORAL_CONFIG } from '../conf'
+import { RedisClient } from '@crowd/redis'
 
 export default class MemberService extends LoggerBase {
   constructor(
@@ -35,6 +36,7 @@ export default class MemberService extends LoggerBase {
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
+    private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -135,6 +137,9 @@ export default class MemberService extends LoggerBase {
             }
           },
           this.unleash,
+          this.redisClient,
+          60,
+          tenantId,
         )
       ) {
         const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
@@ -373,6 +378,7 @@ export default class MemberService extends LoggerBase {
           this.searchSyncWorkerEmitter,
           this.unleash,
           this.temporal,
+          this.redisClient,
           this.log,
         )
 
@@ -462,6 +468,7 @@ export default class MemberService extends LoggerBase {
           this.searchSyncWorkerEmitter,
           this.unleash,
           this.temporal,
+          this.redisClient,
           this.log,
         )
 

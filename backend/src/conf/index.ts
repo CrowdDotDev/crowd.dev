@@ -1,5 +1,6 @@
 import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
+import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import {
   SQSConfiguration,
   S3Configuration,
@@ -138,3 +139,6 @@ export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
 
 export const TEMPORAL_CONFIG: IBackendTemporalConfig =
   config.get<IBackendTemporalConfig>('temporal')
+
+export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
+  config.get<ISearchSyncApiConfig>('searchSyncApi')

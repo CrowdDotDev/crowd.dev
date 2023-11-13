@@ -152,3 +152,20 @@ export const sendBulkEnrichMessage = async (
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
+
+export const sendOrgMergeMessage = async (
+  tenantId: string,
+  primaryOrgId: string,
+  secondaryOrgId: string,
+  notifyFrontend: boolean = true,
+): Promise<void> => {
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    service: 'org-merge',
+    tenantId,
+    primaryOrgId,
+    secondaryOrgId,
+    notifyFrontend,
+  }
+  await sendNodeWorkerMessage(tenantId, payload as NodeWorkerMessageBase)
+}

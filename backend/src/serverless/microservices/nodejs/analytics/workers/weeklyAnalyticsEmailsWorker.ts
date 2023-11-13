@@ -352,7 +352,7 @@ async function getAnalyticsData(tenantId: string) {
       await userContext.database.sequelize.query(
         `
       select count(a.id) as "activityCount",
-         o.name as name,
+         o."displayName" as name,
          o.logo as "avatarUrl"
       from organizations o
         inner join "memberOrganizations" mo
