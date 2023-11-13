@@ -1,14 +1,9 @@
-import Axios from 'axios';
-import config from '@/config';
 import { Status } from '@/modules/layout/types/SystemStatus';
+import authAxios from '@/shared/axios/auth-axios';
 
 export default {
   async getSystemStatus(): Promise<{ status: Status }> {
-    const url = config.env === 'local'
-      ? '/system-status'
-      : 'https://api.openstatus.dev/public/status/crowddev';
-
-    const response = await Axios.get(url);
+    const response = await authAxios.get('/system-status');
 
     return response.data;
   },

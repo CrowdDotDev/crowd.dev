@@ -83,7 +83,7 @@ const color = computed(() => {
 onMounted(() => {
   LayoutService.getSystemStatus().then((response) => {
     status.value = response.status;
-  })
+  });
 });
 
 </script>
