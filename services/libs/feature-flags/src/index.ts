@@ -67,7 +67,7 @@ export const isFeatureEnabled = async (
     return EDITION === Edition.LFX
   }
 
-  if ([Edition.COMMUNITY, Edition.LFX].includes(EDITION)) {
+  if ([Edition.LFX, Edition.COMMUNITY].includes(EDITION)) {
     return true
   }
 
