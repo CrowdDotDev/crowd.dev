@@ -25,18 +25,16 @@ export const initializeSentimentAnalysis = (config: ISentimentClientConfig) => {
 
 export const getSentiment = async (
   text: string,
-  isNewSentimentEnabled: boolean = false,
+  isNewSentimentEnabled = false,
 ): Promise<ISentimentAnalysisResult | undefined> => {
-  
-
   if (isNewSentimentEnabled) {
     let result
     try {
-      let data = JSON.stringify({
+      const data = JSON.stringify({
         inputs: text.substring(0, 250),
       })
 
-      let config = {
+      const config = {
         method: 'post',
         maxBodyLength: Infinity,
         url: 'https://s9lumang7cyzm6mi.eu-west-1.aws.endpoints.huggingface.cloud',
