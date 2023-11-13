@@ -243,6 +243,9 @@ const constaintConfiguration = {
       },
     ],
   ],
+
+  // New sentiment
+  [FeatureFlag.NEW_SENTIMENT]: [],
 }
 
 let seq: any

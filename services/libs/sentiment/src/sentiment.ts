@@ -4,6 +4,7 @@ import {
   DetectSentimentCommand,
   DetectSentimentResponse,
 } from '@aws-sdk/client-comprehend'
+import axios from 'axios'
 import { IS_DEV_ENV } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { getComprehendClient } from './client'
@@ -14,12 +15,18 @@ const log = getServiceChildLogger('sentiment')
 
 let client: ComprehendClient | undefined
 
+let huggingfaceApiKey: string | undefined
+
 export const initializeSentimentAnalysis = (config: ISentimentClientConfig) => {
   client = getComprehendClient(config)
+  huggingfaceApiKey = config.huggingfaceApiKey
   log.info('Initialized sentiment analysis client!')
 }
 
-export const getSentiment = async (text: string): Promise<ISentimentAnalysisResult | undefined> => {
+export const getSentiment = async (
+  text: string,
+  isNewSentimentEnabled: boolean = false,
+): Promise<ISentimentAnalysisResult | undefined> => {
   if (IS_DEV_ENV) {
     if (text === undefined) {
       return undefined
@@ -39,6 +46,56 @@ export const getSentiment = async (text: string): Promise<ISentimentAnalysisResu
       mixed: Math.floor(Math.random() * 100),
       sentiment: score,
       label,
+    }
+  }
+
+  if (isNewSentimentEnabled) {
+    let result
+    try {
+      let data = JSON.stringify({
+        inputs: text.substring(0, 250),
+      })
+
+      let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'https://s9lumang7cyzm6mi.eu-west-1.aws.endpoints.huggingface.cloud',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${huggingfaceApiKey}`,
+        },
+        data: data,
+      }
+
+      result = await axios.request(config).then((response) => response.data)
+    } catch (error) {
+      log.error(error, 'Error getting sentiment from external service!')
+      if (error.response) {
+        log.error(`Response data: ${JSON.stringify(error.response.data)}`)
+        log.error(text)
+      }
+      throw error
+    }
+
+    enum SentimentLabel {
+      Positive = 'positive',
+      Negative = 'negative',
+      Neutral = 'neutral',
+    }
+
+    return {
+      positive: result[0].label.toLowerCase() === SentimentLabel.Positive ? result[0].score : 0,
+      negative: result[0].label.toLowerCase() === SentimentLabel.Negative ? result[0].score : 0,
+      neutral: result[0].label.toLowerCase() === SentimentLabel.Neutral ? result[0].score : 0,
+      mixed: 0,
+      sentiment:
+        result[0].label.toLowerCase() === SentimentLabel.Positive
+          ? 75
+          : result[0].label.toLowerCase() === SentimentLabel.Neutral
+          ? 50
+          : 25,
+      label: result[0].label.toLowerCase(),
     }
   }
 

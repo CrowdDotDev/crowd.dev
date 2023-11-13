@@ -16,7 +16,8 @@
   "sentiment": {
     "region": "CROWD_COMPREHEND_AWS_REGION",
     "accessKeyId": "CROWD_COMPREHEND_AWS_ACCESS_KEY_ID",
-    "secretAccessKey": "CROWD_COMPREHEND_AWS_SECRET_ACCESS_KEY"
+    "secretAccessKey": "CROWD_COMPREHEND_AWS_SECRET_ACCESS_KEY",
+    "huggingfaceApiKey": "CROWD_HUGGINGFACE_API_KEY"
   },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"

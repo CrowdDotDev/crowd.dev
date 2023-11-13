@@ -10,6 +10,9 @@ export enum FeatureFlag {
 
   // temporal
   TEMPORAL_AUTOMATIONS = 'temporal-automations',
+
+  // new sentiment
+  NEW_SENTIMENT = 'new-sentiment'
 }
 
 export enum FeatureFlagRedisKey {
