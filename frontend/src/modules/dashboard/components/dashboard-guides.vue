@@ -33,7 +33,7 @@
       </p>
     </header>
     <section class="pb-1 px-4">
-      <el-collapse v-model="activeView" accordion>
+      <el-collapse v-model="activeView" accordion class="dashboard-guides">
         <el-tooltip
           v-for="guide of guides"
           :key="guide.key"
@@ -93,14 +93,14 @@ import {
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { QuickstartGuideService } from '@/modules/quickstart-guide/services/quickstart-guide.service';
-import { useQuickStartGuideStore } from '@/modules/quickstart-guide/store';
+import { QuickstartGuideService } from '@/modules/quickstart/services/quickstart-guide.service';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 import { TenantEventService } from '@/shared/events/tenant-event.service';
 
 const { currentTenant, currentTenantUser } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
 
-const storeQuickStartGuides = useQuickStartGuideStore();
+const storeQuickStartGuides = useQuickStartStore();
 const { guides, notcompletedGuides } = storeToRefs(
   storeQuickStartGuides,
 );
@@ -205,7 +205,7 @@ export default {
 </script>
 
 <style lang="scss">
-.el-collapse {
+.dashboard-guides.el-collapse {
   @apply border-none;
 
   .el-collapse-item__header {

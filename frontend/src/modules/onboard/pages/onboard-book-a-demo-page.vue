@@ -43,7 +43,7 @@ onMounted(() => {
 });
 
 const onBtnClick = () => {
-  router.push('/');
+  router.push({ name: 'welcomeaboard' });
 };
 </script>
 

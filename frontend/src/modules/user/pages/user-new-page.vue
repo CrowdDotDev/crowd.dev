@@ -10,6 +10,8 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import AppUserForm from '@/modules/user/components/form/user-form.vue';
+import { mapActions as piniaMapActions } from 'pinia';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 
 export default {
   name: 'AppUserNewPage',
@@ -40,6 +42,9 @@ export default {
       doInit: 'user/form/doInit',
       doAdd: 'user/form/doAdd',
     }),
+    ...piniaMapActions(useQuickStartStore, {
+      getGuides: 'getGuides',
+    }),
 
     doCancel() {
       this.$emit('cancel');
@@ -49,6 +54,7 @@ export default {
       try {
         const response = await this.doAdd(payload.values);
         this.invitationToken = response[0].token;
+        this.getGuides();
       } catch (error) {
         console.error(error);
       }

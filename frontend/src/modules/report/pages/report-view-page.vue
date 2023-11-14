@@ -68,6 +68,8 @@
 import { mapState, mapGetters, mapActions } from 'vuex';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import ReportShareButton from '@/modules/report/components/report-share-button.vue';
+import { useQuickStartStore } from '@/modules/quickstart/store';
+import { mapActions as piniaMapActions } from 'pinia';
 import ReportGridLayout from '../components/report-grid-layout.vue';
 import ReportDropdown from '../components/report-dropdown.vue';
 
@@ -89,6 +91,10 @@ export default {
       type: String,
       default: null,
     },
+  },
+
+  setup() {
+
   },
 
   data() {
@@ -127,6 +133,7 @@ export default {
       await this.doFind(this.id);
     }
     this.loading = false;
+    this.getGuides();
   },
 
   mounted() {
@@ -146,6 +153,9 @@ export default {
     ...mapActions({
       doFind: 'report/doFind',
       doFindPublic: 'report/doFindPublic',
+    }),
+    ...piniaMapActions(useQuickStartStore, {
+      getGuides: 'getGuides',
     }),
   },
 };
