@@ -19,7 +19,7 @@
               }}</span>
           </div>
           <div v-if="member.reach.twitter !== undefined">
-            Twitter:
+            X/Twitter:
             <span class="font-semibold">{{
                                           formatNumberToCompact(member.reach.twitter)
                                         }}
