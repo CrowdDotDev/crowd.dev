@@ -5,6 +5,7 @@ export enum QuickstartGuideType {
   SET_EAGLE_EYE = 'set-eagle-eye',
   INVITE_COLLEAGUES = 'invite-colleagues',
   CONNECT_FIRST_INTEGRATION = 'connect-first-integration',
+  EXPLORE_CONTACTS = 'explore-contacts',
   EXPLORE_ORGANIZATIONS = 'explore-organizations',
   CREATE_AUTOMATIONS = 'create-automations',
 }
@@ -102,6 +103,16 @@ const exploreOrganizations: QuickstartGuide = {
   completed: false,
 }
 
+const exploreContacts: QuickstartGuide = {
+  title: 'Explore contacts',
+  body: 'Get an overview of all contacts that engaged with your product or community across the platforms you have connected.',
+  videoLink: 'https://www.loom.com/share/f12d87814e7447edab4282eab6bb3ccf',
+  learnMoreLink: 'https://docs.crowd.dev/docs/guides/contacts',
+  buttonLink: '/contacts',
+  buttonText: 'Explore contacts',
+  completed: false,
+}
+
 const createAutomations: QuickstartGuide = {
   title: 'Create automations',
   body: 'Stop focusing on repetitive tasks and concentrate on building deeper relationships with your community by automating your workflows via HubSpot syncs, Slack notifications, or Webhooks.',
@@ -124,6 +135,7 @@ export const DEFAULT_GUIDES_V2 = {
   [QuickstartGuideType.CONNECT_FIRST_INTEGRATION]: connectFirstIntegrationGuide,
   [QuickstartGuideType.INVITE_COLLEAGUES]: inviteColleaguesGuide,
   [QuickstartGuideType.EXPLORE_ORGANIZATIONS]: exploreOrganizations,
+  [QuickstartGuideType.EXPLORE_CONTACTS]: exploreContacts,
   [QuickstartGuideType.VIEW_REPORT]: viewReportGuide,
   [QuickstartGuideType.CREATE_AUTOMATIONS]: createAutomations,
 }

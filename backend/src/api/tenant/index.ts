@@ -26,4 +26,8 @@ export default (app) => {
     `/tenant/:tenantId/viewOrganizations`,
     safeWrap(require('./tenantViewOrganizations').default),
   )
+  app.post(
+    `/tenant/:tenantId/viewContacts`,
+    safeWrap(require('./tenantViewContacts').default),
+  )
 }

@@ -24,6 +24,9 @@ export default (sequelize, DataTypes) => {
       organizationsViewed: {
         type: DataTypes.BOOLEAN(),
       },
+      contactsViewed: {
+        type: DataTypes.BOOLEAN(),
+      },
       attributeSettings: {
         type: DataTypes.JSONB,
         allowNull: false,

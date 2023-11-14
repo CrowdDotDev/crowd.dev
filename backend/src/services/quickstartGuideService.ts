@@ -106,6 +106,11 @@ export default class QuickstartGuideService extends LoggerBase {
         tenantSettings.organizationsViewed
     }
 
+    if (QuickstartGuideType.EXPLORE_CONTACTS in guides) {
+      guides[QuickstartGuideType.EXPLORE_CONTACTS].completed =
+        tenantSettings.contactsViewed
+    }
+
     if (
       QuickstartGuideType.SET_EAGLE_EYE in guides &&
       (await isFeatureEnabled(FeatureFlag.EAGLE_EYE, this.options))
