@@ -20,8 +20,8 @@ import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 3
-const PROCESSING_INTERVAL_MINUTES = 5
+const MAX_CONCURRENT_PROCESSING = 5
+const PROCESSING_INTERVAL_MINUTES = 4
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
@@ -68,8 +68,10 @@ setImmediate(async () => {
     let processing = false
     setInterval(async () => {
       try {
+        log.info('Checking for old results to process...')
         if (!processing) {
           processing = true
+          log.info('Processing old results...')
           await processOldResultsJob(
             dbConnection,
             redisClient,

@@ -109,9 +109,7 @@ export class ActivitySyncService extends LoggerBase {
 
       if (toRemove.length > 0) {
         this.log.warn({ tenantId, toRemove }, 'Removing activities from index!')
-        for (const id of toRemove) {
-          await this.removeActivity(id)
-        }
+        await this.openSearchService.removeAllFromIndex(toRemove, OpenSearchIndex.ACTIVITIES)
       }
 
       processed += results.length

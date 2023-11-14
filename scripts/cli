@@ -16,6 +16,15 @@ BUILDERS=`ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//'`
 
 _DC="docker compose"
 
+arch=$(uname -m)
+
+if [ "$arch" == 'arm64' ];
+then
+  DOCKER_PLATFORM_FLAGS="--platform=linux/arm64/v8"
+else
+  DOCKER_PLATFORM_FLAGS="--platform=linux/amd64"
+fi
+
 function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
         echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.local"
@@ -300,8 +309,7 @@ function scaffold_set_up_network() {
 
 function migrate_local() {
     say "Building flyway migration image..."
-    docker build -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
-
+    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
     say "Applying database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=db \

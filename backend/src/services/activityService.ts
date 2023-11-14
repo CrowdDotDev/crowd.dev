@@ -2,7 +2,7 @@ import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { FeatureFlag, PlatformType } from '@crowd/types'
+import { FeatureFlag, PlatformType, SyncMode } from '@crowd/types'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IS_DEV_ENV, IS_TEST_ENV, GITHUB_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -502,7 +502,7 @@ export default class ActivityService extends LoggerBase {
 
   async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
-    const searchSyncService = new SearchSyncService(this.options)
+    const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
     const errorDetails: any = {}
 

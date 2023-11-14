@@ -139,6 +139,7 @@ export default class MemberService extends LoggerBase {
           this.unleash,
           this.redisClient,
           60,
+          tenantId,
         )
       ) {
         const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
