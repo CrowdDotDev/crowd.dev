@@ -46,48 +46,33 @@ export default class QuickstartGuideService extends LoggerBase {
     const guides: QuickstartGuideMap = JSON.parse(
       JSON.stringify(isGuidesV2Enabled ? DEFAULT_GUIDES_V2 : DEFAULT_GUIDES),
     )
-
+    this.log.info(guides)
     const integrationCount: number = await IntegrationRepository.count({}, this.options)
 
     const ms = new MemberService(this.options)
-
-    const enrichedMembers = await ms.findAndCountAll({
-      advancedFilter: { enrichedBy: { contains: [this.options.currentUser.id] } },
-      limit: 1,
-    })
-
-    const tenantUser = await TenantUserRepository.findByTenantAndUser(
-      this.options.currentTenant.id,
-      this.options.currentUser.id,
-      this.options,
-    )
-
-    const allTenantUsers = await TenantUserRepository.findByTenant(
-      this.options.currentTenant.id,
-      this.options,
-    )
-
-    const viewedReports = await ReportRepository.findAndCountAll(
-      { advancedFilter: { viewedBy: { contains: [this.options.currentUser.id] } } },
-      this.options,
-    )
-
-    const automations = await new AutomationRepository(this.options).findAndCountAll({})
-    const tenantSettings = await SettingsRepository.getTenantSettings(
-      this.options.currentTenant.id,
-      this.options,
-    )
 
     if (QuickstartGuideType.CONNECT_INTEGRATION in guides) {
       guides[QuickstartGuideType.CONNECT_INTEGRATION].completed = integrationCount > 1
     }
     if (QuickstartGuideType.ENRICH_MEMBER in guides) {
+      const enrichedMembers = await ms.findAndCountAll({
+        advancedFilter: { enrichedBy: { contains: [this.options.currentUser.id] } },
+        limit: 1,
+      })
       guides[QuickstartGuideType.ENRICH_MEMBER].completed = enrichedMembers.count > 0
     }
     if (QuickstartGuideType.VIEW_REPORT in guides) {
+      const viewedReports = await ReportRepository.findAndCountAll(
+        { advancedFilter: { viewedBy: { contains: [this.options.currentUser.id] } } },
+        this.options,
+      )
       guides[QuickstartGuideType.VIEW_REPORT].completed = viewedReports.count > 0
     }
     if (QuickstartGuideType.INVITE_COLLEAGUES in guides) {
+      const allTenantUsers = await TenantUserRepository.findByTenant(
+        this.options.currentTenant.id,
+        this.options,
+      )
       guides[QuickstartGuideType.INVITE_COLLEAGUES].completed = allTenantUsers.some(
         (tu) => tu.invitedById === this.options.currentUser.id,
       )
@@ -98,22 +83,37 @@ export default class QuickstartGuideService extends LoggerBase {
     }
 
     if (QuickstartGuideType.CREATE_AUTOMATIONS in guides) {
+      const automations = await new AutomationRepository(this.options).findAndCountAll({})
       guides[QuickstartGuideType.CREATE_AUTOMATIONS].completed = automations.count > 0
     }
 
-    if (QuickstartGuideType.EXPLORE_ORGANIZATIONS in guides) {
-      guides[QuickstartGuideType.EXPLORE_ORGANIZATIONS].completed =
-        tenantSettings.organizationsViewed
-    }
+    if (
+      QuickstartGuideType.EXPLORE_ORGANIZATIONS in guides ||
+      QuickstartGuideType.EXPLORE_CONTACTS in guides
+    ) {
+      const tenantSettings = await SettingsRepository.getTenantSettings(
+        this.options.currentTenant.id,
+        this.options,
+      )
+      if (QuickstartGuideType.EXPLORE_ORGANIZATIONS in guides) {
+        guides[QuickstartGuideType.EXPLORE_ORGANIZATIONS].completed =
+          tenantSettings.organizationsViewed
+      }
 
-    if (QuickstartGuideType.EXPLORE_CONTACTS in guides) {
-      guides[QuickstartGuideType.EXPLORE_CONTACTS].completed = tenantSettings.contactsViewed
+      if (QuickstartGuideType.EXPLORE_CONTACTS in guides) {
+        guides[QuickstartGuideType.EXPLORE_CONTACTS].completed = tenantSettings.contactsViewed
+      }
     }
 
     if (
       QuickstartGuideType.SET_EAGLE_EYE in guides &&
       (await isFeatureEnabled(FeatureFlag.EAGLE_EYE, this.options))
     ) {
+      const tenantUser = await TenantUserRepository.findByTenantAndUser(
+        this.options.currentTenant.id,
+        this.options.currentUser.id,
+        this.options,
+      )
       guides[QuickstartGuideType.SET_EAGLE_EYE].completed = tenantUser.settings.eagleEye.onboarded
     } else {
       delete guides[QuickstartGuideType.SET_EAGLE_EYE]
