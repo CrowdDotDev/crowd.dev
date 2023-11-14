@@ -9,7 +9,7 @@
   },
   "tenant": {
     "name": "Crowd community",
-    "platforms": ["GitHub", "Twitter"],
+    "platforms": ["GitHub", "X/Twitter"],
     "size": "5,000 - 25,000",
     "integration": {
       "dev": "crowddotdev"

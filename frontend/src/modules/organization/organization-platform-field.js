@@ -24,7 +24,7 @@ export default class OrganizationPlatformField extends StringField {
       },
       {
         value: 'twitter',
-        label: 'Twitter',
+        label: 'X/Twitter',
       },
       {
         value: 'crunchbase',

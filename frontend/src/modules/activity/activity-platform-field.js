@@ -29,7 +29,7 @@ export default class ActivityPlatformField extends StringField {
       },
       {
         value: 'twitter',
-        label: 'Twitter',
+        label: 'X/Twitter',
       },
       {
         value: 'devto',

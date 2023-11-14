@@ -73,7 +73,7 @@ const computedPlatformOptions = computed(() => [...CrowdIntegrations.enabledConf
 })),
 {
   value: 'twitter',
-  label: 'Twitter',
+  label: 'X/Twitter',
 },
 ]);
 

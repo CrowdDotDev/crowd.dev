@@ -1,18 +1,22 @@
+import { isEqual } from 'lodash'
 import { websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
-import { IOrganization, IOrganizationIdentity, OrganizationMergeSuggestionType } from '@crowd/types'
+import {
+  IOrganization,
+  IOrganizationIdentity,
+  ISearchSyncOptions,
+  OrganizationMergeSuggestionType,
+  SyncMode,
+} from '@crowd/types'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
-import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../conf'
 import MemberRepository from '../database/repositories/memberRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import Error400 from '../errors/Error400'
-import Plans from '../security/plans'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
-import { enrichOrganization } from './helpers/enrichment'
 import merge from './helpers/merge'
 import {
   keepPrimary,
@@ -33,14 +37,6 @@ export default class OrganizationService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
-  }
-
-  async shouldEnrich(enrichP) {
-    const isPremium = this.options.currentTenant.plan === Plans.values.growth
-    if (!isPremium) {
-      return false
-    }
-    return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
   }
 
   async mergeAsync(originalId, toMergeId) {
@@ -446,7 +442,10 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async createOrUpdate(data: IOrganization, enrichP = true) {
+  async createOrUpdate(
+    data: IOrganization,
+    syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.USE_FEATURE_FLAG },
+  ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     if ((data as any).name && (!data.identities || data.identities.length === 0)) {
@@ -471,8 +470,6 @@ export default class OrganizationService extends LoggerBase {
     }
 
     try {
-      const shouldDoEnrich = await this.shouldEnrich(enrichP)
-
       const primaryIdentity = data.identities[0]
       const nameToCheckInCache = (data as any).name || primaryIdentity.name
 
@@ -490,14 +487,40 @@ export default class OrganizationService extends LoggerBase {
       // if cache exists, merge current data with cache data
       // if it doesn't exist, create it from incoming data
       if (cache) {
-        data = {
-          ...cache,
-          ...data,
-        }
-        cache = await organizationCacheRepository.update(cache.id, data, {
-          ...this.options,
-          transaction,
+        // if exists in cache update it
+        const updateData: Partial<IOrganization> = {}
+        const fields = [
+          'url',
+          'description',
+          'emails',
+          'logo',
+          'tags',
+          'github',
+          'twitter',
+          'linkedin',
+          'crunchbase',
+          'employees',
+          'location',
+          'website',
+          'type',
+          'size',
+          'headline',
+          'industry',
+          'founded',
+        ]
+        fields.forEach((field) => {
+          if (data[field] && !isEqual(data[field], cache[field])) {
+            updateData[field] = data[field]
+          }
         })
+        if (Object.keys(updateData).length > 0) {
+          await organizationCacheRepository.update(cache.id, updateData, {
+            ...this.options,
+            transaction,
+          })
+
+          cache = { ...cache, ...updateData } // Update the cached data with the new data
+        }
       } else {
         // save it to cache
         cache = await organizationCacheRepository.create(
@@ -510,29 +533,6 @@ export default class OrganizationService extends LoggerBase {
             transaction,
           },
         )
-      }
-
-      // clearbit enrich
-      if (shouldDoEnrich && !cache.enriched) {
-        try {
-          const enrichedData = await enrichOrganization(primaryIdentity.name)
-
-          // overwrite cache with enriched data, but keep the name because it's serving as a unique identifier
-          data = {
-            ...data, // to keep uncacheable data (like identities, weakIdentities)
-            ...cache,
-            ...enrichedData,
-            name: cache.name,
-            enriched: true,
-          }
-
-          cache = await organizationCacheRepository.update(cache.id, data, {
-            ...this.options,
-            transaction,
-          })
-        } catch (error) {
-          this.log.error(error, `Could not enrich ${primaryIdentity.name}!`)
-        }
       }
 
       if (data.members) {
@@ -573,11 +573,45 @@ export default class OrganizationService extends LoggerBase {
           data.displayName = cache.name
         }
 
-        record = await OrganizationRepository.update(
-          existing.id,
-          { ...data, ...cache },
-          { ...this.options, transaction },
-        )
+        // if it does exists update it
+        const updateData: Partial<IOrganization> = {}
+        const fields = [
+          'displayName',
+          'description',
+          'emails',
+          'logo',
+          'tags',
+          'github',
+          'twitter',
+          'linkedin',
+          'crunchbase',
+          'employees',
+          'location',
+          'website',
+          'type',
+          'size',
+          'headline',
+          'industry',
+          'founded',
+          'attributes',
+          'weakIdentities',
+        ]
+        fields.forEach((field) => {
+          if (field === 'website' && !existing.website && cache.website) {
+            updateData[field] = cache[field]
+          } else if (
+            field !== 'website' &&
+            cache[field] &&
+            !isEqual(cache[field], existing[field])
+          ) {
+            updateData[field] = cache[field]
+          }
+        })
+
+        record = await OrganizationRepository.update(existing.id, updateData, {
+          ...this.options,
+          transaction,
+        })
       } else {
         await OrganizationRepository.checkIdentities(data, this.options)
 
@@ -624,9 +658,10 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncService = new SearchSyncService(this.options)
-
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+      if (syncOptions.doSync) {
+        const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
+        await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+      }
 
       return await this.findById(record.id)
     } catch (error) {

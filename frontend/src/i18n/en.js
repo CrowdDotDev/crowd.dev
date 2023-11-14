@@ -263,7 +263,7 @@ const en = {
         revenueRange: 'Annual revenue',
         activeSince: 'Active since',
         github: 'GitHub',
-        twitter: 'Twitter',
+        twitter: 'X/Twitter',
         linkedin: 'LinkedIn',
         crunchbase: 'Crunchbase',
       },

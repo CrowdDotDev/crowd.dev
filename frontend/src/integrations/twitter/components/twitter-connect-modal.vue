@@ -3,10 +3,10 @@
     <template #header>
       <div>
         <p class="text-2xs leading-5 text-gray-500 mb-0.5">
-          Twitter integration
+          X/Twitter integration
         </p>
         <h4 class="text-base font-semibold">
-          Connect Twitter via Zapier
+          Connect X/Twitter via Zapier
         </h4>
       </div>
     </template>
@@ -14,8 +14,8 @@
       <div class="px-6 pb-6">
         <img src="/images/integrations/twitter-zapier.jpg" alt="Twitter Zapier integration" class="w-full mb-6">
         <p class="text-sm leading-5 text-gray-500 pb-8">
-          Due to Twitter’s recent API changes, our native Twitter integration was discontinued on April 31st, 2023.
-          To keep tracking Twitter activities, you will have to use Zapier.
+          Due to X/Twitter’s recent API changes, our native X/Twitter integration was discontinued on April 31st, 2023.
+          To keep tracking X/Twitter activities, you will have to use Zapier.
           The Zapier workflow will require some manual set-up, and a Zapier premium account (starting from $19.99/month).
         </p>
         <a href="https://zapier.com/shared/create-activities-in-crowddev-from-new-twitter-followers/e61afb14fdd16e7235343aab9aa57b4d40a71ecf" target="_blank" rel="noopener noreferrer" class="mb-4 block">
