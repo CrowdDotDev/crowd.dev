@@ -107,6 +107,7 @@ import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import formChangeDetector from '@/shared/form/form-change';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 import { automationTypes } from '../config/automation-types';
 
 const props = defineProps({
@@ -130,6 +131,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'update:automation']);
 
 const { createAutomation, updateAutomation, getAutomations } = useAutomationStore();
+const { getGuides } = useQuickStartStore();
 
 const isDrawerOpen = computed({
   get() {
@@ -206,6 +208,7 @@ const doSubmit = () => {
       .then(() => {
         getAutomations();
         emit('update:modelValue', null);
+        getGuides();
       })
       .catch(() => {
         Message.error('There was an error creating automation, please try again later.');
