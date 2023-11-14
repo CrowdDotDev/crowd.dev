@@ -1,7 +1,11 @@
 import { processPaginated, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
 import { LoggerBase, getChildLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  DataSinkWorkerEmitter,
+} from '@crowd/sqs'
 import { IntegrationRunState, IntegrationType } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import MicroserviceRepository from '@/database/repositories/microserviceRepository'
@@ -14,6 +18,7 @@ import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationStreamWorkerEmitter,
+  getDataSinkWorkerEmitter,
 } from '../../utils/serviceSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
 
@@ -25,6 +30,8 @@ export class IntegrationTickProcessor extends LoggerBase {
   private intRunWorkerEmitter: IntegrationRunWorkerEmitter
 
   private intStreamWorkerEmitter: IntegrationStreamWorkerEmitter
+
+  private dataSinkWorkerEmitter: DataSinkWorkerEmitter
 
   constructor(
     options: IServiceOptions,
@@ -46,6 +53,7 @@ export class IntegrationTickProcessor extends LoggerBase {
     if (!this.emittersInitialized) {
       this.intRunWorkerEmitter = await getIntegrationRunWorkerEmitter()
       this.intStreamWorkerEmitter = await getIntegrationStreamWorkerEmitter()
+      this.dataSinkWorkerEmitter = await getDataSinkWorkerEmitter()
 
       this.emittersInitialized = true
     }
@@ -220,6 +228,7 @@ export class IntegrationTickProcessor extends LoggerBase {
     await this.initEmitters()
     await this.intRunWorkerEmitter.checkRuns()
     await this.intStreamWorkerEmitter.checkStreams()
+    await this.dataSinkWorkerEmitter.checkResults()
 
     // TODO check streams as well
     this.log.trace('Checking for delayed integration runs!')

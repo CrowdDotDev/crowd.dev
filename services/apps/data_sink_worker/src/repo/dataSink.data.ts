@@ -17,6 +17,9 @@ export interface IResultData {
   plan: string
   isTrialPlan: boolean
   name: string
+
+  retries: number
+  delayedUntil: string | null
 }
 
 export interface IFailedResultData {
