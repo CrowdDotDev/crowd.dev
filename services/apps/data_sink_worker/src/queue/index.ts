@@ -5,6 +5,7 @@ import {
   DATA_SINK_WORKER_QUEUE_SETTINGS,
   NodejsWorkerEmitter,
   SearchSyncWorkerEmitter,
+  DataSinkWorkerEmitter,
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
@@ -25,6 +26,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly dbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
@@ -44,6 +46,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           new DbStore(this.log, this.dbConn, undefined, false),
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
+          this.dataSinkWorkerEmitter,
           this.redisClient,
           this.unleash,
           this.temporal,
@@ -63,6 +66,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
               msg.integrationId,
               msg.activityData,
             )
+            break
+          }
+          case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
+            await service.checkResults()
             break
           }
 
