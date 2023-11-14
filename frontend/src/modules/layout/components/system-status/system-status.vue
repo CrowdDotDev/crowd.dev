@@ -4,7 +4,8 @@
     href="https://status.crowd.dev/"
     target="_blank"
     rel="noopener noreferrer"
-    class="rounded-md h-10 transition !text-gray-400 flex items-center justify-between group whitespace-nowrap flex-nowrap mx-1 hover:bg-gray-50 mb-2 cursor-pointer overflow-hidden"
+    class="rounded-md h-10 transition !text-gray-400 flex items-center justify-between group whitespace-nowrap
+    flex-nowrap mx-1 hover:bg-gray-50 mb-2 cursor-pointer overflow-hidden"
   >
     <div class="flex items-center justify-between grow">
       <span class="text-gray-900 pl-3 text-xs"> System Status </span>
@@ -37,10 +38,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { Status } from "@/modules/layout/types/SystemStatus";
-import LayoutService from "@/modules/layout/layout-service";
-import AppLoading from "@/shared/loading/loading-placeholder.vue";
+import { computed, ref, watch } from 'vue';
+import { Status } from '@/modules/layout/types/SystemStatus';
+import LayoutService from '@/modules/layout/layout-service';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
 const status = ref<Status>();
 const props = defineProps<{
@@ -49,28 +50,28 @@ const props = defineProps<{
 
 const StatusDisplay = {
   [Status.Operational]: {
-    label: "Operational",
-    color: "bg-green-500",
+    label: 'Operational',
+    color: 'bg-green-500',
   },
   [Status.DegradedPerformance]: {
-    label: "Degraded Performance",
-    color: "bg-yellow-500",
+    label: 'Degraded Performance',
+    color: 'bg-yellow-500',
   },
   [Status.PartialOutage]: {
-    label: "Partial Outage",
-    color: "bg-yellow-500",
+    label: 'Partial Outage',
+    color: 'bg-yellow-500',
   },
   [Status.MajorOutage]: {
-    label: "Major Outage",
-    color: "bg-red-500",
+    label: 'Major Outage',
+    color: 'bg-red-500',
   },
   [Status.Unknown]: {
-    label: "Unknown",
-    color: "bg-gray-500",
+    label: 'Unknown',
+    color: 'bg-gray-500',
   },
   [Status.UnderMaintenance]: {
-    label: "Under Maintenance",
-    color: "bg-gray-500",
+    label: 'Under Maintenance',
+    color: 'bg-gray-500',
   },
 } as const;
 
@@ -99,6 +100,6 @@ watch(
         status.value = response.status;
       });
     }
-  }
+  },
 );
 </script>
