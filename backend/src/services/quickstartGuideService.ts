@@ -46,103 +46,84 @@ export default class QuickstartGuideService extends LoggerBase {
     const guides: QuickstartGuideMap = JSON.parse(
       JSON.stringify(isGuidesV2Enabled ? DEFAULT_GUIDES_V2 : DEFAULT_GUIDES),
     )
-    this.log.info('Integration count')
+    this.log.info(guides)
     const integrationCount: number = await IntegrationRepository.count({}, this.options)
-    this.log.info('Set member service')
+
     const ms = new MemberService(this.options)
-    this.log.info('Enriching members')
-    const enrichedMembers = await ms.findAndCountAll({
-      advancedFilter: { enrichedBy: { contains: [this.options.currentUser.id] } },
-      limit: 1,
-    })
-    this.log.info('Fetching tenant user')
-    const tenantUser = await TenantUserRepository.findByTenantAndUser(
-      this.options.currentTenant.id,
-      this.options.currentUser.id,
-      this.options,
-    )
 
-    this.log.info('Find all tenant users')
-    const allTenantUsers = await TenantUserRepository.findByTenant(
-      this.options.currentTenant.id,
-      this.options,
-    )
-
-    this.log.info('Viewed reports')
-    const viewedReports = await ReportRepository.findAndCountAll(
-      { advancedFilter: { viewedBy: { contains: [this.options.currentUser.id] } } },
-      this.options,
-    )
-
-    this.log.info('Fetch automations')
-    const automations = await new AutomationRepository(this.options).findAndCountAll({})
-
-
-    this.log.info('Fetch tenant settings')
-    const tenantSettings = await SettingsRepository.getTenantSettings(
-      this.options.currentTenant.id,
-      this.options,
-    )
-
-
-    this.log.info('CONNECT_INTEGRATION')
     if (QuickstartGuideType.CONNECT_INTEGRATION in guides) {
       guides[QuickstartGuideType.CONNECT_INTEGRATION].completed = integrationCount > 1
     }
-    this.log.info('ENRICH_MEMBER')
     if (QuickstartGuideType.ENRICH_MEMBER in guides) {
+      const enrichedMembers = await ms.findAndCountAll({
+        advancedFilter: { enrichedBy: { contains: [this.options.currentUser.id] } },
+        limit: 1,
+      })
       guides[QuickstartGuideType.ENRICH_MEMBER].completed = enrichedMembers.count > 0
     }
-    this.log.info('VIEW_REPORT')
     if (QuickstartGuideType.VIEW_REPORT in guides) {
+      const viewedReports = await ReportRepository.findAndCountAll(
+        { advancedFilter: { viewedBy: { contains: [this.options.currentUser.id] } } },
+        this.options,
+      )
       guides[QuickstartGuideType.VIEW_REPORT].completed = viewedReports.count > 0
     }
-    this.log.info('INVITE_COLLEAGUES')
     if (QuickstartGuideType.INVITE_COLLEAGUES in guides) {
+      const allTenantUsers = await TenantUserRepository.findByTenant(
+        this.options.currentTenant.id,
+        this.options,
+      )
       guides[QuickstartGuideType.INVITE_COLLEAGUES].completed = allTenantUsers.some(
         (tu) => tu.invitedById === this.options.currentUser.id,
       )
     }
 
-    this.log.info('CONNECT_FIRST_INTEGRATION')
     if (QuickstartGuideType.CONNECT_FIRST_INTEGRATION in guides) {
       guides[QuickstartGuideType.CONNECT_FIRST_INTEGRATION].completed = integrationCount > 0
     }
 
-    this.log.info('CREATE_AUTOMATIONS')
     if (QuickstartGuideType.CREATE_AUTOMATIONS in guides) {
+      const automations = await new AutomationRepository(this.options).findAndCountAll({})
       guides[QuickstartGuideType.CREATE_AUTOMATIONS].completed = automations.count > 0
     }
 
-    this.log.info('EXPLORE_ORGANIZATIONS')
-    if (QuickstartGuideType.EXPLORE_ORGANIZATIONS in guides) {
-      guides[QuickstartGuideType.EXPLORE_ORGANIZATIONS].completed =
-        tenantSettings.organizationsViewed
+    if (
+      QuickstartGuideType.EXPLORE_ORGANIZATIONS in guides ||
+      QuickstartGuideType.EXPLORE_CONTACTS in guides
+    ) {
+      const tenantSettings = await SettingsRepository.getTenantSettings(
+        this.options.currentTenant.id,
+        this.options,
+      )
+      if (QuickstartGuideType.EXPLORE_ORGANIZATIONS in guides) {
+        guides[QuickstartGuideType.EXPLORE_ORGANIZATIONS].completed =
+          tenantSettings.organizationsViewed
+      }
+
+      if (QuickstartGuideType.EXPLORE_CONTACTS in guides) {
+        guides[QuickstartGuideType.EXPLORE_CONTACTS].completed = tenantSettings.contactsViewed
+      }
     }
 
-    this.log.info('EXPLORE_CONTACTS')
-    if (QuickstartGuideType.EXPLORE_CONTACTS in guides) {
-      guides[QuickstartGuideType.EXPLORE_CONTACTS].completed = tenantSettings.contactsViewed
-    }
-
-    this.log.info('SET_EAGLE_EYE')
     if (
       QuickstartGuideType.SET_EAGLE_EYE in guides &&
       (await isFeatureEnabled(FeatureFlag.EAGLE_EYE, this.options))
     ) {
+      const tenantUser = await TenantUserRepository.findByTenantAndUser(
+        this.options.currentTenant.id,
+        this.options.currentUser.id,
+        this.options,
+      )
       guides[QuickstartGuideType.SET_EAGLE_EYE].completed = tenantUser.settings.eagleEye.onboarded
     } else {
       delete guides[QuickstartGuideType.SET_EAGLE_EYE]
     }
 
-    this.log.info('ENRICH_MEMBER')
-    this.log.info(guides)
     // try to find an enrichable member for button CTA of enrich member guide
     if (
       QuickstartGuideType.ENRICH_MEMBER in guides &&
       !guides[QuickstartGuideType.ENRICH_MEMBER].completed
     ) {
-      this.log.info('fetching enrichable members')
       const enrichableMembers = await ms.findAndCountAll({
         advancedFilter: {
           and: [
@@ -169,7 +150,7 @@ export default class QuickstartGuideService extends LoggerBase {
         },
         limit: 1,
       })
-      this.log.info(enrichableMembers)
+
       if (enrichableMembers.count > 0) {
         guides[
           QuickstartGuideType.ENRICH_MEMBER
