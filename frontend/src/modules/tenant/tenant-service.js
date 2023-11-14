@@ -80,6 +80,13 @@ export class TenantService {
     return response.data;
   }
 
+  static async viewContacts() {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(`/tenant/${tenantId}/viewContacts`);
+
+    return response.data;
+  }
+
   static async acceptInvitation(
     token,
     forceAcceptOtherEmail = false,

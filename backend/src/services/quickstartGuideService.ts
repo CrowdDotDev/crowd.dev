@@ -107,8 +107,7 @@ export default class QuickstartGuideService extends LoggerBase {
     }
 
     if (QuickstartGuideType.EXPLORE_CONTACTS in guides) {
-      guides[QuickstartGuideType.EXPLORE_CONTACTS].completed =
-        tenantSettings.contactsViewed
+      guides[QuickstartGuideType.EXPLORE_CONTACTS].completed = tenantSettings.contactsViewed
     }
 
     if (

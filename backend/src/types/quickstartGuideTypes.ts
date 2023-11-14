@@ -134,8 +134,8 @@ export const DEFAULT_GUIDES = {
 export const DEFAULT_GUIDES_V2 = {
   [QuickstartGuideType.CONNECT_FIRST_INTEGRATION]: connectFirstIntegrationGuide,
   [QuickstartGuideType.INVITE_COLLEAGUES]: inviteColleaguesGuide,
-  [QuickstartGuideType.EXPLORE_ORGANIZATIONS]: exploreOrganizations,
   [QuickstartGuideType.EXPLORE_CONTACTS]: exploreContacts,
+  [QuickstartGuideType.EXPLORE_ORGANIZATIONS]: exploreOrganizations,
   [QuickstartGuideType.VIEW_REPORT]: viewReportGuide,
   [QuickstartGuideType.CREATE_AUTOMATIONS]: createAutomations,
 }

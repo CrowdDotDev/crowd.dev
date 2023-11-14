@@ -8,7 +8,7 @@ export const resourcesLinks: ResourceLink[] = [
   {
     text: 'Watch demo',
     icon: 'ri-film-line',
-    url: 'https://www.youtube.com/watch?v=uaKWBvu_k_g',
+    url: 'https://youtu.be/5KRq9uA8qn8',
   },
   {
     text: 'Documentation',
