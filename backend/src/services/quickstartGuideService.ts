@@ -136,11 +136,13 @@ export default class QuickstartGuideService extends LoggerBase {
     }
 
     this.log.info('ENRICH_MEMBER')
+    this.log.info(guides)
     // try to find an enrichable member for button CTA of enrich member guide
     if (
       QuickstartGuideType.ENRICH_MEMBER in guides &&
       !guides[QuickstartGuideType.ENRICH_MEMBER].completed
     ) {
+      this.log.info('fetching enrichable members')
       const enrichableMembers = await ms.findAndCountAll({
         advancedFilter: {
           and: [
@@ -167,7 +169,7 @@ export default class QuickstartGuideService extends LoggerBase {
         },
         limit: 1,
       })
-
+      this.log.info(enrichableMembers)
       if (enrichableMembers.count > 0) {
         guides[
           QuickstartGuideType.ENRICH_MEMBER
