@@ -223,7 +223,7 @@ describe('TenantService tests', () => {
         'Reach out to influential contacts',
         'Reach out to poorly engaged contacts',
         'Set up your team',
-        'Set up your workpace integrations',
+        'Set up your workspace integrations',
       ])
     })
   })
