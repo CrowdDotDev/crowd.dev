@@ -11,6 +11,18 @@ export interface ISlackAlertingConfig {
   url: string
 }
 
+export interface IWorkerConfig {
+  maxStreamRetries: number
+}
+
+let workerSettings: IWorkerConfig
+export const WORKER_SETTINGS = (): IWorkerConfig => {
+  if (workerSettings) return workerSettings
+
+  workerSettings = config.get<IWorkerConfig>('worker')
+  return workerSettings
+}
+
 let redisConfig: IRedisConfiguration
 export const REDIS_CONFIG = (): IRedisConfiguration => {
   if (redisConfig) return redisConfig
