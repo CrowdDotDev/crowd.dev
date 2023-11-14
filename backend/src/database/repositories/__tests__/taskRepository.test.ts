@@ -331,8 +331,8 @@ describe('TaskRepository tests', () => {
         'Engage with relevant content',
         'Reach out to influential contacts',
         'Reach out to poorly engaged contacts',
-        'Setup your team',
-        'Setup your workpace integrations',
+        'Set up your team',
+        'Set up your workpace integrations',
       ])
     })
 
