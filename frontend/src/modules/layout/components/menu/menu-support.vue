@@ -48,7 +48,7 @@
     <el-divider class="!my-2 border-gray-100 w-full" />
 
     <div class="px-1">
-      <cr-system-status v-if="isDropdownOpen" />
+      <cr-system-status :check-status="isDropdownOpen" />
     </div>
   </el-popover>
 </template>
