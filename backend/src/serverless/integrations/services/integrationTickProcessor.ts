@@ -207,13 +207,35 @@ export class IntegrationTickProcessor extends LoggerBase {
                   integration.id,
                 )
               if (!existingRun) {
-                logger.info({ integrationId: integration.id }, 'Triggering new integration check!')
-                await emitter.triggerIntegrationRun(
-                  integration.tenantId,
-                  integration.platform,
-                  integration.id,
-                  false,
-                )
+                const rand = Math.random()
+                // 50% chance to delay the triggering of new integration checks for Discord integrations
+                if (newIntService.type === IntegrationType.DISCORD && rand > 0.5) {
+                  // Delay the triggering of new integration checks for Discord integrations
+                  const delay = 30 * 60 * 1000 // 30 minutes in milliseconds
+                  setTimeout(async () => {
+                    logger.info(
+                      { integrationId: integration.id },
+                      'Triggering new delayed integration check for Discord!',
+                    )
+                    await emitter.triggerIntegrationRun(
+                      integration.tenantId,
+                      integration.platform,
+                      integration.id,
+                      false,
+                    )
+                  }, delay)
+                } else {
+                  logger.info(
+                    { integrationId: integration.id },
+                    'Triggering new integration check!',
+                  )
+                  await emitter.triggerIntegrationRun(
+                    integration.tenantId,
+                    integration.platform,
+                    integration.id,
+                    false,
+                  )
+                }
               } else {
                 logger.info({ integrationId: integration.id }, 'Existing run found, skipping!')
               }
