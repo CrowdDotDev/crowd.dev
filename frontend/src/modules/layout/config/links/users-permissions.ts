@@ -1,5 +1,4 @@
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 
 const usersPermissions: MenuLink = {
   id: 'users-permissions',
@@ -8,14 +7,7 @@ const usersPermissions: MenuLink = {
   routeOptions: {
     query: { activeTab: 'users' },
   },
-  display: ({ user, tenant }) => {
-    const settingsPermissions = new SettingsPermissions(
-      tenant,
-      user,
-    );
-
-    return settingsPermissions.edit || settingsPermissions.lockedForCurrentPlan;
-  },
+  display: () => true,
   disable: () => false,
 };
 
