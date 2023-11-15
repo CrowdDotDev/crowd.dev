@@ -31,26 +31,25 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     try {
       const results = await this.db().any(
         `
-        select  iw.id,
+          SELECT iw.id,
                 iw."tenantId",
                 iw."integrationId",
                 iw.state,
                 iw.type,
                 iw.payload,
-                iw."createdAt" as "createdAt",
-                i.platform as "platform"
-        from "incomingWebhooks" iw
-                 inner join integrations i on iw."integrationId" = i.id
-                 left join integration.streams s on iw.id = s."webhookId"
-        where s.id is null
-          and iw.type <> $(discourseType)
-          and iw.state = $(pendingState)
-          and iw."createdAt" < now() - interval '1 hour'
-        limit ${limit}
-        for update skip locked;
+                iw."createdAt" AS "createdAt",
+                i.platform AS "platform"
+          FROM "incomingWebhooks" iw
+          INNER JOIN integrations i ON iw."integrationId" = i.id
+          WHERE NOT EXISTS (
+              SELECT 1 FROM integration.streams s WHERE iw.id = s."webhookId"
+          )
+          AND iw.state = $(pendingState)
+          AND iw."createdAt" < NOW() - INTERVAL '1 hour'
+          LIMIT ${limit}
+          FOR UPDATE SKIP LOCKED;
         `,
         {
-          discourseType: WebhookType.DISCOURSE,
           pendingState: WebhookState.PENDING,
         },
       )
