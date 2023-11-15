@@ -6,7 +6,6 @@ import {
   IntegrationStreamDataState,
   IntegrationStreamState,
   WebhookState,
-  WebhookType,
 } from '@crowd/types'
 import {
   IInsertableWebhookStream,
