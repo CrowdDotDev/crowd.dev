@@ -267,7 +267,7 @@ export default {
         id: this.id,
         tenantId: this.tenantId,
       });
-      this.currentTenant = await TenantService.findName(
+      this.currentTenant = await TenantService.find(
         this.tenantId,
       );
     } else {

@@ -1,5 +1,4 @@
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 
 const apiKeys: MenuLink = {
   id: 'api-keys',
@@ -8,14 +7,7 @@ const apiKeys: MenuLink = {
   routeOptions: {
     query: { activeTab: 'api-keys' },
   },
-  display: ({ user, tenant }) => {
-    const settingsPermissions = new SettingsPermissions(
-      tenant,
-      user,
-    );
-
-    return settingsPermissions.edit || settingsPermissions.lockedForCurrentPlan;
-  },
+  display: () => true,
   disable: () => false,
 };
 

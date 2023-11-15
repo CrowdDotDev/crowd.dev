@@ -129,11 +129,6 @@
                 class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
               />
               <span
-                v-if="error === 'Password is invalid'"
-                class="pl-1 text-2xs text-red-500 leading-4.5"
-              >Passwords must have at least one letter, one number, one symbol, and be at least 8 characters long.</span>
-              <span
-                v-else
                 class="pl-1 text-2xs text-red-500 leading-4.5"
               >{{ error }}</span>
             </div>
