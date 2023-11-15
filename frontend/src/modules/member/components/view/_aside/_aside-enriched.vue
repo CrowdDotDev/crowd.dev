@@ -1,12 +1,22 @@
 <template>
   <div>
     <!-- Education -->
-    <div
-      v-if="member.attributes.education"
-      class="font-medium text-black mb-4 mt-10"
-    >
-      Education
+    <div v-if="member.attributes.education" class="flex items-center mb-4 mt-10">
+      <div
+        class="font-medium text-black mr-2"
+      >
+        Education
+      </div>
+      <el-tooltip
+        v-if="getAttributeSourceName(member.attributes.education)"
+        :content="`Source: ${getAttributeSourceName(member.attributes.education)}`"
+        placement="top"
+        trigger="hover"
+      >
+        <app-svg name="source" class="h-3 w-3" />
+      </el-tooltip>
     </div>
+
     <app-member-custom-attributes-array-renderer
       title="Education"
       :attribute="member.attributes.education"
@@ -77,6 +87,8 @@
 
 <script setup>
 import { defineProps } from 'vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
 defineProps({

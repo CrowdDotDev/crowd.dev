@@ -39,18 +39,28 @@
         :key="attribute.id"
         class="attribute"
       >
-        <p class="title">
-          {{ attribute.label }}
+        <div class="flex items-center">
+          <p class="title pr-2">
+            {{ attribute.label }}
+            <el-tooltip
+              content="Skills are sorted by relevance"
+              placement="top"
+            >
+              <i
+                v-if="attribute.name === 'skills'"
+                class="ri-information-line"
+              />
+            </el-tooltip>
+          </p>
           <el-tooltip
-            content="Skills are sorted by relevance"
+            v-if="getAttributeSourceName(props.member.attributes[attribute.name])"
+            :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
             placement="top"
+            trigger="hover"
           >
-            <i
-              v-if="attribute.name === 'skills'"
-              class="ri-information-line"
-            />
+            <app-svg name="source" class="h-3 w-3" />
           </el-tooltip>
-        </p>
+        </div>
         <div
           v-if="attribute.type === 'multiSelect'"
           class="multiSelect -mt-1"
@@ -96,6 +106,8 @@ import { formatDate } from '@/utils/date';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 

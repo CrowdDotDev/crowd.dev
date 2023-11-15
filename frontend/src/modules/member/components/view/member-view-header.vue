@@ -42,7 +42,12 @@
           <p class="text-gray-400 font-medium text-2xs mr-2">
             Location
           </p>
-          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+          <el-tooltip
+            v-if="getAttributeSourceName(member.attributes.location)"
+            :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
+            placement="top"
+            trigger="hover"
+          >
             <app-svg name="source" class="h-3 w-3" />
           </el-tooltip>
         </div>
@@ -105,6 +110,7 @@ import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppSvg from '@/shared/svg/svg.vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 defineProps({
   member: {
