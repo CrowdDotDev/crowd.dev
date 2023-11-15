@@ -94,6 +94,8 @@ import { mapGetters, mapActions } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
+import { useQuickStartStore } from '@/modules/quickstart/store';
+import { TenantService } from '@/modules/tenant/tenant-service';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews } from '../config/saved-views/main';
 
@@ -108,6 +110,8 @@ const { listByPlatform } = mapGetters('integration');
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const { doRefreshCurrentUser } = mapActions('auth');
+
+const { getGuides } = useQuickStartStore();
 
 const memberFilter = ref<CrFilter | null>(null);
 
@@ -202,5 +206,9 @@ onMounted(() => {
   doGetMembersCount();
   getMemberCustomAttributes();
   (window as any).analytics.page('Members');
+  TenantService.viewContacts()
+    .then(() => {
+      getGuides();
+    });
 });
 </script>

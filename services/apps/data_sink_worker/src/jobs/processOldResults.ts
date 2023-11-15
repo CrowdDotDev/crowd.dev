@@ -3,7 +3,7 @@ import { DbConnection, DbStore } from '@crowd/database'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, DataSinkWorkerEmitter } from '@crowd/sqs'
 import { Client as TemporalClient } from '@crowd/temporal'
 import DataSinkRepository from '../repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
@@ -16,6 +16,7 @@ export const processOldResultsJob = async (
   redis: RedisClient,
   nodejsWorkerEmitter: NodejsWorkerEmitter,
   searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+  dataSinkWorkerEmitter: DataSinkWorkerEmitter,
   unleash: Unleash | undefined,
   temporal: TemporalClient,
   log: Logger,
@@ -26,6 +27,7 @@ export const processOldResultsJob = async (
     store,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
+    dataSinkWorkerEmitter,
     redis,
     unleash,
     temporal,

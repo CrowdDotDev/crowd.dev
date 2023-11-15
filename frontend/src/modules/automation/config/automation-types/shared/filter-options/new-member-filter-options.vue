@@ -77,7 +77,7 @@ const computedPlatformOptions = computed(() => [...active.value.map((item) => ({
 })),
 {
   value: 'twitter',
-  label: 'Twitter',
+  label: 'X/Twitter',
 },
 ]);
 

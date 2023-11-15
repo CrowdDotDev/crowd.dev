@@ -11,7 +11,6 @@ import shareFeedback from './links/share-feedback';
 import documentation from './links/documentation';
 import changelog from './links/changelog';
 import community from './links/community';
-import contactUs from './links/contact-us';
 import usersPermissions from './links/users-permissions';
 import apiKeys from './links/api-keys';
 import plansBilling from './links/plans-billing';
@@ -37,7 +36,6 @@ export const supportMenu: MenuLink[] = [
   documentation,
   changelog,
   community,
-  contactUs,
 ];
 
 // Tenant menu
