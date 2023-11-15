@@ -39,12 +39,12 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             title,
             channel,
             url,
-            sentiment
+            sentiment,
+            "deletedAt"
     from activities
     where "tenantId" = $(tenantId)
       and "segmentId" = $(segmentId)
       and "sourceId" = $(sourceId)
-      and "deletedAt" is null
   `
   public async findExisting(
     tenantId: string,
