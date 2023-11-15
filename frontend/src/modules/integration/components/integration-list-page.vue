@@ -10,7 +10,7 @@
       <div class="text-xs text-gray-900">
         <span class="text-base">🧐</span> Missing something?
         <a
-          href="https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+"
+          :href="supportUrl"
           class="hover:underline"
         >Open an issue</a>
       </div>
@@ -105,6 +105,9 @@ import AppLfIntegrationsPageHeader from '@/modules/lf/layout/components/lf-integ
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import AppIntegrationList from './integration-list.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+
+const supportUrl = CrowdIntegrations.getConfig('lfx').supportUrl || 'https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+';
 
 export default {
   name: 'AppIntegrationListPage',

@@ -16,6 +16,7 @@
         :integration="integration"
       />
       <app-integration-list-item
+        v-if="!hideCustomIntegrations"
         :integration="customIntegration"
       />
     </div>
@@ -75,6 +76,8 @@ const integrationsArray = computed(() => (props.onboard
   : CrowdIntegrations.mappedConfigs(store)));
 
 const showGithubDialog = ref(false);
+
+const hideCustomIntegrations = CrowdIntegrations.getConfig('lfx').hideCustomIntegration;
 
 onMounted(async () => {
   localStorage.setItem('segmentId', route.params.id);
