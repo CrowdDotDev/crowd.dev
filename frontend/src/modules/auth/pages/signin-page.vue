@@ -171,7 +171,7 @@ export default {
     return {
       rules: {
         email: fields.email.forFormRules(),
-        password: fields.password.forFormRules(),
+        password: fields.passwordSignin.forFormRules(),
         rememberMe: fields.rememberMe.forFormRules(),
       },
       model: {
