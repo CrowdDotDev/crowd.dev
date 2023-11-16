@@ -1,13 +1,11 @@
-import { useLogRocket } from '@/utils/logRocket';
-import { i18n, i18nExists } from '@/i18n';
-import { router } from '@/router';
-import Message from '@/shared/message/message';
-import { AuthService } from '@/modules/auth/auth-service';
-import config from '@/config';
+import { useLogRocket } from "@/utils/logRocket";
+import { i18n, i18nExists } from "@/i18n";
+import { router } from "@/router";
+import Message from "@/shared/message/message";
+import { AuthService } from "@/modules/auth/auth-service";
+import config from "@/config";
 
-const DEFAULT_ERROR_MESSAGE = i18n(
-  'errors.defaultErrorMessage',
-);
+const DEFAULT_ERROR_MESSAGE = i18n("errors.defaultErrorMessage");
 
 function selectErrorKeyOrMessage(error) {
   if (error && error.response && error.response.data) {
@@ -47,7 +45,7 @@ export default class Errors {
 
     captureException(error);
 
-    if (import.meta.env.NODE_ENV !== 'test') {
+    if (import.meta.env.NODE_ENV !== "test") {
       console.error(selectErrorMessage(error));
       console.error(error);
     }
@@ -59,18 +57,16 @@ export default class Errors {
     }
 
     if (selectErrorCode(error) === 403) {
-      if (error.config.url.includes('member/export')) {
+      if (error.config.url.includes("member/export")) {
         // we'll be handling these differently
         return;
       }
 
-      if (
-        error.response.data.includes('Missing scopes in ')
-      ) {
+      if (error.response.data.includes("Missing scopes in ")) {
         Message.error(error.response.data, { duration: 0 });
         return;
       }
-      router.push('/403');
+      router.push("/403");
       return;
     }
 
@@ -81,15 +77,15 @@ export default class Errors {
 
     if (selectErrorCode(error) === 542) {
       Message.error(
-        'An error has occurred setting up the integration, please reach out to us via chat, or via email (help@crowd.dev)',
-        { duration: 0 },
+        "An error has occurred setting up the integration, please reach out to us via chat.",
+        { duration: 0 }
       );
       return;
     }
 
     Message.error(
-      'Please try again. If the problem remains, reach out to us.',
-      { title: 'Oops, something went wrong' },
+      "Please try again. If the problem remains, reach out to us.",
+      { title: "Oops, something went wrong" }
     );
   }
 
