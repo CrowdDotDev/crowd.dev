@@ -99,15 +99,18 @@
   </app-page-wrapper>
 </template>
 
+<script setup>
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+const supportUrl = CrowdIntegrations.getConfig('lfx').supportUrl || 'https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+';
+</script>
+
 <script>
 import { mapGetters } from 'vuex';
 import AppLfIntegrationsPageHeader from '@/modules/lf/layout/components/lf-integrations-page-header.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import AppIntegrationList from './integration-list.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const supportUrl = CrowdIntegrations.getConfig('lfx').supportUrl || 'https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+';
 
 export default {
   name: 'AppIntegrationListPage',
