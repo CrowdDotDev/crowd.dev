@@ -36,8 +36,8 @@ export default {
       console.error(error);
       disconnectSocket();
       console.log(error);
-      // commit('AUTH_INIT_ERROR');
-      // dispatch('doSignout');
+      commit('AUTH_INIT_ERROR');
+      dispatch('doSignout');
       return null;
     } finally {
       ProgressBar.done();
