@@ -53,13 +53,13 @@ export default async function identify(
       analytics.track(payload)
 
       // send product analytics data to crowd tenant workspace
-      await addProductData({
-        userId: userIdOut,
-        tenantId: tenantIdOut,
-        event,
-        timestamp,
-        properties,
-      })
+      // await addProductData({
+      //   userId: userIdOut,
+      //   tenantId: tenantIdOut,
+      //   event,
+      //   timestamp,
+      //   properties,
+      // })
     } catch (error) {
       log.error(error, { payload }, 'Could not send the following payload to Segment')
     }
