@@ -19,8 +19,12 @@ export default {
     try {
       const token = AuthToken.get();
       if (token) {
-        const currentUser = await AuthService.fetchMe();
+        const currentUserLocally = AuthService.fetchMeLocally();
         connectSocket(token);
+        if (currentUserLocally) {
+          commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
+        }
+        const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
         return currentUser;
       }
@@ -31,8 +35,9 @@ export default {
     } catch (error) {
       console.error(error);
       disconnectSocket();
-      commit('AUTH_INIT_ERROR');
-      dispatch('doSignout');
+      console.log(error);
+      // commit('AUTH_INIT_ERROR');
+      // dispatch('doSignout');
       return null;
     } finally {
       ProgressBar.done();
@@ -149,6 +154,7 @@ export default {
     commit('AUTH_SUCCESS', {
       currentUser: null,
     });
+    localStorage.removeItem('user');
     router.push('/auth/signin');
   },
 
