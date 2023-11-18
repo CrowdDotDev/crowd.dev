@@ -47,6 +47,7 @@ let dbConnection: DbConnection | undefined
 export const getDbConnection = async (
   config: IDatabaseConfig,
   maxPoolSize?: number,
+  idleTimeoutMillis?: number,
 ): Promise<DbConnection> => {
   if (dbConnection) {
     return dbConnection
@@ -62,6 +63,7 @@ export const getDbConnection = async (
   dbConnection = dbInstance({
     ...config,
     max: maxPoolSize || 20,
+    idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,
     application_name: process.env.SERVICE || 'unknown-app',
   })
