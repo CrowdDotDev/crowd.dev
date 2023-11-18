@@ -1,12 +1,12 @@
-import { MessageBodyAttributeMap } from 'aws-sdk/clients/sqs'
-import moment from 'moment'
 import { getServiceChildLogger } from '@crowd/logging'
+import { SqsMessageAttributes, sendMessage } from '@crowd/sqs'
 import { AutomationTrigger } from '@crowd/types'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
+import moment from 'moment'
 import { IS_TEST_ENV, SQS_CONFIG } from '../../conf'
-import { sendMessage } from '../../utils/sqs'
-import { NodeWorkerMessageType } from '../types/workerTypes'
+import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { ExportableEntity } from '../microservices/nodejs/messageTypes'
+import { NodeWorkerMessageType } from '../types/workerTypes'
+import { SQS_CLIENT } from '@/services/sqs'
 
 const log = getServiceChildLogger('nodeWorkerSQS')
 
@@ -24,7 +24,7 @@ export const sendNodeWorkerMessage = async (
   }
 
   // we can only delay for 15 minutes then we have to re-delay message
-  let attributes: MessageBodyAttributeMap
+  let attributes: SqsMessageAttributes
   let delay: number
   let delayed = false
   if (delaySeconds) {
@@ -80,7 +80,7 @@ export const sendNodeWorkerMessage = async (
     },
     'Sending nodejs-worker sqs message!',
   )
-  await sendMessage(params)
+  await sendMessage(SQS_CLIENT, params)
 }
 
 export const sendNewActivityNodeSQSMessage = async (
