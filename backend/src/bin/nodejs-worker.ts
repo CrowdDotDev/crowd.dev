@@ -15,9 +15,9 @@ import { processDbOperationsMessage } from '../serverless/dbOperations/workDispa
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { SQS_CLIENT } from '../services/sqs'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
 import { processIntegration, processWebhook } from './worker/integrations'
+import { SQS_CLIENT } from '@/serverless/utils/serviceSQS'
 
 /* eslint-disable no-constant-condition */
 
@@ -41,7 +41,7 @@ const receive = async (delayed?: boolean): Promise<SqsMessage | undefined> => {
       : ['remainingDelaySeconds', 'tenantId', 'targetQueueUrl'],
   }
 
-  const messages = await receiveMessage(SQS_CLIENT, params)
+  const messages = await receiveMessage(SQS_CLIENT(), params)
 
   if (messages && messages.length === 1) {
     return messages[0]
@@ -56,7 +56,7 @@ const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void
     ReceiptHandle: receiptHandle,
   }
 
-  return deleteMessage(SQS_CLIENT, params)
+  return deleteMessage(SQS_CLIENT(), params)
 }
 
 async function handleDelayedMessages() {
@@ -94,7 +94,7 @@ async function handleDelayedMessages() {
             if (message.MessageAttributes.targetQueueUrl) {
               const targetQueueUrl = message.MessageAttributes.targetQueueUrl.StringValue
               messageLogger.debug({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
-              await sendMessage(SQS_CLIENT, {
+              await sendMessage(SQS_CLIENT(), {
                 QueueUrl: targetQueueUrl,
                 MessageGroupId: tenantId,
                 MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,

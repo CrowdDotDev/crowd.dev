@@ -6,7 +6,7 @@ import { IS_TEST_ENV, SQS_CONFIG } from '../../conf'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { ExportableEntity } from '../microservices/nodejs/messageTypes'
 import { NodeWorkerMessageType } from '../types/workerTypes'
-import { SQS_CLIENT } from '@/services/sqs'
+import { SQS_CLIENT } from './serviceSQS'
 
 const log = getServiceChildLogger('nodeWorkerSQS')
 
@@ -80,7 +80,7 @@ export const sendNodeWorkerMessage = async (
     },
     'Sending nodejs-worker sqs message!',
   )
-  await sendMessage(SQS_CLIENT, params)
+  await sendMessage(SQS_CLIENT(), params)
 }
 
 export const sendNewActivityNodeSQSMessage = async (
