@@ -63,7 +63,7 @@ export const getDbConnection = async (
   dbConnection = dbInstance({
     ...config,
     max: maxPoolSize || 20,
-    idleTimeoutMillis: idleTimeoutMillis || 10000,
+    idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,
     application_name: process.env.SERVICE || 'unknown-app',
   })
