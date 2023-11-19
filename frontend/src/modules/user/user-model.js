@@ -31,6 +31,10 @@ const fields = {
   }),
   password: new StringField('password', label('password'), {
     required: true,
+    matches: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/,
+  }),
+  passwordSignin: new StringField('password', label('password'), {
+    required: true,
   }),
   passwordConfirmation: new StringField(
     'passwordConfirmation',
