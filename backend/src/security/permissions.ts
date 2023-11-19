@@ -99,7 +99,7 @@ class Permissions {
       },
       userRead: {
         id: 'userRead',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedRoles: [roles.admin, roles.projectAdmin],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -110,7 +110,7 @@ class Permissions {
       },
       userAutocomplete: {
         id: 'userAutocomplete',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedRoles: [roles.admin, roles.projectAdmin],
         allowedPlans: [
           plans.essential,
           plans.growth,
