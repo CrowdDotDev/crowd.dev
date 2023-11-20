@@ -47,9 +47,8 @@ const sections = [
     raw: true,
   },
   {
-    header: `Unmerge a member from another member - This is a development script, never run it in k8s context!`,
-    content:
-      'Unmerge a member from another member - This is a development script, never run it in k8s context!',
+    header: `Unmerge a member from another member using a snapshot db`,
+    content: 'Unmerge a member from another member using a snapshot db',
   },
   {
     header: 'Options',
@@ -73,6 +72,8 @@ if (
     const snapshotDb = await databaseInit(50000, true, parameters.snapshotDBHostname) // we should get a connection to the snapshot db to get the destroyed data
     const prodDb = await databaseInit()
 
+    console.log('Connected to dbs!')
+
     // find if member exists in prod db
     const memberResult = await snapshotDb.sequelize.query(
       `select * from members where id = '${parameters.memberId}';
@@ -94,6 +95,9 @@ if (
       platform: parameters.platform,
     }
 
+    console.log('Identity to process: ')
+    console.log(identityToProcess)
+
     // find memberId from snapshot db using identity
     const members = await snapshotDb.sequelize.query(
       `select "memberId" from "memberIdentities" mi
@@ -105,6 +109,9 @@ if (
     )
 
     const deletedMemberId = members?.[0]?.[0]?.memberId
+
+    console.log('Deleted member id found: ')
+    console.log(deletedMemberId)
 
     let tx
 
@@ -188,6 +195,14 @@ if (
             {
               replacements: {
                 ...deletedMember,
+                emails:
+                  deletedMember.emails && deletedMember.emails.length > 0
+                    ? `{${deletedMember.emails.join(',')}}`
+                    : '{}',
+                enrichedBy:
+                  deletedMember.enrichedBy && deletedMember.enrichedBy.length > 0
+                    ? `{${deletedMember.enrichedBy.join(',')}}`
+                    : '{}',
                 usernameOld: deletedMember.usernameOld
                   ? JSON.stringify(deletedMember.usernameOld)
                   : null,
@@ -197,6 +212,9 @@ if (
                 reach: deletedMember.reach ? JSON.stringify(deletedMember.reach) : null,
                 weakIdentities: deletedMember.weakIdentities
                   ? JSON.stringify(deletedMember.weakIdentities)
+                  : null,
+                contributions: deletedMember.contributions
+                  ? JSON.stringify(deletedMember.contributions)
                   : null,
               },
               type: QueryTypes.INSERT,
@@ -260,35 +278,42 @@ if (
           },
         )
 
-        const uuidValues = `${result2.map((res) => res.id).join("','")}`
+        const uuidValues = `${result2.map((res) => `'${res.id}'`).join(',')}`
 
-        // find memberOrganization rows that doesn't exist anymore in prod db - we'll need to recreate those
-        const result3 = await prodDb.sequelize.query(
-          `
+        if (uuidValues.length !== 0) {
+          // find memberOrganization rows that doesn't exist anymore in prod db - we'll need to recreate those
+          const result3 = await prodDb.sequelize.query(
+            `
             select "memberOrganizationId"
             from unnest(array[${uuidValues}]) AS "memberOrganizationId"
             where not exists (
               select 1 from "memberOrganizations" WHERE id = "memberOrganizationId"::uuid
             );`,
-          {
-            type: QueryTypes.SELECT,
-          },
-        )
+            {
+              type: QueryTypes.SELECT,
+            },
+          )
 
-        const deletedMemberOrganizationIds = result3.map((r) => r.memberOrganizationId)
+          const deletedMemberOrganizationIds = result3.map((r) => r.memberOrganizationId)
 
-        // insert deleted member organization rows
-        if (deletedMemberOrganizationIds && deletedMemberOrganizationIds.length > 0) {
-          const insertValues = deletedMemberOrganizationIds
-            .map((deletedMemberOrganizationId) => {
-              // find the full row from the previous query result
-              const row = result2.find((mi) => mi.id === deletedMemberOrganizationId)
-              return `('${row.id}', '${row.createdAt}', '${row.updatedAt}', '${row.memberId}', '${row.organizationId}', '${row.dateStart}', '${row.dateEnd}', '${row.title}', '${row.source}', '${row.deletedAt}')`
-            })
-            .join(',')
+          // insert deleted member organization rows
+          if (deletedMemberOrganizationIds && deletedMemberOrganizationIds.length > 0) {
+            const insertValues = deletedMemberOrganizationIds
+              .map((deletedMemberOrganizationId) => {
+                // find the full row from the previous query result
+                const row = result2.find((mi) => mi.id === deletedMemberOrganizationId)
+                return `('${row.id}', now(), now(), '${row.memberId}', '${row.organizationId}', ${
+                  row.dateStart ? `'${new Date(row.dateStart).toISOString()}'` : null
+                }, ${row.dateEnd ? `'${new Date(row.dateEnd).toISOString()}'` : null}, '${
+                  row.title
+                }', '${row.source}',  ${
+                  row.deletedAt ? `'${new Date(row.deletedAt).toISOString()}'` : null
+                })`
+              })
+              .join(',')
 
-          await prodDb.sequelize.query(
-            `insert into "memberOrganizations" (
+            await prodDb.sequelize.query(
+              `insert into "memberOrganizations" (
                     "id", 
                     "createdAt", 
                     "updatedAt", 
@@ -298,34 +323,37 @@ if (
                     "dateEnd",
                     "title",
                     "source",
-                    "deletedAt",
+                    "deletedAt")
                     values ${insertValues}`,
-            {
-              type: QueryTypes.INSERT,
-              transaction: tx,
-            },
-          )
+              {
+                type: QueryTypes.INSERT,
+                transaction: tx,
+              },
+            )
+          }
         }
 
         // Obtain only the id's from the resulting objects array
         const idsBelongToMergedMember = result2.map((res) => res.id)
 
-        // update the existing memberOrganization rows that was moved via merge
-        await prodDb.sequelize.query(
-          `
-              update "memberOrganizations" 
-              set "memberId" = :deletedMemberId 
-              where 
-              id in (:idsBelongToMergedMember)`,
-          {
-            replacements: {
-              deletedMemberId,
-              idsBelongToMergedMember,
+        if (idsBelongToMergedMember.length !== 0) {
+          // update the existing memberOrganization rows that was moved via merge
+          await prodDb.sequelize.query(
+            `
+                      update "memberOrganizations" 
+                      set "memberId" = :deletedMemberId 
+                      where 
+                      id in (:idsBelongToMergedMember)`,
+            {
+              replacements: {
+                deletedMemberId,
+                idsBelongToMergedMember,
+              },
+              type: QueryTypes.UPDATE,
+              transaction: tx,
             },
-            type: QueryTypes.UPDATE,
-            transaction: tx,
-          },
-        )
+          )
+        }
 
         // update activities that belonged to the deleted member
         await prodDb.sequelize.query(
@@ -357,12 +385,11 @@ if (
               deletedMemberId,
             },
             type: QueryTypes.SELECT,
-            transaction: tx,
           },
         )
 
         const memberSegmentInsertValues = result4
-          .map((ms) => `('${ms.memberId}', '${ms.segmentId}', '${ms.tenantId}', '${ms.createdAt}')`)
+          .map((ms) => `('${ms.memberId}', '${ms.segmentId}', '${ms.tenantId}', 'now() ')`)
           .join(',')
         // add restored member to memberSegments again
         await prodDb.sequelize.query(
