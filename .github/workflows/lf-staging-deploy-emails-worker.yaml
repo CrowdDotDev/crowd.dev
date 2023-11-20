@@ -1,24 +1,24 @@
-name: Staging Deploy Automations Worker
+name: LF Staging Deploy Emails Worker
 
 on:
   push:
     branches:
-      - 'staging/**'
-      - 'staging-**'
+      - 'lf-staging/**'
+      - 'lf-staging-**'
     paths:
       - 'services/libs/**'
-      - 'services/apps/automations_worker/**'
+      - 'services/apps/emails_worker/**'
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-  CROWD_CLUSTER: ${{ secrets.STAGING_CLUSTER_NAME }}
-  CROWD_ROLE_ARN: ${{ secrets.STAGING_CLUSTER_ROLE_ARN }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  SLACK_CHANNEL: deploys-staging
-  SLACK_WEBHOOK: ${{ secrets.STAGING_SLACK_CHANNEL_HOOK }}
+  CROWD_CLUSTER: ${{ secrets.LF_STAGING_CLUSTER_NAME }}
+  CROWD_ROLE_ARN: ${{ secrets.LF_STAGING_CLUSTER_ROLE_ARN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.LF_AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.LF_AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.LF_AWS_REGION }}
+  SLACK_CHANNEL: deploys-lf-staging
+  SLACK_WEBHOOK: ${{ secrets.LF_STAGING_SLACK_CHANNEL_HOOK }}
 
 jobs:
   build-and-push:
@@ -36,13 +36,13 @@ jobs:
       - uses: ./.github/actions/build-docker-image
         id: image-builder
         with:
-          image: automations-worker
+          image: emails-worker
 
       - name: Set docker image output
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
-  deploy-automations-worker:
+  deploy-emails-worker:
     needs: build-and-push
     runs-on: ubuntu-latest
     defaults:
@@ -55,6 +55,6 @@ jobs:
 
       - uses: ./.github/actions/deploy-service
         with:
-          service: automations-worker
+          service: emails-worker
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
