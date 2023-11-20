@@ -71,7 +71,7 @@ let dataSinkWorkerEmitter: DataSinkWorkerEmitter
 export const getDataSinkWorkerEmitter = async (): Promise<DataSinkWorkerEmitter> => {
   if (dataSinkWorkerEmitter) return dataSinkWorkerEmitter
 
-  dataSinkWorkerEmitter = new DataSinkWorkerEmitter(getClient(), tracer, log)
+  dataSinkWorkerEmitter = new DataSinkWorkerEmitter(SQS_CLIENT(), tracer, log)
   await dataSinkWorkerEmitter.init()
   return dataSinkWorkerEmitter
 }
