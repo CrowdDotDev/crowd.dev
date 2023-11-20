@@ -23,6 +23,8 @@ export default {
         connectSocket(token);
         if (currentUserLocally) {
           commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
+
+          return currentUserLocally;
         }
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
