@@ -361,6 +361,14 @@ export default class TenantService {
     }
   }
 
+  async viewOrganizations() {
+    return SettingsService.save({ organizationsViewed: true }, this.options)
+  }
+
+  async viewContacts() {
+    return SettingsService.save({ contactsViewed: true }, this.options)
+  }
+
   async updatePlanUser(id, planStripeCustomerId, planUserId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 

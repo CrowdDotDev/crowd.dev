@@ -37,8 +37,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     )
 
     this.memberBatchProcessor = new BatchProcessor(
-      20,
-      10,
+      100,
+      30,
       async (memberIds) => {
         const distinct = Array.from(new Set(memberIds))
         if (distinct.length > 0) {
@@ -52,8 +52,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     )
 
     this.activityBatchProcessor = new BatchProcessor(
-      50,
-      10,
+      200,
+      30,
       async (activityIds) => {
         const distinct = Array.from(new Set(activityIds))
         if (distinct.length > 0) {
@@ -67,8 +67,8 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     )
 
     this.organizationBatchProcessor = new BatchProcessor(
-      5,
-      10,
+      20,
+      30,
       async (organizationIds) => {
         const distinct = Array.from(new Set(organizationIds))
         if (distinct.length > 0) {

@@ -1,16 +1,24 @@
 /* eslint-disable no-continue */
 
+import { Error400, isDomainExcluded } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import {
+  FeatureFlag,
+  IOrganization,
+  ISearchSyncOptions,
+  MemberAttributeType,
+  SyncMode,
+} from '@crowd/types'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { FeatureFlag, IOrganization, MemberAttributeType } from '@crowd/types'
-import { isDomainExcluded, Error400 } from '@crowd/common'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
+import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import {
@@ -19,6 +27,7 @@ import {
   IMemberMergeSuggestionsType,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
+import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import telemetryTrack from '../segment/telemetryTrack'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import {
@@ -29,11 +38,8 @@ import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
-import SettingsService from './settingsService'
-import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
-import SegmentRepository from '../database/repositories/segmentRepository'
-import { TEMPORAL_CONFIG } from '@/conf'
 import SearchSyncService from './searchSyncService'
+import SettingsService from './settingsService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -196,7 +202,7 @@ export default class MemberService extends LoggerBase {
     data,
     existing: boolean | any = false,
     fireCrowdWebhooks: boolean = true,
-    fireSync: boolean = true,
+    syncToOpensearch = true,
   ) {
     const logger = this.options.log
     const searchSyncService = new SearchSyncService(this.options)
@@ -335,6 +341,10 @@ export default class MemberService extends LoggerBase {
             // We createOrUpdate the organization and add it to the list of IDs
             const organizationRecord = await organizationService.createOrUpdate(
               data as IOrganization,
+              {
+                doSync: syncToOpensearch,
+                mode: SyncMode.ASYNCHRONOUS,
+              },
             )
             organizations.push({ id: organizationRecord.id })
           }
@@ -359,15 +369,21 @@ export default class MemberService extends LoggerBase {
         const organizationService = new OrganizationService(this.options)
         for (const domain of emailDomains) {
           if (domain) {
-            const org = await organizationService.createOrUpdate({
-              website: domain,
-              identities: [
-                {
-                  name: domain,
-                  platform: 'email',
-                },
-              ],
-            })
+            const org = await organizationService.createOrUpdate(
+              {
+                website: domain,
+                identities: [
+                  {
+                    name: domain,
+                    platform: 'email',
+                  },
+                ],
+              },
+              {
+                doSync: syncToOpensearch,
+                mode: SyncMode.ASYNCHRONOUS,
+              },
+            )
 
             if (org) {
               organizations.push({ id: org.id })
@@ -434,7 +450,7 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (fireSync) {
+      if (syncToOpensearch) {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
       }
 
@@ -571,7 +587,11 @@ export default class MemberService extends LoggerBase {
    * @param toMergeId ID of the member that will be merged into the original member and deleted.
    * @returns Success/Error message
    */
-  async merge(originalId, toMergeId) {
+  async merge(
+    originalId,
+    toMergeId,
+    syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.USE_FEATURE_FLAG },
+  ) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
     let tx
@@ -654,21 +674,23 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      try {
-        const searchSyncService = new SearchSyncService(this.options)
+      if (syncOptions.doSync) {
+        try {
+          const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
 
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
-        await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
-      } catch (emitError) {
-        this.log.error(
-          emitError,
-          {
-            tenantId: this.options.currentTenant.id,
-            originalId,
-            toMergeId,
-          },
-          'Error while triggering member sync changes!',
-        )
+          await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
+          await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+        } catch (emitError) {
+          this.log.error(
+            emitError,
+            {
+              tenantId: this.options.currentTenant.id,
+              originalId,
+              toMergeId,
+            },
+            'Error while triggering member sync changes!',
+          )
+        }
       }
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')

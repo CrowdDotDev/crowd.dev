@@ -3,6 +3,7 @@ import {
   IntegrationStreamWorkerEmitter,
   IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
+  DataSinkWorkerEmitter,
   SqsClient,
   getSqsClient,
 } from '@crowd/sqs'
@@ -63,4 +64,13 @@ export const getIntegrationSyncWorkerEmitter = async (): Promise<IntegrationSync
   integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(getClient(), tracer, log)
   await integrationSyncWorkerEmitter.init()
   return integrationSyncWorkerEmitter
+}
+
+let dataSinkWorkerEmitter: DataSinkWorkerEmitter
+export const getDataSinkWorkerEmitter = async (): Promise<DataSinkWorkerEmitter> => {
+  if (dataSinkWorkerEmitter) return dataSinkWorkerEmitter
+
+  dataSinkWorkerEmitter = new DataSinkWorkerEmitter(getClient(), tracer, log)
+  await dataSinkWorkerEmitter.init()
+  return dataSinkWorkerEmitter
 }

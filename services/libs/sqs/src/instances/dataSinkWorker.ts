@@ -6,6 +6,7 @@ import {
   CreateAndProcessActivityResultQueueMessage,
   IActivityData,
   ProcessIntegrationResultQueueMessage,
+  CheckResultsQueueMessage,
 } from '@crowd/types'
 import { Tracer } from '@crowd/tracing'
 
@@ -19,8 +20,13 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     resultId: string,
     sourceId: string,
+    deduplicationId?: string,
   ) {
-    await this.sendMessage(sourceId, new ProcessIntegrationResultQueueMessage(resultId), resultId)
+    await this.sendMessage(
+      sourceId,
+      new ProcessIntegrationResultQueueMessage(resultId),
+      deduplicationId || resultId,
+    )
   }
 
   public async createAndProcessActivityResult(
@@ -33,5 +39,9 @@ export class DataSinkWorkerEmitter extends SqsQueueEmitter {
       new Date().toISOString(),
       new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, integrationId, activity),
     )
+  }
+
+  public async checkResults() {
+    await this.sendMessage('global', new CheckResultsQueueMessage())
   }
 }

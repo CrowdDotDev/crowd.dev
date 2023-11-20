@@ -47,6 +47,7 @@ const dbConnection: Record<string, DbConnection | undefined> = {}
 export const getDbConnection = async (
   config: IDatabaseConfig,
   maxPoolSize?: number,
+  idleTimeoutMillis?: number,
 ): Promise<DbConnection> => {
   if (dbConnection[config.host]) {
     return dbConnection[config.host]
@@ -62,6 +63,7 @@ export const getDbConnection = async (
   dbConnection[config.host] = dbInstance({
     ...config,
     max: maxPoolSize || 20,
+    idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,
     application_name: process.env.SERVICE || 'unknown-app',
   })

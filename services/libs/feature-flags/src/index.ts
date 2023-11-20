@@ -61,12 +61,13 @@ export const isFeatureEnabled = async (
   client?: Unleash,
   redis?: RedisClient,
   redisTimeoutSeconds?: number,
+  cacheKey?: string,
 ): Promise<boolean> => {
   if (flag === FeatureFlag.SEGMENTS) {
     return EDITION === Edition.LFX
   }
 
-  if ([Edition.COMMUNITY, Edition.LFX].includes(EDITION)) {
+  if ([Edition.LFX, Edition.COMMUNITY].includes(EDITION)) {
     return true
   }
 
@@ -76,9 +77,9 @@ export const isFeatureEnabled = async (
 
   let cache: RedisCache | undefined
 
-  if (redis) {
+  if (redis && redisTimeoutSeconds && cacheKey) {
     cache = new RedisCache('feature-flags', redis, log)
-    const result = await cache.get(flag)
+    const result = await cache.get(`${flag}-${cacheKey}`)
     if (result) {
       return result === 'true'
     }
@@ -87,7 +88,7 @@ export const isFeatureEnabled = async (
   const enabled = unleash.isEnabled(flag, await contextLoader())
 
   if (cache) {
-    await cache.set(flag, enabled.toString(), redisTimeoutSeconds || 60)
+    await cache.set(`${flag}-${cacheKey}`, enabled.toString(), redisTimeoutSeconds || 60)
   }
 
   return enabled

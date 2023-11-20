@@ -1,11 +1,12 @@
+import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import { FeatureFlag, PlatformType, SyncMode } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { FeatureFlag, PlatformType } from '@crowd/types'
-import { Error400 } from '@crowd/common'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { IS_DEV_ENV, IS_TEST_ENV, GITHUB_CONFIG, TEMPORAL_CONFIG } from '../conf'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -19,11 +20,10 @@ import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
 import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
-import MemberService from './memberService'
-import SegmentService from './segmentService'
 import MemberAffiliationService from './memberAffiliationService'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
+import SegmentService from './segmentService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -502,7 +502,7 @@ export default class ActivityService extends LoggerBase {
 
   async createWithMember(data, fireCrowdWebhooks: boolean = true) {
     const logger = this.options.log
-    const searchSyncService = new SearchSyncService(this.options)
+    const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
     const errorDetails: any = {}
 
