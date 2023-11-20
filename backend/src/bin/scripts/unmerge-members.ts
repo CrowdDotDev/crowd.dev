@@ -333,12 +333,15 @@ if (
               update "activities" 
               set "memberId" = :deletedMemberId 
               where 
-              platform = :platform and username = :username`,
+              platform = :platform 
+              and username = :username
+              and "memberId" = :memberId`,
           {
             replacements: {
               deletedMemberId,
               platform: identityToProcess.platform,
               username: identityToProcess.username,
+              memberId: parameters.memberId,
             },
             type: QueryTypes.UPDATE,
             transaction: tx,
