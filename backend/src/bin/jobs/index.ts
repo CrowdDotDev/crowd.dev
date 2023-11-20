@@ -13,6 +13,7 @@ import refreshSampleData from './refreshSampleData'
 import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 import enrichOrganizations from './organizationEnricher'
+import refreshGroupsioToken from './refreshGroupsioToken'
 import { WEEKLY_EMAILS_CONFIG } from '../../conf'
 
 const EMAILS_ENABLED = WEEKLY_EMAILS_CONFIG.enabled === 'true'
@@ -31,6 +32,7 @@ const jobs: CrowdJob[] = [
   cleanUp,
   checkStuckIntegrationRuns,
   enrichOrganizations,
+  refreshGroupsioToken,
 ]
 
 if (EMAILS_ENABLED) {

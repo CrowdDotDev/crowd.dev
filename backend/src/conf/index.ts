@@ -41,6 +41,10 @@ import {
 
 // TODO-kube
 
+export const ENCRYPTION_SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY
+
+export const ENCRYPTION_INIT_VECTOR = process.env.ENCRYPTION_INIT_VECTOR
+
 export const KUBE_MODE: boolean = process.env.KUBE_MODE !== undefined
 
 export const SERVICE: ServiceType = process.env.SERVICE as ServiceType

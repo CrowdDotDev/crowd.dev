@@ -4,6 +4,7 @@ import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
+import { encryptData } from '../utils/crypto'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -1489,12 +1490,15 @@ export default class IntegrationService {
 
     try {
       this.options.log.info('Creating Groups.io integration!')
+      const encryptedPassword = encryptData(integrationData.password) 
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GROUPSIO,
           settings: {
             email: integrationData.email,
             token: integrationData.token,
+            tokenExpiry: integrationData.tokenExpiry,
+            password: encryptedPassword,
             groups: integrationData.groupNames,
             updateMemberAttributes: true,
           },
@@ -1546,9 +1550,12 @@ export default class IntegrationService {
       // we need to get cookie from the response
 
       const cookie = response.headers['set-cookie'][0].split(';')[0]
+      let cookieExpiryString: string = response.headers['set-cookie'][0].split(';')[3].split('=')[1]
+      const cookieExpiry = moment(cookieExpiryString).format("YYYY-MM-DD HH:mm:ss.sss Z")
 
       return {
         groupsioCookie: cookie,
+        groupsioCookieExpiry: cookieExpiry
       }
     } catch (err) {
       if ('two_factor_required' in response.data) {
