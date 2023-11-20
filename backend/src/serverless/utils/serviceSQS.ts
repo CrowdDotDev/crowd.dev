@@ -15,7 +15,7 @@ const tracer = getServiceTracer()
 const log = getServiceChildLogger('service.sqs')
 
 let sqsClient: SqsClient
-const getClient = (): SqsClient => {
+export const SQS_CLIENT = (): SqsClient => {
   if (sqsClient) return sqsClient
 
   const config = SQS_CONFIG
@@ -33,7 +33,7 @@ let runWorkerEmitter: IntegrationRunWorkerEmitter
 export const getIntegrationRunWorkerEmitter = async (): Promise<IntegrationRunWorkerEmitter> => {
   if (runWorkerEmitter) return runWorkerEmitter
 
-  runWorkerEmitter = new IntegrationRunWorkerEmitter(getClient(), tracer, log)
+  runWorkerEmitter = new IntegrationRunWorkerEmitter(SQS_CLIENT(), tracer, log)
   await runWorkerEmitter.init()
   return runWorkerEmitter
 }
@@ -43,7 +43,7 @@ export const getIntegrationStreamWorkerEmitter =
   async (): Promise<IntegrationStreamWorkerEmitter> => {
     if (streamWorkerEmitter) return streamWorkerEmitter
 
-    streamWorkerEmitter = new IntegrationStreamWorkerEmitter(getClient(), tracer, log)
+    streamWorkerEmitter = new IntegrationStreamWorkerEmitter(SQS_CLIENT(), tracer, log)
     await streamWorkerEmitter.init()
     return streamWorkerEmitter
   }
@@ -52,7 +52,7 @@ let searchSyncWorkerEmitter: SearchSyncWorkerEmitter
 export const getSearchSyncWorkerEmitter = async (): Promise<SearchSyncWorkerEmitter> => {
   if (searchSyncWorkerEmitter) return searchSyncWorkerEmitter
 
-  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(getClient(), tracer, log)
+  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(SQS_CLIENT(), tracer, log)
   await searchSyncWorkerEmitter.init()
   return searchSyncWorkerEmitter
 }
@@ -61,7 +61,7 @@ let integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
 export const getIntegrationSyncWorkerEmitter = async (): Promise<IntegrationSyncWorkerEmitter> => {
   if (integrationSyncWorkerEmitter) return integrationSyncWorkerEmitter
 
-  integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(getClient(), tracer, log)
+  integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(SQS_CLIENT(), tracer, log)
   await integrationSyncWorkerEmitter.init()
   return integrationSyncWorkerEmitter
 }
@@ -70,7 +70,7 @@ let dataSinkWorkerEmitter: DataSinkWorkerEmitter
 export const getDataSinkWorkerEmitter = async (): Promise<DataSinkWorkerEmitter> => {
   if (dataSinkWorkerEmitter) return dataSinkWorkerEmitter
 
-  dataSinkWorkerEmitter = new DataSinkWorkerEmitter(getClient(), tracer, log)
+  dataSinkWorkerEmitter = new DataSinkWorkerEmitter(SQS_CLIENT(), tracer, log)
   await dataSinkWorkerEmitter.init()
   return dataSinkWorkerEmitter
 }

@@ -37,7 +37,7 @@ class AuthService {
 
       const existingUser = await UserRepository.findByEmail(email, options)
 
-      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])([^ \t]{8,})$/
 
       if (!passwordRegex.test(password)) {
         throw new Error400(options.language, 'auth.passwordInvalid')

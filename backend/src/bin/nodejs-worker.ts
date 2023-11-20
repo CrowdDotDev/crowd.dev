@@ -1,7 +1,14 @@
 import { timeout } from '@crowd/common'
 import { Logger, getChildLogger, getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
+import {
+  SqsDeleteMessageRequest,
+  SqsMessage,
+  SqsReceiveMessageRequest,
+  deleteMessage,
+  receiveMessage,
+  sendMessage,
+} from '@crowd/sqs'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
-import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
 import { SQS_CONFIG } from '../conf'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
@@ -9,8 +16,8 @@ import { processNodeMicroserviceMessage } from '../serverless/microservices/node
 import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
-import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
 import { processIntegration, processWebhook } from './worker/integrations'
+import { SQS_CLIENT } from '@/serverless/utils/serviceSQS'
 
 /* eslint-disable no-constant-condition */
 
@@ -26,24 +33,30 @@ process.on('SIGTERM', async () => {
   exiting = true
 })
 
-const receive = (delayed?: boolean): Promise<Message | undefined> => {
-  const params: ReceiveMessageRequest = {
+const receive = async (delayed?: boolean): Promise<SqsMessage | undefined> => {
+  const params: SqsReceiveMessageRequest = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     MessageAttributeNames: !delayed
       ? undefined
       : ['remainingDelaySeconds', 'tenantId', 'targetQueueUrl'],
   }
 
-  return receiveMessage(params)
+  const messages = await receiveMessage(SQS_CLIENT(), params)
+
+  if (messages && messages.length === 1) {
+    return messages[0]
+  }
+
+  return undefined
 }
 
 const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void> => {
-  const params: DeleteMessageRequest = {
+  const params: SqsDeleteMessageRequest = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     ReceiptHandle: receiptHandle,
   }
 
-  return deleteMessage(params)
+  return deleteMessage(SQS_CLIENT(), params)
 }
 
 async function handleDelayedMessages() {
@@ -81,7 +94,7 @@ async function handleDelayedMessages() {
             if (message.MessageAttributes.targetQueueUrl) {
               const targetQueueUrl = message.MessageAttributes.targetQueueUrl.StringValue
               messageLogger.debug({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
-              await sendMessage({
+              await sendMessage(SQS_CLIENT(), {
                 QueueUrl: targetQueueUrl,
                 MessageGroupId: tenantId,
                 MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,
@@ -129,7 +142,7 @@ async function handleMessages() {
   })
   handlerLogger.info('Listening for messages!')
 
-  const processSingleMessage = async (message: Message): Promise<void> => {
+  const processSingleMessage = async (message: SqsMessage): Promise<void> => {
     await tracer.startActiveSpan('ProcessMessage', async (span) => {
       const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
