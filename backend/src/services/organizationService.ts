@@ -291,13 +291,13 @@ export default class OrganizationService extends LoggerBase {
         const createKey = (identity: IOrganizationIdentity) =>
           `${identity.platform}_${identity.name}`
 
-          ;[...weakIdentitiesPrimary, ...weakIdentitiesSecondary].forEach((identity) => {
-            const key = createKey(identity)
+        ;[...weakIdentitiesPrimary, ...weakIdentitiesSecondary].forEach((identity) => {
+          const key = createKey(identity)
 
-            if (!uniqueMap[key]) {
-              uniqueMap[key] = identity
-            }
-          })
+          if (!uniqueMap[key]) {
+            uniqueMap[key] = identity
+          }
+        })
 
         return Object.values(uniqueMap)
       },

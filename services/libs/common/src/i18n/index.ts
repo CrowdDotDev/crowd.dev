@@ -1,4 +1,4 @@
-import _get from 'lodash/get'
+import _get from 'lodash.get'
 import en from './en'
 import ptBR from './pt-BR'
 import es from './es'

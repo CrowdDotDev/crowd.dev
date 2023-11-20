@@ -21,7 +21,7 @@
   "dependencies": {
     "@crowd/logging": "file:../logging",
     "@crowd/types": "file:../types",
-    "lodash": "~4.17.21",
+    "lodash.get": "~4.4.2",
     "psl": "^1.9.0",
     "uuid": "^9.0.0"
   }
