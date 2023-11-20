@@ -207,13 +207,40 @@ export class IntegrationTickProcessor extends LoggerBase {
                   integration.id,
                 )
               if (!existingRun) {
-                logger.info({ integrationId: integration.id }, 'Triggering new integration check!')
-                await emitter.triggerIntegrationRun(
-                  integration.tenantId,
-                  integration.platform,
-                  integration.id,
-                  false,
-                )
+                const CHUNKS = 3 // Define the number of chunks
+                const DELAY_BETWEEN_CHUNKS = 30 * 60 * 1000 // Define the delay between chunks in milliseconds
+                const rand = Math.random() * CHUNKS
+                const chunkIndex = Math.min(Math.floor(rand), CHUNKS - 1)
+                const delay = chunkIndex * DELAY_BETWEEN_CHUNKS
+
+                // Divide integrations into chunks for Discord
+                if (newIntService.type === IntegrationType.DISCORD) {
+                  setTimeout(async () => {
+                    logger.info(
+                      { integrationId: integration.id },
+                      `Triggering new delayed integration check for Discord in ${
+                        delay / 60 / 1000
+                      } minutes!`,
+                    )
+                    await emitter.triggerIntegrationRun(
+                      integration.tenantId,
+                      integration.platform,
+                      integration.id,
+                      false,
+                    )
+                  }, delay)
+                } else {
+                  logger.info(
+                    { integrationId: integration.id },
+                    'Triggering new integration check!',
+                  )
+                  await emitter.triggerIntegrationRun(
+                    integration.tenantId,
+                    integration.platform,
+                    integration.id,
+                    false,
+                  )
+                }
               } else {
                 logger.info({ integrationId: integration.id }, 'Existing run found, skipping!')
               }

@@ -20,7 +20,7 @@ setImmediate(async () => {
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = await getDbConnection(DB_CONFIG(), 3)
+  const dbConnection = await getDbConnection(DB_CONFIG(), 3, 0)
 
   app.use((req, res, next) => {
     // Groups.io doesn't send a content-type header,
