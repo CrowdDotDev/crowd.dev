@@ -453,6 +453,15 @@ export default class ActivityService extends LoggerBase {
           // find existing activity
           const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)
 
+          if (dbActivity && dbActivity?.deletedAt) {
+            // we found an existing activity but it's deleted - nothing to do here
+            this.log.trace(
+              { activityId: dbActivity.id },
+              'Found existing activity but it is deleted, nothing to do here.',
+            )
+            return
+          }
+
           let createActivity = false
 
           if (dbActivity) {
@@ -846,7 +855,9 @@ export default class ActivityService extends LoggerBase {
         }
       })
 
-      await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+      if (memberId) {
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+      }
       if (objectMemberId) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId)
       }

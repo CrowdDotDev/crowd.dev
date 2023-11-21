@@ -11,7 +11,7 @@ import {
   MemberAttributeType,
   SyncMode,
 } from '@crowd/types'
-import { isDomainExcluded } from '@crowd/common'
+import { SERVICE, isDomainExcluded } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -41,6 +41,7 @@ import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import { TEMPORAL_CONFIG } from '@/conf'
 import SearchSyncService from './searchSyncService'
+import { ServiceType } from '@/conf/configTypes'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -206,7 +207,10 @@ export default class MemberService extends LoggerBase {
     syncToOpensearch = true,
   ) {
     const logger = this.options.log
-    const searchSyncService = new SearchSyncService(this.options)
+    const searchSyncService = new SearchSyncService(
+      this.options,
+      SERVICE === ServiceType.NODEJS_WORKER ? SyncMode.ASYNCHRONOUS : undefined,
+    )
 
     const errorDetails: any = {}
 
