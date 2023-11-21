@@ -1,6 +1,6 @@
+import { Error404 } from '@crowd/common'
 import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
 import { MemberAttributeName, PlatformType } from '@crowd/types'
 import TaskRepository from '../taskRepository'

@@ -1,6 +1,6 @@
+import { Error404 } from '@crowd/common'
 import TagRepository from '../tagRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 
 const db = null
 
