@@ -178,7 +178,7 @@ const isNeedsToBeReconnected = computed(
 
 const lastSynced = computed(() => ({
   absolute: moment(props.integration.lastProcessedAt).format('MMM DD, YYYY HH:mm'),
-  relative: `last data received ${moment(props.integration.lastProcessedAt).fromNow()}`,
+  relative: `last data detected and synced ${moment(props.integration.lastProcessedAt).fromNow()}`,
 }));
 
 const loadingDisconnect = ref(false);
