@@ -13,7 +13,7 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community contacts yet"
+        title="No contacts yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
         cta-btn="Connect integrations"
         secondary-btn="Add contacts"
@@ -24,7 +24,7 @@
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community contacts yet"
+        title="No contacts yet"
         description="Please consider that the first contacts may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
