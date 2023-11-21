@@ -1,15 +1,16 @@
 import { updateEmailHistory } from './activities/updateEmailHistory'
 
-import { getNextEmails as eagleeyeGetNextEmails } from './activities/eagleeye-digest/getNextEmails'
-import { sendEmail as eagleeyeSendEmail } from './activities/eagleeye-digest/sendEmail'
-import { updateNextEmailAt as eagleeyeUpdateNextEmailAt } from './activities/eagleeye-digest/updateEmailHistory'
+import { eagleeyeGetNextEmails } from './activities/eagleeye-digest/getNextEmails'
+import { eagleeyeSendEmail } from './activities/eagleeye-digest/sendEmail'
+import { eagleeyeUpdateNextEmailAt } from './activities/eagleeye-digest/updateEmailHistory'
 import {
-  buildEmailContent as eagleeyeBuildEmailContent,
-  fetchFromDatabase as eagleeyeFetchFromDatabase,
-  fetchFromEagleEye as eagleeyeFetchFromEagleEye,
+  eagleeyeBuildEmailContent,
+  eagleeyeFetchFromDatabase,
+  eagleeyeFetchFromEagleEye,
 } from './activities/eagleeye-digest/buildEmail'
 
-import { sendEmail as weeklySendEmail } from './activities/weekly-analytics/sendEmail'
+import { weeklyGetNextEmails, calculateTimes } from './activities/weekly-analytics/getNextEmails'
+import { weeklySendEmail } from './activities/weekly-analytics/sendEmail'
 import {
   getTotalMembersThisWeek,
   getTotalMembersPreviousWeek,
@@ -70,5 +71,7 @@ export {
   getTopActivityTypes,
   getConversations,
   getActiveTenantIntegrations,
+  weeklyGetNextEmails,
+  calculateTimes,
   weeklySendEmail,
 }
