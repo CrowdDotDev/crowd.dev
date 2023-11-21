@@ -1,9 +1,8 @@
 /* eslint-disable no-continue */
 
+import { SERVICE, Error400, isDomainExcluded } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
-import lodash from 'lodash'
-import moment from 'moment-timezone'
-import validator from 'validator'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   FeatureFlag,
   IOrganization,
@@ -11,12 +10,15 @@ import {
   MemberAttributeType,
   SyncMode,
 } from '@crowd/types'
-import { SERVICE, isDomainExcluded } from '@crowd/common'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import lodash from 'lodash'
+import moment from 'moment-timezone'
+import validator from 'validator'
+import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
+import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import {
@@ -25,7 +27,7 @@ import {
   IMemberMergeSuggestionsType,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
-import Error400 from '../errors/Error400'
+import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import telemetryTrack from '../segment/telemetryTrack'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import {
@@ -36,11 +38,8 @@ import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
-import SettingsService from './settingsService'
-import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
-import SegmentRepository from '../database/repositories/segmentRepository'
-import { TEMPORAL_CONFIG } from '@/conf'
 import SearchSyncService from './searchSyncService'
+import SettingsService from './settingsService'
 import { ServiceType } from '@/conf/configTypes'
 
 export default class MemberService extends LoggerBase {

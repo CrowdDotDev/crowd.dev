@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash'
-import { websiteNormalizer } from '@crowd/common'
+import { Error400, websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,
@@ -11,11 +11,16 @@ import {
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import MemberRepository from '../database/repositories/memberRepository'
+import {
+  MergeActionState,
+  MergeActionType,
+  MergeActionsRepository,
+} from '../database/repositories/mergeActionsRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import Error400 from '../errors/Error400'
 import telemetryTrack from '../segment/telemetryTrack'
+import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import {
@@ -24,12 +29,6 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
-import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
-import {
-  MergeActionsRepository,
-  MergeActionType,
-  MergeActionState,
-} from '../database/repositories/mergeActionsRepository'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions

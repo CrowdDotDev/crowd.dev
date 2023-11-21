@@ -1,5 +1,5 @@
+import { Error403 } from '@crowd/common'
 import AuthProfileEditor from '../../services/auth/authProfileEditor'
-import Error403 from '../../errors/Error403'
 
 export default async (req, res) => {
   if (!req.currentUser || !req.currentUser.id) {
