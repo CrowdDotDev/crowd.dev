@@ -1,6 +1,6 @@
+import { Error404 } from '@crowd/common'
 import identifyTenant from '../../segment/identifyTenant'
 import TenantService from '../../services/tenantService'
-import Error404 from '../../errors/Error404'
 
 export default async (req, res) => {
   // This endpoint is unauthenticated on purpose, but public reprots.

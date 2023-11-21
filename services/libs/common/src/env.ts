@@ -18,3 +18,9 @@ export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 export const SERVICE = process.env.SERVICE || 'unknown-service'
 
 export const EDITION: Edition = process.env.CROWD_EDITION as Edition
+
+export function getEnv() {
+  if (IS_PROD_ENV) return 'prod'
+  if (IS_STAGING_ENV) return 'staging'
+  return 'local'
+}

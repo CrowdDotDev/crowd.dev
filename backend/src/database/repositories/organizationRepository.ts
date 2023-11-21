@@ -2,7 +2,7 @@ import lodash, { chunk } from 'lodash'
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { PageData } from '@crowd/common'
+import { Error404, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -11,19 +11,18 @@ import {
   IOrganizationIdentity,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
+  SegmentData,
   SyncStatus,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
 import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 
