@@ -72,7 +72,16 @@ export class AuthService {
   }
 
   static fetchMe() {
-    return authAxios.get('/auth/me').then((response) => response.data);
+    return authAxios.get('/auth/me').then((response) => {
+      const { data } = response;
+      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('userDateTime', `${new Date().getTime()}`);
+      return data;
+    });
+  }
+
+  static fetchMeLocally() {
+    return JSON.parse(localStorage.getItem('user'));
   }
 
   static signout() {
