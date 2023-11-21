@@ -1,5 +1,5 @@
 <template>
-  <div v-click-away="turnOff" class="panel contributions-panel relative h-80">
+  <div v-click-away="turnOff" class="panel contributions-panel relative">
     <div class="pt-4 px-6 flex justify-between text-center">
       <div class="flex align-center">
         <img
@@ -45,20 +45,38 @@
         </el-tooltip>
       </div>
     </div>
-    <div class="pb-4 pl-13 flex justify-between text-center">
+    <div class="pb-4 pl-13 flex">
       <p class="mt-1 text-gray-900 text-xs">
         Total: {{ contributions.length }} contributions
       </p>
     </div>
-    <div class="background-dotted rounded-lg h-64">
+    <div class="background-dotted rounded-lg h-64 relative">
       <v-network-graph
         ref="graph"
+        v-model:selected-nodes="selectedNodes"
         v-model:layouts="layouts"
         :nodes="nodes"
-        :edges="edges"
+        :edges="filteredEdges"
         :configs="configs"
         :event-handlers="eventHandlers"
       />
+      <!-- Loading spinner -->
+      <div
+        v-if="isLoading"
+        class="absolute top-0 left-0 w-full h-full background-dotted rounded-b-lg transition-opacity flex items-center justify-center"
+        :class="{
+          'opacity-0': !isLoading,
+          'opacity-1': isLoading,
+        }"
+      >
+        <div
+          class="h-16 !relative !min-h-5 flex justify-center items-center"
+        >
+          <div class="animate-spin w-fit">
+            <div class="custom-spinner" />
+          </div>
+        </div>
+      </div>
       <!-- Tooltip -->
       <div
         ref="tooltip"
@@ -184,6 +202,14 @@ const tooltipPos = ref({ left: '0px', top: '0px' });
 const edgeToolTipOpacity = ref(0);
 const edgeToolTipPos = ref({ left: '0px', top: '0px' });
 
+// Loading until initial animation is finished
+const isLoading = ref(true);
+
+// Selected nodes on the graph
+const selectedNodes = ref([]);
+// Edges from selected nodes
+const selectedNodesEdges = ref({});
+
 function listsOverlap(list1, list2, percentage) {
   let overlapCount = 0;
   let totalCount = 0;
@@ -236,26 +262,47 @@ function edgeSize(edge) {
 const configs = reactive(
   defineConfigs({
     view: {
+      autoPanAndZoomOnLoad: 'center-content',
       layoutHandler: new ForceLayout({
         positionFixedByDrag: false,
         positionFixedByClickWithAltKey: true,
+        noAutoRestartSimulation: true,
         createSimulation: (d3, nodes, edges) => {
+          // Store the edges
+          const {
+            width, height,
+          } = graph.value.getSizes();
+
           // This creates the simulation for the graph using D3
           // you can learn more here: https://github.com/d3/d3-force#forces
           const forceLink = d3.forceLink(edges).id((d) => d.id);
-          return d3
+          const simulation = d3
             .forceSimulation(nodes)
-            .force('edge', forceLink.distance(140))
-            .force('charge', d3.forceManyBody().strength(20))
+            .force('edge', forceLink.distance(200))
+            .force('charge', d3.forceManyBody().strength(-30))
             .force('collide', d3.forceCollide(40).strength(0.1))
-            .force('center', d3.forceCenter().strength(0.1))
+            .force('center', d3.forceCenter(width / 2, height / 2).strength(0.1))
+            .alpha(0.02)
+            .alphaDecay(0.03)
             .alphaMin(0.001);
+
+          // When initial simulation ends, set graph to center and zoom in
+          simulation.on('end', () => {
+            if (isLoading.value) {
+              graph.value.panTo({ x: 0, y: 0 });
+              graph.value.zoomIn();
+              isLoading.value = false;
+            }
+          });
+
+          return simulation;
         },
       }),
     },
     node: {
+      selectable: true,
       label: {
-        visible: true,
+        visible: false,
       },
       normal: {
         radius: (node) => node.size,
@@ -268,6 +315,23 @@ const configs = reactive(
         color: nodeColor,
         strokeWidth: 3,
         strokeColor: '#FFFFFF',
+      },
+      selected: {
+        type: 'circle',
+        radius: (node) => node.size,
+        color: '#E94F2E',
+        strokeWidth: 3,
+        strokeColor: '#FFFFFF',
+      },
+      focusring: {
+        color: '#F29582',
+        width: 2,
+        padding: 1,
+      },
+    },
+    edges: {
+      chosen: {
+        onclick: false,
       },
     },
     edge: {
@@ -389,6 +453,20 @@ const edges = computed(() => {
   return edgeObject;
 });
 
+// For performance reasons, show all edges by default if contributions are under 100
+// Only show edges from selected nodes if contributions are over 100
+const filteredEdges = computed(() => {
+  if (props.contributions.length < 100) {
+    return edges.value;
+  }
+
+  if (Object.keys(selectedNodesEdges.value).length) {
+    return selectedNodesEdges.value;
+  }
+
+  return {};
+});
+
 // This code uses computed properties to calculate the center position
 // of a specific edge on a graph
 const edgeCenterPos = computed(() => {
@@ -423,12 +501,12 @@ const isDisabled = computed(
 // of the target node on the graph.
 const targetNodePos = computed(() => {
   if (!targetNodeId.value) {
-    return { x: 0, y: 0 };
+    return {};
   }
 
   const nodePos = layouts.value.nodes[targetNodeId.value];
 
-  return nodePos || { x: 0, y: 0 };
+  return nodePos || {};
 });
 
 // The targetNodeRadius computed property is used to calculate the radius
@@ -445,22 +523,31 @@ function openGithubRepo() {
 
 // Update `tooltipPos`
 watch(
-  () => [targetNodePos.value, tooltipOpacity.value],
-  () => {
-    if (!graph.value || !tooltip.value) return;
+  () => [targetNodePos.value, targetNodeId.value],
+  ([newTargetNodePos, newTargetNodeId], [, oldTargetNodeId]) => {
+    if (!graph.value || !tooltip.value || !(Object.keys(targetNodePos.value).length)) {
+      return;
+    }
 
     // translate coordinates: SVG -> DOM
     const domPoint = graph.value.translateFromSvgToDomCoordinates(
-      targetNodePos.value,
+      newTargetNodePos,
     );
 
-    tooltipPos.value = {
-      left: `${
-        domPoint.x - tooltip.value.offsetWidth / 2
-        // left +
-      }px`,
-      top: `${domPoint.y - targetNodeRadius.value - 320}px`,
-    };
+    // Timeout due to Viewbox adjustment on click
+    setTimeout(() => {
+      if (newTargetNodeId !== oldTargetNodeId) {
+        tooltipOpacity.value = 1; // show tooltip
+      }
+
+      tooltipPos.value = {
+        left: `${
+          domPoint.x - tooltip.value.offsetWidth / 2
+          // left +
+        }px`,
+        top: `${domPoint.y - targetNodeRadius.value - tooltip.value.offsetHeight - 20}px`,
+      };
+    }, 0);
   },
   { deep: true },
 );
@@ -497,14 +584,46 @@ function turnOff() {
 
 const eventHandlers = {
   'node:click': ({ node }) => {
+    // Store edges from selected node
+    selectedNodesEdges.value = Object
+      .entries(edges.value)
+      .reduce((newObj, [key, value]) => {
+        if (key.startsWith(node)) {
+          return { ...newObj, [key]: value };
+        }
+
+        return newObj;
+      }, {});
+
+    const clickedNode = Object
+      .entries(layouts.value.nodes)
+      .find(([key]) => key === node)?.[1];
+
+    const {
+      bottom, left, right, top,
+    } = graph.value.getViewBox();
+
+    const width = right - left;
+    const height = bottom - top;
+
+    // Set SVG viewbox so that clickedNode stays centered
+    graph.value.setViewBox({
+      left: clickedNode.x - width / 2,
+      right: clickedNode.x + width / 2,
+      top: clickedNode.y - height / 2,
+      bottom: clickedNode.y + height / 2,
+    });
+
     if (isDisabled.value) {
       targetEdgeId.value = '';
       edgeToolTipOpacity.value = 0; // hide
       hoveredEdge.value = null;
     }
-    targetNodeId.value = node;
-    tooltipOpacity.value = 1; // show
-    hoveredNode.value = nodes.value[node].name;
+
+    setTimeout(() => {
+      targetNodeId.value = node;
+      hoveredNode.value = nodes.value[node].name;
+    }, 0);
   },
   'view:click': () => {
     targetNodeId.value = '';

@@ -1,21 +1,19 @@
 import express from 'express'
-import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
+import { MemberSyncService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
-import { OPENSEARCH_CONFIG, SERVICE_CONFIG } from 'conf'
+import { SERVICE_CONFIG } from 'conf'
 
 const router = express.Router()
-const opensearchConfig = OPENSEARCH_CONFIG()
 const serviceConfig = SERVICE_CONFIG()
 
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -33,11 +31,10 @@ router.post(
 router.post(
   '/sync/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -55,11 +52,10 @@ router.post(
 router.post(
   '/sync/organization/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -77,11 +73,10 @@ router.post(
 router.post(
   '/cleanup/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -99,11 +94,10 @@ router.post(
 router.post(
   '/cleanup/member',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
