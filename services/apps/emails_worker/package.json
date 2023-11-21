@@ -1,0 +1,46 @@
+{
+  "name": "@crowd/emails-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug": "SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug:local",
+    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug",
+    "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
+    "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
+    "format-check": "./node_modules/.bin/prettier --check .",
+    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@crowd/archetype-standard": "file:../../archetypes/standard",
+    "@crowd/archetype-worker": "file:../../archetypes/worker",
+    "@crowd/common": "file:../../libs/common",
+    "@crowd/cubejs": "file:../../libs/cubejs",
+    "@crowd/feature-flags": "file:../../libs/feature-flags",
+    "@sendgrid/mail": "~7.7.0",
+    "@temporalio/activity": "~1.8.6",
+    "@temporalio/client": "~1.8.6",
+    "@temporalio/workflow": "~1.8.6",
+    "axios": "~1.5.1",
+    "html-to-text": "~9.0.5",
+    "lodash": "~4.17.21",
+    "moment": "~2.29.4",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.2.2",
+    "uuid": "~9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.2",
+    "@types/uuid": "~9.0.6",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.3"
+  }
+}

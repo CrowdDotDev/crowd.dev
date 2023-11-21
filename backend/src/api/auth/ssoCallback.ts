@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken'
 import jwksClient from 'jwks-rsa'
+import { Error401 } from '@crowd/common'
 import AuthService from '../../services/auth/authService'
 import { AUTH0_CONFIG } from '../../conf'
-import Error401 from '../../errors/Error401'
 
 const jwks = jwksClient({
   jwksUri: AUTH0_CONFIG.jwks,

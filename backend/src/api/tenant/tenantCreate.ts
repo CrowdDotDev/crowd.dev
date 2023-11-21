@@ -1,4 +1,4 @@
-import Error403 from '../../errors/Error403'
+import { Error403 } from '@crowd/common'
 import identifyTenant from '../../segment/identifyTenant'
 import telemetryTrack from '../../segment/telemetryTrack'
 import track from '../../segment/track'

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Error400 from '../../../errors/Error400'
+import { Error400 } from '@crowd/common'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 import { STACKEXCHANGE_CONFIG } from '../../../conf'
