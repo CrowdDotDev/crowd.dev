@@ -20,8 +20,7 @@ const config = SEARCH_SYNC_API_CONFIG()
 setImmediate(async () => {
   const app = express()
   const redis = await getRedisClient(REDIS_CONFIG(), true)
-  const opensearch = getOpensearchClient(OPENSEARCH_CONFIG())
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const opensearch = new OpenSearchService(log, OPENSEARCH_CONFIG())
   const dbConnection = await getDbConnection(DB_CONFIG(), 3)
 
   app.use(cors({ origin: true }))
@@ -33,7 +32,7 @@ setImmediate(async () => {
   app.use(opensearchMiddleware(opensearch))
 
   // init opensearch service
-  const initService = new InitService(openSearchService, log)
+  const initService = new InitService(opensearch, log)
   await initService.initialize()
 
   // add routes
