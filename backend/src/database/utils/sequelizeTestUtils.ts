@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
+import { SegmentStatus } from '@crowd/types'
 import { getTemporalClient } from '@crowd/temporal'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
@@ -13,7 +14,6 @@ import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
 import { API_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
 import SettingsRepository from '../repositories/settingsRepository'
-import { SegmentStatus } from '../../types/segmentTypes'
 
 export default class SequelizeTestUtils {
   static async wipeDatabase(db) {

@@ -1,7 +1,7 @@
 import { RedisCache } from '@crowd/redis'
+import { Error403 } from '@crowd/common'
 import { FeatureFlagRedisKey } from '@crowd/types'
 import AutomationRepository from '../../database/repositories/automationRepository'
-import Error403 from '../../errors/Error403'
 import SegmentService from '../../services/segmentService'
 
 export default async (req, res) => {

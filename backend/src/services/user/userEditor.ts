@@ -1,6 +1,6 @@
 import assert from 'assert'
+import { Error400 } from '@crowd/common'
 import Roles from '../../security/roles'
-import Error400 from '../../errors/Error400'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import UserRepository from '../../database/repositories/userRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'

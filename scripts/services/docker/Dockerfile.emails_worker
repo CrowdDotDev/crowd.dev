@@ -1,0 +1,16 @@
+FROM node:16-bookworm
+
+WORKDIR /usr/crowd/app
+
+COPY ./services/scripts ./services/scripts
+COPY ./services/archetypes/ ./services/archetypes/
+COPY ./services/libs/ ./services/libs/
+RUN cd services/scripts && ./install_lib_packages.sh
+
+COPY ./services/apps/emails_worker/package.json ./services/apps/emails_worker/package-lock.json ./services/apps/emails_worker/tsconfig.json  ./services/apps/emails_worker/
+# COPY ./services/apps/emails_worker/config ./services/apps/emails_worker/config
+COPY ./services/apps/emails_worker/src ./services/apps/emails_worker/src
+
+RUN cd services/apps/emails_worker && npm ci
+
+RUN npm cache clean --force

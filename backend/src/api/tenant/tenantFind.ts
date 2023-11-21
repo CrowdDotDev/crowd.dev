@@ -1,8 +1,8 @@
+import { Error404 } from '@crowd/common'
+import Permissions from '../../security/permissions'
 import identifyTenant from '../../segment/identifyTenant'
 import TenantService from '../../services/tenantService'
-import Error404 from '../../errors/Error404'
 import PermissionChecker from '../../services/user/permissionChecker'
-import Permissions from '../../security/permissions'
 
 export default async (req, res) => {
   req.currentTenant = { id: req.params.id }

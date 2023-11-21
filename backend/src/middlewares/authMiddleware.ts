@@ -1,4 +1,4 @@
-import Error401 from '../errors/Error401'
+import { Error401 } from '@crowd/common'
 import AuthService from '../services/auth/authService'
 
 /**

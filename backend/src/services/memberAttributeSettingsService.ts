@@ -2,6 +2,7 @@
 import moment from 'moment'
 import { Transaction } from 'sequelize/types'
 import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
+import { Error400 } from '@crowd/common'
 import { AttributeData } from '../database/attributes/attribute'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -11,7 +12,6 @@ import {
   MemberAttributeSettingsCriteria,
   MemberAttributeSettingsCriteriaResult,
 } from '../database/repositories/types/memberAttributeSettingsTypes'
-import Error400 from '../errors/Error400'
 import camelCaseNames from '../utils/camelCaseNames'
 import { IServiceOptions } from './IServiceOptions'
 
