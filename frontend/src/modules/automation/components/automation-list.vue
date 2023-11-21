@@ -43,8 +43,9 @@
 
               class="popover-item h-auto mb-1 py-2 px-2.5"
               :class="{
-                'hover:bg-white !cursor-default': !automationType.canCreate(store),
+                'hover:bg-white': !automationType.canCreate(store),
                 'opacity-50': automationType.disabled && automationType.disabled(store),
+                'cursor-pointer hover:bg-gray-50': !!automationType.canCreate(store),
               }"
               @click="createAutomation(key)"
             >
