@@ -19,22 +19,8 @@ export default {
     try {
       const token = AuthToken.get();
       if (token) {
-        const userDate = localStorage.getItem('userDateTime');
-        if (userDate) {
-          const dateDiff = new Date().getTime() - +userDate;
-          if (dateDiff > (7 * 24 * 60 * 60 * 1000)) {
-            localStorage.removeItem('user');
-            localStorage.removeItem('userDateTime');
-          }
-        }
-        const currentUserLocally = AuthService.fetchMeLocally();
-        connectSocket(token);
-        if (currentUserLocally) {
-          commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
-
-          return currentUserLocally;
-        }
         const currentUser = await AuthService.fetchMe();
+        connectSocket(token);
         commit('AUTH_INIT_SUCCESS', { currentUser });
         return currentUser;
       }
@@ -45,7 +31,6 @@ export default {
     } catch (error) {
       console.error(error);
       disconnectSocket();
-      console.log(error);
       commit('AUTH_INIT_ERROR');
       dispatch('doSignout');
       return null;
@@ -164,7 +149,6 @@ export default {
     commit('AUTH_SUCCESS', {
       currentUser: null,
     });
-    localStorage.removeItem('user');
     router.push('/auth/signin');
   },
 
