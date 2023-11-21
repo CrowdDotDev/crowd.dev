@@ -161,6 +161,14 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     await this.sendDoneSignal(orgs)
     return orgs
   }
+  
+  private async handleMergeSuggestions(org1: IOrganization, org2: IOrganization) {
+    await OrganizationRepository.addToMerge(
+      [{ organizations: [org1.id, org2.id], similarity: null }],
+      this.options
+    )
+    delete org1.website
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async update(orgs: IOrganization[]): Promise<IOrganization[]> {
@@ -168,8 +176,6 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
     try {
       const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
-
-      let unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -186,44 +192,33 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
         delete org.identities
 
-        // Check for an organization with the same website exists
-        let existingOrg
-        let orgService
-
+        // check for organization with same website and add them to merge suggestions
         if (org.website) {
-          existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
-          orgService = new OrganizationService({ ...this.options, transaction })
-        }
-
-        if (existingOrg && existingOrg.id !== org.id) {
-          await orgService.merge(existingOrg.id, org.id)
-          unmergedOrgs.push({ ...org, id: existingOrg.id })
-        } else {
-          unmergedOrgs.push(org)
+          const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          if (existingOrg && existingOrg.id !== org.id) {
+            await this.handleMergeSuggestions(org, existingOrg)
+          }
         }
       }
 
-      // Check if two or more orgs in the umergedOrgs list have same website
-      const duplicateOrgs = []
-      const uniqueWebsites = new Set()
+      // handle if two orgs in the orgs array have same website
+      const websiteMap = new Map()
 
-      for (const org of unmergedOrgs) {
-        if (uniqueWebsites.has(org.website)) {
-          duplicateOrgs.push(org)
+      for (const org of orgs) {
+        if (org.website && websiteMap.has(org.website)) {
+          const existingOrg = websiteMap.get(org.website)
+          await this.handleMergeSuggestions(org, existingOrg)
         } else {
-          uniqueWebsites.add(org.website)
+          websiteMap.set(org.website, org)
         }
       }
 
-      // Remove duplicate organizations from unmergedOrgs
-      unmergedOrgs = unmergedOrgs.filter((org) => !duplicateOrgs.includes(org))
-
-      this.log.info('Duplicate organizations found in enriched list:', duplicateOrgs)
+      orgs = [...websiteMap.values()]
 
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
       const records = await OrganizationRepository.bulkUpdate(
-        unmergedOrgs,
+        orgs,
         [...this.fields],
         { ...this.options, transaction },
         true,
