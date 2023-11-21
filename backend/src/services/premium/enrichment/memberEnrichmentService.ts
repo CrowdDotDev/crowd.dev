@@ -286,16 +286,24 @@ export default class MemberEnrichmentService extends LoggerBase {
             const existingMember = await memberService.memberExists(username, platform)
 
             if (existingMember) {
-              await memberService.merge(memberId, existingMember.id, {
-                doSync: false,
-                mode: SyncMode.ASYNCHRONOUS,
-              })
-
-              // we also need to trigger remove existing member from opensearch, because the transaction isn't commited yet while merging
-              await searchSyncService.triggerRemoveMember(
-                this.options.currentTenant.id,
-                existingMember.id,
+              // add the member to merge suggestions
+              await MemberRepository.addToMerge(
+                [{ similarity: 0.9, members: [memberId, existingMember.id] }],
+                options,
               )
+
+              if (Array.isArray(normalized.username[platform])) {
+                // Filter out the identity that belongs to another member from the normalized payload
+                normalized.username[platform] = normalized.username[platform].filter(
+                  (u) => u !== username,
+                )
+              } else if (typeof normalized.username[platform] === 'string') {
+                delete normalized.username[platform]
+              } else {
+                throw new Error(
+                  `Unsupported data type for normalized.username[platform] "${normalized.username[platform]}".`,
+                )
+              }
             }
           }
         }

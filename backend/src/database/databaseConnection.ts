@@ -8,13 +8,14 @@ let cached
 export async function databaseInit(
   queryTimeoutMilliseconds: number = 30000,
   forceNewInstance: boolean = false,
+  databaseHostnameOverride: string = null,
 ) {
   if (forceNewInstance) {
-    return models(queryTimeoutMilliseconds)
+    return models(queryTimeoutMilliseconds, databaseHostnameOverride)
   }
 
   if (!cached) {
-    cached = models(queryTimeoutMilliseconds)
+    cached = models(queryTimeoutMilliseconds, databaseHostnameOverride)
   }
 
   return cached
