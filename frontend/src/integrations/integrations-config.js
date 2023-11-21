@@ -16,6 +16,11 @@ import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
 import groupsio from './groupsio';
+import salesforce from './salesforce';
+import segment from './segment';
+import census from './census';
+import snowflake from './snowflake';
+import bigquery from './bigquery';
 
 class IntegrationsConfig {
   get integrations() {
@@ -38,6 +43,11 @@ class IntegrationsConfig {
       hubspot,
       // make,
       facebook,
+      salesforce,
+      segment,
+      census,
+      snowflake,
+      bigquery,
     };
   }
 
