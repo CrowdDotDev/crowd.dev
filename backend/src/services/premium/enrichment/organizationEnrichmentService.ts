@@ -161,11 +161,11 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     await this.sendDoneSignal(orgs)
     return orgs
   }
-  
-  private async handleMergeSuggestions(org1: IOrganization, org2: IOrganization) {
+
+  private async suggestOrganizationsForMerge(org1: IOrganization, org2: IOrganization) {
     await OrganizationRepository.addToMerge(
       [{ organizations: [org1.id, org2.id], similarity: null }],
-      this.options
+      this.options,
     )
     delete org1.website
   }
@@ -196,18 +196,18 @@ export default class OrganizationEnrichmentService extends LoggerBase {
         if (org.website) {
           const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
           if (existingOrg && existingOrg.id !== org.id) {
-            await this.handleMergeSuggestions(org, existingOrg)
+            await this.suggestOrganizationsForMerge(org, existingOrg)
           }
         }
       }
 
-      // handle if two orgs in the orgs array have same website
+      // if two orgs in the orgs array have same website, then add them to merge suggestions
       const websiteMap = new Map()
 
       for (const org of orgs) {
         if (org.website && websiteMap.has(org.website)) {
           const existingOrg = websiteMap.get(org.website)
-          await this.handleMergeSuggestions(org, existingOrg)
+          await this.suggestOrganizationsForMerge(org, existingOrg)
         } else {
           websiteMap.set(org.website, org)
         }
