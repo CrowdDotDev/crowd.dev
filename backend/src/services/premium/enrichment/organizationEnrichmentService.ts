@@ -9,15 +9,16 @@ import {
   IOrganization,
   IOrganizationCache,
   PlatformType,
+  SyncMode,
 } from '@crowd/types'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
 import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import OrganizationService from '@/services/organizationService'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
@@ -57,7 +58,22 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const PDLClient = new PDLJS({ apiKey: this.apiKey })
     let data: null | IEnrichmentResponse
     try {
-      data = await PDLClient.company.enrichment({ name, website, locality })
+      const payload: Partial<EnrichmentParams> = {}
+
+      if (name) {
+        payload.name = name
+      }
+
+      if (website) {
+        payload.website = website
+      }
+
+      data = await PDLClient.company.enrichment(payload as EnrichmentParams)
+
+      if (data.website === 'undefined.es') {
+        return null
+      }
+
       data.name = name
     } catch (error) {
       this.options.log.error({ name, website, locality }, 'PDL Data Unavalable', error)
@@ -104,7 +120,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
           identityPlatforms.includes(p),
         )[0]
 
-        if (platformToUseForEnrichment) {
+        if (platformToUseForEnrichment || instance.website) {
           const identityForEnrichment = instance.identities.find(
             (i) => i.platform === platformToUseForEnrichment,
           )
@@ -112,11 +128,14 @@ export default class OrganizationEnrichmentService extends LoggerBase {
           if (verbose) {
             count += 1
             this.log.info(
-              `(${count}/${this.maxOrganizationsLimit}). Enriching ${identityForEnrichment.name}`,
+              `(${count}/${this.maxOrganizationsLimit}). Enriching ${instance.displayName}`,
             )
             this.log.debug(instance)
           }
-          const data = await this.getEnrichment({ ...instance, name: identityForEnrichment.name })
+          const data = await this.getEnrichment({
+            website: instance.website,
+            name: identityForEnrichment?.name,
+          })
           if (data) {
             const org = this.convertEnrichedDataToOrg(data, instance)
             enrichedOrganizations.push({
@@ -125,7 +144,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
               tenantId: this.tenantId,
               identities: instance.identities,
             })
-            enrichedCacheOrganizations.push({ ...org, name: identityForEnrichment.name })
+            enrichedCacheOrganizations.push({ ...org, name: identityForEnrichment?.name })
           } else {
             const lastEnrichedAt = new Date()
             enrichedOrganizations.push({
@@ -148,7 +167,8 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
+
       let unmergedOrgs: IOrganization[] = []
 
       // check strong weak identities and move them if needed
@@ -177,6 +197,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
         if (existingOrg && existingOrg.id !== org.id) {
           await orgService.merge(existingOrg.id, org.id)
+          unmergedOrgs.push({ ...org, id: existingOrg.id })
         } else {
           unmergedOrgs.push(org)
         }
@@ -209,8 +230,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
       )
 
       for (const org of records) {
-        // trigger open search sync
-        await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, org.id)
+        await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
       }
 
       await SequelizeRepository.commitTransaction(transaction)

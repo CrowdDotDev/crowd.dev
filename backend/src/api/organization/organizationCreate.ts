@@ -21,8 +21,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationCreate)
 
-  const enrichP = req.body?.shouldEnrich || false
-  const payload = await new OrganizationService(req).createOrUpdate(req.body, enrichP)
+  const payload = await new OrganizationService(req).createOrUpdate(req.body)
 
   track('Organization Manually Created', { ...payload }, { ...req })
 

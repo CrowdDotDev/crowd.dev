@@ -8,6 +8,7 @@ export interface IStreamData {
   integrationState: IntegrationState
   integrationIdentifier: string | null
   integrationToken: string | null
+  integrationRefreshToken: string | null
   runState: IntegrationRunState | null
   webhookId: string | null
   runId: string | null

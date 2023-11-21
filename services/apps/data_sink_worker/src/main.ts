@@ -1,7 +1,12 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import {
+  NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
+  DataSinkWorkerEmitter,
+  getSqsClient,
+} from '@crowd/sqs'
 import {
   DB_CONFIG,
   SENTIMENT_CONFIG,
@@ -15,20 +20,24 @@ import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getRedisClient } from '@crowd/redis'
 import { processOldResultsJob } from './jobs/processOldResults'
 import { getUnleashClient } from '@crowd/feature-flags'
-import { getTemporalClient } from '@crowd/temporal'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 3
-const PROCESSING_INTERVAL_MINUTES = 5
+const MAX_CONCURRENT_PROCESSING = 5
+const PROCESSING_INTERVAL_MINUTES = 4
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
 
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
 
-  const temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  let temporal: TemporalClient | undefined
+  // temp for production
+  if (TEMPORAL_CONFIG().serverUrl) {
+    temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  }
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
@@ -41,13 +50,17 @@ setImmediate(async () => {
   }
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
+
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
+
+  const dataWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
 
   const queue = new WorkerQueueReceiver(
     sqsClient,
     dbConnection,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
+    dataWorkerEmitter,
     redisClient,
     unleash,
     temporal,
@@ -59,17 +72,21 @@ setImmediate(async () => {
   try {
     await nodejsWorkerEmitter.init()
     await searchSyncWorkerEmitter.init()
+    await dataWorkerEmitter.init()
 
     let processing = false
     setInterval(async () => {
       try {
+        log.info('Checking for old results to process...')
         if (!processing) {
           processing = true
+          log.info('Processing old results...')
           await processOldResultsJob(
             dbConnection,
             redisClient,
             nodejsWorkerEmitter,
             searchSyncWorkerEmitter,
+            dataWorkerEmitter,
             unleash,
             temporal,
             log,

@@ -9,6 +9,7 @@ import { errorMiddleware } from './middleware/error'
 import { sqsMiddleware } from './middleware/sqs'
 import { installGithubRoutes } from './routes/github'
 import { installGroupsIoRoutes } from './routes/groupsio'
+import { installDiscourseRoutes } from './routes/discourse'
 import cors from 'cors'
 
 const log = getServiceLogger()
@@ -19,7 +20,7 @@ setImmediate(async () => {
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = await getDbConnection(DB_CONFIG(), 3)
+  const dbConnection = await getDbConnection(DB_CONFIG(), 3, 0)
 
   app.use((req, res, next) => {
     // Groups.io doesn't send a content-type header,
@@ -41,6 +42,7 @@ setImmediate(async () => {
   // add routes
   installGithubRoutes(app)
   installGroupsIoRoutes(app)
+  installDiscourseRoutes(app)
 
   app.use(errorMiddleware())
 

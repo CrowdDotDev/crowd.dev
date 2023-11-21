@@ -1,8 +1,7 @@
-import AWS, { SQS } from 'aws-sdk'
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
-import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../conf'
+import AWS, { SQS } from 'aws-sdk'
+import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG } from '../conf'
 
-let sqsInstance
 let s3Instance
 let lambdaInstance
 let notLocalLambdaInstance
@@ -11,19 +10,6 @@ let comprehendInstance
 
 // TODO-kube
 if (KUBE_MODE) {
-  const awsSqsConfig = {
-    accessKeyId: SQS_CONFIG.aws.accessKeyId,
-    secretAccessKey: SQS_CONFIG.aws.secretAccessKey,
-    region: SQS_CONFIG.aws.region,
-  }
-
-  sqsInstance = IS_DEV_ENV
-    ? new AWS.SQS({
-        endpoint: `http://${SQS_CONFIG.host}:${SQS_CONFIG.port}`,
-        ...awsSqsConfig,
-      })
-    : new AWS.SQS(awsSqsConfig)
-
   if (S3_CONFIG.aws) {
     const awsS3Config = {
       accessKeyId: S3_CONFIG.aws.accessKeyId,
@@ -56,13 +42,6 @@ if (KUBE_MODE) {
       region: 'eu-central-1',
     })
   }
-
-  sqsInstance =
-    process.env.NODE_ENV === 'development'
-      ? new AWS.SQS({
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-        })
-      : new AWS.SQS()
 
   s3Instance =
     process.env.NODE_ENV === 'development'
@@ -185,7 +164,6 @@ export const getCurrentQueueSize = async (sqs: SQS, queue: string): Promise<numb
   return null
 }
 
-export const sqs: SQS = sqsInstance
 export const s3 = s3Instance
 export const lambda = lambdaInstance
 export const notLocalLambda = notLocalLambdaInstance

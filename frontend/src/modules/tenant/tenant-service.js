@@ -73,6 +73,20 @@ export class TenantService {
     return response.data;
   }
 
+  static async viewOrganizations() {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(`/tenant/${tenantId}/viewOrganizations`);
+
+    return response.data;
+  }
+
+  static async viewContacts() {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(`/tenant/${tenantId}/viewContacts`);
+
+    return response.data;
+  }
+
   static async acceptInvitation(
     token,
     forceAcceptOtherEmail = false,
@@ -102,6 +116,11 @@ export class TenantService {
 
   static async find(id) {
     const response = await authAxios.get(`/tenant/${id}`);
+    return response.data;
+  }
+
+  static async findName(id) {
+    const response = await authAxios.get(`/tenant/${id}/name`);
     return response.data;
   }
 

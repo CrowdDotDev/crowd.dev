@@ -93,8 +93,8 @@ export class DataRepository extends RepositoryBase<DataRepository> {
 
       // load members and object members
       let memberIds = results.filter((r) => r.memberId).map((r) => r.memberId)
-      memberIds = memberIds.concat(
-        results.filter((r) => r.objectMemberId).map((r) => r.objectMemberId),
+      memberIds = distinct(
+        memberIds.concat(results.filter((r) => r.objectMemberId).map((r) => r.objectMemberId)),
       )
       if (memberIds.length > 0) {
         promises.push(
@@ -184,7 +184,8 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         m."manuallyCreated",
         m."createdAt",
         m."tenantId",
-        m."createdById"
+        m."createdById",
+        m.score
     from members m
     where m.id in ($(memberIds:csv))
       and m."deletedAt" is null;

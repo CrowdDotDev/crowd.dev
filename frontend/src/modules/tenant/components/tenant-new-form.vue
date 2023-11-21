@@ -80,7 +80,6 @@ const onBtnClick = () => {
     .then((tenant) => TenantService.update(tenant.id, {
       onboardedAt: new Date(),
     })
-      .then(() => TenantService.populateSampleData(tenant.id))
       .then(() => {
         // Close add workspace modal
         emit('update:modelValue', false);

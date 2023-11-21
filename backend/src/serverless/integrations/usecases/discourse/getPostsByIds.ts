@@ -4,7 +4,7 @@ import { RateLimitError } from '@crowd/types'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
 import { DiscoursePostsByIdsResponse, DiscoursePostsByIdsInput } from '../../types/discourseTypes'
 
-const serializeArrayToQueryString = (params: Object) =>
+const serializeObjectToQueryString = (params: Object) =>
   Object.entries(params)
     .map(([key, value]) => {
       if (Array.isArray(value)) {
@@ -33,7 +33,7 @@ export const getDiscoursePostsByIds = async (
     post_ids: input.post_ids,
   }
 
-  const queryString = serializeArrayToQueryString(queryParameters)
+  const queryString = serializeObjectToQueryString(queryParameters)
 
   const config: AxiosRequestConfig<any> = {
     method: 'get',

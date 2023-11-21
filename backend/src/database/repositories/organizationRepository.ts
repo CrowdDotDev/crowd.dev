@@ -25,6 +25,7 @@ import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
+import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 
 const { Op } = Sequelize
 
@@ -75,7 +76,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                         group by a."organizationId"
                         having count(id) > 0),
      identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
@@ -158,7 +158,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                           and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
                         group by a."organizationId"
                         having count(id) > 0),
@@ -343,7 +342,8 @@ class OrganizationRepository {
           const existingOrg = existingOrgs.find((o) => o.id === org.id)
           if (existingOrg && existingOrg.tags) {
             // Merge existing and new tags without duplicates
-            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+            const incomingTags = org.tags || []
+            org.tags = lodash.uniq([...existingOrg.tags, ...incomingTags])
           }
           return org
         })
@@ -1525,23 +1525,6 @@ class OrganizationRepository {
               })
             ).body?.hits?.hits || []
 
-          /*
-          const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
-            (acc, organizationToMerge) => {
-              if (!acc.minScore || organizationToMerge._score < acc.minScore) {
-                acc.minScore = organizationToMerge._score
-              }
-
-              if (!acc.maxScore || organizationToMerge._score > acc.maxScore) {
-                acc.maxScore = organizationToMerge._score
-              }
-
-              return acc
-            },
-            { maxScore: null, minScore: null },
-          )
-          */
-
           for (const organizationToMerge of organizationsToMerge) {
             yieldChunk.push({
               similarity: calculateSimilarity(organization, organizationToMerge),
@@ -1585,9 +1568,17 @@ class OrganizationRepository {
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
         JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
+        LEFT JOIN "mergeActions" ma
+          ON ma.type = :mergeActionType
+          AND ma."tenantId" = :tenantId
+          AND (
+            (ma."primaryId" = org.id AND ma."secondaryId" = otm."toMergeId")
+            OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
+          )
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
           AND to_merge_segments."segmentId" IN (:segmentIds)
+          AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
       ),
       
       count_cte AS (
@@ -1623,6 +1614,8 @@ class OrganizationRepository {
           segmentIds,
           limit,
           offset,
+          mergeActionType: MergeActionType.ORG,
+          mergeActionStatus: MergeActionState.ERROR,
         },
         type: QueryTypes.SELECT,
       },
@@ -1729,6 +1722,8 @@ class OrganizationRepository {
 
           return (
             mo.memberId === memberOrganization.memberId &&
+            mo.dateStart !== null &&
+            mo.dateEnd !== null &&
             ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
               (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
               (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
@@ -1778,10 +1773,10 @@ class OrganizationRepository {
     }
 
     // update rest of the o2 members
-    await seq.query(
+    const remainingRoles = (await seq.query(
       `
-      UPDATE "memberOrganizations"
-        SET "organizationId" = :toOrganizationId
+        SELECT *
+        FROM "memberOrganizations"
         WHERE "organizationId" = :fromOrganizationId 
         AND "deletedAt" IS NULL
         AND "memberId" NOT IN (
@@ -1796,10 +1791,26 @@ class OrganizationRepository {
           toOrganizationId,
           fromOrganizationId,
         },
-        type: QueryTypes.UPDATE,
+        type: QueryTypes.SELECT,
         transaction,
       },
-    )
+    )) as IMemberOrganization[]
+
+    for (const role of remainingRoles) {
+      await this.removeMemberRole(role, options)
+      await this.addMemberRole(
+        {
+          title: role.title,
+          dateStart: role.dateStart,
+          dateEnd: role.dateEnd,
+          memberId: role.memberId,
+          organizationId: toOrganizationId,
+          source: role.source,
+          deletedAt: role.deletedAt,
+        },
+        options,
+      )
+    }
   }
 
   static async getOrganizationSegments(
