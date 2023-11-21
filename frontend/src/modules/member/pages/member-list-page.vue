@@ -14,7 +14,12 @@
                 name: 'memberMergeSuggestions',
               }"
             >
-              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
+              <button
+                v-if="membersToMergeCount > 0"
+                :disabled="isEditLockedForSampleData"
+                type="button"
+                class="btn btn--bordered btn--md flex items-center"
+              >
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
