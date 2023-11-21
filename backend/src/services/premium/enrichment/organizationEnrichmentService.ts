@@ -161,20 +161,13 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     return orgs
   }
 
-  private async suggestOrganizationsForMerge(org1: IOrganization, org2: IOrganization) {
-    await OrganizationRepository.addToMerge(
-      [{ organizations: [org1.id, org2.id], similarity: null }],
-      this.options,
-    )
-    delete org1.website
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async update(orgs: IOrganization[]): Promise<IOrganization[]> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
+      const existingOrgMap = new Map()
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -193,26 +186,23 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
         // check for organization with same website and add them to merge suggestions
         if (org.website) {
-          const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          let existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+
+          if (!existingOrg && existingOrgMap.has(org.website)) {
+            existingOrg = existingOrgMap.get(org.website)
+          }
+
           if (existingOrg && existingOrg.id !== org.id) {
-            await this.suggestOrganizationsForMerge(org, existingOrg)
+            await OrganizationRepository.addToMerge(
+              [{ organizations: [org.id, existingOrg.id], similarity: null }],
+              this.options,
+            )
+            delete org.website
+          } else {
+            existingOrgMap.set(org.website, org)
           }
         }
       }
-
-      // if two orgs in the orgs array have same website, then add them to merge suggestions
-      const websiteMap = new Map()
-
-      for (const org of orgs) {
-        if (org.website && websiteMap.has(org.website)) {
-          const existingOrg = websiteMap.get(org.website)
-          await this.suggestOrganizationsForMerge(org, existingOrg)
-        } else {
-          websiteMap.set(org.website, org)
-        }
-      }
-
-      orgs = [...websiteMap.values()]
 
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
