@@ -1,11 +1,9 @@
 import express from 'express'
-import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
+import { ActivitySyncService } from '@crowd/opensearch'
 import { ApiRequest } from '../middleware/index'
 import { asyncWrap } from 'middleware/error'
-import { OPENSEARCH_CONFIG } from 'conf'
 
 const router = express.Router()
-const opensearchConfig = OPENSEARCH_CONFIG()
 
 router.post(
   '/sync/activities',

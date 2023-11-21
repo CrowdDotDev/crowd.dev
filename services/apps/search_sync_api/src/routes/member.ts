@@ -1,11 +1,10 @@
 import express from 'express'
-import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
+import { MemberSyncService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
-import { OPENSEARCH_CONFIG, SERVICE_CONFIG } from 'conf'
+import { SERVICE_CONFIG } from 'conf'
 
 const router = express.Router()
-const opensearchConfig = OPENSEARCH_CONFIG()
 const serviceConfig = SERVICE_CONFIG()
 
 router.post(
