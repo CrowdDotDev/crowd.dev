@@ -17,7 +17,7 @@
           <span class="ri-question-line text-base text-gray-400" />
         </el-tooltip>
         <div class="ml-2">
-          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+          <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
             <app-svg name="source" class="h-3 w-3" />
           </el-tooltip>
         </div>

@@ -135,7 +135,7 @@
                     <div class="mr-2">
                       Organization & Title
                     </div>
-                    <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
                       <app-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
                   </div>

@@ -67,9 +67,19 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Reach
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Reach
+          </p>
+          <el-tooltip
+            content="Source: GitHub"
+            placement="top"
+            trigger="hover"
+          >
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
+
         <p class="mt-1 text-gray-900 text-xs">
           <app-member-reach :member="member" />
         </p>

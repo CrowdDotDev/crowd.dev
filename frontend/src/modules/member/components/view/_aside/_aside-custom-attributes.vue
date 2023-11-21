@@ -1,9 +1,20 @@
 <template>
   <div class="member-view-custom-attributes">
     <div class="flex items-center justify-between">
-      <div class="font-medium text-black">
-        Attributes
+      <div class="flex items-center">
+        <div class="font-medium text-black mr-2">
+          Attributes
+        </div>
+        <el-tooltip
+          v-if="attributesSameSource"
+          :content="`Source: ${attributesSameSource}`"
+          placement="top"
+          trigger="hover"
+        >
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
       </div>
+
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
@@ -53,7 +64,7 @@
             </el-tooltip>
           </p>
           <el-tooltip
-            v-if="getAttributeSourceName(props.member.attributes[attribute.name])"
+            v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
             :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
             placement="top"
             trigger="hover"
@@ -154,6 +165,15 @@ const computedCustomAttributes = computed(() => Object.values(customAttributes.v
     }
     return 1;
   }));
+
+const attributesSameSource = computed(() => {
+  const sources = computedCustomAttributes.value.map((attribute) => getAttributeSourceName(props.member.attributes[attribute.name]));
+  const uniqueSources = [...new Set(sources)];
+  if (uniqueSources.length === 1) {
+    return uniqueSources[0];
+  }
+  return null;
+});
 
 const formattedComputedAttributeValue = (value) => {
   const dateFormat = 'YYYY-MM-DD';

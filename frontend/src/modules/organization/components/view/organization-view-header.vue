@@ -106,9 +106,15 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Headcount
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Headcount
+          </p>
+          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
+
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
@@ -132,9 +138,14 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Annual Revenue
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Annual Revenue
+          </p>
+          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
         <p class="mt-1 text-gray-900 text-xs">
           {{
             revenueRange.displayValue(
@@ -178,6 +189,7 @@ import AppOrganizationBadge from '@/modules/organization/components/organization
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({
