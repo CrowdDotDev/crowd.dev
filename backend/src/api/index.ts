@@ -11,7 +11,8 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import * as http from 'http'
-import { getTemporalClient } from '@crowd/temporal'
+import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
+import { QueryTypes, Sequelize } from 'sequelize'
 import {
   API_CONFIG,
   OPENSEARCH_CONFIG,
@@ -33,6 +34,7 @@ import setupSwaggerUI from './apiDocumentation'
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
+import { databaseInit } from '@/database/databaseConnection'
 
 const serviceLogger = getServiceLogger()
 getServiceTracer()
@@ -203,6 +205,38 @@ setImmediate(async () => {
 
   const webhookRoutes = express.Router()
   require('./webhooks').default(webhookRoutes)
+
+  const seq = (await databaseInit()).sequelize as Sequelize
+
+  app.use('/health', async (req: any, res) => {
+    try {
+      const [osPingRes, redisPingRes, dbPingRes, temporalPingRes] = await Promise.all([
+        // ping opensearch
+        opensearch.ping().then((res) => res.body),
+        // ping redis,
+        redis.ping().then((res) => res === 'PONG'),
+        // ping database
+        seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+        // ping temporal
+        req.temporal
+          ? (req.temporal as TemporalClient).workflowService.getSystemInfo({}).then(() => true)
+          : Promise.resolve(true),
+      ])
+
+      if (osPingRes && redisPingRes && dbPingRes && temporalPingRes) {
+        res.sendStatus(200)
+      } else {
+        res.status(500).json({
+          opensearch: osPingRes,
+          redis: redisPingRes,
+          database: dbPingRes,
+          temporal: temporalPingRes,
+        })
+      }
+    } catch (err) {
+      res.status(500).json({ error: err })
+    }
+  })
 
   app.use('/webhooks', webhookRoutes)
 
