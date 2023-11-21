@@ -3,10 +3,10 @@ import sendgrid, { MailDataRequired } from '@sendgrid/mail'
 
 import { EmailToSend, EmailSent } from '../../types/email'
 /*
-sendEmail is a Temporal activity that sends an EagleEye digest email to a user's
-email address using the SendGrid API.
+eagleeyeSendEmail is a Temporal activity that sends an EagleEye digest email to
+a user's email address using the SendGrid API.
 */
-export async function sendEmail(toSend: EmailToSend): Promise<EmailSent> {
+export async function eagleeyeSendEmail(toSend: EmailToSend): Promise<EmailSent> {
   const email: MailDataRequired = {
     to: toSend.settings.eagleEye.emailDigest.email,
     from: {
@@ -17,7 +17,7 @@ export async function sendEmail(toSend: EmailToSend): Promise<EmailSent> {
     dynamicTemplateData: {
       content: toSend.content,
       frequency: toSend.settings.eagleEye.emailDigest.frequency,
-      date: moment().format('D MMM YYYY'),
+      date: moment.utc().format('D MMM YYYY'),
       appHost: process.env['CROWD_API_FRONTEND_URL'],
     },
     customArgs: {

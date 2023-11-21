@@ -9,10 +9,10 @@ import { UserTenant } from '../../types/user'
 import { switchDate } from '../../utils/date'
 
 /*
-fetchFromEagleEye is a Temporal activity that fetches the content to push inside
-an email coming from EagleEye API.
+eagleeyeFetchFromEagleEye is a Temporal activity that fetches the content to push
+inside an email coming from EagleEye API.
 */
-export async function fetchFromEagleEye(user: UserTenant): Promise<EagleEyeRawPost[]> {
+export async function eagleeyeFetchFromEagleEye(user: UserTenant): Promise<EagleEyeRawPost[]> {
   const feedSettings = user.settings.eagleEye.feed
 
   const keywords = feedSettings.keywords ? feedSettings.keywords.join(',') : ''
@@ -21,7 +21,7 @@ export async function fetchFromEagleEye(user: UserTenant): Promise<EagleEyeRawPo
     ? feedSettings.excludedKeywords.join(',')
     : ''
 
-  const afterDate = moment().format('YYYY-MM-DD')
+  const afterDate = moment.utc().format('YYYY-MM-DD')
   const config = {
     method: 'get',
     maxBodyLength: Infinity,
@@ -49,10 +49,10 @@ export async function fetchFromEagleEye(user: UserTenant): Promise<EagleEyeRawPo
 }
 
 /*
-fetchFromDatabase is a Temporal activity that fetches the content to push inside
-an email coming from the database.
+eagleeyeFetchFromDatabase is a Temporal activity that fetches the content to push
+inside an email coming from the database.
 */
-export async function fetchFromDatabase(user: UserTenant): Promise<EagleEyeRawPost[]> {
+export async function eagleeyeFetchFromDatabase(user: UserTenant): Promise<EagleEyeRawPost[]> {
   const feedSettings = user.settings.eagleEye.emailDigest.feed || user.settings.eagleEye.feed
   const actualdate = switchDate(feedSettings.publishedDate, 90)
 
@@ -73,10 +73,12 @@ export async function fetchFromDatabase(user: UserTenant): Promise<EagleEyeRawPo
 }
 
 /*
-buildEmailContent is a Temporal activity that builds the content of an email
-based on posts previously fetched from EagleEye API and the database.
+eagleeyeBuildEmailContent is a Temporal activity that builds the content of an
+email based on posts previously fetched from EagleEye API and the database.
 */
-export async function buildEmailContent(posts: Content): Promise<EagleEyePostWithActions[]> {
+export async function eagleeyeBuildEmailContent(
+  posts: Content,
+): Promise<EagleEyePostWithActions[]> {
   const interactedMap = {}
   for (const item of posts.fromDatabase) {
     interactedMap[item.url] = item
