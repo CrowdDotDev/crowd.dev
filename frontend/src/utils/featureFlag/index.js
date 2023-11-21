@@ -14,6 +14,7 @@ export const FEATURE_FLAGS = {
   logRocket: 'log-rocket',
   developerMode: 'developer-mode',
   quickstartV2: 'quickstart-v2',
+  twitter: 'twitter',
 };
 
 class FeatureFlagService {

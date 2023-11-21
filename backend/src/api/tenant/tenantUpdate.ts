@@ -1,4 +1,4 @@
-import Error403 from '../../errors/Error403'
+import { Error403 } from '@crowd/common'
 import TenantService from '../../services/tenantService'
 
 export default async (req, res) => {
