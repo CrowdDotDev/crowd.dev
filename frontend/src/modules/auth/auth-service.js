@@ -74,8 +74,13 @@ export class AuthService {
   static fetchMe() {
     return authAxios.get('/auth/me').then((response) => {
       const { data } = response;
-      localStorage.setItem('user', JSON.stringify(data));
-      localStorage.setItem('userDateTime', `${new Date().getTime()}`);
+      try {
+        localStorage.setItem('user', JSON.stringify(data));
+        localStorage.setItem('userDateTime', `${new Date().getTime()}`);
+      } catch (err) {
+        return data;
+      }
+
       return data;
     });
   }
