@@ -22,22 +22,22 @@ export async function calculateTimes(): Promise<AnalyticsWithTimes> {
   const dateTimeStartPreviousWeek = dateTimeStartThisWeek.clone().subtract(7, 'days')
 
   return {
-    unixEpoch,
-    dateTimeEndThisWeek,
-    dateTimeStartThisWeek,
-    dateTimeEndPreviousWeek,
-    dateTimeStartPreviousWeek,
+    unixEpoch: unixEpoch.toISOString(),
+    dateTimeEndThisWeek: dateTimeEndThisWeek.toISOString(),
+    dateTimeStartThisWeek: dateTimeStartThisWeek.toISOString(),
+    dateTimeEndPreviousWeek: dateTimeEndPreviousWeek.toISOString(),
+    dateTimeStartPreviousWeek: dateTimeStartPreviousWeek.toISOString(),
   }
 }
 
 /*
-getNextEmails is a Temporal activity that fetches all users for a tenant.
+weeklyGetNextEmails is a Temporal activity that fetches all users for a tenant.
 */
-export async function getNextEmails(): Promise<InputAnalytics[]> {
+export async function weeklyGetNextEmails(): Promise<InputAnalytics[]> {
   let rows: InputAnalytics[] = []
   try {
     rows = await svc.postgres.reader.connection().query(`
-      SELECT id as "tenantId, name as "tenantName"
+      SELECT id as "tenantId", name as "tenantName"
       FROM tenants WHERE "deletedAt" IS NULL;
     `)
   } catch (err) {
