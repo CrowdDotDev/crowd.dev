@@ -68,7 +68,7 @@
         }"
         :style="{ ...tooltipPos, opacity: tooltipOpacity }"
       >
-        <div class="section border-b mx-4">
+        <div class="section mx-4">
           <p class="key">
             Repository
           </p>
@@ -76,7 +76,7 @@
             {{ nodes[targetNodeId]?.fullName ?? '' }}
           </p>
         </div>
-        <div class="section border-b mx-4">
+        <div class="section border-t mx-4">
           <p class="key">
             Contributions
           </p>
@@ -84,13 +84,13 @@
             {{ nodes[targetNodeId]?.numberCommits ?? '' }}
           </p>
         </div>
-        <div class="section ml-4">
+        <div v-if="nodes[targetNodeId]?.topics?.length" class="section ml-4 border-t">
           <p class="key">
             Topics
           </p>
           <div class="flex flex-wrap h-24 overflow-y-scroll pr-4">
             <div
-              v-for="topic in nodes[targetNodeId]?.topics ?? []"
+              v-for="topic in nodes[targetNodeId].topics"
               :key="topic"
               class="topic"
             >
@@ -321,7 +321,7 @@ const nodes = computed(() => {
       nodeList[name].size = size;
       nodeList[name].numberCommits += contribution.numberCommits;
       nodeList[name].topics = [
-        ...new Set([...nodeList[name].topics, ...contribution.topics]),
+        ...new Set([...(nodeList[name].topics || []), ...(contribution.topics || [])]),
       ];
     }
   });
@@ -341,13 +341,16 @@ const edges = computed(() => {
   props.contributions.forEach((contribution) => {
     // Extract the name of the contribution from the URL
     const name = contribution.url.split('/').pop();
-    contribution.topics.forEach((topic) => {
-      if (!topicMap[topic]) {
-        topicMap[topic] = [name];
-      } else {
-        topicMap[topic].push(name);
-      }
-    });
+
+    if (contribution.topics) {
+      contribution.topics.forEach((topic) => {
+        if (!topicMap[topic]) {
+          topicMap[topic] = [name];
+        } else {
+          topicMap[topic].push(name);
+        }
+      });
+    }
   });
 
   // Next, the topics in the topicMap are iterated over and for each topic,
@@ -542,7 +545,7 @@ const eventHandlers = {
 };
 </script>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 .tooltip {
   top: 0;
   left: 0;

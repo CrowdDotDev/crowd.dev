@@ -86,3 +86,11 @@ export type OrganizationBulkEnrichMessage = {
   tenantId: string
   maxEnrichLimit: number
 }
+
+export type OrganizationMergeMessage = {
+  service: string
+  tenantId: string
+  primaryOrgId: string
+  secondaryOrgId: string
+  notifyFrontend?: boolean
+}

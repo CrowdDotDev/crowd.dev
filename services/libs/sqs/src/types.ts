@@ -1,7 +1,22 @@
-import { Message, SQSClient } from '@aws-sdk/client-sqs'
+import {
+  ChangeMessageVisibilityRequest,
+  DeleteMessageRequest,
+  Message,
+  MessageAttributeValue,
+  ReceiveMessageRequest,
+  SQSClient,
+  SendMessageBatchRequest,
+  SendMessageRequest,
+} from '@aws-sdk/client-sqs'
 
 export type SqsClient = SQSClient
 export type SqsMessage = Message
+export type SqsReceiveMessageRequest = ReceiveMessageRequest
+export type SqsDeleteMessageRequest = DeleteMessageRequest
+export type SqsSendMessageRequest = SendMessageRequest
+export type SqsSendMessageBatchRequest = SendMessageBatchRequest
+export type SqsChangeMessageVisibilityRequest = ChangeMessageVisibilityRequest
+export type SqsMessageAttributes = Record<string, MessageAttributeValue>
 
 export interface ISqsClientConfig {
   region: string

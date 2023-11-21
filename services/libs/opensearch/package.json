@@ -19,7 +19,11 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@crowd/database": "file:../database",
+    "@crowd/logging": "file:../logging",
+    "@crowd/redis": "file:../redis",
     "@crowd/types": "file:../types",
-    "@opensearch-project/opensearch": "^1.2.0"
+    "@opensearch-project/opensearch": "^1.2.0",
+    "axios": "^1.6.0"
   }
 }

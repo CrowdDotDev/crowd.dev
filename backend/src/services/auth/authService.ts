@@ -38,6 +38,12 @@ class AuthService {
 
       const existingUser = await UserRepository.findByEmail(email, options)
 
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])([^ \t]{8,})$/
+
+      if (!passwordRegex.test(password)) {
+        throw new Error400(options.language, 'auth.passwordInvalid')
+      }
+
       // Generates a hashed password to hide the original one.
       const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS)
 

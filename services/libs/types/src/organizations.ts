@@ -63,6 +63,7 @@ export interface IMemberOrganization {
   updatedAt?: string
   createdAt?: string
   source?: string
+  deletedAt?: string
 }
 
 export interface IOrganizationCache {

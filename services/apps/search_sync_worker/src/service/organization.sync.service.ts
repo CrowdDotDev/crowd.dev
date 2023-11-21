@@ -118,9 +118,7 @@ export class OrganizationSyncService extends LoggerBase {
 
       if (toRemove.length > 0) {
         this.log.warn({ tenantId, toRemove }, 'Removing organizations from index!')
-        for (const id of toRemove) {
-          await this.openSearchService.removeFromIndex(id, OpenSearchIndex.ORGANIZATIONS)
-        }
+        await this.openSearchService.removeAllFromIndex(toRemove, OpenSearchIndex.ORGANIZATIONS)
       }
 
       processed += results.length

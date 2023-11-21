@@ -7,6 +7,7 @@ export interface IGenerateStreamsData {
   integrationState: IntegrationState
   integrationIdentifier: string | null
   integrationToken: string | null
+  integrationRefreshToken: string | null
   runState: IntegrationRunState
   runId: string
   tenantId: string

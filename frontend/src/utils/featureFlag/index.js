@@ -12,8 +12,9 @@ export const FEATURE_FLAGS = {
   csvExport: 'csv-export',
   hubspot: 'hubspot',
   logRocket: 'log-rocket',
-  customViews: 'custom-views',
-  menuV2: 'menu-v2',
+  developerMode: 'developer-mode',
+  quickstartV2: 'quickstart-v2',
+  twitter: 'twitter',
 };
 
 class FeatureFlagService {

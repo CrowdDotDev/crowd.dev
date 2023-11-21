@@ -2,7 +2,7 @@
   <el-popover
     placement="right-end"
     :width="260"
-    trigger="hover"
+    trigger="click"
     popper-class="!pt-2 !px-1 !pb-1 transform translate-x-1"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
@@ -10,7 +10,7 @@
     <template #reference>
       <div class="-mr-4 pr-4">
         <el-tooltip
-          :disabled="!props.collapsed"
+          :disabled="!props.collapsed || isDropdownOpen"
           :hide-after="50"
           content="Help & support"
           effect="dark"
@@ -24,7 +24,7 @@
           >
             <i class="ri-question-line text-lg mr-3" />
             <span v-if="!props.collapsed" class="text-sm !text-gray-900">
-              Help & support
+              Resources & support
             </span>
           </div>
         </el-tooltip>
@@ -32,10 +32,13 @@
     </template>
 
     <div class="-mb-">
-      <div class="pt-1 pb-2 px-4">
-        <p class="uppercase text-2xs font-semibold tracking-1 text-gray-400 leading-6">
-          Help & Support
+      <div class="pt-1 pb-3 px-4">
+        <p class="uppercase text-2xs font-semibold tracking-1 text-gray-400 leading-6 text-center">
+          Resources & Support
         </p>
+      </div>
+      <div class="px-3 -mx-1 border-b border-gray-100 pb-4 mb-2">
+        <cr-menu-support-help />
       </div>
       <cr-menu-links
         :collapsed="false"
@@ -51,6 +54,7 @@
 import { ref } from 'vue';
 import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
 import { supportMenu } from '@/modules/layout/config/menu';
+import CrMenuSupportHelp from '@/modules/layout/components/menu/menu-support-help.vue';
 
 const props = defineProps<{
   collapsed: boolean

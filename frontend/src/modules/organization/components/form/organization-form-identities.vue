@@ -146,7 +146,7 @@ const identitiesForm = reactive({
       'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
   },
   twitter: {
-    label: 'Twitter',
+    label: 'X/Twitter',
     enabled:
       props.modelValue.identities?.some((el) => el.platform === 'twitter')
       || false,

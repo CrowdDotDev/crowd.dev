@@ -222,6 +222,8 @@ export class Service {
           serverUrl: process.env['CROWD_TEMPORAL_SERVER_URL'],
           namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
           identity: this.name,
+          certificate: process.env['CROWD_TEMPORAL_CERTIFICATE'],
+          privateKey: process.env['CROWD_TEMPORAL_PRIVATE_KEY'],
         })
       } catch (err) {
         throw new Error(err)

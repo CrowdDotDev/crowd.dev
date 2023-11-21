@@ -1,7 +1,7 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, DataSinkWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
@@ -16,6 +16,9 @@ import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
+import { IResultData } from '../repo/dataSink.data'
+import { addSeconds } from '@crowd/common'
+import { WORKER_SETTINGS } from '../conf'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -24,6 +27,7 @@ export default class DataSinkService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
@@ -35,13 +39,13 @@ export default class DataSinkService extends LoggerBase {
   }
 
   private async triggerResultError(
-    resultId: string,
+    resultInfo: IResultData,
     location: string,
     message: string,
     metadata?: unknown,
     error?: Error,
   ): Promise<void> {
-    await this.repo.markResultError(resultId, {
+    await this.repo.markResultError(resultInfo.id, {
       location,
       message,
       metadata,
@@ -49,6 +53,41 @@ export default class DataSinkService extends LoggerBase {
       errorStack: error?.stack,
       errorString: error ? JSON.stringify(error) : undefined,
     })
+
+    if (resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
+      // delay for #retries * 2 minutes
+      const until = addSeconds(new Date(), (resultInfo.retries + 1) * 2 * 60)
+      this.log.warn({ until: until.toISOString() }, 'Retrying result!')
+      await this.repo.delayResult(resultInfo.id, until)
+    }
+  }
+
+  public async checkResults(): Promise<void> {
+    this.log.info('Checking for delayed results!')
+
+    let results = await this.repo.transactionally(async (txRepo) => {
+      return await txRepo.getDelayedResults(10)
+    })
+
+    while (results.length > 0) {
+      this.log.info({ count: results.length }, 'Found delayed results!')
+
+      for (const result of results) {
+        this.log.info({ resultId: result.id }, 'Restarting delayed stream!')
+        await this.repo.resetResults([result.id])
+        await this.dataSinkWorkerEmitter.triggerResultProcessing(
+          result.tenantId,
+          result.platform,
+          result.id,
+          result.id,
+          `${result.id}-delayed-${Date.now()}`,
+        )
+      }
+
+      results = await this.repo.transactionally(async (txRepo) => {
+        return await txRepo.getDelayedResults(10)
+      })
+    }
   }
 
   public async createAndProcessActivityResult(
@@ -136,6 +175,7 @@ export default class DataSinkService extends LoggerBase {
             this.searchSyncWorkerEmitter,
             this.unleash,
             this.temporal,
+            this.redisClient,
             this.log,
           )
           const memberData = data.data as IMemberData
@@ -162,6 +202,27 @@ export default class DataSinkService extends LoggerBase {
           break
         }
 
+        case IntegrationResultType.TWITTER_MEMBER_REACH: {
+          const service = new MemberService(
+            this.store,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.unleash,
+            this.temporal,
+            this.redisClient,
+            this.log,
+          )
+          const memberData = data.data as IMemberData
+
+          await service.processMemberUpdate(
+            resultInfo.tenantId,
+            resultInfo.integrationId,
+            resultInfo.platform,
+            memberData,
+          )
+          break
+        }
+
         default: {
           throw new Error(`Unknown result type: ${data.type}`)
         }
@@ -172,7 +233,7 @@ export default class DataSinkService extends LoggerBase {
       this.log.error(err, 'Error processing result.')
       try {
         await this.triggerResultError(
-          resultId,
+          resultInfo,
           'process-result',
           'Error processing result.',
           undefined,
