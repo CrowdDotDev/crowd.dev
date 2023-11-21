@@ -1,8 +1,8 @@
+import { PlatformType } from '@crowd/types'
+import { Error404 } from '@crowd/common'
 import NoteRepository from '../noteRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
-import { PlatformType } from '@crowd/types'
 
 const db = null
 

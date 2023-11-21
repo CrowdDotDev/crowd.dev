@@ -1,5 +1,5 @@
+import { Error400 } from '@crowd/common'
 import { IActiveMemberFilter } from '../../database/repositories/types/memberTypes'
-import Error400 from '../../errors/Error400'
 import Permissions from '../../security/permissions'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'

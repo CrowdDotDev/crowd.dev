@@ -1,11 +1,11 @@
 import assert from 'assert'
+import { Error409 } from '@crowd/common'
 import EmailSender from '../emailSender'
 import UserRepository from '../../database/repositories/userRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 import { tenantSubdomain } from '../tenantSubdomain'
 import { IServiceOptions } from '../IServiceOptions'
-import Error409 from '../../errors/Error409'
 
 export default class UserCreator {
   options: IServiceOptions
