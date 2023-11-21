@@ -104,8 +104,8 @@
     <app-empty-state-cta
       v-else
       icon="ri-flow-chart"
-      title="Start to automate manual tasks"
-      description="Create config actions or send Slack notifications when a new activity happens, or a new contact joins your community "
+      title="Start automating your workflows"
+      description="Break free from repetitive tasks and discover untapped revenue opportunities and other valuable sales signals within your CRM."
     />
 
     <!-- Add/Edit Webhook form drawer -->
