@@ -17,7 +17,6 @@ import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
 import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import OrganizationService from '@/services/organizationService'
 import SearchSyncService from '@/services/searchSyncService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
