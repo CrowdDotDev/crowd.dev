@@ -547,7 +547,7 @@ watch(
         }px`,
         top: `${domPoint.y - targetNodeRadius.value - tooltip.value.offsetHeight - 20}px`,
       };
-    }, 100);
+    }, 0);
   },
   { deep: true },
 );
@@ -619,8 +619,11 @@ const eventHandlers = {
       edgeToolTipOpacity.value = 0; // hide
       hoveredEdge.value = null;
     }
-    targetNodeId.value = node;
-    hoveredNode.value = nodes.value[node].name;
+
+    setTimeout(() => {
+      targetNodeId.value = node;
+      hoveredNode.value = nodes.value[node].name;
+    }, 0);
   },
   'view:click': () => {
     targetNodeId.value = '';
