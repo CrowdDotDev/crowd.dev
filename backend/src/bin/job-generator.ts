@@ -1,7 +1,11 @@
 import { CronJob } from 'cron'
 import { getServiceLogger } from '@crowd/logging'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
+import fs from 'fs'
+import path from 'path'
+import { Sequelize, QueryTypes } from 'sequelize'
 import jobs from './jobs'
+import { databaseInit } from '@/database/databaseConnection'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -36,3 +40,37 @@ for (const job of jobs) {
     log.info({ job: job.name }, 'Scheduled a job.')
   }
 }
+
+const liveFilePath = path.join(__dirname, 'live.tmp')
+const readyFilePath = path.join(__dirname, 'ready.tmp')
+
+let seq: Sequelize
+if (!seq) {
+  databaseInit()
+    .then((db) => {
+      seq = db.sequelize as Sequelize
+    })
+    .then(() => {
+      seq.query('select 1', { type: QueryTypes.SELECT }).then((res) => {
+        const dbPingRes = res.length === 1
+        if (dbPingRes) {
+          fs.promises.writeFile(readyFilePath, 'Job generator is ready.').catch((err) => {
+            log.error(`Error writing ready.tmp: ${err}`)
+          })
+        }
+      })
+    })
+}
+
+setInterval(async () => {
+  try {
+    log.info('Checking liveness for job generator.')
+    const res = await seq.query('select 1', { type: QueryTypes.SELECT })
+    const dbPingRes = res.length === 1
+    if (dbPingRes) {
+      await fs.promises.writeFile(liveFilePath, 'Job generator is live.')
+    }
+  } catch (err) {
+    log.error(`Error writing live.tmp: ${err}`)
+  }
+}, 5000)
