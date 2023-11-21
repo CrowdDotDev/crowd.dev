@@ -899,7 +899,10 @@ export default class MemberService extends LoggerBase {
 
   async update(id, data, syncToOpensearch = true) {
     let transaction
-    const searchSyncService = new SearchSyncService(this.options)
+    const searchSyncService = new SearchSyncService(
+      this.options,
+      SERVICE === ServiceType.NODEJS_WORKER ? SyncMode.ASYNCHRONOUS : undefined,
+    )
 
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
