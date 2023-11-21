@@ -11,10 +11,9 @@ const serviceConfig = SERVICE_CONFIG()
 router.post(
   '/sync/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, openSearchConfig)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -31,10 +30,9 @@ router.post(
 router.post(
   '/sync/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, openSearchConfig)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -52,10 +50,9 @@ router.post(
 router.post(
   '/cleanup/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, openSearchConfig)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -73,10 +70,9 @@ router.post(
 router.post(
   '/cleanup/organization',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, openSearchConfig)
     const organizationSyncService = new OrganizationSyncService(
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )

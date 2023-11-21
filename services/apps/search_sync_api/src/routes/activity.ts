@@ -10,8 +10,7 @@ const opensearchConfig = OPENSEARCH_CONFIG()
 router.post(
   '/sync/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
-    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
     const { activityIds } = req.body
     try {
       await activitySyncService.syncActivities(activityIds)
@@ -25,8 +24,7 @@ router.post(
 router.post(
   '/sync/tenant/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
-    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
     const { tenantId } = req.body
     try {
@@ -41,8 +39,7 @@ router.post(
 router.post(
   '/sync/organization/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
-    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
     const { organizationId } = req.body
     try {
@@ -57,8 +54,7 @@ router.post(
 router.post(
   '/cleanup/tenant/activities',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
-    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
     const { tenantId } = req.body
     try {
@@ -73,8 +69,7 @@ router.post(
 router.post(
   '/cleanup/activity',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
-    const activitySyncService = new ActivitySyncService(req.dbStore, openSearchService, req.log)
+    const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
 
     const { activityId } = req.body
     try {

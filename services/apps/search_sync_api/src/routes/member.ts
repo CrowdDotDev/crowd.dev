@@ -11,11 +11,10 @@ const serviceConfig = SERVICE_CONFIG()
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -33,11 +32,10 @@ router.post(
 router.post(
   '/sync/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -55,11 +53,10 @@ router.post(
 router.post(
   '/sync/organization/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -77,11 +74,10 @@ router.post(
 router.post(
   '/cleanup/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
@@ -99,11 +95,10 @@ router.post(
 router.post(
   '/cleanup/member',
   asyncWrap(async (req: ApiRequest, res) => {
-    const openSearchService = new OpenSearchService(req.log, opensearchConfig)
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.dbStore,
-      openSearchService,
+      req.opensearch,
       req.log,
       serviceConfig,
     )
