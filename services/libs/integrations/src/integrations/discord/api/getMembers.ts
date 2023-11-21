@@ -2,6 +2,7 @@ import axios from 'axios'
 import { DiscordApiMember, DiscordGetMembersInput, DiscordGetMembersOutput } from '../types'
 import { IProcessStreamContext } from '../../../types'
 import { handleDiscordError } from './errorHandler'
+import { retryWrapper } from './handleRateLimit'
 
 async function getMembers(
   input: DiscordGetMembersInput,
@@ -19,24 +20,27 @@ async function getMembers(
       Authorization: input.token,
     },
   }
-  try {
-    const response = await axios(config)
-    const records: DiscordApiMember[] = response.data
-    const limit = parseInt(response.headers['x-ratelimit-remaining'], 10)
-    const timeUntilReset = parseInt(response.headers['x-ratelimit-reset-after'], 10)
-    const nextPage = records.length > 0 ? (records[records.length - 1].user.id as string) : ''
-    return {
-      records,
-      nextPage,
-      limit,
-      timeUntilReset,
+
+  return await retryWrapper(3, async () => {
+    try {
+      const response = await axios(config)
+      const records: DiscordApiMember[] = response.data
+      const limit = parseInt(response.headers['x-ratelimit-remaining'], 10)
+      const timeUntilReset = parseInt(response.headers['x-ratelimit-reset-after'], 10)
+      const nextPage = records.length > 0 ? (records[records.length - 1].user.id as string) : ''
+      return {
+        records,
+        nextPage,
+        limit,
+        timeUntilReset,
+      }
+    } catch (err) {
+      const newErr = handleDiscordError(err, config, { input }, ctx)
+      if (newErr) {
+        throw newErr
+      }
     }
-  } catch (err) {
-    const newErr = handleDiscordError(err, config, { input }, ctx)
-    if (newErr) {
-      throw newErr
-    }
-  }
+  })
 }
 
 export default getMembers
