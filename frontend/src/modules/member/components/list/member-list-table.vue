@@ -169,6 +169,15 @@
                 width="200"
                 sortable="custom"
               >
+                <template #header>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Calculated based on the recency and importance of the activities<br>
+                      a contact has performed in relation to all other contacts.
+                    </template>
+                    Engagement Level
+                  </el-tooltip>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -209,6 +218,14 @@
                 width="150"
                 sortable="custom"
               >
+                <template #header>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                    </template>
+                    Reach
+                  </el-tooltip>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -289,6 +306,15 @@
               </el-table-column>
 
               <el-table-column label="Identities" width="240">
+                <template #header>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Identities can be profiles on social platforms, emails, phone numbers,<br>
+                      or unique identifiers from internal sources (e.g. web app log-in email).
+                    </template>
+                    Identities
+                  </el-tooltip>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{

@@ -15,7 +15,7 @@
           v-if="!hasOrganizations"
           icon="ri-community-line"
           title="No organizations yet"
-          description="We couldn't track any organizations related to your community contacts."
+          description="We couldn't track any organizations related to your contacts."
           cta-btn="Add organization"
           @cta-click="onCtaClick"
         />
