@@ -72,7 +72,7 @@ if (
     const snapshotDb = await databaseInit(50000, true, parameters.snapshotDBHostname) // we should get a connection to the snapshot db to get the destroyed data
     const prodDb = await databaseInit()
 
-    console.log('Connected to dbs!')
+    console.log('Succesfully connected to both databases!')
 
     // find if member exists in prod db
     const memberResult = await snapshotDb.sequelize.query(
@@ -95,8 +95,7 @@ if (
       platform: parameters.platform,
     }
 
-    console.log('Identity to process: ')
-    console.log(identityToProcess)
+    console.log('Identity to process: ', { identityToProcess })
 
     // find memberId from snapshot db using identity
     const members = await snapshotDb.sequelize.query(
@@ -110,8 +109,7 @@ if (
 
     const deletedMemberId = members?.[0]?.[0]?.memberId
 
-    console.log('Deleted member id found: ')
-    console.log(deletedMemberId)
+    console.log(`Deleted member id found: ${deletedMemberId}`)
 
     let tx
 
@@ -226,7 +224,7 @@ if (
 
         console.log(`Moving identities into ${deletedMemberId}!`)
 
-        // find identities of deleted member
+        // find identities of the deleted member
         const result1 = await snapshotDb.sequelize.query(
           `
                 select * from "memberIdentities" mi
@@ -243,7 +241,7 @@ if (
           .map((mi) => ` (username = '${mi.username}' and platform = '${mi.platform}') `)
           .join(' or ')
 
-        // update identity to belong to found org
+        // update identitities to point to the deleted member
         await prodDb.sequelize.query(
           `
               update "memberIdentities" 
@@ -402,6 +400,10 @@ if (
             transaction: tx,
           },
         )
+
+        // TODO:: Handle member organizations that doesn't exist in the prodDb anymore
+
+        // TODO:: Update the original member with fields found in the snapshot db
 
         await tx.commit()
         console.log(`Member ${deletedMemberId} unmerged from member ${parameters.memberId}`)

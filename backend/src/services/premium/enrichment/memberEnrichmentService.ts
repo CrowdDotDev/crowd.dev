@@ -287,14 +287,14 @@ export default class MemberEnrichmentService extends LoggerBase {
             const existingMember = await memberService.memberExists(username, platform)
 
             if (existingMember) {
-              // add the member to merge suggestions and remove identity from normalized payload
+              // add the member to merge suggestions
               await MemberRepository.addToMerge(
                 [{ similarity: 0.9, members: [memberId, existingMember.id] }],
                 options,
               )
 
               if (Array.isArray(normalized.username[platform])) {
-                // Filter out the userToRemove and update the usernames array
+                // Filter out the identity that belongs to another member from the normalized payload
                 normalized.username[platform] = normalized.username[platform].filter(
                   (u) => u !== username,
                 )
