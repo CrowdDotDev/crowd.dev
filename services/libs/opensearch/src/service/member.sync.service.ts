@@ -150,7 +150,7 @@ export class MemberSyncService {
   }
 
   public async removeMember(memberId: string): Promise<void> {
-    this.log.debug({ memberId }, 'Removing member from index!')
+    this.log.info({ memberId }, 'Removing member from index!')
 
     const query = {
       bool: {
@@ -167,6 +167,7 @@ export class MemberSyncService {
     const pageSize = 10
     let lastJoinedAt: string
 
+    this.log.info({ memberId }, 'Searching member in opensearch!')
     let results = (await this.openSearchService.search(
       OpenSearchIndex.MEMBERS,
       query,
@@ -180,6 +181,7 @@ export class MemberSyncService {
     while (results.length > 0) {
       const ids = results.map((r) => r._id)
       for (const id of ids) {
+        this.log.info({ memberId }, 'Removing member from opensearch!')
         await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
       }
 
@@ -313,14 +315,16 @@ export class MemberSyncService {
   }
 
   public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
-    this.log.debug({ memberIds }, 'Syncing members!')
+    this.log.info({ memberIds }, '[Sync Members] Syncing members!')
 
     const isMultiSegment = this.serviceConfig.edition === Edition.LFX
 
     let docCount = 0
     let memberCount = 0
 
+    this.log.info({ memberIds }, '[Sync Members] Getting member data!')
     const members = await this.memberRepo.getMemberData(memberIds)
+    this.log.info({ memberIds, members }, '[Sync Members] Got member data!')
 
     if (members.length > 0) {
       const attributes = await this.memberRepo.getTenantMemberAttributes(members[0].tenantId)
@@ -396,7 +400,9 @@ export class MemberSyncService {
         }
       }
 
+      this.log.info({ memberIds, forSync }, '[Sync Members] Bulk indexing to openserch!')
       await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, forSync)
+      this.log.info({ memberIds, forSync }, '[Sync Members] Bulk indexing done!')
       docCount += forSync.length
       memberCount += memberIds.length
     }
