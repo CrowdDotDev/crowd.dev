@@ -60,6 +60,14 @@
     <div
       class="py-6 border-b border-gray-200 mb-4"
     >
+      <div v-if="organization.description || organization.headline" class="flex items-center">
+        <p class="text-gray-400 font-medium text-2xs mr-2">
+          Headline
+        </p>
+        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
+      </div>
       <app-organization-headline :organization="organization" />
 
       <div

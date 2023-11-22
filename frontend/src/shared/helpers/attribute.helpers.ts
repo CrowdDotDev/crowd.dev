@@ -7,6 +7,9 @@ export const getAttributeSources = (attribute: Record<string, string>): string[]
 };
 
 export const getAttributeSourceName = (attribute: Record<string, string>): string | null => {
+  if (!attribute) {
+    return null;
+  }
   const sources = getAttributeSources(attribute);
   if (sources.length === 0) {
     return null;
