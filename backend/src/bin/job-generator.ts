@@ -50,30 +50,24 @@ if (!seq) {
     .then((db) => {
       seq = db.sequelize as Sequelize
     })
-    .then(() => {
-      log.info('Checking readiness for job generator.')
-      seq.query('select 1', { type: QueryTypes.SELECT }).then((res) => {
-        const dbPingRes = res.length === 1
-        if (dbPingRes) {
-          log.info('Job generator is ready.')
-          fs.promises.writeFile(readyFilePath, 'Job generator is ready.').catch((err) => {
-            log.error(`Error writing ready.tmp: ${err}`)
-          })
-        }
-      })
-    })
+    .catch((err) => {
+      log.error(err, 'Error initializing database connection.')
+    }
+    )
 }
 
 setInterval(async () => {
   try {
-    log.info('Checking liveness for job generator.')
+    log.info('Checking liveness and readiness for job generator.')
     const res = await seq.query('select 1', { type: QueryTypes.SELECT })
     const dbPingRes = res.length === 1
     if (dbPingRes) {
-      await fs.promises.writeFile(liveFilePath, 'Job generator is live.')
-      log.info('Job generator is live.')
+      await Promise.all([
+        fs.promises.open(liveFilePath, 'a').then(file => file.close()),
+        fs.promises.open(readyFilePath, 'a').then(file => file.close())
+      ])
     }
   } catch (err) {
-    log.error(`Error writing live.tmp: ${err}`)
+    log.error(`Error checking liveness and readiness for job generator: ${err}`)
   }
 }, 5000)
