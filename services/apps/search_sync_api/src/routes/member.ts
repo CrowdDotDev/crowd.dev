@@ -3,9 +3,11 @@ import { MemberSyncService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
 import { SERVICE_CONFIG } from 'conf'
+import { getServiceLogger } from '@crowd/logging'
 
 const router = express.Router()
 const serviceConfig = SERVICE_CONFIG()
+const log = getServiceLogger()
 
 router.post(
   '/sync/members',
@@ -20,6 +22,7 @@ router.post(
     const { memberIds } = req.body
 
     try {
+      log.info(`[SearchSyncAPI] - Calling memberSyncService.syncMembers for ${memberIds}`)
       await memberSyncService.syncMembers(memberIds)
       res.sendStatus(200)
     } catch (error) {
