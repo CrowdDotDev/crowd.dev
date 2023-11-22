@@ -3694,6 +3694,52 @@ class MemberRepository {
       ids: members.map((i: any) => i.id),
     }
   }
+
+  static async moveNotesBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      update "memberNotes" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(query, {
+      replacements: {
+        fromMemberId,
+        toMemberId,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async moveTasksBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      update "memberTasks" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(query, {
+      replacements: {
+        fromMemberId,
+        toMemberId,
+      },
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
 }
 
 export default MemberRepository
