@@ -38,7 +38,7 @@ export const shouldProcessMember = async (
 
 
   // check whether member platforms matches
-  if (settings.platforms && settings.platforms.length > 0) {
+  if (process && settings.platforms && settings.platforms.length > 0) {
     const platforms = Object.keys(member.username)
     if (!platforms.some((platform) => settings.platforms.includes(platform))) {
       log.warn(
