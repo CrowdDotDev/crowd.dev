@@ -6,7 +6,7 @@ import { UserTenant } from '../../types/user'
 // Configure timeouts and retry policies to fetch content from third-party sources.
 const { eagleeyeFetchFromEagleEye, eagleeyeFetchFromDatabase } = proxyActivities<typeof activities>(
   {
-    startToCloseTimeout: '5 seconds',
+    startToCloseTimeout: '10 seconds',
   },
 )
 
