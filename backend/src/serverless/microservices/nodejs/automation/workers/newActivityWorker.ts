@@ -29,7 +29,7 @@ export const shouldProcessActivity = async (
   const settings = automation.settings as NewActivitySettings
 
   let process = true
-  
+
   // check if activity created after automation was created
   if (new Date(automation.createdAt) > new Date(activity.timestamp)) {
     log.warn(
