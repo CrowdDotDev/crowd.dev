@@ -21,23 +21,23 @@
         <div class="grid grid-cols-3 gap-4 col-span-1">
           <div class="flex items-center">
             <img
-              src="/images/auth/thelinuxfoundation.png"
-              alt="thelinuxfoundation logo"
-              class="h-7"
-            />
-          </div>
-          <div class="flex items-center justify-end">
-            <img
               src="/images/auth/openbb.png"
               alt="openbb logo"
               class="h-6"
             />
           </div>
+          <div class="flex items-center justify-center">
+            <img
+              src="/images/auth/thelinuxfoundation.png"
+              alt="thelinuxfoundation logo"
+              class="h-"
+            />
+          </div>
           <div class="flex items-center justify-end">
             <img
-              src="/images/auth/kernai.png"
-              alt="kernai logo"
-              class="h-5"
+              src="/images/auth/plane.png"
+              alt="plane logo"
+              class="h-6"
             />
           </div>
         </div>
@@ -49,18 +49,18 @@
               class="h-7"
             />
           </div>
-          <div class="flex items-center justify-end">
+          <div class="flex items-center justify-center">
             <img
-              src="/images/auth/drant.png"
-              alt="drant logo"
-              class="h-7"
+              src="/images/auth/unleash.png"
+              alt="unleash logo"
+              class="h-6"
             />
           </div>
           <div class="flex items-center justify-end">
             <img
-              src="/images/auth/openbb.png"
-              alt="openbb logo"
-              class="h-6"
+              src="/images/auth/tigera.png"
+              alt="tigera logo"
+              class="h-5"
             />
           </div>
         </div>
