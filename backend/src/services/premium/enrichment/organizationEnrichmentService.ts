@@ -167,7 +167,8 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
     try {
       const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
-      const existingOrgMap = new Map()
+      // stores org website as key and org id as value
+      const existingOrgMap: Map<string, string> = new Map()
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -186,20 +187,21 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
         // check for organization with same website and add them to merge suggestions
         if (org.website) {
-          let existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+          let existingOrgId = existingOrgMap.get(org.website)
 
-          if (!existingOrg && existingOrgMap.has(org.website)) {
-            existingOrg = existingOrgMap.get(org.website)
+          if (!existingOrgId) {
+            const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+            existingOrgId = existingOrg?.id
           }
 
-          if (existingOrg && existingOrg.id !== org.id) {
+          if (existingOrgId && existingOrgId !== org.id) {
             await OrganizationRepository.addToMerge(
-              [{ organizations: [org.id, existingOrg.id], similarity: null }],
+              [{ organizations: [org.id, existingOrgId], similarity: 0.9 }],
               this.options,
             )
             delete org.website
           } else {
-            existingOrgMap.set(org.website, org)
+            existingOrgMap.set(org.website, org.id)
           }
         }
       }
