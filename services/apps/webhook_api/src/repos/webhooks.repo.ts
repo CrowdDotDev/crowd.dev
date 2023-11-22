@@ -18,6 +18,8 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
       `
       select id, "tenantId", platform from integrations
       where platform = $(platform) and "integrationIdentifier" = $(identifier) and "deletedAt" is null
+      order by "createdAt" desc
+      limit 1
       `,
       {
         platform,
