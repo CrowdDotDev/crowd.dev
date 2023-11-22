@@ -1,4 +1,13 @@
 <template>
+  <div class="flex justify-end mt-5 mb-20">
+    <p class="text-sm leading-5 text-center">
+      Already have an account?
+      <router-link :to="{ name: 'signin' }">
+        Sign in
+      </router-link>
+    </p>
+  </div>
+
   <div>
     <h3 class="text-2xl leading-12 font-semibold mb-1">
       Create an account
@@ -233,14 +242,6 @@
           <i class="ri-github-fill text-lg !text-gray-600" />
           <span class="pl-3 text-gray-600">Sign up with GitHub</span>
         </a>
-      </div>
-      <div class="flex justify-center">
-        <p class="text-sm leading-5 text-center">
-          Already have an account?
-          <router-link :to="{ name: 'signin' }">
-            Sign in
-          </router-link>
-        </p>
       </div>
     </div>
   </div>
