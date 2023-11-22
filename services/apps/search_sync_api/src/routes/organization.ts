@@ -3,9 +3,11 @@ import { OrganizationSyncService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
 import { SERVICE_CONFIG } from 'conf'
+import { getServiceLogger } from '@crowd/logging'
 
 const router = express.Router()
 const serviceConfig = SERVICE_CONFIG()
+const log = getServiceLogger()
 
 router.post(
   '/sync/organizations',
@@ -18,6 +20,9 @@ router.post(
     )
     const { organizationIds } = req.body
     try {
+      log.info(
+        `[SearchSyncAPI] - Calling organizationSyncService.syncOrganizations for ${organizationIds}`,
+      )
       await organizationSyncService.syncOrganizations(organizationIds)
       res.sendStatus(200)
     } catch (error) {
@@ -38,6 +43,9 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      log.info(
+        `[SearchSyncAPI] - Calling organizationSyncService.syncTenantOrganizations for tenant ${tenantId}`,
+      )
       await organizationSyncService.syncTenantOrganizations(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -58,6 +66,9 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      log.info(
+        `[SearchSyncAPI] - Calling organizationSyncService.cleanupOrganizationIndex for tenant ${tenantId}`,
+      )
       await organizationSyncService.cleanupOrganizationIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -78,6 +89,9 @@ router.post(
 
     const { organizationId } = req.body
     try {
+      log.info(
+        `[SearchSyncAPI] - Calling organizationSyncService.removeOrganization for organization ${organizationId}`,
+      )
       await organizationSyncService.removeOrganization(organizationId)
       res.sendStatus(200)
     } catch (error) {

@@ -44,6 +44,9 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      log.info(
+        `[SearchSyncAPI] - Calling memberSyncService.syncTenantMembers for tenant ${tenantId}`,
+      )
       await memberSyncService.syncTenantMembers(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -65,6 +68,9 @@ router.post(
 
     const { organizationId } = req.body
     try {
+      log.info(
+        `[SearchSyncAPI] - Calling memberSyncService.syncOrganizationMembers for organization ${organizationId}`,
+      )
       await memberSyncService.syncOrganizationMembers(organizationId)
       res.sendStatus(200)
     } catch (error) {
@@ -86,6 +92,9 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      log.info(
+        `[SearchSyncAPI] - Calling memberSyncService.cleanupMemberIndex for tenant ${tenantId}`,
+      )
       await memberSyncService.cleanupMemberIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
