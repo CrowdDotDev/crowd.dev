@@ -107,6 +107,7 @@ router.post(
 
     const { memberId } = req.body
     try {
+      log.info(`[SearchSyncAPI] - Calling memberSyncService.removeMember for ${memberId}`)
       await memberSyncService.removeMember(memberId)
       res.sendStatus(200)
     } catch (error) {
