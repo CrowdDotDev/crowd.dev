@@ -77,9 +77,9 @@ import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
 import { isEnrichmentFeatureEnabled } from '@/modules/member/member-enrichment';
 import { useRouter } from 'vue-router';
+import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 import { MemberPermissions } from '../member-permissions';
 import AppMemberFindGithubDrawer from './member-find-github-drawer.vue';
-import { FeatureFlag, FEATURE_FLAGS } from '@/featureFlag';
 
 const router = useRouter();
 const props = defineProps({

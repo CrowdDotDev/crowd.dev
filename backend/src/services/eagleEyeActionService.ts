@@ -1,10 +1,10 @@
 import { LoggerBase } from '@crowd/logging'
+import { EagleEyeAction, EagleEyeActionType } from '@crowd/types'
+import { Error404 } from '@crowd/common'
 import EagleEyeActionRepository from '../database/repositories/eagleEyeActionRepository'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import Error404 from '../errors/Error404'
 import track from '../segment/track'
-import { EagleEyeAction, EagleEyeActionType } from '../types/eagleEyeTypes'
 import { IServiceOptions } from './IServiceOptions'
 
 export default class EagleEyeActionService extends LoggerBase {

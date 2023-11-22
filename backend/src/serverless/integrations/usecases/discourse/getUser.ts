@@ -4,8 +4,6 @@ import { RateLimitError } from '@crowd/types'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
 import { DiscourseUserResponse, DisourseUserByUsernameInput } from '../../types/discourseTypes'
 
-// this methods returns ids of posts in a topic
-// then we need to parse each topic individually (can be batched)
 export const getDiscourseUserByUsername = async (
   params: DiscourseConnectionParams,
   input: DisourseUserByUsernameInput,

@@ -1,4 +1,4 @@
-import CubeJsService from '../../services/cubejs/cubeJsService'
+import { CubeJsService } from '@crowd/cubejs'
 
 export default async (req, res) => {
   const payload = await CubeJsService.verifyToken(req.language, req.body.token, req.params.tenantId)

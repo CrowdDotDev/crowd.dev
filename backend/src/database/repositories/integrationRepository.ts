@@ -1,10 +1,10 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
+import { Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
@@ -509,6 +509,37 @@ class IntegrationRepository {
     })
 
     rows = await this._populateRelationsForRows(rows)
+
+    // Some integrations (i.e GitHub, Discord, Discourse, Groupsio) receive new data via webhook post-onboarding.
+    // We track their last processedAt separately, and not using updatedAt.
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const integrationIds = rows.map((row) => row.id)
+    let results = []
+
+    if (integrationIds.length > 0) {
+      const query = `select "integrationId", max("processedAt") as "processedAt" from "incomingWebhooks" 
+      where "integrationId" in (:integrationIds) and state = 'PROCESSED'
+      group by "integrationId"`
+
+      results = await seq.query(query, {
+        replacements: {
+          integrationIds,
+        },
+        type: QueryTypes.SELECT,
+        transaction: SequelizeRepository.getTransaction(options),
+      })
+    }
+
+    const processedAtMap = results.reduce((map, item) => {
+      map[item.integrationId] = item.processedAt
+      return map
+    }, {})
+
+    rows.forEach((row) => {
+      // Either use the last processedAt, or fall back updatedAt
+      row.lastProcessedAt = processedAtMap[row.id] || row.updatedAt
+    })
 
     return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }

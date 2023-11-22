@@ -1,9 +1,8 @@
-import { Op } from 'sequelize'
 import { v4 as uuid } from 'uuid'
 import moment from 'moment'
 
-import Error404 from '../../../errors/Error404'
-import { PlatformType } from '@crowd/types'
+import { Error404 } from '@crowd/common'
+import { PlatformType, SegmentStatus } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import MemberRepository from '../memberRepository'
@@ -13,7 +12,6 @@ import TagRepository from '../tagRepository'
 import TaskRepository from '../taskRepository'
 import lodash from 'lodash'
 import SegmentRepository from '../segmentRepository'
-import { SegmentStatus } from '../../../types/segmentTypes'
 import { populateSegments } from '../../utils/segmentTestUtils'
 import MemberService from '../../../services/memberService'
 import OrganizationService from '../../../services/organizationService'
@@ -126,7 +124,6 @@ describe('MemberRepository tests', () => {
         segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
-        activities: [],
         activeOn: [],
         activityTypes: [],
         reach: { total: -1 },
@@ -257,7 +254,6 @@ describe('MemberRepository tests', () => {
         segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
-        activities: [],
         activeOn: [],
         activityTypes: [],
         reach: { total: -1 },
@@ -492,7 +488,6 @@ describe('MemberRepository tests', () => {
         segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
-        activities: [],
         activeOn: [],
         activityTypes: [],
         reach: { total: -1 },
@@ -3000,7 +2995,6 @@ describe('MemberRepository tests', () => {
         segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
-        activities: [],
         reach: { total: -1 },
         notes: [],
         tasks: [],
@@ -3184,7 +3178,6 @@ describe('MemberRepository tests', () => {
         segments: mockIRepositoryOptions.currentSegments,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
-        activities: [],
         reach: { total: -1 },
         notes: [],
         tasks: [],
@@ -3295,7 +3288,6 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         activeOn: [],
         activityTypes: [],
-        activities: [],
         reach: { total: -1 },
         joinedAt: new Date(member1.joinedAt),
         organizations: [

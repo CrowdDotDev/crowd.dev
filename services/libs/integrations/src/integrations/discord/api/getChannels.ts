@@ -3,8 +3,8 @@ import { timeout } from '@crowd/common'
 import { DiscordApiChannel, DiscordGetChannelsInput, DiscordGetMessagesInput } from '../types'
 import getMessages from './getMessages'
 import { IProcessStreamContext } from '../../../types'
-import { getRateLimiter } from './handleRateLimit'
 import { handleDiscordError } from './errorHandler'
+import { retryWrapper } from './handleRateLimit'
 
 /**
  * Try if a channel is readable
@@ -33,8 +33,6 @@ async function getChannels(
   ctx: IProcessStreamContext,
   tryChannels = true,
 ): Promise<DiscordApiChannel[]> {
-  const rateLimiter = getRateLimiter(ctx)
-
   const config = {
     method: 'get',
     url: `https://discord.com/api/v10/guilds/${input.guildId}/channels?`,
@@ -43,44 +41,45 @@ async function getChannels(
     },
   }
 
-  try {
-    await rateLimiter.checkRateLimit('getChannels')
-    await rateLimiter.incrementRateLimit()
-
-    const response = await axios(config)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: any = response.data
-
-    if (tryChannels) {
+  return await retryWrapper(3, async () => {
+    try {
+      const response = await axios(config)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const out: any[] = []
-      for (const channel of result) {
-        const limit = await tryChannel(
-          {
-            channelId: channel.id,
-            token: input.token,
-            perPage: 1,
-            page: undefined,
-          },
-          ctx,
-        )
-        if (limit) {
-          out.push(channel)
-          if (limit <= 1 && limit !== false) {
-            await timeout(5 * 1000)
+      const result: any = response.data
+
+      if (tryChannels) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const out: any[] = []
+        for (const channel of result) {
+          const limit = await tryChannel(
+            {
+              channelId: channel.id,
+              token: input.token,
+              perPage: 1,
+              page: undefined,
+            },
+            ctx,
+          )
+          if (limit) {
+            out.push(channel)
+            if (limit <= 1 && limit !== false) {
+              await timeout(5 * 1000)
+            }
           }
         }
+        return out
       }
-      return out
-    }
 
-    return result
-  } catch (err) {
-    const newErr = handleDiscordError(err, config, { input }, ctx)
-    if (newErr) {
-      throw newErr
+      return result
+    } catch (err) {
+      const newErr = handleDiscordError(err, config, { input }, ctx)
+      if (newErr) {
+        throw newErr
+      } else {
+        return []
+      }
     }
-  }
+  })
 }
 
 export default getChannels

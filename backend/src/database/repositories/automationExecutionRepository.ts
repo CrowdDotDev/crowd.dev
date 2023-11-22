@@ -1,14 +1,10 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { QueryTypes } from 'sequelize'
+import { AutomationExecutionState, PageData } from '@crowd/types'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { DbAutomationExecutionInsertData } from './types/automationTypes'
-import {
-  AutomationExecution,
-  AutomationExecutionCriteria,
-  AutomationExecutionState,
-} from '../../types/automationTypes'
-import { PageData } from '../../types/common'
+import { AutomationExecution, AutomationExecutionCriteria } from '../../types/automationTypes'
 import { RepositoryBase } from './repositoryBase'
 
 export default class AutomationExecutionRepository extends RepositoryBase<

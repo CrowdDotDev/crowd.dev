@@ -1,7 +1,7 @@
 import { RedisCache } from '@crowd/redis'
+import { Error403 } from '@crowd/common'
+import { FeatureFlagRedisKey } from '@crowd/types'
 import AutomationRepository from '../../database/repositories/automationRepository'
-import Error403 from '../../errors/Error403'
-import { FeatureFlagRedisKey } from '../../types/common'
 import SegmentService from '../../services/segmentService'
 
 export default async (req, res) => {
@@ -29,7 +29,8 @@ export default async (req, res) => {
         ...tenantUser.tenant.dataValues,
         csvExportCount: Number(await csvExportCountCache.get(tenantUser.tenant.id)) || 0,
         automationCount:
-          Number(await AutomationRepository.countAll(req.database, tenantUser.tenant.id)) || 0,
+          Number(await AutomationRepository.countAllActive(req.database, tenantUser.tenant.id)) ||
+          0,
         memberEnrichmentCount:
           Number(await memberEnrichmentCountCache.get(tenantUser.tenant.id)) || 0,
       }

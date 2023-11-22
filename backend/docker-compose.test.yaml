@@ -42,6 +42,16 @@ services:
     networks:
       - crowd-bridge-test
 
+  temporal-test:
+    build:
+      context: ../scripts/scaffold/temporal
+    restart: always
+    ports:
+      - '7234:7233'
+      - '8234:8233'
+    networks:
+      - crowd-bridge-test
+
 networks:
   crowd-bridge-test:
     external: true

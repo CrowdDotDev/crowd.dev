@@ -2,11 +2,13 @@ import lodash from 'lodash'
 import { Sequelize, UniqueConstraintError } from 'sequelize'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import { IS_TEST_ENV, REDIS_CONFIG } from '../../conf'
-import Error400 from '../../errors/Error400'
+import { Unleash, getUnleashClient } from '@crowd/feature-flags'
+import { Edition, SegmentData } from '@crowd/types'
+import { SERVICE, Error400 } from '@crowd/common'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import { API_CONFIG, IS_TEST_ENV, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../../conf'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { SegmentData } from '../../types/segmentTypes'
 import { IServiceOptions } from '../../services/IServiceOptions'
 
 /**
@@ -30,6 +32,21 @@ export default class SequelizeRepository {
     tenant?,
     segments?,
   ): Promise<IRepositoryOptions> {
+    let unleash: Unleash | undefined
+
+    if (UNLEASH_CONFIG.url && API_CONFIG.edition === Edition.CROWD_HOSTED) {
+      unleash = await getUnleashClient({
+        url: UNLEASH_CONFIG.url,
+        apiKey: UNLEASH_CONFIG.backendApiKey,
+        appName: SERVICE,
+      })
+    }
+
+    let temporal: TemporalClient | undefined
+    if (TEMPORAL_CONFIG.serverUrl) {
+      temporal = await getTemporalClient(TEMPORAL_CONFIG)
+    }
+
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
@@ -39,6 +56,8 @@ export default class SequelizeRepository {
       bypassPermissionValidation: true,
       language: 'en',
       redis: await getRedisClient(REDIS_CONFIG, true),
+      unleash,
+      temporal,
     }
   }
 

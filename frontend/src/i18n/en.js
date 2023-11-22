@@ -150,11 +150,12 @@ const en = {
         title: 'Contacts',
       },
       create: {
-        success: 'Contact successfully saved',
+        success: 'Contact added successfully',
         error: 'There was an error creating the contact',
+        message: 'View contact',
       },
       update: {
-        success: 'Contact successfully saved',
+        success: 'Contact edited successfully',
         error: 'There was an error updating the contact',
       },
       destroy: {
@@ -262,7 +263,7 @@ const en = {
         revenueRange: 'Annual revenue',
         activeSince: 'Active since',
         github: 'GitHub',
-        twitter: 'Twitter',
+        twitter: 'X/Twitter',
         linkedin: 'LinkedIn',
         crunchbase: 'Crunchbase',
       },
@@ -812,7 +813,7 @@ const en = {
   /* eslint-disable */
   validation: {
     mixed: {
-      default: 'path} is invalid',
+      default: '{path} is invalid',
       required: 'This field is required',
       oneOf:
         '{path} must be one of the following values: ${values}',

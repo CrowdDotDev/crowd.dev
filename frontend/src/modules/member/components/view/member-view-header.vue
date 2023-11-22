@@ -15,6 +15,7 @@
               :member="member"
               :show-view-member="false"
               @merge="isMergeDialogOpen = member"
+              @find-github="isFindGithubDrawerOpen = member"
             />
           </div>
         </div>
@@ -79,6 +80,10 @@
         <app-tag-popover v-model="isEditTagsDialogOpen" :member="member" />
       </div>
     </div>
+    <app-member-find-github-drawer
+      v-if="isFindGithubDrawerOpen"
+      v-model="isFindGithubDrawerOpen"
+    />
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
@@ -98,6 +103,7 @@ import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
+import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 
 defineProps({
   member: {
@@ -108,6 +114,7 @@ defineProps({
 
 const isEditTagsDialogOpen = ref(false);
 const isMergeDialogOpen = ref(null);
+const isFindGithubDrawerOpen = ref(null);
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information

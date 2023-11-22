@@ -1,10 +1,9 @@
+import { generateUUIDv1, Error400, Error404 } from '@crowd/common'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import MemberService from '../memberService'
 import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
-import Error404 from '../../errors/Error404'
-import Error400 from '../../errors/Error400'
 import { MemberAttributeName, MemberAttributeType, PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
@@ -13,7 +12,6 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
-import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 import {
   DEVTO_MEMBER_ATTRIBUTES,
@@ -691,7 +689,7 @@ describe('MemberService tests', () => {
       })
     })
 
-    it('Should create non existent member - organization as id, no enrichment', async () => {
+    it('Should create non existent member - organization as id', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const oCreated = await new OrganizationService(mockIServiceOptions).createOrUpdate({
@@ -752,119 +750,6 @@ describe('MemberService tests', () => {
         crunchbase: null,
         employees: null,
         revenueRange: null,
-        importHash: null,
-        deletedAt: null,
-        tenantId: mockIServiceOptions.currentTenant.id,
-        createdById: mockIServiceOptions.currentUser.id,
-        updatedById: mockIServiceOptions.currentUser.id,
-        isTeamOrganization: false,
-        type: null,
-        ticker: null,
-        size: null,
-        naics: null,
-        lastEnrichedAt: null,
-        industry: null,
-        headline: null,
-        geoLocation: null,
-        founded: null,
-        employeeCountByCountry: null,
-        address: null,
-        profiles: null,
-        attributes: {},
-        manuallyCreated: false,
-        affiliatedProfiles: null,
-        allSubsidiaries: null,
-        alternativeDomains: null,
-        alternativeNames: null,
-        averageEmployeeTenure: null,
-        averageTenureByLevel: null,
-        averageTenureByRole: null,
-        directSubsidiaries: null,
-        employeeChurnRate: null,
-        employeeCountByMonth: null,
-        employeeGrowthRate: null,
-        employeeCountByMonthByLevel: null,
-        employeeCountByMonthByRole: null,
-        gicsSector: null,
-        grossAdditionsByMonth: null,
-        grossDeparturesByMonth: null,
-        ultimateParent: null,
-        immediateParent: null,
-      })
-    })
-
-    it('Should create non existent member - organization with enrichment', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
-        db,
-        Plans.values.growth,
-      )
-
-      const member1 = {
-        username: 'anil',
-        platform: PlatformType.GITHUB,
-        emails: ['lala@gmail.com'],
-        score: 10,
-        attributes: {},
-        reach: 10,
-        bio: 'Computer Science',
-        organizations: [{ name: 'crowd.dev', url: 'https://crowd.dev', description: 'Here' }],
-        joinedAt: '2020-05-28T15:13:30Z',
-        location: 'Istanbul',
-      }
-
-      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
-
-      memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
-      memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
-
-      const organization = (await OrganizationRepository.findAndCountAll({}, mockIServiceOptions))
-        .rows[0]
-
-      const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
-
-      const o1 = foundMember.organizations[0].get({ plain: true })
-      delete o1.createdAt
-      delete o1.updatedAt
-
-      expect(o1).toStrictEqual({
-        id: organization.id,
-        displayName: 'crowd.dev',
-        github: null,
-        location: null,
-        website: null,
-        description:
-          'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
-        emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
-        phoneNumbers: ['+42 424242'],
-        logo: 'https://logo.clearbit.com/crowd.dev',
-        memberOrganizations: {
-          dateEnd: null,
-          dateStart: null,
-          title: null,
-          source: null,
-        },
-        tags: [],
-        twitter: {
-          id: '1362101830923259908',
-          bio: 'Community-led Growth for Developer-first Companies.\nJoin our private beta. 👇',
-          site: 'https://t.co/GRLDhqFWk4',
-          avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
-          handle: 'CrowdDotDev',
-          location: '🌍 remote',
-          followers: 107,
-          following: 0,
-        },
-        linkedin: {
-          handle: 'company/crowddevhq',
-        },
-        crunchbase: {
-          handle: null,
-        },
-        employees: 5,
-        revenueRange: {
-          max: 1,
-          min: 0,
-        },
         importHash: null,
         deletedAt: null,
         tenantId: mockIServiceOptions.currentTenant.id,
@@ -1948,7 +1833,6 @@ describe('MemberService tests', () => {
       )
 
       // Sequelize returns associations as array of models, we need to get plain objects
-      mergedMember.activities = mergedMember.activities.map((i) => i.get({ plain: true }))
       mergedMember.tags = mergedMember.tags.map((i) => i.get({ plain: true }))
       mergedMember.organizations = mergedMember.organizations.map((i) =>
         SequelizeTestUtils.objectWithoutKey(i.get({ plain: true }), ['memberOrganizations']),
@@ -2040,7 +1924,6 @@ describe('MemberService tests', () => {
         contributions: null,
         displayName: 'Anil',
         identities: [PlatformType.GITHUB, PlatformType.DISCORD],
-        activities: [activityCreated],
         attributes: {
           ...member1.attributes,
           ...member2.attributes,

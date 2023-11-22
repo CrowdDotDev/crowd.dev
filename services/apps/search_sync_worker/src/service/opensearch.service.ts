@@ -285,6 +285,27 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async removeAllFromIndex(ids: string[], index: OpenSearchIndex): Promise<void> {
+    try {
+      const indexName = this.indexVersionMap.get(index)
+
+      await this.client.deleteByQuery({
+        index: indexName,
+        refresh: true,
+        body: {
+          query: {
+            terms: {
+              _id: ids,
+            },
+          },
+        },
+      })
+    } catch (err) {
+      this.log.error(err, { index }, 'Failed to remove documents from index!')
+      throw new Error(`Failed to remove documents from index ${index}!`)
+    }
+  }
+
   public async index<T>(id: string, index: OpenSearchIndex, body: T): Promise<void> {
     const indexName = this.indexVersionMap.get(index)
     try {

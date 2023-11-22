@@ -1,7 +1,8 @@
+import { sendMessage } from '@crowd/sqs'
 import moment from 'moment'
-import { sqs } from '../../services/aws'
 import { IS_TEST_ENV, KUBE_MODE, SQS_CONFIG } from '../../conf'
 import { PythonWorkerMessage } from '../types/workerTypes'
+import { SQS_CLIENT } from './serviceSQS'
 
 export const sendPythonWorkerMessage = async (
   tenantId: string,
@@ -16,12 +17,10 @@ export const sendPythonWorkerMessage = async (
     throw new Error("Can't send python-worker SQS message when not in kube mode!")
   }
 
-  await sqs
-    .sendMessage({
-      QueueUrl: SQS_CONFIG.pythonWorkerQueue,
-      MessageGroupId: tenantId,
-      MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,
-      MessageBody: JSON.stringify(body),
-    })
-    .promise()
+  await sendMessage(SQS_CLIENT(), {
+    QueueUrl: SQS_CONFIG.pythonWorkerQueue,
+    MessageGroupId: tenantId,
+    MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,
+    MessageBody: JSON.stringify(body),
+  })
 }

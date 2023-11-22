@@ -7,9 +7,14 @@
   >
     <template #content>
       <p class="text-sm text-gray-600 mb-6">
-        We have found the following profiles on GitHub that could match {{ member.displayName }}. You can select the correct one to add it to the member.
+        We have found the following profiles on GitHub that could match {{ modelValue.displayName }}.
+        You can select the correct one to add it to the contact.
       </p>
-      <div v-for="suggestion in suggestions" key="suggestion.url" class="flex items-center">
+      <div
+        v-for="suggestion in suggestions"
+        :key="suggestion.url"
+        class="flex items-center"
+      >
         <div
           class="py-2 flex justify-between w-full px-4 cursor-pointer hover:bg-gray-50 rounded-md hover:shadow-sm"
           :class="{ selected: selected === suggestion.username }"
@@ -73,36 +78,32 @@ import cloneDeep from 'lodash/cloneDeep';
 const store = useStore();
 const props = defineProps({
   modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  member: {
     type: Object,
-    default: {},
+    required: true,
   },
 });
 
-const memberModel = reactive(cloneDeep(props.member));
+const memberModel = reactive(cloneDeep(props.modelValue));
 
 const suggestions = ref([]);
 const selected = ref('');
 
 onMounted(async () => {
-  suggestions.value = await MemberService.findGithub(props.member.id);
+  suggestions.value = await MemberService.findGithub(props.modelValue.id);
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const drawerModel = computed({
   get() {
-    return props.modelValue;
+    return props.modelValue !== null;
   },
-  set(value) {
-    emit('update:modelValue', value);
+  set() {
+    emit('update:modelValue', null);
   },
 });
 
-const title = computed(() => `Find the GitHub identity for ${props.member.displayName}`);
+const title = computed(() => `Find the GitHub identity for ${props.modelValue.displayName}`);
 
 const loading = ref(false);
 
@@ -119,10 +120,11 @@ const handleSubmit = async () => {
   console.log('member', memberModel);
   console.log(JSON.stringify({ ...memberModel.username, github: [selected.value] }));
   console.log(JSON.stringify({ ...memberModel.username }));
-  MemberService.update(props.member.id, {
+
+  MemberService.update(props.modelValue.id, {
     username: { ...memberModel.username, github: [selected.value] },
   }).then(() => {
-    store.dispatch('member/doFind', props.member.id).then(() => {
+    store.dispatch('member/doFind', props.modelValue.id).then(() => {
       Message.success('GitHub added successfully');
     });
   }).catch((err) => {

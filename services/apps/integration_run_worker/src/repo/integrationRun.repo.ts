@@ -139,6 +139,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
           r.id                        as "runId",
           i.settings                  as "integrationSettings",
           i.token                     as "integrationToken",
+          i."refreshToken"            as "integrationRefreshToken",
           coalesce(c.stream_count, 0) as "streamCount"
       from integration.runs r
               inner join integrations i on (r."integrationId" = i.id and i."deletedAt" is null)
@@ -283,6 +284,40 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
       {
         runId,
         settings: JSON.stringify(settings),
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationToken(runId: string, token: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set token = $(token),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        token,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationRefreshToken(runId: string, refreshToken: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set "refreshToken" = $(refreshToken),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        refreshToken,
       },
     )
 

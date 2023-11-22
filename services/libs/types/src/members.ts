@@ -2,6 +2,7 @@ import { IAttributes } from './attributes'
 import { MemberAttributeType } from './enums/members'
 import { IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITagOpensearch } from './tags'
+import { PlatformType } from './enums/platforms'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
@@ -26,6 +27,7 @@ export interface IMemberData {
   attributes?: Record<string, unknown>
   joinedAt?: string
   organizations?: IOrganization[]
+  reach?: Partial<Record<PlatformType, number>>
 }
 
 export interface IMember {
@@ -34,6 +36,8 @@ export interface IMember {
   segmentId: string
   attributes: IAttributes
   emails: string[]
+  displayName?: string
+  avatarUrl?: string
   score: number
   lastEnriched: string
   joinedAt: string

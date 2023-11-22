@@ -128,9 +128,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         ...data,
         id,
         tenantId,
-        reach: {
-          total: -1,
-        },
         weakIdentities: JSON.stringify(data.weakIdentities || []),
         createdAt: ts,
         updatedAt: ts,

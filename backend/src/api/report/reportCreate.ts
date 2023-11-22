@@ -1,4 +1,4 @@
-import Error403 from '../../errors/Error403'
+import { Error403 } from '@crowd/common'
 import Permissions from '../../security/permissions'
 import track from '../../segment/track'
 import ReportService from '../../services/reportService'

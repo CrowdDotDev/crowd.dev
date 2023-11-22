@@ -13,6 +13,9 @@ export const FEATURE_FLAGS = {
   hubspot: 'hubspot',
   findGitHub: 'find-github',
   logRocket: 'log-rocket',
+  developerMode: 'developer-mode',
+  quickstartV2: 'quickstart-v2',
+  twitter: 'twitter',
 };
 
 class FeatureFlagService {
@@ -66,7 +69,7 @@ class FeatureFlagService {
     if (config.isCommunityVersion) {
       return true;
     }
-    console.log('unleash', flag, this.unleash.isEnabled(flag));
+
     return this.unleash.isEnabled(flag);
   }
 

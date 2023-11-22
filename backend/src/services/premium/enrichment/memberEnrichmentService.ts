@@ -3,6 +3,7 @@ import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
+import { i18n, Error400 } from '@crowd/common'
 import {
   ApiWebsocketMessage,
   MemberAttributeName,
@@ -11,12 +12,11 @@ import {
   MemberEnrichmentAttributes,
   PlatformType,
   OrganizationSource,
+  SyncMode,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
-import Error400 from '../../../errors/Error400'
-import { i18n } from '../../../i18n'
 import track from '../../../segment/track'
 import { Member } from '../../../serverless/integrations/types/messageTypes'
 import { IServiceOptions } from '../../IServiceOptions'
@@ -35,7 +35,7 @@ import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -144,7 +144,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+    const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -159,7 +159,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
-        await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, memberId)
+        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberId)
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (
@@ -236,7 +236,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         await this.getAttributes()
       }
 
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(options)
@@ -286,7 +286,24 @@ export default class MemberEnrichmentService extends LoggerBase {
             const existingMember = await memberService.memberExists(username, platform)
 
             if (existingMember) {
-              await memberService.merge(memberId, existingMember.id)
+              // add the member to merge suggestions
+              await MemberRepository.addToMerge(
+                [{ similarity: 0.9, members: [memberId, existingMember.id] }],
+                options,
+              )
+
+              if (Array.isArray(normalized.username[platform])) {
+                // Filter out the identity that belongs to another member from the normalized payload
+                normalized.username[platform] = normalized.username[platform].filter(
+                  (u) => u !== username,
+                )
+              } else if (typeof normalized.username[platform] === 'string') {
+                delete normalized.username[platform]
+              } else {
+                throw new Error(
+                  `Unsupported data type for normalized.username[platform] "${normalized.username[platform]}".`,
+                )
+              }
             }
           }
         }
@@ -300,9 +317,13 @@ export default class MemberEnrichmentService extends LoggerBase {
       // upsert always takes the existing displayName
       if (!/\W/.test(member.displayName)) {
         if (enrichmentData.first_name && enrichmentData.last_name) {
-          await memberService.update(member.id, {
-            displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
-          })
+          await memberService.update(
+            member.id,
+            {
+              displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
+            },
+            false,
+          )
         }
       }
 
@@ -331,14 +352,20 @@ export default class MemberEnrichmentService extends LoggerBase {
       const organizationService = new OrganizationService(options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
-          const org = await organizationService.createOrUpdate({
-            identities: [
-              {
-                name: workExperience.company,
-                platform: PlatformType.ENRICHMENT,
-              },
-            ],
-          })
+          const org = await organizationService.createOrUpdate(
+            {
+              identities: [
+                {
+                  name: workExperience.company,
+                  platform: PlatformType.ENRICHMENT,
+                },
+              ],
+            },
+            {
+              doSync: true,
+              mode: SyncMode.ASYNCHRONOUS,
+            },
+          )
 
           const dateEnd = workExperience.endDate
             ? moment.utc(workExperience.endDate).toISOString()
@@ -357,7 +384,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      await searchSyncEmitter.triggerMemberSync(options.currentTenant.id, result.id)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)

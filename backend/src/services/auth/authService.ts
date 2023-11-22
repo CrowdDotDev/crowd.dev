@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
+import { Error400, Error401 } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { TenantMode } from '../../conf/configTypes'
 import UserRepository from '../../database/repositories/userRepository'
-import Error400 from '../../errors/Error400'
 import EmailSender from '../emailSender'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
@@ -12,7 +12,6 @@ import { API_CONFIG, TENANT_MODE } from '../../conf'
 import TenantService from '../tenantService'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import { tenantSubdomain } from '../tenantSubdomain'
-import Error401 from '../../errors/Error401'
 import identify from '../../segment/identify'
 import track from '../../segment/track'
 
@@ -37,6 +36,12 @@ class AuthService {
       email = email.toLowerCase()
 
       const existingUser = await UserRepository.findByEmail(email, options)
+
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])([^ \t]{8,})$/
+
+      if (!passwordRegex.test(password)) {
+        throw new Error400(options.language, 'auth.passwordInvalid')
+      }
 
       // Generates a hashed password to hide the original one.
       const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS)

@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
-import { Edition } from '@crowd/types'
+import { AutomationTrigger, AutomationType, Edition, FeatureFlag } from '@crowd/types'
+import { getUnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -13,8 +14,8 @@ import {
   EagleEyeEmailDigestMessage,
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
+  OrganizationMergeMessage,
 } from './messageTypes'
-import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
@@ -27,8 +28,9 @@ import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmai
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
+import { orgMergeWorker } from './org-merge/orgMergeWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
-import { API_CONFIG } from '../../../conf'
+import { API_CONFIG, UNLEASH_CONFIG } from '../../../conf'
 
 /**
  * Worker factory for spawning different microservices
@@ -38,6 +40,12 @@ import { API_CONFIG } from '../../../conf'
  */
 
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
+  const unleash = await getUnleashClient({
+    url: UNLEASH_CONFIG.url,
+    appName: event.service,
+    apiKey: UNLEASH_CONFIG.backendApiKey,
+  })
+
   const { service, tenant } = event as any
   switch (service.toLowerCase()) {
     case 'stripe-webhooks':
@@ -45,8 +53,32 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'sendgrid-webhooks':
       return processSendgridWebhook(event)
     case 'weekly-analytics-emails':
+      if (
+        isFeatureEnabled(
+          FeatureFlag.TEMPORAL_EMAILS,
+          async () => ({
+            tenant,
+          }),
+          unleash,
+        )
+      ) {
+        return {}
+      }
+
       return weeklyAnalyticsEmailsWorker(tenant)
     case 'eagle-eye-email-digest':
+      if (
+        isFeatureEnabled(
+          FeatureFlag.TEMPORAL_EMAILS,
+          async () => ({
+            tenant,
+          }),
+          unleash,
+        )
+      ) {
+        return {}
+      }
+
       const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
       return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user, eagleEyeDigestMessage.tenant)
     case 'integration-data-checker':
@@ -139,6 +171,15 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         default:
           throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
       }
+    case 'org-merge':
+      const orgMergeMessage = event as OrganizationMergeMessage
+      return orgMergeWorker(
+        orgMergeMessage.tenantId,
+        orgMergeMessage.primaryOrgId,
+        orgMergeMessage.secondaryOrgId,
+        orgMergeMessage.notifyFrontend,
+      )
+
     default:
       throw new Error(`Invalid microservice ${service}`)
   }

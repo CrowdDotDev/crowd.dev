@@ -7,7 +7,7 @@
       :total="organizations.total"
       :route="{
         name: 'organization',
-        query: filterQueryService().setQuery(allOrganizations.filter),
+        query: filterQueryService().setQuery(allOrganizations.config),
       }"
       button-title="All organizations"
       report-name="Organizations report"
@@ -79,7 +79,7 @@
                 :to="{
                   name: 'organization',
                   query: filterQueryService().setQuery({
-                    ...allOrganizations.filter,
+                    ...allOrganizations.config,
                     joinedDate: {
                       value: periodRange,
                       operator: 'between',
@@ -159,7 +159,7 @@
                 :to="{
                   name: 'organization',
                   query: filterQueryService().setQuery({
-                    ...allOrganizations.filter,
+                    ...allOrganizations.config,
                     lastActivityDate: {
                       value: periodRange,
                       operator: 'between',
@@ -193,7 +193,6 @@ import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
-import newAndActive from '@/modules/organization/config/saved-views/views/new-and-active';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 
@@ -213,7 +212,6 @@ export default {
       newOrganizationCount,
       activeOrganizationCount,
       filterQueryService,
-      newAndActive,
       allOrganizations,
     };
   },

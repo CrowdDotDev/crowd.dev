@@ -3,7 +3,7 @@ import {
   IActivityData,
   IntegrationResultType,
   Entity,
-  IAutomation,
+  IAutomationData,
 } from '@crowd/types'
 import { Logger } from '@crowd/logging'
 import {
@@ -13,6 +13,7 @@ import {
   IRateLimiter,
   IConcurrentRequestLimiter,
 } from '@crowd/types'
+import { DbConnection, DbTransaction } from '@crowd/database'
 
 import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
 import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
@@ -28,6 +29,8 @@ export interface IIntegrationContext {
 
   publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
   updateIntegrationSettings: (settings: unknown) => Promise<void>
+  updateIntegrationToken: (token: string) => Promise<void>
+  updateIntegrationRefreshToken: (refreshToken: string) => Promise<void>
 
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }
@@ -35,7 +38,7 @@ export interface IIntegrationContext {
 export interface IIntegrationStartRemoteSyncContext {
   integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
   integration: IIntegration
-  automations: IAutomation[]
+  automations: IAutomationData[]
   tenantId: string
   log: Logger
 }
@@ -45,7 +48,7 @@ export interface IIntegrationProcessRemoteSyncContext {
   integration: IIntegration
   log: Logger
   serviceSettings: IIntegrationServiceSettings
-  automation?: IAutomation
+  automation?: IAutomationData
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
@@ -65,6 +68,8 @@ export interface IProcessStreamContext extends IIntegrationContext {
   publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+
+  getDbConnection: () => DbConnection | DbTransaction
 
   /**
    * Global cache that is shared between all integrations

@@ -51,7 +51,8 @@
       <cr-saved-views
         v-model="filters"
         :config="organizationSavedViews"
-        :views="organizationViews"
+        :filters="organizationFilters"
+        placement="organization"
         @update:model-value="organizationFilter.alignFilterList($event)"
       />
       <cr-filter
@@ -85,9 +86,11 @@ import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
-import { organizationSavedViews, organizationViews } from '@/modules/organization/config/saved-views/main';
+import { organizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { TenantService } from '@/modules/tenant/tenant-service';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 import { OrganizationPermissions } from '../organization-permissions';
 
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -96,6 +99,8 @@ const { doRefreshCurrentUser } = mapActions('auth');
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
+
+const { getGuides } = useQuickStartStore();
 
 const loading = ref(true);
 const organizationCount = ref(0);
@@ -195,5 +200,9 @@ onMounted(async () => {
   fetchOrganizationsToMergeCount();
   doGetOrganizationCount();
   (window as any).analytics.page('Organization');
+  TenantService.viewOrganizations()
+    .then(() => {
+      getGuides();
+    });
 });
 </script>

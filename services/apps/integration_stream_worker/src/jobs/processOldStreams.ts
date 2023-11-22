@@ -1,14 +1,14 @@
-import { IInsertableWebhookStream } from '../repo/integrationStream.data'
-import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import IntegrationStreamService from '../service/integrationStreamService'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { RedisClient, processWithLock } from '@crowd/redis'
+import { RedisClient } from '@crowd/redis'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
 } from '@crowd/sqs'
+import { IInsertableWebhookStream } from '../repo/integrationStream.data'
+import IntegrationStreamRepository from '../repo/integrationStream.repo'
+import IntegrationStreamService from '../service/integrationStreamService'
 
 export const processOldStreamsJob = async (
   dbConn: DbConnection,
@@ -30,8 +30,8 @@ export const processOldStreamsJob = async (
   const repo = new IntegrationStreamRepository(store, log)
 
   const prepareWebhooks = async (): Promise<void> => {
-    await processWithLock(redis, 'prepare-webhooks', 5 * 60, 3 * 60, async () => {
-      const webhooks = await repo.getOldWebhooksToProcess(5)
+    await repo.transactionally(async (txRepo) => {
+      const webhooks = await txRepo.getOldWebhooksToProcess(5)
       const prepared: IInsertableWebhookStream[] = webhooks.map((w) => {
         return {
           identifier: w.id,
@@ -43,15 +43,15 @@ export const processOldStreamsJob = async (
       })
 
       if (prepared.length > 0) {
-        await repo.publishWebhookStreams(prepared)
+        await txRepo.publishWebhookStreams(prepared)
       }
     })
   }
 
   const loadNextBatch = async (): Promise<string[]> => {
-    return await processWithLock(redis, 'process-old-streams', 5 * 60, 3 * 60, async () => {
-      const streams = await repo.getOldStreamsToProcess(5)
-      await repo.touchUpdatedAt(streams)
+    return await repo.transactionally(async (txRepo) => {
+      const streams = await txRepo.getOldStreamsToProcess(5)
+      await txRepo.touchUpdatedAt(streams)
       return streams
     })
   }

@@ -1,7 +1,11 @@
 import { processPaginated, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
 import { LoggerBase, getChildLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  DataSinkWorkerEmitter,
+} from '@crowd/sqs'
 import { IntegrationRunState, IntegrationType } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import MicroserviceRepository from '@/database/repositories/microserviceRepository'
@@ -14,6 +18,7 @@ import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationStreamWorkerEmitter,
+  getDataSinkWorkerEmitter,
 } from '../../utils/serviceSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
 
@@ -25,6 +30,8 @@ export class IntegrationTickProcessor extends LoggerBase {
   private intRunWorkerEmitter: IntegrationRunWorkerEmitter
 
   private intStreamWorkerEmitter: IntegrationStreamWorkerEmitter
+
+  private dataSinkWorkerEmitter: DataSinkWorkerEmitter
 
   constructor(
     options: IServiceOptions,
@@ -46,6 +53,7 @@ export class IntegrationTickProcessor extends LoggerBase {
     if (!this.emittersInitialized) {
       this.intRunWorkerEmitter = await getIntegrationRunWorkerEmitter()
       this.intStreamWorkerEmitter = await getIntegrationStreamWorkerEmitter()
+      this.dataSinkWorkerEmitter = await getDataSinkWorkerEmitter()
 
       this.emittersInitialized = true
     }
@@ -199,13 +207,40 @@ export class IntegrationTickProcessor extends LoggerBase {
                   integration.id,
                 )
               if (!existingRun) {
-                logger.info({ integrationId: integration.id }, 'Triggering new integration check!')
-                await emitter.triggerIntegrationRun(
-                  integration.tenantId,
-                  integration.platform,
-                  integration.id,
-                  false,
-                )
+                const CHUNKS = 3 // Define the number of chunks
+                const DELAY_BETWEEN_CHUNKS = 30 * 60 * 1000 // Define the delay between chunks in milliseconds
+                const rand = Math.random() * CHUNKS
+                const chunkIndex = Math.min(Math.floor(rand), CHUNKS - 1)
+                const delay = chunkIndex * DELAY_BETWEEN_CHUNKS
+
+                // Divide integrations into chunks for Discord
+                if (newIntService.type === IntegrationType.DISCORD) {
+                  setTimeout(async () => {
+                    logger.info(
+                      { integrationId: integration.id },
+                      `Triggering new delayed integration check for Discord in ${
+                        delay / 60 / 1000
+                      } minutes!`,
+                    )
+                    await emitter.triggerIntegrationRun(
+                      integration.tenantId,
+                      integration.platform,
+                      integration.id,
+                      false,
+                    )
+                  }, delay)
+                } else {
+                  logger.info(
+                    { integrationId: integration.id },
+                    'Triggering new integration check!',
+                  )
+                  await emitter.triggerIntegrationRun(
+                    integration.tenantId,
+                    integration.platform,
+                    integration.id,
+                    false,
+                  )
+                }
               } else {
                 logger.info({ integrationId: integration.id }, 'Existing run found, skipping!')
               }
@@ -220,6 +255,7 @@ export class IntegrationTickProcessor extends LoggerBase {
     await this.initEmitters()
     await this.intRunWorkerEmitter.checkRuns()
     await this.intStreamWorkerEmitter.checkStreams()
+    await this.dataSinkWorkerEmitter.checkResults()
 
     // TODO check streams as well
     this.log.trace('Checking for delayed integration runs!')

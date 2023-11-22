@@ -4,8 +4,8 @@ import { OnboardStepConfig } from '@/modules/onboard/types/OnboardStepsConfig';
 const syncData: OnboardStepConfig = {
   name: 'Sync data',
   component: AppOnboardSyncDataStep,
-  hasValidation: false,
-  cta: (touched: boolean) => (touched ? 'Continue' : 'I will set this up later'),
+  cta: 'Continue',
+  ctaTooltip: 'Connect at least 1 integration to proceed',
   textColor: (currentStep: number) => ({
     'text-gray-400': currentStep < 2,
     'text-brand-400': currentStep > 2,

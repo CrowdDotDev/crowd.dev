@@ -3,10 +3,12 @@ import { OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
   id?: string
+  displayName?: string
   url?: string
   description?: string
   emails?: string[]
   logo?: string
+  avatarUrl?: string
   tags?: string[]
   github?: IOrganizationSocial
   twitter?: IOrganizationSocial
@@ -62,6 +64,7 @@ export interface IMemberOrganization {
   updatedAt?: string
   createdAt?: string
   source?: string
+  deletedAt?: string
 }
 
 export interface IOrganizationCache {

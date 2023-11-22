@@ -5,6 +5,7 @@ import {
   DATA_SINK_WORKER_QUEUE_SETTINGS,
   NodejsWorkerEmitter,
   SearchSyncWorkerEmitter,
+  DataSinkWorkerEmitter,
   SqsClient,
   SqsQueueReceiver,
 } from '@crowd/sqs'
@@ -16,6 +17,8 @@ import {
 } from '@crowd/types'
 import DataSinkService from '../service/dataSink.service'
 import { RedisClient } from '@crowd/redis'
+import { Unleash } from '@crowd/feature-flags'
+import { Client as TemporalClient } from '@crowd/temporal'
 
 export class WorkerQueueReceiver extends SqsQueueReceiver {
   constructor(
@@ -23,7 +26,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly dbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -37,15 +43,19 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
         this.log.trace({ messageType: message.type }, 'Processing message!')
 
         const service = new DataSinkService(
-          new DbStore(this.log, this.dbConn),
+          new DbStore(this.log, this.dbConn, undefined, false),
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
+          this.dataSinkWorkerEmitter,
           this.redisClient,
+          this.unleash,
+          this.temporal,
           this.log,
         )
 
         switch (message.type) {
           case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
+            // this type of message will be processed by the processOldResultsJob
             await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
             break
           case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
@@ -56,6 +66,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
               msg.integrationId,
               msg.activityData,
             )
+            break
+          }
+          case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
+            await service.checkResults()
             break
           }
 

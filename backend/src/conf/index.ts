@@ -1,5 +1,6 @@
 import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
+import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import {
   SQSConfiguration,
   S3Configuration,
@@ -34,6 +35,8 @@ import {
   Auth0Configuration,
   WeeklyEmailsConfiguration,
   CrowdAnalyticsConfiguration,
+  IBackendTemporalConfig,
+  IOpenStatusApiConfig,
 } from './configTypes'
 
 // TODO-kube
@@ -137,3 +140,12 @@ export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
 
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
+
+export const TEMPORAL_CONFIG: IBackendTemporalConfig =
+  config.get<IBackendTemporalConfig>('temporal')
+
+export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
+  config.get<ISearchSyncApiConfig>('searchSyncApi')
+
+export const OPEN_STATUS_API_CONFIG: IOpenStatusApiConfig =
+  config.get<IOpenStatusApiConfig>('openStatusApi')

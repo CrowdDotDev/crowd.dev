@@ -108,6 +108,7 @@ import templates from '@/modules/report/templates/config';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 
 const props = defineProps({
   id: {
@@ -117,6 +118,7 @@ const props = defineProps({
 });
 
 const { doFind } = mapActions('report');
+const { getGuides } = useQuickStartStore();
 
 const store = useStore();
 
@@ -184,6 +186,7 @@ onMounted(async () => {
   loading.value = true;
   report.value = await doFind(props.id);
   loading.value = false;
+  getGuides();
 
   if (cubejsApi.value === null) {
     await getCubeToken();

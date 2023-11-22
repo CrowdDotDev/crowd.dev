@@ -128,7 +128,6 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
-
 import AppMenu from '@/modules/layout/components/menu.vue';
 
 export default {
@@ -168,6 +167,7 @@ export default {
       showOrganizationsAlertBanner: 'tenant/showOrganizationsAlertBanner',
       showBanner: 'tenant/showBanner',
     }),
+
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
         (i) => i.name,
@@ -230,7 +230,6 @@ export default {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
     }),
-
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values

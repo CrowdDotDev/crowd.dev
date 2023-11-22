@@ -1,7 +1,7 @@
+import { Error400 } from '@crowd/common'
 import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
 import TaskService from '../../services/taskService'
-import Error400 from '../../errors/Error400'
 
 /**
  * POST /tenant/{tenantId}/task/batch
