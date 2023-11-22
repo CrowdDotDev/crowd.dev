@@ -21,7 +21,7 @@ setImmediate(async () => {
   const app = express()
   const redis = await getRedisClient(REDIS_CONFIG(), true)
   const opensearch = new OpenSearchService(log, OPENSEARCH_CONFIG())
-  const dbConnection = await getDbConnection(DB_CONFIG(), 3)
+  const dbConnection = await getDbConnection(DB_CONFIG(), 20, 5000)
 
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '5mb' }))
