@@ -12,16 +12,17 @@ const log = getServiceLogger()
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const memberSyncService = new MemberSyncService(
-      req.redisClient,
-      req.dbStore,
-      req.opensearch,
-      req.log,
-      serviceConfig,
-    )
-    const { memberIds } = req.body
-
     try {
+      log.info(`[SearchSyncAPI] - Creating memberSyncService for ${req.body.memberIds}`)
+
+      const memberSyncService = new MemberSyncService(
+        req.redisClient,
+        req.dbStore,
+        req.opensearch,
+        req.log,
+        serviceConfig,
+      )
+      const { memberIds } = req.body
       log.info(`[SearchSyncAPI] - Calling memberSyncService.syncMembers for ${memberIds}`)
       await memberSyncService.syncMembers(memberIds)
       res.sendStatus(200)
