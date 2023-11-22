@@ -46,9 +46,9 @@ export async function weeklyGetNextEmails(): Promise<InputAnalytics[]> {
 
   // Filter rows to only return tenants with this feature flag enabled.
   const tenants: InputAnalytics[] = []
-  rows.forEach((row) => {
+  for (const row of rows) {
     if (
-      isFeatureEnabled(
+      await isFeatureEnabled(
         FeatureFlag.TEMPORAL_EMAILS,
         async () => {
           return {
@@ -60,7 +60,7 @@ export async function weeklyGetNextEmails(): Promise<InputAnalytics[]> {
     ) {
       tenants.push(row)
     }
-  })
+  }
 
   return tenants
 }
