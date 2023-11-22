@@ -6,6 +6,7 @@ const syncData: OnboardStepConfig = {
   component: AppOnboardSyncDataStep,
   cta: 'Continue',
   ctaTooltip: 'Connect at least 1 integration to proceed',
+  submitActionInfo: 'Although you have integrations getting set up, you can proceed with the workspace setup.',
   textColor: (currentStep: number) => ({
     'text-gray-400': currentStep < 2,
     'text-brand-400': currentStep > 2,

@@ -55,6 +55,12 @@
 
   <div class="fixed bottom-0 w-full bg-white flex justify-center py-4 px-8 border-t border-gray-200">
     <div class="limit-width">
+      <div
+        v-if="!!stepConfig.submitActionInfo && !$v.$invalid"
+        class="text-blue-900 bg-blue-50 border border-blue-200 rounded-lg text-xs h-10 flex items-center justify-center mb-3"
+      >
+        {{ stepConfig.submitActionInfo }}
+      </div>
       <el-tooltip
         placement="top"
         :disabled="!stepConfig.ctaTooltip || !$v.$invalid"
