@@ -1,6 +1,5 @@
 import resources from './resources/config';
 import support from './support/config';
-import upgradePlan from './upgradePlan/config';
 
 export interface QuickstartWidget {
   id: string;
@@ -9,7 +8,6 @@ export interface QuickstartWidget {
 }
 
 export const quickstartWidgets: QuickstartWidget[] = [
-  upgradePlan,
-  resources,
   support,
+  resources,
 ];

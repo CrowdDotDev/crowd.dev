@@ -47,12 +47,17 @@
     </div>
     <aside
       class="border-l border-gray-200 overflow-auto px-5 py-6"
+      :class="{
+        'w-[21.25rem] min-w-[21.25rem]': displayUpgradeWidget,
+        'w-[18.25rem] min-w-[18.25rem]': !displayUpgradeWidget,
+      }"
       :style="{
         height: showBanner
           ? 'calc(100vh - 3.5rem)'
           : '100vh',
       }"
     >
+      <cr-dashboard-upgrade-plan-widget v-if="displayUpgradeWidget" class="mb-10" />
       <app-dashboard-guides v-if="!isQuickstartEnabled()" />
       <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task />
@@ -76,7 +81,9 @@ import AppDashboardMembers from '@/modules/dashboard/components/dashboard-member
 import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations.vue';
 import AppDashboardTask from '@/modules/dashboard/components/dashboard-task.vue';
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters.vue';
+import CrDashboardUpgradePlanWidget from '@/modules/dashboard/components/dashboard-upgrade-plan-widget.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
+import config from '@/config';
 
 const { currentTenant } = mapGetters('auth');
 const { showBanner } = mapGetters('tenant');
@@ -91,6 +98,8 @@ const storeUnsubscribe = ref(null);
 const scrolled = ref(false);
 
 const loadingCubeToken = computed(() => !!cubejsApi.value);
+
+const displayUpgradeWidget = computed(() => currentTenant.value.plan === 'Essential' && !config.isCommunityVersion);
 
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
@@ -135,10 +144,6 @@ const isQuickstartEnabled = () => FeatureFlag.isFlagEnabled(FeatureFlag.flags.qu
 </script>
 
 <style lang="scss" scoped>
-aside {
-  width: 18.25rem;
-  min-width: 18.25rem;
-}
 .home-content {
   max-width: 60rem;
   width: 100%;
