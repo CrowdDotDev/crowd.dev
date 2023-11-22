@@ -194,6 +194,7 @@ setImmediate(async () => {
   require('./quickstart-guide').default(routes)
   require('./slack').default(routes)
   require('./segment').default(routes)
+  require('./systemStatus').default(routes)
   require('./eventTracking').default(routes)
   require('./customViews').default(routes)
   require('./premium/enrichment').default(routes)
