@@ -256,3 +256,7 @@ export interface EncryptionConfiguration {
   secretKey: string
   initVector: string
 }
+
+export interface IOpenStatusApiConfig {
+  baseUrl: string
+}

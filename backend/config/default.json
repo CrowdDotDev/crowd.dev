@@ -61,5 +61,6 @@
   "temporal": {
     "automationsTaskQueue": "automations"
   },
-  "searchSyncApi": {}
+  "searchSyncApi": {},
+  "openStatusApi": {}
 }
