@@ -324,7 +324,7 @@ export class MemberSyncService {
 
     this.log.info({ memberIds }, '[Sync Members] Getting member data!')
     const members = await this.memberRepo.getMemberData(memberIds)
-    this.log.info({ memberIds, members }, '[Sync Members] Got member data!')
+    this.log.info({ memberIds }, '[Sync Members] Got member data!')
 
     if (members.length > 0) {
       const attributes = await this.memberRepo.getTenantMemberAttributes(members[0].tenantId)
@@ -400,9 +400,9 @@ export class MemberSyncService {
         }
       }
 
-      this.log.info({ memberIds, forSync }, '[Sync Members] Bulk indexing to openserch!')
+      this.log.info({ memberIds }, '[Sync Members] Bulk indexing to openserch!')
       await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, forSync)
-      this.log.info({ memberIds, forSync }, '[Sync Members] Bulk indexing done!')
+      this.log.info({ memberIds }, '[Sync Members] Bulk indexing done!')
       docCount += forSync.length
       memberCount += memberIds.length
     }
