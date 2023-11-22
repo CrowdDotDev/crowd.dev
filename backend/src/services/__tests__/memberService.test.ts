@@ -1701,10 +1701,12 @@ describe('MemberService tests', () => {
       let task1 = await TaskRepository.create({ name: 'task1' }, mockIRepositoryOptions)
       let task2 = await TaskRepository.create({ name: 'task2' }, mockIRepositoryOptions)
       let task3 = await TaskRepository.create({ name: 'task3' }, mockIRepositoryOptions)
+      let task4 = await TaskRepository.create({ name: 'task4' }, mockIRepositoryOptions)
 
       let note1 = await NoteRepository.create({ body: 'note1' }, mockIRepositoryOptions)
       let note2 = await NoteRepository.create({ body: 'note2' }, mockIRepositoryOptions)
       let note3 = await NoteRepository.create({ body: 'note3' }, mockIRepositoryOptions)
+      let note4 = await NoteRepository.create({ body: 'note4' }, mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1739,8 +1741,8 @@ describe('MemberService tests', () => {
         },
         tags: [t2.id, t3.id],
         organizations: [o2.id, o3.id],
-        tasks: [task2.id, task3.id],
-        notes: [note2.id, note3.id],
+        tasks: [task3.id, task4.id],
+        notes: [note3.id, note4.id],
       }
 
       const member3 = {
@@ -1870,11 +1872,13 @@ describe('MemberService tests', () => {
       task1 = await TaskRepository.findById(task1.id, mockIRepositoryOptions)
       task2 = await TaskRepository.findById(task2.id, mockIRepositoryOptions)
       task3 = await TaskRepository.findById(task3.id, mockIRepositoryOptions)
+      task4 = await TaskRepository.findById(task4.id, mockIRepositoryOptions)
 
       // get previously created notes
       note1 = await NoteRepository.findById(note1.id, mockIRepositoryOptions)
       note2 = await NoteRepository.findById(note2.id, mockIRepositoryOptions)
       note3 = await NoteRepository.findById(note3.id, mockIRepositoryOptions)
+      note4 = await NoteRepository.findById(note4.id, mockIRepositoryOptions)
 
       // remove tags->member relations as well (we should be only checking 1-deep relations)
       t1 = SequelizeTestUtils.objectWithoutKey(t1, 'members')
@@ -1905,11 +1909,13 @@ describe('MemberService tests', () => {
       task1 = SequelizeTestUtils.objectWithoutKey(task1, ['members', 'activities', 'assignees'])
       task2 = SequelizeTestUtils.objectWithoutKey(task2, ['members', 'activities', 'assignees'])
       task3 = SequelizeTestUtils.objectWithoutKey(task3, ['members', 'activities', 'assignees'])
+      task4 = SequelizeTestUtils.objectWithoutKey(task4, ['members', 'activities', 'assignees'])
 
       // remove notes->member relations as well (we should be only checking 1-deep relations)
       note1 = SequelizeTestUtils.objectWithoutKey(note1, ['members', 'createdBy'])
       note2 = SequelizeTestUtils.objectWithoutKey(note2, ['members', 'createdBy'])
       note3 = SequelizeTestUtils.objectWithoutKey(note3, ['members', 'createdBy'])
+      note4 = SequelizeTestUtils.objectWithoutKey(note4, ['members', 'createdBy'])
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
@@ -1943,8 +1949,8 @@ describe('MemberService tests', () => {
         joinedAt: new Date(member1.joinedAt),
         reach: { total: -1 },
         tags: [t1, t2, t3],
-        tasks: [task1, task2, task3],
-        notes: [note1, note2, note3],
+        tasks: [task1, task2, task3, task4],
+        notes: [note1, note2, note3, note4],
         organizations: [
           SequelizeTestUtils.objectWithoutKey(o1, [
             'activeOn',
