@@ -51,9 +51,11 @@ if (!seq) {
       seq = db.sequelize as Sequelize
     })
     .then(() => {
+      log.info('Checking readiness for job generator.')
       seq.query('select 1', { type: QueryTypes.SELECT }).then((res) => {
         const dbPingRes = res.length === 1
         if (dbPingRes) {
+          log.info('Job generator is ready.')
           fs.promises.writeFile(readyFilePath, 'Job generator is ready.').catch((err) => {
             log.error(`Error writing ready.tmp: ${err}`)
           })
@@ -69,6 +71,7 @@ setInterval(async () => {
     const dbPingRes = res.length === 1
     if (dbPingRes) {
       await fs.promises.writeFile(liveFilePath, 'Job generator is live.')
+      log.info('Job generator is live.')
     }
   } catch (err) {
     log.error(`Error writing live.tmp: ${err}`)
