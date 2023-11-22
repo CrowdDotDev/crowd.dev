@@ -42,7 +42,12 @@
     </div>
   </div>
   <!-- FORM -->
-  <div class="flex justify-center mt-10 mb-30">
+  <div
+    class="flex justify-center mt-10 mb-30"
+    :class="{
+      'mb-42': !!stepConfig.submitActionInfo && !$v.$invalid,
+    }"
+  >
     <main class="limit-width">
       <component
         :is="stepConfig.component"

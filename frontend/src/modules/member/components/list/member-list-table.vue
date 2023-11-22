@@ -99,6 +99,7 @@
             >
               <el-table-column type="selection" width="75" fixed />
 
+              <!-- Contacts -->
               <el-table-column
                 label="Contact"
                 prop="displayName"
@@ -129,6 +130,7 @@
                 </template>
               </el-table-column>
 
+              <!-- Organization & Title -->
               <el-table-column label="Organization & Title" width="220">
                 <template #default="scope">
                   <router-link
@@ -145,166 +147,8 @@
                   </router-link>
                 </template>
               </el-table-column>
-              <el-table-column
-                label="# of Activities"
-                prop="activityCount"
-                width="200"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    {{ formatNumber(scope.row.activityCount) }}
-                  </router-link>
-                </template>
-              </el-table-column>
-              <el-table-column
-                label="Engagement Level"
-                prop="score"
-                width="200"
-                sortable="custom"
-              >
-                <template #header>
-                  <el-tooltip placement="top">
-                    <template #content>
-                      Calculated based on the recency and importance of the activities<br>
-                      a contact has performed in relation to all other contacts.
-                    </template>
-                    Engagement Level
-                  </el-tooltip>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-engagement-level :member="scope.row" />
-                  </router-link>
-                </template>
-              </el-table-column>
-              <el-table-column
-                label="Last activity"
-                prop="lastActive"
-                width="250"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    <app-member-last-activity
-                      v-if="scope.row.lastActivity"
-                      :member="scope.row"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-if="showReach"
-                label="Reach"
-                prop="reach"
-                width="150"
-                sortable="custom"
-              >
-                <template #header>
-                  <el-tooltip placement="top">
-                    <template #content>
-                      Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
-                    </template>
-                    Reach
-                  </el-tooltip>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    <app-member-reach
-                      :member="{
-                        ...scope.row,
-                        reach: scope.row.reach,
-                      }"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
 
-              <!-- Joined Date -->
-              <el-table-column
-                label="Joined Date"
-                width="200"
-                prop="joinedAt"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      v-if="scope.row.joinedAt"
-                      class="text-gray-900 text-sm"
-                    >
-                      {{ formatDateToTimeAgo(scope.row.joinedAt) }}
-                    </div>
-                    <span v-else class="text-gray-900">-</span>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- # of Open Source Contributions -->
-              <el-table-column
-                label="# of open source contributions"
-                width="200"
-                prop="numberOfOpenSourceContributions"
-                sortable
-              >
-                <template #header>
-                  <el-tooltip placement="top">
-                    <template #content>
-                      This refers to the total # of open source contributions a contact did on GitHub.<br />
-                      To receive this attribute you have to enrich your contacts.
-                    </template>
-                    # of open source contributions
-                  </el-tooltip>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div data-qa="member-oss-contributions" class="text-gray-900 text-sm member-oss-contributions">
-                      {{
-                        formatNumberToCompact(
-                          scope.row.numberOfOpenSourceContributions,
-                        )
-                      }}
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
+              <!-- Identities -->
               <el-table-column label="Identities" width="240">
                 <template #header>
                   <el-tooltip placement="top">
@@ -328,6 +172,7 @@
                 </template>
               </el-table-column>
 
+              <!-- Emails -->
               <el-table-column label="Emails" :width="emailsColumnWidth">
                 <template #default="scope">
                   <router-link
@@ -410,6 +255,249 @@
                 </template>
               </el-table-column>
 
+              <!-- Engagement level -->
+              <el-table-column
+                label="Engagement Level"
+                prop="score"
+                width="200"
+                sortable="custom"
+              >
+                <template #header>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Calculated based on the recency and importance of the activities<br>
+                      a contact has performed in relation to all other contacts.
+                    </template>
+                    Engagement Level
+                  </el-tooltip>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-member-engagement-level :member="scope.row" />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- # of Activities -->
+              <el-table-column
+                label="# of Activities"
+                prop="activityCount"
+                width="200"
+                sortable="custom"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    {{ formatNumber(scope.row.activityCount) }}
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Last activity -->
+              <el-table-column
+                label="Last activity"
+                prop="lastActive"
+                width="250"
+                sortable="custom"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    <app-member-last-activity
+                      v-if="scope.row.lastActivity"
+                      :member="scope.row"
+                    />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Joined Date -->
+              <el-table-column
+                label="Joined Date"
+                width="200"
+                prop="joinedAt"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.joinedAt"
+                      class="text-gray-900 text-sm"
+                    >
+                      {{ formatDateToTimeAgo(scope.row.joinedAt) }}
+                    </div>
+                    <span v-else class="text-gray-900">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Location -->
+              <el-table-column
+                label="Location"
+                prop="attributes.location.default"
+                width="200"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.attributes?.location?.default"
+                      class="text-gray-900 text-sm"
+                    >
+                      {{ scope.row.attributes.location.default }}
+                    </div>
+                    <span v-else class="text-gray-900">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Reach -->
+              <el-table-column
+                v-if="showReach"
+                label="Reach"
+                prop="reach"
+                width="150"
+                sortable="custom"
+              >
+                <template #header>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                    </template>
+                    Reach
+                  </el-tooltip>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    <app-member-reach
+                      :member="{
+                        ...scope.row,
+                        reach: scope.row.reach,
+                      }"
+                    />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Seniority Level -->
+              <el-table-column
+                label="Seniority Level"
+                prop="attributes.seniorityLevel.default"
+                width="200"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.attributes?.seniorityLevel?.default"
+                      class="text-gray-900 text-sm"
+                    >
+                      {{ scope.row.attributes.seniorityLevel.default }}
+                    </div>
+                    <span v-else class="text-gray-900">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Programming Languages -->
+              <el-table-column
+                label="Seniority Level"
+                prop="attributes.programmingLanguages.default"
+                width="250"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-shared-tag-list
+                      v-if="scope.row.attributes.programmingLanguages?.default?.length"
+                      :list="scope.row.attributes.programmingLanguages.default"
+                      :slice-size="5"
+                    >
+                      <template #itemSlot="{ item }">
+                        <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                          {{ item }}
+                        </span>
+                      </template>
+                    </app-shared-tag-list>
+                    <span v-else class="text-gray-500">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Skills -->
+              <el-table-column
+                label="Skills"
+                prop="attributes.skills.default"
+                width="250"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-shared-tag-list
+                      v-if="scope.row.attributes.skills?.default?.length"
+                      :list="scope.row.attributes.skills.default"
+                      :slice-size="5"
+                    >
+                      <template #itemSlot="{ item }">
+                        <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                          {{ item }}
+                        </span>
+                      </template>
+                    </app-shared-tag-list>
+                    <span v-else class="text-gray-500">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Tags -->
               <el-table-column
                 :width="tagsColumnWidth"
                 :label="translate('entities.member.fields.tag')"
@@ -427,6 +515,7 @@
                 </template>
               </el-table-column>
 
+              <!-- Action button -->
               <el-table-column fixed="right">
                 <template #default="scope">
                   <router-link
@@ -506,12 +595,13 @@ import AppMemberListToolbar from '@/modules/member/components/list/member-list-t
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumberToCompact, formatNumber } from '@/utils/number';
+import { formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
+import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -614,7 +704,7 @@ const emailsColumnWidth = computed(() => {
       .reduce((a, b) => a + b, 0);
 
     if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
+      maxTabWidth = tabWidth > 300 ? 300 : tabWidth;
     }
   });
 
