@@ -42,13 +42,14 @@
     </div>
   </div>
   <!-- FORM -->
-  <div
-    class="flex justify-center mt-10 mb-30"
-    :class="{
-      'mb-42': !!stepConfig.submitActionInfo && !$v.$invalid,
-    }"
-  >
-    <main class="limit-width">
+  <div class="flex">
+    <div v-if="stepConfig.sideInfo?.length" class="flex-1" />
+    <main
+      class="limit-width mt-10 mb-30 grow"
+      :class="{
+        'mb-42': !!stepConfig.submitActionInfo && !$v.$invalid,
+      }"
+    >
       <component
         :is="stepConfig.component"
         v-model="form"
@@ -56,6 +57,14 @@
         @invite-colleagues="onInviteColleagues"
       />
     </main>
+    <div v-if="stepConfig.sideInfo?.length" class="flex-1 pr-8 sticky top-21 h-full pt-10">
+      <div v-for="{ icon, text } in stepConfig.sideInfo" :key="icon" class="max-w-2xs">
+        <i :class="icon" class="text-gray-600 text-base" />
+        <div class="text-gray-500 text-xs mt-1">
+          {{ text }}
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="fixed bottom-0 w-full bg-white flex justify-center py-4 px-8 border-t border-gray-200">
