@@ -47,7 +47,6 @@ export default class SearchSyncService extends LoggerBase {
   }
 
   async triggerMemberSync(tenantId: string, memberId: string) {
-    this.log.info(`Triggering member sync for ${memberId} in tenant ${tenantId}!`)
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
@@ -80,7 +79,6 @@ export default class SearchSyncService extends LoggerBase {
   }
 
   async triggerRemoveMember(tenantId: string, memberId: string) {
-    this.log.info(`Triggering member removal for ${memberId} in tenant ${tenantId}!`)
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
