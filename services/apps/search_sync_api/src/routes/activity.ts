@@ -11,6 +11,7 @@ router.post(
     const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
     const { activityIds } = req.body
     try {
+      req.log.trace(`Calling activitySyncService.syncActivities for ${activityIds}`)
       await activitySyncService.syncActivities(activityIds)
       res.sendStatus(200)
     } catch (error) {
@@ -26,6 +27,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      req.log.trace(`Calling activitySyncService.syncTenantActivities for tenant ${tenantId}`)
       await activitySyncService.syncTenantActivities(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -41,6 +43,9 @@ router.post(
 
     const { organizationId } = req.body
     try {
+      req.log.trace(
+        `Calling activitySyncService.syncOrganizationActivities for organization ${organizationId}`,
+      )
       await activitySyncService.syncOrganizationActivities(organizationId)
       res.sendStatus(200)
     } catch (error) {
@@ -56,6 +61,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      req.log.trace(`Calling activitySyncService.cleanupActivityIndex for tenant ${tenantId}`)
       await activitySyncService.cleanupActivityIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -71,7 +77,8 @@ router.post(
 
     const { activityId } = req.body
     try {
-      await activitySyncService.cleanupActivityIndex(activityId)
+      req.log.trace(`Calling activitySyncService.removeActivity for activity ${activityId}`)
+      await activitySyncService.removeActivity(activityId)
       res.sendStatus(200)
     } catch (error) {
       res.status(500).send(error.message)
