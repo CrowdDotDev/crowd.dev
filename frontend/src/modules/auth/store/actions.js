@@ -27,13 +27,18 @@ export default {
             localStorage.removeItem('userDateTime');
           }
         }
-        const currentUserLocally = AuthService.fetchMeLocally();
         connectSocket(token);
-        if (currentUserLocally) {
-          commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
+        const { pathname } = window.location;
+        if (!['/automations'].includes(pathname)) {
+          const currentUserLocally = AuthService.fetchMeLocally();
 
-          return currentUserLocally;
+          if (currentUserLocally) {
+            commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
+
+            return currentUserLocally;
+          }
         }
+
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
         return currentUser;
