@@ -96,42 +96,40 @@
       </section>
 
       <section class="px-5 w-1/2">
-        <div class="flex flex-col">
-          <div class="flex items-center gap-2 mb-1">
-            <h6
-              class="text-sm leading-5 font-semibold"
-            >
-              Active organizations
-            </h6>
-            <el-tooltip
-              placement="top"
-              content="Organizations whose contacts engaged in at least one activity during the selected time period."
-              popper-class="max-w-[260px]"
-            >
-              <i class="ri-information-line text-sm" />
-            </el-tooltip>
+        <div class="flex">
+          <div class="w-5/12">
+            <div class="flex items-center gap-2 mb-1">
+              <h6
+                class="text-sm leading-5 font-semibold"
+              >
+                Active <span>organizations</span>
+                <el-tooltip
+                  placement="top"
+                  content="Organizations whose contacts engaged in at least one activity during the selected time period."
+                  popper-class="max-w-[260px]"
+                >
+                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                </el-tooltip>
+              </h6>
+            </div>
+            <!-- info -->
+            <app-dashboard-count
+              :loading="organizations.loadingActive"
+              :query="activeOrganizationCount"
+            />
           </div>
-          <div class="flex">
-            <div class="w-5/12">
-              <!-- info -->
-              <app-dashboard-count
-                :loading="organizations.loadingActive"
-                :query="activeOrganizationCount"
-              />
-            </div>
-            <div class="w-7/12">
-              <!-- Chart -->
-              <div
-                v-if="organizations.loadingActive"
-                v-loading="organizations.loadingActive"
-                class="app-page-spinner !relative chart-loading"
-              />
-              <app-dashboard-widget-chart
-                v-else
-                :datasets="datasets('active organizations')"
-                :query="activeOrganizationChart"
-              />
-            </div>
+          <div class="w-7/12">
+            <!-- Chart -->
+            <div
+              v-if="organizations.loadingActive"
+              v-loading="organizations.loadingActive"
+              class="app-page-spinner !relative chart-loading"
+            />
+            <app-dashboard-widget-chart
+              v-else
+              :datasets="datasets('active organizations')"
+              :query="activeOrganizationChart"
+            />
           </div>
         </div>
         <div class="pt-8">
