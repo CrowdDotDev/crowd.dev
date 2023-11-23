@@ -83,4 +83,6 @@ export default {
       || getters.showIntegrationsNeedReconnectAlert
       || getters.showOrganizationsAlertBanner
   ),
+
+  limit: () => 40,
 };
