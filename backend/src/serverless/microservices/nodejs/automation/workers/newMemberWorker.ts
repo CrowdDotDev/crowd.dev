@@ -28,8 +28,14 @@ export const shouldProcessMember = async (
 
   let process = true
 
+  // check if member joined after automation was created
+  if (new Date(automation.createdAt) > new Date(member.joinedAt)) {
+    log.warn(`Ignoring automation ${automation.id} - Member ${member.id} joined before automation!`)
+    process = false
+  }
+
   // check whether member platforms matches
-  if (settings.platforms && settings.platforms.length > 0) {
+  if (process && settings.platforms && settings.platforms.length > 0) {
     const platforms = Object.keys(member.username)
     if (!platforms.some((platform) => settings.platforms.includes(platform))) {
       log.warn(
