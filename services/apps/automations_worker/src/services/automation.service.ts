@@ -45,8 +45,16 @@ export class AutomationService {
 
     let process = true
 
+    // check if member joined after automation was created
+    if (new Date(automation.createdAt) > new Date(member.joinedAt)) {
+      this.log.warn(
+        `Ignoring automation ${automation.id} - Member ${member.id} joined before automation!`,
+      )
+      process = false
+    }
+
     // check whether member platforms matches
-    if (settings.platforms && settings.platforms.length > 0) {
+    if (process && settings.platforms && settings.platforms.length > 0) {
       const platforms = Object.keys(member.username)
       if (!platforms.some((platform) => settings.platforms.includes(platform))) {
         this.log.warn(
@@ -84,8 +92,16 @@ export class AutomationService {
 
     let process = true
 
+    // check if activity created after automation was created
+    if (new Date(automation.createdAt) > new Date(activity.timestamp)) {
+      this.log.warn(
+        `Ignoring automation ${automation.id} - Activity ${activity.id} was created before automation!`,
+      )
+      process = false
+    }
+
     // check whether activity type matches
-    if (settings.types && settings.types.length > 0) {
+    if (process && settings.types && settings.types.length > 0) {
       if (!settings.types.includes(activity.type)) {
         this.log.warn(
           `Ignoring automation ${automation.id} - Activity ${activity.id} type '${
