@@ -3,7 +3,7 @@ import { isEqual } from 'lodash';
 
 export const getAttributeSources = (attribute: Record<string, string>): string[] => {
   const defaultValue: string | undefined = attribute.default;
-  return Object.keys(attribute).filter((key) => key !== 'default' && isEqual(attribute[key], defaultValue));
+  return Object.keys(attribute).filter((key) => !['default', 'custom'].includes(key) && isEqual(attribute[key], defaultValue));
 };
 
 export const getAttributeSourceName = (attribute: Record<string, string>): string | null => {
@@ -19,9 +19,6 @@ export const getAttributeSourceName = (attribute: Record<string, string>): strin
   const prioritySortedSources = sources.sort((a, b) => {
     const aConfig = !!CrowdIntegrations.getConfig(a)?.name;
     const bConfig = !!CrowdIntegrations.getConfig(b)?.name;
-
-    if (a === 'custom') return 1; // 'custom' should be last
-    if (b === 'custom') return -1; // 'custom' should be last
 
     if (aConfig && !bConfig) return -1; // a matches the criteria and b doesn't, a should come first
     if (!aConfig && bConfig) return 1; // b matches the criteria and a doesn't, b should come first
