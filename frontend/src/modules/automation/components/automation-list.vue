@@ -105,7 +105,8 @@
       v-else
       icon="ri-flow-chart"
       title="Start automating your workflows"
-      description="Break free from repetitive tasks and discover untapped revenue opportunities and other valuable sales signals within your CRM."
+      :description="`Break free from repetitive tasks and discover
+      untapped revenue opportunities and other valuable sales signals within your CRM. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
     />
 
     <!-- Add/Edit Webhook form drawer -->

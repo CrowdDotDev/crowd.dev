@@ -52,7 +52,7 @@
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all contacts from your community
+          Overview of all contacts that interacted with your product or community
         </div>
       </div>
 

@@ -48,8 +48,7 @@
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all organizations that relate to your
-          community
+          Overview of all organizations that relate to your product or community
         </div>
       </div>
 
