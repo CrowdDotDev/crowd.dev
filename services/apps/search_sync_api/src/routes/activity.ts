@@ -11,9 +11,7 @@ router.post(
     const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
     const { activityIds } = req.body
     try {
-      req.log.trace(
-        `[SearchSyncAPI] - Calling activitySyncService.syncActivities for ${activityIds}`,
-      )
+      req.log.trace(`Calling activitySyncService.syncActivities for ${activityIds}`)
       await activitySyncService.syncActivities(activityIds)
       res.sendStatus(200)
     } catch (error) {
@@ -29,9 +27,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      req.log.trace(
-        `[SearchSyncAPI] - Calling activitySyncService.syncTenantActivities for tenant ${tenantId}`,
-      )
+      req.log.trace(`Calling activitySyncService.syncTenantActivities for tenant ${tenantId}`)
       await activitySyncService.syncTenantActivities(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -48,7 +44,7 @@ router.post(
     const { organizationId } = req.body
     try {
       req.log.trace(
-        `[SearchSyncAPI] - Calling activitySyncService.syncOrganizationActivities for organization ${organizationId}`,
+        `Calling activitySyncService.syncOrganizationActivities for organization ${organizationId}`,
       )
       await activitySyncService.syncOrganizationActivities(organizationId)
       res.sendStatus(200)
@@ -65,9 +61,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      req.log.trace(
-        `[SearchSyncAPI] - Calling activitySyncService.cleanupActivityIndex for tenant ${tenantId}`,
-      )
+      req.log.trace(`Calling activitySyncService.cleanupActivityIndex for tenant ${tenantId}`)
       await activitySyncService.cleanupActivityIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -83,9 +77,7 @@ router.post(
 
     const { activityId } = req.body
     try {
-      req.log.trace(
-        `[SearchSyncAPI] - Calling activitySyncService.removeActivity for activity ${activityId}`,
-      )
+      req.log.trace(`Calling activitySyncService.removeActivity for activity ${activityId}`)
       await activitySyncService.removeActivity(activityId)
       res.sendStatus(200)
     } catch (error) {

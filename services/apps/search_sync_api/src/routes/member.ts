@@ -20,7 +20,7 @@ router.post(
 
     const { memberIds } = req.body
     try {
-      req.log.trace(`[SearchSyncAPI] - Calling memberSyncService.syncMembers for ${memberIds}`)
+      req.log.trace(`Calling memberSyncService.syncMembers for ${memberIds}`)
       await memberSyncService.syncMembers(memberIds)
       res.sendStatus(200)
     } catch (error) {
@@ -42,9 +42,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      req.log.trace(
-        `[SearchSyncAPI] - Calling memberSyncService.syncTenantMembers for tenant ${tenantId}`,
-      )
+      req.log.trace(`Calling memberSyncService.syncTenantMembers for tenant ${tenantId}`)
       await memberSyncService.syncTenantMembers(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -67,7 +65,7 @@ router.post(
     const { organizationId } = req.body
     try {
       req.log.trace(
-        `[SearchSyncAPI] - Calling memberSyncService.syncOrganizationMembers for organization ${organizationId}`,
+        `Calling memberSyncService.syncOrganizationMembers for organization ${organizationId}`,
       )
       await memberSyncService.syncOrganizationMembers(organizationId)
       res.sendStatus(200)
@@ -90,9 +88,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      req.log.trace(
-        `[SearchSyncAPI] - Calling memberSyncService.cleanupMemberIndex for tenant ${tenantId}`,
-      )
+      req.log.trace(`Calling memberSyncService.cleanupMemberIndex for tenant ${tenantId}`)
       await memberSyncService.cleanupMemberIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -114,7 +110,7 @@ router.post(
 
     const { memberId } = req.body
     try {
-      req.log.trace(`[SearchSyncAPI] - Calling memberSyncService.removeMember for ${memberId}`)
+      req.log.trace(`Calling memberSyncService.removeMember for ${memberId}`)
       await memberSyncService.removeMember(memberId)
       res.sendStatus(200)
     } catch (error) {
