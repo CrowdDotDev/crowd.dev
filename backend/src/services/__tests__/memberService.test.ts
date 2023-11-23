@@ -1701,7 +1701,6 @@ describe('MemberService tests', () => {
       let task1 = await TaskRepository.create({ name: 'task1' }, mockIRepositoryOptions)
       let task2 = await TaskRepository.create({ name: 'task2' }, mockIRepositoryOptions)
       let task3 = await TaskRepository.create({ name: 'task3' }, mockIRepositoryOptions)
-      let task4 = await TaskRepository.create({ name: 'task4' }, mockIRepositoryOptions)
 
       let note1 = await NoteRepository.create({ body: 'note1' }, mockIRepositoryOptions)
       let note2 = await NoteRepository.create({ body: 'note2' }, mockIRepositoryOptions)
@@ -1741,7 +1740,7 @@ describe('MemberService tests', () => {
         },
         tags: [t2.id, t3.id],
         organizations: [o2.id, o3.id],
-        tasks: [task3.id, task4.id],
+        tasks: [task2.id, task3.id],
         notes: [note3.id, note4.id],
       }
 
@@ -1872,7 +1871,6 @@ describe('MemberService tests', () => {
       task1 = await TaskRepository.findById(task1.id, mockIRepositoryOptions)
       task2 = await TaskRepository.findById(task2.id, mockIRepositoryOptions)
       task3 = await TaskRepository.findById(task3.id, mockIRepositoryOptions)
-      task4 = await TaskRepository.findById(task4.id, mockIRepositoryOptions)
 
       // get previously created notes
       note1 = await NoteRepository.findById(note1.id, mockIRepositoryOptions)
@@ -1909,7 +1907,6 @@ describe('MemberService tests', () => {
       task1 = SequelizeTestUtils.objectWithoutKey(task1, ['members', 'activities', 'assignees'])
       task2 = SequelizeTestUtils.objectWithoutKey(task2, ['members', 'activities', 'assignees'])
       task3 = SequelizeTestUtils.objectWithoutKey(task3, ['members', 'activities', 'assignees'])
-      task4 = SequelizeTestUtils.objectWithoutKey(task4, ['members', 'activities', 'assignees'])
 
       // remove notes->member relations as well (we should be only checking 1-deep relations)
       note1 = SequelizeTestUtils.objectWithoutKey(note1, ['members', 'createdBy'])
@@ -1949,7 +1946,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date(member1.joinedAt),
         reach: { total: -1 },
         tags: [t1, t2, t3],
-        tasks: [task1, task2, task3, task4],
+        tasks: [task1, task2, task3],
         notes: [note1, note2, note3, note4],
         organizations: [
           SequelizeTestUtils.objectWithoutKey(o1, [

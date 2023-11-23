@@ -3727,15 +3727,30 @@ class MemberRepository {
 
     const seq = SequelizeRepository.getSequelize(options)
 
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const deleteQuery = `
+      delete from "memberTasks" using "memberTasks" as mt2
+      where "memberTasks"."memberId" = :fromMemberId 
+      and "memberTasks"."taskId" = mt2."taskId"
+      and mt2."memberId" = :toMemberId;
+    `
+
+    await seq.query(deleteQuery, {
+      replacements: params,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
     const query = `
       update "memberTasks" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
     `
 
     await seq.query(query, {
-      replacements: {
-        fromMemberId,
-        toMemberId,
-      },
+      replacements: params,
       type: QueryTypes.UPDATE,
       transaction,
     })
