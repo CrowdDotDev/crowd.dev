@@ -20,6 +20,7 @@ export enum PlatformType {
   CRUNCHBASE = 'crunchbase',
   HUBSPOT = 'hubspot',
   GROUPSIO = 'groupsio',
+  CONFLUENCE = 'confluence',
   OTHER = 'other',
 }
 

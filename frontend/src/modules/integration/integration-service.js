@@ -336,6 +336,16 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async confluenceConnect(remotes) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(`/tenant/${tenantId}/confluence-connect`, {
+      remotes,
+      ...getSegments(),
+    });
+
+    return response.data;
+  }
+
   static async discourseValidateAPI(forumHostname, apiKey) {
     const tenantId = AuthCurrentTenant.get();
 

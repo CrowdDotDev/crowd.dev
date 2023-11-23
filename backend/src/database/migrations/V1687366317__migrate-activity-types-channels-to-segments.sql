@@ -40,6 +40,8 @@ BEGIN
     END LOOP;
 END $$ LANGUAGE plpgsql;
 
+/*
 ALTER TABLE settings DROP COLUMN "customActivityTypes";
 ALTER TABLE settings DROP COLUMN "activityChannels";
+ */
 
