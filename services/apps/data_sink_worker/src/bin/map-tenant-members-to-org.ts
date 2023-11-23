@@ -1,6 +1,5 @@
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import {
   DataSinkWorkerEmitter,
@@ -16,7 +15,6 @@ import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { getRedisClient } from '@crowd/redis'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -38,7 +36,7 @@ setImmediate(async () => {
   }
 
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
+  const emitter = new DataSinkWorkerEmitter(sqsClient, log)
   await emitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())
@@ -50,10 +48,10 @@ setImmediate(async () => {
   const segmentIds = await dataSinkRepo.getSegmentIds(tenantId)
   const segmentId = segmentIds[segmentIds.length - 1] // leaf segment id
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, log)
   await nodejsWorkerEmitter.init()
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
   await searchSyncWorkerEmitter.init()
 
   const redisClient = await getRedisClient(REDIS_CONFIG())

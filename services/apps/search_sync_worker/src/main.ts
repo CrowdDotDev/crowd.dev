@@ -1,5 +1,4 @@
 import { getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
@@ -8,7 +7,6 @@ import { WorkerQueueReceiver } from './queue'
 import { InitService } from './service/init.service'
 import { OpenSearchService } from './service/opensearch.service'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 2
@@ -29,7 +27,6 @@ setImmediate(async () => {
     sqsClient,
     dbConnection,
     openSearchService,
-    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )

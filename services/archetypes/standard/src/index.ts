@@ -3,12 +3,10 @@ import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { getServiceLogger, Logger } from '@crowd/logging'
 import { acquireLock, getRedisClient, RedisClient, releaseLock } from '@crowd/redis'
-import { getServiceTracer, Tracer } from '@crowd/tracing'
 import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
 import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 
-// Retrieve automatically configured tracer and logger.
-const tracer = getServiceTracer()
+// Retrieve automatically configured logger.
 const logger = getServiceLogger()
 
 // List all required environment variables, grouped per "component".
@@ -53,7 +51,6 @@ Service holds all details and methods to run any kind of services at crowd.dev.
 */
 export class Service {
   readonly name: string
-  readonly tracer: Tracer
   readonly log: Logger
   readonly config: Config
   readonly integrations: IIntegrationDescriptor[]
@@ -67,7 +64,6 @@ export class Service {
 
   constructor(config: Config) {
     this.name = process.env['SERVICE']
-    this.tracer = tracer
     this.log = logger
     this.config = config
     this.integrations = INTEGRATION_SERVICES

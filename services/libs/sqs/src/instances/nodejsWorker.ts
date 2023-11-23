@@ -7,11 +7,10 @@ import {
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
 } from '@crowd/types'
-import { Tracer } from '@crowd/tracing'
 
 export class NodejsWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
-    super(client, NODEJS_WORKER_QUEUE_SETTINGS, tracer, parentLog)
+  constructor(client: SqsClient, parentLog: Logger) {
+    super(client, NODEJS_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
   public override sendMessage(

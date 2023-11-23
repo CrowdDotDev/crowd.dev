@@ -1,4 +1,3 @@
-import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { DbConnection, DbStore } from '@crowd/database'
 import {
@@ -30,67 +29,53 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
-    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, tracer, parentLog)
+    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
-    await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
-      try {
-        this.log.trace({ messageType: message.type }, 'Processing message!')
+    try {
+      this.log.trace({ messageType: message.type }, 'Processing message!')
 
-        const service = new DataSinkService(
-          new DbStore(this.log, this.dbConn, undefined, false),
-          this.nodejsWorkerEmitter,
-          this.searchSyncWorkerEmitter,
-          this.dataSinkWorkerEmitter,
-          this.redisClient,
-          this.unleash,
-          this.temporal,
-          this.log,
-        )
+      const service = new DataSinkService(
+        new DbStore(this.log, this.dbConn, undefined, false),
+        this.nodejsWorkerEmitter,
+        this.searchSyncWorkerEmitter,
+        this.dataSinkWorkerEmitter,
+        this.redisClient,
+        this.unleash,
+        this.temporal,
+        this.log,
+      )
 
-        switch (message.type) {
-          case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
-            // this type of message will be processed by the processOldResultsJob
-            await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
-            break
-          case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
-            const msg = message as CreateAndProcessActivityResultQueueMessage
-            await service.createAndProcessActivityResult(
-              msg.tenantId,
-              msg.segmentId,
-              msg.integrationId,
-              msg.activityData,
-            )
-            break
-          }
-          case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
-            await service.checkResults()
-            break
-          }
-
-          default:
-            throw new Error(`Unknown message type: ${message.type}`)
+      switch (message.type) {
+        case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
+          // this type of message will be processed by the processOldResultsJob
+          await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
+          break
+        case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
+          const msg = message as CreateAndProcessActivityResultQueueMessage
+          await service.createAndProcessActivityResult(
+            msg.tenantId,
+            msg.segmentId,
+            msg.integrationId,
+            msg.activityData,
+          )
+          break
+        }
+        case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
+          await service.checkResults()
+          break
         }
 
-        span.setStatus({
-          code: SpanStatusCode.OK,
-        })
-      } catch (err) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err,
-        })
-
-        this.log.error(err, 'Error while processing message!')
-        throw err
-      } finally {
-        span.end()
+        default:
+          throw new Error(`Unknown message type: ${message.type}`)
       }
-    })
+    } catch (err) {
+      this.log.error(err, 'Error while processing message!')
+      throw err
+    }
   }
 }

@@ -1,12 +1,9 @@
 import { asyncWrap } from '../middleware/error'
 import { WebhooksRepository } from '../repos/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
-import { getServiceTracer } from '@crowd/tracing'
 import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { WebhookType } from '@crowd/types'
 import express from 'express'
-
-const tracer = getServiceTracer()
 
 export const installGroupsIoRoutes = async (app: express.Express) => {
   let emitter: IntegrationStreamWorkerEmitter
@@ -43,7 +40,7 @@ export const installGroupsIoRoutes = async (app: express.Express) => {
         )
 
         if (!emitter) {
-          emitter = new IntegrationStreamWorkerEmitter(req.sqs, tracer, req.log)
+          emitter = new IntegrationStreamWorkerEmitter(req.sqs, req.log)
           await emitter.init()
         }
 

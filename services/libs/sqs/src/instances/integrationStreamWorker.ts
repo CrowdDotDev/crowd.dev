@@ -9,11 +9,10 @@ import {
   ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
-import { Tracer } from '@crowd/tracing'
 
 export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
-    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, tracer, parentLog)
+  constructor(client: SqsClient, parentLog: Logger) {
+    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
   public async checkStreams() {
