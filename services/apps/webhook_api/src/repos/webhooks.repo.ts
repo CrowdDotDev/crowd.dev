@@ -72,4 +72,23 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
 
     return result
   }
+
+  public async findIntegrationByPlatformAndTenantId(
+    platform: PlatformType,
+    tenantId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<(IDbIntegrationData & { settings: any }) | null> {
+    const result = await this.db().oneOrNone(
+      `
+      select id, "tenantId", platform, settings from integrations
+      where platform = $(platform) and "tenantId" = $(tenantId) and "deletedAt" is null
+      `,
+      {
+        platform,
+        tenantId,
+      },
+    )
+
+    return result
+  }
 }

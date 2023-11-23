@@ -128,7 +128,7 @@ export default {
             vertical: true,
             type: 'custom',
             icon: '<img src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="h-8 w-8" alt="slack logo" />',
-            title: `<span class="flex items-start gap-1">Connect Slack bot 
+            title: `<span class="flex items-start gap-1">Connect Slack bot
               <span class="text-brand-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
             titleClass: 'text-lg',
             message: `
@@ -152,7 +152,7 @@ export default {
       immediate: true,
       handler(value) {
         if (value) {
-          Message.error('Something went wrong during Twitter OAuth. Please try again later.');
+          Message.error('Something went wrong during X/Twitter OAuth. Please try again later.');
         }
       },
     },

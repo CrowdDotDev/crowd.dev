@@ -4,6 +4,7 @@ import { QueryTypes } from 'sequelize'
 import { convert as convertHtmlToText } from 'html-to-text'
 import { getServiceChildLogger } from '@crowd/logging'
 import { ActivityDisplayVariant, PlatformType } from '@crowd/types'
+import { ActivityDisplayService } from '@crowd/integrations'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
@@ -20,7 +21,6 @@ import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
 import SegmentRepository from '../../../../../database/repositories/segmentRepository'
-import ActivityDisplayService from '@/services/activityDisplayService'
 
 const log = getServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
@@ -352,7 +352,7 @@ async function getAnalyticsData(tenantId: string) {
       await userContext.database.sequelize.query(
         `
       select count(a.id) as "activityCount",
-         o.name as name,
+         o."displayName" as name,
          o.logo as "avatarUrl"
       from organizations o
         inner join "memberOrganizations" mo

@@ -1,7 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { handleDiscordError } from './errorHandler'
 import { IProcessStreamContext } from '../../../types'
-import { getRateLimiter } from './handleRateLimit'
 
 export const getMessage = async (
   channelId: string,
@@ -9,8 +8,6 @@ export const getMessage = async (
   token: string,
   ctx: IProcessStreamContext,
 ) => {
-  const rateLimiter = getRateLimiter(ctx)
-
   const config: AxiosRequestConfig = {
     method: 'get',
     url: `https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`,
@@ -20,8 +17,6 @@ export const getMessage = async (
   }
 
   try {
-    await rateLimiter.checkRateLimit('getMessage')
-    await rateLimiter.incrementRateLimit()
     const response = await axios(config)
     return response.data
   } catch (err) {
@@ -57,7 +52,9 @@ export const getMessage = async (
       return null
     } else {
       const newErr = handleDiscordError(err, config, { channelId, messageId }, ctx)
-      throw newErr
+      if (newErr) {
+        throw newErr
+      }
     }
   }
 }

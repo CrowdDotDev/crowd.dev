@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { Edition } from '@crowd/types'
+import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
@@ -13,8 +13,8 @@ import {
   EagleEyeEmailDigestMessage,
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
+  OrganizationMergeMessage,
 } from './messageTypes'
-import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
@@ -27,6 +27,7 @@ import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmai
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
+import { orgMergeWorker } from './org-merge/orgMergeWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 import { API_CONFIG } from '../../../conf'
 
@@ -139,6 +140,15 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         default:
           throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
       }
+    case 'org-merge':
+      const orgMergeMessage = event as OrganizationMergeMessage
+      return orgMergeWorker(
+        orgMergeMessage.tenantId,
+        orgMergeMessage.primaryOrgId,
+        orgMergeMessage.secondaryOrgId,
+        orgMergeMessage.notifyFrontend,
+      )
+
     default:
       throw new Error(`Invalid microservice ${service}`)
   }

@@ -20,11 +20,11 @@ export default ({
   distinguishCancelAndClose = false,
   autofocus = true,
   closeOnClickModal = true,
-  titleClass,
-  messageClass,
-  verticalCancelButtonClass,
-  verticalConfirmButtonClass,
-  verticalCustomClass,
+  titleClass = null,
+  messageClass = null,
+  verticalCancelButtonClass = null,
+  verticalConfirmButtonClass = null,
+  verticalCustomClass = null,
   hideCloseButton = false,
 }) => {
   let iconColorClass = 'text-yellow-600';

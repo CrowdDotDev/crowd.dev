@@ -8,5 +8,9 @@
   },
   "slack": {
     "maxRetrospectInSeconds": 86400
+  },
+  "twitter": {
+    "maxRetrospectInSeconds": 7380,
+    "limitResetFrequencyDays": 30
   }
 }

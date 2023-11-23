@@ -26,6 +26,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   }
 
   public async getOldWebhooksToProcess(limit: number): Promise<IWebhookData[]> {
+    this.ensureTransactional()
+
     try {
       const results = await this.db().any(
         `
@@ -44,7 +46,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
           and iw.type <> $(discourseType)
           and iw.state = $(pendingState)
           and iw."createdAt" < now() - interval '1 hour'
-        limit ${limit};
+        limit ${limit}
+        for update skip locked;
         `,
         {
           discourseType: WebhookType.DISCOURSE,
@@ -60,6 +63,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   }
 
   public async getOldStreamsToProcess(limit: number): Promise<string[]> {
+    this.ensureTransactional()
+
     try {
       const results = await this.db().any(
         `
@@ -76,7 +81,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
         order by case when "webhookId" is not null then 0 else 1 end,
                  "webhookId" asc,
                  "updatedAt" desc
-        limit ${limit};
+        limit ${limit}
+        for update skip locked;
         `,
         {
           errorState: IntegrationStreamState.ERROR,
@@ -195,6 +201,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
             i.status   as "integrationState",
             i."integrationIdentifier",
             i.token   as "integrationToken",
+            i."refreshToken" as "integrationRefreshToken",
             r.state    as "runState",
             s."runId",
             s."tenantId",
@@ -346,6 +353,40 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       {
         streamId,
         settings: JSON.stringify(settings),
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationToken(runId: string, token: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set token = $(token),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        token,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationRefreshToken(runId: string, refreshToken: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set "refreshToken" = $(refreshToken),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        refreshToken,
       },
     )
 

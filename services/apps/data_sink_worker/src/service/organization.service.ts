@@ -134,6 +134,14 @@ export class OrganizationService extends LoggerBase {
         // check organization exists by domain
         if (cached.website) {
           existing = await txRepo.findByDomain(tenantId, cached.website)
+
+          // also check domain in identities
+          if (!existing) {
+            existing = await txRepo.findByIdentity(tenantId, {
+              name: websiteNormalizer(cached.website),
+              platform: 'email',
+            })
+          }
         }
 
         // if domain is not found, check existence by sent identities
@@ -180,7 +188,13 @@ export class OrganizationService extends LoggerBase {
             'weakIdentities',
           ]
           fields.forEach((field) => {
-            if (cached[field] && !isEqual(cached[field], existing[field])) {
+            if (field === 'website' && !existing.website && cached.website) {
+              updateData[field] = cached[field]
+            } else if (
+              field !== 'website' &&
+              cached[field] &&
+              !isEqual(cached[field], existing[field])
+            ) {
               updateData[field] = cached[field]
             }
           })
@@ -226,6 +240,15 @@ export class OrganizationService extends LoggerBase {
         }
 
         const identities = await txRepo.getIdentities(id, tenantId)
+
+        // create identities with incoming website
+        if (data.website) {
+          data.identities.push({
+            name: websiteNormalizer(data.website),
+            platform: 'email',
+            integrationId,
+          })
+        }
 
         for (const identity of data.identities) {
           const identityExists = identities.find(

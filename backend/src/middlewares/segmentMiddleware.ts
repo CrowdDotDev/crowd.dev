@@ -1,6 +1,6 @@
+import { FeatureFlag } from '@crowd/types'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '../types/common'
 
 export async function segmentMiddleware(req, res, next) {
   try {

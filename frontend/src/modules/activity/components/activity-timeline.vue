@@ -11,10 +11,10 @@
         <template #append>
           <el-select
             v-model="platform"
+            clearable
             placeholder="All platforms"
             class="w-40"
-            clearable
-            @clear="onClear"
+            @clear="reloadActivities"
           >
             <template
               v-if="
@@ -63,112 +63,128 @@
     </div>
     <div>
       <el-timeline>
-        <el-timeline-item
-          v-for="activity in activities"
-          :key="activity.id"
-        >
-          <div class="-mt-1.5">
-            <app-member-display-name
-              v-if="entityType === 'organization'"
-              :member="activity.member"
-              custom-class="block text-gray-900 font-medium"
-              with-link
-              class="bl"
-            />
-            <div
-              class="flex gap-4 justify-between min-h-9 -mt-1"
-              :class="{
-                'items-center': !isMemberEntity,
-                'items-start': isMemberEntity,
-              }"
-            >
-              <app-activity-header
-                :activity="activity"
-                class="flex flex-wrap items-center"
+        <template v-if="activities.length && !loading">
+          <el-timeline-item
+            v-for="activity in activities"
+            :key="activity.id"
+          >
+            <div class="-mt-1.5">
+              <app-member-display-name
+                v-if="entityType === 'organization'"
+                :member="activity.member"
+                custom-class="block text-gray-900 font-medium"
+                with-link
+                class="bl"
+              />
+              <div
+                class="flex gap-4 justify-between min-h-9 -mt-1"
                 :class="{
-                  'mt-1.5': isMemberEntity,
+                  'items-center': !isMemberEntity,
+                  'items-start': isMemberEntity,
                 }"
-              />
-
-              <div class="flex items-center flex-nowrap">
-                <a
-                  v-if="
-                    activity.conversationId && isMemberEntity
-                  "
-                  class="text-xs font-medium flex items-center mr-4 cursor-pointer hover:underline"
-                  target="_blank"
-                  @click="
-                    conversationId = activity.conversationId
-                  "
-                >
-                  <i
-                    class="ri-lg ri-arrow-right-up-line mr-1"
-                  />
-                  <span class="block whitespace-nowrap">Open conversation</span>
-                </a>
-                <app-activity-dropdown
-                  v-if="showAffiliations"
-                  :show-affiliations="true"
+              >
+                <app-activity-header
                   :activity="activity"
-                  :organizations="entity.organizations ?? activity.member.organizations ?? []"
-                  :disable-edit="true"
-                  @on-update="fetchActivities({ reset: true })"
+                  class="flex flex-wrap items-center"
+                  :class="{
+                    'mt-1.5': isMemberEntity,
+                  }"
                 />
-              </div>
-            </div>
 
-            <app-lf-activity-parent
-              v-if="activity.parent && isMemberEntity"
-              :parent="activity.parent"
-            />
-
-            <app-activity-content
-              v-if="activity.title || activity.body"
-              class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
-              :activity="activity"
-              :show-more="true"
-            >
-              <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
-                <div v-if="activity.attributes">
-                  <app-activity-content-footer
-                    :source-id="activity.sourceId"
-                    :changes="activity.attributes.lines"
-                    changes-copy="line"
-                    :insertions="activity.attributes.insertions"
-                    :deletions="activity.attributes.deletions"
-                  />
-                </div>
-              </template>
-
-              <template #bottomLink>
-                <div v-if="activity.url" class="pt-6">
-                  <app-activity-link
+                <div class="flex items-center flex-nowrap">
+                  <a
+                    v-if="
+                      activity.conversationId && isMemberEntity
+                    "
+                    class="text-xs font-medium flex items-center mr-4 cursor-pointer hover:underline"
+                    target="_blank"
+                    @click="
+                      conversationId = activity.conversationId
+                    "
+                  >
+                    <i
+                      class="ri-lg ri-arrow-right-up-line mr-1"
+                    />
+                    <span class="block whitespace-nowrap">Open conversation</span>
+                  </a>
+                  <app-activity-dropdown
+                    v-if="showAffiliations"
+                    :show-affiliations="true"
                     :activity="activity"
+                    :organizations="entity.organizations ?? activity.member.organizations ?? []"
+                    :disable-edit="true"
+                    @on-update="fetchActivities({ reset: true })"
                   />
                 </div>
-              </template>
-            </app-activity-content>
-          </div>
-          <template #dot>
-            <span
-              class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
-              :class="`btn--${activity.platform}`"
-            >
-              <img
-                v-if="platformDetails(activity.platform)"
-                :src="
-                  platformDetails(activity.platform).image
-                "
-                :alt="`${activity.platform}-icon`"
-                class="w-4 h-4"
+              </div>
+
+              <app-lf-activity-parent
+                v-if="activity.parent && isMemberEntity"
+                :parent="activity.parent"
               />
-              <i
-                v-else
-                class="ri-radar-line text-base text-gray-400"
-              />
-            </span>
-          </template>
-        </el-timeline-item>
+
+              <app-activity-content
+                v-if="activity.title || activity.body"
+                class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
+                :activity="activity"
+                :show-more="true"
+              >
+                <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
+                  <div v-if="activity.attributes">
+                    <app-activity-content-footer
+                      :source-id="activity.sourceId"
+                      :changes="activity.attributes.lines"
+                      changes-copy="line"
+                      :insertions="activity.attributes.insertions"
+                      :deletions="activity.attributes.deletions"
+                    />
+                  </div>
+                </template>
+
+                <template #bottomLink>
+                  <div v-if="activity.url" class="pt-6">
+                    <app-activity-link
+                      :activity="activity"
+                    />
+                  </div>
+                </template>
+              </app-activity-content>
+            </div>
+            <template #dot>
+              <span
+                class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
+                :class="`btn--${activity.platform}`"
+              >
+                <img
+                  v-if="platformDetails(activity.platform)"
+                  :src="
+                    platformDetails(activity.platform).image
+                  "
+                  :alt="`${activity.platform}-icon`"
+                  class="w-4 h-4"
+                />
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
+              </span>
+            </template>
+          </el-timeline-item>
+        </template>
+
+        <div
+          v-if="!activities.length && !loading"
+          class="flex items-center justify-center pt-6 pb-5"
+        >
+          <div
+            class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
+          />
+          <p
+            class="text-xs leading-5 text-center italic text-gray-400"
+          >
+            This contributor has no activities in {{ getPlatformDetails(platform)?.name || 'custom platforms' }}
+          </p>
+        </div>
       </el-timeline>
       <div
         v-if="loading"
@@ -362,6 +378,11 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   }
 };
 
+const reloadActivities = async () => {
+  platform.value = undefined;
+  await fetchActivities();
+};
+
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
 
 const debouncedQueryChange = debounce(async () => {
@@ -381,10 +402,6 @@ watch(platform, async (newValue, oldValue) => {
     await fetchActivities();
   }
 });
-
-const onClear = () => {
-  platform.value = null;
-};
 
 onMounted(async () => {
   await store.dispatch('integration/doFetch', segments.value);

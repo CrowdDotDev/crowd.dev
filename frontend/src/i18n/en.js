@@ -152,9 +152,10 @@ const en = {
       create: {
         success: 'Contributor successfully saved',
         error: 'There was an error creating the contributor',
+        message: 'View contributor',
       },
       update: {
-        success: 'Contributor successfully saved',
+        success: 'Contributor edited successfully',
         error: 'There was an error updating the contributor',
       },
       destroy: {
@@ -262,7 +263,7 @@ const en = {
         revenueRange: 'Annual revenue',
         activeSince: 'Active since',
         github: 'GitHub',
-        twitter: 'Twitter',
+        twitter: 'X/Twitter',
         linkedin: 'LinkedIn',
         crunchbase: 'Crunchbase',
       },

@@ -1,10 +1,10 @@
 import passport from 'passport'
+import { FeatureFlag } from '@crowd/types'
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
-import { FeatureFlag } from '@/types/common'
 import { featureFlagMiddleware } from '@/middlewares/featureFlagMiddleware'
 
 const decodeBase64Url = (data) => {

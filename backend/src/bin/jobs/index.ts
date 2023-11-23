@@ -2,7 +2,6 @@ import { CrowdJob } from '../../types/jobTypes'
 import integrationTicks from './integrationTicks'
 import weeklyAnalyticsEmailsCoordinator from './weeklyAnalyticsEmailsCoordinator'
 import memberScoreCoordinator from './memberScoreCoordinator'
-import checkSqsQueues from './checkSqsQueues'
 import refreshMaterializedViews from './refreshMaterializedViews'
 import refreshMaterializedViewsForCube from './refreshMaterializedViewsForCube'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
@@ -20,7 +19,6 @@ const EMAILS_ENABLED = WEEKLY_EMAILS_CONFIG.enabled === 'true'
 const jobs: CrowdJob[] = [
   integrationTicks,
   memberScoreCoordinator,
-  checkSqsQueues,
   refreshMaterializedViews,
   refreshMaterializedViewsForCube,
   downgradeExpiredPlans,

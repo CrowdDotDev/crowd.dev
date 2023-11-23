@@ -220,14 +220,23 @@ const markAsTeamMemberOptions = computed(() => {
   };
 });
 
-const handleMergeMembers = () => {
+const handleMergeMembers = async () => {
   const [firstMember, secondMember] = selectedMembers.value;
+  Message.info(
+    null,
+    {
+      title: 'Contacts are being merged',
+    },
+  );
+
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
+      Message.closeAll();
       Message.success('Contributors merged successfuly');
       fetchMembers({ reload: true });
     })
     .catch(() => {
+      Message.closeAll();
       Message.error('Error merging contributors');
     });
 };
@@ -308,8 +317,15 @@ const handleAddTags = async () => {
   bulkTagsUpdateVisible.value = true;
 };
 
-const doMarkAsTeamMember = (value) => {
-  Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
+const doMarkAsTeamMember = async (value) => {
+  Message.info(
+    null,
+    {
+      title: 'Contacts are being updated',
+    },
+  );
+
+  return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
     attributes: {
       ...member.attributes,
       isTeamMember: {
@@ -318,12 +334,18 @@ const doMarkAsTeamMember = (value) => {
     },
   }, member.segmentIds)))
     .then(() => {
-      fetchMembers({ reload: true });
+      Message.closeAll();
       Message.success(
         `Contributor${
           selectedMembers.value.length > 1 ? 's' : ''
         } updated successfully`,
       );
+
+      fetchMembers({ reload: true });
+    })
+    .catch(() => {
+      Message.closeAll();
+      Message.error('Error updating contacts');
     });
 };
 

@@ -115,6 +115,7 @@
                 :collapse-tags="true"
                 :parse-model="true"
                 :are-options-in-memory="true"
+                :options-limit="10"
               />
               <el-input
                 v-else

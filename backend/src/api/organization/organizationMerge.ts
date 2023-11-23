@@ -6,14 +6,17 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationEdit)
 
-  const payload = await new OrganizationService(req).merge(
-    req.params.organizationId,
-    req.body.organizationToMerge,
-  )
+  const primaryOrgId = req.params.organizationId
+  const secondaryOrgId = req.body.organizationToMerge
 
-  track('Merge organizations', { ...payload }, { ...req })
+  const requestPayload = {
+    primary: primaryOrgId,
+    secondary: secondaryOrgId,
+  }
 
-  const status = payload.status || 200
+  await new OrganizationService(req).mergeAsync(primaryOrgId, secondaryOrgId)
 
-  await req.responseHandler.success(req, res, payload, status)
+  track('Merge organizations', requestPayload, { ...req })
+
+  await req.responseHandler.success(req, res, requestPayload)
 }

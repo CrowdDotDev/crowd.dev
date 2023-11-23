@@ -13,7 +13,7 @@
         />
       </el-tab-pane>
       <el-tab-pane label="Automations" name="automations">
-        <app-automation-list-page
+        <app-automation-list
           v-if="activeTab === 'automations'"
         />
       </el-tab-pane>
@@ -33,7 +33,7 @@ import {
 import { useRoute, useRouter } from 'vue-router';
 import AppLfProjectGroupsPage from '@/modules/lf/segments/pages/lf-project-groups-page.vue';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
-import AppAutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
+import AppAutomationList from '@/modules/automation/components/automation-list.vue';
 
 const route = useRoute();
 const router = useRouter();

@@ -64,7 +64,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
@@ -83,6 +83,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const route = useRoute();
+const router = useRouter();
 
 const { doFind } = mapActions('member');
 const { fetchMembers } = useMemberStore();
@@ -124,7 +125,15 @@ const mergeSuggestion = () => {
       emit('update:modelValue', null);
 
       if (route.name === 'memberView') {
-        doFind((originalMemberPrimary.value ? props.modelValue : memberToMerge.value).id);
+        const { id } = originalMemberPrimary.value ? props.modelValue : memberToMerge.value;
+
+        doFind(id).then(() => {
+          router.replace({
+            params: {
+              id,
+            },
+          });
+        });
       } else if (route.name === 'member') {
         fetchMembers({ reload: true });
       }

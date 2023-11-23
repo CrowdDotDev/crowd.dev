@@ -3,9 +3,12 @@
     <div class="pt-3">
       <div
         v-if="isLoading"
-        v-loading="isLoading"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      />
+        class="h-16 !relative !min-h-5 flex justify-center items-center"
+      >
+        <div class="animate-spin w-fit">
+          <div class="custom-spinner" />
+        </div>
+      </div>
       <div v-else>
         <!-- Empty State -->
         <app-empty-state-cta
@@ -144,7 +147,7 @@
                           v-if="scope.row.headline || scope.row.description"
                           class="text-sm h-full flex items-center text-gray-900"
                         >
-                          {{ scope.row.headline || scope.row.description }}
+                          {{ truncateText((scope.row.headline || scope.row.description), 150, '...') }}
                         </span>
                         <span
                           v-else
@@ -685,10 +688,18 @@
                       }"
                       class="flex justify-center"
                     >
-                      <app-organization-dropdown
-                        :organization="scope.row"
-                        @merge="isMergeDialogOpen = scope.row"
-                      />
+                      <button
+                        :id="`buttonRef-${scope.row.id}`"
+                        :ref="(el) => setActionBtnsRef(el, scope.row.id)"
+                        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+                        type="button"
+                        @click.prevent.stop="() => onActionBtnClick(scope.row)"
+                      >
+                        <i
+                          :id="`buttonRefIcon-${scope.row.id}`"
+                          class="text-xl ri-more-fill"
+                        />
+                      </button>
                     </router-link>
                   </template>
                 </el-table-column>
@@ -716,6 +727,25 @@
         </div>
       </div>
     </div>
+    <el-popover
+      ref="OrganizationDropdownPopover"
+      placement="bottom-end"
+      popper-class="popover-dropdown"
+      :virtual-ref="actionBtnRefs[selectedActionOrganization?.id]"
+      trigger="click"
+      :visible="showOrganizationDropdownPopover"
+      virtual-triggering
+      @hide="onHide"
+    >
+      <div v-click-outside="onClickOutside">
+        <app-organization-dropdown-content
+          v-if="selectedActionOrganization"
+          :organization="selectedActionOrganization"
+          @merge="isMergeDialogOpen = selectedActionOrganization"
+          @close-dropdown="closeDropdown"
+        />
+      </div>
+    </el-popover>
     <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
@@ -730,7 +760,7 @@ import {
 import { useRouter } from 'vue-router';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
-import { withHttp, toSentenceCase } from '@/utils/string';
+import { withHttp, toSentenceCase, truncateText } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
@@ -739,10 +769,11 @@ import employeeChurnRate from '@/modules/organization/config/enrichment/employee
 import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
+import { ClickOutside as vClickOutside } from 'element-plus';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
-import AppOrganizationDropdown from '../organization-dropdown.vue';
+import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
 
 const router = useRouter();
 
@@ -782,6 +813,11 @@ const tableHeaderRef = ref();
 const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
+
+const showOrganizationDropdownPopover = ref(false);
+const OrganizationDropdownPopover = ref(null);
+const actionBtnRefs = ref({});
+const selectedActionOrganization = ref(null);
 
 const pagination = computed({
   get() {
@@ -828,6 +864,39 @@ document.onmouseup = () => {
   // according to wether the mouse is hovering the table or not
   isScrollbarVisible.value = isTableHovered.value;
   isCursorDown.value = false;
+};
+
+const setActionBtnsRef = (el, id) => {
+  if (el) {
+    actionBtnRefs.value[id] = el;
+  }
+};
+
+const onActionBtnClick = (organization) => {
+  if (selectedActionOrganization.value?.id === organization.id) {
+    showOrganizationDropdownPopover.value = false;
+
+    setTimeout(() => {
+      selectedActionOrganization.value = null;
+    }, 200);
+  } else {
+    showOrganizationDropdownPopover.value = true;
+    selectedActionOrganization.value = organization;
+  }
+};
+
+const closeDropdown = () => {
+  showOrganizationDropdownPopover.value = false;
+
+  setTimeout(() => {
+    selectedActionOrganization.value = null;
+  }, 200);
+};
+
+const onClickOutside = (el) => {
+  if (!el.target?.id.includes('buttonRef')) {
+    closeDropdown();
+  }
 };
 
 function doChangeSort(sorter) {
@@ -995,5 +1064,10 @@ export default {
 }
 .el-table__body {
   height: 1px;
+}
+
+.popover-dropdown {
+  padding: 0.5rem !important;
+  width: fit-content !important;
 }
 </style>

@@ -4,13 +4,13 @@ import TwitterConnect from './components/twitter-connect.vue';
 
 export default {
   enabled: true,
-  name: 'Twitter',
+  name: 'X/Twitter',
   backgroundColor: '#d2ebfc',
   borderColor: '#d2ebfc',
   description:
-    'Connect Twitter to sync profile information, followers, and relevant tweets.',
+    'Connect X/Twitter to sync profile information, followers, and relevant tweets.',
   image:
-    'https://cdn-icons-png.flaticon.com/512/733/733579.png',
+    '/images/integrations/twitter-x.svg',
   connectComponent: config.isTwitterIntegrationEnabled ? TwitterConnect2 : TwitterConnect,
   url: ({ username }) => (username ? `https://twitter.com/${username}` : null),
   chartColor: '#1D9BF0',

@@ -4,6 +4,7 @@ import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { PageData } from '@crowd/common'
 import {
+  FeatureFlag,
   IEnrichableOrganization,
   IMemberOrganization,
   IOrganization,
@@ -22,9 +23,9 @@ import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '@/types/common'
 import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
+import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 
 const { Op } = Sequelize
 
@@ -75,7 +76,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                         group by a."organizationId"
                         having count(id) > 0),
      identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
@@ -158,7 +158,6 @@ class OrganizationRepository {
                         from activities a
                         where a."tenantId" = :tenantId
                           and a."deletedAt" is null
-                          and a."isContribution" = true
                           and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
                         group by a."organizationId"
                         having count(id) > 0),
@@ -343,7 +342,8 @@ class OrganizationRepository {
           const existingOrg = existingOrgs.find((o) => o.id === org.id)
           if (existingOrg && existingOrg.tags) {
             // Merge existing and new tags without duplicates
-            org.tags = lodash.uniq([...existingOrg.tags, ...org.tags])
+            const incomingTags = org.tags || []
+            org.tags = lodash.uniq([...existingOrg.tags, ...incomingTags])
           }
           return org
         })
@@ -494,6 +494,25 @@ class OrganizationRepository {
       replacements: {
         organizationIds,
         segmentIds: SequelizeRepository.getSegmentIds(options),
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
+  static async excludeOrganizationsFromAllSegments(
+    organizationIds: string[],
+    options: IRepositoryOptions,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const bulkDeleteOrganizationSegments = `DELETE FROM "organizationSegments" WHERE "organizationId" in (:organizationIds);`
+
+    await seq.query(bulkDeleteOrganizationSegments, {
+      replacements: {
+        organizationIds,
       },
       type: QueryTypes.DELETE,
       transaction,
@@ -712,37 +731,54 @@ class OrganizationRepository {
     )
   }
 
-  static async destroy(id, options: IRepositoryOptions, force = false) {
+  static async destroy(
+    id,
+    options: IRepositoryOptions,
+    force = false,
+    destroyIfOnlyNoSegmentsLeft = true,
+  ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    await OrganizationRepository.excludeOrganizationsFromSegments([id], {
-      ...options,
+    const record = await options.database.organization.findOne({
+      where: {
+        id,
+        tenantId: currentTenant.id,
+      },
       transaction,
     })
-    const org = await this.findById(id, options)
 
-    if (org.segments.length === 0) {
-      const record = await options.database.organization.findOne({
-        where: {
-          id,
-          tenantId: currentTenant.id,
-        },
+    if (!record) {
+      throw new Error404()
+    }
+
+    if (destroyIfOnlyNoSegmentsLeft) {
+      await OrganizationRepository.excludeOrganizationsFromSegments([id], {
+        ...options,
         transaction,
       })
+      const org = await this.findById(id, options)
 
-      if (!record) {
-        throw new Error404()
+      if (org.segments.length === 0) {
+        await record.destroy({
+          transaction,
+          force,
+        })
       }
+    } else {
+      await OrganizationRepository.excludeOrganizationsFromAllSegments([id], {
+        ...options,
+        transaction,
+      })
 
       await record.destroy({
         transaction,
         force,
       })
-
-      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
+
+    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async setIdentities(
@@ -1130,7 +1166,7 @@ class OrganizationRepository {
     fromOrganizationId: string,
     toOrganizationId: string,
     options: IRepositoryOptions,
-    batchSize = 10000,
+    batchSize = 1000,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
@@ -1489,23 +1525,6 @@ class OrganizationRepository {
               })
             ).body?.hits?.hits || []
 
-          /*
-          const { maxScore, minScore } = organizationsToMerge.reduce<MinMaxScores>(
-            (acc, organizationToMerge) => {
-              if (!acc.minScore || organizationToMerge._score < acc.minScore) {
-                acc.minScore = organizationToMerge._score
-              }
-
-              if (!acc.maxScore || organizationToMerge._score > acc.maxScore) {
-                acc.maxScore = organizationToMerge._score
-              }
-
-              return acc
-            },
-            { maxScore: null, minScore: null },
-          )
-          */
-
           for (const organizationToMerge of organizationsToMerge) {
             yieldChunk.push({
               similarity: calculateSimilarity(organization, organizationToMerge),
@@ -1549,9 +1568,17 @@ class OrganizationRepository {
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
         JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
+        LEFT JOIN "mergeActions" ma
+          ON ma.type = :mergeActionType
+          AND ma."tenantId" = :tenantId
+          AND (
+            (ma."primaryId" = org.id AND ma."secondaryId" = otm."toMergeId")
+            OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
+          )
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
           AND to_merge_segments."segmentId" IN (:segmentIds)
+          AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
       ),
       
       count_cte AS (
@@ -1587,6 +1614,8 @@ class OrganizationRepository {
           segmentIds,
           limit,
           offset,
+          mergeActionType: MergeActionType.ORG,
+          mergeActionStatus: MergeActionState.ERROR,
         },
         type: QueryTypes.SELECT,
       },
@@ -1693,6 +1722,8 @@ class OrganizationRepository {
 
           return (
             mo.memberId === memberOrganization.memberId &&
+            mo.dateStart !== null &&
+            mo.dateEnd !== null &&
             ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
               (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
               (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
@@ -1742,16 +1773,17 @@ class OrganizationRepository {
     }
 
     // update rest of the o2 members
-    await seq.query(
+    const remainingRoles = (await seq.query(
       `
-      UPDATE "memberOrganizations"
-        SET "organizationId" = :toOrganizationId
+        SELECT *
+        FROM "memberOrganizations"
         WHERE "organizationId" = :fromOrganizationId 
         AND "deletedAt" IS NULL
         AND "memberId" NOT IN (
             SELECT "memberId" 
             FROM "memberOrganizations" 
             WHERE "organizationId" = :toOrganizationId
+            AND "deletedAt" IS NULL
         );
       `,
       {
@@ -1759,10 +1791,26 @@ class OrganizationRepository {
           toOrganizationId,
           fromOrganizationId,
         },
-        type: QueryTypes.UPDATE,
+        type: QueryTypes.SELECT,
         transaction,
       },
-    )
+    )) as IMemberOrganization[]
+
+    for (const role of remainingRoles) {
+      await this.removeMemberRole(role, options)
+      await this.addMemberRole(
+        {
+          title: role.title,
+          dateStart: role.dateStart,
+          dateEnd: role.dateEnd,
+          memberId: role.memberId,
+          organizationId: toOrganizationId,
+          source: role.source,
+          deletedAt: role.deletedAt,
+        },
+        options,
+      )
+    }
   }
 
   static async getOrganizationSegments(

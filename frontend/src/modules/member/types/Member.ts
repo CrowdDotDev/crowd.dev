@@ -5,6 +5,7 @@ export interface MemberAttribute {
   custom: string;
   github?: string;
   twitter?: string;
+  hubspot?: any;
 }
 
 export interface MemberContribution {

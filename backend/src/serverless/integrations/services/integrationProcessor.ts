@@ -6,9 +6,6 @@ import { IServiceOptions } from '../../../services/IServiceOptions'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { IntegrationRunProcessor } from './integrationRunProcessor'
 import { IntegrationTickProcessor } from './integrationTickProcessor'
-import { DiscourseIntegrationService } from './integrations/discourseIntegrationService'
-import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
-import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { WebhookProcessor } from './webhookProcessor'
 
 export class IntegrationProcessor extends LoggerBase {
@@ -21,11 +18,7 @@ export class IntegrationProcessor extends LoggerBase {
   constructor(options: IServiceOptions, redisEmitterClient?: RedisClient) {
     super(options.log)
 
-    const integrationServices = [
-      new TwitterIntegrationService(),
-      new TwitterReachIntegrationService(),
-      new DiscourseIntegrationService(),
-    ]
+    const integrationServices = []
 
     this.log.debug(
       { supportedIntegrations: integrationServices.map((i) => i.type) },
