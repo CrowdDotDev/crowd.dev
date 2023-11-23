@@ -13,8 +13,7 @@
       Create an account
     </h3>
     <p class="text-gray-500 text-xs leading-5">
-      Turn your developer community into your #1 growth
-      channel
+      Unify community, product, and customer data and provide insights to your go-to-market team.
     </p>
     <div class="pt-10">
       <el-form
