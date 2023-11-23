@@ -244,18 +244,20 @@ export default {
       });
   },
 
-  async doSelectTenant({ dispatch }, { tenant, redirect = true }) {
+  async doSelectTenant({ dispatch, state }, { tenant, redirect = true }) {
     if (tenantSubdomain.isEnabled) {
       tenantSubdomain.redirectAuthenticatedTo(tenant.url);
       return;
     }
 
+    state.currentTenant = tenant;
     AuthCurrentTenant.set(tenant);
-    await dispatch('doRefreshCurrentUser');
 
     const initialState = buildInitialState(true);
 
     store.replaceState(initialState);
+
+    await dispatch('doRefreshCurrentUser');
 
     if (redirect) {
       router.push('/');
