@@ -249,13 +249,15 @@ export default {
       });
   },
 
-  async doSelectTenant({ dispatch, state }, { tenant, redirect = true }) {
+  async doSelectTenant({ dispatch, state }, { tenant, redirect = true, immediate = false }) {
     if (tenantSubdomain.isEnabled) {
       tenantSubdomain.redirectAuthenticatedTo(tenant.url);
       return;
     }
 
-    state.currentTenant = tenant;
+    if (immediate) {
+      state.currentTenant = tenant;
+    }
     AuthCurrentTenant.set(tenant);
 
     const initialState = buildInitialState(true);
