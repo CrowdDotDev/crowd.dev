@@ -2,6 +2,7 @@ import axios from 'axios'
 export interface ISearchSyncApiConfig {
   baseUrl: string
 }
+
 export class SearchSyncApiClient {
   private searchSyncApi
 
