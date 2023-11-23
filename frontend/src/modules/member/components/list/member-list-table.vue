@@ -366,9 +366,18 @@
               <!-- Location -->
               <el-table-column
                 label="Location"
-                prop="attributes.location.default"
                 width="200"
               >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Location
+                    </div>
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -393,16 +402,21 @@
                 v-if="showReach"
                 label="Reach"
                 prop="reach"
-                width="150"
+                width="180"
                 sortable="custom"
               >
                 <template #header>
-                  <el-tooltip placement="top">
-                    <template #content>
-                      Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
-                    </template>
-                    Reach
-                  </el-tooltip>
+                  <div class="inline-flex items-center gap-2">
+                    <el-tooltip placement="top">
+                      <template #content>
+                        Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                      </template>
+                      Reach
+                    </el-tooltip>
+                    <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
                 </template>
                 <template #default="scope">
                   <router-link
@@ -425,9 +439,22 @@
               <!-- Seniority Level -->
               <el-table-column
                 label="Seniority Level"
-                prop="attributes.seniorityLevel.default"
                 width="200"
               >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Seniority Level
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -449,10 +476,23 @@
 
               <!-- Programming Languages -->
               <el-table-column
-                label="Seniority Level"
-                prop="attributes.programmingLanguages.default"
+                label="Programming Languages"
                 width="250"
               >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Programming Languages
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -480,9 +520,22 @@
               <!-- Skills -->
               <el-table-column
                 label="Skills"
-                prop="attributes.skills.default"
                 width="250"
               >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Skills
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
