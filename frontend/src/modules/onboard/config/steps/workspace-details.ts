@@ -38,7 +38,7 @@ const workspaceDetails: OnboardStepConfig = {
         // Store the newly created tenant as current tenant
         .then((tenant) => {
           store.dispatch('auth/doSelectTenant', { tenant, redirect: false });
-          store.dispatch('auth/doRefreshCurrentUser');
+          store.dispatch('auth/doRefreshCurrentUser', { reload: true });
 
           return Promise.resolve();
         })

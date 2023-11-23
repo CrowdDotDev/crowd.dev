@@ -174,6 +174,7 @@ const onBtnClick = () => {
     if (currentStep.value < Object.values(onboardingSteps).length) {
       currentStep.value += 1;
     }
+    console.log(currentStep.value);
   }).finally(() => {
     loadingSubmitAction.value = false;
   });
