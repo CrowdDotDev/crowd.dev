@@ -10,15 +10,16 @@ const serviceConfig = SERVICE_CONFIG()
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
+    const memberSyncService = new MemberSyncService(
+      req.redisClient,
+      req.dbStore,
+      req.opensearch,
+      req.log,
+      serviceConfig,
+    )
+
+    const { memberIds } = req.body
     try {
-      const memberSyncService = new MemberSyncService(
-        req.redisClient,
-        req.dbStore,
-        req.opensearch,
-        req.log,
-        serviceConfig,
-      )
-      const { memberIds } = req.body
       req.log.trace(`[SearchSyncAPI] - Calling memberSyncService.syncMembers for ${memberIds}`)
       await memberSyncService.syncMembers(memberIds)
       res.sendStatus(200)
