@@ -42,7 +42,31 @@ setImmediate(async () => {
   app.use(organizationRoutes)
 
   app.use('/health', async (req: ApiRequest, res) => {
-    res.status(200).send('Health check passed.')
+    try {
+      const [opensearchCheck, redisCheck, dbCheck] = await Promise.all([
+        // ping opensearch
+        opensearch.client.ping().then((res) => res.body),
+        // ping redis,
+        redis.ping().then((res) => res === 'PONG'),
+        // ping database
+        req.dbStore
+          .connection()
+          .any('select 1')
+          .then((rows) => rows.length === 1),
+      ])
+
+      if (opensearchCheck && redisCheck && dbCheck) {
+        res.sendStatus(200)
+      } else {
+        res.status(500).json({
+          opensearch: opensearchCheck,
+          redis: redisCheck,
+          database: dbCheck,
+        })
+      }
+    } catch (err) {
+      res.status(500).json({ error: err })
+    }
   })
 
   app.use(errorMiddleware())
