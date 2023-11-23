@@ -30,8 +30,16 @@ export const shouldProcessActivity = async (
 
   let process = true
 
+  // check if activity created after automation was created
+  if (new Date(automation.createdAt) > new Date(activity.timestamp)) {
+    log.warn(
+      `Ignoring automation ${automation.id} - Activity ${activity.id} was created before automation!`,
+    )
+    process = false
+  }
+
   // check whether activity type matches
-  if (settings.types && settings.types.length > 0) {
+  if (process && settings.types && settings.types.length > 0) {
     if (!settings.types.includes(activity.type)) {
       log.warn(
         `Ignoring automation ${automation.id} - Activity ${activity.id} type '${

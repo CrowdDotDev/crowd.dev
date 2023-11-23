@@ -9,14 +9,8 @@
         >
           {{ label }}
         </div>
-        <el-tooltip
-          v-if="isEnrichmentField"
-          content="Organization enrichment"
-          placement="top"
-        >
-          <div class="form-enrichment-badge">
-            <app-svg name="enrichment" />
-          </div>
+        <el-tooltip v-if="isEnrichmentField" content="Source: Enrichment" placement="top" trigger="hover">
+          <app-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
       <span

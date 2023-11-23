@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "start:debug": "SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start": "CROWD_TEMPORAL_TASKQUEUE=emails SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=emails SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug": "CROWD_TEMPORAL_TASKQUEUE=emails SERVICE=emails-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug:local",
     "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug",
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",

@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 import { proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../../activities'
@@ -22,7 +24,7 @@ const {
   getTotalActivitiesPreviousWeek,
   getNewActivitiesThisWeek,
   getNewActivitiesPreviousWeek,
-} = proxyActivities<typeof activities>({ startToCloseTimeout: '2 seconds' })
+} = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
 
 // Configure timeouts and retry policies to fetch content from the database.
 const {
@@ -42,7 +44,7 @@ const { weeklySendEmail } = proxyActivities<typeof activities>({
 })
 
 /*
-sendEmailAndUpdateHistory is a Temporal workflow that:
+weeklySendEmailAndUpdateHistory is a Temporal workflow that:
   - [Activity]: Fetch the tenant's segments.
   - [Activity]: Ensure the tenant has an active integration.
   - [Async Activities]: Fetch results from Cube.js and database.
@@ -52,7 +54,9 @@ sendEmailAndUpdateHistory is a Temporal workflow that:
     the SendGrid API.
   - [Async Activities]: Update email history in the database.
 */
-export async function sendEmailAndUpdateHistory(input: InputAnalyticsWithTimes): Promise<void> {
+export async function weeklySendEmailAndUpdateHistory(
+  input: InputAnalyticsWithTimes,
+): Promise<void> {
   const segments = await getSegments(input)
 
   const withTimeAndSegmentIds: InputAnalyticsWithTimes = {
@@ -131,9 +135,9 @@ export async function sendEmailAndUpdateHistory(input: InputAnalyticsWithTimes):
   ])
 
   const data = {
-    dateRangePretty: `${input.dateTimeStartThisWeek.format(
-      'D MMM YYYY',
-    )} - ${input.dateTimeEndThisWeek.format('D MMM YYYY')}`,
+    dateRangePretty: `${moment.utc(input.dateTimeStartThisWeek).format('D MMM YYYY')} - ${moment
+      .utc(input.dateTimeEndThisWeek)
+      .format('D MMM YYYY')}`,
     members: {
       total: {
         value: totalMembersThisWeek,
@@ -185,6 +189,7 @@ export async function sendEmailAndUpdateHistory(input: InputAnalyticsWithTimes):
   await Promise.all(
     users.map((user) => {
       return weeklySendEmail({
+        email: user.email,
         userId: user.userId,
         tenantId: input.tenantId,
         content: {

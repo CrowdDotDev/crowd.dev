@@ -1,6 +1,7 @@
 import { CubeJsService, CubeJsRepository } from '@crowd/cubejs'
 
 import { InputAnalyticsWithTimes } from '../../types/analytics'
+import moment from 'moment'
 
 /*
 totalMembersThisWeek is a Temporal activity that returns the total number of
@@ -12,7 +13,11 @@ export async function getTotalMembersThisWeek(input: InputAnalyticsWithTimes): P
 
   let result: number
   try {
-    result = await CubeJsRepository.getNewMembers(cjs, input.unixEpoch, input.dateTimeEndThisWeek)
+    result = await CubeJsRepository.getNewMembers(
+      cjs,
+      moment.utc(input.unixEpoch),
+      moment.utc(input.dateTimeEndThisWeek),
+    )
   } catch (err) {
     throw new Error(err)
   }
@@ -32,8 +37,8 @@ export async function getTotalMembersPreviousWeek(input: InputAnalyticsWithTimes
   try {
     result = await CubeJsRepository.getNewMembers(
       cjs,
-      input.unixEpoch,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.unixEpoch),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -54,8 +59,8 @@ export async function getActiveMembersThisWeek(input: InputAnalyticsWithTimes): 
   try {
     result = await CubeJsRepository.getActiveMembers(
       cjs,
-      input.dateTimeStartThisWeek,
-      input.dateTimeEndThisWeek,
+      moment.utc(input.dateTimeStartThisWeek),
+      moment.utc(input.dateTimeEndThisWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -78,8 +83,8 @@ export async function getActiveMembersPreviousWeek(
   try {
     result = await CubeJsRepository.getActiveMembers(
       cjs,
-      input.dateTimeStartPreviousWeek,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.dateTimeStartPreviousWeek),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -100,8 +105,8 @@ export async function getNewMembersThisWeek(input: InputAnalyticsWithTimes): Pro
   try {
     result = await CubeJsRepository.getNewMembers(
       cjs,
-      input.dateTimeStartThisWeek,
-      input.dateTimeEndThisWeek,
+      moment.utc(input.dateTimeStartThisWeek),
+      moment.utc(input.dateTimeEndThisWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -122,8 +127,8 @@ export async function getNewMembersPreviousWeek(input: InputAnalyticsWithTimes):
   try {
     result = await CubeJsRepository.getNewMembers(
       cjs,
-      input.dateTimeStartPreviousWeek,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.dateTimeStartPreviousWeek),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -146,8 +151,8 @@ export async function getTotalOrganizationsThisWeek(
   try {
     result = await CubeJsRepository.getNewOrganizations(
       cjs,
-      input.unixEpoch,
-      input.dateTimeEndThisWeek,
+      moment.utc(input.unixEpoch),
+      moment.utc(input.dateTimeEndThisWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -170,8 +175,8 @@ export async function getTotalOrganizationsPreviousWeek(
   try {
     result = await CubeJsRepository.getNewOrganizations(
       cjs,
-      input.unixEpoch,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.unixEpoch),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -194,8 +199,8 @@ export async function getActiveOrganizationsThisWeek(
   try {
     result = await CubeJsRepository.getActiveOrganizations(
       cjs,
-      input.dateTimeStartThisWeek,
-      input.dateTimeEndThisWeek,
+      moment.utc(input.dateTimeStartThisWeek),
+      moment.utc(input.dateTimeEndThisWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -218,8 +223,8 @@ export async function getActiveOrganizationsPreviousWeek(
   try {
     result = await CubeJsRepository.getActiveOrganizations(
       cjs,
-      input.dateTimeStartPreviousWeek,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.dateTimeStartPreviousWeek),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -240,8 +245,8 @@ export async function getNewOrganizationsThisWeek(input: InputAnalyticsWithTimes
   try {
     result = await CubeJsRepository.getNewOrganizations(
       cjs,
-      input.dateTimeStartThisWeek,
-      input.dateTimeEndThisWeek,
+      moment.utc(input.dateTimeStartThisWeek),
+      moment.utc(input.dateTimeEndThisWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -264,8 +269,8 @@ export async function getNewOrganizationsPreviousWeek(
   try {
     result = await CubeJsRepository.getNewOrganizations(
       cjs,
-      input.dateTimeStartPreviousWeek,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.dateTimeStartPreviousWeek),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -286,8 +291,8 @@ export async function getTotalActivitiesThisWeek(input: InputAnalyticsWithTimes)
   try {
     result = await CubeJsRepository.getNewActivities(
       cjs,
-      input.unixEpoch,
-      input.dateTimeEndThisWeek,
+      moment.utc(input.unixEpoch),
+      moment.utc(input.dateTimeEndThisWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -310,8 +315,8 @@ export async function getTotalActivitiesPreviousWeek(
   try {
     result = await CubeJsRepository.getNewActivities(
       cjs,
-      input.unixEpoch,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.unixEpoch),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -332,8 +337,8 @@ export async function getNewActivitiesThisWeek(input: InputAnalyticsWithTimes): 
   try {
     result = await CubeJsRepository.getNewActivities(
       cjs,
-      input.dateTimeStartThisWeek,
-      input.dateTimeEndThisWeek,
+      moment.utc(input.dateTimeStartThisWeek),
+      moment.utc(input.dateTimeEndThisWeek),
     )
   } catch (err) {
     throw new Error(err)
@@ -356,8 +361,8 @@ export async function getNewActivitiesPreviousWeek(
   try {
     result = await CubeJsRepository.getNewActivities(
       cjs,
-      input.dateTimeStartPreviousWeek,
-      input.dateTimeEndPreviousWeek,
+      moment.utc(input.dateTimeStartPreviousWeek),
+      moment.utc(input.dateTimeEndPreviousWeek),
     )
   } catch (err) {
     throw new Error(err)

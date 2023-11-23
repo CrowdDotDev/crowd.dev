@@ -1,9 +1,20 @@
 <template>
   <div class="member-view-custom-attributes">
     <div class="flex items-center justify-between">
-      <div class="font-medium text-black">
-        Attributes
+      <div class="flex items-center">
+        <div class="font-medium text-black mr-2">
+          Attributes
+        </div>
+        <el-tooltip
+          v-if="attributesSameSource"
+          :content="`Source: ${attributesSameSource}`"
+          placement="top"
+          trigger="hover"
+        >
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
       </div>
+
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
@@ -39,18 +50,28 @@
         :key="attribute.id"
         class="attribute"
       >
-        <p class="title">
-          {{ attribute.label }}
+        <div class="flex items-center">
+          <p class="title pr-2">
+            {{ attribute.label }}
+            <el-tooltip
+              content="Skills are sorted by relevance"
+              placement="top"
+            >
+              <i
+                v-if="attribute.name === 'skills'"
+                class="ri-information-line"
+              />
+            </el-tooltip>
+          </p>
           <el-tooltip
-            content="Skills are sorted by relevance"
+            v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
+            :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
             placement="top"
+            trigger="hover"
           >
-            <i
-              v-if="attribute.name === 'skills'"
-              class="ri-information-line"
-            />
+            <app-svg name="source" class="h-3 w-3" />
           </el-tooltip>
-        </p>
+        </div>
         <div
           v-if="attribute.type === 'multiSelect'"
           class="multiSelect -mt-1"
@@ -96,6 +117,8 @@ import { formatDate } from '@/utils/date';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
@@ -142,6 +165,15 @@ const computedCustomAttributes = computed(() => Object.values(customAttributes.v
     }
     return 1;
   }));
+
+const attributesSameSource = computed(() => {
+  const sources = computedCustomAttributes.value.map((attribute) => getAttributeSourceName(props.member.attributes[attribute.name]));
+  const uniqueSources = [...new Set(sources)];
+  if (uniqueSources.length === 1) {
+    return uniqueSources[0];
+  }
+  return null;
+});
 
 const formattedComputedAttributeValue = (value) => {
   const dateFormat = 'YYYY-MM-DD';

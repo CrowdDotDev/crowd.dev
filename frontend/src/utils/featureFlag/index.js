@@ -13,7 +13,6 @@ export const FEATURE_FLAGS = {
   hubspot: 'hubspot',
   logRocket: 'log-rocket',
   developerMode: 'developer-mode',
-  quickstartV2: 'quickstart-v2',
   twitter: 'twitter',
 };
 

@@ -3,12 +3,12 @@
     placement="right-end"
     :width="260"
     trigger="click"
-    popper-class="!pt-2 !px-1 !pb-1 transform translate-x-1"
+    popper-class="!pt-2 !px-0 !pb-1 transform translate-x-1"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
   >
     <template #reference>
-      <div class="-mr-4 pr-4">
+      <div class="-mr-4 pr-4 px-1">
         <el-tooltip
           :disabled="!props.collapsed || isDropdownOpen"
           :hide-after="50"
@@ -31,7 +31,7 @@
       </div>
     </template>
 
-    <div class="-mb-">
+    <div class="-mb- px-1">
       <div class="pt-1 pb-3 px-4">
         <p class="uppercase text-2xs font-semibold tracking-1 text-gray-400 leading-6 text-center">
           Resources & Support
@@ -47,6 +47,12 @@
         icon-class="!text-base"
       />
     </div>
+
+    <el-divider class="!my-2 border-gray-100 w-full" />
+
+    <div class="px-1">
+      <cr-system-status :check-status="isDropdownOpen" />
+    </div>
   </el-popover>
 </template>
 
@@ -54,6 +60,7 @@
 import { ref } from 'vue';
 import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
 import { supportMenu } from '@/modules/layout/config/menu';
+import CrSystemStatus from '@/modules/layout/components/system-status/system-status.vue';
 import CrMenuSupportHelp from '@/modules/layout/components/menu/menu-support-help.vue';
 
 const props = defineProps<{

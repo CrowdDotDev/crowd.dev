@@ -6,7 +6,7 @@ import { UserTenant } from '../../types/user'
 // Configure timeouts and retry policies to fetch content from third-party sources.
 const { eagleeyeFetchFromEagleEye, eagleeyeFetchFromDatabase } = proxyActivities<typeof activities>(
   {
-    startToCloseTimeout: '5 seconds',
+    startToCloseTimeout: '10 seconds',
   },
 )
 
@@ -26,7 +26,7 @@ const { updateEmailHistory, eagleeyeUpdateNextEmailAt } = proxyActivities<typeof
 })
 
 /*
-sendEmailAndUpdateHistory is a Temporal workflow that:
+eagleeyeSendEmailAndUpdateHistory is a Temporal workflow that:
   - [Async Activities]: Fetch posts from EagleEye API and the database.
   - [Activity]: Build the content of the email to send based on the posts
     previously found.
@@ -34,7 +34,7 @@ sendEmailAndUpdateHistory is a Temporal workflow that:
     SendGrid API.
   - [Async Activities]: Update email history and digest status in the database.
 */
-export async function sendEmailAndUpdateHistory(row: UserTenant): Promise<void> {
+export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promise<void> {
   const [fetchedFromEagleEye, fetchedFromDatabase] = await Promise.all([
     eagleeyeFetchFromEagleEye(row),
     eagleeyeFetchFromDatabase(row),

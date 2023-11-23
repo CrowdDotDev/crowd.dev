@@ -54,7 +54,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       return processSendgridWebhook(event)
     case 'weekly-analytics-emails':
       if (
-        isFeatureEnabled(
+        await isFeatureEnabled(
           FeatureFlag.TEMPORAL_EMAILS,
           async () => ({
             tenant,
@@ -68,7 +68,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       return weeklyAnalyticsEmailsWorker(tenant)
     case 'eagle-eye-email-digest':
       if (
-        isFeatureEnabled(
+        await isFeatureEnabled(
           FeatureFlag.TEMPORAL_EMAILS,
           async () => ({
             tenant,
