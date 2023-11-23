@@ -13,6 +13,7 @@ import { opensearchMiddleware } from 'middleware/opensearch'
 import { getRedisClient } from '@crowd/redis'
 import { redisMiddleware } from 'middleware/redis'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG } from './conf'
+import { ApiRequest } from 'middleware'
 
 const log = getServiceLogger()
 const config = SEARCH_SYNC_API_CONFIG()
@@ -40,7 +41,7 @@ setImmediate(async () => {
   app.use(activityRoutes)
   app.use(organizationRoutes)
 
-  app.use('/health', async (req: any, res) => {
+  app.use('/health', async (req: ApiRequest, res) => {
     res.status(200).send('Health check passed.')
   })
 
