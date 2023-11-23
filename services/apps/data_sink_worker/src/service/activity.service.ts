@@ -451,7 +451,13 @@ export default class ActivityService extends LoggerBase {
           }
 
           // find existing activity
-          const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)
+          const dbActivity = await txRepo.findExisting(
+            tenantId,
+            segmentId,
+            activity.sourceId,
+            platform,
+            activity.type,
+          )
 
           if (dbActivity && dbActivity?.deletedAt) {
             // we found an existing activity but it's deleted - nothing to do here
