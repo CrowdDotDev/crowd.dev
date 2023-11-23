@@ -126,6 +126,16 @@
                   prop="headline"
                   width="300"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Headline
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -353,6 +363,16 @@
                   width="150"
                   prop="location"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Location
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -381,6 +401,16 @@
                   width="150"
                   prop="industry"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Industry
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -409,6 +439,16 @@
                   width="150"
                   prop="size"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Headcount
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -437,6 +477,16 @@
                   width="150"
                   prop="type"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Type
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -466,6 +516,18 @@
                   prop="founded"
                   sortable
                 >
+                  <template #header>
+                    <div class="inline-block">
+                      <div class="flex items-center">
+                        <div class="mr-2">
+                          Founded
+                        </div>
+                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                          <app-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                      </div>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -491,8 +553,18 @@
                 <!-- Employee Churn Rate -->
                 <el-table-column
                   label="Ann. Employee Churn Rate"
-                  width="220"
+                  width="250"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Ann. Employee Churn Rate
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -518,8 +590,18 @@
                 <!-- Employee Growth Rate -->
                 <el-table-column
                   label="Ann. Employee Growth Rate"
-                  width="230"
+                  width="250"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Ann. Employee Growth Rate
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -545,8 +627,18 @@
                 <!-- Employee Count -->
                 <el-table-column
                   label="Employee Count"
-                  width="150"
+                  width="170"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Employee Count
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -572,8 +664,18 @@
                 <!-- Inferred Revenue -->
                 <el-table-column
                   label="Annual Revenue"
-                  width="150"
+                  width="170"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Annual Revenue
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -601,6 +703,16 @@
                   label="Tags"
                   :width="tagsColumnWidth"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Tags
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -713,6 +825,7 @@ import employeeGrowthRate from '@/modules/organization/config/enrichment/employe
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';

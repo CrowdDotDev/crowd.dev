@@ -1,18 +1,13 @@
-import { Sequelize } from 'sequelize'
 import lodash from 'lodash'
 import { LoggerBase } from '@crowd/logging'
-import { FeatureFlag } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
-import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import {
   DEFAULT_GUIDES,
-  DEFAULT_GUIDES_V2,
   QuickstartGuideMap,
   QuickstartGuideSettings,
   QuickstartGuideType,
 } from '../types/quickstartGuideTypes'
 import IntegrationRepository from '../database/repositories/integrationRepository'
-import MemberService from './memberService'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import ReportRepository from '../database/repositories/reportRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
@@ -42,25 +37,8 @@ export default class QuickstartGuideService extends LoggerBase {
   }
 
   async find(): Promise<QuickstartGuideMap> {
-    const isGuidesV2Enabled = await isFeatureEnabled(FeatureFlag.QUICKSTART_V2, this.options)
-    const guides: QuickstartGuideMap = JSON.parse(
-      JSON.stringify(isGuidesV2Enabled ? DEFAULT_GUIDES_V2 : DEFAULT_GUIDES),
-    )
-    this.log.info(guides)
-    const integrationCount: number = await IntegrationRepository.count({}, this.options)
+    const guides: QuickstartGuideMap = JSON.parse(JSON.stringify(DEFAULT_GUIDES))
 
-    const ms = new MemberService(this.options)
-
-    if (QuickstartGuideType.CONNECT_INTEGRATION in guides) {
-      guides[QuickstartGuideType.CONNECT_INTEGRATION].completed = integrationCount > 1
-    }
-    if (QuickstartGuideType.ENRICH_MEMBER in guides) {
-      const enrichedMembers = await ms.findAndCountAll({
-        advancedFilter: { enrichedBy: { contains: [this.options.currentUser.id] } },
-        limit: 1,
-      })
-      guides[QuickstartGuideType.ENRICH_MEMBER].completed = enrichedMembers.count > 0
-    }
     if (QuickstartGuideType.VIEW_REPORT in guides) {
       const viewedReports = await ReportRepository.findAndCountAll(
         { advancedFilter: { viewedBy: { contains: [this.options.currentUser.id] } } },
@@ -79,6 +57,7 @@ export default class QuickstartGuideService extends LoggerBase {
     }
 
     if (QuickstartGuideType.CONNECT_FIRST_INTEGRATION in guides) {
+      const integrationCount: number = await IntegrationRepository.count({}, this.options)
       guides[QuickstartGuideType.CONNECT_FIRST_INTEGRATION].completed = integrationCount > 0
     }
 
@@ -102,59 +81,6 @@ export default class QuickstartGuideService extends LoggerBase {
 
       if (QuickstartGuideType.EXPLORE_CONTACTS in guides) {
         guides[QuickstartGuideType.EXPLORE_CONTACTS].completed = tenantSettings.contactsViewed
-      }
-    }
-
-    if (
-      QuickstartGuideType.SET_EAGLE_EYE in guides &&
-      (await isFeatureEnabled(FeatureFlag.EAGLE_EYE, this.options))
-    ) {
-      const tenantUser = await TenantUserRepository.findByTenantAndUser(
-        this.options.currentTenant.id,
-        this.options.currentUser.id,
-        this.options,
-      )
-      guides[QuickstartGuideType.SET_EAGLE_EYE].completed = tenantUser.settings.eagleEye.onboarded
-    } else {
-      delete guides[QuickstartGuideType.SET_EAGLE_EYE]
-    }
-
-    // try to find an enrichable member for button CTA of enrich member guide
-    if (
-      QuickstartGuideType.ENRICH_MEMBER in guides &&
-      !guides[QuickstartGuideType.ENRICH_MEMBER].completed
-    ) {
-      const enrichableMembers = await ms.findAndCountAll({
-        advancedFilter: {
-          and: [
-            {
-              or: [
-                {
-                  emails: {
-                    ne: Sequelize.literal("'{}'"),
-                  },
-                },
-                {
-                  identities: {
-                    contains: ['github'],
-                  },
-                },
-              ],
-            },
-            {
-              enrichedBy: {
-                eq: Sequelize.literal("'{}'"),
-              },
-            },
-          ],
-        },
-        limit: 1,
-      })
-
-      if (enrichableMembers.count > 0) {
-        guides[
-          QuickstartGuideType.ENRICH_MEMBER
-        ].buttonLink = `/contacts/${enrichableMembers.rows[0].id}`
       }
     }
 
