@@ -40,6 +40,10 @@ setImmediate(async () => {
   app.use(activityRoutes)
   app.use(organizationRoutes)
 
+  app.use('/health', async (req: any, res) => {
+    res.status(200).send('Health check passed.')
+  })
+
   app.use(errorMiddleware())
 
   app.listen(config.port, () => {

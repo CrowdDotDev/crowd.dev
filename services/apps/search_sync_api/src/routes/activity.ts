@@ -2,10 +2,8 @@ import express from 'express'
 import { ActivitySyncService } from '@crowd/opensearch'
 import { ApiRequest } from '../middleware/index'
 import { asyncWrap } from 'middleware/error'
-import { getServiceLogger } from '@crowd/logging'
 
 const router = express.Router()
-const log = getServiceLogger()
 
 router.post(
   '/sync/activities',
@@ -13,7 +11,9 @@ router.post(
     const activitySyncService = new ActivitySyncService(req.dbStore, req.opensearch, req.log)
     const { activityIds } = req.body
     try {
-      log.info(`[SearchSyncAPI] - Calling activitySyncService.syncActivities for ${activityIds}`)
+      req.log.trace(
+        `[SearchSyncAPI] - Calling activitySyncService.syncActivities for ${activityIds}`,
+      )
       await activitySyncService.syncActivities(activityIds)
       res.sendStatus(200)
     } catch (error) {
@@ -29,7 +29,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      log.info(
+      req.log.trace(
         `[SearchSyncAPI] - Calling activitySyncService.syncTenantActivities for tenant ${tenantId}`,
       )
       await activitySyncService.syncTenantActivities(tenantId)
@@ -47,7 +47,7 @@ router.post(
 
     const { organizationId } = req.body
     try {
-      log.info(
+      req.log.trace(
         `[SearchSyncAPI] - Calling activitySyncService.syncOrganizationActivities for organization ${organizationId}`,
       )
       await activitySyncService.syncOrganizationActivities(organizationId)
@@ -65,7 +65,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      log.info(
+      req.log.trace(
         `[SearchSyncAPI] - Calling activitySyncService.cleanupActivityIndex for tenant ${tenantId}`,
       )
       await activitySyncService.cleanupActivityIndex(tenantId)
@@ -83,7 +83,7 @@ router.post(
 
     const { activityId } = req.body
     try {
-      log.info(
+      req.log.trace(
         `[SearchSyncAPI] - Calling activitySyncService.removeActivity for activity ${activityId}`,
       )
       await activitySyncService.removeActivity(activityId)

@@ -1,9 +1,7 @@
-import { getServiceLogger } from '@crowd/logging'
 import axios from 'axios'
 export interface ISearchSyncApiConfig {
   baseUrl: string
 }
-const log = getServiceLogger()
 export class SearchSyncApiClient {
   private searchSyncApi
 
@@ -18,7 +16,6 @@ export class SearchSyncApiClient {
       throw new Error('memberId is required!')
     }
 
-    log.info(`[SearchSyncApiClient] - Sending member sync axios request for ${memberId}!`)
     await this.searchSyncApi.post('/sync/members', {
       memberIds: [memberId],
     })

@@ -3,18 +3,14 @@ import { MemberSyncService } from '@crowd/opensearch'
 import { ApiRequest } from 'middleware'
 import { asyncWrap } from 'middleware/error'
 import { SERVICE_CONFIG } from 'conf'
-import { getServiceLogger } from '@crowd/logging'
 
 const router = express.Router()
 const serviceConfig = SERVICE_CONFIG()
-const log = getServiceLogger()
 
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
     try {
-      log.info(`[SearchSyncAPI] - Creating memberSyncService for ${req.body.memberIds}`)
-
       const memberSyncService = new MemberSyncService(
         req.redisClient,
         req.dbStore,
@@ -23,7 +19,7 @@ router.post(
         serviceConfig,
       )
       const { memberIds } = req.body
-      log.info(`[SearchSyncAPI] - Calling memberSyncService.syncMembers for ${memberIds}`)
+      req.log.trace(`[SearchSyncAPI] - Calling memberSyncService.syncMembers for ${memberIds}`)
       await memberSyncService.syncMembers(memberIds)
       res.sendStatus(200)
     } catch (error) {
@@ -45,7 +41,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      log.info(
+      req.log.trace(
         `[SearchSyncAPI] - Calling memberSyncService.syncTenantMembers for tenant ${tenantId}`,
       )
       await memberSyncService.syncTenantMembers(tenantId)
@@ -69,7 +65,7 @@ router.post(
 
     const { organizationId } = req.body
     try {
-      log.info(
+      req.log.trace(
         `[SearchSyncAPI] - Calling memberSyncService.syncOrganizationMembers for organization ${organizationId}`,
       )
       await memberSyncService.syncOrganizationMembers(organizationId)
@@ -93,7 +89,7 @@ router.post(
 
     const { tenantId } = req.body
     try {
-      log.info(
+      req.log.trace(
         `[SearchSyncAPI] - Calling memberSyncService.cleanupMemberIndex for tenant ${tenantId}`,
       )
       await memberSyncService.cleanupMemberIndex(tenantId)
@@ -117,7 +113,7 @@ router.post(
 
     const { memberId } = req.body
     try {
-      log.info(`[SearchSyncAPI] - Calling memberSyncService.removeMember for ${memberId}`)
+      req.log.trace(`[SearchSyncAPI] - Calling memberSyncService.removeMember for ${memberId}`)
       await memberSyncService.removeMember(memberId)
       res.sendStatus(200)
     } catch (error) {
