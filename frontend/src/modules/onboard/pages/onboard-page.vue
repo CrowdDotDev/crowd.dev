@@ -13,7 +13,7 @@
           Howdie<span v-if="currentUser?.fullName">, {{ currentUser.fullName }}</span>
         </h3>
         <p class="text-sm text-gray-600 leading-5">
-          Let's setup your workspace.
+          Let's set up your workspace.
         </p>
       </div>
     </div>

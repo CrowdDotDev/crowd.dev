@@ -730,7 +730,7 @@ const {
 const { fetchMembers } = memberStore;
 
 const defaultSort = computed(() => ({
-  field: 'lastActive',
+  prop: 'lastActive',
   order: 'descending',
 }));
 

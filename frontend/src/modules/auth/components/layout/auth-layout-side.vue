@@ -30,7 +30,7 @@
             <img
               src="/images/auth/thelinuxfoundation.png"
               alt="thelinuxfoundation logo"
-              class="h-"
+              class="h-8"
             />
           </div>
           <div class="flex items-center justify-end">
@@ -53,7 +53,7 @@
             <img
               src="/images/auth/unleash.png"
               alt="unleash logo"
-              class="h-6"
+              class="h-7"
             />
           </div>
           <div class="flex items-center justify-end">

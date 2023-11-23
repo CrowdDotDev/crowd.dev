@@ -8,8 +8,8 @@
           </div>
           <el-tooltip placement="top">
             <template #content>
-              Identities can be profiles on social platforms, emails, phone numbers,<br>
-              or unique identifiers from internal sources (e.g. web app log-in email).
+              Identities can be profiles on social platforms, emails,<br>
+              or unique identifiers from internal sources.
             </template>
             <span>
               <i class="ri-information-line text-xs" />

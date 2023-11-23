@@ -111,25 +111,27 @@
               <i class="ri-information-line text-sm" />
             </el-tooltip>
           </div>
-          <div class="w-5/12">
-            <!-- info -->
-            <app-dashboard-count
-              :loading="organizations.loadingActive"
-              :query="activeOrganizationCount"
-            />
-          </div>
-          <div class="w-7/12">
-            <!-- Chart -->
-            <div
-              v-if="organizations.loadingActive"
-              v-loading="organizations.loadingActive"
-              class="app-page-spinner !relative chart-loading"
-            />
-            <app-dashboard-widget-chart
-              v-else
-              :datasets="datasets('active organizations')"
-              :query="activeOrganizationChart"
-            />
+          <div class="flex">
+            <div class="w-5/12">
+              <!-- info -->
+              <app-dashboard-count
+                :loading="organizations.loadingActive"
+                :query="activeOrganizationCount"
+              />
+            </div>
+            <div class="w-7/12">
+              <!-- Chart -->
+              <div
+                v-if="organizations.loadingActive"
+                v-loading="organizations.loadingActive"
+                class="app-page-spinner !relative chart-loading"
+              />
+              <app-dashboard-widget-chart
+                v-else
+                :datasets="datasets('active organizations')"
+                :query="activeOrganizationChart"
+              />
+            </div>
           </div>
         </div>
         <div class="pt-8">

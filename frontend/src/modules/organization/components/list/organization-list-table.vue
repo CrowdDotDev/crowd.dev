@@ -195,6 +195,16 @@
                   label="Identities"
                   width="240"
                 >
+                  <template #header>
+                    <span>Identities</span>
+                    <el-tooltip placement="top">
+                      <template #content>
+                        Identities can be profiles on social platforms, emails,<br>
+                        or unique identifiers from internal sources.
+                      </template>
+                      <i class="ri-information-line text-xs ml-1" />
+                    </el-tooltip>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -748,7 +758,7 @@ const pagination = computed({
 });
 
 const defaultSort = computed(() => ({
-  field: filters.value.order.prop,
+  prop: filters.value.order.prop,
   order: filters.value.order.order,
 }));
 

@@ -105,8 +105,7 @@
       v-else
       icon="ri-flow-chart"
       title="Start automating your workflows"
-      :description="`Break free from repetitive tasks and discover
-      untapped revenue opportunities and other valuable sales signals within your CRM. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
+      :description="`Take instant action on your data. For example, set up Slack notifications for new contacts, sync high-intent contacts with HubSpot, or set up a Webhook to trigger a workflow with Zapier or Make. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
     />
 
     <!-- Add/Edit Webhook form drawer -->
