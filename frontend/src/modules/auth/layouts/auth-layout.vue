@@ -10,7 +10,7 @@
     <aside class="auth-side rounded-lg flex flex-col">
       <app-auth-layout-side />
     </aside>
-    <main class="flex justify-center !pt-0">
+    <main class="flex justify-center items-center !pt-0">
       <div class="auth-content">
         <router-view />
       </div>

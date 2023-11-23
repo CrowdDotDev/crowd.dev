@@ -42,7 +42,7 @@
     </div>
   </div>
   <!-- FORM -->
-  <div class="flex">
+  <div class="flex justify-center">
     <div v-if="stepConfig.sideInfo?.length" class="flex-1" />
     <main
       class="limit-width mt-10 mb-30 grow"
@@ -68,7 +68,7 @@
   <div class="fixed bottom-0 w-full bg-white flex justify-center py-4 px-8 border-t border-gray-200">
     <div class="limit-width">
       <div
-        v-if="!!stepConfig.submitActionInfo && !$v.$invalid"
+        v-if="!!stepConfig.submitActionInfo && !$v.$invalid && inProgressIntegrations"
         class="text-blue-900 bg-blue-50 border border-blue-200 rounded-lg text-xs h-10 flex items-center justify-center mb-3"
       >
         {{ stepConfig.submitActionInfo }}
@@ -127,6 +127,7 @@ const stepConfig = computed(() => Object.values(onboardingSteps)[currentStep.val
 const activeIntegrations = computed(() => CrowdIntegrations.mappedEnabledConfigs(
   store,
 ).filter((integration) => integration.status));
+const inProgressIntegrations = computed(() => activeIntegrations.value?.some((i) => i.status === 'in-progress'));
 
 // Prevent window reload when form has changes
 const preventWindowReload = (e: BeforeUnloadEvent) => {
