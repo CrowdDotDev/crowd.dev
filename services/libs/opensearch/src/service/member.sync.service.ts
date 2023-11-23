@@ -313,7 +313,7 @@ export class MemberSyncService {
   }
 
   public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
-    this.log.debug({ memberIds }, '[Sync Members] Syncing members!')
+    this.log.debug({ memberIds }, 'Syncing members!')
 
     const isMultiSegment = this.serviceConfig.edition === Edition.LFX
 
@@ -397,7 +397,6 @@ export class MemberSyncService {
       }
 
       await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, forSync)
-
       docCount += forSync.length
       memberCount += memberIds.length
     }
