@@ -26,10 +26,36 @@
         class="grow"
         :label="fieldsValue.jobTitle.label"
       >
+        <template #label>
+          <div class="flex items-center">
+            <span class="text-xs font-semibold mr-2">{{ fieldsValue.jobTitle.label }}</span>
+            <el-tooltip
+              v-if="getAttributeSourceName(model.attributes.jobTitle)"
+              :content="`Source: ${getAttributeSourceName(model.attributes.jobTitle)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
+        </template>
         <el-input v-model="model.jobTitle" />
       </el-form-item>
 
       <el-form-item :label="fieldsValue.bio.label">
+        <template #label>
+          <div class="flex items-center">
+            <span class="text-xs font-semibold mr-2">{{ fieldsValue.bio.label }}</span>
+            <el-tooltip
+              v-if="getAttributeSourceName(model.attributes.bio)"
+              :content="`Source: ${getAttributeSourceName(model.attributes.bio)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
+        </template>
         <el-input
           v-model="model.bio"
           type="textarea"
@@ -38,6 +64,19 @@
       </el-form-item>
 
       <el-form-item :label="fieldsValue.location.label">
+        <template #label>
+          <div class="flex items-center">
+            <span class="text-xs font-semibold mr-2">{{ fieldsValue.location.label }}</span>
+            <el-tooltip
+              v-if="getAttributeSourceName(model.attributes.location)"
+              :content="`Source: ${getAttributeSourceName(model.attributes.location)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
+        </template>
         <el-input v-model="model.location" />
       </el-form-item>
 
@@ -59,6 +98,8 @@ import {
   defineEmits, defineProps, computed, h,
 } from 'vue';
 import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const CalendarIcon = h(
   'i', // type

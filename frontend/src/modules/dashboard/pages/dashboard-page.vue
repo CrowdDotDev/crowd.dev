@@ -53,7 +53,6 @@
           : '100vh',
       }"
     >
-      <app-dashboard-guides v-if="!isQuickstartEnabled()" />
       <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task />
     </aside>
@@ -70,13 +69,11 @@ import {
   mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
-import AppDashboardGuides from '@/modules/dashboard/components/dashboard-guides.vue';
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities.vue';
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members.vue';
 import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations.vue';
 import AppDashboardTask from '@/modules/dashboard/components/dashboard-task.vue';
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters.vue';
-import { FeatureFlag } from '@/utils/featureFlag';
 
 const { currentTenant } = mapGetters('auth');
 const { showBanner } = mapGetters('tenant');
@@ -129,8 +126,6 @@ watch(currentTenant, (updatedTenant, previousTenant) => {
   deep: true,
   immediate: true,
 });
-
-const isQuickstartEnabled = () => FeatureFlag.isFlagEnabled(FeatureFlag.flags.quickstartV2);
 
 </script>
 

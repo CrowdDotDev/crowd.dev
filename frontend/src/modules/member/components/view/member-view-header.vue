@@ -38,9 +38,20 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Location
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Location
+          </p>
+          <el-tooltip
+            v-if="getAttributeSourceName(member.attributes.location)"
+            :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
+            placement="top"
+            trigger="hover"
+          >
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
+
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(member.attributes.location?.default, 'string')
@@ -56,9 +67,19 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Reach
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Reach
+          </p>
+          <el-tooltip
+            content="Source: GitHub"
+            placement="top"
+            trigger="hover"
+          >
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
+
         <p class="mt-1 text-gray-900 text-xs">
           <app-member-reach :member="member" />
         </p>
@@ -98,6 +119,8 @@ import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
+import AppSvg from '@/shared/svg/svg.vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 defineProps({
   member: {

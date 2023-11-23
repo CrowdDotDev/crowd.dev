@@ -130,6 +130,16 @@
               </el-table-column>
 
               <el-table-column label="Organization & Title" width="220">
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Organization & Title
+                    </div>
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -486,6 +496,7 @@ import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberIdentities from '../member-identities.vue';
