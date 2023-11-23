@@ -60,9 +60,7 @@
     <div v-if="stepConfig.sideInfo?.length" class="flex-1 pr-8 sticky top-21 h-full pt-10">
       <div v-for="{ icon, text } in stepConfig.sideInfo" :key="icon" class="max-w-2xs">
         <i :class="icon" class="text-gray-600 text-base" />
-        <div class="text-gray-500 text-xs mt-1">
-          {{ text }}
-        </div>
+        <div class="text-gray-500 text-xs mt-1" v-html="text" />
       </div>
     </div>
   </div>

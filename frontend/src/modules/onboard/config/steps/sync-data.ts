@@ -11,7 +11,7 @@ const syncData: OnboardStepConfig = {
     {
       icon: 'ri-shield-check-line',
       text: `Don't worry, we won't make any changes or post to any of these connected sources.
-      We only use read permissions to pull the data into your private and secure workspace.`,
+      We only use read permissions to pull the data into your private and <a href="https://crowd.dev/security" target="_blank">secure workspace</a>.`,
     },
   ],
   textColor: (currentStep: number) => ({
