@@ -17,7 +17,7 @@
           :track-event-channel="getPlatformDetails(platform)?.trackEventChannel"
           :tooltip-label="getPlatformDetails(platform)?.tooltipLabel"
           :show-handles-badge="true"
-          :as-link="getPlatformDetails(platform).asLink"
+          :as-link="getUrlsByPlatform(platform).length ? getUrlsByPlatform(platform)[0] : false"
           custom-platform-icon-class="ri-community-fill"
         />
       </div>
