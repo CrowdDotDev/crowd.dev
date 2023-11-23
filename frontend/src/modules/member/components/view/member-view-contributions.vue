@@ -1,7 +1,7 @@
 <template>
   <div v-click-away="turnOff" class="panel contributions-panel relative">
     <div class="pt-4 px-6 flex justify-between text-center">
-      <div class="flex align-center">
+      <div class="flex align-center items-center">
         <img
           alt="Github"
           src="https://cdn-icons-png.flaticon.com/512/25/25231.png"
@@ -16,6 +16,11 @@
           </template>
           <span class="ri-question-line text-base text-gray-400" />
         </el-tooltip>
+        <div class="ml-2">
+          <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
       </div>
 
       <div class="text-gray-500 flex align-center italic text-2xs h-5">
@@ -158,6 +163,7 @@ import {
 } from 'vue';
 import { defineConfigs } from 'v-network-graph';
 import { ForceLayout } from 'v-network-graph/lib/force-layout';
+import AppSvg from '@/shared/svg/svg.vue';
 
 // Define the props that will be passed to this component
 const props = defineProps({
