@@ -161,12 +161,13 @@
               <!-- Identities -->
               <el-table-column label="Identities" width="240">
                 <template #header>
+                  <span>Identities</span>
                   <el-tooltip placement="top">
                     <template #content>
                       Identities can be profiles on social platforms, emails, phone numbers,<br>
                       or unique identifiers from internal sources (e.g. web app log-in email).
                     </template>
-                    Identities
+                    <i class="ri-information-line text-xs ml-1" />
                   </el-tooltip>
                 </template>
                 <template #default="scope">
@@ -269,16 +270,19 @@
               <el-table-column
                 label="Engagement Level"
                 prop="score"
-                width="200"
+                width="210"
                 sortable="custom"
               >
                 <template #header>
+                  <span>Engagement Level</span>
                   <el-tooltip placement="top">
                     <template #content>
                       Calculated based on the recency and importance of the activities<br>
                       a contact has performed in relation to all other contacts.
+                      <br>E.g. a higher engagement level will be given to a contact who has written
+                      <br>in your Slack yesterday vs. someone who did so three weeks ago.
                     </template>
-                    Engagement Level
+                    <i class="ri-information-line text-xs ml-1" />
                   </el-tooltip>
                 </template>
                 <template #default="scope">
@@ -406,12 +410,13 @@
                 sortable="custom"
               >
                 <template #header>
-                  <div class="inline-flex items-center gap-2">
+                  <span>Reach</span>
+                  <div class="inline-flex items-center ml-1 gap-2">
                     <el-tooltip placement="top">
                       <template #content>
                         Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
                       </template>
-                      Reach
+                      <i class="ri-information-line text-xs" />
                     </el-tooltip>
                     <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
                       <app-svg name="source" class="h-3 w-3" />
