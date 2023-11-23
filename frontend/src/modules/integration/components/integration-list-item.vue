@@ -65,6 +65,7 @@
         <span v-if="integration.scale" class="text-2xs text-brand-500 ml-1">{{
           FeatureFlag.scaleFeatureCopy()
         }}</span>
+        <span v-if="integration.enterprise" class="text-2xs text-brand-500 ml-1">Enterprise</span>
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
