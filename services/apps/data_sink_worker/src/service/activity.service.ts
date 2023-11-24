@@ -4,7 +4,7 @@ import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { FeatureFlag, IActivityData, PlatformType } from '@crowd/types'
+import { FeatureFlag, IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
 import ActivityRepository from '../repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
@@ -106,7 +106,7 @@ export default class ActivityService extends LoggerBase {
         )
       ) {
         const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-          workflowId: `new-activity-automation-${id}`,
+          workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
           taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
           workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
           retry: {
