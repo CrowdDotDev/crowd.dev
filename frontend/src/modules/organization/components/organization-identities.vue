@@ -68,7 +68,10 @@ const platforms = computed(() => [...new Set(props.organization.identities.map((
 
 const getHandlesByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
-  .map((i) => getPlatformDetails(i.platform)?.organization?.handle(i) ?? getPlatformDetails(i.platform)?.name ?? i.platform);
+  .map((i) => (getPlatformDetails(i.platform)?.organization?.handle(i)
+    ?? getPlatformDetails(i.platform)?.name
+    ?? i.platform === 'email'
+    ? i.name : i.platform));
 
 const getUrlsByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
