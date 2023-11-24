@@ -16,7 +16,6 @@
       <template #dropdown>
         <app-member-dropdown-content
           :member="member"
-          @merge="emit('merge')"
           @find-github="emit('findGithub')"
           @close-dropdown="onDropdownClose"
         />

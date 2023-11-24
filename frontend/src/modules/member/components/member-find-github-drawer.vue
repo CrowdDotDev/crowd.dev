@@ -6,11 +6,8 @@
     custom-class="identities-drawer"
   >
     <template #content>
-      <p class="text-sm text-gray-600 mb-6">
-        We have found the following profiles on GitHub that could match {{ modelValue.displayName }}.
-        You can select the correct one to add it to the contact.
-      </p>
       <div
+        v-if="suggestions.length > 0"
         v-for="suggestion in suggestions"
         :key="suggestion.url"
         class="flex items-center"
@@ -39,6 +36,15 @@
             </a>
           </div>
         </div>
+      </div>
+      <div v-else-if="!loading">
+        <app-empty-state-cta
+        icon="ri-contacts-line"
+        title="We could not find any GitHub identities for this contact."
+        description="There are no GitHub users that match the identities in this contact. We recommend Googling them instead."
+        secondary-btn="Search on Google"
+        @secondary-click="searchContactOnGoogle"
+      />
       </div>
     </template>
     <template #footer>
@@ -89,14 +95,16 @@ const suggestions = ref([]);
 const selected = ref('');
 
 onMounted(async () => {
+  loading.value = true
   suggestions.value = await MemberService.findGithub(props.modelValue.id);
+  loading.value = false
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const drawerModel = computed({
   get() {
-    return props.modelValue !== null;
+    return !!props.modelValue;
   },
   set() {
     emit('update:modelValue', null);
@@ -114,6 +122,14 @@ const handleCancel = () => {
 const changeSelected = (username) => {
   selected.value = username;
 };
+
+const searchContactOnGoogle = () => {
+  let searchQuery = `https://www.google.com/search?q=${props.modelValue.displayName}`;
+  for (const username in props.modelValue.username) {
+    searchQuery += ` OR ${props.modelValue.username[username]}`;
+  }
+  window.open(searchQuery, '_blank');
+}
 
 const handleSubmit = async () => {
   loading.value = true;

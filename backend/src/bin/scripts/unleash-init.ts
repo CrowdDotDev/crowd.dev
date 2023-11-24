@@ -431,7 +431,7 @@ async function createStrategy(flag: FeatureFlag, constraints: any[]): Promise<vo
   }
 
   log.info(`Feature flag ${flag} constraints not found - creating...`)
-
+  constraints = constraints || []
   for (const constraint of constraints) {
     const id = generateUUIDv1()
     await seq.query(

@@ -63,6 +63,7 @@
       * requires a GitHub profile or Email
     </div>
     <app-member-find-github-drawer
+      v-if="openFindGitHubDrawer"
       v-model="openFindGitHubDrawer"
       :member="member"
     />
@@ -125,7 +126,7 @@ const onEnrichmentClick = async () => {
 };
 
 const onFindGithubClick = () => {
-  openFindGitHubDrawer.value = true;
+  openFindGitHubDrawer.value = props.member;
 };
 </script>
 

@@ -297,8 +297,7 @@ const isHubspotActionDisabled = computed(
 );
 
 const isFindingGitHubDisabled = computed(() => (
-  props.member.username?.github === undefined
-        || !props.member.username?.github?.length
+  props.member.username?.github
 ));
 
 const isFindGitHubFeatureEnabled = computed(() => FeatureFlag.isFlagEnabled(
