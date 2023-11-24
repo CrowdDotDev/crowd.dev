@@ -23,7 +23,7 @@ export async function processNewActivityAutomation(
     await Promise.all(
       automationsToTrigger.map((a) =>
         executeChild(triggerActivityAutomationExecution, {
-          workflowId: `${info.workflowId}-${a}`,
+          workflowId: `${info.workflowId}/${a}`,
           workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
           retry: {
             maximumAttempts: info.retryPolicy?.maximumAttempts ?? 100,
