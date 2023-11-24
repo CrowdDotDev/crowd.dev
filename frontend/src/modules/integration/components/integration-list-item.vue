@@ -1,7 +1,7 @@
 <template>
   <div class="s panel" :class="computedClass">
     <div class="flex items-center justify-between">
-      <img :alt="integration.name" :src="integration.image" class="h-6 w-6 mb-4" />
+      <img :alt="integration.name" :src="integration.image" class="w-6 mb-4" />
       <div>
         <div class="mb-1 flex justify-end">
           <span v-if="isDone" class="badge badge--green">Connected</span>
@@ -44,7 +44,7 @@
             </el-tooltip>
           </div>
         </div>
-        <div class="h-5 leading-5 text-end">
+        <div class="h-5 leading-5 text-end mb-1">
           <el-tooltip
             v-if="isDone"
             :content="lastSynced.absolute"
@@ -65,6 +65,7 @@
         <span v-if="integration.scale" class="text-2xs text-brand-500 ml-1">{{
           FeatureFlag.scaleFeatureCopy()
         }}</span>
+        <span v-if="integration.enterprise" class="text-2xs text-brand-500 ml-1">Enterprise</span>
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
@@ -178,7 +179,7 @@ const isNeedsToBeReconnected = computed(
 
 const lastSynced = computed(() => ({
   absolute: moment(props.integration.lastProcessedAt).format('MMM DD, YYYY HH:mm'),
-  relative: `last synced ${moment(props.integration.lastProcessedAt).fromNow()}`,
+  relative: `last data detected and synced ${moment(props.integration.lastProcessedAt).fromNow()}`,
 }));
 
 const loadingDisconnect = ref(false);

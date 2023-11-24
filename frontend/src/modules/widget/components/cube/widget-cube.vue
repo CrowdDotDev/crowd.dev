@@ -311,7 +311,7 @@ export default {
           const formattedDate = moment(x).format(
             'MMM DD',
           );
-          x = x === '∅' ? 'unknown' : x;
+          x = x === '∅' ? 'not active' : x;
           return [
             moment(x).isValid()
               && ((this.query.dimensions[0]
@@ -358,7 +358,7 @@ export default {
             const formattedDate = moment(x).format(
               this.getDateFormatForGranularity(granularity),
             );
-            x = x === '∅' ? 'unknown' : x;
+            x = x === '∅' ? 'not active' : x;
             return [
               moment(x).isValid()
               && ((this.query.dimensions[0]
@@ -391,7 +391,7 @@ export default {
       return resultSet.tablePivot().map((r) => Object.keys(r).reduce((acc, item) => {
         acc[i18n(`widget.cubejs.${item}`)] = r[item]
           ? r[item]
-          : 'unknown';
+          : 'not active';
         return acc;
       }, {}));
     },
@@ -424,7 +424,7 @@ export default {
         [dimension] = label.split(',');
       } else {
         dimension = this.query.dimensions.length
-          ? 'unknown'
+          ? 'not active'
           : undefined;
       }
       const cube = dimension && dimension !== 'unknown'

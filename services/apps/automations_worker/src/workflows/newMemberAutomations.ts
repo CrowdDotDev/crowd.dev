@@ -1,4 +1,9 @@
-import { executeChild, proxyActivities } from '@temporalio/workflow'
+import {
+  WorkflowIdReusePolicy,
+  executeChild,
+  proxyActivities,
+  workflowInfo,
+} from '@temporalio/workflow'
 import * as activities from '../activities/newMemberAutomations'
 import { IProcessNewMemberAutomationArgs, ITriggerMemberAutomationArgs } from '@crowd/types'
 
@@ -13,11 +18,18 @@ export async function processNewMemberAutomation(
     args.memberId,
   )
 
+  const info = workflowInfo()
+
   // if there are any automations to trigger, trigger them
   if (automationsToTrigger.length > 0) {
     await Promise.all(
       automationsToTrigger.map((a) =>
         executeChild(triggerMemberAutomationExecution, {
+          workflowId: `${info.workflowId}/${a}`,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: info.retryPolicy?.maximumAttempts ?? 100,
+          },
           args: [
             {
               automationId: a,

@@ -38,16 +38,33 @@
     :integration="props.integration"
   />
   <el-button
+    v-else-if="props.integration.enterprise"
+    class="btn btn--secondary btn--md"
+    @click="bookADemo"
+  >
+    Book a call
+  </el-button>
+  <el-button
     v-else
-    class="btn btn--bordered btn--md"
+    class="btn btn--secondary btn--md"
     :disabled="true"
   >
     Soon
   </el-button>
+
+  <app-dialog
+    v-model="isCalDialogOpen"
+    size="2extra-large"
+  >
+    <template #content>
+      <div id="embbeded-script" class="w-full px-3 pb-3 min-h-20" />
+    </template>
+  </app-dialog>
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue';
+import { defineProps, computed, ref } from 'vue';
+import { renderCal } from '@/utils/cals';
 
 const props = defineProps({
   integration: {
@@ -57,9 +74,20 @@ const props = defineProps({
   },
 });
 
+const isCalDialogOpen = ref();
+
 const isConnected = computed(() => props.integration.status !== undefined);
 
 const isDone = computed(() => props.integration.status === 'done');
+
+const bookADemo = () => {
+  isCalDialogOpen.value = true;
+  setTimeout(() => {
+    renderCal({
+      calLink: 'team/CrowdDotDev/sales',
+    });
+  }, 0);
+};
 </script>
 
 <script>

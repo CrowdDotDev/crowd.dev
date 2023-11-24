@@ -13,7 +13,7 @@
           Howdie<span v-if="currentUser?.fullName">, {{ currentUser.fullName }}</span>
         </h3>
         <p class="text-sm text-gray-600 leading-5">
-          Let's setup your workspace.
+          Let's set up your workspace.
         </p>
       </div>
     </div>
@@ -42,8 +42,14 @@
     </div>
   </div>
   <!-- FORM -->
-  <div class="flex justify-center mt-10 mb-30">
-    <main class="limit-width">
+  <div class="flex justify-center">
+    <div v-if="stepConfig.sideInfo?.length" class="flex-1" />
+    <main
+      class="limit-width mt-10 mb-30 grow"
+      :class="{
+        'mb-42': !!stepConfig.submitActionInfo && !$v.$invalid,
+      }"
+    >
       <component
         :is="stepConfig.component"
         v-model="form"
@@ -51,10 +57,22 @@
         @invite-colleagues="onInviteColleagues"
       />
     </main>
+    <div v-if="stepConfig.sideInfo?.length" class="flex-1 pr-8 sticky top-21 h-full pt-10">
+      <div v-for="{ icon, text } in stepConfig.sideInfo" :key="icon" class="max-w-2xs">
+        <i :class="icon" class="text-gray-600 text-base" />
+        <div class="text-gray-500 text-xs mt-1" v-html="text" />
+      </div>
+    </div>
   </div>
 
   <div class="fixed bottom-0 w-full bg-white flex justify-center py-4 px-8 border-t border-gray-200">
     <div class="limit-width">
+      <div
+        v-if="!!stepConfig.submitActionInfo && !$v.$invalid && inProgressIntegrations"
+        class="text-blue-900 bg-blue-50 border border-blue-200 rounded-lg text-xs h-10 flex items-center justify-center mb-3"
+      >
+        {{ stepConfig.submitActionInfo }}
+      </div>
       <el-tooltip
         placement="top"
         :disabled="!stepConfig.ctaTooltip || !$v.$invalid"
@@ -109,6 +127,7 @@ const stepConfig = computed(() => Object.values(onboardingSteps)[currentStep.val
 const activeIntegrations = computed(() => CrowdIntegrations.mappedEnabledConfigs(
   store,
 ).filter((integration) => integration.status));
+const inProgressIntegrations = computed(() => activeIntegrations.value?.some((i) => i.status === 'in-progress'));
 
 // Prevent window reload when form has changes
 const preventWindowReload = (e: BeforeUnloadEvent) => {
