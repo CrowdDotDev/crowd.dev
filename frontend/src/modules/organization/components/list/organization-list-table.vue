@@ -508,7 +508,7 @@
                   <template #header>
                     <div class="flex items-center">
                       <div class="mr-2">
-                        Type
+                        Annual Revenue
                       </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <app-svg name="source" class="h-3 w-3" />

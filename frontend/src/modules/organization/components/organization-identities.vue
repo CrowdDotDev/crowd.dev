@@ -70,8 +70,7 @@ const getHandlesByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
   .map((i) => (getPlatformDetails(i.platform)?.organization?.handle(i)
     ?? getPlatformDetails(i.platform)?.name
-    ?? i.platform === 'email'
-    ? i.name : i.platform));
+    ?? i.name));
 
 const getUrlsByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
