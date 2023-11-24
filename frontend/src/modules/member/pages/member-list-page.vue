@@ -15,7 +15,7 @@
               }"
             >
               <button
-                :disabled="isEditLockedForSampleData"
+               v-if="membersToMergeCount > 0" :disabled="isEditLockedForSampleData"
                 type="button"
                 class="btn btn--secondary btn--md flex items-center"
               >
@@ -46,7 +46,7 @@
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all contributors from your community
+          Overview of all contributors that interacted with your product or community
         </div>
       </div>
 

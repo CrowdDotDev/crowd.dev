@@ -99,12 +99,21 @@
       <section class="px-5 w-1/2">
         <div class="flex">
           <div class="w-5/12">
+            <div class="flex items-center gap-2 mb-1">
+              <h6
+                class="text-sm leading-5 font-semibold"
+              >
+                Active <span>organizations</span>
+                <el-tooltip
+                  placement="top"
+                  content="Organizations whose contacts engaged in at least one activity during the selected time period."
+                  popper-class="max-w-[260px]"
+                >
+                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                </el-tooltip>
+              </h6>
+            </div>
             <!-- info -->
-            <h6
-              class="text-sm leading-5 font-semibold mb-1"
-            >
-              Active organizations
-            </h6>
             <app-dashboard-count
               :loading="organizations.loadingActive"
               :query="activeOrganizationCount"
