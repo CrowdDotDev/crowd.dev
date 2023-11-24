@@ -1,7 +1,7 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
 import moment from 'moment'
 import { processPaginated, timeout } from '@crowd/common'
-import { RedisCache, getRedisClient } from '@crowd/redis'
+import { RedisCache, getRedisClient, RedisClient } from '@crowd/redis'
 import { getChildLogger, getServiceLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
@@ -218,11 +218,17 @@ async function spawnClient(
   logger.info('Discord WS client logged in!')
 }
 
+let redis: RedisClient
+if (!redis) {
+  getRedisClient(REDIS_CONFIG, true).then((client) => {
+    redis = client
+  })
+}
+
 setImmediate(async () => {
   // we are saving heartbeat timestamps in redis every 2 seconds
   // on boot if we detect that there has been a downtime we should trigger discord integration checks
   // so we don't miss anything
-  const redis = await getRedisClient(REDIS_CONFIG, true)
   const cache = new RedisCache('discord-ws', redis, log)
 
   const lastHeartbeat = await cache.get('heartbeat')
@@ -281,7 +287,6 @@ const readyFilePath = path.join(__dirname, 'discord-ws-ready.tmp')
 setInterval(async () => {
   try {
     log.info('Checking liveness and readiness for discord ws.')
-    const redis = await getRedisClient(REDIS_CONFIG, true)
     const res = await redis.ping() === 'PONG'
     if (res) {
       await Promise.all([
