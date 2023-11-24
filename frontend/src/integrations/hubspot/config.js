@@ -6,7 +6,7 @@ export default {
   borderColor: '#FFFFFF',
   description: 'Create a 2-way sync with HubSpot.',
   image:
-    '/images/integrations/hubspot.png',
+    '/images/integrations/hubspot.svg',
   connectComponent: HubspotConnect,
   enabled: true,
   url: (username) => null,

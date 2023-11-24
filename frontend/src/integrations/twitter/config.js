@@ -8,7 +8,7 @@ export default {
   description:
     'Connect X/Twitter to sync profile information, followers, and relevant tweets.',
   image:
-    '/images/integrations/twitter-x.svg',
+    '/images/integrations/twitter-x-black.png',
   connectComponent: TwitterConnect,
   url: ({ username }) => (username ? `https://twitter.com/${username}` : null),
   scale: true,

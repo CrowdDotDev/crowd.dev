@@ -1,13 +1,5 @@
 <template>
   <div class="relative">
-    <div class="flex gap-3 mb-6 justify-start bg-gray-100 border border-gray-200 rounded-lg py-2.5 px-3 -mt-4">
-      <div class="flex items-center justify-center h-5">
-        <i class="ri-information-line text-gray-600 text-base" />
-      </div>
-      <div class="text-gray-600 text-xs">
-        Sync your community data to get the most out of crowd.dev. Connect at least 1 integration in order to create your workspace.
-      </div>
-    </div>
     <div
       v-if="loading"
       class="flex items-center justify-center"

@@ -67,10 +67,16 @@
         </p>
       </div>
       <div>
-        <div class="flex items-center">
-          <p class="text-gray-400 font-medium text-2xs mr-2">
+        <div class="flex items-center gap-1">
+          <p class="text-gray-400 font-medium text-2xs">
             Reach
           </p>
+          <el-tooltip placement="top">
+            <template #content>
+              Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+            </template>
+            <i class="ri-information-line text-gray-500 text-xs mr-1" />
+          </el-tooltip>
           <el-tooltip
             content="Source: GitHub"
             placement="top"
