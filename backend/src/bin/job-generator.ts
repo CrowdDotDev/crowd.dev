@@ -41,8 +41,8 @@ for (const job of jobs) {
   }
 }
 
-const liveFilePath = path.join(__dirname, 'live.tmp')
-const readyFilePath = path.join(__dirname, 'ready.tmp')
+const liveFilePath = path.join(__dirname, 'job-generator-live.tmp')
+const readyFilePath = path.join(__dirname, 'job-generator-ready.tmp')
 
 let seq: Sequelize
 if (!seq) {

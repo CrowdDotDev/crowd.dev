@@ -5,6 +5,8 @@ import { RedisCache, getRedisClient } from '@crowd/redis'
 import { getChildLogger, getServiceLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
+import fs from 'fs'
+import path from 'path'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
@@ -272,3 +274,25 @@ setImmediate(async () => {
     await cache.set('heartbeat', new Date().toISOString())
   }, 2 * 1000)
 })
+
+const liveFilePath = path.join(__dirname, 'discord-ws-live.tmp')
+const readyFilePath = path.join(__dirname, 'discord-ws-ready.tmp')
+
+setInterval(async () => {
+  try {
+    log.info('Checking liveness and readiness for discord ws.')
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const res = await redis.ping() === 'PONG'
+    if (res) {
+      await Promise.all([
+        fs.promises.open(liveFilePath, 'a').then(file => file.close()),
+        fs.promises.open(readyFilePath, 'a').then(file => file.close())
+      ])
+    }
+  } catch (err) {
+    log.error(`Error checking liveness and readiness for discord ws: ${err}`)
+  }
+}
+, 5000)
+
+
