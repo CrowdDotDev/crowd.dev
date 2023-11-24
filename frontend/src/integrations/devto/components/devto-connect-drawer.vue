@@ -11,7 +11,7 @@
       <img class="w-6 h-6 mr-2" :src="logoUrl" alt="DEV logo" />
     </template>
     <template #content>
-      <el-form class="form integration-devto-form">
+      <el-form class="form integration-devto-form" @submit.prevent>
         <app-form-item
           class="mb-6"
           :validation="$v.apiKey"

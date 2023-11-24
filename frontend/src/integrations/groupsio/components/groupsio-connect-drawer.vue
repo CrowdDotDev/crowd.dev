@@ -21,7 +21,11 @@
           Connect a Groups.io account. You must be a group owner to authenticate.
         </div>
       </div>
-      <el-form label-position="top" class="form">
+      <el-form
+        label-position="top"
+        class="form"
+        @submit.prevent
+      >
         <app-form-item
           v-if="!isAPIConnectionValid"
           class="
