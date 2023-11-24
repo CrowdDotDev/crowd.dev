@@ -1,3 +1,4 @@
+import { QueuePriorityLevel } from '@crowd/types'
 import {
   ISqsQueueConfig,
   SqsFifoThroughputLimitType,
