@@ -774,7 +774,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultConfluenceChannelFormatter,
           self: (activity) => {
             const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+            return `<a href="${activity.url}" target="_blank">xxx ${prNumberAndTitle}</a>`
           },
         },
       },

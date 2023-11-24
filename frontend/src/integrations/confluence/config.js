@@ -19,10 +19,10 @@ export default {
   showProfileLink: false,
   chartColor: '#E5512C',
   activityDisplay: {
-    showContentDetails: true,
-    showLinkToUrl: false,
+    showContentDetails: false,
+    showLinkToUrl: true,
     showSourceId: true,
-    typeIcon: 'commit',
+    typeIcon: 'confluence',
   },
   conversationDisplay: {
     showConversationAttributes: true,
