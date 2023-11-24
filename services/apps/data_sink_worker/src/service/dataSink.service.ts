@@ -19,6 +19,7 @@ import { Client as TemporalClient } from '@crowd/temporal'
 import { IResultData } from '../repo/dataSink.data'
 import { addSeconds } from '@crowd/common'
 import { WORKER_SETTINGS } from '../conf'
+import telemetry from '@crowd/telemetry'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -113,7 +114,7 @@ export default class DataSinkService extends LoggerBase {
     const resultInfo = await this.repo.getResultInfo(resultId)
 
     if (!resultInfo) {
-      this.log.error({ resultId }, 'Result not found.')
+      telemetry.increment('data_sync_worker.result_not_found', 1)
       return false
     }
 
