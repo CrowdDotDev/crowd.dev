@@ -52,8 +52,7 @@ if (!seq) {
     })
     .catch((err) => {
       log.error(err, 'Error initializing database connection.')
-    }
-    )
+    })
 }
 
 setInterval(async () => {
@@ -63,8 +62,8 @@ setInterval(async () => {
     const dbPingRes = res.length === 1
     if (dbPingRes) {
       await Promise.all([
-        fs.promises.open(liveFilePath, 'a').then(file => file.close()),
-        fs.promises.open(readyFilePath, 'a').then(file => file.close())
+        fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
+        fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
       ])
     }
   } catch (err) {

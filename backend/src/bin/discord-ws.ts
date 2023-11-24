@@ -287,17 +287,14 @@ const readyFilePath = path.join(__dirname, 'discord-ws-ready.tmp')
 setInterval(async () => {
   try {
     log.info('Checking liveness and readiness for discord ws.')
-    const res = await redis.ping() === 'PONG'
+    const res = (await redis.ping()) === 'PONG'
     if (res) {
       await Promise.all([
-        fs.promises.open(liveFilePath, 'a').then(file => file.close()),
-        fs.promises.open(readyFilePath, 'a').then(file => file.close())
+        fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
+        fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
       ])
     }
   } catch (err) {
     log.error(`Error checking liveness and readiness for discord ws: ${err}`)
   }
-}
-, 5000)
-
-
+}, 5000)
