@@ -159,7 +159,7 @@
               </el-table-column>
 
               <!-- Identities -->
-              <el-table-column label="Identities" width="240">
+              <el-table-column label="Identities" width="260">
                 <template #header>
                   <span>Identities</span>
                   <el-tooltip placement="top">
