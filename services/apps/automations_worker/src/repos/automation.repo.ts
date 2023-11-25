@@ -17,6 +17,7 @@ export interface IRelevantAutomationData {
   settings: AutomationSettings
   trigger: AutomationTrigger
   slackWebHook: string | null
+  createdAt: string
 }
 
 export interface IDbAutomationExecutionInsertData {
@@ -91,7 +92,8 @@ export class AutomationRepository extends RepositoryBase<AutomationRepository> {
              a.type, 
              a.trigger, 
              a.settings,
-             s."slackWebHook"
+             s."slackWebHook",
+             a."createdAt"
       from automations a 
         inner join settings s on s."tenantId" = a."tenantId"
       where a."tenantId" = $(tenantId) and a.trigger = $(trigger) and a.state = $(state)

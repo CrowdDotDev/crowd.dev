@@ -9,6 +9,11 @@ export interface OnboardStepConfig {
   }
   cta: string;
   ctaTooltip?: string;
-  submitAction: (payload: any, activeIntegrations?: any[]) => Promise
+  submitActionInfo?: string;
+  sideInfo?: {
+    icon: string;
+    text: string;
+  }[];
+  submitAction: (payload: any, activeIntegrations?: any[]) => Promise;
   alert: () => string;
 }
