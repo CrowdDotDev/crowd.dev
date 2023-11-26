@@ -23,6 +23,9 @@
     "@crowd/logging": "file:../logging",
     "@crowd/types": "file:../types",
     "@crowd/database": "file:../database",
-    "@crowd/redis": "file:../redis"
+    "@crowd/feature-flags": "file:../feature-flags",
+    "@crowd/redis": "file:../redis",
+    "@crowd/tracing": "file:../tracing",
+    "@crowd/sqs": "file:../sqs"
   }
 }

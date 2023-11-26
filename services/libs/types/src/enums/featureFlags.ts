@@ -7,6 +7,7 @@ export enum FeatureFlag {
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
+  PRIORITIZED_QUEUES = 'prioritized-queues',
 
   // opensearch
   SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',

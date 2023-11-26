@@ -39,6 +39,16 @@ export enum SqsFifoThroughputLimitType {
   PER_MESSAGE_GROUP_ID = 'perMessageGroupId',
 }
 
+export enum CrowdQueue {
+  INTEGRATION_RUN_WORKER = 'integration-run-worker',
+  INTEGRATION_STREAM_WORKER = 'integration-stream-worker',
+  INTEGRATION_DATA_WORKER = 'integration-data-worker',
+  DATA_SINK_WORKER = 'data-sink-worker',
+  NODEJS_WORKER = 'nodejs-worker',
+  SEARCH_SYNC_WORKER = 'search-sync-worker',
+  INTEGRATION_SYNC_WORKER = 'integration-sync-worker',
+}
+
 export interface ISqsQueueConfig {
   name: string
   type: SqsQueueType

@@ -214,7 +214,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   }
 }
 
-export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueEmitter {
+export class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueEmitter {
   constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, tracer: Tracer, parentLog: Logger) {
     super(sqsClient, queueConf, tracer, parentLog)
   }
