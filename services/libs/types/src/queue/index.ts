@@ -4,7 +4,7 @@ export interface IQueueMessage {
 
 export interface ISqsQueueReceiver {
   start(): Promise<void>
-  stop()
+  stop(): void
   processMessage(data: IQueueMessage): Promise<void>
 }
 
