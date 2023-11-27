@@ -7,6 +7,7 @@ import { PlatformType } from '@crowd/types'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
 import fs from 'fs'
 import path from 'path'
+import { Sequelize, QueryTypes } from 'sequelize'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
@@ -16,6 +17,7 @@ import {
   getIntegrationRunWorkerEmitter,
   getIntegrationStreamWorkerEmitter,
 } from '@/serverless/utils/serviceSQS'
+import { databaseInit } from '@/database/databaseConnection'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -218,17 +220,22 @@ async function spawnClient(
   logger.info('Discord WS client logged in!')
 }
 
+let seq: Sequelize
 let redis: RedisClient
-const initRedis = async () => {
-  if (redis) return
-  redis = await getRedisClient(REDIS_CONFIG, true)
-}
+const initRedisSeq = async () => {
+  if (!seq) {
+    seq = (await databaseInit()).sequelize as Sequelize
+  }
 
+  if (!redis) {
+    redis = await getRedisClient(REDIS_CONFIG, true)
+  }
+}
 setImmediate(async () => {
   // we are saving heartbeat timestamps in redis every 2 seconds
   // on boot if we detect that there has been a downtime we should trigger discord integration checks
   // so we don't miss anything
-  await initRedis()
+  await initRedisSeq()
   const cache = new RedisCache('discord-ws', redis, log)
 
   const lastHeartbeat = await cache.get('heartbeat')
@@ -287,8 +294,13 @@ const readyFilePath = path.join(__dirname, 'tmp/discord-ws-ready.tmp')
 setInterval(async () => {
   try {
     log.debug('Checking liveness and readiness for discord ws.')
-    const res = (await redis.ping()) === 'PONG'
-    if (res) {
+    const [redisPingRes, dbPingRes] = await Promise.all([
+      // ping redis,
+      redis.ping().then((res) => res === 'PONG'),
+      // ping database
+      seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+    ])
+    if (redisPingRes && dbPingRes) {
       await Promise.all([
         fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
         fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
