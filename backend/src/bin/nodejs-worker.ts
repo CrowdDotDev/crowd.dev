@@ -283,6 +283,7 @@ const liveFilePath = path.join(__dirname, 'nodejs-worker-live.tmp')
 const readyFilePath = path.join(__dirname, 'nodejs-worker-ready.tmp')
 
 setInterval(async () => {
+  try {
   const [redisPingRes, dbPingRes] = await Promise.all([
     // ping redis,
     redis.ping().then((res) => res === 'PONG'),
@@ -295,5 +296,9 @@ setInterval(async () => {
       fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
       fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
     ])
+  }
+  }
+  catch (err) {
+    serviceLogger.error(`Error checking liveness and readiness for nodejs worker: ${err}`)
   }
 }, 5000)

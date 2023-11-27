@@ -219,16 +219,15 @@ async function spawnClient(
 }
 
 let redis: RedisClient
-if (!redis) {
-  getRedisClient(REDIS_CONFIG, true).then((client) => {
-    redis = client
-  })
+const initRedis = async () => {
+  redis = await getRedisClient(REDIS_CONFIG, true)
 }
 
 setImmediate(async () => {
   // we are saving heartbeat timestamps in redis every 2 seconds
   // on boot if we detect that there has been a downtime we should trigger discord integration checks
   // so we don't miss anything
+  const redis = await getRedisClient(REDIS_CONFIG, true)
   const cache = new RedisCache('discord-ws', redis, log)
 
   const lastHeartbeat = await cache.get('heartbeat')
