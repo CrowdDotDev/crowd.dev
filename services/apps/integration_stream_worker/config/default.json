@@ -2,6 +2,7 @@
   "db": {},
   "sqs": {},
   "redis": {},
+  "unleash": {},
   "nango": {},
   "worker": {
     "maxStreamRetries": 5,

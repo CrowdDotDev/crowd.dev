@@ -5,6 +5,7 @@
   "db": {},
   "sqs": {},
   "redis": {},
+  "unleash": {},
   "opensearch": {},
   "nango": {}
 }

@@ -23,6 +23,10 @@
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
   },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "apiKey": "CROWD_UNLEASH_BACKEND_API_KEY"
+  },
   "opensearch": {
     "node": "CROWD_OPENSEARCH_NODE",
     "region": "CROWD_OPENSEARCH_AWS_REGION",
