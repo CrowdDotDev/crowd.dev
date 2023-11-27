@@ -4,8 +4,10 @@ import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
 import fs from 'fs'
 import path from 'path'
 import { Sequelize, QueryTypes } from 'sequelize'
+import { getRedisClient, RedisClient } from '@crowd/redis'
 import jobs from './jobs'
 import { databaseInit } from '@/database/databaseConnection'
+import { REDIS_CONFIG } from '../conf'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -45,22 +47,28 @@ const liveFilePath = path.join(__dirname, 'job-generator-live.tmp')
 const readyFilePath = path.join(__dirname, 'job-generator-ready.tmp')
 
 let seq: Sequelize
-if (!seq) {
-  databaseInit()
-    .then((db) => {
-      seq = db.sequelize as Sequelize
-    })
-    .catch((err) => {
-      log.error(err, 'Error initializing database connection.')
-    })
+let redis: RedisClient
+const initRedisSeq = async () => {
+  if (!seq) {
+    seq = (await databaseInit()).sequelize as Sequelize
+  }
+
+  if (!redis) {
+    redis = await getRedisClient(REDIS_CONFIG, true)
+  }
 }
 
 setInterval(async () => {
   try {
-    log.info('Checking liveness and readiness for job generator.')
-    const res = await seq.query('select 1', { type: QueryTypes.SELECT })
-    const dbPingRes = res.length === 1
-    if (dbPingRes) {
+    await initRedisSeq()
+    log.debug('Checking liveness and readiness for job generator.')
+    const [redisPingRes, dbPingRes] = await Promise.all([
+      // ping redis,
+      redis.ping().then((res) => res === 'PONG'),
+      // ping database
+      seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+    ])
+    if (redisPingRes && dbPingRes) {
       await Promise.all([
         fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
         fs.promises.open(readyFilePath, 'a').then((file) => file.close()),

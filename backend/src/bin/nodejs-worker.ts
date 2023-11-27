@@ -256,49 +256,45 @@ async function handleMessages() {
   handlerLogger.warn('Exiting!')
 }
 
+let redis: RedisClient
+let seq: Sequelize
+
+const initRedisSeq = async () => {
+  if (!redis) {
+    redis = await getRedisClient(REDIS_CONFIG, true)
+  }
+
+  if (!seq) {
+    seq = (await databaseInit()).sequelize as Sequelize
+  }
+}
+
 setImmediate(async () => {
+  await initRedisSeq()
   const promises = [handleMessages(), handleDelayedMessages()]
   await Promise.all(promises)
 })
-
-let redis: RedisClient
-if (!redis) {
-  getRedisClient(REDIS_CONFIG, true).then((client) => {
-    redis = client
-  })
-}
-
-let seq: Sequelize
-if (!seq) {
-  databaseInit()
-    .then((db) => {
-      seq = db.sequelize as Sequelize
-    })
-    .catch((err) => {
-      serviceLogger.error(err, 'Error initializing database connection.')
-    })
-}
 
 const liveFilePath = path.join(__dirname, 'nodejs-worker-live.tmp')
 const readyFilePath = path.join(__dirname, 'nodejs-worker-ready.tmp')
 
 setInterval(async () => {
   try {
-  const [redisPingRes, dbPingRes] = await Promise.all([
-    // ping redis,
-    redis.ping().then((res) => res === 'PONG'),
-    // ping database
-    seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
-  ])
-
-  if (redisPingRes && dbPingRes) {
-    await Promise.all([
-      fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
-      fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
+    initRedisSeq()
+    const [redisPingRes, dbPingRes] = await Promise.all([
+      // ping redis,
+      redis.ping().then((res) => res === 'PONG'),
+      // ping database
+      seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
     ])
-  }
-  }
-  catch (err) {
+
+    if (redisPingRes && dbPingRes) {
+      await Promise.all([
+        fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
+        fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
+      ])
+    }
+  } catch (err) {
     serviceLogger.error(`Error checking liveness and readiness for nodejs worker: ${err}`)
   }
 }, 5000)
