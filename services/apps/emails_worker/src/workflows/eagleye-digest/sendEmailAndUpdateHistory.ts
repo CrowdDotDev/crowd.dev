@@ -66,13 +66,13 @@ export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promis
     updateEmailHistory({
       ...row,
       type: 'eagle-eye-digest',
-      emails: [row.settings.eagleEye.emailDigest?.email],
+      emails: [row.settings.eagleEye.emailDigest?.email || row.email],
       sentAt: email.sentAt,
     }),
     eagleeyeUpdateNextEmailAt({
       ...row,
       type: 'eagle-eye-digest',
-      emails: [row.settings.eagleEye.emailDigest?.email],
+      emails: [row.settings.eagleEye.emailDigest?.email || row.email],
       sentAt: email.sentAt,
     }),
   ])

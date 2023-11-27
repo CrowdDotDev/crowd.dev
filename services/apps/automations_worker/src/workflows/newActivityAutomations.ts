@@ -34,6 +34,9 @@ export async function processNewActivityAutomation(
               activityId: args.activityId,
             },
           ],
+          searchAttributes: {
+            TenantId: [args.tenantId],
+          },
         }),
       ),
     )
