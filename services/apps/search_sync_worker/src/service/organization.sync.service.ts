@@ -191,6 +191,55 @@ export class OrganizationSyncService extends LoggerBase {
     }
   }
 
+  public async syncTenantOrganizationsSegmentAware(
+    tenantId: string,
+    batchSize = 5,
+    syncCutoffTime?: string,
+  ): Promise<void> {
+    const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
+
+    this.log.warn({ tenantId, cutoffDate }, 'Syncing all tenant organizations!')
+    let docCount = 0
+    let organizationCount = 0
+
+    await logExecutionTime(
+      async () => {
+        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+          tenantId,
+          1,
+          batchSize,
+          cutoffDate,
+        )
+
+        while (organizationIds.length > 0) {
+          const { organizationsSynced, documentsIndexed } =
+            await this.syncOrganizationsSegmentAware(organizationIds)
+
+          organizationCount += organizationsSynced
+          docCount += documentsIndexed
+
+          this.log.info(
+            { tenantId },
+            `Synced ${organizationCount} organizations with ${docCount} documents!`,
+          )
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+            tenantId,
+            1,
+            batchSize,
+            cutoffDate,
+          )
+        }
+      },
+      this.log,
+      'sync-tenant-organizations',
+    )
+
+    this.log.info(
+      { tenantId },
+      `Synced total of ${organizationCount} organizations with ${docCount} documents!`,
+    )
+  }
+
   public async syncTenantOrganizations(
     tenantId: string,
     batchSize = 200,
@@ -333,6 +382,19 @@ export class OrganizationSyncService extends LoggerBase {
     return {
       organizationsSynced: organizationCount,
       documentsIndexed: docCount,
+    }
+  }
+
+  public async syncOrganizationsSegmentAware(
+    organizationIds: string[],
+  ): Promise<IOrganizationSyncResult> {
+    // get all orgId segmentId couples
+    const orgSegmentCouples = await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
+
+    console.log(orgSegmentCouples)
+    return {
+      organizationsSynced: 0,
+      documentsIndexed: 0,
     }
   }
 
