@@ -129,9 +129,7 @@ const constaintConfiguration = {
       },
     ],
   ],
-  [FeatureFlag.FIND_GITHUB]: [
-    [],
-  ],
+  [FeatureFlag.FIND_GITHUB]: [[]],
   [FeatureFlag.LINKEDIN]: [
     [
       {

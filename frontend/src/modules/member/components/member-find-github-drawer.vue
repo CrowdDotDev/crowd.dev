@@ -6,45 +6,46 @@
     custom-class="identities-drawer"
   >
     <template #content>
-      <div
-        v-if="suggestions.length > 0"
-        v-for="suggestion in suggestions"
-        :key="suggestion.url"
-        class="flex items-center"
-      >
+      <div v-if="suggestions.length > 0">
         <div
-          class="py-2 flex justify-between w-full px-4 cursor-pointer hover:bg-gray-50 rounded-md hover:shadow-sm"
-          :class="{ selected: selected === suggestion.username }"
-          @click="changeSelected(suggestion.username)"
+          v-for="suggestion in suggestions"
+          :key="suggestion.url"
+          class="flex items-center"
         >
-          <div class="flex">
-            <app-avatar
-              :entity="{
-                displayName: suggestion.username,
-                avatar: suggestion.avatarUrl,
-              }"
-              size="xs"
-              class="mr-3"
-            />
-            <div class="flex flex-col justify-center">
-              <p class="text-xs leading-4.5" v-html="$sanitize(suggestion.username)" />
+          <div
+            class="py-2 flex justify-between w-full px-4 cursor-pointer hover:bg-gray-50 rounded-md hover:shadow-sm"
+            :class="{ selected: selected === suggestion.username }"
+            @click="changeSelected(suggestion.username)"
+          >
+            <div class="flex">
+              <app-avatar
+                :entity="{
+                  displayName: suggestion.username,
+                  avatar: suggestion.avatarUrl,
+                }"
+                size="xs"
+                class="mr-3"
+              />
+              <div class="flex flex-col justify-center">
+                <p class="text-xs leading-4.5" v-html="$sanitize(suggestion.username)" />
+              </div>
             </div>
-          </div>
-          <div class="pt-1">
-            <a :href="suggestion.url" target="_blank" class="text-gray-300">
-              <i class="ri-external-link-line text-gray-400" />
-            </a>
+            <div class="pt-1">
+              <a :href="suggestion.url" target="_blank" class="text-gray-300">
+                <i class="ri-external-link-line text-gray-400" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
       <div v-else-if="!loading">
         <app-empty-state-cta
-        icon="ri-contacts-line"
-        title="We could not find any GitHub identities for this contact."
-        description="There are no GitHub users that match the identities in this contact. We recommend Googling them instead."
-        secondary-btn="Search on Google"
-        @secondary-click="searchContactOnGoogle"
-      />
+          icon="ri-contacts-line"
+          title="We could not find any GitHub identities for this contact."
+          description="There are no GitHub users that match the identities in this contact. We recommend Googling them instead."
+          secondary-btn="Search on Google"
+          @secondary-click="searchContactOnGoogle"
+        />
       </div>
     </template>
     <template #footer>
@@ -95,9 +96,9 @@ const suggestions = ref([]);
 const selected = ref('');
 
 onMounted(async () => {
-  loading.value = true
+  loading.value = true;
   suggestions.value = await MemberService.findGithub(props.modelValue.id);
-  loading.value = false
+  loading.value = false;
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -129,7 +130,7 @@ const searchContactOnGoogle = () => {
     searchQuery += ` OR ${props.modelValue.username[username]}`;
   }
   window.open(searchQuery, '_blank');
-}
+};
 
 const handleSubmit = async () => {
   loading.value = true;
