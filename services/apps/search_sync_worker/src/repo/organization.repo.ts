@@ -222,7 +222,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.tenantId)
   }
 
-  public async getOrganizationSegmentCouples(ids): Promise<string[]> {
+  public async getOrganizationSegmentCouples(ids): Promise<any> {
     const results = await this.db().any(
       `
       SELECT
@@ -254,6 +254,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       }
     }
 
-    return results
+    return matrix
   }
 }
