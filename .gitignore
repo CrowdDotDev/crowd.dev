@@ -50,3 +50,4 @@ api-test/__pycache__/api_test.cpython-39-pytest-6.2.4.pyc
 docker/volume
 
 services/libs/*/dist
+services/libs/cubejs/.cubestore
