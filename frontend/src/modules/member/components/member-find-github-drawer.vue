@@ -128,7 +128,7 @@ const changeSelected = (username) => {
 const searchContactOnGoogle = () => {
   let searchQuery = `https://www.google.com/search?q=${props.modelValue.displayName}`;
   Object.keys(props.modelValue.username).forEach((username) => {
-    if (props.modelValue.username.hasOwnProperty(username)) {
+    if (Object.prototype.hasOwnProperty.call(props.modelValue.username, username)) {
       searchQuery += ` OR ${props.modelValue.username[username]}`;
     }
   });
