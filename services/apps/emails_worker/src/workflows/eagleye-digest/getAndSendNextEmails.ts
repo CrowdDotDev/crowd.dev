@@ -40,6 +40,9 @@ export async function eagleeyeGetAndSendNextEmails(): Promise<void> {
           maximumInterval: 30 * 1000,
         },
         args: [user],
+        searchAttributes: {
+          TenantId: [user.tenantId],
+        },
       })
     }),
   )
