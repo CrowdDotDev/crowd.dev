@@ -149,6 +149,9 @@ const en = {
     csvExport: {
       planLimitExceeded: 'You have exceeded # of csv exports you can have per month in your plan.',
     },
+    featureFlag: {
+      notEnabled: 'This feature is not enabled for your account',
+    },
     reports: {
       templateReportsCreateNotAllowed: `Template reports can't be created.`,
       templateReportsUpdateNotAllowed: `Custom reports can't be updated to template reports.`,
