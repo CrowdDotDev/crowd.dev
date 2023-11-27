@@ -87,8 +87,8 @@ export abstract class SqsPrioritizedQueueReciever {
 }
 
 export class SqsPrioritizedQueueEmitter {
-  private readonly emittersMap: Map<QueuePriorityLevel, ISqsQueueEmitter> = new Map()
-  private readonly defaultEmitter: ISqsQueueEmitter
+  private readonly emittersMap: Map<QueuePriorityLevel, SqsQueueEmitter> = new Map()
+  private readonly defaultEmitter: SqsQueueEmitter
 
   public constructor(
     sqsClient: SqsClient,
@@ -109,6 +109,22 @@ export class SqsPrioritizedQueueEmitter {
         .map((e) => e.init())
         .concat(this.defaultEmitter.init()),
     )
+  }
+
+  public async setMessageVisibilityTimeout(
+    receiptHandle: string,
+    newVisibility: number,
+    priorityLevel?: QueuePriorityLevel,
+  ): Promise<void> {
+    if (priorityLevel) {
+      const emitter = this.emittersMap.get(priorityLevel)
+      if (!emitter) {
+        throw new Error(`Unknown priority level: ${priorityLevel}`)
+      }
+      return emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility)
+    } else {
+      return this.defaultEmitter.setMessageVisibilityTimeout(receiptHandle, newVisibility)
+    }
   }
 
   public async sendMessage<T extends IQueueMessage>(

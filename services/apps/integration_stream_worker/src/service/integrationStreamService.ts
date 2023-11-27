@@ -8,11 +8,6 @@ import {
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient, RateLimiter, ConcurrentRequestLimiter } from '@crowd/redis'
 import {
-  IntegrationDataWorkerEmitter,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-} from '@crowd/sqs'
-import {
   IntegrationRunState,
   IntegrationState,
   IntegrationStreamType,
@@ -23,6 +18,11 @@ import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IStreamData } from '../repo/integrationStream.data'
 import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
+import {
+  IntegrationDataWorkerEmitter,
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+} from '@crowd/common_services'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
@@ -513,7 +513,11 @@ export default class IntegrationStreamService extends LoggerBase {
           return
         }
         this.log.trace(`Changing message visibility of ${receiptHandle} to ${newTimeout}!`)
-        await this.streamWorkerEmitter.setMessageVisibilityTimeout(receiptHandle, newTimeout)
+        await this.streamWorkerEmitter.setMessageVisibilityTimeout(
+          streamInfo.tenantId,
+          receiptHandle,
+          newTimeout,
+        )
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)

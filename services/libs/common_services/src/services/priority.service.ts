@@ -46,6 +46,37 @@ export class QueuePriorityService {
     await this.emitter.init()
   }
 
+  public async setMessageVisibilityTimeout(
+    tenantId: string,
+    receiptHandle: string,
+    newVisibility: number,
+  ): Promise<void> {
+    // feature flag will be cached for 5 minutes
+    if (
+      isFeatureEnabled(
+        FeatureFlag.PRIORITIZED_QUEUES,
+        async () => {
+          return {
+            tenantId,
+          }
+        },
+        this.unleash,
+        this.redis,
+        5 * 60,
+        tenantId,
+      )
+    ) {
+      const priorityLevel = await this.getPriorityLevel(
+        tenantId,
+        this.priorityLevelCalculationContextLoader,
+      )
+
+      return this.emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility, priorityLevel)
+    } else {
+      return this.emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility)
+    }
+  }
+
   public async sendMessages<T extends IQueueMessage>(
     messages: {
       tenantId: string
