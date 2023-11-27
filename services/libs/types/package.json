@@ -2,6 +2,7 @@
   "name": "@crowd/types",
   "version": "1.0.0",
   "private": true,
+  "main": "./src",
   "scripts": {
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
     "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",

@@ -12,7 +12,7 @@
       <cr-menu-workspace v-if="currentTenant" />
 
       <div class="px-3 pt-4 pb-2 flex flex-col grow">
-        <cr-menu-quickstart v-if="isQuickstartEnabled" :collapsed="isCollapsed" />
+        <cr-menu-quickstart :collapsed="isCollapsed" />
 
         <!-- Menu items -->
         <cr-menu-links class="mb-2" :links="mainMenu" :collapsed="isCollapsed" link-class="text-sm" />
@@ -43,7 +43,6 @@ import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
 import { bottomMenu, mainMenu } from '@/modules/layout/config/menu';
 import CrMenuSupport from '@/modules/layout/components/menu/menu-support.vue';
 import CrMenuQuickstart from '@/modules/layout/components/menu/menu-quickstart.vue';
-import { FeatureFlag } from '@/utils/featureFlag';
 
 const store = useStore();
 const { currentTenant } = mapGetters('auth');
@@ -66,7 +65,6 @@ function toggleMenu() {
   store.dispatch('layout/toggleMenu');
 }
 
-const isQuickstartEnabled = computed(() => FeatureFlag.isFlagEnabled(FeatureFlag.flags.quickstartV2));
 </script>
 
 <script>

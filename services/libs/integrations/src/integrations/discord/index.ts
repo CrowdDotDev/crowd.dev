@@ -9,7 +9,6 @@ import processWebhookStream from './processWebhookStream'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.DISCORD,
   memberAttributes: DISCORD_MEMBER_ATTRIBUTES,
-  checkEvery: 12 * 60, // 12 hours
   generateStreams,
   processStream,
   processData,

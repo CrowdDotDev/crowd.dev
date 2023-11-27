@@ -101,11 +101,7 @@ export async function getMostActiveMembers(input: InputAnalyticsWithSegments): P
     group by m.id
     order by count(a.id) desc
     limit 5;`,
-      [
-        input.tenantId,
-        input.dateTimeStartThisWeek.toISOString(),
-        input.dateTimeEndThisWeek.toISOString(),
-      ],
+      [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
     )
   } catch (err) {
     throw new Error(err)
@@ -149,11 +145,7 @@ export async function getMostActiveOrganizations(
     group by o.id
     order by count(a.id) desc
     limit 5;`,
-      [
-        input.tenantId,
-        input.dateTimeStartThisWeek.toISOString(),
-        input.dateTimeEndThisWeek.toISOString(),
-      ],
+      [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
     )
   } catch (err) {
     throw new Error(err)
@@ -191,11 +183,7 @@ export async function getTopActivityTypes(
     group by a.type, a.platform
     order by count(*) desc
     limit 5;`,
-      [
-        input.tenantId,
-        input.dateTimeStartThisWeek.toISOString(),
-        input.dateTimeEndThisWeek.toISOString(),
-      ],
+      [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
     )
   } catch (err) {
     throw new Error(err)
@@ -240,16 +228,12 @@ export async function getConversations(input: InputAnalyticsWithSegments): Promi
     group by c.id
     order by count(a.id) desc
     limit 3;`,
-          [
-            input.tenantId,
-            input.dateTimeStartThisWeek.toISOString(),
-            input.dateTimeEndThisWeek.toISOString(),
-          ],
+          [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
         )
       ).map(async (c) => {
         const conversationLazyLoaded = await svc.postgres.reader.connection().query(
           `SELECT * FROM conversations
-          WHERE id = $1 AND tenantId = $2 AND segmentId = $3
+          WHERE id = $1 AND "tenantId" = $2 AND "segmentId" = $3
           LIMIT 1;
         `,
           [c.id, c.tenantId, c.segmentId],
@@ -283,7 +267,34 @@ export async function getConversations(input: InputAnalyticsWithSegments): Promi
         conversationLazyLoaded.activities = [...firstActivity, ...remainingActivities]
 
         const conversationStarterActivity = conversationLazyLoaded.activities[0]
-        c.conversationStartedFromNow = moment(conversationStarterActivity.timestamp).fromNow()
+        if (conversationStarterActivity) {
+          c.conversationStartedFromNow = moment.utc(conversationStarterActivity.timestamp).fromNow()
+
+          c.platform = conversationStarterActivity.platform
+          c.platformIcon = `${s3Url}/email/${conversationStarterActivity.platform}.png`
+          c.body = conversationStarterActivity.title
+            ? convertHtmlToText(conversationStarterActivity.title)
+            : convertHtmlToText(conversationStarterActivity.body)
+
+          const displayOptions = ActivityDisplayService.getDisplayOptions(
+            conversationStarterActivity,
+            input.segments.reduce((acc, s) => lodash.merge(acc, s.customActivityTypes), {}),
+            [ActivityDisplayVariant.SHORT],
+          )
+
+          let prettyChannel = conversationStarterActivity.channel
+          let prettyChannelHTML = `<span style='text-decoration:none;color:#4B5563'>${prettyChannel}</span>`
+
+          if (conversationStarterActivity.platform === PlatformType.GITHUB) {
+            const prettyChannelSplitted = prettyChannel.split('/')
+            prettyChannel = prettyChannelSplitted[prettyChannelSplitted.length - 1]
+            prettyChannelHTML = `<span style='color:#e94f2e'><a target="_blank" style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:none;color:#e94f2e;font-size:14px;line-height:14px" href="${conversationStarterActivity.channel}">${prettyChannel}</a></span>`
+          }
+
+          c.description = `${displayOptions.short} in ${prettyChannelHTML}`
+          c.sourceLink = conversationStarterActivity.url
+          c.member = conversationStarterActivity.memberDisplayName
+        }
 
         const replyActivities = conversationLazyLoaded.activities.slice(1)
         c.replyCount = replyActivities.length
@@ -301,31 +312,6 @@ export async function getConversations(input: InputAnalyticsWithSegments): Promi
             }
             return acc
           }, {}).count ?? 0
-
-        c.platform = conversationStarterActivity.platform
-        c.platformIcon = `${s3Url}/email/${conversationStarterActivity.platform}.png`
-        c.body = conversationStarterActivity.title
-          ? convertHtmlToText(conversationStarterActivity.title)
-          : convertHtmlToText(conversationStarterActivity.body)
-
-        const displayOptions = ActivityDisplayService.getDisplayOptions(
-          conversationStarterActivity,
-          input.segments.reduce((acc, s) => lodash.merge(acc, s.customActivityTypes), {}),
-          [ActivityDisplayVariant.SHORT],
-        )
-
-        let prettyChannel = conversationStarterActivity.channel
-        let prettyChannelHTML = `<span style='text-decoration:none;color:#4B5563'>${prettyChannel}</span>`
-
-        if (conversationStarterActivity.platform === PlatformType.GITHUB) {
-          const prettyChannelSplitted = prettyChannel.split('/')
-          prettyChannel = prettyChannelSplitted[prettyChannelSplitted.length - 1]
-          prettyChannelHTML = `<span style='color:#e94f2e'><a target="_blank" style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:none;color:#e94f2e;font-size:14px;line-height:14px" href="${conversationStarterActivity.channel}">${prettyChannel}</a></span>`
-        }
-
-        c.description = `${displayOptions.short} in ${prettyChannelHTML}`
-        c.sourceLink = conversationStarterActivity.url
-        c.member = conversationStarterActivity.memberDisplayName
 
         return c
       }),

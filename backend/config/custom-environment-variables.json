@@ -204,5 +204,8 @@
   },
   "searchSyncApi": {
     "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
+  },
+  "openStatusApi": {
+    "baseUrl": "CROWD_OPENSTATUS_URL"
   }
 }

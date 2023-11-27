@@ -43,8 +43,9 @@
 
               class="popover-item h-auto mb-1 py-2 px-2.5"
               :class="{
-                'hover:bg-white !cursor-default': !automationType.canCreate(store),
+                'hover:bg-white': !automationType.canCreate(store),
                 'opacity-50': automationType.disabled && automationType.disabled(store),
+                'cursor-pointer hover:bg-gray-50': !!automationType.canCreate(store),
               }"
               @click="createAutomation(key)"
             >
@@ -103,8 +104,8 @@
     <app-empty-state-cta
       v-else
       icon="ri-flow-chart"
-      title="Start to automate manual tasks"
-      description="Create config actions or send Slack notifications when a new activity happens, or a new contact joins your community "
+      title="Start automating your workflows"
+      :description="`Take instant action on your data. For example, set up Slack notifications for new contacts, sync high-intent contacts with HubSpot, or set up a Webhook to trigger a workflow with Zapier or Make. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
     />
 
     <!-- Add/Edit Webhook form drawer -->
