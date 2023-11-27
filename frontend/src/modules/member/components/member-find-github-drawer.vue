@@ -132,7 +132,6 @@ const searchContactOnGoogle = () => {
       searchQuery += ` OR ${props.modelValue.username[username]}`;
     }
   });
-  }
   window.open(searchQuery, '_blank');
 };
 
