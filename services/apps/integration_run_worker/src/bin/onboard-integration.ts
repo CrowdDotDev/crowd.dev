@@ -1,12 +1,10 @@
 import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { IntegrationState } from '@crowd/types'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -16,7 +14,7 @@ const isOnboarding = processArguments[1] ? processArguments[1] === 'true' : true
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
   await emitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())

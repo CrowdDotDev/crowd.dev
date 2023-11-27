@@ -3,16 +3,14 @@ import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { singleOrDefault, timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, log)
   await emitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())

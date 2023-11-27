@@ -1,12 +1,10 @@
 import { DB_CONFIG, SQS_CONFIG } from '../conf'
 import DataSinkRepository from '../repo/dataSink.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { DataSinkWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -20,7 +18,7 @@ const resultIds = processArguments[0].split(',')
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
+  const emitter = new DataSinkWorkerEmitter(sqsClient, log)
   await emitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())

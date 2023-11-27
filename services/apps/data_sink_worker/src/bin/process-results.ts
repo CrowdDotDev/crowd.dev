@@ -9,7 +9,6 @@ import {
 import DataSinkRepository from '../repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import {
@@ -22,7 +21,6 @@ import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -48,13 +46,13 @@ setImmediate(async () => {
 
   initializeSentimentAnalysis(SENTIMENT_CONFIG())
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, log)
   await nodejsWorkerEmitter.init()
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, log)
   await searchSyncWorkerEmitter.init()
 
-  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, log)
   await dataSinkWorkerEmitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())

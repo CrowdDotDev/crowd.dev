@@ -3,7 +3,6 @@ import { getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient } from '@crowd/opensearch'
 import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
-import { getServiceTracer } from '@crowd/tracing'
 import { ApiWebsocketMessage, Edition } from '@crowd/types'
 import bodyParser from 'body-parser'
 import bunyanMiddleware from 'bunyan-middleware'
@@ -37,7 +36,6 @@ import WebSockets from './websockets'
 import { databaseInit } from '@/database/databaseConnection'
 
 const serviceLogger = getServiceLogger()
-getServiceTracer()
 
 const app = express()
 

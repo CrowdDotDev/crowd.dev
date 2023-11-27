@@ -8,11 +8,10 @@ import {
   StartIntegrationRunQueueMessage,
   CheckRunsQueueMessage,
 } from '@crowd/types'
-import { Tracer } from '@crowd/tracing'
 
 export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
-    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, tracer, parentLog)
+  constructor(client: SqsClient, parentLog: Logger) {
+    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
   public async checkRuns() {

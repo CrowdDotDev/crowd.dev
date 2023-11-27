@@ -3,11 +3,10 @@ import { INTEGRATION_DATA_WORKER_QUEUE_SETTINGS } from '../config'
 import { SqsQueueEmitter } from '../queue'
 import { SqsClient } from '../types'
 import { ProcessStreamDataQueueMessage } from '@crowd/types'
-import { Tracer } from '@crowd/tracing'
 
 export class IntegrationDataWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
-    super(client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, tracer, parentLog)
+  constructor(client: SqsClient, parentLog: Logger) {
+    super(client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, parentLog)
   }
 
   public async triggerDataProcessing(tenantId: string, platform: string, dataId: string) {
