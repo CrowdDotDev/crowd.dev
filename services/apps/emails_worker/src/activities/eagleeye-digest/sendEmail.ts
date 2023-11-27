@@ -8,7 +8,7 @@ a user's email address using the SendGrid API.
 */
 export async function eagleeyeSendEmail(toSend: EmailToSend): Promise<EmailSent> {
   const email: MailDataRequired = {
-    to: toSend.settings.eagleEye.emailDigest.email,
+    to: toSend.settings.eagleEye.emailDigest?.email || toSend.email,
     from: {
       name: process.env['CROWD_SENDGRID_NAME_FROM'],
       email: process.env['CROWD_SENDGRID_EMAIL_FROM'],
