@@ -10,8 +10,8 @@ export async function eagleeyeUpdateNextEmailAt(emailSent: UserTenantWithEmailSe
   try {
     await svc.postgres.writer.connection().query(
       `UPDATE "tenantUsers"
-        SET settings = jsonb_set(settings, '{eagleEye,emailDigest}', '{"nextEmailAt": $1~}'::JSONB, TRUE)
-        WHERE "tenantId" = $2 AND "userId" = $3;`,
+      SET settings = jsonb_set(settings, '{eagleEye,emailDigest,nextEmailAt}', to_jsonb($1::TEXT), TRUE)
+      WHERE "tenantId" = $2 AND "userId" = $3;`,
       [nextEmailAt(emailSent.settings.eagleEye.emailDigest), emailSent.tenantId, emailSent.userId],
     )
   } catch (err) {
