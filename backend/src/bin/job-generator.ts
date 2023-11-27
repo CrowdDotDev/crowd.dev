@@ -43,8 +43,8 @@ for (const job of jobs) {
   }
 }
 
-const liveFilePath = path.join(__dirname, 'job-generator-live.tmp')
-const readyFilePath = path.join(__dirname, 'job-generator-ready.tmp')
+const liveFilePath = path.join(__dirname, 'tmp/job-generator-live.tmp')
+const readyFilePath = path.join(__dirname, 'tmp/job-generator-ready.tmp')
 
 let seq: Sequelize
 let redis: RedisClient

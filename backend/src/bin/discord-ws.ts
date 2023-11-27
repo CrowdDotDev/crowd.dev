@@ -281,8 +281,8 @@ setImmediate(async () => {
   }, 2 * 1000)
 })
 
-const liveFilePath = path.join(__dirname, 'discord-ws-live.tmp')
-const readyFilePath = path.join(__dirname, 'discord-ws-ready.tmp')
+const liveFilePath = path.join(__dirname, 'tmp/discord-ws-live.tmp')
+const readyFilePath = path.join(__dirname, 'tmp/discord-ws-ready.tmp')
 
 setInterval(async () => {
   try {

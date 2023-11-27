@@ -275,12 +275,13 @@ setImmediate(async () => {
   await Promise.all(promises)
 })
 
-const liveFilePath = path.join(__dirname, 'nodejs-worker-live.tmp')
-const readyFilePath = path.join(__dirname, 'nodejs-worker-ready.tmp')
+const liveFilePath = path.join(__dirname, 'tmp/nodejs-worker-live.tmp')
+const readyFilePath = path.join(__dirname, 'tmp/nodejs-worker-ready.tmp')
 
 setInterval(async () => {
   try {
-    initRedisSeq()
+    await initRedisSeq()
+    serviceLogger.debug('Checking liveness and readiness for nodejs worker.')
     const [redisPingRes, dbPingRes] = await Promise.all([
       // ping redis,
       redis.ping().then((res) => res === 'PONG'),
