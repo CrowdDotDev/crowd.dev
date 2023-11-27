@@ -56,6 +56,7 @@ export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promis
   }
 
   const email = await eagleeyeSendEmail({
+    email: row.email,
     userId: row.userId,
     tenantId: row.tenantId,
     settings: row.settings,

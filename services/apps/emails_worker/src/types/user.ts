@@ -14,4 +14,5 @@ export interface UserTenantWithEmailSent extends UserTenant {
   type: string
   sentAt: Date
   emails: string[]
+  weekOfYear?: string
 }
