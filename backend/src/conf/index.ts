@@ -39,6 +39,7 @@ import {
   IBackendTemporalConfig,
   EncryptionConfiguration,
   IOpenStatusApiConfig,
+  GithubTokenConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -124,6 +125,9 @@ export const ORGANIZATION_ENRICHMENT_CONFIG: OrganizationEnrichmentConfiguration
   config.get<OrganizationEnrichmentConfiguration>('organizationEnrichment')
 
 export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfiguration>('eagleEye')
+
+export const GITHUB_TOKEN_CONFIG: GithubTokenConfiguration =
+  config.get<GithubTokenConfiguration>('githubToken')
 
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
 

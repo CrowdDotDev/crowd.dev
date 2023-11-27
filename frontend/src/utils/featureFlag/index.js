@@ -11,6 +11,7 @@ export const FEATURE_FLAGS = {
   memberEnrichment: 'member-enrichment',
   csvExport: 'csv-export',
   hubspot: 'hubspot',
+  findGitHub: 'find-github',
   logRocket: 'log-rocket',
   developerMode: 'developer-mode',
   twitter: 'twitter',

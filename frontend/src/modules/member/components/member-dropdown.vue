@@ -16,7 +16,7 @@
       <template #dropdown>
         <app-member-dropdown-content
           :member="member"
-          @merge="emit('merge')"
+          @find-github="emit('findGithub')"
           @close-dropdown="onDropdownClose"
         />
       </template>
@@ -30,7 +30,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed, ref } from 'vue';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
-const emit = defineEmits(['merge', 'closeDropdown']);
+const emit = defineEmits(['merge', 'closeDropdown', 'findGithub']);
 defineProps({
   member: {
     type: Object,

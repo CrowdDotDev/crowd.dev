@@ -199,6 +199,10 @@ export interface EagleEyeConfiguration {
   apiKey: string
 }
 
+export interface GithubTokenConfiguration {
+  token: string
+}
+
 export interface UnleashConfiguration {
   url: string
   adminApiKey: string
