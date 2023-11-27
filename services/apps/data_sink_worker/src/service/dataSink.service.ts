@@ -1,7 +1,6 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, DataSinkWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
@@ -19,6 +18,11 @@ import { Client as TemporalClient } from '@crowd/temporal'
 import { IResultData } from '../repo/dataSink.data'
 import { addSeconds } from '@crowd/common'
 import { WORKER_SETTINGS } from '../conf'
+import {
+  DataSinkWorkerEmitter,
+  NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository

@@ -22,13 +22,13 @@ import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
 import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
 import { TEMPORAL_CONFIG } from '../conf'
 import { RedisClient } from '@crowd/redis'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 
 export default class MemberService extends LoggerBase {
   constructor(

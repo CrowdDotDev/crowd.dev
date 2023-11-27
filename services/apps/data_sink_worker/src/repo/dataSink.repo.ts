@@ -162,9 +162,12 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     const results = await this.db().any(
       `select r.id,
               r."tenantId",
-              i.platform
+              i.platform,
+              t.plan,
+              t."priorityLevel" as "dbPriority"
         from integration.results r
          inner join integrations i on i.id = r."integrationId"
+         inner join tenants t on t.id = r."tenantId"
         where r.state = $(state)
        order by r."createdAt" asc
        limit $(perPage) offset $(offset)`,
@@ -186,9 +189,12 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     const results = await this.db().any(
       `select r.id,
               r."tenantId",
-              i.platform
+              i.platform,
+              t.plan,
+              t."priorityLevel" as "dbPriority"
         from integration.results r
          inner join integrations i on i.id = r."integrationId"
+         inner join tenants t on t.id = r."tenantId"
         where r."runId" = $(runId) and r.state = $(state)
        order by r."createdAt" asc
        limit $(perPage) offset $(offset)`,

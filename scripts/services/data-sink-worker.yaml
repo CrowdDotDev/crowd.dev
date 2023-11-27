@@ -5,6 +5,7 @@ x-env-args: &env-args
   NODE_ENV: docker
   SERVICE: data-sink-worker
   SHELL: /bin/sh
+  QUEUE_PRIORITY_LEVEL: normal
 
 services:
   data-sink-worker:

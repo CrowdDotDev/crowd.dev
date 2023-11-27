@@ -10,7 +10,6 @@ import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
 import IntegrationRepository from '../repo/integration.repo'
@@ -20,6 +19,7 @@ import { RedisClient } from '@crowd/redis'
 import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { TEMPORAL_CONFIG } from '../conf'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService

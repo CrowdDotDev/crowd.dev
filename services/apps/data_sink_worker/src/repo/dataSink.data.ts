@@ -1,4 +1,9 @@
-import { IIntegrationResult, IntegrationResultState, PlatformType } from '@crowd/types'
+import {
+  IIntegrationResult,
+  IPriorityPriorityCalculationContext,
+  IntegrationResultState,
+  PlatformType,
+} from '@crowd/types'
 
 export interface IResultData {
   id: string
@@ -22,7 +27,7 @@ export interface IResultData {
   delayedUntil: string | null
 }
 
-export interface IFailedResultData {
+export interface IFailedResultData extends IPriorityPriorityCalculationContext {
   id: string
   tenantId: string
   platform: string

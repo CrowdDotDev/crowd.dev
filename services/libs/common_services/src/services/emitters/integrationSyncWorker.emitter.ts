@@ -1,11 +1,34 @@
+import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
-import { AutomationSyncTrigger, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
-import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
+import { RedisClient } from '@crowd/redis'
+import { CrowdQueue, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
 import { Tracer } from '@crowd/tracing'
+import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
+import {
+  AutomationSyncTrigger,
+  IIntegrationSyncWorkerEmitter,
+  IntegrationSyncWorkerQueueMessageType,
+} from '@crowd/types'
 
-export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
-    super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, tracer, parentLog)
+export class IntegrationSyncWorkerEmitter
+  extends QueuePriorityService
+  implements IIntegrationSyncWorkerEmitter
+{
+  private readonly queue = CrowdQueue.INTEGRATION_SYNC_WORKER
+
+  public constructor(
+    sqsClient: SqsClient,
+    redis: RedisClient,
+    tracer: Tracer,
+    unleash: UnleashClient | undefined,
+    priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
+    parentLog: Logger,
+  ) {
+    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
+  }
+
+  public override async init(): Promise<void> {
+    await super.init([INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS])
   }
 
   public async triggerSyncMarkedMembers(tenantId: string, integrationId: string): Promise<void> {
@@ -16,6 +39,8 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
+      this.queue,
+      tenantId,
       integrationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_MEMBERS,
@@ -48,6 +73,8 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     }
 
     await this.sendMessage(
+      this.queue,
+      tenantId,
       memberId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_MEMBER,
@@ -76,6 +103,8 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
+      this.queue,
+      tenantId,
       automationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION,
@@ -99,6 +128,8 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
+      this.queue,
+      tenantId,
       integrationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS,
@@ -127,6 +158,8 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     }
 
     await this.sendMessage(
+      this.queue,
+      tenantId,
       organizationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ORGANIZATION,

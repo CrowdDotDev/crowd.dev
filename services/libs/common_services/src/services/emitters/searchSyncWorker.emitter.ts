@@ -1,11 +1,27 @@
+import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
-import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
-import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
+import { RedisClient } from '@crowd/redis'
+import { CrowdQueue, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
 import { Tracer } from '@crowd/tracing'
+import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
+import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
 
-export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
-    super(client, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, tracer, parentLog)
+export class SearchSyncWorkerEmitter extends QueuePriorityService {
+  private readonly queue = CrowdQueue.SEARCH_SYNC_WORKER
+
+  public constructor(
+    sqsClient: SqsClient,
+    redis: RedisClient,
+    tracer: Tracer,
+    unleash: UnleashClient | undefined,
+    priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
+    parentLog: Logger,
+  ) {
+    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
+  }
+
+  public override async init(): Promise<void> {
+    await super.init([SEARCH_SYNC_WORKER_QUEUE_SETTINGS])
   }
 
   public async triggerMemberSync(tenantId: string, memberId: string) {
@@ -17,6 +33,8 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     }
 
     await this.sendMessage(
+      this.queue,
+      tenantId,
       memberId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
@@ -30,17 +48,21 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(tenantId, {
+    await this.sendMessage(this.queue, tenantId, tenantId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS,
       tenantId,
     })
   }
 
-  public async triggerOrganizationMembersSync(organizationId: string) {
+  public async triggerOrganizationMembersSync(tenantId: string, organizationId: string) {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
-    await this.sendMessage(organizationId, {
+    await this.sendMessage(this.queue, tenantId, organizationId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS,
       organizationId,
     })
@@ -54,7 +76,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('memberId is required!')
     }
 
-    await this.sendMessage(memberId, {
+    await this.sendMessage(this.queue, tenantId, memberId, {
       type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
       memberId,
     })
@@ -64,7 +86,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(tenantId, {
+    await this.sendMessage(this.queue, tenantId, tenantId, {
       type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS,
       tenantId,
     })
@@ -79,6 +101,8 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     }
 
     await this.sendMessage(
+      this.queue,
+      tenantId,
       activityId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY,
@@ -92,17 +116,21 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(tenantId, {
+    await this.sendMessage(this.queue, tenantId, tenantId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES,
       tenantId,
     })
   }
 
-  public async triggerOrganizationActivitiesSync(organizationId: string) {
+  public async triggerOrganizationActivitiesSync(tenantId: string, organizationId: string) {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
-    await this.sendMessage(organizationId, {
+    await this.sendMessage(this.queue, tenantId, organizationId, {
       type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES,
       organizationId,
     })
@@ -116,7 +144,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('activityId is required!')
     }
 
-    await this.sendMessage(activityId, {
+    await this.sendMessage(this.queue, tenantId, activityId, {
       type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
       activityId,
     })
@@ -126,7 +154,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
-    await this.sendMessage(tenantId, {
+    await this.sendMessage(this.queue, tenantId, tenantId, {
       type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES,
       tenantId,
     })
@@ -141,6 +169,8 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
     }
 
     await this.sendMessage(
+      this.queue,
+      tenantId,
       organizationId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
@@ -155,6 +185,8 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('tenantId is required!')
     }
     await this.sendMessage(
+      this.queue,
+      tenantId,
       tenantId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS,
@@ -172,7 +204,7 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('organizationId is required!')
     }
 
-    await this.sendMessage(organizationId, {
+    await this.sendMessage(this.queue, tenantId, organizationId, {
       type: SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION,
       organizationId,
     })
@@ -183,6 +215,8 @@ export class SearchSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('tenantId is required!')
     }
     await this.sendMessage(
+      this.queue,
+      tenantId,
       tenantId,
       {
         type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS,

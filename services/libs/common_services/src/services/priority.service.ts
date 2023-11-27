@@ -1,3 +1,4 @@
+import { IS_DEV_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
 import { UnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
@@ -11,8 +12,8 @@ import {
   TenantPlans,
 } from '@crowd/types'
 
-export type QueuePriorityContextLoader<T> = (
-  args?: T,
+export type QueuePriorityContextLoader = (
+  tenantId: string,
 ) => Promise<IPriorityPriorityCalculationContext>
 
 export class QueuePriorityService {
@@ -26,6 +27,7 @@ export class QueuePriorityService {
     private readonly redis: RedisClient,
     private readonly tracer: Tracer,
     private readonly unleash: UnleashClient | undefined,
+    private readonly priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
     this.log = getChildLogger(this.constructor.name, parentLog)
@@ -42,15 +44,60 @@ export class QueuePriorityService {
     )
   }
 
-  public async sendMessage<T>(
+  public async sendMessages<T extends IQueueMessage>(
     queue: CrowdQueue,
-    tenantId: string,
+    messages: {
+      tenantId: string
+      payload: T
+      groupId: string
+      deduplicationId?: string
+      id?: string
+    }[],
+  ): Promise<void> {
+    const emitter = this.getEmitter(queue)
+
+    const grouped = groupBy(messages, (m) => m.tenantId)
+
+    for (const tenantId of Array.from(grouped.keys())) {
+      // feature flag will be cached for 5 minutes
+      if (
+        isFeatureEnabled(
+          FeatureFlag.PRIORITIZED_QUEUES,
+          async () => {
+            return {
+              tenantId,
+            }
+          },
+          this.unleash,
+          this.redis,
+          5 * 60,
+          tenantId,
+        )
+      ) {
+        const priorityLevel = await this.getPriorityLevel(
+          tenantId,
+          this.priorityLevelCalculationContextLoader,
+        )
+
+        return emitter.sendMessages(
+          messages.map((m) => {
+            return { ...m, priorityLevel }
+          }),
+        )
+      } else {
+        return emitter.sendMessages(messages)
+      }
+    }
+  }
+
+  public async sendMessage<T extends IQueueMessage>(
+    queue: CrowdQueue,
+    tenantId: string | undefined,
     groupId: string,
-    message: IQueueMessage,
-    priorityLevelCacheKey: string,
-    priorityLevelContextloader: QueuePriorityContextLoader<T>,
-    featureFlagCacheKey: string,
+    message: T,
     deduplicationId?: string,
+    priorityLevelContextOverride?: unknown,
+    priorityLevelOverride?: QueuePriorityLevel,
   ): Promise<void> {
     const emitter = this.getEmitter(queue)
 
@@ -66,13 +113,18 @@ export class QueuePriorityService {
         this.unleash,
         this.redis,
         5 * 60,
-        featureFlagCacheKey,
+        tenantId,
       )
     ) {
-      const priorityLevel = await this.getPriorityLevel(
-        priorityLevelCacheKey,
-        priorityLevelContextloader,
-      )
+      let priorityLevel = priorityLevelOverride
+      if (!priorityLevel) {
+        priorityLevel = await this.getPriorityLevel(
+          tenantId,
+          this.priorityLevelCalculationContextLoader,
+          priorityLevelContextOverride,
+        )
+      }
+
       return emitter.sendMessage(groupId, message, deduplicationId, priorityLevel)
     } else {
       return emitter.sendMessage(groupId, message, deduplicationId)
@@ -89,20 +141,30 @@ export class QueuePriorityService {
     )
   }
 
-  private async getPriorityLevel<T>(
-    cacheKey: string,
-    loader: QueuePriorityContextLoader<T>,
+  private async getPriorityLevel(
+    tenantId: string,
+    loader: QueuePriorityContextLoader,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    override?: any,
   ): Promise<QueuePriorityLevel> {
-    const cached = await this.cache.get(cacheKey)
+    if (IS_DEV_ENV || IS_TEST_ENV) {
+      return QueuePriorityLevel.NORMAL
+    }
+
+    const cached = await this.cache.get(tenantId)
     if (cached) {
       return cached as QueuePriorityLevel
     }
 
-    const ctx = await loader()
+    let ctx = await loader(tenantId)
+    if (override) {
+      ctx = { ...ctx, ...override }
+    }
+
     const priority = this.calculateQueuePriorityLevel(ctx)
 
     // cache for 5 minutes
-    await this.cache.set(cacheKey, priority, 5 * 60)
+    await this.cache.set(tenantId, priority, 5 * 60)
 
     return priority
   }
