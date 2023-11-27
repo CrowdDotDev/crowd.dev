@@ -222,12 +222,7 @@ export class OrganizationSyncService extends LoggerBase {
             { tenantId },
             `Synced ${organizationCount} organizations with ${docCount} documents!`,
           )
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
-          )
+          organizationIds = []
         }
       },
       this.log,
