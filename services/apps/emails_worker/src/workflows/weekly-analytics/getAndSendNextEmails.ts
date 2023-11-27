@@ -55,6 +55,9 @@ export async function weeklyGetAndSendNextEmails(): Promise<void> {
             dateTimeStartPreviousWeek: calculatedTimes.dateTimeStartPreviousWeek,
           },
         ],
+        searchAttributes: {
+          TenantId: [tenant.tenantId],
+        },
       })
     }),
   )
