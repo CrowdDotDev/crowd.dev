@@ -74,7 +74,7 @@
     type="button"
     @click="handleCommand({
       action: Actions.SYNC_HUBSPOT,
-      member,})
+      member})
     "
   >
     <app-svg name="hubspot" class="h-4 w-4 text-current" />
@@ -89,7 +89,7 @@
     type="button"
     @click="handleCommand({
       action: Actions.STOP_SYNC_HUBSPOT,
-      member,})
+      member})
     "
   >
     <app-svg name="hubspot" class="h-4 w-4 text-current" />
