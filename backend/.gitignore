@@ -11,4 +11,5 @@ dist/
 
 **/try.ts
 
-**/tmp/*
+*.tmp
+
