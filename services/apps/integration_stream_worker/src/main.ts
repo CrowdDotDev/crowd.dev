@@ -1,6 +1,6 @@
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, WORKER_SETTINGS } from './conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WORKER_SETTINGS } from './conf'
 import { getRedisClient } from '@crowd/redis'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getSqsClient } from '@crowd/sqs'
@@ -105,6 +105,3 @@ setImmediate(async () => {
     process.exit(1)
   }
 })
-function UNLEASH_CONFIG(): import('@crowd/feature-flags').IUnleashConfig {
-  throw new Error('Function not implemented.')
-}

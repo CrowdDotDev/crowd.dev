@@ -1,14 +1,9 @@
+import { groupBy } from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { Tracer } from '@crowd/tracing'
-import {
-  IQueueMessage,
-  ISqsQueueEmitter,
-  ISqsQueueReceiver,
-  QueuePriorityLevel,
-} from '@crowd/types'
+import { IQueueMessage, ISqsQueueReceiver, QueuePriorityLevel } from '@crowd/types'
 import { SqsQueueEmitter, SqsQueueReceiver } from './queue'
 import { ISqsQueueConfig, SqsClient } from './types'
-import { groupBy } from '@crowd/common'
 
 export abstract class SqsPrioritizedQueueReciever {
   protected readonly log: Logger
