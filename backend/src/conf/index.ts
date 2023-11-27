@@ -37,7 +37,7 @@ import {
   CrowdAnalyticsConfiguration,
   IBackendTemporalConfig,
   IOpenStatusApiConfig,
-  GithubTokenConfiguration
+  GithubTokenConfiguration,
 } from './configTypes'
 
 // TODO-kube
