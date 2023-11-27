@@ -387,6 +387,7 @@ export class OrganizationSyncService extends LoggerBase {
     const orgSegmentCouples = await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
 
     console.log(orgSegmentCouples)
+    console.log(orgSegmentCouples[Object.keys(orgSegmentCouples)[0]].docs[0])
     return {
       organizationsSynced: 0,
       documentsIndexed: 0,
