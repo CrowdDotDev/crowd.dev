@@ -24,7 +24,7 @@ const {
   getTotalActivitiesPreviousWeek,
   getNewActivitiesThisWeek,
   getNewActivitiesPreviousWeek,
-} = proxyActivities<typeof activities>({ startToCloseTimeout: '5 seconds' })
+} = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
 
 // Configure timeouts and retry policies to fetch content from the database.
 const {
@@ -207,6 +207,7 @@ export async function weeklySendEmailAndUpdateHistory(
     emails: users.map((user) => user.email),
     type: 'weekly-analytics',
     sentAt: new Date(),
+    weekOfYear: moment().utc().startOf('isoWeek').subtract(7, 'days').isoWeek().toString(),
   })
 
   return

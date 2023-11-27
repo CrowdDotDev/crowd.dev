@@ -13,6 +13,7 @@ import { opensearchMiddleware } from 'middleware/opensearch'
 import { getRedisClient } from '@crowd/redis'
 import { redisMiddleware } from 'middleware/redis'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG } from './conf'
+import { ApiRequest } from 'middleware'
 
 const log = getServiceLogger()
 const config = SEARCH_SYNC_API_CONFIG()
@@ -21,7 +22,7 @@ setImmediate(async () => {
   const app = express()
   const redis = await getRedisClient(REDIS_CONFIG(), true)
   const opensearch = new OpenSearchService(log, OPENSEARCH_CONFIG())
-  const dbConnection = await getDbConnection(DB_CONFIG(), 3)
+  const dbConnection = await getDbConnection(DB_CONFIG(), 5, 5000)
 
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '5mb' }))
@@ -39,6 +40,34 @@ setImmediate(async () => {
   app.use(memberRoutes)
   app.use(activityRoutes)
   app.use(organizationRoutes)
+
+  app.use('/health', async (req: ApiRequest, res) => {
+    try {
+      const [opensearchCheck, redisCheck, dbCheck] = await Promise.all([
+        // ping opensearch
+        opensearch.client.ping().then((res) => res.body),
+        // ping redis,
+        redis.ping().then((res) => res === 'PONG'),
+        // ping database
+        req.dbStore
+          .connection()
+          .any('select 1')
+          .then((rows) => rows.length === 1),
+      ])
+
+      if (opensearchCheck && redisCheck && dbCheck) {
+        res.sendStatus(200)
+      } else {
+        res.status(500).json({
+          opensearch: opensearchCheck,
+          redis: redisCheck,
+          database: dbCheck,
+        })
+      }
+    } catch (err) {
+      res.status(500).json({ error: err })
+    }
+  })
 
   app.use(errorMiddleware())
 

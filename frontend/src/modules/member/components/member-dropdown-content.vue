@@ -124,21 +124,30 @@
     </span>
   </el-tooltip>
 
-  <button
-    v-if="!member.attributes.isTeamMember?.default"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
-        member,
-        value: true,
-      })
-    "
+  <el-tooltip
+    placement="top"
+    content="Mark as team contact if they belong to your own organization"
+    popper-class="max-w-[260px]"
   >
-    <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contact</span>
-  </button>
+    <span>
+      <button
+        v-if="!member.attributes.isTeamMember?.default"
+        class="h-10 el-dropdown-menu__item w-full"
+        :disabled="isEditLockedForSampleData"
+        type="button"
+        @click="
+          handleCommand({
+            action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
+            member,
+            value: true,
+          })
+        "
+      >
+        <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contact</span>
+      </button>
+    </span>
+  </el-tooltip>
+
   <button
     v-if="member.attributes.isTeamMember?.default"
     class="h-10 el-dropdown-menu__item w-full"

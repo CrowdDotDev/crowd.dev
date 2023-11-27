@@ -1,6 +1,6 @@
 <template>
   <app-form-item
-    label="Community name"
+    label="Workspace name"
     :required="true"
     :validation="$v.tenantName"
     :error-messages="{

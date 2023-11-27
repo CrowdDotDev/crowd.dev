@@ -6,7 +6,7 @@ import { UserTenant } from '../../types/user'
 // Configure timeouts and retry policies to fetch content from third-party sources.
 const { eagleeyeFetchFromEagleEye, eagleeyeFetchFromDatabase } = proxyActivities<typeof activities>(
   {
-    startToCloseTimeout: '5 seconds',
+    startToCloseTimeout: '10 seconds',
   },
 )
 
@@ -56,6 +56,7 @@ export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promis
   }
 
   const email = await eagleeyeSendEmail({
+    email: row.email,
     userId: row.userId,
     tenantId: row.tenantId,
     settings: row.settings,
@@ -66,13 +67,13 @@ export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promis
     updateEmailHistory({
       ...row,
       type: 'eagle-eye-digest',
-      emails: [row.settings.eagleEye.emailDigest?.email],
+      emails: [row.settings.eagleEye.emailDigest?.email || row.email],
       sentAt: email.sentAt,
     }),
     eagleeyeUpdateNextEmailAt({
       ...row,
       type: 'eagle-eye-digest',
-      emails: [row.settings.eagleEye.emailDigest?.email],
+      emails: [row.settings.eagleEye.emailDigest?.email || row.email],
       sentAt: email.sentAt,
     }),
   ])

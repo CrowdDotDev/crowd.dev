@@ -9,6 +9,7 @@ import {
   ISearchSyncOptions,
   MemberAttributeType,
   SyncMode,
+  TemporalWorkflowId,
 } from '@crowd/types'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
@@ -466,7 +467,7 @@ export default class MemberService extends LoggerBase {
             const handle = await this.options.temporal.workflow.start(
               'processNewMemberAutomation',
               {
-                workflowId: `new-member-automation-${record.id}`,
+                workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
                 taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
                 workflowIdReusePolicy:
                   WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,

@@ -106,32 +106,45 @@
             </div>
 
             <div
-              class="flex flex-col gap-4 mb-10"
+              class="flex flex-col gap-4 mb-4"
             >
-              <div v-if="plan.featuresNote" class="text-2xs text-gray-600">
-                {{ plan.featuresNote }}
-              </div>
-
               <ul class="flex flex-col gap-4 text-xs text-gray-900">
                 <li
-                  v-for="feature in plan.features"
-                  :key="feature"
-                  class="flex items-start gap-3 leading-5"
+                  v-for="{ includes, value, integrations } in plan.features"
+                  :key="value"
                 >
-                  <i
-                    class="ri-checkbox-circle-fill text-lg"
-                  />
-                  <span>{{ feature }}</span>
-                </li>
-                <li
-                  v-for="feature in plan.featuresSpecial"
-                  :key="feature"
-                  class="flex items-start gap-3 leading-5"
-                >
-                  <i
-                    class="ri-information-line text-lg"
-                  />
-                  <span>{{ feature }}</span>
+                  <span class="flex items-start gap-3 leading-5">
+                    <i
+                      class="text-lg"
+                      :class="{
+                        'ri-checkbox-circle-fill': includes,
+                        'ri-close-circle-fill': !includes,
+                      }"
+                    />
+                    <span>{{ value }}</span>
+                  </span>
+                  <div v-if="integrations?.length" class="flex flex-wrap gap-2 mt-4 ml-8">
+                    <div
+                      v-for="integration in integrations"
+                      :key="integration"
+                    >
+                      <el-tooltip
+                        v-if="CrowdIntegrations.getConfig(integration)"
+                        placement="top"
+                        :content="CrowdIntegrations.getConfig(integration).name"
+                      >
+                        <div
+                          class="bg-white rounded-md shadow w-12 h-12 flex items-center justify-center"
+                        >
+                          <img
+                            :alt="CrowdIntegrations.getConfig(integration).name"
+                            :src="CrowdIntegrations.getConfig(integration).image"
+                            class="w-5"
+                          />
+                        </div>
+                      </el-tooltip>
+                    </div>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -158,6 +171,7 @@ import Plans from '@/security/plans';
 import { planLimits } from '@/security/plans-limits';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import moment from 'moment';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { plans } from '../settings-pricing-plans';
 
 const crowdHostedPlans = Plans.values;

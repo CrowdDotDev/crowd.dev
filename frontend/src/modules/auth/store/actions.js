@@ -27,13 +27,18 @@ export default {
             localStorage.removeItem('userDateTime');
           }
         }
-        const currentUserLocally = AuthService.fetchMeLocally();
         connectSocket(token);
-        if (currentUserLocally) {
-          commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
+        const { pathname } = window.location;
+        if (!['/automations'].includes(pathname)) {
+          const currentUserLocally = AuthService.fetchMeLocally();
 
-          return currentUserLocally;
+          if (currentUserLocally) {
+            commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
+
+            return currentUserLocally;
+          }
         }
+
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
         return currentUser;
@@ -264,18 +269,22 @@ export default {
       });
   },
 
-  async doSelectTenant({ dispatch }, { tenant, redirect = true }) {
+  async doSelectTenant({ dispatch, state }, { tenant, redirect = true, immediate = false }) {
     if (tenantSubdomain.isEnabled) {
       tenantSubdomain.redirectAuthenticatedTo(tenant.url);
       return;
     }
 
+    if (immediate) {
+      state.currentTenant = tenant;
+    }
     AuthCurrentTenant.set(tenant);
-    await dispatch('doRefreshCurrentUser');
 
     const initialState = buildInitialState(true);
 
     store.replaceState(initialState);
+
+    await dispatch('doRefreshCurrentUser');
 
     if (redirect) {
       router.push('/');
