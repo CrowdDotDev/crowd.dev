@@ -7,8 +7,6 @@ import { Logger } from '@crowd/logging'
 import { ProcessStreamDataQueueMessage } from '@crowd/types'
 
 export class IntegrationDataWorkerEmitter extends QueuePriorityService {
-  private readonly queue = CrowdQueue.INTEGRATION_DATA_WORKER
-
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
@@ -17,20 +15,19 @@ export class IntegrationDataWorkerEmitter extends QueuePriorityService {
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
-    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
-  }
-
-  public override async init(): Promise<void> {
-    await super.init([INTEGRATION_DATA_WORKER_QUEUE_SETTINGS])
+    super(
+      CrowdQueue.INTEGRATION_DATA_WORKER,
+      INTEGRATION_DATA_WORKER_QUEUE_SETTINGS,
+      sqsClient,
+      redis,
+      tracer,
+      unleash,
+      priorityLevelCalculationContextLoader,
+      parentLog,
+    )
   }
 
   public async triggerDataProcessing(tenantId: string, platform: string, dataId: string) {
-    await this.sendMessage(
-      this.queue,
-      tenantId,
-      dataId,
-      new ProcessStreamDataQueueMessage(dataId),
-      dataId,
-    )
+    await this.sendMessage(tenantId, dataId, new ProcessStreamDataQueueMessage(dataId), dataId)
   }
 }

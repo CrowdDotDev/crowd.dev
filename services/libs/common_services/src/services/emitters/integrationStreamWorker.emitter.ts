@@ -14,8 +14,6 @@ import {
 import { generateUUIDv1 } from '@crowd/common'
 
 export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
-  private readonly queue = CrowdQueue.INTEGRATION_STREAM_WORKER
-
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
@@ -24,16 +22,20 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
-    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
-  }
-
-  public override async init(): Promise<void> {
-    await super.init([INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS])
+    super(
+      CrowdQueue.INTEGRATION_STREAM_WORKER,
+      INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
+      sqsClient,
+      redis,
+      tracer,
+      unleash,
+      priorityLevelCalculationContextLoader,
+      parentLog,
+    )
   }
 
   public async checkStreams() {
     await this.sendMessage(
-      this.queue,
       undefined,
       'global',
       new CheckStreamsQueueMessage(),
@@ -48,12 +50,7 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
     platform: string,
     runId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      this.queue,
-      tenantId,
-      runId,
-      new ContinueProcessingRunStreamsQueueMessage(runId),
-    )
+    await this.sendMessage(tenantId, runId, new ContinueProcessingRunStreamsQueueMessage(runId))
   }
 
   public async triggerStreamProcessing(
@@ -61,12 +58,7 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
     platform: string,
     streamId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      this.queue,
-      tenantId,
-      generateUUIDv1(),
-      new ProcessStreamQueueMessage(streamId),
-    )
+    await this.sendMessage(tenantId, generateUUIDv1(), new ProcessStreamQueueMessage(streamId))
   }
 
   public async triggerWebhookProcessing(
@@ -75,7 +67,6 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
     webhookId: string,
   ): Promise<void> {
     await this.sendMessage(
-      this.queue,
       tenantId,
       generateUUIDv1(),
       new ProcessWebhookStreamQueueMessage(webhookId),

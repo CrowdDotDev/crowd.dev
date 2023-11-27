@@ -14,8 +14,6 @@ export class IntegrationSyncWorkerEmitter
   extends QueuePriorityService
   implements IIntegrationSyncWorkerEmitter
 {
-  private readonly queue = CrowdQueue.INTEGRATION_SYNC_WORKER
-
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
@@ -24,11 +22,16 @@ export class IntegrationSyncWorkerEmitter
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
-    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
-  }
-
-  public override async init(): Promise<void> {
-    await super.init([INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS])
+    super(
+      CrowdQueue.INTEGRATION_SYNC_WORKER,
+      INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
+      sqsClient,
+      redis,
+      tracer,
+      unleash,
+      priorityLevelCalculationContextLoader,
+      parentLog,
+    )
   }
 
   public async triggerSyncMarkedMembers(tenantId: string, integrationId: string): Promise<void> {
@@ -39,7 +42,6 @@ export class IntegrationSyncWorkerEmitter
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      this.queue,
       tenantId,
       integrationId,
       {
@@ -73,7 +75,6 @@ export class IntegrationSyncWorkerEmitter
     }
 
     await this.sendMessage(
-      this.queue,
       tenantId,
       memberId,
       {
@@ -103,7 +104,6 @@ export class IntegrationSyncWorkerEmitter
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      this.queue,
       tenantId,
       automationId,
       {
@@ -128,7 +128,6 @@ export class IntegrationSyncWorkerEmitter
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      this.queue,
       tenantId,
       integrationId,
       {
@@ -158,7 +157,6 @@ export class IntegrationSyncWorkerEmitter
     }
 
     await this.sendMessage(
-      this.queue,
       tenantId,
       organizationId,
       {

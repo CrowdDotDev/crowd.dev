@@ -5,6 +5,7 @@ x-env-args: &env-args
   NODE_ENV: docker
   SERVICE: search-sync-worker
   SHELL: /bin/sh
+  QUEUE_PRIORITY_LEVEL: normal
 
 services:
   search-sync-worker:

@@ -20,9 +20,11 @@ export class QueuePriorityService {
   private readonly log: Logger
   private readonly cache: RedisCache
 
-  private readonly emittersMap: Map<string, SqsPrioritizedQueueEmitter> = new Map()
+  private readonly emitter: SqsPrioritizedQueueEmitter
 
   public constructor(
+    public readonly queue: CrowdQueue,
+    private readonly queueConfig: ISqsQueueConfig,
     private readonly sqsClient: SqsClient,
     private readonly redis: RedisClient,
     private readonly tracer: Tracer,
@@ -32,20 +34,19 @@ export class QueuePriorityService {
   ) {
     this.log = getChildLogger(this.constructor.name, parentLog)
     this.cache = new RedisCache('queue-priority', redis, this.log)
-  }
-
-  public async init(queueConfigs: ISqsQueueConfig[]): Promise<void> {
-    await Promise.all(
-      queueConfigs.map((c) => {
-        const emitter = new SqsPrioritizedQueueEmitter(this.sqsClient, c, this.tracer, this.log)
-        this.emittersMap.set(c.name, emitter)
-        return emitter.init()
-      }),
+    this.emitter = new SqsPrioritizedQueueEmitter(
+      this.sqsClient,
+      this.queueConfig,
+      this.tracer,
+      this.log,
     )
   }
 
+  public async init(): Promise<void> {
+    await this.emitter.init()
+  }
+
   public async sendMessages<T extends IQueueMessage>(
-    queue: CrowdQueue,
     messages: {
       tenantId: string
       payload: T
@@ -54,8 +55,6 @@ export class QueuePriorityService {
       id?: string
     }[],
   ): Promise<void> {
-    const emitter = this.getEmitter(queue)
-
     const grouped = groupBy(messages, (m) => m.tenantId)
 
     for (const tenantId of Array.from(grouped.keys())) {
@@ -79,19 +78,18 @@ export class QueuePriorityService {
           this.priorityLevelCalculationContextLoader,
         )
 
-        return emitter.sendMessages(
+        return this.emitter.sendMessages(
           messages.map((m) => {
             return { ...m, priorityLevel }
           }),
         )
       } else {
-        return emitter.sendMessages(messages)
+        return this.emitter.sendMessages(messages)
       }
     }
   }
 
   public async sendMessage<T extends IQueueMessage>(
-    queue: CrowdQueue,
     tenantId: string | undefined,
     groupId: string,
     message: T,
@@ -99,8 +97,6 @@ export class QueuePriorityService {
     priorityLevelContextOverride?: unknown,
     priorityLevelOverride?: QueuePriorityLevel,
   ): Promise<void> {
-    const emitter = this.getEmitter(queue)
-
     // feature flag will be cached for 5 minutes
     if (
       isFeatureEnabled(
@@ -125,20 +121,10 @@ export class QueuePriorityService {
         )
       }
 
-      return emitter.sendMessage(groupId, message, deduplicationId, priorityLevel)
+      return this.emitter.sendMessage(groupId, message, deduplicationId, priorityLevel)
     } else {
-      return emitter.sendMessage(groupId, message, deduplicationId)
+      return this.emitter.sendMessage(groupId, message, deduplicationId)
     }
-  }
-
-  private getEmitter(queue: string): SqsPrioritizedQueueEmitter {
-    if (this.emittersMap.has(queue)) {
-      return this.emittersMap.get(queue) as SqsPrioritizedQueueEmitter
-    }
-
-    throw new Error(
-      `Emitter for queue ${queue} is not configured! Add it to the init method and make sure it's called!`,
-    )
   }
 
   private async getPriorityLevel(

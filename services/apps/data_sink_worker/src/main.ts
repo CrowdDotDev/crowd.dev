@@ -1,4 +1,3 @@
-import { WORKER_CONFIG } from './../../integration_run_worker/src/conf/index'
 import {
   PriorityLevelContextRepository,
   DataSinkWorkerEmitter,

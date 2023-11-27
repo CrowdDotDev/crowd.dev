@@ -5,6 +5,7 @@ x-env-args: &env-args
   NODE_ENV: docker
   SERVICE: integration-run-worker
   SHELL: /bin/sh
+  QUEUE_PRIORITY_LEVEL: normal
 
 services:
   integration-run-worker:

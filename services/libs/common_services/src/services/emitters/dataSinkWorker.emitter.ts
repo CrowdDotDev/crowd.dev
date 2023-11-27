@@ -15,8 +15,6 @@ import {
 import { generateUUIDv1 } from '@crowd/common'
 
 export class DataSinkWorkerEmitter extends QueuePriorityService {
-  private readonly queue = CrowdQueue.DATA_SINK_WORKER
-
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
@@ -25,11 +23,16 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
-    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
-  }
-
-  public override async init(): Promise<void> {
-    await super.init([DATA_SINK_WORKER_QUEUE_SETTINGS])
+    super(
+      CrowdQueue.DATA_SINK_WORKER,
+      DATA_SINK_WORKER_QUEUE_SETTINGS,
+      sqsClient,
+      redis,
+      tracer,
+      unleash,
+      priorityLevelCalculationContextLoader,
+      parentLog,
+    )
   }
 
   public async triggerResultProcessing(
@@ -40,7 +43,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
     deduplicationId?: string,
   ) {
     await this.sendMessage(
-      this.queue,
       tenantId,
       sourceId,
       new ProcessIntegrationResultQueueMessage(resultId),
@@ -55,7 +57,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
     activity: IActivityData,
   ) {
     await this.sendMessage(
-      this.queue,
       tenantId,
       generateUUIDv1(),
       new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, integrationId, activity),
@@ -64,7 +65,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
 
   public async checkResults() {
     await this.sendMessage(
-      this.queue,
       undefined,
       'global',
       new CheckResultsQueueMessage(),
@@ -83,6 +83,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
       id?: string
     }[],
   ): Promise<void> {
-    return super.sendMessages(this.queue, messages)
+    return super.sendMessages(messages)
   }
 }

@@ -13,8 +13,6 @@ import {
 } from '@crowd/types'
 
 export class IntegrationRunWorkerEmitter extends QueuePriorityService {
-  private readonly queue = CrowdQueue.INTEGRATION_RUN_WORKER
-
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
@@ -23,16 +21,20 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
-    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
-  }
-
-  public override async init(): Promise<void> {
-    await super.init([INTEGRATION_RUN_WORKER_QUEUE_SETTINGS])
+    super(
+      CrowdQueue.INTEGRATION_RUN_WORKER,
+      INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
+      sqsClient,
+      redis,
+      tracer,
+      unleash,
+      priorityLevelCalculationContextLoader,
+      parentLog,
+    )
   }
 
   public async checkRuns() {
     await this.sendMessage(
-      this.queue,
       undefined,
       'global',
       new CheckRunsQueueMessage(),
@@ -51,7 +53,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     manualSettings?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      this.queue,
       tenantId,
       integrationId,
       new StartIntegrationRunQueueMessage(integrationId, onboarding, isManualRun, manualSettings),
@@ -66,7 +67,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     manualSettings?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      this.queue,
       tenantId,
       runId,
       new GenerateRunStreamsQueueMessage(runId, isManualRun, manualSettings),
@@ -75,6 +75,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   }
 
   public async streamProcessed(tenantId: string, platform: string, runId: string): Promise<void> {
-    await this.sendMessage(this.queue, tenantId, runId, new StreamProcessedQueueMessage(runId))
+    await this.sendMessage(tenantId, runId, new StreamProcessedQueueMessage(runId))
   }
 }

@@ -3,6 +3,7 @@
   "sqs": {},
   "redis": {},
   "worker": {
-    "maxDataRetries": 5
+    "maxDataRetries": 5,
+    "queuePriorityLevel": "normal"
   }
 }

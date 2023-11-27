@@ -30,5 +30,8 @@
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
+  },
+  "worker": {
+    "queuePriorityLevel": "QUEUE_PRIORITY_LEVEL"
   }
 }

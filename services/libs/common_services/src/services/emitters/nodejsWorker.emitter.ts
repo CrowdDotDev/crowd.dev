@@ -7,8 +7,6 @@ import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.se
 import { NewActivityAutomationQueueMessage, NewMemberAutomationQueueMessage } from '@crowd/types'
 
 export class NodejsWorkerEmitter extends QueuePriorityService {
-  private readonly queue = CrowdQueue.NODEJS_WORKER
-
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
@@ -17,11 +15,16 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
-    super(sqsClient, redis, tracer, unleash, priorityLevelCalculationContextLoader, parentLog)
-  }
-
-  public override async init(): Promise<void> {
-    await super.init([NODEJS_WORKER_QUEUE_SETTINGS])
+    super(
+      CrowdQueue.NODEJS_WORKER,
+      NODEJS_WORKER_QUEUE_SETTINGS,
+      sqsClient,
+      redis,
+      tracer,
+      unleash,
+      priorityLevelCalculationContextLoader,
+      parentLog,
+    )
   }
 
   public async processAutomationForNewActivity(
@@ -30,7 +33,6 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
     segmentId: string,
   ): Promise<void> {
     await this.sendMessage(
-      this.queue,
       tenantId,
       `${activityId}--${segmentId}`,
       new NewActivityAutomationQueueMessage(tenantId, activityId, segmentId),
@@ -40,7 +42,6 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
 
   public async processAutomationForNewMember(tenantId: string, memberId: string): Promise<void> {
     await this.sendMessage(
-      this.queue,
       tenantId,
       memberId,
       new NewMemberAutomationQueueMessage(tenantId, memberId),
