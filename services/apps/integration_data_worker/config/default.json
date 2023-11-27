@@ -2,6 +2,7 @@
   "db": {},
   "sqs": {},
   "redis": {},
+  "unleash": {},
   "worker": {
     "maxDataRetries": 5,
     "queuePriorityLevel": "normal"
