@@ -1,6 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IDbOrganizationSyncData } from './organization.data'
+import { IDbOrganizationSyncData, IOrganizationSegmentMatrix } from './organization.data'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -382,7 +382,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.tenantId)
   }
 
-  public async getOrganizationSegmentCouples(ids): Promise<any> {
+  public async getOrganizationSegmentCouples(ids): Promise<IOrganizationSegmentMatrix> {
     const results = await this.db().any(
       `
       SELECT
@@ -400,15 +400,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     for (const orgSegment of results) {
       if (!matrix[orgSegment.organizationId]) {
-        matrix[orgSegment.organizationId] = {
-          docs: [
-            {
-              segmentId: orgSegment.segmentId,
-            },
-          ],
-        }
+        matrix[orgSegment.organizationId] = [
+          {
+            segmentId: orgSegment.segmentId,
+          },
+        ]
       } else {
-        matrix[orgSegment.organizationId].docs.push({
+        matrix[orgSegment.organizationId].push({
           segmentId: orgSegment.segmentId,
         })
       }

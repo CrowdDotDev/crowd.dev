@@ -69,3 +69,13 @@ export interface IDbOrganizationSyncData {
   toMergeIds: string[]
   noMergeIds: string[]
 }
+
+export interface IOrganizationSegmentMatrixItem {
+  segmentId: string
+  processed: boolean
+  data: IDbOrganizationSyncData
+}
+
+export interface IOrganizationSegmentMatrix {
+  [key: string]: IOrganizationSegmentMatrixItem[]
+}
