@@ -1,7 +1,7 @@
 import { LoggerBase } from '@crowd/logging'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { SearchSyncWorkerEmitter } from '@crowd/sqs'
 import { FeatureFlag, SyncMode } from '@crowd/types'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { getSearchSyncApiClient } from '../utils/apiClients'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
@@ -68,11 +68,11 @@ export default class SearchSyncService extends LoggerBase {
     }
   }
 
-  async triggerOrganizationMembersSync(organizationId: string) {
+  async triggerOrganizationMembersSync(tenantId: string, organizationId: string) {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationMembersSync(organizationId)
+      await client.triggerOrganizationMembersSync(tenantId, organizationId)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -122,11 +122,11 @@ export default class SearchSyncService extends LoggerBase {
     }
   }
 
-  async triggerOrganizationActivitiesSync(organizationId: string) {
+  async triggerOrganizationActivitiesSync(tenantId: string, organizationId: string) {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationActivitiesSync(organizationId)
+      await client.triggerOrganizationActivitiesSync(tenantId, organizationId)
     } else {
       throw new Error('Unexpected search client type!')
     }

@@ -195,10 +195,16 @@ export default class OrganizationService extends LoggerBase {
       await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
 
       // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(originalId)
+      await searchSyncService.triggerOrganizationMembersSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(originalId)
+      await searchSyncService.triggerOrganizationActivitiesSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }

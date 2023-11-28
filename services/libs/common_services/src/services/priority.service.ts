@@ -6,7 +6,7 @@ import { CrowdQueue, ISqsQueueConfig, SqsClient, SqsPrioritizedQueueEmitter } fr
 import { Tracer } from '@crowd/tracing'
 import {
   FeatureFlag,
-  IPriorityPriorityCalculationContext,
+  IQueuePriorityCalculationContext,
   IQueueMessage,
   QueuePriorityLevel,
   TenantPlans,
@@ -14,7 +14,7 @@ import {
 
 export type QueuePriorityContextLoader = (
   tenantId: string,
-) => Promise<IPriorityPriorityCalculationContext>
+) => Promise<IQueuePriorityCalculationContext>
 
 export class QueuePriorityService {
   private readonly log: Logger
@@ -186,9 +186,7 @@ export class QueuePriorityService {
     return priority
   }
 
-  private calculateQueuePriorityLevel(
-    ctx: IPriorityPriorityCalculationContext,
-  ): QueuePriorityLevel {
+  private calculateQueuePriorityLevel(ctx: IQueuePriorityCalculationContext): QueuePriorityLevel {
     if (ctx.dbPriority) {
       return ctx.dbPriority
     }

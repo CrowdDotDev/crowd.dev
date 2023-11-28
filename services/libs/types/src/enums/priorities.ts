@@ -8,7 +8,7 @@ export enum QueuePriorityLevel {
   URGENT = 'urgent',
 }
 
-export interface IPriorityPriorityCalculationContext {
+export interface IQueuePriorityCalculationContext {
   onboarding?: boolean
   dbPriority?: QueuePriorityLevel | null
   plan: TenantPlans
