@@ -1,17 +1,15 @@
+import { timeout } from '@crowd/common'
+import { getServiceLogger } from '@crowd/logging'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import moment from 'moment'
 import path from 'path'
-import { getServiceLogger } from '@crowd/logging'
-import { timeout } from '@crowd/common'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
-import RecurringEmailsHistoryRepository from '../../database/repositories/recurringEmailsHistoryRepository'
-import { RecurringEmailType } from '../../types/recurringEmailsHistoryTypes'
 import TenantService from '@/services/tenantService'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import RecurringEmailsHistoryRepository from '../../database/repositories/recurringEmailsHistoryRepository'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { RecurringEmailType } from '../../types/recurringEmailsHistoryTypes'
 
 /* eslint-disable no-console */
 
@@ -97,11 +95,8 @@ if (parameters.help || (!parameters.tenant && !parameters.sendToAllTenants)) {
         )
       } else {
         log.info({ tenantId }, `Tenant found - sending weekly email message!`)
-        await sendNodeWorkerMessage(tenant.id, {
-          type: NodeWorkerMessageType.NODE_MICROSERVICE,
-          tenant: tenant.id,
-          service: 'weekly-analytics-emails',
-        } as NodeWorkerMessageBase)
+        const emitter = await getNodejsWorkerEmitter()
+        await emitter.weeklyAnalyticsEmail(tenant.id)
 
         if (tenantIds.length > 1) {
           await timeout(1000)

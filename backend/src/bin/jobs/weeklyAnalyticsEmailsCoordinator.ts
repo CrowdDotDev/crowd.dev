@@ -1,9 +1,7 @@
 import { timeout } from '@crowd/common'
-import { CrowdJob } from '../../types/jobTypes'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import TenantService from '../../services/tenantService'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
+import { CrowdJob } from '../../types/jobTypes'
 
 const job: CrowdJob = {
   name: 'Weekly Analytics Emails coordinator',
@@ -11,12 +9,9 @@ const job: CrowdJob = {
   onTrigger: async () => {
     const tenants = await TenantService._findAndCountAllForEveryUser({})
 
+    const emitter = await getNodejsWorkerEmitter()
     for (const tenant of tenants.rows) {
-      await sendNodeWorkerMessage(tenant.id, {
-        type: NodeWorkerMessageType.NODE_MICROSERVICE,
-        tenant: tenant.id,
-        service: 'weekly-analytics-emails',
-      } as NodeWorkerMessageBase)
+      await emitter.weeklyAnalyticsEmail(tenant.id)
 
       // Wait 1 second between messages to potentially reduce spike load on cube between each tenant runs
       await timeout(1000)

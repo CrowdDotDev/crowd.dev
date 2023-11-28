@@ -2,9 +2,7 @@ import { Op } from 'sequelize'
 import moment from 'moment'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 const job: CrowdJob = {
   name: 'Eagle Eye Email Digest Ticker',
@@ -36,13 +34,10 @@ const job: CrowdJob = {
         moment() > moment(tenantUser.settings.eagleEye.emailDigest.nextEmailAt),
     )
 
+    const emitter = await getNodejsWorkerEmitter()
+
     for (const tenantUser of tenantUsers) {
-      await sendNodeWorkerMessage(tenantUser.tenantId, {
-        type: NodeWorkerMessageType.NODE_MICROSERVICE,
-        user: tenantUser.userId,
-        tenant: tenantUser.tenantId,
-        service: 'eagle-eye-email-digest',
-      } as NodeWorkerMessageBase)
+      await emitter.eagleEyeEmailDigest(tenantUser.tenantId, tenantUser.userId)
     }
   },
 }

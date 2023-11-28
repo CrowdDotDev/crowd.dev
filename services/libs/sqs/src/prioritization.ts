@@ -69,8 +69,7 @@ export abstract class SqsPrioritizedQueueReciever {
   }
 
   public async start(): Promise<void> {
-    await this.defaultReceiver.start()
-    await this.levelReceiver.start()
+    await Promise.all([this.defaultReceiver.start(), this.levelReceiver.start()])
   }
 
   public stop(): void {

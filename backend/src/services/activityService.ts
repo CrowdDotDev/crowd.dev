@@ -5,6 +5,7 @@ import { FeatureFlag, PlatformType, SyncMode, TemporalWorkflowId } from '@crowd/
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -14,7 +15,6 @@ import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
 import telemetryTrack from '../segment/telemetryTrack'
-import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
@@ -212,7 +212,8 @@ export default class ActivityService extends LoggerBase {
               'Started temporal workflow to process new activity automation!',
             )
           } else {
-            await sendNewActivityNodeSQSMessage(
+            const emitter = await getNodejsWorkerEmitter()
+            await emitter.processAutomationForNewActivity(
               this.options.currentTenant.id,
               record.id,
               record.segmentId,

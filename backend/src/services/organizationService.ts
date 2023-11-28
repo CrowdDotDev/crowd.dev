@@ -20,7 +20,6 @@ import organizationCacheRepository from '../database/repositories/organizationCa
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
-import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import {
@@ -29,6 +28,7 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -43,7 +43,8 @@ export default class OrganizationService extends LoggerBase {
 
     await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
 
-    await sendOrgMergeMessage(tenantId, originalId, toMergeId)
+    const emitter = await getNodejsWorkerEmitter()
+    await emitter.mergeOrg(tenantId, originalId, toMergeId)
   }
 
   async mergeSync(originalId, toMergeId) {

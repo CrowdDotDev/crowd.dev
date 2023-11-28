@@ -1,25 +1,23 @@
-import moment from 'moment'
-import { RedisCache, getRedisClient } from '@crowd/redis'
-import { QueryTypes } from 'sequelize'
-import { convert as convertHtmlToText } from 'html-to-text'
-import { getServiceChildLogger } from '@crowd/logging'
-import { ActivityDisplayVariant, PlatformType } from '@crowd/types'
+import { CubeJsRepository, CubeJsService } from '@crowd/cubejs'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { CubeJsService, CubeJsRepository } from '@crowd/cubejs'
-import getUserContext from '../../../../../database/utils/getUserContext'
-import EmailSender from '../../../../../services/emailSender'
-import ConversationService from '../../../../../services/conversationService'
-import { SENDGRID_CONFIG, S3_CONFIG, WEEKLY_EMAILS_CONFIG, REDIS_CONFIG } from '../../../../../conf'
-import { AnalyticsEmailsOutput } from '../../messageTypes'
-import getStage from '../../../../../services/helpers/getStage'
-import UserRepository from '../../../../../database/repositories/userRepository'
+import { getServiceChildLogger } from '@crowd/logging'
+import { RedisCache, getRedisClient } from '@crowd/redis'
+import { ActivityDisplayVariant, PlatformType } from '@crowd/types'
+import { convert as convertHtmlToText } from 'html-to-text'
+import moment from 'moment'
+import { QueryTypes } from 'sequelize'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { REDIS_CONFIG, S3_CONFIG, SENDGRID_CONFIG, WEEKLY_EMAILS_CONFIG } from '../../../../../conf'
 import ConversationRepository from '../../../../../database/repositories/conversationRepository'
 import RecurringEmailsHistoryRepository from '../../../../../database/repositories/recurringEmailsHistoryRepository'
-import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../../../types/workerTypes'
-import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
-import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
 import SegmentRepository from '../../../../../database/repositories/segmentRepository'
+import UserRepository from '../../../../../database/repositories/userRepository'
+import getUserContext from '../../../../../database/utils/getUserContext'
+import ConversationService from '../../../../../services/conversationService'
+import EmailSender from '../../../../../services/emailSender'
+import getStage from '../../../../../services/helpers/getStage'
+import { RecurringEmailType } from '../../../../../types/recurringEmailsHistoryTypes'
+import { AnalyticsEmailsOutput } from '../../messageTypes'
 
 const log = getServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
@@ -53,11 +51,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     )
 
     // expception while getting data. send new node message and return
-    await sendNodeWorkerMessage(tenantId, {
-      type: NodeWorkerMessageType.NODE_MICROSERVICE,
-      tenant: tenantId,
-      service: 'weekly-analytics-emails',
-    } as NodeWorkerMessageBase)
+    const emitter = await getNodejsWorkerEmitter()
+    await emitter.weeklyAnalyticsEmail(tenantId)
 
     return {
       status: 400,

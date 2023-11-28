@@ -1,15 +1,13 @@
 import { getServiceChildLogger } from '@crowd/logging'
-import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
 import { PlatformType } from '@crowd/types'
+import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { IS_PROD_ENV, SENDGRID_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import UserRepository from '../../../database/repositories/userRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import EagleEyeContentService from '../../../services/eagleEyeContentService'
-import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
 import { SendgridWebhookEvent, SendgridWebhookEventType } from '../../../types/webhooks'
-import { NodeWorkerMessageType } from '../../types/workerTypes'
-import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
 const log = getServiceChildLogger('sendgridWebhookWorker')
 
@@ -46,13 +44,10 @@ export default async function sendgridWebhookWorker(req) {
     }
   }
 
+  const emitter = await getNodejsWorkerEmitter()
   for (const event of events) {
     if (event.sg_template_id === SENDGRID_CONFIG.templateEagleEyeDigest) {
-      await sendNodeWorkerMessage(event.sg_event_id, {
-        type: NodeWorkerMessageType.NODE_MICROSERVICE,
-        event,
-        service: 'sendgrid-webhooks',
-      } as NodeWorkerMessageBase)
+      await emitter.sendgridWebhook(event)
     }
   }
 

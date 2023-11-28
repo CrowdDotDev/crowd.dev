@@ -150,6 +150,8 @@ export class QueuePriorityService {
           this.priorityLevelCalculationContextLoader,
           priorityLevelContextOverride,
         )
+      } else if (IS_DEV_ENV || IS_TEST_ENV) {
+        priorityLevel = QueuePriorityLevel.NORMAL
       }
 
       return this.emitter.sendMessage(groupId, message, deduplicationId, priorityLevel)
