@@ -23,6 +23,7 @@ import {
   NodejsWorkerEmitter,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import telemetry from '@crowd/telemetry'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -117,7 +118,7 @@ export default class DataSinkService extends LoggerBase {
     const resultInfo = await this.repo.getResultInfo(resultId)
 
     if (!resultInfo) {
-      this.log.error({ resultId }, 'Result not found.')
+      telemetry.increment('data_sync_worker.result_not_found', 1)
       return false
     }
 
@@ -147,90 +148,98 @@ export default class DataSinkService extends LoggerBase {
 
     try {
       const data = resultInfo.data
-      switch (data.type) {
-        case IntegrationResultType.ACTIVITY: {
-          const service = new ActivityService(
-            this.store,
-            this.nodejsWorkerEmitter,
-            this.searchSyncWorkerEmitter,
-            this.redisClient,
-            this.unleash,
-            this.temporal,
-            this.log,
-          )
-          const activityData = data.data as IActivityData
+      await telemetry.measure(
+        'data_sink_worker.process_result',
+        async () => {
+          switch (data.type) {
+            case IntegrationResultType.ACTIVITY: {
+              const service = new ActivityService(
+                this.store,
+                this.nodejsWorkerEmitter,
+                this.searchSyncWorkerEmitter,
+                this.redisClient,
+                this.unleash,
+                this.temporal,
+                this.log,
+              )
+              const activityData = data.data as IActivityData
 
-          const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
+              const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
 
-          await service.processActivity(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            platform,
-            activityData,
-            data.segmentId,
-          )
-          break
-        }
+              await service.processActivity(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                platform,
+                activityData,
+                data.segmentId,
+              )
+              break
+            }
 
-        case IntegrationResultType.MEMBER_ENRICH: {
-          const service = new MemberService(
-            this.store,
-            this.nodejsWorkerEmitter,
-            this.searchSyncWorkerEmitter,
-            this.unleash,
-            this.temporal,
-            this.redisClient,
-            this.log,
-          )
-          const memberData = data.data as IMemberData
+            case IntegrationResultType.MEMBER_ENRICH: {
+              const service = new MemberService(
+                this.store,
+                this.nodejsWorkerEmitter,
+                this.searchSyncWorkerEmitter,
+                this.unleash,
+                this.temporal,
+                this.redisClient,
+                this.log,
+              )
+              const memberData = data.data as IMemberData
 
-          await service.processMemberEnrich(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            memberData,
-          )
-          break
-        }
+              await service.processMemberEnrich(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                resultInfo.platform,
+                memberData,
+              )
+              break
+            }
 
-        case IntegrationResultType.ORGANIZATION_ENRICH: {
-          const service = new OrganizationService(this.store, this.log)
-          const organizationData = data.data as IOrganization
+            case IntegrationResultType.ORGANIZATION_ENRICH: {
+              const service = new OrganizationService(this.store, this.log)
+              const organizationData = data.data as IOrganization
 
-          await service.processOrganizationEnrich(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            organizationData,
-          )
-          break
-        }
+              await service.processOrganizationEnrich(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                resultInfo.platform,
+                organizationData,
+              )
+              break
+            }
 
-        case IntegrationResultType.TWITTER_MEMBER_REACH: {
-          const service = new MemberService(
-            this.store,
-            this.nodejsWorkerEmitter,
-            this.searchSyncWorkerEmitter,
-            this.unleash,
-            this.temporal,
-            this.redisClient,
-            this.log,
-          )
-          const memberData = data.data as IMemberData
+            case IntegrationResultType.TWITTER_MEMBER_REACH: {
+              const service = new MemberService(
+                this.store,
+                this.nodejsWorkerEmitter,
+                this.searchSyncWorkerEmitter,
+                this.unleash,
+                this.temporal,
+                this.redisClient,
+                this.log,
+              )
+              const memberData = data.data as IMemberData
 
-          await service.processMemberUpdate(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            memberData,
-          )
-          break
-        }
+              await service.processMemberUpdate(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                resultInfo.platform,
+                memberData,
+              )
+              break
+            }
 
-        default: {
-          throw new Error(`Unknown result type: ${data.type}`)
-        }
-      }
+            default: {
+              throw new Error(`Unknown result type: ${data.type}`)
+            }
+          }
+        },
+        {
+          type: data.type,
+        },
+      )
       await this.repo.deleteResult(resultId)
       return true
     } catch (err) {

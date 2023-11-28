@@ -3618,7 +3618,7 @@ class MemberRepository {
     })
   }
 
-  static async getMemberIdsandCount(
+  static async getMemberIdsandCountForEnrich(
     { limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
     options: IRepositoryOptions,
   ) {
@@ -3662,6 +3662,8 @@ class MemberRepository {
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = :tenantId
       AND ms."segmentId" IN (:segmentIds)
+      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
+      AND m."deletedAt" is NULL
     ) as count
     `
 
@@ -3681,6 +3683,8 @@ class MemberRepository {
       `SELECT m.id FROM members m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds) 
+      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
+      AND m."deletedAt" is NULL
       ORDER BY ${orderByString} 
       LIMIT :limit OFFSET :offset`,
       {

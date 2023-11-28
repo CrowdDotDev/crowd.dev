@@ -27,6 +27,7 @@
     "@crowd/alerting": "file:../../libs/alerting",
     "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/common_services": "file:../../libs/common_services",
+    "@crowd/telemetry": "file:../../libs/telemetry",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
     "config": "^3.3.9",

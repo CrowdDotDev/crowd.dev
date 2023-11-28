@@ -56,6 +56,7 @@ services:
       - ../../services/libs/sentiment/src:/usr/crowd/app/services/libs/sentiment/src
       - ../../services/libs/sqs/src:/usr/crowd/app/services/libs/sqs/src
       - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src
+      - ../../services/libs/telemetry/src:/usr/crowd/app/services/libs/telemetry/src
       - ../../services/apps/data_sink_worker/src:/usr/crowd/app/services/apps/data_sink_worker/src
 
 networks:

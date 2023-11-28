@@ -77,7 +77,6 @@ export default class IntegrationStreamService extends LoggerBase {
     let streams = await this.repo.getPendingStreams(runId, 20)
     while (streams.length > 0) {
       for (const stream of streams) {
-        this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
         this.streamWorkerEmitter.triggerStreamProcessing(
           stream.tenantId,
           stream.integrationType,

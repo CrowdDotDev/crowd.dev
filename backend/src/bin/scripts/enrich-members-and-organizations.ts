@@ -120,24 +120,18 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
             let offset = 0
             let totalMembers = 0
 
+            const { count } = await MemberRepository.getMemberIdsandCountForEnrich(
+              { countOnly: true },
+              optionsWithTenant,
+            )
+            totalMembers = count
+            log.info({ tenantId }, `Total enrichable members found in the tenant: ${totalMembers}`)
+
             do {
-              let memberIds
-              let membersCount
-
-              if (parameters.memberIds) {
-                memberIds = parameters.memberIds.split(',')
-                membersCount = memberIds.length
-              } else {
-                const { ids, count } = await MemberRepository.getMemberIdsandCount(
-                  { limit, offset, countOnly: false },
-                  optionsWithTenant,
-                )
-                memberIds = ids
-                membersCount = count
-              }
-
-              totalMembers = membersCount
-              log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
+              const { ids: memberIds } = await MemberRepository.getMemberIdsandCountForEnrich(
+                { limit, offset },
+                optionsWithTenant,
+              )
 
               await emitter.bulkEnrich(tenantId, memberIds, segmentIds, false, true)
 
@@ -145,7 +139,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
             } while (totalMembers > offset)
           }
 
-          log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
+          log.info({ tenantId }, `Members enrichment operation finished for tenant: ${tenantId}`)
         }
 
         if (enrichOrganizations) {

@@ -1,5 +1,5 @@
 import { timeout } from '@crowd/common'
-import { Logger, getChildLogger, getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { RedisClient, getRedisClient } from '@crowd/redis'
 import {
   SqsDeleteMessageRequest,
@@ -8,10 +8,10 @@ import {
   deleteMessage,
   receiveMessage,
 } from '@crowd/sqs'
-import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
 import fs from 'fs'
 import path from 'path'
 import { QueryTypes, Sequelize } from 'sequelize'
+import telemetry from '@crowd/telemetry'
 import { SQS_CLIENT } from '@/serverless/utils/serviceSQS'
 import { databaseInit } from '@/database/databaseConnection'
 import { REDIS_CONFIG, SQS_CONFIG } from '../conf'
@@ -22,7 +22,6 @@ import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
 
 /* eslint-disable no-constant-condition */
 
-const tracer = getServiceTracer()
 const serviceLogger = getServiceLogger()
 
 let exiting = false
@@ -73,77 +72,67 @@ async function handleMessages() {
   handlerLogger.info('Listening for messages!')
 
   const processSingleMessage = async (message: SqsMessage): Promise<void> => {
-    await tracer.startActiveSpan('ProcessMessage', async (span) => {
-      const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
+    const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
-      const messageLogger = getChildLogger('messageHandler', serviceLogger, {
-        messageId: message.MessageId,
-        type: msg.type,
-      })
-
-      try {
-        if (
-          msg.type === NodeWorkerMessageType.NODE_MICROSERVICE &&
-          (msg as any).service === 'enrich_member_organizations'
-        ) {
-          messageLogger.warn(
-            'Skipping enrich_member_organizations message! Purging the queue because they are not needed anymore!',
-          )
-          await removeFromQueue(message.ReceiptHandle)
-          return
-        }
-
-        messageLogger.info(
-          { messageType: msg.type, messagePayload: JSON.stringify(msg) },
-          'Received a new queue message!',
-        )
-
-        let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
-
-        switch (msg.type) {
-          case NodeWorkerMessageType.NODE_MICROSERVICE:
-            processFunction = processNodeMicroserviceMessage
-            break
-          case NodeWorkerMessageType.DB_OPERATIONS:
-            processFunction = processDbOperationsMessage
-            break
-
-          default:
-            messageLogger.error('Error while parsing queue message! Invalid type.')
-        }
-
-        if (processFunction) {
-          await logExecutionTimeV2(
-            async () => {
-              // remove the message from the queue as it's about to be processed
-              await removeFromQueue(message.ReceiptHandle)
-              messagesInProgress.set(message.MessageId, msg)
-              try {
-                await processFunction(msg, messageLogger)
-              } catch (err) {
-                messageLogger.error(err, 'Error while processing queue message!')
-              } finally {
-                messagesInProgress.delete(message.MessageId)
-              }
-            },
-            messageLogger,
-            'Processing queue message!',
-          )
-        }
-
-        span.setStatus({
-          code: SpanStatusCode.OK,
-        })
-      } catch (err) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err,
-        })
-        messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
-      } finally {
-        span.end()
-      }
+    const messageLogger = getChildLogger('messageHandler', serviceLogger, {
+      messageId: message.MessageId,
+      type: msg.type,
     })
+
+    try {
+      if (
+        msg.type === NodeWorkerMessageType.NODE_MICROSERVICE &&
+        (msg as any).service === 'enrich_member_organizations'
+      ) {
+        messageLogger.warn(
+          'Skipping enrich_member_organizations message! Purging the queue because they are not needed anymore!',
+        )
+        await removeFromQueue(message.ReceiptHandle)
+        return
+      }
+
+      messageLogger.debug(
+        { messageType: msg.type, messagePayload: JSON.stringify(msg) },
+        'Received a new queue message!',
+      )
+
+      let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
+
+      switch (msg.type) {
+        case NodeWorkerMessageType.NODE_MICROSERVICE:
+          processFunction = processNodeMicroserviceMessage
+          break
+        case NodeWorkerMessageType.DB_OPERATIONS:
+          processFunction = processDbOperationsMessage
+          break
+
+        default:
+          messageLogger.error('Error while parsing queue message! Invalid type.')
+      }
+
+      if (processFunction) {
+        await telemetry.measure(
+          'nodejs_worker.process_message',
+          async () => {
+            // remove the message from the queue as it's about to be processed
+            await removeFromQueue(message.ReceiptHandle)
+            messagesInProgress.set(message.MessageId, msg)
+            try {
+              await processFunction(msg, messageLogger)
+            } catch (err) {
+              messageLogger.error(err, 'Error while processing queue message!')
+            } finally {
+              messagesInProgress.delete(message.MessageId)
+            }
+          },
+          {
+            type: msg.type,
+          },
+        )
+      }
+    } catch (err) {
+      messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
+    }
   }
 
   // noinspection InfiniteLoopJS
