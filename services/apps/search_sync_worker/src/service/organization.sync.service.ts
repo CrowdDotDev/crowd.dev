@@ -401,11 +401,11 @@ export class OrganizationSyncService extends LoggerBase {
       results.forEach(async (result, index) => {
         console.log('segmentStream')
         console.log(segmentStream)
-        const { orgId, segment } = segmentStream[index]
+        const { orgId, segmentId } = segmentStream[index]
         const orgSegments = orgSegmentCouples[orgId].docs
 
         // Find the correct segment and mark it as processed and add the data
-        const targetSegment = orgSegments.find((s) => s.segmentId === segment.segmentId)
+        const targetSegment = orgSegments.find((s) => s.segmentId === segmentId)
         targetSegment.processed = true
         targetSegment.data = result
 
@@ -414,7 +414,7 @@ export class OrganizationSyncService extends LoggerBase {
         if (allSegmentsOfOrgIsProcessed) {
           // All segments processed, push the segment related docs into syncStream
           syncStream.push(
-            orgSegmentCouples[orgId].docs.map((s) => {
+            ...orgSegmentCouples[orgId].docs.map((s) => {
               return {
                 id: `${s.data.organizationId}-${s.data.segmentId}`,
                 body: OrganizationSyncService.prefixData(s.data),
@@ -462,7 +462,7 @@ export class OrganizationSyncService extends LoggerBase {
         const segment = orgSegmentCouples[orgId].docs[j]
         segmentStream.push({
           orgId: orgId,
-          segment: segment,
+          segmentId: segment.segmentId,
           promise: this.orgRepo.getOrganizationDataInOneSegment(orgId, segment.segmentId),
         })
 
