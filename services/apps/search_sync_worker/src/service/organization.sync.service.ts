@@ -477,7 +477,7 @@ export class OrganizationSyncService extends LoggerBase {
         })
 
         // batch segment sql queries of 10, or if we're processing the last segment just flush it
-        if (segmentStream.length >= 10 || (i === totalOrgIds - 1 && j === totalSegments - 1)) {
+        if (segmentStream.length >= 3 || (i === totalOrgIds - 1 && j === totalSegments - 1)) {
           try {
             segmentStream = await processSegmentsStream(segmentStream)
           } catch (e) {
