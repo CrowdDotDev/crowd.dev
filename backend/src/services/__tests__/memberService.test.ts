@@ -1705,7 +1705,6 @@ describe('MemberService tests', () => {
       let note1 = await NoteRepository.create({ body: 'note1' }, mockIRepositoryOptions)
       let note2 = await NoteRepository.create({ body: 'note2' }, mockIRepositoryOptions)
       let note3 = await NoteRepository.create({ body: 'note3' }, mockIRepositoryOptions)
-      let note4 = await NoteRepository.create({ body: 'note4' }, mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1741,7 +1740,7 @@ describe('MemberService tests', () => {
         tags: [t2.id, t3.id],
         organizations: [o2.id, o3.id],
         tasks: [task2.id, task3.id],
-        notes: [note3.id, note4.id],
+        notes: [note2.id, note3.id],
       }
 
       const member3 = {
@@ -1876,7 +1875,6 @@ describe('MemberService tests', () => {
       note1 = await NoteRepository.findById(note1.id, mockIRepositoryOptions)
       note2 = await NoteRepository.findById(note2.id, mockIRepositoryOptions)
       note3 = await NoteRepository.findById(note3.id, mockIRepositoryOptions)
-      note4 = await NoteRepository.findById(note4.id, mockIRepositoryOptions)
 
       // remove tags->member relations as well (we should be only checking 1-deep relations)
       t1 = SequelizeTestUtils.objectWithoutKey(t1, 'members')
@@ -1912,7 +1910,6 @@ describe('MemberService tests', () => {
       note1 = SequelizeTestUtils.objectWithoutKey(note1, ['members', 'createdBy'])
       note2 = SequelizeTestUtils.objectWithoutKey(note2, ['members', 'createdBy'])
       note3 = SequelizeTestUtils.objectWithoutKey(note3, ['members', 'createdBy'])
-      note4 = SequelizeTestUtils.objectWithoutKey(note4, ['members', 'createdBy'])
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
@@ -1947,7 +1944,7 @@ describe('MemberService tests', () => {
         reach: { total: -1 },
         tags: [t1, t2, t3],
         tasks: [task1, task2, task3],
-        notes: [note1, note2, note3, note4],
+        notes: [note1, note2, note3],
         organizations: [
           SequelizeTestUtils.objectWithoutKey(o1, [
             'activeOn',
