@@ -3,12 +3,13 @@ import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 export interface ActivityState {
   filters: Filter,
   savedFilterBody: any,
-  activities: [],
+  activities: any[],
   totalActivities: number
   pagination: {
     page: number,
     perPage: number
   }
+  activityChannels: Record<string, string[]>,
 }
 
 export default () => ({
@@ -27,4 +28,5 @@ export default () => ({
   savedFilterBody: {},
   activities: [],
   totalActivities: 0,
+  activityChannels: {},
 } as ActivityState);

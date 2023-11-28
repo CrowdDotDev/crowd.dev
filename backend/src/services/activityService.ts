@@ -750,13 +750,13 @@ export default class ActivityService extends LoggerBase {
 
   async findActivityTypes(id: string) {
     const segmentService = new SegmentService(this.options)
-    const tenant = new TenantService(this.options).findById(id)
+    const tenant = await new TenantService(this.options).findById(id)
     const tenantSubprojects = await segmentService.getTenantSubprojects(tenant)
     return SegmentService.getTenantActivityTypes(tenantSubprojects)
   }
 
   async findActivityChannels(id: string) {
-    const tenant = new TenantService(this.options).findById(id)
+    const tenant = await new TenantService(this.options).findById(id)
     return SegmentService.getTenantActivityChannels(tenant, this.options)
   }
 

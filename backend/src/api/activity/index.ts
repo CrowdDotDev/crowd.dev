@@ -10,10 +10,10 @@ export default (app) => {
     `/tenant/:tenantId/activity/autocomplete`,
     safeWrap(require('./activityAutocomplete').default),
   )
+  app.get(`/tenant/:tenantId/activity`, safeWrap(require('./activityList').default))
   app.get(`/tenant/:tenantId/activity/type`, safeWrap(require('./activityTypes').default))
   app.get(`/tenant/:tenantId/activity/channel`, safeWrap(require('./activityChannels').default))
-  app.get(`/tenant/:tenantId/activity`, safeWrap(require('./activityList').default))
-  app.get(`/tenant/:tenantId/activity/:id`, safeWrap(require('./activityFind').default))
+  // app.get(`/tenant/:tenantId/activity/:id`, safeWrap(require('./activityFind').default))
   app.post(
     '/tenant/:tenantId/activity/with-member',
     // Call the addActivityWithMember file in this dir

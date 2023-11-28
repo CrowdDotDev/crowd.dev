@@ -3,13 +3,12 @@ import Permissions from '../../security/permissions'
 import ActivityService from '../../services/activityService'
 
 /**
- * GET /tenant/{tenantId}/activity/{id}
- * @summary Find an activity
+ * GET /tenant/{tenantId}/activity/channel
+ * @summary List activity channels
  * @tag Activities
  * @security Bearer
- * @description Find a single activity by ID
+ * @description Find all activity channels of a given tenant
  * @pathParam {string} tenantId - Your workspace/tenant ID
- * @pathParam {string} id - The ID of the activity
  * @response 200 - Ok
  * @responseContent {ActivityResponse} 200.application/json
  * @responseExample {ActivityFind} 200.application/json.Activity
@@ -20,7 +19,7 @@ import ActivityService from '../../services/activityService'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.activityRead)
 
-  const payload = await new ActivityService(req).findActivityChannels(req.params.id)
+  const payload = await new ActivityService(req).findActivityChannels(req.params.tenantId)
 
   await req.responseHandler.success(req, res, payload)
 }
