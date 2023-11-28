@@ -163,7 +163,7 @@ export default class MemberService extends LoggerBase {
           'Started temporal workflow to process new member automation!',
         )
       } else {
-        await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
+        await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id, segmentId)
       }
 
       if (fireSync) {
