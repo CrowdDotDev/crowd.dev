@@ -431,8 +431,11 @@ export class OrganizationSyncService extends LoggerBase {
             console.log('aggregating data for parent segments! ')
             // also calculate and push for parent segments
             const childSegmentIds = distinct(orgSegments.map((m) => m.segmentId))
+            console.log('Child segment ids: ')
+            console.log(childSegmentIds)
             const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
-
+            console.log(`Segment infos`)
+            console.log(segmentInfos)
             // const relevantSegmentInfos = segmentInfos.filter((s) => s.id === organization.segmentId)
 
             // and for each parent and grandparent
