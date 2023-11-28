@@ -165,7 +165,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     organizationId: string,
     segmentId: string,
   ): Promise<IDbOrganizationSyncData[]> {
-    const results = await this.db().any(
+    const results = await this.db().oneOrNone(
       `
       WITH organization_segments AS (
         SELECT
