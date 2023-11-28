@@ -394,7 +394,7 @@ export class OrganizationSyncService extends LoggerBase {
     const allOrgIds = Object.keys(orgSegmentCouples)
     const totalOrgIds = allOrgIds.length
 
-    async function processSegmentsStream(segmentStream) {
+    const processSegmentsStream = async (segmentStream) => {
       // Use Promise.all to wait for all org/segment queries
       const results = await Promise.all(segmentStream.map((s) => s.promise))
       console.log('Results for promise.all')
@@ -430,7 +430,7 @@ export class OrganizationSyncService extends LoggerBase {
           if (isMultiSegment) {
             console.log('aggregating data for parent segments! ')
             // also calculate and push for parent segments
-            const childSegmentIds = distinct(orgSegments.map((m) => m.segmentId))
+            const childSegmentIds: string[] = distinct(orgSegments.map((m) => m.segmentId))
             console.log('Child segment ids: ')
             console.log(childSegmentIds)
             const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
