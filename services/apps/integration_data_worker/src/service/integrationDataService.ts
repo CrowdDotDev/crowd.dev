@@ -7,6 +7,7 @@ import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
 import { WORKER_SETTINGS, PLATFORM_CONFIG } from '../conf'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import telemetry from '@crowd/telemetry'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository
@@ -63,7 +64,7 @@ export default class IntegrationDataService extends LoggerBase {
     const dataInfo = await this.repo.getDataInfo(dataId)
 
     if (!dataInfo) {
-      this.log.error({ dataId }, 'Data not found!')
+      telemetry.increment('data_sink_worker.process_data.not_found', 1)
       return
     }
 

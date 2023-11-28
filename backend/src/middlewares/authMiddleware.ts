@@ -34,7 +34,6 @@ export async function authMiddleware(req, res, next) {
 
   try {
     const currentUser: any = await AuthService.findByToken(idToken, req)
-
     req.currentUser = currentUser
 
     next()

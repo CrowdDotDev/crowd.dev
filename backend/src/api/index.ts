@@ -13,6 +13,7 @@ import helmet from 'helmet'
 import * as http from 'http'
 import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
 import { QueryTypes, Sequelize } from 'sequelize'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import {
   API_CONFIG,
   OPENSEARCH_CONFIG,
@@ -72,6 +73,8 @@ setImmediate(async () => {
       serviceLogger.error({ type: data.type }, 'Received invalid websocket message!')
     }
   })
+
+  app.use(telemetryExpressMiddleware('api.request.duration'))
 
   // Enables CORS
   app.use(cors({ origin: true }))
