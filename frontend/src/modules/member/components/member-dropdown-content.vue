@@ -54,6 +54,22 @@
     </span>
   </el-tooltip>
   <button
+    v-if="isFindGitHubFeatureEnabled"
+    class="h-10 el-dropdown-menu__item w-full mb-1"
+    type="button"
+    :disabled="isFindingGitHubDisabled"
+    @click="handleCommand({
+      action: Actions.FIND_GITHUB,
+      member,
+    })"
+  >
+    <span
+      class="max-w-[16px]"
+      color="#9CA3AF"
+    ><i class="ri-github-fill" /></span>
+    <span class="ml-2 text-xs"> Find GitHub </span>
+  </button>
+  <button
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"
@@ -228,9 +244,10 @@ enum Actions {
   UNMARK_CONTACT_AS_BOT = 'unmarkContactAsBot',
   MERGE_CONTACT = 'mergeContact',
   ENRICH_CONTACT = 'enrichContact',
+  FIND_GITHUB = 'findGithub'
 }
 
-const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void }>();
+const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void, (e: 'findGithub'): void }>();
 const props = defineProps<{
   member: Member;
 }>();
@@ -287,6 +304,14 @@ const isHubspotActionDisabled = computed(
     || isHubspotDisabledForMember.value
     || !isHubspotFeatureEnabled.value,
 );
+
+const isFindingGitHubDisabled = computed(() => (
+  props.member.username?.github
+));
+
+const isFindGitHubFeatureEnabled = computed(() => FeatureFlag.isFlagEnabled(
+  FEATURE_FLAGS.findGitHub,
+));
 
 const doManualAction = async ({
   loadingMessage,
@@ -449,6 +474,13 @@ const handleCommand = async (command: {
     }).then(() => {
       memberStore.fetchMembers({ reload: true });
     });
+
+    return;
+  }
+
+  if (command.action === Actions.FIND_GITHUB) {
+    emit('closeDropdown');
+    emit('findGithub');
 
     return;
   }
