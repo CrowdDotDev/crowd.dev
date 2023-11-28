@@ -20,6 +20,7 @@
       <el-form
         label-position="top"
         class="form"
+        @submit.prevent
       >
         <app-form-item
           class="mb-6"

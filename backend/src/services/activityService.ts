@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { FeatureFlag, PlatformType, SyncMode } from '@crowd/types'
+import { FeatureFlag, PlatformType, SyncMode, TemporalWorkflowId } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -192,7 +192,7 @@ export default class ActivityService extends LoggerBase {
             const handle = await this.options.temporal.workflow.start(
               'processNewActivityAutomation',
               {
-                workflowId: `new-activity-automation-${record.id}`,
+                workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
                 taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
                 workflowIdReusePolicy:
                   WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,

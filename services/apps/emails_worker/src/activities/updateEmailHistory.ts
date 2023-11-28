@@ -10,9 +10,16 @@ informing a new recurring email has been sent to the user.
 export async function updateEmailHistory(emailSent: UserTenantWithEmailSent): Promise<void> {
   try {
     await svc.postgres.writer.connection().query(
-      `INSERT INTO "recurringEmailsHistory" ("id", "type", "tenantId", "emailSentAt", "emailSentTo")
-        VALUES ($1, $2, $3, $4, $5);`,
-      [uuid(), emailSent.type, emailSent.tenantId, emailSent.sentAt, emailSent.emails],
+      `INSERT INTO "recurringEmailsHistory" ("id", "type", "tenantId", "emailSentAt", "emailSentTo", "weekOfYear")
+        VALUES ($1, $2, $3, $4, $5, $6);`,
+      [
+        uuid(),
+        emailSent.type,
+        emailSent.tenantId,
+        emailSent.sentAt,
+        emailSent.emails,
+        emailSent.weekOfYear || null,
+      ],
     )
   } catch (err) {
     throw new Error(err)

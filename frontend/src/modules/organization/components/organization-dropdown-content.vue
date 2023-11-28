@@ -82,21 +82,29 @@
   </el-tooltip>
 
   <!-- Mark as Team Organization -->
-  <button
-    v-if="!organization.isTeamOrganization"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    :disabled="isEditLockedForSampleData"
-    @click="
-      handleCommand({
-        action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
-        organization,
-        value: true,
-      })
-    "
+  <el-tooltip
+    placement="top"
+    content="Mark as team organization if it is your own organization."
+    popper-class="max-w-[260px]"
   >
-    <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
-  </button>
+    <span>
+      <button
+        v-if="!organization.isTeamOrganization"
+        class="h-10 el-dropdown-menu__item w-full"
+        type="button"
+        :disabled="isEditLockedForSampleData"
+        @click="
+          handleCommand({
+            action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
+            organization,
+            value: true,
+          })
+        "
+      >
+        <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
+      </button>
+    </span>
+  </el-tooltip>
 
   <!-- Unmark as Team Organization -->
   <button
