@@ -400,17 +400,16 @@ export class OrganizationSyncService extends LoggerBase {
       // console.log('Results for promise.all')
       // console.log(results)
 
-      // Mark sent org/segments as finished and also add the data to segment object in orgSegmentCouples
-      results.forEach(async (result, index) => {
+      for (let i = 0; i < results.length; i++) {
         // console.log('segmentStream')
         // console.log(segmentStream)
-        const { orgId, segmentId } = segmentStream[index]
+        const { orgId, segmentId } = segmentStream[i]
         const orgSegments = orgSegmentCouples[orgId].docs
 
         // Find the correct segment and mark it as processed and add the data
         const targetSegment = orgSegments.find((s) => s.segmentId === segmentId)
         targetSegment.processed = true
-        targetSegment.data = result
+        targetSegment.data = results[i]
 
         // Check if all segments for the organization have been processed
         const allSegmentsOfOrgIsProcessed = orgSegments.every((s) => s.processed)
@@ -459,7 +458,7 @@ export class OrganizationSyncService extends LoggerBase {
 
           organizationsSynced++
         }
-      })
+      }
 
       return []
     }
