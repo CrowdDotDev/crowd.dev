@@ -397,13 +397,13 @@ export class OrganizationSyncService extends LoggerBase {
     const processSegmentsStream = async (segmentStream) => {
       // Use Promise.all to wait for all org/segment queries
       const results = await Promise.all(segmentStream.map((s) => s.promise))
-      console.log('Results for promise.all')
-      console.log(results)
+      // console.log('Results for promise.all')
+      // console.log(results)
 
       // Mark sent org/segments as finished and also add the data to segment object in orgSegmentCouples
       results.forEach(async (result, index) => {
-        console.log('segmentStream')
-        console.log(segmentStream)
+        // console.log('segmentStream')
+        // console.log(segmentStream)
         const { orgId, segmentId } = segmentStream[index]
         const orgSegments = orgSegmentCouples[orgId].docs
 
