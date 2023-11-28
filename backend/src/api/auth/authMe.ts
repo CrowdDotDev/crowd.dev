@@ -12,21 +12,18 @@ export default async (req, res) => {
 
   const payload = req.currentUser
 
-  console.log('getting user', new Date().getTime())
-
   const csvExportCountCache = new RedisCache(
     FeatureFlagRedisKey.CSV_EXPORT_COUNT,
     req.redis,
     req.log,
   )
-  console.log('csv export', new Date().getTime())
+
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
     req.redis,
     req.log,
   )
 
-  console.log('enrichment count', new Date().getTime())
   payload.tenants = await Promise.all(
     payload.tenants.map(async (tenantUser) => {
       tenantUser.tenant.dataValues = {
@@ -54,13 +51,10 @@ export default async (req, res) => {
         activityChannels,
         slackWebHook: !!tenantUser.tenant.settings[0].dataValues.slackWebHook,
       }
-      console.log('mapping settings', new Date().getTime())
 
       return tenantUser
     }),
   )
-
-  console.log('tenants mapped', new Date().getTime())
 
   await req.responseHandler.success(req, res, payload)
 }
