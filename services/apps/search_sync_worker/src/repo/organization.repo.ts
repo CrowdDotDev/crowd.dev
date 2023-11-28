@@ -172,8 +172,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             "segmentId",
             "organizationId"
         FROM "organizationSegments"
-        WHERE "organizationId" = :organizationId
-        AND "segmentId" = :segmentId
+        WHERE "organizationId" = $(organizationId)
+        AND "segmentId" = $(segmentId)
 
     ),
     to_merge_data AS (
@@ -182,7 +182,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             array_agg(DISTINCT otm."toMergeId"::text) AS to_merge_ids
         FROM "organizationToMerge" otm
         INNER JOIN organizations o2 ON otm."toMergeId" = o2.id
-        WHERE otm."organizationId" = :organizationId
+        WHERE otm."organizationId" = $(organizationId)
           AND o2."deletedAt" IS NULL
         GROUP BY otm."organizationId"
     ),
@@ -192,7 +192,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             array_agg(DISTINCT onm."noMergeId"::text) AS no_merge_ids
         FROM "organizationNoMerge" onm
         INNER JOIN organizations o2 ON onm."noMergeId" = o2.id
-        WHERE onm."organizationId" = :organizationId
+        WHERE onm."organizationId" = $(organizationId)
           AND o2."deletedAt" IS NULL
         GROUP BY onm."organizationId"
     ),
@@ -211,7 +211,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             AND a."organizationId" = mo."organizationId"
             AND mo."deletedAt" IS NULL
             AND mo."dateEnd" IS NULL
-        WHERE a."organizationId" = :organizationId
+        WHERE a."organizationId" = $(organizationId)
     ),
     member_data AS (
         SELECT
@@ -236,7 +236,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             oi."organizationId",
             jsonb_agg(oi) AS "identities"
         FROM "organizationIdentities" oi
-        WHERE oi."organizationId" = :organizationId
+        WHERE oi."organizationId" = $(organizationId)
         GROUP BY oi."organizationId"
     )
     SELECT
@@ -307,7 +307,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     LEFT JOIN identities i ON o.id = i."organizationId"
     LEFT JOIN to_merge_data tmd on o.id = tmd."organizationId"
     LEFT JOIN no_merge_data nmd on o.id = nmd."organizationId"
-    WHERE o.id = :organizationId
+    WHERE o.id = $(organizationId)
       AND o."deletedAt" IS NULL
       AND (md."organizationId" IS NOT NULL
           OR o."manuallyCreated");
