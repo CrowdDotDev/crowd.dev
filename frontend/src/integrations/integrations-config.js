@@ -16,28 +16,38 @@ import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
 import groupsio from './groupsio';
+import salesforce from './salesforce';
+import segment from './segment';
+import census from './census';
+import snowflake from './snowflake';
+import bigquery from './bigquery';
 
 class IntegrationsConfig {
   get integrations() {
     return {
       github,
       discord,
-      slack,
-      twitter,
-      devto,
       hackernews,
-      reddit,
       linkedin,
+      twitter,
+      hubspot,
+      slack,
+      devto,
+      reddit,
       stackoverflow,
+      discourse,
       zapier,
       n8n,
       git,
       crunchbase,
-      discourse,
       groupsio,
-      hubspot,
       // make,
       facebook,
+      salesforce,
+      segment,
+      census,
+      snowflake,
+      bigquery,
     };
   }
 

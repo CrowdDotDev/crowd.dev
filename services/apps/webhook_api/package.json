@@ -20,6 +20,7 @@
     "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/types": "file:../../libs/types",
+    "@crowd/telemetry": "file:../../libs/telemetry",
     "@types/config": "^3.3.0",
     "@types/express": "^4.17.17",
     "@types/node": "^18.16.3",

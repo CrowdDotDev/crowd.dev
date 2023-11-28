@@ -16,6 +16,7 @@ import {
   OrganizationSource,
   IOrganizationIdSource,
   FeatureFlag,
+  TemporalWorkflowId,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
@@ -143,7 +144,7 @@ export default class MemberService extends LoggerBase {
         )
       ) {
         const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
-          workflowId: `new-member-automation-${id}`,
+          workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${id}`,
           taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
           workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
           retry: {

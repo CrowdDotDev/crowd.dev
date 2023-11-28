@@ -43,10 +43,18 @@ export class AutomationService {
   ): Promise<boolean> {
     const settings = automation.settings as NewMemberSettings
 
-    let process = true
+    let shouldProcess = true
+
+    // check if member joined after automation was created
+    if (new Date(automation.createdAt) > new Date(member.joinedAt)) {
+      this.log.warn(
+        `Ignoring automation ${automation.id} - Member ${member.id} joined before automation!`,
+      )
+      shouldProcess = false
+    }
 
     // check whether member platforms matches
-    if (settings.platforms && settings.platforms.length > 0) {
+    if (shouldProcess && settings.platforms && settings.platforms.length > 0) {
       const platforms = Object.keys(member.username)
       if (!platforms.some((platform) => settings.platforms.includes(platform))) {
         this.log.warn(
@@ -56,11 +64,11 @@ export class AutomationService {
             ', ',
           )}]`,
         )
-        process = false
+        shouldProcess = false
       }
     }
 
-    if (process) {
+    if (shouldProcess) {
       const hasAlreadyBeenTriggered = await this.automationRepo.hasAlreadyBeenTriggered(
         automation.id,
         member.id,
@@ -69,11 +77,11 @@ export class AutomationService {
         this.log.warn(
           `Ignoring automation ${automation.id} - Member ${member.id} was already processed!`,
         )
-        process = false
+        shouldProcess = false
       }
     }
 
-    return process
+    return shouldProcess
   }
 
   async shouldProcessActivity(
@@ -82,34 +90,42 @@ export class AutomationService {
   ): Promise<boolean> {
     const settings = automation.settings as NewActivitySettings
 
-    let process = true
+    let shouldProcess = true
+
+    // check if activity created after automation was created
+    if (new Date(automation.createdAt) > new Date(activity.timestamp)) {
+      this.log.warn(
+        `Ignoring automation ${automation.id} - Activity ${activity.id} was created before automation!`,
+      )
+      shouldProcess = false
+    }
 
     // check whether activity type matches
-    if (settings.types && settings.types.length > 0) {
+    if (shouldProcess && settings.types && settings.types.length > 0) {
       if (!settings.types.includes(activity.type)) {
         this.log.warn(
           `Ignoring automation ${automation.id} - Activity ${activity.id} type '${
             activity.type
           }' does not match automation setting types: [${settings.types.join(', ')}]`,
         )
-        process = false
+        shouldProcess = false
       }
     }
 
     // check whether activity platform matches
-    if (process && settings.platforms && settings.platforms.length > 0) {
+    if (shouldProcess && settings.platforms && settings.platforms.length > 0) {
       if (!settings.platforms.includes(activity.platform)) {
         this.log.warn(
           `Ignoring automation ${automation.id} - Activity ${activity.id} platform '${
             activity.platform
           }' does not match automation setting platforms: [${settings.platforms.join(', ')}]`,
         )
-        process = false
+        shouldProcess = false
       }
     }
 
     // check whether activity content contains any of the keywords
-    if (process && settings.keywords && settings.keywords.length > 0) {
+    if (shouldProcess && settings.keywords && settings.keywords.length > 0) {
       const body = (activity.body as string).toLowerCase()
       if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
         this.log.warn(
@@ -117,12 +133,12 @@ export class AutomationService {
             activity.id
           } content does not match automation setting keywords: [${settings.keywords.join(', ')}]`,
         )
-        process = false
+        shouldProcess = false
       }
     }
 
     if (
-      process &&
+      shouldProcess &&
       !settings.teamMemberActivities &&
       activity.member.attributes.isTeamMember &&
       activity.member.attributes.isTeamMember.default
@@ -130,17 +146,17 @@ export class AutomationService {
       this.log.warn(
         `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a team member!`,
       )
-      process = false
+      shouldProcess = false
     }
 
     if (activity?.member?.attributes?.isBot && activity?.member?.attributes?.isBot.default) {
       this.log.warn(
         `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a bot, cannot be processed automaticaly!`,
       )
-      process = false
+      shouldProcess = false
     }
 
-    if (process) {
+    if (shouldProcess) {
       const hasAlreadyBeenTriggered = await this.automationRepo.hasAlreadyBeenTriggered(
         automation.id,
         activity.id,
@@ -149,11 +165,11 @@ export class AutomationService {
         this.log.warn(
           `Ignoring automation ${automation.id} - Activity ${activity.id} was already processed!`,
         )
-        process = false
+        shouldProcess = false
       }
     }
 
-    return process
+    return shouldProcess
   }
 
   /**
@@ -309,7 +325,6 @@ export class AutomationService {
         payload,
         error: err,
       })
-      throw err
     }
   }
 

@@ -5,6 +5,8 @@ import {
   ChildWorkflowCancellationType,
 } from '@temporalio/workflow'
 
+import { TemporalWorkflowId } from '@crowd/types'
+
 import * as activities from '../../activities/eagleeye-digest/getNextEmails'
 import { eagleeyeSendEmailAndUpdateHistory } from './sendEmailAndUpdateHistory'
 
@@ -27,7 +29,7 @@ export async function eagleeyeGetAndSendNextEmails(): Promise<void> {
   await Promise.all(
     users.map((user) => {
       return startChild(eagleeyeSendEmailAndUpdateHistory, {
-        workflowId: 'email-eagleeye-digest/' + user.tenantId + '/' + user.userId,
+        workflowId: `${TemporalWorkflowId.EMAIL_EAGLEEYE_DIGEST}/${user.tenantId}/${user.userId}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
         workflowExecutionTimeout: '15 minutes',
@@ -38,6 +40,9 @@ export async function eagleeyeGetAndSendNextEmails(): Promise<void> {
           maximumInterval: 30 * 1000,
         },
         args: [user],
+        searchAttributes: {
+          TenantId: [user.tenantId],
+        },
       })
     }),
   )
