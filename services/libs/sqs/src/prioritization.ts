@@ -26,7 +26,7 @@ export abstract class SqsPrioritizedQueueReciever {
       type: queueConf.type,
     })
 
-    const processFunc = this.processMessage
+    const processFunc = this.processMessage.bind(this)
 
     this.defaultReceiver = new (class extends SqsQueueReceiver {
       constructor() {
