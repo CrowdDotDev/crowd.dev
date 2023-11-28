@@ -11,21 +11,18 @@ export class SegmentRepository extends RepositoryBase<SegmentRepository> {
     console.log('Getting parent segmentIds!')
     console.log(childSegmentIds)
     try {
-      const results = await this.db().any(
-        `
-        select s.id, pd.id as "parentId", gpd.id as "grandParentId"
-        from segments s
-                inner join segments pd
-                            on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
-                              pd."parentSlug" is not null
-                inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
-                                            gpd."grandparentSlug" is null and gpd."parentSlug" is null
-        where s.id in ($(childSegmentIds:csv));
-        `,
-        {
-          childSegmentIds,
-        },
-      )
+      const query = `select s.id, pd.id as "parentId", gpd.id as "grandParentId"
+      from segments s
+              inner join segments pd
+                          on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
+                            pd."parentSlug" is not null
+              inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
+                                          gpd."grandparentSlug" is null and gpd."parentSlug" is null
+      where s.id in ($(childSegmentIds:csv));`
+      console.log
+      const results = await this.db().any(query, {
+        childSegmentIds,
+      })
       console.log('Done getting results!')
       console.log(results)
       return results
