@@ -395,10 +395,12 @@ export class OrganizationSyncService extends LoggerBase {
 
     async function processSegmentsStream(segmentStream) {
       // Use Promise.all to wait for all org/segment queries
-      const results = await Promise.all(segmentStream)
+      const results = await Promise.all(segmentStream.map((s) => s.promise))
 
       // Mark sent org/segments as finished and also add the data to segment object in orgSegmentCouples
       results.forEach(async (result, index) => {
+        console.log('segmentStream')
+        console.log(segmentStream)
         const { orgId, segment } = segmentStream[index]
         const orgSegments = orgSegmentCouples[orgId].docs
 
@@ -466,13 +468,17 @@ export class OrganizationSyncService extends LoggerBase {
 
         // batch segment sql queries of 10, or if we're processing the last segment just flush it
         if (segmentStream.length >= 10 || (i === totalOrgIds - 1 && j === totalSegments - 1)) {
-          segmentStream = await processSegmentsStream(segmentStream.map((o) => o.promise))
+          segmentStream = await processSegmentsStream(segmentStream)
         }
 
         while (syncStream.length > 0) {
           console.log('Sync streams to opensearch!')
           console.log(syncStream.slice(0, 10))
           syncStream = syncStream.slice(10)
+          return {
+            organizationsSynced: 0,
+            documentsIndexed: -1,
+          }
         }
       }
     }
