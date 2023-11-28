@@ -25,6 +25,7 @@ export class SegmentRepository extends RepositoryBase<SegmentRepository> {
           childSegmentIds,
         },
       )
+      console.log('Done getting results!')
       console.log(results)
       return results
     } catch (e) {

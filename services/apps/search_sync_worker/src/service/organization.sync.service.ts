@@ -478,7 +478,7 @@ export class OrganizationSyncService extends LoggerBase {
           segmentStream = await processSegmentsStream(segmentStream)
         }
 
-        while (syncStream.length > 0) {
+        if (syncStream.length > 0) {
           console.log('Sync streams to opensearch!')
           console.log(syncStream)
           // syncStream = syncStream.slice(10)
