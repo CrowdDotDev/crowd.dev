@@ -8,6 +8,7 @@ export class SegmentRepository extends RepositoryBase<SegmentRepository> {
   }
 
   public async getParentSegmentIds(childSegmentIds: string[]): Promise<IDbSegmentInfo[]> {
+    console.log('Getting parent segmentIds!')
     const results = await this.db().any(
       `
       select s.id, pd.id as "parentId", gpd.id as "grandParentId"
@@ -23,6 +24,7 @@ export class SegmentRepository extends RepositoryBase<SegmentRepository> {
         childSegmentIds,
       },
     )
+    console.log(results)
     return results
   }
 }
