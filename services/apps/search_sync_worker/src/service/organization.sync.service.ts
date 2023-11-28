@@ -210,6 +210,7 @@ export class OrganizationSyncService extends LoggerBase {
           batchSize,
           cutoffDate,
         )
+        organizationIds = ['38dca706-112a-4daa-92d2-9722b01ae58b']
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } =
@@ -427,6 +428,7 @@ export class OrganizationSyncService extends LoggerBase {
           const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
 
           if (isMultiSegment) {
+            console.log('aggregating data for parent segments! ')
             // also calculate and push for parent segments
             const childSegmentIds = distinct(orgSegments.map((m) => m.segmentId))
             const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
@@ -443,7 +445,7 @@ export class OrganizationSyncService extends LoggerBase {
               )
               const prepared = OrganizationSyncService.prefixData(aggregated)
               syncStream.push({
-                id: `${orgId}-${parentId}`,
+                id: `AGGREGATED-${orgId}-${parentId}`,
                 body: prepared,
               })
             }
