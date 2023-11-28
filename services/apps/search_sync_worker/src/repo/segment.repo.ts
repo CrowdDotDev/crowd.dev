@@ -19,7 +19,7 @@ export class SegmentRepository extends RepositoryBase<SegmentRepository> {
               inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
                                           gpd."grandparentSlug" is null and gpd."parentSlug" is null
       where s.id in ($(childSegmentIds:csv));`
-      console.log
+      console.log(query)
       const results = await this.db().any(query, {
         childSegmentIds,
       })
