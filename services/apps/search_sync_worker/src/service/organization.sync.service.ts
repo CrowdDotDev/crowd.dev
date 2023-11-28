@@ -440,6 +440,9 @@ export class OrganizationSyncService extends LoggerBase {
 
             // and for each parent and grandparent
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
+            console.log('ParentIds: ')
+            console.log(parentIds)
+
             for (const parentId of parentIds) {
               const aggregated = OrganizationSyncService.aggregateData(
                 orgSegmentCouples[orgId].docs.map((s) => s.data),
