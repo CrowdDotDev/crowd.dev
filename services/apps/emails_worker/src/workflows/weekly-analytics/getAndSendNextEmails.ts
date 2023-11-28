@@ -5,6 +5,8 @@ import {
   ChildWorkflowCancellationType,
 } from '@temporalio/workflow'
 
+import { TemporalWorkflowId } from '@crowd/types'
+
 import * as activities from '../../activities/weekly-analytics/getNextEmails'
 import { weeklySendEmailAndUpdateHistory } from './sendEmailAndUpdateHistory'
 
@@ -32,7 +34,7 @@ export async function weeklyGetAndSendNextEmails(): Promise<void> {
   await Promise.all(
     tenants.map((tenant) => {
       return startChild(weeklySendEmailAndUpdateHistory, {
-        workflowId: 'email-weekly-analytics/' + tenant.tenantId,
+        workflowId: `${TemporalWorkflowId.EMAIL_WEEKLY_ANALYTICS}/${tenant.tenantId}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
         workflowExecutionTimeout: '15 minutes',
@@ -53,6 +55,9 @@ export async function weeklyGetAndSendNextEmails(): Promise<void> {
             dateTimeStartPreviousWeek: calculatedTimes.dateTimeStartPreviousWeek,
           },
         ],
+        searchAttributes: {
+          TenantId: [tenant.tenantId],
+        },
       })
     }),
   )

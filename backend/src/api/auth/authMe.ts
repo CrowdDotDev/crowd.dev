@@ -17,6 +17,7 @@ export default async (req, res) => {
     req.redis,
     req.log,
   )
+
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
     req.redis,

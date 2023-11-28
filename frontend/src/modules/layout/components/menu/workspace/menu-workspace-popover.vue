@@ -139,7 +139,7 @@ const tenants = computed<TenantModel[]>(() => {
 });
 
 const doSwitchTenant = (tenant: TenantModel) => {
-  doSelectTenant({ tenant });
+  doSelectTenant({ tenant, immediate: true });
 };
 
 const developerModeEnabled = () => FeatureFlag.isFlagEnabled(

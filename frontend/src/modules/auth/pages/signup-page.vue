@@ -1,11 +1,19 @@
 <template>
+  <div class="flex justify-end mt-5 mb-20">
+    <p class="text-sm leading-5 text-center">
+      Already have an account?
+      <router-link :to="{ name: 'signin' }">
+        Sign in
+      </router-link>
+    </p>
+  </div>
+
   <div>
     <h3 class="text-2xl leading-12 font-semibold mb-1">
       Create an account
     </h3>
     <p class="text-gray-500 text-xs leading-5">
-      Turn your developer community into your #1 growth
-      channel
+      Unify community, product, and customer data and provide insights to your go-to-market team.
     </p>
     <div class="pt-10">
       <el-form
@@ -233,14 +241,6 @@
           <i class="ri-github-fill text-lg !text-gray-600" />
           <span class="pl-3 text-gray-600">Sign up with GitHub</span>
         </a>
-      </div>
-      <div class="flex justify-center">
-        <p class="text-sm leading-5 text-center">
-          Already have an account?
-          <router-link :to="{ name: 'signin' }">
-            Sign in
-          </router-link>
-        </p>
       </div>
     </div>
   </div>

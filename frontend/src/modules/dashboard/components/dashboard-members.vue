@@ -112,18 +112,28 @@
       <section class="px-5 w-1/2">
         <div class="flex">
           <div class="w-5/12">
+            <div class="inline-flex items-center gap-2 mb-1">
+              <h6
+                class="text-sm leading-5 font-semibold"
+              >
+                Active <span>contacts</span>
+                <el-tooltip
+                  placement="top"
+                  content="Contacts for whom at least one activity was tracked in the selected time period."
+                  popper-class="max-w-[260px]"
+                >
+                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                </el-tooltip>
+              </h6>
+            </div>
+
             <!-- info -->
-            <h6
-              class="text-sm leading-5 font-semibold mb-1"
-            >
-              Active contacts
-            </h6>
             <app-dashboard-count
               :loading="members.loadingActive"
               :query="activeMembersCount"
             />
           </div>
-          <div class="w-7/12">
+          <div class="w-7/12 h-21">
             <!-- Chart -->
             <div
               v-if="members.loadingActive"
