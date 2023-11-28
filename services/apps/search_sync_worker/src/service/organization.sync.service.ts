@@ -487,7 +487,7 @@ export class OrganizationSyncService extends LoggerBase {
 
         if (syncStream.length > 0) {
           console.log('Sync streams to opensearch!')
-          // console.log(syncStream)
+          console.log(syncStream)
           // syncStream = syncStream.slice(10)
           return {
             organizationsSynced: 0,
