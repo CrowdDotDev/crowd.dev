@@ -7,7 +7,6 @@ import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import SegmentRepository from './segmentRepository'
 import Plans from '../../security/plans'
 import { API_CONFIG } from '../../conf'
 
@@ -272,11 +271,6 @@ class TenantRepository {
     })
 
     if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
-      record.settings[0].dataValues.activityTypes =
-        await SegmentRepository.fetchTenantActivityTypes({
-          ...options,
-          currentTenant: record,
-        })
       record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
     }
 
