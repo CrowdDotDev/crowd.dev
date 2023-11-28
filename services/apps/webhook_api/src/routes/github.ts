@@ -36,8 +36,6 @@ export const installGithubRoutes = async (app: express.Express) => {
       const integration = await repo.findIntegrationByIdentifier(PlatformType.GITHUB, identifier)
 
       if (integration) {
-        req.log.info({ integrationId: integration.id }, 'Incoming GitHub Webhook!')
-
         const id = await repo.createIncomingWebhook(
           integration.tenantId,
           integration.id,
