@@ -32,6 +32,24 @@ setImmediate(async () => {
     next()
   })
 
+  app.use('/health', async (req, res) => {
+    try {
+      const dbPingRes = await dbConnection
+        .result('select 1')
+        .then((result) => result.rowCount === 1)
+
+      if (dbPingRes) {
+        res.sendStatus(200)
+      } else {
+        res.status(500).json({
+          database: dbPingRes,
+        })
+      }
+    } catch (err) {
+      res.status(500).json({ error: err })
+    }
+  })
+
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '5mb' }))
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))

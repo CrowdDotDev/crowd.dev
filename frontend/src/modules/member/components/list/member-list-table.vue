@@ -640,11 +640,16 @@
         <app-member-dropdown-content
           v-if="selectedActionMember"
           :member="selectedActionMember"
+          @find-github="isFindGithubDrawerOpen = selectedActionMember"
           @merge="isMergeDialogOpen = selectedActionMember"
           @close-dropdown="closeDropdown"
         />
       </div>
     </el-popover>
+    <app-member-find-github-drawer
+      v-if="isFindGithubDrawerOpen"
+      v-model="isFindGithubDrawerOpen"
+    />
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
     <app-tag-popover v-model="isEditTagsDialogOpen" :member="editTagMember" @reload="fetchMembers({ reload: true })" />
   </div>
@@ -669,6 +674,7 @@ import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
+import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberBadge from '../member-badge.vue';
@@ -697,6 +703,8 @@ const showMemberDropdownPopover = ref(false);
 const memberDropdownPopover = ref(null);
 const actionBtnRefs = ref({});
 const selectedActionMember = ref(null);
+
+const isFindGithubDrawerOpen = ref(null);
 
 const props = defineProps({
   hasIntegrations: {

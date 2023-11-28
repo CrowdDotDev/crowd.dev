@@ -36,6 +36,9 @@ export async function processNewMemberAutomation(
               memberId: args.memberId,
             },
           ],
+          searchAttributes: {
+            TenantId: [args.tenantId],
+          },
         }),
       ),
     )

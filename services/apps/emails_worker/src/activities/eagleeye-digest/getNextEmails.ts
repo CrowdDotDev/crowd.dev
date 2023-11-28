@@ -13,11 +13,14 @@ export async function eagleeyeGetNextEmails(): Promise<UserTenant[]> {
   let rows: UserTenant[] = []
   try {
     rows = await svc.postgres.reader.connection().query(
-      `SELECT "userId", "tenantId", "settings" FROM "tenantUsers"
+      `SELECT "userId", "tenantId", settings, users.email
+        FROM "tenantUsers"
+        INNER JOIN users ON "tenantUsers"."userId" = users.id
         WHERE (settings -> 'eagleEye' -> 'emailDigestActive')::BOOLEAN IS TRUE
         AND (settings -> 'eagleEye' ->> 'onboarded')::BOOLEAN IS TRUE
         AND (settings -> 'eagleEye' -> 'emailDigest' ->> 'nextEmailAt')::TIMESTAMP < NOW()
-        AND "tenantId" IS NOT NULL;`,
+        AND "tenantId" IS NOT NULL
+        AND users."deletedAt" IS NULL;`,
     )
   } catch (err) {
     throw new Error(err)
