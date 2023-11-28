@@ -1223,6 +1223,34 @@ export default class IntegrationService {
   }
 
   /**
+   * Adds/updates Confluence integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async confluenceConnectOrUpdate(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+    try {
+      integration = await this.createOrUpdate(
+          {
+            platform: PlatformType.CONFLUENCE,
+            settings: {
+              remotes: integrationData.remotes,
+            },
+            status: 'done',
+          },
+          transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+    return integration
+  }
+
+  /**
    * Get all remotes for the Git integration, by segment
    * @returns Remotes for the Git integration
    */

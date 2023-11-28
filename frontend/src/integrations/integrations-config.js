@@ -17,6 +17,7 @@ import facebook from './facebook';
 import n8n from './n8n';
 import lfx from './custom/lfx';
 import groupsio from './groupsio';
+import confluence from './confluence';
 import cvent from './custom/cvent';
 import tnc from './custom/tnc';
 
@@ -41,6 +42,7 @@ class IntegrationsConfig {
       hubspot,
       // make,
       facebook,
+      confluence,
     };
   }
 
