@@ -387,7 +387,7 @@ export class OrganizationSyncService extends LoggerBase {
     // get all orgId segmentId couples
     const orgSegmentCouples = await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
     let segmentStream = []
-    let syncStream = []
+    const syncStream = []
     let organizationsSynced = 0
     const documentsIndexed = 0
 
@@ -434,7 +434,7 @@ export class OrganizationSyncService extends LoggerBase {
             console.log('Child segment ids: ')
             console.log(childSegmentIds)
             const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
-            console.log(`Segment infos`)
+            console.log('Segment infos')
             console.log(segmentInfos)
             // const relevantSegmentInfos = segmentInfos.filter((s) => s.id === organization.segmentId)
 
