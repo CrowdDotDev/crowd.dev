@@ -385,12 +385,101 @@ export class OrganizationSyncService extends LoggerBase {
   ): Promise<IOrganizationSyncResult> {
     // get all orgId segmentId couples
     const orgSegmentCouples = await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
+    let segmentStream = []
+    let syncStream = []
+    let organizationsSynced = 0
+    const documentsIndexed = 0
 
-    console.log(orgSegmentCouples)
-    console.log(orgSegmentCouples[Object.keys(orgSegmentCouples)[0]].docs[0])
+    const allOrgIds = Object.keys(orgSegmentCouples)
+    const totalOrgIds = allOrgIds.length
+
+    async function processSegmentsStream(segmentStream) {
+      // Use Promise.all to wait for all org/segment queries
+      const results = await Promise.all(segmentStream)
+
+      // Mark sent org/segments as finished and also add the data to segment object in orgSegmentCouples
+      results.forEach(async (result, index) => {
+        const { orgId, segment } = segmentStream[index]
+        const orgSegments = orgSegmentCouples[orgId].docs
+
+        // Find the correct segment and mark it as processed and add the data
+        const targetSegment = orgSegments.find((s) => s.segmentId === segment.segmentId)
+        targetSegment.processed = true
+        targetSegment.data = result
+
+        // Check if all segments for the organization have been processed
+        const allSegmentsOfOrgIsProcessed = orgSegments.every((s) => s.processed)
+        if (allSegmentsOfOrgIsProcessed) {
+          // All segments processed, push the segment related docs into syncStream
+          syncStream.push(
+            orgSegmentCouples[orgId].docs.map((s) => {
+              return {
+                id: `${s.data.organizationId}-${s.data.segmentId}`,
+                body: OrganizationSyncService.prefixData(s.data),
+              }
+            }),
+          )
+
+          const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
+
+          if (isMultiSegment) {
+            // also calculate and push for parent segments
+            const childSegmentIds = distinct(orgSegments.map((m) => m.segmentId))
+            const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+
+            // const relevantSegmentInfos = segmentInfos.filter((s) => s.id === organization.segmentId)
+
+            // and for each parent and grandparent
+            const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
+            for (const parentId of parentIds) {
+              const aggregated = OrganizationSyncService.aggregateData(
+                orgSegmentCouples[orgId].docs.map((s) => s.data),
+                segmentInfos,
+                parentId,
+              )
+              const prepared = OrganizationSyncService.prefixData(aggregated)
+              syncStream.push({
+                id: `${orgId}-${parentId}`,
+                body: prepared,
+              })
+            }
+          }
+
+          organizationsSynced++
+        }
+      })
+
+      return []
+    }
+
+    for (let i = 0; i < totalOrgIds; i++) {
+      const orgId = allOrgIds[i]
+      const totalSegments = orgSegmentCouples[orgId].docs.length
+
+      for (let j = 0; j < totalSegments; j++) {
+        const segment = orgSegmentCouples[orgId].docs[j]
+        segmentStream.push({
+          orgId: orgId,
+          segment: segment,
+          promise: this.orgRepo.getOrganizationDataInOneSegment(orgId, segment.segmentId),
+        })
+
+        // batch segment sql queries of 10, or if we're processing the last segment just flush it
+        if (segmentStream.length >= 10 || (i === totalOrgIds - 1 && j === totalSegments - 1)) {
+          segmentStream = await processSegmentsStream(segmentStream.map((o) => o.promise))
+        }
+
+        while (syncStream.length > 0) {
+          console.log('Sync streams to opensearch!')
+          console.log(syncStream.slice(0, 10))
+          syncStream = syncStream.slice(10)
+        }
+      }
+    }
+
     return {
-      organizationsSynced: 0,
-      documentsIndexed: 0,
+      organizationsSynced,
+      documentsIndexed,
     }
   }
 
