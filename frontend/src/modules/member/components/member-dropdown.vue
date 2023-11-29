@@ -18,6 +18,7 @@
           :member="member"
           @find-github="emit('findGithub')"
           @close-dropdown="onDropdownClose"
+          @merge="emit('merge')"
         />
       </template>
     </el-dropdown>
