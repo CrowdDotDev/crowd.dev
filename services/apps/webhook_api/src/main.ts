@@ -11,6 +11,7 @@ import { installGithubRoutes } from './routes/github'
 import { installGroupsIoRoutes } from './routes/groupsio'
 import { installDiscourseRoutes } from './routes/discourse'
 import cors from 'cors'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
 
 const log = getServiceLogger()
 const config = WEBHOOK_API_CONFIG()
@@ -50,6 +51,7 @@ setImmediate(async () => {
     }
   })
 
+  app.use(telemetryExpressMiddleware('webhook.request.duration'))
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '5mb' }))
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))

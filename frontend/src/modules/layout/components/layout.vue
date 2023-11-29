@@ -129,6 +129,9 @@
 import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
 import AppMenu from '@/modules/layout/components/menu.vue';
+import { mapActions as piniaMapActions } from 'pinia';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default {
   name: 'AppLayout',
@@ -220,6 +223,8 @@ export default {
 
   async mounted() {
     this.initPendo();
+    this.fetchActivityTypes();
+    this.fetchActivityChannels();
   },
 
   unmounted() {
@@ -230,6 +235,13 @@ export default {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
     }),
+    ...piniaMapActions(useActivityStore, {
+      fetchActivityChannels: 'fetchActivityChannels',
+    }),
+    ...piniaMapActions(useActivityTypeStore, {
+      fetchActivityTypes: 'fetchActivityTypes',
+    }),
+
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values
