@@ -55,7 +55,12 @@ setImmediate(async () => {
         await repo.resetStream(dataId)
       }
 
-      await emitter.triggerDataProcessing(info.tenantId, info.integrationType, dataId)
+      await emitter.triggerDataProcessing(
+        info.tenantId,
+        info.integrationType,
+        dataId,
+        info.onboarding === null ? true : info.onboarding,
+      )
     } else {
       log.error({ dataId }, 'Data stream not found!')
       process.exit(1)

@@ -52,7 +52,7 @@ export default class SearchSyncService extends LoggerBase {
     if (client instanceof SearchSyncApiClient) {
       await client.triggerMemberSync(memberId)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerMemberSync(tenantId, memberId)
+      await client.triggerMemberSync(tenantId, memberId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -72,7 +72,7 @@ export default class SearchSyncService extends LoggerBase {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationMembersSync(tenantId, organizationId)
+      await client.triggerOrganizationMembersSync(tenantId, organizationId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -84,7 +84,7 @@ export default class SearchSyncService extends LoggerBase {
     if (client instanceof SearchSyncApiClient) {
       await client.triggerRemoveMember(memberId)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerRemoveMember(tenantId, memberId)
+      await client.triggerRemoveMember(tenantId, memberId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -106,7 +106,7 @@ export default class SearchSyncService extends LoggerBase {
     if (client instanceof SearchSyncApiClient) {
       await client.triggerActivitySync(activityId)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerActivitySync(tenantId, activityId)
+      await client.triggerActivitySync(tenantId, activityId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -126,7 +126,7 @@ export default class SearchSyncService extends LoggerBase {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationActivitiesSync(tenantId, organizationId)
+      await client.triggerOrganizationActivitiesSync(tenantId, organizationId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -138,7 +138,7 @@ export default class SearchSyncService extends LoggerBase {
     if (client instanceof SearchSyncApiClient) {
       await client.triggerRemoveActivity(activityId)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerRemoveActivity(tenantId, activityId)
+      await client.triggerRemoveActivity(tenantId, activityId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -160,7 +160,7 @@ export default class SearchSyncService extends LoggerBase {
     if (client instanceof SearchSyncApiClient) {
       await client.triggerOrganizationSync(organizationId)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationSync(tenantId, organizationId)
+      await client.triggerOrganizationSync(tenantId, organizationId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -182,7 +182,7 @@ export default class SearchSyncService extends LoggerBase {
     if (client instanceof SearchSyncApiClient) {
       await client.triggerRemoveOrganization(organizationId)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerRemoveOrganization(tenantId, organizationId)
+      await client.triggerRemoveOrganization(tenantId, organizationId, false)
     } else {
       throw new Error('Unexpected search client type!')
     }

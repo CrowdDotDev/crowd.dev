@@ -27,7 +27,14 @@ export class IntegrationDataWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerDataProcessing(tenantId: string, platform: string, dataId: string) {
-    await this.sendMessage(tenantId, dataId, new ProcessStreamDataQueueMessage(dataId), dataId)
+  public async triggerDataProcessing(
+    tenantId: string,
+    platform: string,
+    dataId: string,
+    onboarding: boolean,
+  ) {
+    await this.sendMessage(tenantId, dataId, new ProcessStreamDataQueueMessage(dataId), dataId, {
+      onboarding,
+    })
   }
 }

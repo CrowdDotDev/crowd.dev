@@ -47,18 +47,32 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
 
   public async continueProcessingRunStreams(
     tenantId: string,
+    onboarding: boolean,
     platform: string,
     runId: string,
   ): Promise<void> {
-    await this.sendMessage(tenantId, runId, new ContinueProcessingRunStreamsQueueMessage(runId))
+    await this.sendMessage(
+      tenantId,
+      runId,
+      new ContinueProcessingRunStreamsQueueMessage(runId),
+      undefined,
+      { onboarding },
+    )
   }
 
   public async triggerStreamProcessing(
     tenantId: string,
     platform: string,
     streamId: string,
+    onboarding: boolean,
   ): Promise<void> {
-    await this.sendMessage(tenantId, generateUUIDv1(), new ProcessStreamQueueMessage(streamId))
+    await this.sendMessage(
+      tenantId,
+      generateUUIDv1(),
+      new ProcessStreamQueueMessage(streamId),
+      undefined,
+      { onboarding },
+    )
   }
 
   public async triggerWebhookProcessing(
@@ -70,6 +84,8 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
       tenantId,
       generateUUIDv1(),
       new ProcessWebhookStreamQueueMessage(webhookId),
+      undefined,
+      { onboarding: true },
     )
   }
 }

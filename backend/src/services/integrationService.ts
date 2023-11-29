@@ -405,6 +405,7 @@ export default class IntegrationService {
         integration.platform,
         integration.id,
         true,
+        true,
       )
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -472,6 +473,7 @@ export default class IntegrationService {
       integration.platform,
       integration.id,
       true,
+      true,
     )
 
     return integration
@@ -526,6 +528,7 @@ export default class IntegrationService {
         integration.tenantId,
         integration.platform,
         integration.id,
+        true,
         true,
       )
 
@@ -833,6 +836,7 @@ export default class IntegrationService {
       integration.platform,
       integration.id,
       true,
+      true,
     )
   }
 
@@ -1098,6 +1102,7 @@ export default class IntegrationService {
         integration.platform,
         integration.id,
         true,
+        true,
       )
     }
 
@@ -1140,6 +1145,7 @@ export default class IntegrationService {
       integration.tenantId,
       integration.platform,
       integration.id,
+      true,
       true,
     )
 
@@ -1186,6 +1192,7 @@ export default class IntegrationService {
       integration.tenantId,
       integration.platform,
       integration.id,
+      true,
       true,
     )
 
@@ -1280,6 +1287,7 @@ export default class IntegrationService {
       integration.platform,
       integration.id,
       true,
+      true,
     )
 
     return integration
@@ -1325,6 +1333,7 @@ export default class IntegrationService {
       integration.tenantId,
       integration.platform,
       integration.id,
+      isOnboarding,
       isOnboarding,
     )
 
@@ -1379,6 +1388,7 @@ export default class IntegrationService {
       integration.platform,
       integration.id,
       true,
+      true,
     )
 
     return integration
@@ -1423,6 +1433,7 @@ export default class IntegrationService {
       integration.tenantId,
       integration.platform,
       integration.id,
+      true,
       true,
     )
 
@@ -1471,6 +1482,7 @@ export default class IntegrationService {
       integration.platform,
       integration.id,
       true,
+      true,
     )
 
     return integration
@@ -1516,6 +1528,7 @@ export default class IntegrationService {
       integration.tenantId,
       integration.platform,
       integration.id,
+      true,
       true,
     )
 

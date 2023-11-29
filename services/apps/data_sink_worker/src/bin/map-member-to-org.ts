@@ -113,10 +113,10 @@ setImmediate(async () => {
         orgService.addToMember(member.tenantId, segmentId, member.id, orgs)
 
         for (const org of orgs) {
-          await searchSyncWorkerEmitter.triggerOrganizationSync(member.tenantId, org.id)
+          await searchSyncWorkerEmitter.triggerOrganizationSync(member.tenantId, org.id, true)
         }
 
-        await searchSyncWorkerEmitter.triggerMemberSync(member.tenantId, member.id)
+        await searchSyncWorkerEmitter.triggerMemberSync(member.tenantId, member.id, true)
         log.info('Done mapping member to organizations!')
       } else {
         log.info('No organizations found with matching email domains!')

@@ -50,7 +50,7 @@ setImmediate(async () => {
 
     log.info(`Triggering integration run for ${runId}!`)
 
-    await emitter.continueProcessingRunStreams(run.tenantId, run.platform, run.id)
+    await emitter.continueProcessingRunStreams(run.tenantId, run.onboarding, run.platform, run.id)
     process.exit(0)
   } else {
     log.error({ run }, 'Run not found!')

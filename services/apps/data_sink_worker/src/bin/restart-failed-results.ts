@@ -52,6 +52,7 @@ setImmediate(async () => {
         result.platform,
         result.id,
         result.id,
+        result.onboarding === null ? true : result.onboarding,
         result.id,
       )
     }

@@ -40,6 +40,7 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
     platform: string,
     resultId: string,
     sourceId: string,
+    onboarding: boolean,
     deduplicationId?: string,
   ) {
     await this.sendMessage(
@@ -47,6 +48,9 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
       sourceId,
       new ProcessIntegrationResultQueueMessage(resultId),
       deduplicationId || resultId,
+      {
+        onboarding,
+      },
     )
   }
 
@@ -60,6 +64,10 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
       tenantId,
       generateUUIDv1(),
       new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, integrationId, activity),
+      undefined,
+      {
+        onboarding: true,
+      },
     )
   }
 

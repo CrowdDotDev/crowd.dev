@@ -127,10 +127,10 @@ setImmediate(async () => {
             orgService.addToMember(tenantId, segmentId, member.id, orgs)
 
             for (const org of orgs) {
-              await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
+              await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, true)
             }
 
-            await searchSyncWorkerEmitter.triggerMemberSync(tenantId, member.id)
+            await searchSyncWorkerEmitter.triggerMemberSync(tenantId, member.id, true)
           }
         }
 

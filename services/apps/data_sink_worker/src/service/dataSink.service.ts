@@ -85,6 +85,7 @@ export default class DataSinkService extends LoggerBase {
           result.platform,
           result.id,
           result.id,
+          result.onboarding === null ? true : result.onboarding,
           `${result.id}-delayed-${Date.now()}`,
         )
       }
@@ -169,6 +170,7 @@ export default class DataSinkService extends LoggerBase {
               await service.processActivity(
                 resultInfo.tenantId,
                 resultInfo.integrationId,
+                resultInfo.onboarding === null ? true : resultInfo.onboarding,
                 platform,
                 activityData,
                 data.segmentId,

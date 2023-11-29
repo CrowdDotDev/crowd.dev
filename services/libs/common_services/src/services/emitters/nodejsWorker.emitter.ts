@@ -52,12 +52,16 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
     tenantId: string,
     activityId: string,
     segmentId: string,
+    onboarding: boolean,
   ): Promise<void> {
     await this.sendMessage(
       tenantId,
       `${activityId}--${segmentId}`,
       new NewActivityAutomationQueueMessage(tenantId, activityId, segmentId),
       `${activityId}--${segmentId}`,
+      {
+        onboarding,
+      },
     )
   }
 
@@ -65,12 +69,16 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
     tenantId: string,
     memberId: string,
     segmentId: string,
+    onboarding: boolean,
   ): Promise<void> {
     await this.sendMessage(
       tenantId,
       memberId,
       new NewMemberAutomationQueueMessage(tenantId, memberId, segmentId),
       memberId,
+      {
+        onboarding,
+      },
     )
   }
 

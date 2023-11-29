@@ -27,7 +27,7 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerMemberSync(tenantId: string, memberId: string) {
+  public async triggerMemberSync(tenantId: string, memberId: string, onboarding: boolean) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -43,6 +43,9 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
         memberId,
       },
       memberId,
+      {
+        onboarding,
+      },
     )
   }
 
@@ -56,7 +59,11 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     })
   }
 
-  public async triggerOrganizationMembersSync(tenantId: string, organizationId: string) {
+  public async triggerOrganizationMembersSync(
+    tenantId: string,
+    organizationId: string,
+    onboarding: boolean,
+  ) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -64,13 +71,21 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
-    await this.sendMessage(tenantId, organizationId, {
-      type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS,
+    await this.sendMessage(
+      tenantId,
       organizationId,
-    })
+      {
+        type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS,
+        organizationId,
+      },
+      undefined,
+      {
+        onboarding,
+      },
+    )
   }
 
-  public async triggerRemoveMember(tenantId: string, memberId: string) {
+  public async triggerRemoveMember(tenantId: string, memberId: string, onboarding: boolean) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -78,10 +93,18 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       throw new Error('memberId is required!')
     }
 
-    await this.sendMessage(tenantId, memberId, {
-      type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
+    await this.sendMessage(
+      tenantId,
       memberId,
-    })
+      {
+        type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
+        memberId,
+      },
+      undefined,
+      {
+        onboarding,
+      },
+    )
   }
 
   public async triggerMemberCleanup(tenantId: string) {
@@ -94,7 +117,7 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     })
   }
 
-  public async triggerActivitySync(tenantId: string, activityId: string) {
+  public async triggerActivitySync(tenantId: string, activityId: string, onboarding: boolean) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -110,6 +133,9 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
         activityId,
       },
       activityId,
+      {
+        onboarding,
+      },
     )
   }
 
@@ -123,7 +149,11 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     })
   }
 
-  public async triggerOrganizationActivitiesSync(tenantId: string, organizationId: string) {
+  public async triggerOrganizationActivitiesSync(
+    tenantId: string,
+    organizationId: string,
+    onboarding: boolean,
+  ) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -131,13 +161,21 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
-    await this.sendMessage(tenantId, organizationId, {
-      type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES,
+    await this.sendMessage(
+      tenantId,
       organizationId,
-    })
+      {
+        type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES,
+        organizationId,
+      },
+      undefined,
+      {
+        onboarding,
+      },
+    )
   }
 
-  public async triggerRemoveActivity(tenantId: string, activityId: string) {
+  public async triggerRemoveActivity(tenantId: string, activityId: string, onboarding: boolean) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -145,10 +183,18 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       throw new Error('activityId is required!')
     }
 
-    await this.sendMessage(tenantId, activityId, {
-      type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
+    await this.sendMessage(
+      tenantId,
       activityId,
-    })
+      {
+        type: SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY,
+        activityId,
+      },
+      undefined,
+      {
+        onboarding,
+      },
+    )
   }
 
   public async triggerActivityCleanup(tenantId: string) {
@@ -161,7 +207,11 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     })
   }
 
-  public async triggerOrganizationSync(tenantId: string, organizationId: string) {
+  public async triggerOrganizationSync(
+    tenantId: string,
+    organizationId: string,
+    onboarding: boolean,
+  ) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -177,6 +227,9 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
         organizationId,
       },
       organizationId,
+      {
+        onboarding,
+      },
     )
   }
 
@@ -195,7 +248,11 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerRemoveOrganization(tenantId: string, organizationId: string) {
+  public async triggerRemoveOrganization(
+    tenantId: string,
+    organizationId: string,
+    onboarding: boolean,
+  ) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -203,10 +260,18 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       throw new Error('organizationId is required!')
     }
 
-    await this.sendMessage(tenantId, organizationId, {
-      type: SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION,
+    await this.sendMessage(
+      tenantId,
       organizationId,
-    })
+      {
+        type: SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION,
+        organizationId,
+      },
+      undefined,
+      {
+        onboarding,
+      },
+    )
   }
 
   public async triggerOrganizationCleanup(tenantId: string) {

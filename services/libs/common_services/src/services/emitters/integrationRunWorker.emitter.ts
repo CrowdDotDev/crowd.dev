@@ -56,6 +56,8 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
       tenantId,
       integrationId,
       new StartIntegrationRunQueueMessage(integrationId, onboarding, isManualRun, manualSettings),
+      undefined,
+      { onboarding },
     )
   }
 
@@ -63,6 +65,7 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     tenantId: string,
     platform: string,
     runId: string,
+    onboarding: boolean,
     isManualRun?: boolean,
     manualSettings?: unknown,
   ): Promise<void> {
@@ -71,10 +74,18 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
       runId,
       new GenerateRunStreamsQueueMessage(runId, isManualRun, manualSettings),
       runId,
+      { onboarding },
     )
   }
 
-  public async streamProcessed(tenantId: string, platform: string, runId: string): Promise<void> {
-    await this.sendMessage(tenantId, runId, new StreamProcessedQueueMessage(runId))
+  public async streamProcessed(
+    tenantId: string,
+    platform: string,
+    runId: string,
+    onboarding: boolean,
+  ): Promise<void> {
+    await this.sendMessage(tenantId, runId, new StreamProcessedQueueMessage(runId), undefined, {
+      onboarding,
+    })
   }
 }

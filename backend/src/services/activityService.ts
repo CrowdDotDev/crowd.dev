@@ -217,6 +217,7 @@ export default class ActivityService extends LoggerBase {
               this.options.currentTenant.id,
               record.id,
               record.segmentId,
+              false,
             )
           }
         } catch (err) {

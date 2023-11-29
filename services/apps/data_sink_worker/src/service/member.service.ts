@@ -45,6 +45,7 @@ export default class MemberService extends LoggerBase {
 
   public async create(
     tenantId: string,
+    onboarding: boolean,
     segmentId: string,
     integrationId: string,
     data: IMemberCreateData,
@@ -163,15 +164,20 @@ export default class MemberService extends LoggerBase {
           'Started temporal workflow to process new member automation!',
         )
       } else {
-        await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id, segmentId)
+        await this.nodejsWorkerEmitter.processAutomationForNewMember(
+          tenantId,
+          id,
+          segmentId,
+          onboarding,
+        )
       }
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
       }
 
       return id
@@ -184,6 +190,7 @@ export default class MemberService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    onboarding: boolean,
     segmentId: string,
     integrationId: string,
     data: IMemberUpdateData,
@@ -290,11 +297,11 @@ export default class MemberService extends LoggerBase {
       })
 
       if (updated && fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
@@ -416,6 +423,7 @@ export default class MemberService extends LoggerBase {
           await txService.update(
             dbMember.id,
             tenantId,
+            false,
             segmentId,
             integrationId,
             {
@@ -486,6 +494,7 @@ export default class MemberService extends LoggerBase {
           await txService.update(
             dbMember.id,
             tenantId,
+            false,
             segmentId,
             integrationId,
             {

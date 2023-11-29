@@ -142,6 +142,7 @@ export class IntegrationTickProcessor extends LoggerBase {
                   integration.platform,
                   integration.id,
                   false,
+                  false,
                 )
               }, delay)
             } else {
@@ -150,6 +151,7 @@ export class IntegrationTickProcessor extends LoggerBase {
                 integration.tenantId,
                 integration.platform,
                 integration.id,
+                false,
                 false,
               )
             }

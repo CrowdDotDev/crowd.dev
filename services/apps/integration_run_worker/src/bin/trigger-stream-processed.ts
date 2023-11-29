@@ -1,16 +1,15 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
-import { getServiceTracer } from '@crowd/tracing'
-import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
-import { StreamProcessedQueueMessage } from '@crowd/types'
-import { getUnleashClient } from '@crowd/feature-flags'
-import { DbStore, getDbConnection } from '@crowd/database'
-import { getRedisClient } from '@crowd/redis'
 import {
   IntegrationRunWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
 } from '@crowd/common_services'
+import { DbStore, getDbConnection } from '@crowd/database'
+import { getUnleashClient } from '@crowd/feature-flags'
+import { getServiceLogger } from '@crowd/logging'
+import { getRedisClient } from '@crowd/redis'
+import { getSqsClient } from '@crowd/sqs'
+import { getServiceTracer } from '@crowd/tracing'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -39,7 +38,9 @@ setImmediate(async () => {
   await emitter.init()
 
   const results = await dbConnection.any(
-    `select id, "tenantId" from integration.runs where id in ($runIds:csv)`,
+    `select r.id, r."tenantId", r.onboarding, i.platform from integration.runs r
+     inner join integrations i on i.id = r."integrationId"
+     where r.id in ($runIds:csv)`,
     {
       runIds,
     },
@@ -47,6 +48,6 @@ setImmediate(async () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const res of results as any[]) {
-    await emitter.sendMessage(res.tenantId, res.id, new StreamProcessedQueueMessage(res.id))
+    await emitter.streamProcessed(res.tenantId, res.platform, res.id, res.onboarding)
   }
 })

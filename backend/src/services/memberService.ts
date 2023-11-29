@@ -490,6 +490,7 @@ export default class MemberService extends LoggerBase {
               this.options.currentTenant.id,
               record.id,
               segment.id,
+              false,
             )
           }
         } catch (err) {

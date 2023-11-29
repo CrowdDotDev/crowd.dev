@@ -47,7 +47,13 @@ setImmediate(async () => {
       process.exit(1)
     } else {
       await repo.resetResults([resultId])
-      await emitter.triggerResultProcessing(result.tenantId, result.platform, result.id, result.id)
+      await emitter.triggerResultProcessing(
+        result.tenantId,
+        result.platform,
+        result.id,
+        result.id,
+        result.onboarding === null ? true : result.onboarding,
+      )
     }
   }
 })

@@ -42,6 +42,7 @@ export default class ActivityService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     activity: IActivityCreateData,
+    onboarding: boolean,
     fireSync = true,
   ): Promise<string> {
     try {
@@ -124,19 +125,28 @@ export default class ActivityService extends LoggerBase {
           'Started temporal workflow to process new activity automation!',
         )
       } else {
-        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
+        await this.nodejsWorkerEmitter.processAutomationForNewActivity(
+          tenantId,
+          id,
+          segmentId,
+          onboarding,
+        )
       }
 
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          tenantId,
+          activity.memberId,
+          onboarding,
+        )
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
       }
 
       if (affectedIds.length > 0) {
         for (const affectedId of affectedIds.filter((i) => i !== id)) {
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId)
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId, onboarding)
         }
       }
 
@@ -150,6 +160,7 @@ export default class ActivityService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    onboarding: boolean,
     segmentId: string,
     activity: IActivityUpdateData,
     original: IDbActivity,
@@ -209,8 +220,12 @@ export default class ActivityService extends LoggerBase {
         await this.conversationService.processActivity(tenantId, segmentId, id)
 
         if (fireSync) {
-          await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
+          await this.searchSyncWorkerEmitter.triggerMemberSync(
+            tenantId,
+            activity.memberId,
+            onboarding,
+          )
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
         }
       }
     } catch (err) {
@@ -336,6 +351,7 @@ export default class ActivityService extends LoggerBase {
   public async processActivity(
     tenantId: string,
     integrationId: string,
+    onboarding: boolean,
     platform: PlatformType,
     activity: IActivityData,
     providedSegmentId?: string,
@@ -495,7 +511,11 @@ export default class ActivityService extends LoggerBase {
 
                 // delete activity
                 await txRepo.delete(dbActivity.id)
-                await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
+                await this.searchSyncWorkerEmitter.triggerRemoveActivity(
+                  tenantId,
+                  dbActivity.id,
+                  onboarding,
+                )
                 createActivity = true
               }
 
@@ -503,6 +523,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -541,6 +562,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -605,6 +627,7 @@ export default class ActivityService extends LoggerBase {
                     await this.searchSyncWorkerEmitter.triggerRemoveActivity(
                       tenantId,
                       dbActivity.id,
+                      onboarding,
                     )
                     createActivity = true
                   }
@@ -613,6 +636,7 @@ export default class ActivityService extends LoggerBase {
                   await txMemberService.update(
                     dbObjectMember.id,
                     tenantId,
+                    onboarding,
                     segmentId,
                     integrationId,
                     {
@@ -651,6 +675,7 @@ export default class ActivityService extends LoggerBase {
                   await txMemberService.update(
                     dbObjectMember.id,
                     tenantId,
+                    onboarding,
                     segmentId,
                     integrationId,
                     {
@@ -684,6 +709,7 @@ export default class ActivityService extends LoggerBase {
               await txActivityService.update(
                 dbActivity.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 {
                   type: activity.type,
@@ -722,6 +748,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -745,6 +772,7 @@ export default class ActivityService extends LoggerBase {
               )
               memberId = await txMemberService.create(
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -781,6 +809,7 @@ export default class ActivityService extends LoggerBase {
                 await txMemberService.update(
                   dbObjectMember.id,
                   tenantId,
+                  onboarding,
                   segmentId,
                   integrationId,
                   {
@@ -804,6 +833,7 @@ export default class ActivityService extends LoggerBase {
                 )
                 objectMemberId = await txMemberService.create(
                   tenantId,
+                  onboarding,
                   segmentId,
                   integrationId,
                   {
@@ -853,6 +883,7 @@ export default class ActivityService extends LoggerBase {
                 url: activity.url,
                 organizationId,
               },
+              onboarding,
               false,
             )
           }
@@ -862,13 +893,13 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (memberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId, onboarding)
       }
       if (objectMemberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId, onboarding)
       }
       if (activityId) {
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId)
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')
