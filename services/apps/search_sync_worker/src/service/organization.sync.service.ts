@@ -398,7 +398,7 @@ export class OrganizationSyncService extends LoggerBase {
    */
   public async syncOrganizationsV2(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 10
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 50
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 500
 
     // get all orgId-segmentId couples
     const orgSegmentCouples: IOrganizationSegmentMatrix =
