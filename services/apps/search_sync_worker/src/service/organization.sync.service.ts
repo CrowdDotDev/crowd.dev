@@ -210,6 +210,8 @@ export class OrganizationSyncService extends LoggerBase {
           batchSize,
           cutoffDate,
         )
+
+        // For testing purposes, TODO:: delete this after tests
         organizationIds = ['9c2ed430-379a-11ee-ae51-d50298f9cdce']
 
         while (organizationIds.length > 0) {
@@ -224,7 +226,12 @@ export class OrganizationSyncService extends LoggerBase {
             { tenantId },
             `Synced ${organizationCount} organizations with ${docCount} documents!`,
           )
-          organizationIds = []
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+            tenantId,
+            1,
+            batchSize,
+            cutoffDate,
+          )
         }
       },
       this.log,
@@ -382,8 +389,21 @@ export class OrganizationSyncService extends LoggerBase {
     }
   }
 
+  /**
+   * Gets segment specific aggregates of an organization and syncs to opensearch
+   * Aggregate data is gathered for each segment in separate sql queries
+   * Queries are run in paralel with respect to CONCURRENT_DATABASE_QUERIES constant
+   * After all segment aggregates of an organization is gathered, we calculate the
+   * aggregates for parent segments and push it to syncStream.
+   * SyncStream sends documents to opensearch in bulk with respect to BULK_INDEX_DOCUMENT_BATCH_SIZE
+   * @param organizationIds organizationIds to be synced to opensearch
+   * @returns
+   */
   public async syncOrganizationsV2(organizationIds: string[]): Promise<IOrganizationSyncResult> {
-    // get all orgId segmentId couples
+    const CONCURRENT_DATABASE_QUERIES = 10
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 50
+
+    // get all orgId-segmentId couples
     const orgSegmentCouples: IOrganizationSegmentMatrix =
       await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
     let databaseStream = []
@@ -392,8 +412,7 @@ export class OrganizationSyncService extends LoggerBase {
     const allOrgIds = Object.keys(orgSegmentCouples)
     const totalOrgIds = allOrgIds.length
 
-    const processSegmentsStream = async (databaseStream) => {
-      // Use Promise.all to wait for all org/segment queries
+    const processSegmentsStream = async (databaseStream): Promise<void> => {
       const results = await Promise.all(databaseStream.map((s) => s.promise))
 
       let index = 0
@@ -424,11 +443,10 @@ export class OrganizationSyncService extends LoggerBase {
           const isMultiSegment = SERVICE_CONFIG().edition === Edition.LFX
 
           if (isMultiSegment) {
-            // also calculate and push for parent segments
+            // also calculate and push for parent and grandparent segments
             const childSegmentIds: string[] = distinct(orgSegments.map((m) => m.segmentId))
             const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
 
-            // and for each parent and grandparent
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
             for (const parentId of parentIds) {
               const aggregated = OrganizationSyncService.aggregateDataV2(
@@ -465,12 +483,7 @@ export class OrganizationSyncService extends LoggerBase {
 
         index += 1
       }
-
-      return []
     }
-
-    const CONCURRENT_DATABASE_QUERIES = 10
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 50
 
     for (let i = 0; i < totalOrgIds; i++) {
       const orgId = allOrgIds[i]
@@ -484,15 +497,13 @@ export class OrganizationSyncService extends LoggerBase {
           promise: this.orgRepo.getOrganizationDataInOneSegment(orgId, segment.segmentId),
         })
 
-        // databaseStreams will create syncStreams items, which'll later be used to sync to opensearch in bulk
+        // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
         if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
           await processSegmentsStream(databaseStream)
           databaseStream = []
         }
 
         while (syncStream.length >= BULK_INDEX_DOCUMENT_BATCH_SIZE) {
-          console.log('Sync streams to opensearch!')
-          console.log(syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE))
           await this.openSearchService.bulkIndex(
             OpenSearchIndex.ORGANIZATIONS,
             syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
@@ -516,6 +527,8 @@ export class OrganizationSyncService extends LoggerBase {
         }
       }
     }
+
+    await this.orgRepo.markSynced(organizationIds)
 
     return {
       organizationsSynced: organizationIds.length,
@@ -614,10 +627,6 @@ export class OrganizationSyncService extends LoggerBase {
       throw new Error('Either parentId or grandParentId must be provided!')
     }
 
-    if (grandParentId === 'dc48fac5-b31a-4659-ac99-60eb52a1082a') {
-      console.log(`Aggregating data for CNCF!`)
-    }
-
     const relevantSubchildIds: string[] = []
     for (const si of segmentInfos) {
       if (parentId && si.parentId === parentId) {
@@ -630,11 +639,6 @@ export class OrganizationSyncService extends LoggerBase {
     const organizations = segmentOrganizationss.filter((m) =>
       relevantSubchildIds.includes(m.segmentId),
     )
-
-    if (grandParentId === 'dc48fac5-b31a-4659-ac99-60eb52a1082a') {
-      console.log(`Relevant subchilds for CNCF: `)
-      console.log(relevantSubchildIds)
-    }
 
     if (organizations.length === 0) {
       throw new Error('No organizations found for given parent or grandParent segment id!')
