@@ -577,6 +577,7 @@ export class OrganizationSyncService extends LoggerBase {
     organization.activityCount = 0
     organization.memberCount = 0
     organization.identities = []
+    organization.memberIds = []
 
     for (const org of organizations) {
       if (!organization.joinedAt) {
@@ -603,13 +604,15 @@ export class OrganizationSyncService extends LoggerBase {
 
       organization.activeOn.push(...org.activeOn)
       organization.activityCount += org.activityCount
-      organization.memberCount += org.memberCount
+      // organization.memberCount += org.memberCount
       organization.identities.push(...org.identities)
+      organization.memberIds.push(...org.memberIds)
     }
 
     // gather only uniques
     organization.activeOn = distinct(organization.activeOn)
     organization.identities = distinct(organization.identities)
+    organization.memberCount = distinct(organization.memberIds).length
 
     return organization
   }

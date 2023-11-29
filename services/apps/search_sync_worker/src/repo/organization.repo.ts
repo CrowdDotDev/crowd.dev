@@ -217,6 +217,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         SELECT
             os."segmentId",
             os."organizationId",
+            array_agg(distinct a."memberId") as "memberIds",
             count(DISTINCT a."memberId") AS "memberCount",
             count(DISTINCT a.id) AS "activityCount",
             CASE WHEN array_agg(DISTINCT a.platform) = ARRAY[NULL] THEN
@@ -298,6 +299,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."activeOn",
         md."activityCount"::integer,
         md."memberCount"::integer,
+        md."memberIds",
         i.identities,
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
         coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds",
