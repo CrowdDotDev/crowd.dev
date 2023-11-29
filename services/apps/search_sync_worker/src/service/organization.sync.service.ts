@@ -193,7 +193,7 @@ export class OrganizationSyncService extends LoggerBase {
 
   public async syncTenantOrganizationsV2(
     tenantId: string,
-    batchSize = 5,
+    batchSize = 100,
     syncCutoffTime?: string,
   ): Promise<void> {
     const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
@@ -210,9 +210,6 @@ export class OrganizationSyncService extends LoggerBase {
           batchSize,
           cutoffDate,
         )
-
-        // For testing purposes, TODO:: delete this after tests
-        organizationIds = ['9c2ed430-379a-11ee-ae51-d50298f9cdce']
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizationsV2(
