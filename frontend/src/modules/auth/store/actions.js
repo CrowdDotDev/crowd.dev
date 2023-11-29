@@ -20,26 +20,7 @@ export default {
     try {
       const token = AuthToken.get();
       if (token) {
-        const userDate = localStorage.getItem('userDateTime');
-        if (userDate) {
-          const dateDiff = new Date().getTime() - +userDate;
-          if (dateDiff > (7 * 24 * 60 * 60 * 1000)) {
-            localStorage.removeItem('user');
-            localStorage.removeItem('userDateTime');
-          }
-        }
         connectSocket(token);
-        const { pathname } = window.location;
-        if (!['/automations'].includes(pathname)) {
-          const currentUserLocally = AuthService.fetchMeLocally();
-
-          if (currentUserLocally) {
-            commit('AUTH_INIT_SUCCESS', { currentUser: currentUserLocally });
-
-            return currentUserLocally;
-          }
-        }
-
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
         return currentUser;

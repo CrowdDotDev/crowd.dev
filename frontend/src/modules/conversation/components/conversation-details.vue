@@ -156,6 +156,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import { mapState } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
@@ -170,6 +171,7 @@ import Message from '@/shared/message/message';
 import config from '@/config';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
@@ -212,6 +214,9 @@ export default {
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser',
     }),
+    ...mapState(useActivityTypeStore, {
+      types: 'types',
+    }),
     platform() {
       return CrowdIntegrations.getConfig(
         this.conversation.conversationStarter?.platform,
@@ -245,7 +250,7 @@ export default {
     },
     sorterOptions() {
       const { platform } = this.conversation;
-      const defaultActivityTypes = this.currentTenant?.settings[0]?.activityTypes?.default;
+      const defaultActivityTypes = this.types.default;
       const options = [{
         value: 'all',
         label: 'All',

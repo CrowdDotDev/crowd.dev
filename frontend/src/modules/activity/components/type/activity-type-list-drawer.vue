@@ -111,7 +111,6 @@
 import {
   computed,
   ref,
-  watch,
   onMounted,
 } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -146,7 +145,6 @@ const store = useStore();
 const { doFetch } = mapActions('integration');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { setTypes } = activityTypeStore;
 
 // Drawer open
 const isFormModalOpen = ref(false);
@@ -159,22 +157,6 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
-
-const getTypes = (subprojectId) => {
-  if (subprojectId) {
-    LfService.findSegment(subprojectId).then((response) => {
-      setTypes(response.activityTypes);
-    });
-  }
-};
-
-watch(
-  () => props.subprojectId,
-  (subprojectId) => {
-    getTypes(subprojectId);
-  },
-  { immediate: true, deep: true },
-);
 
 const edit = (activityType) => {
   editableActivityType.value = activityType;

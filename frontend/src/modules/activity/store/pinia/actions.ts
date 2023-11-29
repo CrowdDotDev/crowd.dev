@@ -33,4 +33,11 @@ export default {
         return Promise.reject(err);
       });
   },
+  fetchActivityChannels() {
+    return ActivityService.listActivityChannels()
+      .then((res) => {
+        this.activityChannels = res;
+        return Promise.resolve(res);
+      });
+  },
 };
