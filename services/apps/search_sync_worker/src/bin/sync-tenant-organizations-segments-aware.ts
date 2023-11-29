@@ -23,7 +23,7 @@ setImmediate(async () => {
 
   const service = new OrganizationSyncService(store, openSearchService, log)
 
-  await service.syncTenantOrganizationsSegmentAware(tenantId)
+  await service.syncTenantOrganizationsV2(tenantId)
 
   process.exit(0)
 })
