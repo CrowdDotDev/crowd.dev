@@ -212,8 +212,6 @@ export class OrganizationSyncService extends LoggerBase {
         )
 
         while (organizationIds.length > 0) {
-          organizationIds = ['a4e416d0-b582-41b6-ba1c-1dc32ac7b49e']
-
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizationsV2(
             organizationIds,
           )
@@ -225,13 +223,12 @@ export class OrganizationSyncService extends LoggerBase {
             { tenantId },
             `Synced ${organizationCount} organizations with ${docCount} documents!`,
           )
-          // organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
-          //   tenantId,
-          //   1,
-          //   batchSize,
-          //   cutoffDate,
-          // )
-          organizationIds = []
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+            tenantId,
+            1,
+            batchSize,
+            cutoffDate,
+          )
         }
       },
       this.log,
@@ -400,8 +397,8 @@ export class OrganizationSyncService extends LoggerBase {
    * @returns
    */
   public async syncOrganizationsV2(organizationIds: string[]): Promise<IOrganizationSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 20
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 1000
+    const CONCURRENT_DATABASE_QUERIES = 25
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all orgId-segmentId couples
     const orgSegmentCouples: IOrganizationSegmentMatrix =
