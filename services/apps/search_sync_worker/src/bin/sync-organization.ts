@@ -33,7 +33,7 @@ setImmediate(async () => {
     process.exit(1)
   } else {
     log.info(`Organization ${organizationId} found! Triggering sync!`)
-    await service.syncOrganizations([organizationId])
+    await service.syncOrganizationsV2([organizationId])
     process.exit(0)
   }
 })
