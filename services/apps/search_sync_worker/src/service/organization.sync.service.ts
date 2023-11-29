@@ -406,6 +406,8 @@ export class OrganizationSyncService extends LoggerBase {
     // get all orgId-segmentId couples
     const orgSegmentCouples: IOrganizationSegmentMatrix =
       await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
+
+    console.log(orgSegmentCouples)
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
