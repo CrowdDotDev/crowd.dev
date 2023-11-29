@@ -169,11 +169,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `
       WITH organization_segments AS (
         SELECT
-            "segmentId",
-            "organizationId"
-        FROM "organizationSegments"
-        WHERE "organizationId" = $(organizationId)
-        AND "segmentId" = $(segmentId)
+        $(segmentId) AS "segmentId",
+        $(organizationId) AS "organizationId"
 
     ),
     to_merge_data AS (
