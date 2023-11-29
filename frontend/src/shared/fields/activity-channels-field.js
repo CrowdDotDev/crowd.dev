@@ -22,7 +22,7 @@ export default class ActivityChannelsField extends JSONField {
       label: {
         type: 'platform',
         key: platform,
-        value: CrowdIntegrations.getConfig(platform).name,
+        value: CrowdIntegrations.getConfig(platform)?.name ?? platform,
       },
       nestedOptions: channels.map((channel) => ({
         value: channel,
