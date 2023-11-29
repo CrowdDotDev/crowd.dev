@@ -38,6 +38,14 @@
             </div>
           </div>
         </div>
+        <div class="mt-4">
+          <el-button
+            class="btn btn--md btn--bordered"
+            @click="searchContactOnGoogle"
+          >
+            Not a match? Search Google instead
+          </el-button>
+        </div>
       </div>
       <div v-else-if="!loading">
         <app-empty-state-cta
@@ -126,13 +134,19 @@ const changeSelected = (username) => {
 };
 
 const searchContactOnGoogle = () => {
-  let searchQuery = `https://www.google.com/search?q=${props.modelValue.displayName}`;
+  const searchTerms = new Set([props.modelValue.displayName.toLowerCase()]);
   Object.keys(props.modelValue.username).forEach((username) => {
     if (Object.prototype.hasOwnProperty.call(props.modelValue.username, username)) {
-      searchQuery += ` OR ${props.modelValue.username[username]}`;
+      props.modelValue.username[username].forEach((user) => {
+        const lowerCaseUser = user.toLowerCase();
+        if (!searchTerms.has(lowerCaseUser)) {
+          searchTerms.add(lowerCaseUser);
+        }
+      });
     }
   });
-  window.open(searchQuery, '_blank');
+  const searchQuery = `(${Array.from(searchTerms).join(' OR ')}) github`;
+  window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
 };
 
 const handleSubmit = async () => {
