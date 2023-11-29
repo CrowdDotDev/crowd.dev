@@ -212,11 +212,11 @@ export class OrganizationSyncService extends LoggerBase {
         )
 
         while (organizationIds.length > 0) {
+          organizationIds = ['a4e416d0-b582-41b6-ba1c-1dc32ac7b49e']
+
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizationsV2(
             organizationIds,
           )
-
-          organizationIds = ['a4e416d0-b582-41b6-ba1c-1dc32ac7b49e']
 
           organizationCount += organizationsSynced
           docCount += documentsIndexed
