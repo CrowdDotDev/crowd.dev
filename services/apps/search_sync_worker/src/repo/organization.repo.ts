@@ -170,7 +170,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       WITH organization_segments AS (
         SELECT
         $(segmentId)::uuid AS "segmentId",
-        $(organizationId):uuid AS "organizationId"
+        $(organizationId)::uuid AS "organizationId"
 
     ),
     to_merge_data AS (
