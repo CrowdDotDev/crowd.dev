@@ -216,6 +216,8 @@ export class OrganizationSyncService extends LoggerBase {
             organizationIds,
           )
 
+          organizationIds = ['a4e416d0-b582-41b6-ba1c-1dc32ac7b49e']
+
           organizationCount += organizationsSynced
           docCount += documentsIndexed
 
@@ -223,12 +225,13 @@ export class OrganizationSyncService extends LoggerBase {
             { tenantId },
             `Synced ${organizationCount} organizations with ${docCount} documents!`,
           )
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
-          )
+          // organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+          //   tenantId,
+          //   1,
+          //   batchSize,
+          //   cutoffDate,
+          // )
+          organizationIds = []
         }
       },
       this.log,
