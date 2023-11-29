@@ -432,7 +432,7 @@ export class OrganizationSyncService extends LoggerBase {
             // and for each parent and grandparent
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
             for (const parentId of parentIds) {
-              const aggregated = OrganizationSyncService.aggregateData(
+              const aggregated = OrganizationSyncService.aggregateDataV2(
                 orgSegmentCouples[orgId].map((s) => s.data),
                 segmentInfos,
                 parentId,
@@ -446,7 +446,7 @@ export class OrganizationSyncService extends LoggerBase {
 
             const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
             for (const grandParentId of grandParentIds) {
-              const aggregated = OrganizationSyncService.aggregateData(
+              const aggregated = OrganizationSyncService.aggregateDataV2(
                 orgSegmentCouples[orgId].map((s) => s.data),
                 segmentInfos,
                 undefined,
@@ -534,6 +534,87 @@ export class OrganizationSyncService extends LoggerBase {
       throw new Error('Either parentId or grandParentId must be provided!')
     }
 
+    const relevantSubchildIds: string[] = []
+    for (const si of segmentInfos) {
+      if (parentId && si.parentId === parentId) {
+        relevantSubchildIds.push(si.id)
+      } else if (grandParentId && si.grandParentId === grandParentId) {
+        relevantSubchildIds.push(si.id)
+      }
+    }
+
+    const organizations = segmentOrganizationss.filter((m) =>
+      relevantSubchildIds.includes(m.segmentId),
+    )
+
+    if (organizations.length === 0) {
+      throw new Error('No organizations found for given parent or grandParent segment id!')
+    }
+
+    // aggregate data
+    const organization = { ...organizations[0] }
+
+    // use corrent id as segmentId
+    if (parentId) {
+      organization.segmentId = parentId
+    } else {
+      organization.segmentId = grandParentId
+    }
+
+    // reset aggregates
+    organization.joinedAt = undefined
+    organization.lastActive = undefined
+    organization.activeOn = []
+    organization.activityCount = 0
+    organization.memberCount = 0
+    organization.identities = []
+
+    for (const org of organizations) {
+      if (!organization.joinedAt) {
+        organization.joinedAt = org.joinedAt
+      } else if (org.joinedAt) {
+        const d1 = new Date(organization.joinedAt)
+        const d2 = new Date(org.joinedAt)
+
+        if (d1 > d2) {
+          organization.joinedAt = org.joinedAt
+        }
+      }
+
+      if (!organization.lastActive) {
+        organization.lastActive = org.lastActive
+      } else if (org.lastActive) {
+        const d1 = new Date(organization.lastActive)
+        const d2 = new Date(org.lastActive)
+
+        if (d1 < d2) {
+          organization.lastActive = org.lastActive
+        }
+      }
+
+      organization.activeOn.push(...org.activeOn)
+      organization.activityCount += org.activityCount
+      organization.memberCount += org.memberCount
+      organization.identities.push(...org.identities)
+    }
+
+    // gather only uniques
+    organization.activeOn = distinct(organization.activeOn)
+    organization.identities = distinct(organization.identities)
+
+    return organization
+  }
+
+  private static aggregateDataV2(
+    segmentOrganizationss: IDbOrganizationSyncData[],
+    segmentInfos: IDbSegmentInfo[],
+    parentId?: string,
+    grandParentId?: string,
+  ): IDbOrganizationSyncData | undefined {
+    if (!parentId && !grandParentId) {
+      throw new Error('Either parentId or grandParentId must be provided!')
+    }
+
     if (grandParentId === 'dc48fac5-b31a-4659-ac99-60eb52a1082a') {
       console.log(`Aggregating data for CNCF!`)
     }
@@ -611,7 +692,12 @@ export class OrganizationSyncService extends LoggerBase {
 
     // gather only uniques
     organization.activeOn = distinct(organization.activeOn)
-    organization.identities = distinct(organization.identities)
+    organization.identities = organization.identities.reduce((acc, identity) => {
+      if (!acc.find((i) => i.platform === identity.platform && i.name === identity.name)) {
+        acc.push(identity)
+      }
+      return acc
+    }, [])
     organization.memberCount = distinct(organization.memberIds).length
 
     return organization
