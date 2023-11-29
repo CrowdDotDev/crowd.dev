@@ -33,10 +33,9 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { useActivityTypeStore } from '@/modules/activity/store/type';
 import CrMenuHeader from '@/modules/layout/components/menu/menu-header.vue';
 import CrMenuWorkspace from '@/modules/layout/components/menu/menu-workspace.vue';
 import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
@@ -46,17 +45,6 @@ import CrMenuQuickstart from '@/modules/layout/components/menu/menu-quickstart.v
 
 const store = useStore();
 const { currentTenant } = mapGetters('auth');
-const { setTypes } = useActivityTypeStore();
-
-watch(
-  () => currentTenant,
-  (tenant) => {
-    if (tenant.value?.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes);
-    }
-  },
-  { immediate: true, deep: true },
-);
 
 const isCollapsed = computed(
   () => store.getters['layout/menuCollapsed'],
