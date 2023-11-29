@@ -325,7 +325,6 @@ export class AutomationService {
         payload,
         error: err,
       })
-      throw err
     }
   }
 

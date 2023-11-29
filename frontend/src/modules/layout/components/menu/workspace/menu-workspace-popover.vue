@@ -26,13 +26,9 @@
 
       <!-- Add workspace -->
       <section
-        class="border-b border-gray-100"
-        :class="{
-          'px-2 pb-3': hasPermissionsForSettings,
-        }"
+        class="border-b border-gray-100 px-2 pb-3"
       >
         <div
-          v-if="hasPermissionsForSettings"
           class="px-3 h-10 text-sm font-normal rounded hover:bg-gray-50 cursor-pointer flex items-center text-brand-500"
           @click="emit('add')"
         >
