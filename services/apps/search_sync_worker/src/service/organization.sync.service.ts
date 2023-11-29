@@ -534,6 +534,10 @@ export class OrganizationSyncService extends LoggerBase {
       throw new Error('Either parentId or grandParentId must be provided!')
     }
 
+    if (grandParentId === 'dc48fac5-b31a-4659-ac99-60eb52a1082a') {
+      console.log(`Aggregating data for CNCF!`)
+    }
+
     const relevantSubchildIds: string[] = []
     for (const si of segmentInfos) {
       if (parentId && si.parentId === parentId) {
@@ -546,6 +550,11 @@ export class OrganizationSyncService extends LoggerBase {
     const organizations = segmentOrganizationss.filter((m) =>
       relevantSubchildIds.includes(m.segmentId),
     )
+
+    if (grandParentId === 'dc48fac5-b31a-4659-ac99-60eb52a1082a') {
+      console.log(`Relevant subchilds for CNCF: `)
+      console.log(relevantSubchildIds)
+    }
 
     if (organizations.length === 0) {
       throw new Error('No organizations found for given parent or grandParent segment id!')
