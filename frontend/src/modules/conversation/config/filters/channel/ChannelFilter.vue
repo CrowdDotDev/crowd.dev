@@ -39,7 +39,7 @@ const { activityChannels } = storeToRefs(activityStore);
 
 watch(() => activityChannels.value, () => {
   data.value.options = Object.entries(activityChannels.value).map(([platform, channels]): SelectFilterOptionGroup => ({
-    label: CrowdIntegrations.getConfig(platform).name,
+    label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
     options: channels.map((channel) => ({
       value: channel,
       label: platform === 'github' ? extractRepoNameFromUrl(channel) : channel,
