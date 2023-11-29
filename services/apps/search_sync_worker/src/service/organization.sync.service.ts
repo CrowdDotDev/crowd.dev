@@ -210,7 +210,7 @@ export class OrganizationSyncService extends LoggerBase {
           batchSize,
           cutoffDate,
         )
-        organizationIds = ['443f5340-46ea-4eee-9372-42d900483326']
+        organizationIds = ['9c2ed430-379a-11ee-ae51-d50298f9cdce']
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizationsV2(
