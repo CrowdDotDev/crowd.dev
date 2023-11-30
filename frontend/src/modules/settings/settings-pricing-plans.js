@@ -43,7 +43,8 @@ export const plans = {
       key: crowdHostedPlans.essential,
       title: 'Essential',
       description: 'Unify & act on your developer data',
-      price: 'Free',
+      price: '$120/month',
+      priceMonthly: '$150/month',
       features: [
         {
           includes: true,
@@ -51,7 +52,7 @@ export const plans = {
         },
         {
           includes: true,
-          value: '1k monthly active contacts',
+          value: '2k monthly active contacts',
         },
         {
           includes: true,
@@ -84,12 +85,18 @@ export const plans = {
         },
       ],
       ctaLabel: {
+        [Plans.values.essential]: 'Start a 30-day trial',
         [Plans.values.eagleEye]: 'Downgrade to Essential',
         [Plans.values.growth]: 'Downgrade to Essential',
         [Plans.values.scale]: 'Downgrade to Essential',
         [Plans.values.enterprise]: 'Downgrade to Essential',
       },
       ctaAction: {
+        [Plans.values.essential]: ({ monthlyPayment }) => {
+          const monthlyLink = 'https://buy.stripe.com/6oE9E88OUdkG87u9AG';
+          const yearlyLink = 'https://buy.stripe.com/aEUbMgghm2G24VicMT';
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+        },
         [Plans.values.eagleEye]: openCustomerPortalLink,
         [Plans.values.growth]: openCustomerPortalLink,
         [Plans.values.scale]: openCustomerPortalLink,
@@ -102,7 +109,7 @@ export const plans = {
       description:
         'Commercialize your developer-first product',
       price: '$400/month',
-      priceInfo: 'annual payment',
+      priceMonthly: '$450/month',
       features: [
         {
           includes: true,
@@ -143,9 +150,9 @@ export const plans = {
         },
       ],
       ctaLabel: {
-        [Plans.values.eagleEye]: 'Start 30-days trial',
-        [Plans.values.essential]: 'Start 30-days trial',
-        [Plans.values.growth]: 'Start 30-days trial',
+        [Plans.values.eagleEye]: 'Book a demo',
+        [Plans.values.essential]: 'Book a demo',
+        [Plans.values.growth]: 'Book a demo',
         [Plans.values.enterprise]: 'Downgrade to Scale',
       },
       ctaAction: {
@@ -201,10 +208,10 @@ export const plans = {
         },
       ],
       ctaLabel: {
-        [Plans.values.eagleEye]: 'Get a quote',
-        [Plans.values.essential]: 'Get a quote',
-        [Plans.values.growth]: 'Get a quote',
-        [Plans.values.scale]: 'Get a quote',
+        [Plans.values.eagleEye]: 'Book a demo',
+        [Plans.values.essential]: 'Book a demo',
+        [Plans.values.growth]: 'Book a demo',
+        [Plans.values.scale]: 'Book a demo',
       },
       ctaAction: {
         [Plans.values.eagleEye]: customPlanCal,
