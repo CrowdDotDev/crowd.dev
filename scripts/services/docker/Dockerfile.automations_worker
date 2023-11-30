@@ -5,10 +5,12 @@ WORKDIR /usr/crowd/app
 COPY ./services ./services
 RUN apk add --update --no-cache bash && cd services/scripts && ./install_lib_packages.sh &&  ./install_app_packages.sh
 
-FROM node:16-bookworm as runner
+FROM node:16-bookworm-slim as runner
 
 WORKDIR /usr/crowd/app
 
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
 COPY --from=builder /usr/crowd/app/services/archetypes ./services/archetypes
 COPY --from=builder /usr/crowd/app/services/apps/automations_worker ./services/apps/automations_worker
+
+RUN apt update && apt install -y ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
