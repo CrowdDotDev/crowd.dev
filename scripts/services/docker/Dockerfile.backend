@@ -1,20 +1,18 @@
 FROM node:16-alpine as builder
 
-RUN apk add --update --no-cache bash python3 build-base && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools
-
 WORKDIR /usr/crowd/app
-COPY ./services/scripts ./services/scripts
-COPY ./services/libs ./services/libs
-COPY ./backend/package-lock.json ./backend/package.json ./backend/
+RUN corepack enable && apk add --update --no-cache python3 build-base && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools
 
-RUN cd services/scripts && ./install_lib_packages.sh &&\
-    cd ../../backend && npm ci && \
-    npm cache clean --force
+COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
+COPY ./backend ./backend
+COPY ./services/libs ./services/libs
+RUN pnpm i --frozen-lockfile
 
 FROM node:16-alpine as runner
 
 WORKDIR /usr/crowd/app
+RUN corepack enable
 
+COPY --from=builder /usr/crowd/app/node_modules ./node_modules
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
 COPY --from=builder /usr/crowd/app/backend ./backend
-COPY ./backend ./backend
