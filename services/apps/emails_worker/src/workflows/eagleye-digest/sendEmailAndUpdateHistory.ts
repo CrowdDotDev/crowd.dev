@@ -50,8 +50,17 @@ export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promis
     fromEagleEye: fetchedFromEagleEye,
   })
 
-  // No need to continue the workflow if content of email built is empty.
+  // No need to continue the workflow if content of email built is empty. But we
+  // still need to make sure the next EagleEeye email digest will be sent on daily
+  // or weekly basis so the email address is not retrieved on the next run.
   if (content.length == 0) {
+    eagleeyeUpdateNextEmailAt({
+      ...row,
+      type: 'eagle-eye-digest',
+      emails: [row.settings.eagleEye.emailDigest?.email || row.email],
+      sentAt: new Date(Date.now()),
+    })
+
     return
   }
 
