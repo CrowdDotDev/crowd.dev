@@ -3,7 +3,7 @@ FROM node:16-alpine as builder
 WORKDIR /usr/crowd/app
 
 COPY ./services ./services
-RUN apk add --update --no-cache bash && cd services/scripts && ./install_lib_packages.sh &&  ./install_app_packages.sh
+RUN apk add --update --no-cache bash && cd services/scripts && ./install_lib_packages.sh --omit=dev &&  ./install_app_packages.sh
 
 FROM node:16-bookworm-slim as runner
 
