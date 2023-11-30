@@ -233,6 +233,9 @@ onMounted(() => {
 });
 
 const getBadge = (plan) => {
+  if (plan === crowdHostedPlans.essential) {
+    return null;
+  }
   if (plan === crowdHostedPlans.scale && [crowdHostedPlans.essential, crowdHostedPlans.eagleEye].includes(activePlan.value)) {
     // Recommended plan
     return {
