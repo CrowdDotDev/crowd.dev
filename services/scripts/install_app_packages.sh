@@ -12,7 +12,7 @@ for app_dir in $CLI_HOME/../apps/*/; do
   if [ -f "${app_dir}package.json" ]; then
     app=$(basename $app_dir)
     yell "Installing packages for app: $app! $FLAGS"
-    (cd $app_dir && npm ci $FLAGS) &
+    (cd $app_dir && npm ci) &
   fi
 done
 

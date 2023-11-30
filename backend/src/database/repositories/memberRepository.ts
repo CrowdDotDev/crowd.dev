@@ -3698,6 +3698,82 @@ class MemberRepository {
       ids: members.map((i: any) => i.id),
     }
   }
+
+  static async moveNotesBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const deleteQuery = `
+      delete from "memberNotes" using "memberNotes" as mn2
+      where "memberNotes"."memberId" = :fromMemberId 
+      and "memberNotes"."noteId" = mn2."noteId"
+      and mn2."memberId" = :toMemberId;
+    `
+
+    await seq.query(deleteQuery, {
+      replacements: params,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
+    const updateQuery = `
+      update "memberNotes" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async moveTasksBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const deleteQuery = `
+      delete from "memberTasks" using "memberTasks" as mt2
+      where "memberTasks"."memberId" = :fromMemberId 
+      and "memberTasks"."taskId" = mt2."taskId"
+      and mt2."memberId" = :toMemberId;
+    `
+
+    await seq.query(deleteQuery, {
+      replacements: params,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
+    const updateQuery = `
+      update "memberTasks" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
 }
 
 export default MemberRepository

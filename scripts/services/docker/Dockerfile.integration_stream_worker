@@ -1,17 +1,15 @@
-FROM node:16-alpine
-
-RUN apk add --update --no-cache bash
+FROM node:16-alpine as builder
 
 WORKDIR /usr/crowd/app
 
-COPY ./services/scripts ./services/scripts
-COPY ./services/libs/ ./services/libs/
-RUN cd services/scripts && ./install_lib_packages.sh
+COPY ./services ./services
 
-COPY ./services/apps/integration_stream_worker/package.json ./services/apps/integration_stream_worker/package-lock.json ./services/apps/integration_stream_worker/tsconfig.json  ./services/apps/integration_stream_worker/
-COPY ./services/apps/integration_stream_worker/config ./services/apps/integration_stream_worker/config
-COPY ./services/apps/integration_stream_worker/src ./services/apps/integration_stream_worker/src
+RUN apk add --update --no-cache bash && cd services/scripts && ./install_lib_packages.sh &&  ./install_app_packages.sh
 
-RUN cd services/apps/integration_stream_worker && npm ci
+FROM node:16-alpine as runner
 
-RUN npm cache clean --force
+WORKDIR /usr/crowd/app
+
+COPY --from=builder /usr/crowd/app/services/libs ./services/libs
+COPY --from=builder /usr/crowd/app/services/archetypes ./services/archetypes
+COPY --from=builder /usr/crowd/app/services/apps/integration_stream_worker ./services/apps/integration_stream_worker

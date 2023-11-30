@@ -645,6 +645,12 @@ export default class MemberService extends LoggerBase {
         repoOptions,
       )
 
+      // Update notes to belong to the originalId member
+      await MemberRepository.moveNotesBetweenMembers(toMergeId, originalId, repoOptions)
+
+      // Update tasks to belong to the originalId member
+      await MemberRepository.moveTasksBetweenMembers(toMergeId, originalId, repoOptions)
+
       // Get tags as array of ids (findById returns them as models)
       original.tags = original.tags.map((i) => i.get({ plain: true }).id)
       toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)

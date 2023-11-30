@@ -24,6 +24,7 @@ import MemberAffiliationService from './memberAffiliationService'
 import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
+import TenantService from '@/services/tenantService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -747,6 +748,18 @@ export default class ActivityService extends LoggerBase {
 
   async findById(id) {
     return ActivityRepository.findById(id, this.options)
+  }
+
+  async findActivityTypes(id: string) {
+    const segmentService = new SegmentService(this.options)
+    const tenant = await new TenantService(this.options).findById(id)
+    const tenantSubprojects = await segmentService.getTenantSubprojects(tenant)
+    return SegmentService.getTenantActivityTypes(tenantSubprojects)
+  }
+
+  async findActivityChannels(id: string) {
+    const tenant = await new TenantService(this.options).findById(id)
+    return SegmentService.getTenantActivityChannels(tenant, this.options)
   }
 
   async findAllAutocomplete(search, limit) {

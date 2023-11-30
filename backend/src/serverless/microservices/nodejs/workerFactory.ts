@@ -57,7 +57,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         await isFeatureEnabled(
           FeatureFlag.TEMPORAL_EMAILS,
           async () => ({
-            tenant,
+            tenantId: tenant,
           }),
           unleash,
         )
@@ -71,7 +71,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         await isFeatureEnabled(
           FeatureFlag.TEMPORAL_EMAILS,
           async () => ({
-            tenant,
+            tenantId: tenant,
           }),
           unleash,
         )
