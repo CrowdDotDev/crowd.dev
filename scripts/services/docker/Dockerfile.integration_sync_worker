@@ -1,17 +1,14 @@
-FROM node:16-alpine
-
-RUN apk add --update --no-cache bash
+FROM node:16-bookworm as builder
 
 WORKDIR /usr/crowd/app
 
-COPY ./services/scripts ./services/scripts
-COPY ./services/libs/ ./services/libs/
-RUN cd services/scripts && ./install_lib_packages.sh
+COPY ./services ./services
+RUN cd services/scripts && ./install_lib_packages.sh &&  ./install_app_packages.sh
 
-COPY ./services/apps/integration_sync_worker/package.json ./services/apps/integration_sync_worker/package-lock.json ./services/apps/integration_sync_worker/tsconfig.json  ./services/apps/integration_sync_worker/
-COPY ./services/apps/integration_sync_worker/config ./services/apps/integration_sync_worker/config
-COPY ./services/apps/integration_sync_worker/src ./services/apps/integration_sync_worker/src
+FROM node:16-bookworm as runner
 
-RUN cd services/apps/integration_sync_worker && npm ci
+WORKDIR /usr/crowd/app
 
-RUN npm cache clean --force
+COPY --from=builder /usr/crowd/app/services/libs ./services/libs
+COPY --from=builder /usr/crowd/app/services/archetypes ./services/archetypes
+COPY --from=builder /usr/crowd/app/services/apps/integration_sync_worker ./services/apps/integration_sync_worker
