@@ -40,11 +40,6 @@ export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promis
     eagleeyeFetchFromDatabase(row),
   ])
 
-  // No need to continue the workflow if no data was fetched.
-  if (fetchedFromEagleEye.length == 0 && fetchedFromDatabase.length == 0) {
-    return
-  }
-
   const content = await eagleeyeBuildEmailContent({
     fromDatabase: fetchedFromDatabase,
     fromEagleEye: fetchedFromEagleEye,
