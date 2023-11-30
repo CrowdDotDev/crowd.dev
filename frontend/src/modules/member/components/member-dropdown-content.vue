@@ -19,40 +19,6 @@
       <span class="text-xs">Edit contact</span>
     </button>
   </router-link>
-  <el-tooltip
-    placement="top"
-    :content="
-      !isEnrichmentFeatureEnabled()
-        ? 'Upgrade your plan to increase your quota of available contact enrichments'
-        : 'Contact enrichment requires an associated GitHub profile or Email'
-    "
-    :disabled="isEnrichmentDisabledForMember || isEnrichmentFeatureEnabled()"
-    popper-class="max-w-[260px]"
-  >
-    <span>
-      <button
-        class="h-10 el-dropdown-menu__item w-full mb-1"
-        :disabled="isEnrichmentActionDisabled"
-        type="button"
-        @click="
-          handleCommand({
-            action: Actions.ENRICH_CONTACT,
-            member,
-          })
-        "
-      >
-        <app-svg name="enrichment" class="max-w-[16px] h-4" color="#9CA3AF" />
-        <span
-          class="ml-2 text-xs"
-          :class="{
-            'text-gray-400': isEnrichmentDisabledForMember,
-          }"
-        >{{
-          member.lastEnriched ? "Re-enrich contact" : "Enrich contact"
-        }}</span>
-      </button>
-    </span>
-  </el-tooltip>
   <button
     v-if="isFindGitHubFeatureEnabled"
     class="h-10 el-dropdown-menu__item w-full mb-1"
@@ -228,7 +194,6 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import { isEnrichmentFeatureEnabled } from '@/modules/member/member-enrichment';
 import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
@@ -243,7 +208,6 @@ enum Actions {
   MARK_CONTACT_AS_BOT = 'markContactAsBot',
   UNMARK_CONTACT_AS_BOT = 'unmarkContactAsBot',
   MERGE_CONTACT = 'mergeContact',
-  ENRICH_CONTACT = 'enrichContact',
   FIND_GITHUB = 'findGithub'
 }
 
@@ -256,7 +220,7 @@ const store = useStore();
 const route = useRoute();
 
 const { currentUser, currentTenant } = mapGetters('auth');
-const { doFind, doEnrich } = mapActions('member');
+const { doFind } = mapActions('member');
 
 const memberStore = useMemberStore();
 
@@ -268,16 +232,6 @@ const isEditLockedForSampleData = computed(
 const isDeleteLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .destroyLockedForSampleData,
-);
-
-const isEnrichmentDisabledForMember = computed(
-  () => !props.member.username?.github?.length && !props.member.emails?.length,
-);
-
-const isEnrichmentActionDisabled = computed(
-  () => isEnrichmentDisabledForMember.value
-    || isEditLockedForSampleData.value
-    || !isEnrichmentFeatureEnabled(),
 );
 
 const isSyncingWithHubspot = computed(
@@ -306,7 +260,7 @@ const isHubspotActionDisabled = computed(
 );
 
 const isFindingGitHubDisabled = computed(() => (
-  props.member.username?.github
+  !!props.member.username?.github
 ));
 
 const isFindGitHubFeatureEnabled = computed(() => FeatureFlag.isFlagEnabled(
@@ -463,17 +417,6 @@ const handleCommand = async (command: {
   if (command.action === Actions.MERGE_CONTACT) {
     emit('closeDropdown');
     emit('merge');
-
-    return;
-  }
-
-  // Enrich contact
-  if (command.action === Actions.ENRICH_CONTACT) {
-    doManualAction({
-      actionFn: doEnrich(command.member.id),
-    }).then(() => {
-      memberStore.fetchMembers({ reload: true });
-    });
 
     return;
   }
