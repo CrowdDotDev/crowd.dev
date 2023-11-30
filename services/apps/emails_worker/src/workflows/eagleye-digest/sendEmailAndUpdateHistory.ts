@@ -54,7 +54,7 @@ export async function eagleeyeSendEmailAndUpdateHistory(row: UserTenant): Promis
   // still need to make sure the next EagleEeye email digest will be sent on daily
   // or weekly basis so the email address is not retrieved on the next run.
   if (content.length == 0) {
-    eagleeyeUpdateNextEmailAt({
+    await eagleeyeUpdateNextEmailAt({
       ...row,
       type: 'eagle-eye-digest',
       emails: [row.settings.eagleEye.emailDigest?.email || row.email],
