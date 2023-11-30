@@ -265,6 +265,7 @@ class MemberRepository {
             AND ms."segmentId" IN (:segmentIds)
         ) AS "membersToMerge" 
       ORDER BY 
+        CASE WHEN "membersToMerge"."similarity" IS NULL THEN 1 ELSE 0 END,
         "membersToMerge"."similarity" DESC 
       LIMIT :limit OFFSET :offset
     `,
