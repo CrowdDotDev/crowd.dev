@@ -56,6 +56,24 @@
     </div>
   </div>
   <div class="panel mt-6">
+    <div class="flex justify-center">
+      <div
+        class="h-8 border-solid border-gray-200 border-r border-y first:border-l flex items-center
+       justify-center transition hover:bg-gray-50 cursor-pointer first:rounded-l-md last:rounded-r-md px-4 text-sm"
+        :class="!monthlyPayment ? 'bg-gray-100 font-medium text-gray-900' : 'bg-white'"
+        @click="monthlyPayment = false"
+      >
+        Yearly payment
+      </div>
+      <div
+        class="h-8 border-solid border-gray-200 border-r border-y first:border-l flex items-center
+       justify-center transition hover:bg-gray-50 cursor-pointer first:rounded-l-md last:rounded-r-md px-4 text-sm"
+        :class="monthlyPayment ? 'bg-gray-100 font-medium text-gray-900' : 'bg-white'"
+        @click="monthlyPayment = true"
+      >
+        Monthly payment
+      </div>
+    </div>
     <div class="flex gap-4">
       <div
         v-for="plan in plansList"
@@ -92,8 +110,8 @@
               </div>
               <!-- Price -->
               <div class="flex items-start gap-1">
-                <span class="text-brand-500 text-base">{{ plan.price }}</span>
-                <span class="text-2xs text-gray-400 font-medium">{{ plan.priceInfo }}</span>
+                <span class="text-brand-500 text-base">{{ !monthlyPayment ? plan.price : (plan.priceMonthly ?? plan.price) }}</span>
+                <span class="text-2xs text-gray-400 font-medium" />
               </div>
 
               <el-button
@@ -185,6 +203,7 @@ const { doRefreshCurrentUser } = mapActions('auth');
 const store = useStore();
 
 const isCalDialogOpen = ref(false);
+const monthlyPayment = ref(false);
 
 const currentTenant = computed(
   () => store.getters['auth/currentTenant'],
@@ -214,6 +233,9 @@ onMounted(() => {
 });
 
 const getBadge = (plan) => {
+  if (plan === crowdHostedPlans.essential) {
+    return null;
+  }
   if (plan === crowdHostedPlans.scale && [crowdHostedPlans.essential, crowdHostedPlans.eagleEye].includes(activePlan.value)) {
     // Recommended plan
     return {
@@ -249,6 +271,7 @@ const handleOnCtaClick = ({ key, ctaAction }) => {
 
   ctaAction[activePlan.value]({
     displayCalDialog,
+    monthlyPayment: monthlyPayment.value,
   });
 };
 </script>
