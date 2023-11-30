@@ -43,6 +43,7 @@
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
+    "@crowd/opensearch": "file:../../libs/opensearch",
     "@opensearch-project/opensearch": "^1.2.0",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
