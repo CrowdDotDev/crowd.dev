@@ -206,7 +206,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         JOIN "memberOrganizations" mo ON m.id = mo."memberId"
             AND a."organizationId" = mo."organizationId"
             AND mo."deletedAt" IS NULL
-            AND mo."dateEnd" IS NULL
         WHERE a."organizationId" = $(organizationId)
     ),
     member_data AS (
