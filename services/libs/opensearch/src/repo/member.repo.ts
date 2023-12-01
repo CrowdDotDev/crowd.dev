@@ -392,7 +392,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       select 
         m.id,
         m."tenantId",
-        $(segmentId),
+        $(segmentId) as "segmentId",
         m."displayName",
         m.attributes,
         m.emails,
