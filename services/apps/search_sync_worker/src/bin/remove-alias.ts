@@ -22,7 +22,7 @@ setImmediate(async () => {
     process.exit(1)
   }
 
-  await openSearchService.setAliasToIndex(index, alias)
+  await openSearchService.removeAlias(index, alias)
 
   log.info(`Alias ${alias} is set to ${index}!`)
 
