@@ -316,7 +316,7 @@ export class MemberSyncService {
     const CONCURRENT_DATABASE_QUERIES = 25
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
-    // get all orgId-segmentId couples
+    // get all memberId-segmentId couples
     const memberSegmentCouples: IMemberSegmentMatrix =
       await this.memberRepo.getMemberSegmentCouples(memberIds)
     let databaseStream = []
@@ -341,7 +341,7 @@ export class MemberSyncService {
         targetSegment.processed = true
         targetSegment.data = result
 
-        // Check if all segments for the organization have been processed
+        // Check if all segments for the member have been processed
         const allSegmentsOfMemberIsProcessed = memberSegments.every((s) => s.processed)
         if (allSegmentsOfMemberIsProcessed) {
           const attributes = await this.memberRepo.getTenantMemberAttributes(result.tenantId)
@@ -393,7 +393,7 @@ export class MemberSyncService {
             }
           }
 
-          // delete the orgId from matrix, we already created syncStreams for indexing to opensearch
+          // delete the memberId from matrix, we already created syncStreams for indexing to opensearch
           delete memberSegmentCouples[memberId]
         }
 
