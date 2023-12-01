@@ -2294,6 +2294,9 @@ importers:
       '@temporalio/client':
         specifier: ~1.8.6
         version: 1.8.6
+      '@temporalio/common':
+        specifier: ^1.8.6
+        version: 1.8.6
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
