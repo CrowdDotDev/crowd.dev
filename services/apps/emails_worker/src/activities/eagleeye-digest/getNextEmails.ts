@@ -1,6 +1,3 @@
-import { FeatureFlag } from '@crowd/types'
-import { isFeatureEnabled } from '@crowd/feature-flags'
-
 import { svc } from '../../main'
 import { UserTenant } from '../../types/user'
 
@@ -26,23 +23,5 @@ export async function eagleeyeGetNextEmails(): Promise<UserTenant[]> {
     throw new Error(err)
   }
 
-  // Filter rows to only return tenants with this feature flag enabled.
-  const users: UserTenant[] = []
-  for (const row of rows) {
-    if (
-      await isFeatureEnabled(
-        FeatureFlag.TEMPORAL_EMAILS,
-        async () => {
-          return {
-            tenantId: row.tenantId,
-          }
-        },
-        svc.unleash,
-      )
-    ) {
-      users.push(row)
-    }
-  }
-
-  return users
+  return rows
 }

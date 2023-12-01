@@ -18,7 +18,6 @@
     "@crowd/archetype-worker": "file:../../archetypes/worker",
     "@crowd/common": "file:../../libs/common",
     "@crowd/cubejs": "file:../../libs/cubejs",
-    "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/types": "file:../../libs/types",
     "@sendgrid/mail": "~7.7.0",
     "@temporalio/activity": "~1.8.6",
