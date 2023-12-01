@@ -32,6 +32,7 @@
     "script:create-versioned-index": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/create-versioned-index.ts",
     "script:reindex": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/reindex.ts",
     "script:create-alias": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/create-alias.ts",
+    "script:set-alias-to-index": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/set-alias-to-index.ts",
     "script:get-doc-count": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-doc-count.ts"
   },
   "dependencies": {

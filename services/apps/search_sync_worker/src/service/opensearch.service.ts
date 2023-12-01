@@ -113,7 +113,7 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  private async pointAliasToCorrectIndex(indexName: string, aliasName: string): Promise<void> {
+  public async setAliasToIndex(indexName: string, aliasName: string): Promise<void> {
     try {
       // Updates alias by removing existing references and points it to the new index
       await this.client.indices.updateAliases({
