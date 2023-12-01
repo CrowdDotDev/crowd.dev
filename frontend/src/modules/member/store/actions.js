@@ -197,9 +197,9 @@ export default {
       // Show enrichment loading message
       showEnrichmentLoadingMessage({ isBulk: false });
 
-      // const response = await MemberService.enrichMember(id);
+      const response = await MemberService.enrichMember(id);
 
-      commit('UPDATE_SUCCESS', {});
+      commit('UPDATE_SUCCESS', response);
 
       await dispatch('auth/doRefreshCurrentUser', null, {
         root: true,
@@ -226,7 +226,6 @@ export default {
         await dispatch('doFind', id);
       }
     } catch (error) {
-      console.log(error);
       Message.closeAll();
       Errors.handle(error);
 
