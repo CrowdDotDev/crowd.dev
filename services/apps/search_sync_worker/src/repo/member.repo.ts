@@ -21,8 +21,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
   public async checkMembersExist(ids: string[]): Promise<IDbMemberId[]> {
     const results = await this.db().any(
       `
-        select id from members
-        where "id" in ($(ids:csv)) and m."deletedAt" is null
+        select id from members m
+        where m."id" in ($(ids:csv)) and m."deletedAt" is null
       `,
       {
         ids,
