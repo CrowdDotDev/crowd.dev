@@ -101,6 +101,18 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async getIndexInfo(indexName: string): Promise<unknown> {
+    try {
+      const response = await this.client.indices.get({
+        index: indexName,
+      })
+      return response
+    } catch (err) {
+      this.log.error(err, { indexName }, 'Failed to get index info!')
+      throw err
+    }
+  }
+
   public async createAlias(indexName: string, aliasName: string): Promise<void> {
     try {
       await this.client.indices.putAlias({
@@ -113,20 +125,14 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
-  private async pointAliasToCorrectIndex(indexName: string, aliasName: string): Promise<void> {
+  public async removeAlias(indexName: string, aliasName: string): Promise<void> {
     try {
-      // Updates alias by removing existing references and points it to the new index
-      await this.client.indices.updateAliases({
-        body: {
-          actions: [
-            { remove: { index: '*', alias: aliasName } },
-            { add: { index: indexName, alias: aliasName } },
-          ],
-        },
+      await this.client.indices.deleteAlias({
+        name: aliasName,
+        index: indexName,
       })
-      this.log.info('Alias successfully updated', { aliasName, indexName })
     } catch (err) {
-      this.log.error(err, { aliasName, indexName }, 'Failed to update alias!')
+      this.log.error(err, { aliasName, indexName }, 'Failed to remove alias!')
     }
   }
 
