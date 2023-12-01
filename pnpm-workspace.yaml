@@ -1,0 +1,5 @@
+packages:
+  - 'services/libs/*'
+  - 'services/archetypes/*'
+  - 'services/apps/*'
+  - 'backend'

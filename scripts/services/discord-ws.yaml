@@ -11,7 +11,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:discord-ws'
+    command: 'pnpm run start:discord-ws'
     working_dir: /usr/crowd/app/backend
     env_file:
       - ../../backend/.env.dist.local
@@ -28,7 +28,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:discord-ws:dev'
+    command: 'pnpm run start:discord-ws:dev'
     working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'
     env_file:

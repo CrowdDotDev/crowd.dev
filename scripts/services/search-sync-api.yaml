@@ -11,7 +11,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.search_sync_api
-    command: 'npm run start'
+    command: 'pnpm run start'
     working_dir: /usr/crowd/app/services/apps/search_sync_api
     env_file:
       - ../../backend/.env.dist.local
@@ -30,7 +30,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.search_sync_api
-    command: 'npm run dev'
+    command: 'pnpm run dev'
     working_dir: /usr/crowd/app/services/apps/search_sync_api
     # user: '${USER_ID}:${GROUP_ID}'
     env_file:

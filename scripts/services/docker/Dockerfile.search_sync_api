@@ -1,15 +1,17 @@
 FROM node:16-alpine as builder
 
 WORKDIR /usr/crowd/app
+RUN corepack enable
 
+COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
 COPY ./services ./services
-
-RUN apk add --update --no-cache bash && cd services/scripts && ./install_lib_packages.sh --omit=dev &&  ./install_app_packages.sh
+RUN pnpm i --frozen-lockfile
 
 FROM node:16-alpine as runner
 
 WORKDIR /usr/crowd/app
+RUN corepack enable
 
+COPY --from=builder /usr/crowd/app/node_modules ./node_modules
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
-COPY --from=builder /usr/crowd/app/services/archetypes ./services/archetypes
-COPY --from=builder /usr/crowd/app/services/apps/search_sync_api ./services/apps/search_sync_api
+COPY --from=builder /usr/crowd/app/services/apps/search_sync_api/ ./services/apps/search_sync_api
