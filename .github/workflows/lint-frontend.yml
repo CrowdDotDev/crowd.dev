@@ -13,5 +13,5 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Lint code
-        run: corepack enable pnpm i --frozen-lockfile && pnpm run lint
+        run: corepack enable && pnpm i --frozen-lockfile && pnpm run lint
         working-directory: frontend
