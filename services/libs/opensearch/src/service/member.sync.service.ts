@@ -1,4 +1,4 @@
-import { IDbMemberSyncData } from '../repo/member.data'
+import { IDbMemberSyncData, IMemberSegmentMatrix } from '../repo/member.data'
 import { MemberRepository } from '../repo/member.repo'
 import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
@@ -313,6 +313,145 @@ export class MemberSyncService {
   }
 
   public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
+    const CONCURRENT_DATABASE_QUERIES = 25
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
+
+    // get all orgId-segmentId couples
+    const memberSegmentCouples: IMemberSegmentMatrix =
+      await this.memberRepo.getMemberSegmentCouples(memberIds)
+    let databaseStream = []
+    let syncStream = []
+    let documentsIndexed = 0
+    const allMemberIds = Object.keys(memberSegmentCouples)
+    const totalMemberIds = allMemberIds.length
+
+    const processSegmentsStream = async (databaseStream): Promise<void> => {
+      const results = await Promise.all(databaseStream.map((s) => s.promise))
+
+      let index = 0
+
+      while (results.length > 0) {
+        const result = results.shift()
+        const { memberId, segmentId } = databaseStream[index]
+        const memberSegments = memberSegmentCouples[memberId]
+
+        // Find the correct segment and mark it as processed and add the data
+        const targetSegment = memberSegments.find((s) => s.segmentId === segmentId)
+        targetSegment.processed = true
+        targetSegment.data = result
+
+        // Check if all segments for the organization have been processed
+        const allSegmentsOfMemberIsProcessed = memberSegments.every((s) => s.processed)
+        if (allSegmentsOfMemberIsProcessed) {
+          const attributes = await this.memberRepo.getTenantMemberAttributes(result.tenantId)
+
+          // All segments processed, push the segment related docs into syncStream
+          syncStream.push(
+            ...memberSegmentCouples[memberId].map((s) => {
+              return {
+                id: `${s.data.id}-${s.data.segmentId}`,
+                body: MemberSyncService.prefixData(s.data, attributes),
+              }
+            }),
+          )
+
+          const isMultiSegment = this.serviceConfig.edition === Edition.LFX
+
+          if (isMultiSegment) {
+            // also calculate and push for parent and grandparent segments
+            const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
+            const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+
+            const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
+            for (const parentId of parentIds) {
+              const aggregated = MemberSyncService.aggregateData(
+                memberSegmentCouples[memberId].map((s) => s.data),
+                segmentInfos,
+                parentId,
+              )
+              const prepared = MemberSyncService.prefixData(aggregated, attributes)
+              syncStream.push({
+                id: `${memberId}-${parentId}`,
+                body: prepared,
+              })
+            }
+
+            const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
+            for (const grandParentId of grandParentIds) {
+              const aggregated = MemberSyncService.aggregateData(
+                memberSegmentCouples[memberId].map((s) => s.data),
+                segmentInfos,
+                undefined,
+                grandParentId,
+              )
+              const prepared = MemberSyncService.prefixData(aggregated, attributes)
+              syncStream.push({
+                id: `${memberId}-${grandParentId}`,
+                body: prepared,
+              })
+            }
+          }
+
+          // delete the orgId from matrix, we already created syncStreams for indexing to opensearch
+          delete memberSegmentCouples[memberId]
+        }
+
+        index += 1
+      }
+    }
+
+    for (let i = 0; i < totalMemberIds; i++) {
+      const memberId = allMemberIds[i]
+      const totalSegments = memberSegmentCouples[memberId].length
+
+      for (let j = 0; j < totalSegments; j++) {
+        const segment = memberSegmentCouples[memberId][j]
+        databaseStream.push({
+          memberId: memberId,
+          segmentId: segment.segmentId,
+          promise: this.memberRepo.getMemberDataInOneSegment(memberId, segment.segmentId),
+        })
+
+        // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
+        if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
+          await processSegmentsStream(databaseStream)
+          databaseStream = []
+        }
+
+        while (syncStream.length >= BULK_INDEX_DOCUMENT_BATCH_SIZE) {
+          await this.openSearchService.bulkIndex(
+            OpenSearchIndex.MEMBERS,
+            syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
+          )
+          documentsIndexed += syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE).length
+          syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
+        }
+
+        // if we're processing the last segment
+        if (i === totalMemberIds - 1 && j === totalSegments - 1) {
+          // check if there are remaining databaseStreams to process
+          if (databaseStream.length > 0) {
+            await processSegmentsStream(databaseStream)
+          }
+
+          // check if there are remaining syncStreams to process
+          if (syncStream.length > 0) {
+            await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
+            documentsIndexed += syncStream.length
+          }
+        }
+      }
+    }
+
+    await this.memberRepo.markSynced(memberIds)
+
+    return {
+      membersSynced: memberIds.length,
+      documentsIndexed,
+    }
+  }
+
+  public async syncMembersOld(memberIds: string[]): Promise<IMemberSyncResult> {
     this.log.debug({ memberIds }, 'Syncing members!')
 
     const isMultiSegment = this.serviceConfig.edition === Edition.LFX
