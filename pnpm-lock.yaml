@@ -2297,6 +2297,9 @@ importers:
       '@temporalio/common':
         specifier: ^1.8.6
         version: 1.8.6
+      '@temporalio/proto':
+        specifier: ~1.8.6
+        version: 1.8.6
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -21967,6 +21970,7 @@ packages:
     dependencies:
       '@crowd/logging': file:services/libs/logging
       '@temporalio/client': 1.8.6
+      '@temporalio/common': 1.8.6
     transitivePeerDependencies:
       - supports-color
     dev: false
