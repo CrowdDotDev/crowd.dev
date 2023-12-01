@@ -200,7 +200,11 @@ export class QueuePriorityService {
 
       return QueuePriorityLevel.NORMAL
     } else {
-      return QueuePriorityLevel.URGENT
+      if (ctx.onboarding) {
+        return QueuePriorityLevel.URGENT
+      }
+
+      return QueuePriorityLevel.HIGH
     }
   }
 }
