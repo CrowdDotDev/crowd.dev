@@ -1,8 +1,5 @@
 import moment from 'moment'
 
-import { FeatureFlag } from '@crowd/types'
-import { isFeatureEnabled } from '@crowd/feature-flags'
-
 import { svc } from '../../main'
 
 import { InputAnalytics, AnalyticsWithTimes } from '../../types/analytics'
@@ -44,23 +41,5 @@ export async function weeklyGetNextEmails(): Promise<InputAnalytics[]> {
     throw new Error(err)
   }
 
-  // Filter rows to only return tenants with this feature flag enabled.
-  const tenants: InputAnalytics[] = []
-  for (const row of rows) {
-    if (
-      await isFeatureEnabled(
-        FeatureFlag.TEMPORAL_EMAILS,
-        async () => {
-          return {
-            tenantId: row.tenantId,
-          }
-        },
-        svc.unleash,
-      )
-    ) {
-      tenants.push(row)
-    }
-  }
-
-  return tenants
+  return rows
 }
