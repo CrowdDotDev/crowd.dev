@@ -3,3 +3,4 @@ packages:
   - 'services/archetypes/*'
   - 'services/apps/*'
   - 'backend'
+  - 'frontend'
