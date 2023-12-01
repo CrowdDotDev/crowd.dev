@@ -18,8 +18,8 @@ export class TenantService {
     // If there is a subdomain with the tenant url,
     // it must fetch the settings form that subdomain no matter
     // which one is on local storage
+    let currentTenant;
     if (tenantUrl) {
-      let currentTenant;
       try {
         currentTenant = await this.findByUrl(tenantUrl);
       } catch (error) {
@@ -37,13 +37,15 @@ export class TenantService {
     const tenantId = AuthCurrentTenant.get();
     if (tenantId && !tenantUrl) {
       try {
-        const currentTenant = await this.find(tenantId);
+        currentTenant = await this.find(tenantId);
 
         AuthCurrentTenant.set(currentTenant);
       } catch (error) {
         console.error(error);
       }
     }
+    // eslint-disable-next-line consistent-return
+    return currentTenant;
   }
 
   static async update(id, data) {
@@ -124,6 +126,7 @@ export class TenantService {
   }
 
   static async find(id) {
+    console.error(id);
     const response = await authAxios.get(`/tenant/${id}`, {
       params: {
         excludeSegments: true,

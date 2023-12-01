@@ -23,6 +23,7 @@ export default {
         connectSocket(token);
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
+        dispatch('doRefreshTenant');
         return currentUser;
       }
 
@@ -32,12 +33,17 @@ export default {
     } catch (error) {
       console.error(error);
       disconnectSocket();
-      console.log(error);
       commit('AUTH_INIT_ERROR');
       dispatch('doSignout');
       return null;
     } finally {
       ProgressBar.done();
+    }
+  },
+
+  async doRefreshTenant({ state }) {
+    if (state.currentTenant.id !== AuthCurrentTenant.get()) {
+      state.currentTenant = await TenantService.fetchAndApply();
     }
   },
 
@@ -88,7 +94,7 @@ export default {
   },
 
   doSigninWithEmailAndPassword(
-    { commit },
+    { commit, dispatch },
     { email, password, rememberMe },
   ) {
     return Auth0Service.login({
@@ -102,7 +108,7 @@ export default {
   },
 
   doSigninWithAuth0(
-    { commit },
+    { commit, dispatch },
     token,
   ) {
     commit('AUTH_START');
@@ -115,6 +121,7 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser: currentUser || null,
         });
+        dispatch('doRefreshTenant');
         router.push('/');
       })
       .catch((error) => {
@@ -134,7 +141,7 @@ export default {
     router.push({ name: 'logout' });
   },
 
-  doRefreshCurrentUser({ commit }) {
+  doRefreshCurrentUser({ commit, dispatch }) {
     const token = AuthToken.get();
     if (token) {
       return AuthService.fetchMe()
@@ -142,6 +149,8 @@ export default {
           commit('CURRENT_USER_REFRESH_SUCCESS', {
             currentUser,
           });
+
+          dispatch('doRefreshTenant');
           return currentUser;
         })
         .catch((error) => {
@@ -236,9 +245,6 @@ export default {
       return;
     }
 
-    if (immediate) {
-      state.currentTenant = tenant;
-    }
     AuthCurrentTenant.set(tenant);
 
     const initialState = buildInitialState(true);
