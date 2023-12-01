@@ -3,12 +3,12 @@ FROM node:16-alpine as builder
 WORKDIR /usr/crowd/frontend
 
 COPY package-lock.json package.json ./
-RUN corepack enable && pnpm i --frozen-lockfile
+RUN npm ci
 
 COPY .browserslistrc .eslintrc.js babel.config.js postcss.config.js tailwind.config.js vite.config.js tsconfig.json index.html ./
 COPY ./public ./public
 COPY ./src ./src
-RUN NODE_ENV=production pnpm run build:production
+RUN NODE_ENV=production npm run build:production
 
 FROM nginx:1.23-alpine as release
 

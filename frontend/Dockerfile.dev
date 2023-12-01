@@ -1,19 +1,10 @@
-FROM node:16-alpine as builder
+FROM node:16-alpine
 
 WORKDIR /usr/crowd/frontend
-RUN corepack enable
 
-COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
-COPY ./frontend ./frontend
-RUN pnpm i --frozen-lockfile
+COPY package-lock.json package.json ./
+RUN npm ci
 
-FROM node:16-alpine as runner
-
-WORKDIR /usr/crowd/frontend
-RUN corepack enable
-
-COPY --from=builder /usr/crowd/frontend/node_modules ./node_modules
-COPY --from=builder /usr/crowd/frontend/frontend ./frontend
-COPY ./frontend/.browserslistrc ./frontend/.eslintrc.js ./frontend/babel.config.js ./frontend/postcss.config.js ./frontend/tailwind.config.js ./frontend/vite.config.js ./frontend/tsconfig.json ./frontend/index.html ./frontend/
-COPY ./frontend/public ./frontend/public
-COPY ./frontend/src ./frontend/src
+COPY .browserslistrc .eslintrc.js babel.config.js postcss.config.js tailwind.config.js vite.config.js tsconfig.json index.html ./
+COPY ./public ./public
+COPY ./src ./src

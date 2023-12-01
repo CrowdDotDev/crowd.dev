@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 DOCKERFILE="../frontend/Dockerfile.dev"
-CONTEXT="../"
+CONTEXT="../frontend"
 REPO="crowddotdev/frontend-dev"

@@ -3,15 +3,14 @@ version: '3.1'
 services:
   frontend:
     build:
-      context: ../../
-      dockerfile: ./frontend/Dockerfile.dev
+      context: ../../frontend
+      dockerfile: Dockerfile.dev
     env_file:
       - ../../frontend/.env.dist.local
       - ../../frontend/.env.dist.composed
       - ../../frontend/.env.override.local
       - ../../frontend/.env.override.composed
-    command: pnpm run start:dev
-    working_dir: /usr/crowd/frontend/frontend
+    command: npm run start:dev
     environment:
       - DOCKER_BUILDKIT=1
       - BACKEND_URL=http://api:8080
@@ -23,15 +22,14 @@ services:
 
   frontend-dev:
     build:
-      context: ../../
-      dockerfile: ./frontend/Dockerfile.dev
+      context: ../../frontend
+      dockerfile: Dockerfile.dev
     env_file:
       - ../../frontend/.env.dist.local
       - ../../frontend/.env.dist.composed
       - ../../frontend/.env.override.local
       - ../../frontend/.env.override.composed
-    command: pnpm run start:dev
-    working_dir: /usr/crowd/frontend/frontend
+    command: npm run start:dev
     environment:
       - DOCKER_BUILDKIT=1
       - BACKEND_URL=http://api:8080
