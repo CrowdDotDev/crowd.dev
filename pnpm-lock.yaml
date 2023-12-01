@@ -581,9 +581,6 @@ importers:
       '@crowd/cubejs':
         specifier: file:../../libs/cubejs
         version: file:services/libs/cubejs(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
       '@crowd/types':
         specifier: file:../../libs/types
         version: file:services/libs/types
