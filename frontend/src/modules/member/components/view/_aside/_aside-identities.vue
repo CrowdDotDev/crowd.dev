@@ -18,7 +18,7 @@
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
-        @click="identitiesDrawer = true"
+        @click="emit('edit')"
       >
         <i class="ri-pencil-line" /><span>Edit</span>
       </el-button>
@@ -76,11 +76,6 @@
         </a>
       </div>
     </div>
-    <app-member-manage-identities-drawer
-      v-if="identitiesDrawer"
-      v-model="identitiesDrawer"
-      :member="member"
-    />
   </div>
 </template>
 
@@ -91,7 +86,6 @@ import {
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppPlatformList from '@/shared/platform/platform-list.vue';
-import AppMemberManageIdentitiesDrawer from '../../member-manage-identities-drawer.vue';
 
 const props = defineProps({
   member: {
@@ -100,9 +94,9 @@ const props = defineProps({
   },
 });
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const emit = defineEmits(['edit']);
 
-const identitiesDrawer = ref(false);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const emailRef = ref([]);
 const showTooltip = ref([]);
