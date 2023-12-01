@@ -302,7 +302,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     memberId: string,
     segmentId: string,
   ): Promise<IDbMemberSyncData[]> {
-    const results = await this.db().any(
+    const results = await this.db().oneOrNone(
       ` 
       with to_merge_data as (
             select mtm."memberId",
