@@ -21,6 +21,7 @@
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.335.0",
     "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging"
+    "@crowd/logging": "file:../logging",
+    "axios": "^1.6.1"
   }
 }

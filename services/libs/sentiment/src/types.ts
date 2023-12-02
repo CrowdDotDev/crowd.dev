@@ -4,6 +4,7 @@ export interface ISentimentClientConfig {
   port?: string
   accessKeyId: string
   secretAccessKey: string
+  huggingfaceApiKey: string
 }
 
 export interface ISentimentAnalysisResult {
@@ -13,4 +14,5 @@ export interface ISentimentAnalysisResult {
   negative: number
   neutral: number
   mixed: number
+  new?: boolean
 }

@@ -245,6 +245,9 @@ const constaintConfiguration = {
     ],
   ],
 
+  // New sentiment
+  [FeatureFlag.NEW_SENTIMENT]: [],
+
   [FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES]: [
     [
       {

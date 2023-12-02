@@ -46,8 +46,24 @@ export default class ActivityService extends LoggerBase {
   ): Promise<string> {
     try {
       this.log.debug('Creating an activity.')
+      // TODO: isNewSentimentEnabled FF
+      const isNewSentimentEnabled = await isFeatureEnabled(
+        FeatureFlag.NEW_SENTIMENT,
+        async () => {
+          return {
+            tenantId,
+          }
+        },
+        this.unleash,
+        this.redisClient,
+        60,
+        tenantId,
+      )
 
-      const sentiment = await getSentiment(`${activity.body || ''} ${activity.title || ''}`.trim())
+      const sentiment = await getSentiment(
+        `${activity.body || ''} ${activity.title || ''}`.trim(),
+        isNewSentimentEnabled,
+      )
 
       const id = await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
@@ -160,7 +176,7 @@ export default class ActivityService extends LoggerBase {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
-        const toUpdate = await this.mergeActivityData(activity, original)
+        const toUpdate = await this.mergeActivityData(activity, original, tenantId)
 
         if (toUpdate.type) {
           await txSettingsRepo.createActivityType(
@@ -222,8 +238,23 @@ export default class ActivityService extends LoggerBase {
   private async mergeActivityData(
     data: IActivityUpdateData,
     original: IDbActivity,
+    tenantId: string,
   ): Promise<IDbActivityUpdateData> {
     let calcSentiment = false
+
+    // TODO: isNewSentimentEnabled FF
+    const isNewSentimentEnabled = await isFeatureEnabled(
+      FeatureFlag.NEW_SENTIMENT,
+      async () => {
+        return {
+          tenantId,
+        }
+      },
+      this.unleash,
+      this.redisClient,
+      60,
+      tenantId,
+    )
 
     let body: string | undefined
     if (!arePrimitivesDbEqual(original.body, data.body)) {
@@ -239,7 +270,7 @@ export default class ActivityService extends LoggerBase {
 
     let sentiment: Promise<ISentimentAnalysisResult | undefined>
     if (calcSentiment) {
-      sentiment = getSentiment(`${body || ''} ${title || ''}`.trim())
+      sentiment = getSentiment(`${body || ''} ${title || ''}`.trim(), isNewSentimentEnabled)
     } else {
       sentiment = Promise.resolve(undefined)
     }

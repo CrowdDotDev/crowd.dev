@@ -2,7 +2,7 @@
   <el-tooltip
     v-if="sentiment && sentiment > 0"
     effect="dark"
-    :content="`Sentiment score: ${sentiment}`"
+    :content="`${label} sentiment`"
     placement="top"
   >
     <i
