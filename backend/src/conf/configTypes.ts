@@ -194,6 +194,10 @@ export interface EagleEyeConfiguration {
   apiKey: string
 }
 
+export interface GithubTokenConfiguration {
+  token: string
+}
+
 export interface UnleashConfiguration {
   url: string
   adminApiKey: string
@@ -245,4 +249,8 @@ export interface CrowdAnalyticsConfiguration {
 
 export interface IBackendTemporalConfig extends ITemporalConfig {
   automationsTaskQueue: string
+}
+
+export interface IOpenStatusApiConfig {
+  baseUrl: string
 }

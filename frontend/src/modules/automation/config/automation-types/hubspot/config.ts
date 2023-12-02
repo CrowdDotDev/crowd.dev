@@ -44,7 +44,7 @@ export const hubspotOrganizationFilters: Record<string, FilterConfig> = {
 export const hubspot: AutomationTypeConfig = {
   name: 'HubSpot',
   description: 'Send contacts or organizations to HubSpot',
-  icon: '/images/integrations/hubspot.png',
+  icon: '/images/integrations/hubspot.svg',
   plan: 'Scale',
   featureFlag: FeatureFlag.flags.hubspot,
   emptyScreen: {
@@ -76,7 +76,7 @@ export const hubspot: AutomationTypeConfig = {
     return {
       label: 'Upgrade plan',
       action: () => {
-        window.open('https://cal.com/team/crowddotdev/custom-plan', '_blank');
+        window.open('https://cal.com/team/crowddotdev/sales', '_blank');
       },
     };
   },

@@ -12,7 +12,12 @@ import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import {
+  NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
+  DataSinkWorkerEmitter,
+  getSqsClient,
+} from '@crowd/sqs'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
@@ -45,8 +50,12 @@ setImmediate(async () => {
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
   await nodejsWorkerEmitter.init()
+
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
   await searchSyncWorkerEmitter.init()
+
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
+  await dataSinkWorkerEmitter.init()
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
@@ -55,6 +64,7 @@ setImmediate(async () => {
     store,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
+    dataSinkWorkerEmitter,
     redisClient,
     unleash,
     temporal,

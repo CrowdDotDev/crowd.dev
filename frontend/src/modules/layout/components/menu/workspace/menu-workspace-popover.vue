@@ -15,7 +15,7 @@
               :disable-active-class="true"
               link-class="!p-3 !h-10 !mb-0 !mt-1 !text-xs"
             />
-            <div class="px-1">
+            <div v-if="hasPermissionsForSettings" class="px-1">
               <div class="p-3 h-10 text-xs text-black mt-1 rounded hover:bg-gray-50 cursor-pointer" @click.stop="emit('edit', tenant)">
                 Edit workspace
               </div>
@@ -25,7 +25,9 @@
       </section>
 
       <!-- Add workspace -->
-      <section class="px-2 pb-3 border-b border-gray-100">
+      <section
+        class="border-b border-gray-100 px-2 pb-3"
+      >
         <div
           class="px-3 h-10 text-sm font-normal rounded hover:bg-gray-50 cursor-pointer flex items-center text-brand-500"
           @click="emit('add')"
@@ -102,6 +104,7 @@ import { computed } from 'vue';
 import { useUserStore } from '@/modules/user/store/pinia';
 import { storeToRefs } from 'pinia';
 import { FeatureFlag } from '@/utils/featureFlag';
+import { SettingsPermissions } from '@/modules/settings/settings-permissions';
 
 const emit = defineEmits<{(e:'add'): any, (e: 'edit', value: TenantModel): any}>();
 
@@ -113,6 +116,17 @@ const userStore = useUserStore();
 const { isDeveloperModeActive } = storeToRefs(userStore);
 const { updateDeveloperMode } = userStore;
 
+const hasPermissionsForSettings = computed(
+  () => {
+    const settingsPermissions = new SettingsPermissions(
+      currentTenant.value,
+      currentUser.value,
+    );
+
+    return settingsPermissions.edit || settingsPermissions.lockedForCurrentPlan;
+  },
+);
+
 const tenants = computed<TenantModel[]>(() => {
   const currentTenantId = currentTenant.value.id;
   const restTenants = rows.value.filter((ten: TenantModel) => ten.id !== currentTenantId)
@@ -121,7 +135,7 @@ const tenants = computed<TenantModel[]>(() => {
 });
 
 const doSwitchTenant = (tenant: TenantModel) => {
-  doSelectTenant({ tenant });
+  doSelectTenant({ tenant, immediate: true });
 };
 
 const developerModeEnabled = () => FeatureFlag.isFlagEnabled(

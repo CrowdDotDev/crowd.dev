@@ -7,28 +7,26 @@ import {
   SyncStatus,
   OrganizationSource,
   FeatureFlag,
+  PageData,
+  SegmentData,
+  SegmentProjectGroupNestedData,
+  SegmentProjectNestedData,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
+import { Error400, Error404 } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
-import Error404 from '../../errors/Error404'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
-import { PageData } from '../../types/common'
 import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
-import {
-  SegmentData,
-  SegmentProjectGroupNestedData,
-  SegmentProjectNestedData,
-} from '../../types/segmentTypes'
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -47,7 +45,6 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
-import Error400 from '../../errors/Error400'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import MemberAffiliationRepository from './memberAffiliationRepository'
@@ -55,6 +52,17 @@ import MemberAffiliationRepository from './memberAffiliationRepository'
 const { Op } = Sequelize
 
 const log: boolean = false
+
+interface ActivityAggregates {
+  memberId: string
+  segmentId: string
+  activityCount: number
+  activeDaysCount: number
+  lastActive: string
+  activityTypes: string[]
+  activeOn: string[]
+  averageSentiment: number
+}
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
@@ -257,7 +265,7 @@ class MemberRepository {
             AND ms."segmentId" IN (:segmentIds)
         ) AS "membersToMerge" 
       ORDER BY 
-        "membersToMerge"."joinedAt" DESC 
+        "membersToMerge"."similarity" DESC 
       LIMIT :limit OFFSET :offset
     `,
       {
@@ -855,6 +863,48 @@ class MemberRepository {
     const segments = await segmentRepository.findInIds(segmentIds)
 
     return segments
+  }
+
+  static async getActivityAggregates(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<ActivityAggregates> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const query = `
+        SELECT
+        a."memberId",
+        a."segmentId",
+        count(a.id)::integer AS "activityCount",
+        max(a.timestamp) AS "lastActive",
+        array_agg(DISTINCT concat(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
+        array_agg(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
+        count(DISTINCT a."timestamp"::date)::integer AS "activeDaysCount",
+        round(avg(
+            CASE WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL THEN
+                (a.sentiment ->> 'sentiment'::text)::double precision
+            ELSE
+                NULL::double precision
+            END
+        )::numeric, 2):: float AS "averageSentiment"
+        FROM activities a
+        WHERE a."memberId" = :memberId
+        and a."tenantId" = :tenantId
+        GROUP BY a."memberId", a."segmentId"
+    `
+
+    const data: ActivityAggregates[] = await seq.query(query, {
+      replacements: {
+        memberId,
+        tenantId: currentTenant.id,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return data?.[0] || null
   }
 
   static async setAffiliations(
@@ -3141,53 +3191,26 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.activities = await record.getActivities({
-      order: [['timestamp', 'DESC']],
-      limit: 20,
-      transaction,
-    })
+    const activityAggregates = await MemberRepository.getActivityAggregates(output.id, options)
 
-    output.lastActivity = output.activities[0]?.get({ plain: true }) ?? null
+    output.activeOn = activityAggregates?.activeOn || []
+    output.activityCount = activityAggregates?.activityCount || 0
+    output.activityTypes = activityAggregates?.activityTypes || []
+    output.activeDaysCount = activityAggregates?.activeDaysCount || 0
+    output.averageSentiment = activityAggregates?.averageSentiment || 0
 
-    output.lastActive = output.activities[0]?.timestamp ?? null
+    output.lastActivity =
+      (
+        await record.getActivities({
+          order: [['timestamp', 'DESC']],
+          limit: 1,
+          transaction,
+        })
+      )[0]?.get({ plain: true }) ?? null
 
-    output.activeOn = [...new Set(output.activities.map((i) => i.platform))]
-
-    output.activityCount = output.activities.length
+    output.lastActive = output.lastActivity?.timestamp ?? null
 
     output.numberOfOpenSourceContributions = output.contributions?.length ?? 0
-
-    output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
-    output.activeDaysCount =
-      output.activities.reduce((acc, activity) => {
-        if (!acc.datetimeHashmap) {
-          acc.datetimeHashmap = {}
-          acc.count = 0
-        }
-        // strip hours from timestamp
-        const date = activity.timestamp.toISOString().split('T')[0]
-
-        if (!acc.datetimeHashmap[date]) {
-          acc.count += 1
-          acc.datetimeHashmap[date] = true
-        }
-
-        return acc
-      }, {}).count ?? 0
-
-    output.averageSentiment =
-      output.activityCount > 0
-        ? Math.round(
-            (output.activities.reduce((acc, i) => {
-              if (i.sentiment && 'sentiment' in i.sentiment) {
-                acc += i.sentiment.sentiment
-              }
-              return acc
-            }, 0) /
-              output.activities.filter((i) => i.sentiment && 'sentiment' in i.sentiment).length) *
-              100,
-          ) / 100
-        : 0
 
     output.tags = await record.getTags({
       transaction,
@@ -3595,7 +3618,7 @@ class MemberRepository {
     })
   }
 
-  static async getMemberIdsandCount(
+  static async getMemberIdsandCountForEnrich(
     { limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
     options: IRepositoryOptions,
   ) {
@@ -3639,6 +3662,8 @@ class MemberRepository {
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = :tenantId
       AND ms."segmentId" IN (:segmentIds)
+      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
+      AND m."deletedAt" is NULL
     ) as count
     `
 
@@ -3658,6 +3683,8 @@ class MemberRepository {
       `SELECT m.id FROM members m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds) 
+      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
+      AND m."deletedAt" is NULL
       ORDER BY ${orderByString} 
       LIMIT :limit OFFSET :offset`,
       {
@@ -3670,6 +3697,82 @@ class MemberRepository {
       count: (memberCount[0] as any).count,
       ids: members.map((i: any) => i.id),
     }
+  }
+
+  static async moveNotesBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const deleteQuery = `
+      delete from "memberNotes" using "memberNotes" as mn2
+      where "memberNotes"."memberId" = :fromMemberId 
+      and "memberNotes"."noteId" = mn2."noteId"
+      and mn2."memberId" = :toMemberId;
+    `
+
+    await seq.query(deleteQuery, {
+      replacements: params,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
+    const updateQuery = `
+      update "memberNotes" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async moveTasksBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const deleteQuery = `
+      delete from "memberTasks" using "memberTasks" as mt2
+      where "memberTasks"."memberId" = :fromMemberId 
+      and "memberTasks"."taskId" = mt2."taskId"
+      and mt2."memberId" = :toMemberId;
+    `
+
+    await seq.query(deleteQuery, {
+      replacements: params,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
+    const updateQuery = `
+      update "memberTasks" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
   }
 }
 

@@ -55,9 +55,9 @@ export const showEnrichmentSuccessMessage = ({
   isBulk,
 }) => {
   const commonMessage = `${formatNumber(
-    memberEnrichmentCount,
+    memberEnrichmentCount || 0,
   )} out of ${formatNumber(
-    planEnrichmentCountMax,
+    planEnrichmentCountMax || 0,
   )} enrichments used this month.`;
 
   const essentialMessage = h('span', null, [

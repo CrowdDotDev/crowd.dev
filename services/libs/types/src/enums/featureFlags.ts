@@ -7,6 +7,10 @@ export enum FeatureFlag {
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
+  FIND_GITHUB = 'find-github',
+
+  // opensearch
+  SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',
 
   // temporal
   TEMPORAL_AUTOMATIONS = 'temporal-automations',

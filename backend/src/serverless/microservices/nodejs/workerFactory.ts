@@ -1,6 +1,5 @@
 /* eslint-disable no-case-declarations */
 import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
-import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
   CsvExportMessage,
@@ -10,9 +9,9 @@ import {
   ProcessAutomationMessage,
   ProcessWebhookAutomationMessage,
   BulkEnrichMessage,
-  EagleEyeEmailDigestMessage,
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
+  OrganizationMergeMessage,
 } from './messageTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
@@ -22,10 +21,10 @@ import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
-import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
+import { orgMergeWorker } from './org-merge/orgMergeWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 import { API_CONFIG } from '../../../conf'
 
@@ -43,11 +42,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       return processStripeWebhook(event)
     case 'sendgrid-webhooks':
       return processSendgridWebhook(event)
-    case 'weekly-analytics-emails':
-      return weeklyAnalyticsEmailsWorker(tenant)
-    case 'eagle-eye-email-digest':
-      const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
-      return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user, eagleEyeDigestMessage.tenant)
+
     case 'integration-data-checker':
       const integrationDataCheckerMessage = event as IntegrationDataCheckerMessage
       return integrationDataCheckerWorker(
@@ -138,6 +133,15 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         default:
           throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
       }
+    case 'org-merge':
+      const orgMergeMessage = event as OrganizationMergeMessage
+      return orgMergeWorker(
+        orgMergeMessage.tenantId,
+        orgMergeMessage.primaryOrgId,
+        orgMergeMessage.secondaryOrgId,
+        orgMergeMessage.notifyFrontend,
+      )
+
     default:
       throw new Error(`Invalid microservice ${service}`)
   }

@@ -124,13 +124,14 @@ const mergeSuggestion = () => {
       emit('update:modelValue', null);
 
       if (route.name === 'organizationView') {
-        const keepId = originalOrganizationPrimary.value ? props.modelValue?.id : organizationToMerge.value?.id;
-        fetchOrganization(keepId);
-        router.push({
-          name: 'organizationView',
-          params: {
-            id: keepId,
-          },
+        const { id } = originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value;
+
+        fetchOrganization(id).then(() => {
+          router.replace({
+            params: {
+              id,
+            },
+          });
         });
       } else if (route.name === 'organization') {
         fetchOrganizations({ reload: true });

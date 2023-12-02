@@ -42,25 +42,61 @@ export const plans = {
     {
       key: crowdHostedPlans.essential,
       title: 'Essential',
-      description: 'Understand & manage your community',
-      price: 'Free',
+      description: 'Unify & act on your developer data',
+      price: '$120/month',
+      priceMonthly: '$150/month',
       features: [
-        'Unlimited seats',
-        'Unlimited contacts, organizations & activities',
-        '1K monthly active contacts',
-        'Get data from GitHub, Discord, Slack, Discourse, DEV, Reddit, Stack Overflow, Hacker News, Zapier, n8n & more',
-        '2 active automations & CSV exports',
-        'Sentiment analysis',
-        'Full API access',
-        'Community & in-app support',
+        {
+          includes: true,
+          value: '3 seats',
+        },
+        {
+          includes: true,
+          value: '2k monthly active contacts',
+        },
+        {
+          includes: true,
+          value: '2 active automation workflows',
+        },
+        {
+          includes: false,
+          value: 'No data enrichment',
+        },
+        {
+          includes: false,
+          value: 'No Eagle Eye',
+        },
+        {
+          includes: true,
+          value: 'Default Reports',
+        },
+        {
+          includes: true,
+          value: 'Community & email support',
+        },
+        {
+          includes: true,
+          value: 'Full API access & data export',
+        },
+        {
+          includes: true,
+          value: 'Integrates with',
+          integrations: ['github', 'discord', 'slack', 'discourse', 'devto', 'hackernews', 'reddit', 'zapier', 'n8n'],
+        },
       ],
       ctaLabel: {
+        [Plans.values.essential]: 'Start a 30-day trial',
         [Plans.values.eagleEye]: 'Downgrade to Essential',
         [Plans.values.growth]: 'Downgrade to Essential',
         [Plans.values.scale]: 'Downgrade to Essential',
         [Plans.values.enterprise]: 'Downgrade to Essential',
       },
       ctaAction: {
+        [Plans.values.essential]: ({ monthlyPayment }) => {
+          const monthlyLink = 'https://buy.stripe.com/6oE9E88OUdkG87u9AG';
+          const yearlyLink = 'https://buy.stripe.com/aEUbMgghm2G24VicMT';
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+        },
         [Plans.values.eagleEye]: openCustomerPortalLink,
         [Plans.values.growth]: openCustomerPortalLink,
         [Plans.values.scale]: openCustomerPortalLink,
@@ -71,24 +107,52 @@ export const plans = {
       key: crowdHostedPlans.scale,
       title: 'Scale',
       description:
-        'Commercialize your open source product',
-      price: '$950/month',
-      priceInfo: 'annual payment',
-      featuresNote: 'Everything in Essential, plus:',
+        'Commercialize your developer-first product',
+      price: '$400/month',
+      priceMonthly: '$450/month',
       features: [
-        '10k monthly active contacts',
-        'LinkedIn & HubSpot',
-        'Smart enrichment of all active contacts & organizations',
-        '20 active automations & CSV exports',
-        'Slack connect support',
-      ],
-      featuresSpecial: [
-        '90$ for each additional 1K MAC',
+        {
+          includes: true,
+          value: 'Unlimited seats',
+        },
+        {
+          includes: true,
+          value: '10k monthly active contacts',
+        },
+        {
+          includes: true,
+          value: '20 active automation workflows',
+        },
+        {
+          includes: true,
+          value: 'Smart data enrichment',
+        },
+        {
+          includes: true,
+          value: 'Eagle Eye for content monitoring & inspiration',
+        },
+        {
+          includes: true,
+          value: 'Default & custom reports',
+        },
+        {
+          includes: true,
+          value: 'Shared Slack',
+        },
+        {
+          includes: true,
+          value: 'Full API access & data export',
+        },
+        {
+          includes: true,
+          value: 'Integrates with Essential integrations and',
+          integrations: ['linkedin', 'twitter', 'hubspot'],
+        },
       ],
       ctaLabel: {
-        [Plans.values.eagleEye]: 'Start 30-days trial',
-        [Plans.values.essential]: 'Start 30-days trial',
-        [Plans.values.growth]: 'Start 30-days trial',
+        [Plans.values.eagleEye]: 'Book a demo',
+        [Plans.values.essential]: 'Book a demo',
+        [Plans.values.growth]: 'Book a demo',
         [Plans.values.enterprise]: 'Downgrade to Scale',
       },
       ctaAction: {
@@ -103,21 +167,51 @@ export const plans = {
       title: 'Enterprise',
       description:
         'Tailored to your needs',
-      price: 'Custom price',
-      featuresNote: 'Everything in Scale, plus:',
+      price: 'Custom',
       features: [
-        'Self hosting with enterprise support',
-        'Custom integrations',
-        'Activity categorization & topic analysis',
-        'Unlimited active automations & CSV exports',
-        'Custom RBAC & SAML-based SSO',
-        'Dedicated community expert',
+        {
+          includes: true,
+          value: 'Unlimited seats',
+        },
+        {
+          includes: true,
+          value: 'Unlimited monthly active contacts',
+        },
+        {
+          includes: true,
+          value: 'Unlimited active automation workflows',
+        },
+        {
+          includes: true,
+          value: 'Smart data enrichment',
+        },
+        {
+          includes: true,
+          value: 'Eagle Eye for content monitoring & inspiration',
+        },
+        {
+          includes: true,
+          value: 'Default & custom reports',
+        },
+        {
+          includes: true,
+          value: 'Shared Slack & dedicated CSM',
+        },
+        {
+          includes: true,
+          value: 'Full API access & data export',
+        },
+        {
+          includes: true,
+          value: 'Integrates with Scale integrations and',
+          integrations: ['salesforce', 'segment', 'census', 'snowflake', 'bigquery'],
+        },
       ],
       ctaLabel: {
-        [Plans.values.eagleEye]: 'Get a quote',
-        [Plans.values.essential]: 'Get a quote',
-        [Plans.values.growth]: 'Get a quote',
-        [Plans.values.scale]: 'Get a quote',
+        [Plans.values.eagleEye]: 'Book a demo',
+        [Plans.values.essential]: 'Book a demo',
+        [Plans.values.growth]: 'Book a demo',
+        [Plans.values.scale]: 'Book a demo',
       },
       ctaAction: {
         [Plans.values.eagleEye]: customPlanCal,
@@ -139,7 +233,7 @@ export const plans = {
         'Unlimited community contacts & activities',
         'Community management',
         'Community intelligence',
-        'Integrations with GitHub, Discord, Slack, Twitter, DEV, Hacker News',
+        'Integrations with GitHub, Discord, Slack, X/Twitter, DEV, Hacker News',
         'Community support',
       ],
       ctaLabel: {

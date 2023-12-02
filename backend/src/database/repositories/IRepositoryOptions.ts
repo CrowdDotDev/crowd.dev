@@ -2,7 +2,7 @@ import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
-import { SegmentData } from '../../types/segmentTypes'
+import { SegmentData } from '@crowd/types'
 
 export interface IRepositoryOptions {
   log: Logger

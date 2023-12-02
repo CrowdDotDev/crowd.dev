@@ -12,7 +12,7 @@
         @click="copyToClipboard"
       >
         <i class="ri-clipboard-line" />
-        <span>Copy JSON Filter</span>
+        <span>Copy JSON query</span>
       </el-button>
     </div>
     <div class="flex items-center flex-wrap">
@@ -172,7 +172,10 @@ defineExpose({
 const copyToClipboard = async () => {
   const parsedPayload = buildApiFilter(filters.value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
 
-  await navigator.clipboard.writeText(JSON.stringify({ filter: parsedPayload.filter }));
+  await navigator.clipboard.writeText(JSON.stringify({
+    filter: parsedPayload.filter,
+    orderBy: parsedPayload.orderBy,
+  }));
 
   Message.success(
     'Filters payload successfully copied to your clipboard',

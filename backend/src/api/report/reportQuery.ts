@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = await new ReportService(req).query(req.body)
 
-  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
+  if (req.body?.filter && Object.keys(req.body.filter).length > 0) {
     track('Reports Advanced Filter', { ...payload }, { ...req })
   }
 

@@ -1,5 +1,6 @@
 import { EDITION } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
+import { RedisCache, RedisClient } from '@crowd/redis'
 import { Edition, FeatureFlag } from '@crowd/types'
 import { Context, Unleash } from 'unleash-client'
 
@@ -58,12 +59,15 @@ export const isFeatureEnabled = async (
   flag: FeatureFlag,
   contextLoader: () => Promise<Context>,
   client?: Unleash,
+  redis?: RedisClient,
+  redisTimeoutSeconds?: number,
+  cacheKey?: string,
 ): Promise<boolean> => {
   if (flag === FeatureFlag.SEGMENTS) {
     return EDITION === Edition.LFX
   }
 
-  if ([Edition.COMMUNITY, Edition.LFX].includes(EDITION)) {
+  if ([Edition.LFX, Edition.COMMUNITY].includes(EDITION)) {
     return true
   }
 
@@ -71,7 +75,22 @@ export const isFeatureEnabled = async (
     throw new Error('Unleash client is not initialized!')
   }
 
+  let cache: RedisCache | undefined
+
+  if (redis && redisTimeoutSeconds && cacheKey) {
+    cache = new RedisCache('feature-flags', redis, log)
+    const result = await cache.get(`${flag}-${cacheKey}`)
+    if (result) {
+      return result === 'true'
+    }
+  }
+
   const enabled = unleash.isEnabled(flag, await contextLoader())
+
+  if (cache) {
+    await cache.set(`${flag}-${cacheKey}`, enabled.toString(), redisTimeoutSeconds || 60)
+  }
+
   return enabled
 }
 

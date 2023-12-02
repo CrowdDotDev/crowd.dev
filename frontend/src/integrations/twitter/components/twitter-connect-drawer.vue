@@ -2,11 +2,11 @@
   <app-drawer
     v-model="isVisible"
     custom-class="integration-twitter-drawer"
-    title="Twitter"
+    title="X/Twitter"
     size="600px"
     pre-title="Integration"
     :pre-title-img-src="logoUrl"
-    pre-title-img-alt="Twitter logo"
+    pre-title-img-alt="X/Twitter logo"
     @close="isVisible = false"
   >
     <template #content>

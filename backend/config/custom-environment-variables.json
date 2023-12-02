@@ -158,6 +158,9 @@
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
   },
+  "githubToken": {
+    "token": "CROWD_GITHUB_TOKEN"
+  },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
   },
@@ -201,5 +204,11 @@
     "namespace": "CROWD_TEMPORAL_NAMESPACE",
     "certificate": "CROWD_TEMPORAL_CERTIFICATE",
     "privateKey": "CROWD_TEMPORAL_PRIVATE_KEY"
+  },
+  "searchSyncApi": {
+    "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
+  },
+  "openStatusApi": {
+    "baseUrl": "CROWD_OPENSTATUS_URL"
   }
 }

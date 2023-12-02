@@ -3,8 +3,8 @@
     <h4>Integrations</h4>
     <div class="flex items-center justify-between">
       <div class="text-xs text-gray-500">
-        Connect with all data sources that are relevant to
-        your community
+        Connect with all data sources where interactions happen with your brand and product.
+        <br>When we detect an activity, we sync it to your workspace.
       </div>
       <div class="text-xs text-gray-900">
         <span class="text-base">🧐</span> Missing something?
@@ -125,7 +125,7 @@ export default {
             vertical: true,
             type: 'custom',
             icon: '<img src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="h-8 w-8" alt="slack logo" />',
-            title: `<span class="flex items-start gap-1">Connect Slack bot 
+            title: `<span class="flex items-start gap-1">Connect Slack bot
               <span class="text-brand-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
             titleClass: 'text-lg',
             message: `
@@ -149,7 +149,7 @@ export default {
       immediate: true,
       handler(value) {
         if (value) {
-          Message.error('Something went wrong during Twitter OAuth. Please try again later.');
+          Message.error('Something went wrong during X/Twitter OAuth. Please try again later.');
         }
       },
     },

@@ -99,7 +99,7 @@ class Permissions {
       },
       userRead: {
         id: 'userRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -110,7 +110,7 @@ class Permissions {
       },
       userAutocomplete: {
         id: 'userAutocomplete',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [roles.admin],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -868,7 +868,7 @@ class Permissions {
       },
       eagleEyeActionCreate: {
         id: 'eagleEyeActionCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -879,7 +879,7 @@ class Permissions {
       },
       eagleEyeActionDestroy: {
         id: 'eagleEyeActionDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -890,7 +890,7 @@ class Permissions {
       },
       eagleEyeContentCreate: {
         id: 'eagleEyeContentCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -912,7 +912,7 @@ class Permissions {
       },
       eagleEyeContentSearch: {
         id: 'eagleEyeContentSearch',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -923,7 +923,7 @@ class Permissions {
       },
       eagleEyeContentEdit: {
         id: 'eagleEyeContentEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,

@@ -9,15 +9,15 @@ import {
   IOrganization,
   IOrganizationCache,
   PlatformType,
+  SyncMode,
 } from '@crowd/types'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
 import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import OrganizationService from '@/services/organizationService'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class OrganizationEnrichmentService extends LoggerBase {
   tenantId: string
@@ -166,8 +166,9 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-      let unmergedOrgs: IOrganization[] = []
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
+      // stores org website as key and org id as value
+      const existingOrgMap: Map<string, string> = new Map()
 
       // check strong weak identities and move them if needed
       for (const org of orgs) {
@@ -184,52 +185,38 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
         delete org.identities
 
-        // Check for an organization with the same website exists
-        let existingOrg
-        let orgService
-
+        // check for organization with same website and add them to merge suggestions
         if (org.website) {
-          existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
-          orgService = new OrganizationService({ ...this.options, transaction })
-        }
+          let existingOrgId = existingOrgMap.get(org.website)
 
-        if (existingOrg && existingOrg.id !== org.id) {
-          await orgService.merge(existingOrg.id, org.id)
-          unmergedOrgs.push({ ...org, id: existingOrg.id })
-        } else {
-          unmergedOrgs.push(org)
-        }
-      }
+          if (!existingOrgId) {
+            const existingOrg = await OrganizationRepository.findByDomain(org.website, this.options)
+            existingOrgId = existingOrg?.id
+          }
 
-      // Check if two or more orgs in the umergedOrgs list have same website
-      const duplicateOrgs = []
-      const uniqueWebsites = new Set()
-
-      for (const org of unmergedOrgs) {
-        if (uniqueWebsites.has(org.website)) {
-          duplicateOrgs.push(org)
-        } else {
-          uniqueWebsites.add(org.website)
+          if (existingOrgId && existingOrgId !== org.id) {
+            await OrganizationRepository.addToMerge(
+              [{ organizations: [org.id, existingOrgId], similarity: 0.9 }],
+              this.options,
+            )
+            delete org.website
+          } else {
+            existingOrgMap.set(org.website, org.id)
+          }
         }
       }
-
-      // Remove duplicate organizations from unmergedOrgs
-      unmergedOrgs = unmergedOrgs.filter((org) => !duplicateOrgs.includes(org))
-
-      this.log.info('Duplicate organizations found in enriched list:', duplicateOrgs)
 
       // TODO: Update cache
       // await OrganizationCacheRepository.bulkUpdate(cacheOrgs, this.options, true)
       const records = await OrganizationRepository.bulkUpdate(
-        unmergedOrgs,
+        orgs,
         [...this.fields],
         { ...this.options, transaction },
         true,
       )
 
       for (const org of records) {
-        // trigger open search sync
-        await searchSyncEmitter.triggerOrganizationSync(this.options.currentTenant.id, org.id)
+        await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
       }
 
       await SequelizeRepository.commitTransaction(transaction)

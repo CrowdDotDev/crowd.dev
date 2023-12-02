@@ -14,7 +14,12 @@
                 name: 'organizationMergeSuggestions',
               }"
             >
-              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
+              <button
+                v-if="organizationsToMergeCount > 0"
+                :disabled="isEditLockedForSampleData"
+                type="button"
+                class="btn btn--bordered btn--md flex items-center"
+              >
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
@@ -43,8 +48,7 @@
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all organizations that relate to your
-          community
+          Overview of all organizations that relate to your product or community
         </div>
       </div>
 
@@ -89,6 +93,8 @@ import { organizationFilters, organizationSearchFilter } from '@/modules/organiz
 import { organizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { TenantService } from '@/modules/tenant/tenant-service';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 import { OrganizationPermissions } from '../organization-permissions';
 
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -97,6 +103,8 @@ const { doRefreshCurrentUser } = mapActions('auth');
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
+
+const { getGuides } = useQuickStartStore();
 
 const loading = ref(true);
 const organizationCount = ref(0);
@@ -196,5 +204,9 @@ onMounted(async () => {
   fetchOrganizationsToMergeCount();
   doGetOrganizationCount();
   (window as any).analytics.page('Organization');
+  TenantService.viewOrganizations()
+    .then(() => {
+      getGuides();
+    });
 });
 </script>

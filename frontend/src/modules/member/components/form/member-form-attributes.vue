@@ -49,16 +49,12 @@
                   {{ attribute.label }}
                 </div>
                 <el-tooltip
-                  v-if="
-                    model.attributes[attribute.name]
-                      ?.enrichment
-                  "
-                  content="Contact enrichment"
+                  v-if="getAttributeSourceName(model.attributes[attribute.name])"
+                  :content="`Source: ${getAttributeSourceName(model.attributes[attribute.name])}`"
                   placement="top"
+                  trigger="hover"
                 >
-                  <div class="form-enrichment-badge">
-                    <app-svg name="enrichment" />
-                  </div>
+                  <app-svg name="source" class="h-3 w-3" />
                 </el-tooltip>
               </div>
               <span
@@ -181,6 +177,7 @@ import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import AppSvg from '@/shared/svg/svg.vue';
 import { AttributeType } from '@/modules/organization/types/Attributes';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 const CalendarIcon = h(
   'i', // type

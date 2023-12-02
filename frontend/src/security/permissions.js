@@ -681,7 +681,7 @@ class Permissions {
       },
       eagleEyeRead: {
         id: 'eagleEyeRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,

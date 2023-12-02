@@ -41,6 +41,7 @@ export enum IntegrationResultState {
   PROCESSING = 'processing',
   PROCESSED = 'processed',
   ERROR = 'error',
+  DELAYED = 'delayed',
 }
 
 export enum IntegrationResultType {

@@ -4,6 +4,7 @@ import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
+import { Error400, Error404, Error542 } from '@crowd/common'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -19,21 +20,17 @@ import {
 } from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
-import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
-import Error542 from '../errors/Error542'
 import track from '../segment/track'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
-import Error404 from '../errors/Error404'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
-  getSearchSyncWorkerEmitter,
 } from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
@@ -48,6 +45,7 @@ import {
   GroupsioGetToken,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
+import SearchSyncService from './searchSyncService'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -619,9 +617,10 @@ export default class IntegrationService {
       memberSyncRemote.id,
     )
 
+    const searchSyncService = new SearchSyncService(this.options)
+
     // send it to opensearch because in member.update we bypass while passing transactions
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-    await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, member.id)
+    await searchSyncService.triggerMemberSync(this.options.currentTenant.id, member.id)
   }
 
   async hubspotStopSyncOrganization(payload: IHubspotManualSyncPayload) {

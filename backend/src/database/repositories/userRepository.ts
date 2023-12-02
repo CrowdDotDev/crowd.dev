@@ -1,10 +1,10 @@
 import crypto from 'crypto'
 import Sequelize from 'sequelize'
 import lodash from 'lodash'
+import { Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeArrayUtils from '../utils/sequelizeArrayUtils'
@@ -547,11 +547,21 @@ export default class UserRepository {
         status: 'active',
       },
     })
+
     record = {
       ...record,
       ...record.json,
     }
     delete record.json
+
+    // Remove sensitive fields
+    delete record.password
+    delete record.emailVerificationToken
+    delete record.emailVerificationTokenExpiresAt
+    delete record.providerId
+    delete record.passwordResetToken
+    delete record.passwordResetTokenExpiresAt
+    delete record.jwtTokenInvalidBefore
 
     if (!record) {
       throw new Error404()

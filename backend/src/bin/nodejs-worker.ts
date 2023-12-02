@@ -1,16 +1,29 @@
 import { timeout } from '@crowd/common'
-import { Logger, getChildLogger, getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+import {
+  SqsDeleteMessageRequest,
+  SqsMessage,
+  SqsReceiveMessageRequest,
+  deleteMessage,
+  receiveMessage,
+  sendMessage,
+} from '@crowd/sqs'
 import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
-import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
-import { SQS_CONFIG } from '../conf'
+import { getRedisClient, RedisClient } from '@crowd/redis'
+import { Sequelize, QueryTypes } from 'sequelize'
+import fs from 'fs'
+import path from 'path'
+import telemetry from '@crowd/telemetry'
+import { REDIS_CONFIG, SQS_CONFIG } from '../conf'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
-import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
 import { processIntegration, processWebhook } from './worker/integrations'
+import { SQS_CLIENT } from '@/serverless/utils/serviceSQS'
+import { databaseInit } from '@/database/databaseConnection'
 
 /* eslint-disable no-constant-condition */
 
@@ -26,24 +39,30 @@ process.on('SIGTERM', async () => {
   exiting = true
 })
 
-const receive = (delayed?: boolean): Promise<Message | undefined> => {
-  const params: ReceiveMessageRequest = {
+const receive = async (delayed?: boolean): Promise<SqsMessage | undefined> => {
+  const params: SqsReceiveMessageRequest = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     MessageAttributeNames: !delayed
       ? undefined
       : ['remainingDelaySeconds', 'tenantId', 'targetQueueUrl'],
   }
 
-  return receiveMessage(params)
+  const messages = await receiveMessage(SQS_CLIENT(), params)
+
+  if (messages && messages.length === 1) {
+    return messages[0]
+  }
+
+  return undefined
 }
 
 const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void> => {
-  const params: DeleteMessageRequest = {
+  const params: SqsDeleteMessageRequest = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     ReceiptHandle: receiptHandle,
   }
 
-  return deleteMessage(params)
+  return deleteMessage(SQS_CLIENT(), params)
 }
 
 async function handleDelayedMessages() {
@@ -81,7 +100,7 @@ async function handleDelayedMessages() {
             if (message.MessageAttributes.targetQueueUrl) {
               const targetQueueUrl = message.MessageAttributes.targetQueueUrl.StringValue
               messageLogger.debug({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
-              await sendMessage({
+              await sendMessage(SQS_CLIENT(), {
                 QueueUrl: targetQueueUrl,
                 MessageGroupId: tenantId,
                 MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,
@@ -129,84 +148,74 @@ async function handleMessages() {
   })
   handlerLogger.info('Listening for messages!')
 
-  const processSingleMessage = async (message: Message): Promise<void> => {
-    await tracer.startActiveSpan('ProcessMessage', async (span) => {
-      const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
+  const processSingleMessage = async (message: SqsMessage): Promise<void> => {
+    const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
-      const messageLogger = getChildLogger('messageHandler', serviceLogger, {
-        messageId: message.MessageId,
-        type: msg.type,
-      })
-
-      try {
-        if (
-          msg.type === NodeWorkerMessageType.NODE_MICROSERVICE &&
-          (msg as any).service === 'enrich_member_organizations'
-        ) {
-          messageLogger.warn(
-            'Skipping enrich_member_organizations message! Purging the queue because they are not needed anymore!',
-          )
-          await removeFromQueue(message.ReceiptHandle)
-          return
-        }
-
-        messageLogger.info(
-          { messageType: msg.type, messagePayload: JSON.stringify(msg) },
-          'Received a new queue message!',
-        )
-
-        let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
-
-        switch (msg.type) {
-          case NodeWorkerMessageType.INTEGRATION_PROCESS:
-            processFunction = processIntegration
-            break
-          case NodeWorkerMessageType.NODE_MICROSERVICE:
-            processFunction = processNodeMicroserviceMessage
-            break
-          case NodeWorkerMessageType.DB_OPERATIONS:
-            processFunction = processDbOperationsMessage
-            break
-          case NodeWorkerMessageType.PROCESS_WEBHOOK:
-            processFunction = processWebhook
-            break
-
-          default:
-            messageLogger.error('Error while parsing queue message! Invalid type.')
-        }
-
-        if (processFunction) {
-          await logExecutionTimeV2(
-            async () => {
-              // remove the message from the queue as it's about to be processed
-              await removeFromQueue(message.ReceiptHandle)
-              messagesInProgress.set(message.MessageId, msg)
-              try {
-                await processFunction(msg, messageLogger)
-              } catch (err) {
-                messageLogger.error(err, 'Error while processing queue message!')
-              } finally {
-                messagesInProgress.delete(message.MessageId)
-              }
-            },
-            messageLogger,
-            'Processing queue message!',
-          )
-        }
-
-        span.setStatus({
-          code: SpanStatusCode.OK,
-        })
-      } catch (err) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err,
-        })
-        messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
-      } finally {
-        span.end()
-      }
+    const messageLogger = getChildLogger('messageHandler', serviceLogger, {
+      messageId: message.MessageId,
+      type: msg.type,
     })
+
+    try {
+      if (
+        msg.type === NodeWorkerMessageType.NODE_MICROSERVICE &&
+        (msg as any).service === 'enrich_member_organizations'
+      ) {
+        messageLogger.warn(
+          'Skipping enrich_member_organizations message! Purging the queue because they are not needed anymore!',
+        )
+        await removeFromQueue(message.ReceiptHandle)
+        return
+      }
+
+      messageLogger.debug(
+        { messageType: msg.type, messagePayload: JSON.stringify(msg) },
+        'Received a new queue message!',
+      )
+
+      let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
+
+      switch (msg.type) {
+        case NodeWorkerMessageType.INTEGRATION_PROCESS:
+          processFunction = processIntegration
+          break
+        case NodeWorkerMessageType.NODE_MICROSERVICE:
+          processFunction = processNodeMicroserviceMessage
+          break
+        case NodeWorkerMessageType.DB_OPERATIONS:
+          processFunction = processDbOperationsMessage
+          break
+        case NodeWorkerMessageType.PROCESS_WEBHOOK:
+          processFunction = processWebhook
+          break
+
+        default:
+          messageLogger.error('Error while parsing queue message! Invalid type.')
+      }
+
+      if (processFunction) {
+        await telemetry.measure(
+          'nodejs_worker.process_message',
+          async () => {
+            // remove the message from the queue as it's about to be processed
+            await removeFromQueue(message.ReceiptHandle)
+            messagesInProgress.set(message.MessageId, msg)
+            try {
+              await processFunction(msg, messageLogger)
+            } catch (err) {
+              messageLogger.error(err, 'Error while processing queue message!')
+            } finally {
+              messagesInProgress.delete(message.MessageId)
+            }
+          },
+          {
+            type: msg.type,
+          },
+        )
+      }
+    } catch (err) {
+      messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
+    }
   }
 
   // noinspection InfiniteLoopJS
@@ -238,7 +247,46 @@ async function handleMessages() {
   handlerLogger.warn('Exiting!')
 }
 
+let redis: RedisClient
+let seq: Sequelize
+
+const initRedisSeq = async () => {
+  if (!redis) {
+    redis = await getRedisClient(REDIS_CONFIG, true)
+  }
+
+  if (!seq) {
+    seq = (await databaseInit()).sequelize as Sequelize
+  }
+}
+
 setImmediate(async () => {
+  await initRedisSeq()
   const promises = [handleMessages(), handleDelayedMessages()]
   await Promise.all(promises)
 })
+
+const liveFilePath = path.join(__dirname, 'tmp/nodejs-worker-live.tmp')
+const readyFilePath = path.join(__dirname, 'tmp/nodejs-worker-ready.tmp')
+
+setInterval(async () => {
+  try {
+    await initRedisSeq()
+    serviceLogger.debug('Checking liveness and readiness for nodejs worker.')
+    const [redisPingRes, dbPingRes] = await Promise.all([
+      // ping redis,
+      redis.ping().then((res) => res === 'PONG'),
+      // ping database
+      seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+    ])
+
+    if (redisPingRes && dbPingRes) {
+      await Promise.all([
+        fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
+        fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
+      ])
+    }
+  } catch (err) {
+    serviceLogger.error(`Error checking liveness and readiness for nodejs worker: ${err}`)
+  }
+}, 5000)

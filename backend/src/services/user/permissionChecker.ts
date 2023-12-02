@@ -1,9 +1,8 @@
 import assert from 'assert'
-import Error403 from '../../errors/Error403'
+import { Error400, Error403 } from '@crowd/common'
 import Plans from '../../security/plans'
 import Permissions from '../../security/permissions'
 import EmailSender from '../emailSender'
-import Error400 from '../../errors/Error400'
 
 const plans = Plans.values
 

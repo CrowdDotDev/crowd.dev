@@ -15,13 +15,15 @@ import {
 } from '@/modules/auth/auth-socket';
 
 export default {
-  async doInit({ commit, dispatch }) {
+  async doInit({ commit, dispatch, state }) {
     try {
       const token = AuthToken.get();
       if (token) {
-        const currentUser = await AuthService.fetchMe();
         connectSocket(token);
+        const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
+
+        state.loadingInit = false;
         return currentUser;
       }
 
@@ -86,7 +88,7 @@ export default {
   },
 
   doRegisterEmailAndPassword(
-    { commit },
+    { commit, dispatch },
     {
       email, password, data = {}, acceptedTermsAndPrivacy,
     },
@@ -118,7 +120,7 @@ export default {
   },
 
   doSigninWithEmailAndPassword(
-    { commit },
+    { commit, dispatch },
     { email, password, rememberMe },
   ) {
     commit('AUTH_START');
@@ -149,6 +151,7 @@ export default {
     commit('AUTH_SUCCESS', {
       currentUser: null,
     });
+    localStorage.removeItem('user');
     router.push('/auth/signin');
   },
 
@@ -160,6 +163,7 @@ export default {
           commit('CURRENT_USER_REFRESH_SUCCESS', {
             currentUser,
           });
+
           return currentUser;
         })
         .catch((error) => {
@@ -248,18 +252,19 @@ export default {
       });
   },
 
-  async doSelectTenant({ dispatch }, { tenant, redirect = true }) {
+  async doSelectTenant({ dispatch, state }, { tenant, redirect = true, immediate = false }) {
     if (tenantSubdomain.isEnabled) {
       tenantSubdomain.redirectAuthenticatedTo(tenant.url);
       return;
     }
 
     AuthCurrentTenant.set(tenant);
-    await dispatch('doRefreshCurrentUser');
 
     const initialState = buildInitialState(true);
 
     store.replaceState(initialState);
+
+    await dispatch('doRefreshCurrentUser');
 
     if (redirect) {
       router.push('/');
