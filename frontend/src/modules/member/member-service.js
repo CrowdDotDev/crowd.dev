@@ -99,7 +99,7 @@ export class MemberService {
           Authorization: sampleTenant?.token,
         },
         params: {
-          segmentId: segments.length > 0 ? segments[0] : undefined,
+          segments,
         },
       },
     );
