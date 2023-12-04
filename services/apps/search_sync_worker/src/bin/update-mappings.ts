@@ -1,11 +1,12 @@
-import { OpenSearchService } from '../service/opensearch.service'
+import { OpenSearchService } from '@crowd/opensearch'
 import { OpenSearchIndex } from '../types'
 import { getServiceLogger } from '@crowd/logging'
+import { OPENSEARCH_CONFIG } from 'conf'
 
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   await openSearchService.initialize()
   await openSearchService.setIndexMappings(OpenSearchIndex.MEMBERS)

@@ -1,7 +1,6 @@
-import { DB_CONFIG, REDIS_CONFIG } from '../conf'
+import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from '../conf'
 import { MemberRepository } from '../repo/member.repo'
-import { OpenSearchService } from '../service/opensearch.service'
-import { MemberSyncService } from '../service/member.sync.service'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
@@ -12,7 +11,7 @@ const log = getServiceLogger()
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 
@@ -23,7 +22,7 @@ setImmediate(async () => {
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new MemberSyncService(redis, store, openSearchService, log)
+  const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {
