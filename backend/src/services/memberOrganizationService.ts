@@ -1,11 +1,13 @@
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
-import MemberOrganizationRepository from '../database/repositories/memberOrganizationRepository'
+import MemberOrganizationRepository, {
+  EntityField,
+} from '../database/repositories/memberOrganizationRepository'
 
 interface IMergeStrat {
-  entityIdField: 'memberId' | 'organizationId'
-  intersectBasedOnField: 'memberId' | 'organizationId'
+  entityIdField: EntityField
+  intersectBasedOnField: EntityField
   entityId(a: IMemberOrganization): string
   intersectBasedOn(a: IMemberOrganization): string
   worthMerging(a: IMemberOrganization, b: IMemberOrganization): boolean
@@ -14,8 +16,8 @@ interface IMergeStrat {
 }
 
 const MemberMergeStrat = (primaryMemberId: string): IMergeStrat => ({
-  entityIdField: 'memberId',
-  intersectBasedOnField: 'organizationId',
+  entityIdField: EntityField.memberId,
+  intersectBasedOnField: EntityField.organizationId,
   entityId(role: IMemberOrganization): string {
     return role.memberId
   },
@@ -34,8 +36,8 @@ const MemberMergeStrat = (primaryMemberId: string): IMergeStrat => ({
 })
 
 const OrgMergeStrat = (primaryOrganizationId: string): IMergeStrat => ({
-  entityIdField: 'organizationId',
-  intersectBasedOnField: 'memberId',
+  entityIdField: EntityField.organizationId,
+  intersectBasedOnField: EntityField.memberId,
   entityId(role: IMemberOrganization): string {
     return role.organizationId
   },
@@ -100,7 +102,7 @@ export default class MemberOrganizationService extends LoggerBase {
     this.mergeRoles(primaryRoles, secondaryRoles, mergeStrat)
 
     // update rest of the o2 members
-    const remainingRoles = await MemberOrganizationRepository.fetchRemainingRoles(
+    const remainingRoles = await MemberOrganizationRepository.findNonIntersectingRoles(
       primaryId,
       secondaryId,
       mergeStrat.entityIdField,

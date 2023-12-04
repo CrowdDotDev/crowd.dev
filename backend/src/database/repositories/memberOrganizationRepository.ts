@@ -3,12 +3,17 @@ import { IMemberOrganization } from '@crowd/types'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
+export enum EntityField {
+  memberId = 'memberId',
+  organizationId = 'organizationId',
+}
+
 class MemberOrganizationRepository {
   static async findRolesBelongingToBothEntities(
     primaryId: string,
     secondaryId: string,
-    entityIdField: 'memberId' | 'organizationId',
-    intersectBasedOnField: 'memberId' | 'organizationId',
+    entityIdField: EntityField,
+    intersectBasedOnField: EntityField,
     options: IRepositoryOptions,
   ): Promise<IMemberOrganization[]> {
     const transaction = SequelizeRepository.getTransaction(options)
@@ -106,11 +111,11 @@ class MemberOrganizationRepository {
     })
   }
 
-  static async fetchRemainingRoles(
+  static async findNonIntersectingRoles(
     primaryId: string,
     secondaryId: string,
-    entityIdField: 'memberId' | 'organizationId',
-    intersectBasedOnField: 'memberId' | 'organizationId',
+    entityIdField: EntityField,
+    intersectBasedOnField: EntityField,
     options: IRepositoryOptions,
   ): Promise<IMemberOrganization[]> {
     const seq = SequelizeRepository.getSequelize(options)
