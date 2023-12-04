@@ -19,6 +19,7 @@ const config: Config = {
     'CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID',
     'CROWD_SENDGRID_NAME_FROM',
     'CROWD_SENDGRID_EMAIL_FROM',
+    'CROWD_TEMPORAL_TASKQUEUE_EMAILS_MAX_ACTIVITIES',
   ],
   producer: {
     enabled: false,
@@ -32,6 +33,9 @@ const config: Config = {
 }
 
 const options: Options = {
+  maxTaskQueueActivitiesPerSecond: process.env['CROWD_TEMPORAL_TASKQUEUE_EMAILS_MAX_ACTIVITIES']
+    ? Number(process.env['CROWD_TEMPORAL_TASKQUEUE_EMAILS_MAX_ACTIVITIES'])
+    : Infinity,
   postgres: {
     enabled: true,
   },
