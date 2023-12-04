@@ -3,6 +3,56 @@ import { IMemberOrganization } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
 import MemberOrganizationRepository from '../database/repositories/memberOrganizationRepository'
 
+interface IMergeStrat {
+  entityIdField: 'memberId' | 'organizationId'
+  intersectBasedOnField: 'memberId' | 'organizationId'
+  entityId(a: IMemberOrganization): string
+  intersectBasedOn(a: IMemberOrganization): string
+  worthMerging(a: IMemberOrganization, b: IMemberOrganization): boolean
+  targetMemberId(role: IMemberOrganization): string
+  targetOrganizationId(role: IMemberOrganization): string
+}
+
+const MemberMergeStrat = (primaryMemberId: string): IMergeStrat => ({
+  entityIdField: 'memberId',
+  intersectBasedOnField: 'organizationId',
+  entityId(role: IMemberOrganization): string {
+    return role.memberId
+  },
+  intersectBasedOn(role: IMemberOrganization): string {
+    return role.organizationId
+  },
+  worthMerging(a: IMemberOrganization, b: IMemberOrganization): boolean {
+    return a.memberId === b.memberId
+  },
+  targetMemberId(): string {
+    return primaryMemberId
+  },
+  targetOrganizationId(role: IMemberOrganization): string {
+    return role.organizationId
+  },
+})
+
+const OrgMergeStrat = (primaryOrganizationId: string): IMergeStrat => ({
+  entityIdField: 'organizationId',
+  intersectBasedOnField: 'memberId',
+  entityId(role: IMemberOrganization): string {
+    return role.organizationId
+  },
+  intersectBasedOn(role: IMemberOrganization): string {
+    return role.memberId
+  },
+  worthMerging(a: IMemberOrganization, b: IMemberOrganization): boolean {
+    return a.organizationId === b.organizationId
+  },
+  targetMemberId(role: IMemberOrganization): string {
+    return role.memberId
+  },
+  targetOrganizationId(): string {
+    return primaryOrganizationId
+  },
+})
+
 export default class MemberOrganizationService extends LoggerBase {
   options: IServiceOptions
 
@@ -12,39 +62,87 @@ export default class MemberOrganizationService extends LoggerBase {
   }
 
   async moveMembersBetweenOrganizations(
-    fromOrganizationId: string,
-    toOrganizationId: string,
+    secondaryOrganizationId: string,
+    primaryOrganizationId: string,
   ): Promise<void> {
-    let removeRoles: IMemberOrganization[] = []
+    this.moveRolesBetweenEntities(
+      primaryOrganizationId,
+      secondaryOrganizationId,
+      OrgMergeStrat(primaryOrganizationId),
+    )
+  }
 
-    let addRoles: IMemberOrganization[] = []
+  async moveOrgsBetweenMembers(secondaryMemberId: string, primaryMemberId: string): Promise<void> {
+    this.moveRolesBetweenEntities(
+      primaryMemberId,
+      secondaryMemberId,
+      MemberMergeStrat(primaryMemberId),
+    )
+  }
 
+  async moveRolesBetweenEntities(primaryId: string, secondaryId: string, mergeStrat: IMergeStrat) {
     // first, handle members that belong to both organizations,
     // then make a full update on remaining org2 members (that doesn't belong to o1)
-    const memberRolesWithBothOrganizations =
-      await MemberOrganizationRepository.findMembersBelongToBothOrganizations(
-        fromOrganizationId,
-        toOrganizationId,
+    const rolesForBothEntities =
+      await MemberOrganizationRepository.findRolesBelongingToBothEntities(
+        primaryId,
+        secondaryId,
+        mergeStrat.entityIdField,
+        mergeStrat.intersectBasedOnField,
         this.options,
       )
 
-    const primaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
-      (m) => m.organizationId === toOrganizationId,
-    )
-    const secondaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
-      (m) => m.organizationId === fromOrganizationId,
+    const primaryRoles = rolesForBothEntities.filter((m) => mergeStrat.entityId(m) === primaryId)
+    const secondaryRoles = rolesForBothEntities.filter(
+      (m) => mergeStrat.entityId(m) === secondaryId,
     )
 
-    for (const memberOrganization of secondaryOrganizationMemberRoles) {
+    this.mergeRoles(primaryRoles, secondaryRoles, mergeStrat)
+
+    // update rest of the o2 members
+    const remainingRoles = await MemberOrganizationRepository.fetchRemainingRoles(
+      primaryId,
+      secondaryId,
+      mergeStrat.entityIdField,
+      mergeStrat.intersectBasedOnField,
+      this.options,
+    )
+
+    for (const role of remainingRoles) {
+      await MemberOrganizationRepository.removeMemberRole(role, this.options)
+      await MemberOrganizationRepository.addMemberRole(
+        {
+          title: role.title,
+          dateStart: role.dateStart,
+          dateEnd: role.dateEnd,
+          memberId: mergeStrat.targetMemberId(role),
+          organizationId: mergeStrat.targetOrganizationId(role),
+          source: role.source,
+          deletedAt: role.deletedAt,
+        },
+        this.options,
+      )
+    }
+  }
+
+  async mergeRoles(
+    primaryRoles: IMemberOrganization[],
+    secondaryRoles: IMemberOrganization[],
+    mergeStrat: IMergeStrat,
+  ) {
+    let removeRoles: IMemberOrganization[] = []
+    let addRoles: IMemberOrganization[] = []
+
+    for (const memberOrganization of secondaryRoles) {
       // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
       if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
         removeRoles.push(memberOrganization)
       }
       // it's a current role, also check org1 to see which one starts earlier
       else if (memberOrganization.dateStart !== null && memberOrganization.dateEnd === null) {
-        const currentRoles = primaryOrganizationMemberRoles.filter(
+        const currentRoles = primaryRoles.filter(
           (mo) =>
-            mo.memberId === memberOrganization.memberId &&
+            mergeStrat.worthMerging(mo, memberOrganization) &&
             mo.dateStart !== null &&
             mo.dateEnd === null,
         )
@@ -78,7 +176,7 @@ export default class MemberOrganizationService extends LoggerBase {
         throw new Error(`Member organization with dateEnd and without dateStart!`)
       } else {
         // both dateStart and dateEnd exists
-        const foundIntersectingRoles = primaryOrganizationMemberRoles.filter((mo) => {
+        const foundIntersectingRoles = primaryRoles.filter((mo) => {
           const primaryStart = new Date(mo.dateStart)
           const primaryEnd = new Date(mo.dateEnd)
           const secondaryStart = new Date(memberOrganization.dateStart)
@@ -106,8 +204,8 @@ export default class MemberOrganizationService extends LoggerBase {
         addRoles.push({
           dateStart: new Date(Math.min.apply(null, startDates)).toISOString(),
           dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
-          memberId: memberOrganization.memberId,
-          organizationId: toOrganizationId,
+          memberId: mergeStrat.targetMemberId(memberOrganization),
+          organizationId: mergeStrat.targetOrganizationId(memberOrganization),
           title:
             foundIntersectingRoles.length > 0
               ? foundIntersectingRoles[0].title
@@ -134,29 +232,6 @@ export default class MemberOrganizationService extends LoggerBase {
 
       addRoles = []
       removeRoles = []
-    }
-
-    // update rest of the o2 members
-    const remainingRoles = await MemberOrganizationRepository.fetchRemainingRoles(
-      fromOrganizationId,
-      toOrganizationId,
-      this.options,
-    )
-
-    for (const role of remainingRoles) {
-      await MemberOrganizationRepository.removeMemberRole(role, this.options)
-      await MemberOrganizationRepository.addMemberRole(
-        {
-          title: role.title,
-          dateStart: role.dateStart,
-          dateEnd: role.dateEnd,
-          memberId: role.memberId,
-          organizationId: toOrganizationId,
-          source: role.source,
-          deletedAt: role.deletedAt,
-        },
-        this.options,
-      )
     }
   }
 }

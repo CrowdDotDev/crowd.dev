@@ -4,9 +4,11 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
 class MemberOrganizationRepository {
-  static async findMembersBelongToBothOrganizations(
-    organizationId1: string,
-    organizationId2: string,
+  static async findRolesBelongingToBothEntities(
+    primaryId: string,
+    secondaryId: string,
+    entityIdField: 'memberId' | 'organizationId',
+    intersectBasedOnField: 'memberId' | 'organizationId',
     options: IRepositoryOptions,
   ): Promise<IMemberOrganization[]> {
     const transaction = SequelizeRepository.getTransaction(options)
@@ -17,20 +19,22 @@ class MemberOrganizationRepository {
       SELECT  mo.*
       FROM "memberOrganizations" AS mo
       WHERE mo."deletedAt" is null and
-         mo."memberId" IN (
-          SELECT "memberId"
+         mo."${intersectBasedOnField}" IN (
+          SELECT "${intersectBasedOnField}"
           FROM "memberOrganizations"
-          WHERE "organizationId" = :organizationId1
+          WHERE "${entityIdField}" = :primaryId
       )
-      AND mo."memberId" IN (
-          SELECT "memberId"
+      AND mo."${intersectBasedOnField}" IN (
+          SELECT "${intersectBasedOnField}"
           FROM "memberOrganizations"
-          WHERE "organizationId" = :organizationId2);
+          WHERE "${entityIdField}" = :secondaryId)
+      AND mo."${entityIdField}" IN (:primaryId, :secondaryId);
+
     `,
       {
         replacements: {
-          organizationId1,
-          organizationId2,
+          primaryId,
+          secondaryId,
         },
         type: QueryTypes.SELECT,
         transaction,
@@ -44,9 +48,9 @@ class MemberOrganizationRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    let deleteMemberRole = `DELETE FROM "memberOrganizations" 
-                                            WHERE 
-                                            "organizationId" = :organizationId and 
+    let deleteMemberRole = `DELETE FROM "memberOrganizations"
+                                            WHERE
+                                            "organizationId" = :organizationId and
                                             "memberId" = :memberId`
 
     const replacements = {
@@ -103,8 +107,10 @@ class MemberOrganizationRepository {
   }
 
   static async fetchRemainingRoles(
-    fromOrganizationId: string,
-    toOrganizationId: string,
+    primaryId: string,
+    secondaryId: string,
+    entityIdField: 'memberId' | 'organizationId',
+    intersectBasedOnField: 'memberId' | 'organizationId',
     options: IRepositoryOptions,
   ): Promise<IMemberOrganization[]> {
     const seq = SequelizeRepository.getSequelize(options)
@@ -114,19 +120,19 @@ class MemberOrganizationRepository {
       `
         SELECT *
         FROM "memberOrganizations"
-        WHERE "organizationId" = :fromOrganizationId 
+        WHERE "${entityIdField}" = :secondaryId
         AND "deletedAt" IS NULL
-        AND "memberId" NOT IN (
-            SELECT "memberId" 
-            FROM "memberOrganizations" 
-            WHERE "organizationId" = :toOrganizationId
+        AND "${intersectBasedOnField}" NOT IN (
+            SELECT "${intersectBasedOnField}"
+            FROM "memberOrganizations"
+            WHERE "${entityIdField}" = :primaryId
             AND "deletedAt" IS NULL
         );
       `,
       {
         replacements: {
-          toOrganizationId,
-          fromOrganizationId,
+          primaryId,
+          secondaryId,
         },
         type: QueryTypes.SELECT,
         transaction,
