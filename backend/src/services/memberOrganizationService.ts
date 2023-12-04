@@ -72,7 +72,7 @@ export default class MemberOrganizationService extends LoggerBase {
     )
   }
 
-  async moveOrgsBetweenMembers(secondaryMemberId: string, primaryMemberId: string): Promise<void> {
+  async moveOrgsBetweenMembers(primaryMemberId: string, secondaryMemberId: string): Promise<void> {
     this.moveRolesBetweenEntities(
       primaryMemberId,
       secondaryMemberId,
