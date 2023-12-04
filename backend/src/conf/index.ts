@@ -37,9 +37,14 @@ import {
   WeeklyEmailsConfiguration,
   CrowdAnalyticsConfiguration,
   IBackendTemporalConfig,
+  EncryptionConfiguration,
 } from './configTypes'
 
 // TODO-kube
+
+export const ENCRYPTION_SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY
+
+export const ENCRYPTION_INIT_VECTOR = process.env.ENCRYPTION_INIT_VECTOR
 
 export const KUBE_MODE: boolean = process.env.KUBE_MODE !== undefined
 
@@ -61,6 +66,8 @@ export const IS_STAGING_ENV: boolean = process.env.NODE_ENV === 'staging'
 export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
+
+export const ENCRYPTION_CONFIG: EncryptionConfiguration = config.get<EncryptionConfiguration>('encryption')
 
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
 

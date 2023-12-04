@@ -208,5 +208,9 @@
   },
   "searchSyncApi": {
     "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
+  },
+  "encryption": {
+    "secretKey": "CROWD_ENCRYPTION_SECRET_KEY",
+    "initVector": "CROWD_ENCRYPTION_INIT_VECTOR"
   }
 }
