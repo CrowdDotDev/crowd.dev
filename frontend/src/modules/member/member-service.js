@@ -92,8 +92,6 @@ export class MemberService {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
-    const [segmentId] = segments;
-
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/${id}`,
       {
@@ -101,7 +99,7 @@ export class MemberService {
           Authorization: sampleTenant?.token,
         },
         params: {
-          segmentId,
+          segmentId: segments.length > 0 ? segments[0] : undefined,
         },
       },
     );
