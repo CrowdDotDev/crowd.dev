@@ -11,7 +11,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:nodejs-worker'
+    command: 'pnpm run start:nodejs-worker'
     working_dir: /usr/crowd/app/backend
     env_file:
       - ../../backend/.env.dist.local
@@ -28,7 +28,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:nodejs-worker:dev'
+    command: 'pnpm run start:nodejs-worker:dev'
     working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'
     env_file:

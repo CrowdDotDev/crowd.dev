@@ -11,7 +11,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.integration_data_worker
-    command: 'npm run start'
+    command: 'pnpm run start'
     working_dir: /usr/crowd/app/services/apps/integration_data_worker
     env_file:
       - ../../backend/.env.dist.local
@@ -28,7 +28,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.integration_data_worker
-    command: 'npm run dev'
+    command: 'pnpm run dev'
     working_dir: /usr/crowd/app/services/apps/integration_data_worker
     # user: '${USER_ID}:${GROUP_ID}'
     env_file:
