@@ -125,7 +125,7 @@ export class AutomationService {
     }
 
     // check whether activity content contains any of the keywords
-    if (shouldProcess && settings.keywords && settings.keywords.length > 0) {
+    if (shouldProcess && settings.keywords && settings.keywords.length > 0 && activity.body) {
       const body = (activity.body as string).toLowerCase()
       if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
         this.log.warn(
