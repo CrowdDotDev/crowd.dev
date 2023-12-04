@@ -1,12 +1,11 @@
+import { OpenSearchService, InitService } from '@crowd/opensearch'
 import { getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
-import { InitService } from './service/init.service'
-import { OpenSearchService } from './service/opensearch.service'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -16,7 +15,7 @@ const MAX_CONCURRENT_PROCESSING = 2
 setImmediate(async () => {
   log.info('Starting search sync worker...')
 
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   const redis = await getRedisClient(REDIS_CONFIG())
 

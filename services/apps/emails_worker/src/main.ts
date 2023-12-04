@@ -32,6 +32,9 @@ const config: Config = {
 }
 
 const options: Options = {
+  maxTaskQueueActivitiesPerSecond: process.env['CROWD_TEMPORAL_TASKQUEUE_EMAILS_MAX_ACTIVITIES']
+    ? Number(process.env['CROWD_TEMPORAL_TASKQUEUE_EMAILS_MAX_ACTIVITIES'])
+    : Infinity,
   postgres: {
     enabled: true,
   },
