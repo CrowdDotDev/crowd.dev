@@ -1,14 +1,12 @@
-import { DB_CONFIG } from '../conf'
-import { ActivitySyncService } from '../service/activity.sync.service'
-import { InitService } from '../service/init.service'
-import { OpenSearchService } from '../service/opensearch.service'
+import { OpenSearchService, ActivitySyncService, InitService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)

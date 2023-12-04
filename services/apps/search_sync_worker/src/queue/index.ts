@@ -2,13 +2,16 @@ import { BatchProcessor } from '@crowd/common'
 import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { ActivitySyncService } from '../service/activity.sync.service'
-import { MemberSyncService } from '../service/member.sync.service'
-import { OpenSearchService } from '../service/opensearch.service'
-import { OrganizationSyncService } from '../service/organization.sync.service'
+import {
+  OpenSearchService,
+  ActivitySyncService,
+  MemberSyncService,
+  OrganizationSyncService,
+} from '@crowd/opensearch'
 import { RedisClient } from '@crowd/redis'
 import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
 import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
+import { SERVICE_CONFIG } from 'conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class WorkerQueueReceiver extends SqsQueueReceiver {
@@ -88,6 +91,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
+      SERVICE_CONFIG(),
     )
   }
 
@@ -104,6 +108,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
+      SERVICE_CONFIG(),
     )
   }
 
