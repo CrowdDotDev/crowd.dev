@@ -32,7 +32,7 @@ const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
 }
 
 // example call
-// npm run script:process-repo 5f8b1a3a-0b0a-4c0a-8b0a-4c0a8b0a4c0a  CrowdDotDev/crowd.dev stars
+// pnpm run script:process-repo 5f8b1a3a-0b0a-4c0a-8b0a-4c0a8b0a4c0a  CrowdDotDev/crowd.dev stars
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
