@@ -29,6 +29,7 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
+import MemberOrganizationService from './memberOrganizationService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -180,11 +181,8 @@ export default class OrganizationService extends LoggerBase {
         '[Merge Organizations] - Moving members to original organisation! ',
       )
       // update members that belong to source organization to destination org
-      await OrganizationRepository.moveMembersBetweenOrganizations(
-        toMergeId,
-        originalId,
-        repoOptions,
-      )
+      const memberOrganizationService = new MemberOrganizationService(repoOptions)
+      await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
 
       this.log.info(
         { originalId, toMergeId },
