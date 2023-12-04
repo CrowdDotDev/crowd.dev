@@ -868,7 +868,7 @@ class MemberRepository {
   static async getActivityAggregates(
     memberId: string,
     options: IRepositoryOptions,
-    segmentId?: string
+    segmentId?: string,
   ): Promise<ActivityAggregates> {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
@@ -1058,6 +1058,7 @@ class MemberRepository {
     returnPlain = true,
     doPopulateRelations = true,
     ignoreTenant = false,
+    segmentId?: string,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -1103,7 +1104,7 @@ class MemberRepository {
     }
 
     if (doPopulateRelations) {
-      return this._populateRelations(record, options, returnPlain)
+      return this._populateRelations(record, options, returnPlain, segmentId)
     }
     const data = record.get({ plain: returnPlain })
 
@@ -3233,7 +3234,7 @@ class MemberRepository {
    * @param returnPlain If true: return object, otherwise  return model
    * @returns The model/object with filled relations and files
    */
-  static async _populateRelations(record, options: IRepositoryOptions, returnPlain = true) {
+  static async _populateRelations(record, options: IRepositoryOptions, returnPlain = true, segmentId?: string) {
     if (!record) {
       return record
     }
@@ -3248,7 +3249,7 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const activityAggregates = await MemberRepository.getActivityAggregates(output.id, options)
+    const activityAggregates = await MemberRepository.getActivityAggregates(output.id, options, segmentId)
 
     output.activeOn = activityAggregates?.activeOn || []
     output.activityCount = activityAggregates?.activityCount || 0
