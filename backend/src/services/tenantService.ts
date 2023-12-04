@@ -1,12 +1,12 @@
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
+import { SegmentData, SegmentStatus } from '@crowd/types'
+import { Error400, Error404 } from '@crowd/common'
 import { TENANT_MODE } from '../conf/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import PermissionChecker from './user/permissionChecker'
 import Permissions from '../security/permissions'
-import Error404 from '../errors/Error404'
 import Roles from '../security/roles'
 import SettingsService from './settingsService'
 import Plans from '../security/plans'
@@ -23,8 +23,10 @@ import ConversationRepository from '../database/repositories/conversationReposit
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { TenantMode } from '../conf/configTypes'
 import TaskRepository from '../database/repositories/taskRepository'
-import { SegmentData, SegmentStatus } from '../types/segmentTypes'
 import SegmentService from './segmentService'
+import OrganizationService from './organizationService'
+import { defaultCustomViews } from '@/types/customView'
+import CustomViewRepository from '@/database/repositories/customViewRepository'
 
 export default class TenantService {
   options: IServiceOptions
@@ -291,6 +293,17 @@ export default class TenantService {
         currentTenant: record,
       })
 
+      // create default custom views
+      for (const entity of Object.values(defaultCustomViews)) {
+        for (const customView of entity) {
+          await CustomViewRepository.create(customView, {
+            ...this.options,
+            transaction,
+            currentTenant: record,
+          })
+        }
+      }
+
       await SequelizeRepository.commitTransaction(transaction)
 
       return record
@@ -346,6 +359,14 @@ export default class TenantService {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
+  }
+
+  async viewOrganizations() {
+    return SettingsService.save({ organizationsViewed: true }, this.options)
+  }
+
+  async viewContacts() {
+    return SettingsService.save({ contactsViewed: true }, this.options)
   }
 
   async updatePlanUser(id, planStripeCustomerId, planUserId) {
@@ -561,5 +582,10 @@ export default class TenantService {
   async findMembersToMerge(args) {
     const memberService = new MemberService(this.options)
     return memberService.findMembersWithMergeSuggestions(args)
+  }
+
+  async findOrganizationsToMerge(args) {
+    const organizationService = new OrganizationService(this.options)
+    return organizationService.findOrganizationsWithMergeSuggestions(args)
   }
 }

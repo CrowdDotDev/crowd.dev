@@ -1,6 +1,6 @@
+import { Error404 } from '@crowd/common'
 import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
 import { MemberAttributeName, PlatformType } from '@crowd/types'
 import TaskRepository from '../taskRepository'
@@ -597,7 +597,7 @@ describe('ActivityRepository tests', () => {
 
       const org1 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
@@ -1336,14 +1336,14 @@ describe('ActivityRepository tests', () => {
 
       const org1 = await OrganizationRepository.create(
         {
-          name: 'crowd.dev',
+          displayName: 'crowd.dev',
         },
         mockIRepositoryOptions,
       )
 
       const org2 = await OrganizationRepository.create(
         {
-          name: 'tesla',
+          displayName: 'tesla',
         },
         mockIRepositoryOptions,
       )

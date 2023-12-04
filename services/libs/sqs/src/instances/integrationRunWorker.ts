@@ -8,10 +8,11 @@ import {
   StartIntegrationRunQueueMessage,
   CheckRunsQueueMessage,
 } from '@crowd/types'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public async checkRuns() {
@@ -23,10 +24,12 @@ export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     integrationId: string,
     onboarding: boolean,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      `${tenantId}-${platform}`,
-      new StartIntegrationRunQueueMessage(integrationId, onboarding),
+      integrationId,
+      new StartIntegrationRunQueueMessage(integrationId, onboarding, isManualRun, manualSettings),
     )
   }
 
@@ -34,15 +37,17 @@ export class IntegrationRunWorkerEmitter extends SqsQueueEmitter {
     tenantId: string,
     platform: string,
     runId: string,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      `${tenantId}-${platform}`,
-      new GenerateRunStreamsQueueMessage(runId),
+      runId,
+      new GenerateRunStreamsQueueMessage(runId, isManualRun, manualSettings),
       runId,
     )
   }
 
   public async streamProcessed(tenantId: string, platform: string, runId: string): Promise<void> {
-    await this.sendMessage(`runs-${tenantId}-${platform}`, new StreamProcessedQueueMessage(runId))
+    await this.sendMessage(runId, new StreamProcessedQueueMessage(runId))
   }
 }

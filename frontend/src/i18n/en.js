@@ -69,9 +69,9 @@ const en = {
         integrations: 'Integrations',
         info: 'Custom Attributes',
         activities: 'Activities',
-        members: 'Members',
+        members: 'Contacts',
         latestMetrics: 'LatestMetrics',
-        membersToMerge: 'Members To Merge',
+        membersToMerge: 'Contacts To Merge',
         benchmarkRepos: 'BenchmarkRepos',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
@@ -142,33 +142,34 @@ const en = {
     },
     member: {
       name: 'member',
-      label: 'Members',
-      menu: 'Members',
+      label: 'Contacts',
+      menu: 'Contacts',
       exporterFileName: 'member_export',
       list: {
-        menu: 'Members',
-        title: 'Members',
+        menu: 'Contacts',
+        title: 'Contacts',
       },
       create: {
-        success: 'Member successfully saved',
-        error: 'There was an error creating the member',
+        success: 'Contact added successfully',
+        error: 'There was an error creating the contact',
+        message: 'View contact',
       },
       update: {
-        success: 'Member successfully saved',
-        error: 'There was an error updating the member',
+        success: 'Contact edited successfully',
+        error: 'There was an error updating the contact',
       },
       destroy: {
-        success: 'Member successfully deleted',
+        success: 'Contact successfully deleted',
       },
       destroyAll: {
-        success: 'Member(s) successfully deleted',
+        success: 'Contact(s) successfully deleted',
       },
       edit: {
-        title: 'Edit Member',
+        title: 'Edit Contact',
       },
       merge: {
-        title: 'Merge Member',
-        success: 'Members merged successfully',
+        title: 'Merge Contact',
+        success: 'Contacts merged successfully',
       },
       attributes: {
         error: 'Custom Attributes could not be created',
@@ -179,7 +180,7 @@ const en = {
         fullName: 'Full Name',
         jobTitle: 'Job title',
         company: 'Company',
-        member: 'Member',
+        member: 'Contact',
         score: 'Score',
         estimatedReach: 'Estimated Reach',
         numberActivities: '# of Activities',
@@ -205,7 +206,7 @@ const en = {
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
         reach: 'Reach',
-        joinedAt: 'Member since',
+        joinedAt: 'Contact since',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
         createdAtRange: 'Created at',
@@ -216,10 +217,10 @@ const en = {
       placeholders: {},
       hints: {},
       new: {
-        title: 'New Member',
+        title: 'New Contact',
       },
       view: {
-        title: 'View Member',
+        title: 'View Contact',
       },
     },
 
@@ -262,7 +263,7 @@ const en = {
         revenueRange: 'Annual revenue',
         activeSince: 'Active since',
         github: 'GitHub',
-        twitter: 'Twitter',
+        twitter: 'X/Twitter',
         linkedin: 'LinkedIn',
         crunchbase: 'Crunchbase',
       },
@@ -300,7 +301,7 @@ const en = {
         platform: 'Platform',
         project: 'Project',
         info: 'Custom Attributes',
-        member: 'Member',
+        member: 'Contact',
         isContribution: 'Key Action',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',
@@ -384,7 +385,9 @@ const en = {
       triggers: {
         new_activity:
           'New activity happened in your community',
-        new_member: 'New member joined your community',
+        new_member: 'New contact joined your community',
+        member_attributes_match: 'Contact attributes match condition(s)',
+        organization_attributes_match: 'Organization attributes match condition(s)',
       },
     },
 
@@ -433,13 +436,14 @@ const en = {
     cubejs: {
       tooltip: {
         Activities: 'Activity',
-        Members: 'Member',
+        Contacts: 'Contact',
+        Members: 'Contact',
         Conversations: 'Conversation',
         Organizations: 'Organization',
       },
       cubes: {
         Activities: 'Activities',
-        Members: 'Members',
+        Members: 'Contacts',
         Conversations: 'Conversations',
         Organizations: 'Organizations',
       },
@@ -452,15 +456,15 @@ const en = {
         channel: '[Activities] Channel',
       },
       Members: {
-        count: '[Members] Count',
-        cumulativeCount: '[Members] Cumulative Count',
-        score: '[Members] Engagement Level',
-        location: '[Members] Location',
-        organization: '[Members] Organization',
-        joinedAt: '[Members] Joined Date',
+        count: '[Contacts] Count',
+        cumulativeCount: '[Contacts] Cumulative Count',
+        score: '[Contacts] Engagement Level',
+        location: '[Contacts] Location',
+        organization: '[Contacts] Organization',
+        joinedAt: '[Contacts] Joined Date',
       },
       MemberTags: {
-        count: '[Members] # of Tags',
+        count: '[Contacts] # of Tags',
       },
       Conversations: {
         count: '[Conversations] Count',
@@ -556,7 +560,7 @@ const en = {
     readonly: {
       label: 'Read-only',
       description:
-        'Read access to Community Members, Activities, Conversations, and Reports',
+        'Read access to Community Contacts, Activities, Conversations, and Reports',
     },
   },
 
@@ -809,7 +813,7 @@ const en = {
   /* eslint-disable */
   validation: {
     mixed: {
-      default: 'path} is invalid',
+      default: '{path} is invalid',
       required: 'This field is required',
       oneOf:
         '{path} must be one of the following values: ${values}',

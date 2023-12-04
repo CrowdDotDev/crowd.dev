@@ -1,6 +1,6 @@
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { Member } from '@/modules/member/types/Member';
-import allMembers from '@/modules/member/config/saved-views/views/all-members';
+import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 import { FilterCustomAttribute } from '@/shared/modules/filters/types/FilterCustomAttribute';
 
 export interface MemberState {
@@ -15,11 +15,7 @@ export interface MemberState {
 
 const state: MemberState = {
   filters: {
-    ...allMembers.filter,
-    pagination: {
-      page: 1,
-      perPage: 20,
-    },
+    ...allContacts.config,
   },
   savedFilterBody: {},
   customAttributes: [],

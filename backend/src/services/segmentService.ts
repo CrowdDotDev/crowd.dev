@@ -1,19 +1,19 @@
-import { ActivityTypeSettings, PlatformType } from '@crowd/types'
-import { LoggerBase } from '@crowd/logging'
-import SegmentRepository from '../database/repositories/segmentRepository'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import Error400 from '../errors/Error400'
 import {
+  ActivityTypeSettings,
+  PlatformType,
   SegmentActivityTypesCreateData,
   SegmentCriteria,
   SegmentData,
   SegmentLevel,
   SegmentUpdateData,
-} from '../types/segmentTypes'
+} from '@crowd/types'
+import { Error400 } from '@crowd/common'
+import { LoggerBase } from '@crowd/logging'
+import SegmentRepository from '../database/repositories/segmentRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import MemberRepository from '../database/repositories/memberRepository'
 import ReportRepository from '../database/repositories/reportRepository'
 
 interface UnnestedActivityTypes {
@@ -355,23 +355,8 @@ export default class SegmentService extends LoggerBase {
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
 
-    const activityChannels = SegmentRepository.getActivityChannels(this.options)
-
-    if (activityChannels[data.platform]) {
-      const channelList = activityChannels[data.platform]
-      if (!channelList.includes(data.channel)) {
-        const updatedChannelList = [...channelList, data.channel]
-        activityChannels[data.platform] = updatedChannelList
-      }
-    } else {
-      activityChannels[data.platform] = [data.channel]
-    }
-
-    const updated = await new SegmentRepository(this.options).update(segment.id, {
-      activityChannels,
-    })
-
-    return updated.activityChannels
+    const segmentRepository = new SegmentRepository(this.options)
+    await segmentRepository.addActivityChannel(segment.id, data.platform, data.channel)
   }
 
   async getTenantSubprojects(tenant: any) {
@@ -404,17 +389,14 @@ export default class SegmentService extends LoggerBase {
     }, {})
   }
 
-  static async getTenantActivityChannels(subprojects: any) {
-    return subprojects.reduce((acc: any, subproject) => {
-      for (const platform of Object.keys(subproject.activityChannels)) {
-        if (!acc[platform]) {
-          acc[platform] = []
-        }
+  static async getTenantActivityChannels(tenant: any, options: any) {
+    const segmentRepository = new SegmentRepository({
+      ...options,
+      currentTenant: tenant,
+    })
 
-        acc[platform] = [...acc[platform], ...subproject.activityChannels[platform]]
-      }
-      return acc
-    }, {})
+    const activityChannels = await segmentRepository.fetchTenantActivityChannels()
+    return activityChannels
   }
 
   private collectSubprojectIds(segments, level: SegmentLevel) {
@@ -479,11 +461,7 @@ export default class SegmentService extends LoggerBase {
     if (!subprojectIds.length) {
       return
     }
-    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
-      this.options,
-      subprojectIds,
-    )
-    this.setMembersCount(segments, level, membersCountPerSegment)
+    this.setMembersCount(segments, level, {})
   }
 
   static async refreshSegments(options: IRepositoryOptions) {

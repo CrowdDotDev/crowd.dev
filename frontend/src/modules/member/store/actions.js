@@ -8,7 +8,6 @@ import { FormSchema } from '@/shared/form/form-schema';
 import sharedActions from '@/shared/store/actions';
 import {
   getEnrichmentMax,
-  checkEnrichmentLimit,
   showEnrichmentSuccessMessage,
   showEnrichmentLoadingMessage,
   checkEnrichmentPlan,
@@ -73,7 +72,7 @@ export default {
       await MemberService.merge(memberToKeep, memberToMerge);
 
       Message.success(i18n('entities.member.merge.success'));
-      router.push(`/members/${memberToKeep.id}`);
+      router.push(`/contacts/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);
     }
@@ -117,17 +116,80 @@ export default {
     }
   },
 
+  async doBulkUpdateMembersAttribute({ commit }, { members, attributesToSave }) {
+    const { fields } = MemberModel;
+    const formSchema = new FormSchema([
+      fields.info,
+      fields.joinedAt,
+      fields.organizations,
+      fields.attributes,
+    ]);
+
+    try {
+      const payload = members.map((item) => {
+        const memberToUpdate = { ...item };
+
+        // 1. Update joinedAt
+        if (attributesToSave.joinedAt) {
+          memberToUpdate.joinedAt = attributesToSave.joinedAt;
+        }
+
+        // 2. Append Organizations
+        if (attributesToSave.organizations) {
+          const orgIdsInMember = memberToUpdate.organizations.map((org) => org.id);
+          attributesToSave.organizations.forEach((org) => {
+            // Only append if org is not already in member
+            if (!orgIdsInMember.includes(org.id)) {
+              memberToUpdate.organizations.push(org);
+            }
+          });
+        }
+
+        // 3. Update attributes
+        if (attributesToSave.attributes) {
+          Object.keys(attributesToSave.attributes).forEach((attributeName) => {
+            const attributeValue = attributesToSave.attributes[attributeName];
+
+            // If the attribute value is an array, then append the values and not overwrite them
+            if (attributeValue && Array.isArray(attributeValue.default)) {
+              memberToUpdate.attributes[attributeName] = memberToUpdate.attributes[attributeName] || { default: [] };
+
+              // Get existing values of member attribute
+              const existingValues = memberToUpdate.attributes[attributeName].default;
+
+              // Append only the new values to the member attribute and not the existing ones
+              const newValues = attributeValue.default.filter((value) => !existingValues.includes(value));
+              memberToUpdate.attributes[attributeName].default.push(...newValues);
+            } else if (attributeValue && typeof attributeValue.default !== 'undefined') {
+              memberToUpdate.attributes[attributeName] = { default: attributeValue.default };
+            }
+          });
+        }
+
+        return formSchema.cast({
+          id: memberToUpdate.id,
+          joinedAt: memberToUpdate.joinedAt,
+          organizations: memberToUpdate.organizations,
+          attributes: memberToUpdate.attributes,
+        });
+      });
+
+      const updatedMembers = await MemberService.updateBulk(payload);
+
+      Message.success('Attribute updated successfully');
+
+      commit('UPDATE_SUCCESS', updatedMembers);
+    } catch (error) {
+      Errors.handle(error);
+      Message.error('There was an error updating attribute');
+    }
+  },
+
   async doEnrich({ commit, dispatch, rootGetters }, id) {
     try {
       const currentTenant = rootGetters['auth/currentTenant'];
 
       const planEnrichmentCountMax = getEnrichmentMax(currentTenant.plan);
-
-      // Check if it has reached enrichment maximum
-      // If so, show dialog to upgrade plan
-      if (checkEnrichmentLimit(planEnrichmentCountMax)) {
-        return;
-      }
 
       // Start member enrichment
       commit('UPDATE_STARTED');

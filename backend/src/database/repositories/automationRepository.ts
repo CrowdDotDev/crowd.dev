@@ -1,16 +1,23 @@
+import {
+  AutomationState,
+  AutomationSyncTrigger,
+  FeatureFlag,
+  IAutomationData,
+  PageData,
+} from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
-import AuditLogRepository from './auditLogRepository'
+import { Error404 } from '@crowd/common'
+import { PLAN_LIMITS } from '@/feature-flags/isFeatureEnabled'
+import { AutomationCriteria } from '../../types/automationTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import Error404 from '../../errors/Error404'
-import { AutomationCriteria, AutomationData } from '../../types/automationTypes'
-import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
-import { PageData } from '../../types/common'
+import AuditLogRepository from './auditLogRepository'
 import { RepositoryBase } from './repositoryBase'
+import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
 
 const { Op } = Sequelize
 
 export default class AutomationRepository extends RepositoryBase<
-  AutomationData,
+  IAutomationData,
   string,
   DbAutomationInsertData,
   DbAutomationUpdateData,
@@ -20,12 +27,16 @@ export default class AutomationRepository extends RepositoryBase<
     super(options, true)
   }
 
-  override async create(data: DbAutomationInsertData): Promise<AutomationData> {
+  override async create(data: DbAutomationInsertData): Promise<IAutomationData> {
     const currentUser = this.currentUser
 
     const tenant = this.currentTenant
 
     const transaction = this.transaction
+
+    const existingActiveAutomations = await this.findAndCountAll({
+      state: AutomationState.ACTIVE,
+    })
 
     const record = await this.database.automation.create(
       {
@@ -33,7 +44,10 @@ export default class AutomationRepository extends RepositoryBase<
         type: data.type,
         trigger: data.trigger,
         settings: data.settings,
-        state: data.state,
+        state:
+          existingActiveAutomations.count >= PLAN_LIMITS[tenant.plan][FeatureFlag.AUTOMATIONS]
+            ? AutomationState.DISABLED
+            : data.state,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -48,12 +62,23 @@ export default class AutomationRepository extends RepositoryBase<
     return this.findById(record.id)
   }
 
-  override async update(id, data: DbAutomationUpdateData): Promise<AutomationData> {
+  override async update(id, data: DbAutomationUpdateData): Promise<IAutomationData> {
     const currentUser = this.currentUser
 
     const currentTenant = this.currentTenant
 
     const transaction = this.transaction
+
+    const existingActiveAutomations = await this.findAndCountAll({
+      state: AutomationState.ACTIVE,
+    })
+
+    if (
+      data.state === AutomationState.ACTIVE &&
+      existingActiveAutomations.count >= PLAN_LIMITS[currentTenant.plan][FeatureFlag.AUTOMATIONS]
+    ) {
+      throw new Error(`Maximum number of active automations reached for the plan!`)
+    }
 
     let record = await this.database.automation.findOne({
       where: {
@@ -112,7 +137,7 @@ export default class AutomationRepository extends RepositoryBase<
     )
   }
 
-  override async findById(id: string): Promise<AutomationData> {
+  override async findById(id: string): Promise<IAutomationData> {
     const results = await this.findAndCountAll({
       id,
       offset: 0,
@@ -130,7 +155,7 @@ export default class AutomationRepository extends RepositoryBase<
     throw new Error('More than one row returned when fetching by automation unique ID!')
   }
 
-  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<AutomationData>> {
+  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<IAutomationData>> {
     // get current tenant that was used to make a request
     const currentTenant = this.currentTenant
 
@@ -210,7 +235,7 @@ export default class AutomationRepository extends RepositoryBase<
     }
 
     const count = parseInt((results[0] as any).paginatedItemsCount, 10)
-    const rows: AutomationData[] = results.map((r) => {
+    const rows: IAutomationData[] = results.map((r) => {
       const row = r as any
       return {
         id: row.id,
@@ -236,14 +261,57 @@ export default class AutomationRepository extends RepositoryBase<
     }
   }
 
-  static async countAll(database: any, tenantId: string): Promise<number> {
+  static async countAllActive(database: any, tenantId: string): Promise<number> {
     const automationCount = await database.automation.count({
       where: {
         tenantId,
+        state: AutomationState.ACTIVE,
       },
       useMaster: true,
     })
 
     return automationCount
+  }
+
+  public async findSyncAutomations(
+    tenantId: string,
+    platform: string,
+  ): Promise<IAutomationData[] | null> {
+    const seq = this.seq
+
+    const transaction = this.transaction
+
+    const pageSize = 10
+    const syncAutomations: IAutomationData[] = []
+
+    let results
+    let offset
+
+    do {
+      offset = results ? pageSize + offset : 0
+
+      results = await seq.query(
+        `select * from automations 
+      where type = :platform and "tenantId" = :tenantId and trigger in (:syncAutomationTriggers)
+      limit :limit offset :offset`,
+        {
+          replacements: {
+            tenantId,
+            platform,
+            syncAutomationTriggers: [
+              AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH,
+              AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH,
+            ],
+            limit: pageSize,
+            offset,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+      syncAutomations.push(...results)
+    } while (results.length > 0)
+
+    return syncAutomations
   }
 }

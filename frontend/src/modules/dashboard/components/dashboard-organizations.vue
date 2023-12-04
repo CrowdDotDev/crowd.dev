@@ -5,7 +5,10 @@
       title="Organizations"
       :total-loading="organizations.loadingRecent"
       :total="organizations.total"
-      :route="{ name: 'organization' }"
+      :route="{
+        name: 'organization',
+        query: filterQueryService().setQuery(allOrganizations.config),
+      }"
       button-title="All organizations"
       report-name="Organizations report"
     />
@@ -69,17 +72,17 @@
               No new organizations during this period
             </app-dashboard-empty-state>
             <div
-              v-if="organizations.length >= 5"
+              v-if="recentOrganizations.length >= 5"
               class="pt-3"
             >
               <router-link
                 :to="{
                   name: 'organization',
                   query: filterQueryService().setQuery({
-                    ...newAndActive.filter,
+                    ...allOrganizations.config,
                     joinedDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                   }),
                 }"
@@ -95,12 +98,21 @@
       <section class="px-5 w-1/2">
         <div class="flex">
           <div class="w-5/12">
+            <div class="flex items-center gap-2 mb-1">
+              <h6
+                class="text-sm leading-5 font-semibold"
+              >
+                Active <span>organizations</span>
+                <el-tooltip
+                  placement="top"
+                  content="Organizations whose contacts engaged in at least one activity during the selected time period."
+                  popper-class="max-w-[260px]"
+                >
+                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                </el-tooltip>
+              </h6>
+            </div>
             <!-- info -->
-            <h6
-              class="text-sm leading-5 font-semibold mb-1"
-            >
-              Active organizations
-            </h6>
             <app-dashboard-count
               :loading="organizations.loadingActive"
               :query="activeOrganizationCount"
@@ -156,10 +168,10 @@
                 :to="{
                   name: 'organization',
                   query: filterQueryService().setQuery({
-                    ...allOrganizations.filter,
+                    ...allOrganizations.config,
                     lastActivityDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                   }),
                 }"
@@ -190,7 +202,6 @@ import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
-import newAndActive from '@/modules/organization/config/saved-views/views/new-and-active';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 
@@ -210,7 +221,6 @@ export default {
       newOrganizationCount,
       activeOrganizationCount,
       filterQueryService,
-      newAndActive,
       allOrganizations,
     };
   },
@@ -221,10 +231,16 @@ export default {
       'organizations',
       'period',
     ]),
-    periodStartDate() {
-      return moment()
-        .subtract(this.period.value, 'day')
-        .format('YYYY-MM-DD');
+    periodRange() {
+      return [
+        moment()
+          .utc()
+          .subtract(this.period.value - 1, 'day')
+          .format('YYYY-MM-DD'),
+        moment()
+          .utc()
+          .format('YYYY-MM-DD'),
+      ];
     },
   },
   methods: {

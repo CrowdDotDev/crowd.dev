@@ -1,10 +1,12 @@
-import { DB_CONFIG, SQS_CONFIG } from '@/conf'
-import IntegrationDataRepository from '@/repo/integrationData.repo'
+import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import IntegrationDataRepository from '../repo/integrationData.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
+import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { IntegrationDataWorkerEmitter, getSqsClient } from '@crowd/sqs'
 import { IntegrationStreamDataState } from '@crowd/types'
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -18,10 +20,10 @@ const tenantId = processArguments[0]
 
 setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationDataWorkerEmitter(sqsClient, log)
+  const emitter = new IntegrationDataWorkerEmitter(sqsClient, tracer, log)
   await emitter.init()
 
-  const dbConnection = getDbConnection(DB_CONFIG(), 1)
+  const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
   const repo = new IntegrationDataRepository(store, log)
 

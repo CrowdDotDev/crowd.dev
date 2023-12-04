@@ -9,7 +9,7 @@ import getUserContext from '../../../database/utils/getUserContext'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { IStepContext } from '../../../types/integration/stepResult'
 import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
-import { WebhookError, WebhookState } from '../../../types/webhooks'
+import { WebhookState } from '../../../types/webhooks'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { IntegrationServiceBase } from './integrationServiceBase'
@@ -44,7 +44,7 @@ export class WebhookProcessor extends LoggerBase {
       integrationId: webhook.integrationId,
     })
 
-    logger.info('Webhook found!')
+    logger.debug('Webhook found!')
 
     if (!(force === true) && webhook.state !== WebhookState.PENDING) {
       logger.error({ state: webhook.state }, 'Webhook is not in pending state!')
@@ -55,6 +55,9 @@ export class WebhookProcessor extends LoggerBase {
     userContext.log = logger
 
     const integration = await IntegrationRepository.findById(webhook.integrationId, userContext)
+    if (integration.platform === 'github' || integration.platform === 'discord') {
+      return
+    }
     const segment = await new SegmentRepository(userContext).findById(integration.segmentId)
     userContext.currentSegments = [segment]
 
@@ -118,10 +121,7 @@ export class WebhookProcessor extends LoggerBase {
         )
       } else {
         logger.error(err, 'Error processing webhook!')
-        await repo.markError(
-          webhook.id,
-          new WebhookError(webhook.id, 'Error processing webhook!', err),
-        )
+        await repo.markError(webhook.id, err)
       }
     } finally {
       await SequelizeRepository.commitTransaction(whContext.transaction)

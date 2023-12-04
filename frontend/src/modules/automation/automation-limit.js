@@ -1,28 +1,13 @@
 import Plans from '@/security/plans';
 import { router } from '@/router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-
-const workflowMax = {
-  enterprise: 'unlimited',
-  growth: 10,
-  essential: 2,
-};
+import { planLimits } from '@/security/plans-limits';
 
 /**
  * @param {*} plan tenant plan (Essential | Growth | Enterprise)
  * @returns maximum number of workflows
  */
-export const getWorkflowMax = (plan) => {
-  if (plan === Plans.values.enterprise) {
-    return workflowMax.enterprise;
-  } if (
-    plan === Plans.values.growth
-  ) {
-    return workflowMax.growth;
-  }
-
-  return workflowMax.essential;
-};
+export const getWorkflowMax = (plan) => planLimits.automation[plan];
 
 export const showWorkflowLimitDialog = ({
   planWorkflowCountMax,
@@ -31,10 +16,11 @@ export const showWorkflowLimitDialog = ({
     vertical: true,
     type: 'danger',
     title:
-      `You have reached the limit of ${planWorkflowCountMax} automations on your current plan`,
+      `You have reached the limit of ${planWorkflowCountMax} active automations on your current plan`,
     message:
-      'Upgrade your plan to get unlimited automations and take full advantage of this feature',
+      'Upgrade your plan to increase the active automations quota and take full advantage of this feature',
     confirmButtonText: 'Upgrade plan',
+    showCancelButton: false,
   }).then(() => {
     router.push('settings?activeTab=plans');
   });

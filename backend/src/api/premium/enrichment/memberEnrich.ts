@@ -1,11 +1,11 @@
 import { RedisCache } from '@crowd/redis'
 import { getServiceLogger } from '@crowd/logging'
+import { FeatureFlagRedisKey } from '@crowd/types'
 import { getSecondsTillEndOfMonth } from '../../../utils/timing'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
 import MemberEnrichmentService from '../../../services/premium/enrichment/memberEnrichmentService'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import { FeatureFlagRedisKey } from '../../../types/common'
 import track from '../../../segment/track'
 
 const log = getServiceLogger()

@@ -11,8 +11,10 @@
         <template #append>
           <el-select
             v-model="platform"
+            clearable
             placeholder="All platforms"
             class="w-40"
+            @clear="reloadActivities"
           >
             <template
               v-if="
@@ -61,77 +63,102 @@
     </div>
     <div>
       <el-timeline>
-        <el-timeline-item
-          v-for="activity in activities"
-          :key="activity.id"
-        >
-          <div>
-            <app-member-display-name
-              v-if="entityType === 'organization'"
-              :member="activity.member"
-              custom-class="block text-gray-900 font-medium"
-              with-link
-              class="bl"
-            />
-            <div class="flex items-center mt-0.5">
-              <app-activity-message :activity="activity" />
-              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{ timeAgo(activity) }}</span>
-              <span
-                v-if="activity.sentiment.sentiment"
-                class="mx-1"
-              >·</span>
-              <app-activity-sentiment
-                v-if="activity.sentiment.sentiment"
-                :sentiment="activity.sentiment.sentiment"
+        <template v-if="activities.length && !loading">
+          <el-timeline-item
+            v-for="activity in activities"
+            :key="activity.id"
+          >
+            <div class="-mt-1.5">
+              <app-member-display-name
+                v-if="entityType === 'organization'"
+                :member="activity.member"
+                custom-class="block text-gray-900 font-medium"
+                with-link
+                class="bl"
               />
-            </div>
-            <app-activity-content
-              v-if="activity.title || activity.body"
-              class="text-sm bg-gray-50 rounded-lg p-4"
-              :activity="activity"
-              :show-more="true"
-            >
-              <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
-                <div v-if="activity.attributes">
-                  <app-activity-content-footer
-                    :source-id="activity.sourceId"
-                    :changes="activity.attributes.lines"
-                    changes-copy="line"
-                    :insertions="activity.attributes.insertions"
-                    :deletions="activity.attributes.deletions"
-                  />
-                </div>
-              </template>
+              <div
+                class="flex gap-4 justify-between min-h-9 -mt-1"
+                :class="{
+                  'items-center': !isMemberIdentity,
+                  'items-start': isMemberIdentity,
+                }"
+              >
+                <app-activity-header
+                  :activity="activity"
+                  class="flex flex-wrap items-center"
+                  :class="{
+                    'mt-1.5': isMemberIdentity,
+                  }"
+                />
+                <div class="flex-grow" />
+                <app-activity-dropdown
+                  :activity="activity"
+                  :disable-edit="true"
+                  @activity-destroyed="fetchActivities(true)"
+                />
+              </div>
+              <app-activity-content
+                v-if="activity.title || activity.body"
+                class="text-sm bg-gray-50 rounded-lg p-4"
+                :activity="activity"
+                :show-more="true"
+              >
+                <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
+                  <div v-if="activity.attributes">
+                    <app-activity-content-footer
+                      :source-id="activity.sourceId"
+                      :changes="activity.attributes.lines"
+                      changes-copy="line"
+                      :insertions="activity.attributes.insertions"
+                      :deletions="activity.attributes.deletions"
+                    />
+                  </div>
+                </template>
 
-              <template #bottomLink>
-                <div v-if="activity.url" class="pt-6">
-                  <app-activity-link
-                    :activity="activity"
-                  />
-                </div>
-              </template>
-            </app-activity-content>
-          </div>
-          <template #dot>
-            <span
-              class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
-              :class="`btn--${activity.platform}`"
-            >
-              <img
-                v-if="platformDetails(activity.platform)"
-                :src="
-                  platformDetails(activity.platform).image
-                "
-                :alt="`${activity.platform}-icon`"
-                class="w-4 h-4"
-              />
-              <i
-                v-else
-                class="ri-radar-line text-base text-gray-400"
-              />
-            </span>
-          </template>
-        </el-timeline-item>
+                <template #bottomLink>
+                  <div v-if="activity.url" class="pt-6">
+                    <app-activity-link
+                      :activity="activity"
+                    />
+                  </div>
+                </template>
+              </app-activity-content>
+            </div>
+            <template #dot>
+              <span
+                class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
+                :class="`btn--${activity.platform}`"
+              >
+                <img
+                  v-if="platformDetails(activity.platform)"
+                  :src="
+                    platformDetails(activity.platform).image
+                  "
+                  :alt="`${activity.platform}-icon`"
+                  class="w-4 h-4"
+                />
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
+              </span>
+            </template>
+          </el-timeline-item>
+        </template>
+
+        <div
+          v-if="!activities.length && !loading"
+          class="flex items-center justify-center pt-6 pb-5"
+        >
+          <div
+            class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
+          />
+          <p
+            class="text-xs leading-5 text-center italic text-gray-400"
+          >
+            This contact has no activities in {{ getPlatformDetails(platform)?.name || 'custom platforms' }}
+          </p>
+        </div>
       </el-timeline>
       <div
         v-if="loading"
@@ -142,7 +169,7 @@
         <el-button
           class="btn btn-brand btn-brand--transparent"
           :disabled="loading"
-          @click="fetchActivities"
+          @click="fetchActivities()"
         >
           <i class="ri-arrow-down-line mr-2" />Load
           more
@@ -157,24 +184,22 @@ import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
   computed,
-  reactive,
   ref,
   h,
   onMounted,
   watch,
 } from 'vue';
 import debounce from 'lodash/debounce';
-import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { onSelectMouseLeave } from '@/utils/select';
 import authAxios from '@/shared/axios/auth-axios';
-import { formatDateToTimeAgo } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
+import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -202,17 +227,23 @@ const activeIntegrations = computed(() => {
   }));
 });
 
+const isMemberIdentity = computed(() => props.entityType === 'member');
+
 const loading = ref(true);
 const platform = ref(null);
 const query = ref('');
-const activities = reactive([]);
+const activities = ref([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
 
 let filter = {};
 
-const fetchActivities = async () => {
+const fetchActivities = async (reload = false) => {
+  if (reload) {
+    offset.value = 0;
+  }
+
   const filterToApply = {
     platform: platform.value ?? undefined,
   };
@@ -261,7 +292,7 @@ const fetchActivities = async () => {
   }
 
   if (!isEqual(filter, filterToApply)) {
-    activities.length = 0;
+    activities.value.length = 0;
     offset.value = 0;
     noMore.value = false;
   }
@@ -295,15 +326,22 @@ const fetchActivities = async () => {
   loading.value = false;
   if (data.rows.length < limit.value) {
     noMore.value = true;
-    activities.push(...data.rows);
   } else {
     offset.value += limit.value;
-    activities.push(...data.rows);
+  }
+  if (reload) {
+    activities.value = data.rows;
+  } else {
+    activities.value.push(...data.rows);
   }
 };
 
+const reloadActivities = async () => {
+  platform.value = undefined;
+  await fetchActivities();
+};
+
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
-const timeAgo = (activity) => formatDateToTimeAgo(activity.timestamp);
 
 const debouncedQueryChange = debounce(async () => {
   await fetchActivities();

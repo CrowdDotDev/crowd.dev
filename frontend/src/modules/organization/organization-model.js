@@ -8,6 +8,7 @@ import JsonField from '@/shared/fields/json-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import IntegerField from '@/shared/fields/integer-field';
 import BooleanField from '@/shared/fields/boolean-field';
+import GenericField from '@/shared/fields/generic-field';
 import OrganizationHeadcountField from './organization-headcount-field';
 import OrganizationEmployeesField from './organization-employees-field';
 import OrganizationTypeField from './organization-type-field';
@@ -21,9 +22,7 @@ i18nInit();
 
 const fields = {
   id: new StringField('id', label('id')),
-  name: new StringField('name', label('name'), {
-    required: true,
-  }),
+  name: new StringField('name', label('name')),
   displayName: new StringField('displayName', label('name'), {
     required: true,
   }),
@@ -43,7 +42,7 @@ const fields = {
   ),
   members: new OrganizationMemberCountField(
     'memberCount',
-    '# of members',
+    '# of contacts',
     { filterable: true },
   ),
   employees: new OrganizationEmployeesField(
@@ -66,7 +65,7 @@ const fields = {
   ),
   revenueRange: new JsonField(
     'revenueRange',
-    label('revenueRange'),
+    'Annual Revenue',
   ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date', {
     filterable: true,
@@ -82,6 +81,10 @@ const fields = {
   crunchbase: new JsonField(
     'crunchbase',
     label('crunchbase'),
+  ),
+  identities: new JsonField(
+    'identities',
+    'Identities',
   ),
   emails: new StringArrayField('emails', 'E-mail address'),
   phoneNumbers: new StringArrayField(
@@ -101,6 +104,24 @@ const fields = {
   lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
     filterable: true,
   }),
+  affiliatedProfiles: new StringArrayField('affiliatedProfiles', 'Affiliated Profiles'),
+  allSubsidiaries: new StringArrayField('allSubsidiaries', 'All Subsidiaries'),
+  alternativeDomains: new StringArrayField('alternativeDomains', 'Alternative Domains'),
+  alternativeNames: new StringArrayField('alternativeNames', 'Alternative Names'),
+  averageEmployeeTenure: new GenericField('averageEmployeeTenure', 'Average Employee Tenure'),
+  averageTenureByLevel: new JsonField('averageTenureByLevel', 'Average Tenure by Level'),
+  averageTenureByRole: new JsonField('averageTenureByRole', 'Average Tenure by Role'),
+  directSubsidiaries: new StringArrayField('directSubsidiaries', 'Direct Subsidiaries'),
+  employeeChurnRate: new JsonField('employeeChurnRate', 'Employee Churn Rate'),
+  employeeCountByCountry: new JsonField('employeeCountByCountry', 'Employee Count by Country'),
+  employeeCountByMonth: new JsonField('employeeCountByMonth', 'Employee Count by Month'),
+  employeeGrowthRate: new JsonField('employeeGrowthRate', 'Employee Growth Rate'),
+  gicsSector: new StringField('gicsSector', 'GICS Sector'),
+  grossAdditionsByMonth: new JsonField('grossAdditionsByMonth', 'Gross Additions by Month'),
+  grossDeparturesByMonth: new JsonField('grossDeparturesByMonth', 'Gross Departures by Month'),
+  immediateParent: new StringField('immediateParent', 'Immediate Parent'),
+  tags: new StringArrayField('tags', 'Tags'),
+  ultimateParent: new StringField('ultimateParent', 'Ultimate Parent'),
 };
 
 export class OrganizationModel extends GenericModel {

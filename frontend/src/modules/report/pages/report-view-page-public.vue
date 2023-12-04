@@ -17,20 +17,26 @@
         <div
           class="max-w-5xl flex flex-grow mx-auto items-center justify-between px-6 lg:px-8"
         >
-          <div class="mb-6 mt-4">
+          <div class="mb-6 mt-4 w-full">
             <div
               v-if="currentTenant.name"
               class="font-medium text-brand-500 text-sm mb-2"
             >
               {{ currentTenant.name }}
             </div>
-            <h1 class="text-lg font-semibold">
-              {{
-                report.isTemplate
-                  ? currentTemplate.name
-                  : report.name
-              }}
-            </h1>
+            <div class="flex items-center justify-between">
+              <h1 class="text-lg font-semibold">
+                {{
+                  report.isTemplate
+                    ? currentTemplate.name
+                    : report.name
+                }}
+              </h1>
+              <div class=" text-sm flex items-center gap-2">
+                <i class="text-gray-500 ri-time-line text-base" />
+                <span class="text-gray-500">Data on this page is refreshed every 15 min.</span>
+              </div>
+            </div>
           </div>
 
           <div
@@ -261,7 +267,7 @@ export default {
         id: this.id,
         tenantId: this.tenantId,
       });
-      this.currentTenant = await TenantService.find(
+      this.currentTenant = await TenantService.findName(
         this.tenantId,
       );
     } else {

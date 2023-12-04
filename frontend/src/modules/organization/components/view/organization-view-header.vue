@@ -53,12 +53,21 @@
       <div class="flex items-center">
         <app-organization-dropdown
           :organization="organization"
+          @merge="isMergeDialogOpen = organization"
         />
       </div>
     </div>
     <div
       class="py-6 border-b border-gray-200 mb-4"
     >
+      <div v-if="organization.description || organization.headline" class="flex items-center">
+        <p class="text-gray-400 font-medium text-2xs mr-2">
+          Headline
+        </p>
+        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
+      </div>
       <app-organization-headline :organization="organization" />
 
       <div
@@ -80,7 +89,7 @@
     <div class="grid grid-rows-2 grid-flow-col gap-4">
       <div>
         <p class="text-gray-400 font-medium text-2xs">
-          # of members
+          # of contacts
         </p>
         <p class="mt-1 text-gray-900 text-xs">
           {{
@@ -105,9 +114,15 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Headcount
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Headcount
+          </p>
+          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
+
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(
@@ -131,14 +146,18 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Annual Revenue
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Annual Revenue
+          </p>
+          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
         <p class="mt-1 text-gray-900 text-xs">
           {{
-            formattedInformation(
+            revenueRange.displayValue(
               organization.revenueRange,
-              'revenueRange',
             )
           }}
         </p>
@@ -157,13 +176,13 @@
         </p>
       </div>
     </div>
+
+    <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
 <script setup>
-import {
-  defineProps, ref, computed,
-} from 'vue';
+import { ref, computed } from 'vue';
 import moment from 'moment';
 import {
   formatDate,
@@ -172,12 +191,14 @@ import {
 import {
   formatNumber,
   formatNumberToCompact,
-  formatRevenueRange,
 } from '@/utils/number';
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
+import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+import AppSvg from '@/shared/svg/svg.vue';
+import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({
   organization: {
@@ -188,6 +209,7 @@ const props = defineProps({
 
 const showMore = ref(false);
 const descriptionRef = ref(null);
+const isMergeDialogOpen = ref(null);
 const displayShowMore = computed(() => {
   if (!props.organization.description) {
     return false;
@@ -216,12 +238,6 @@ const formattedInformation = (value, type) => {
       && moment(value).isBefore(
         moment().subtract(40, 'years'),
       ))
-    // If range is not set for revenue
-    || (type === 'revenueRange'
-      && (value.min === undefined
-        || value.max === undefined
-        || value.min === null
-        || value.max === null))
   ) {
     return '-';
   }
@@ -235,8 +251,6 @@ const formattedInformation = (value, type) => {
     return formatDateToTimeAgo(value);
   } if (type === 'compact') {
     return formatNumberToCompact(value);
-  } if (type === 'revenueRange') {
-    return formatRevenueRange(value);
   }
 
   return value;

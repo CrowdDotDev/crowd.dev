@@ -10,10 +10,10 @@
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
       >
-        Members
+        Contacts
       </el-button>
       <h4 class="mt-4 mb-6">
-        {{ isEditPage ? 'Edit member' : 'New member' }}
+        {{ isEditPage ? 'Edit contact' : 'New contact' }}
       </h4>
       <el-container
         v-if="!isPageLoading"
@@ -88,7 +88,7 @@
               @click="onSubmit"
             >
               {{
-                isEditPage ? 'Update member' : 'Add member'
+                isEditPage ? 'Update contact' : 'Add contact'
               }}
             </el-button>
           </div>
@@ -117,6 +117,7 @@ import {
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
+import { storeToRefs } from 'pinia';
 import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue';
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue';
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue';
@@ -129,7 +130,6 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 
 const LoaderIcon = h(
   'i',
@@ -265,16 +265,19 @@ onBeforeRouteLeave((to) => {
   return true;
 });
 
-onMounted(async () => {
+onMounted(() => {
   // Fetch custom attributes on mount
-  await getMemberCustomAttributes();
+  getMemberCustomAttributes();
 
   if (isEditPage.value) {
     const { id } = route.params;
 
-    record.value = await store.dispatch('member/doFind', id);
-    isPageLoading.value = false;
-    formModel.value = getInitialModel(record.value);
+    store.dispatch('member/doFind', id)
+      .then((res) => {
+        record.value = res;
+        isPageLoading.value = false;
+        formModel.value = getInitialModel(record.value);
+      });
   } else {
     isPageLoading.value = false;
   }
@@ -352,6 +355,7 @@ async function onSubmit() {
       tags: formModel.value.tags.map((t) => t.id),
     },
     ...formModel.value.organizations.length && {
+      organizationsReplace: true,
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,
@@ -365,6 +369,7 @@ async function onSubmit() {
           ...o.memberOrganizations?.dateEnd && {
             endDate: o.memberOrganizations?.dateEnd,
           },
+          source: 'ui',
         }),
       ).filter(
         (o) => !!o.id,
@@ -383,6 +388,8 @@ async function onSubmit() {
     ...Object.keys(formModel.value.username).length && {
       username: formModel.value.username,
     },
+
+    manuallyCreated: true,
   };
 
   let isRequestSuccessful = false;

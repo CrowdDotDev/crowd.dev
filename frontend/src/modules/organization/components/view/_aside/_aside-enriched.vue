@@ -8,27 +8,42 @@
         'py-3 border-b border-gray-200': organization[attribute.name],
       }"
     >
-      <div v-if="organization[attribute.name]">
-        <div
-          class="text-gray-400 font-medium text-2xs"
-        >
-          {{ attribute.label }}
+      <div
+        v-if="organization[attribute.name]"
+      >
+        <div class="flex items-center">
+          <div
+            class="text-gray-400 font-medium text-2xs mr-2"
+          >
+            {{ attribute.label }}
+          </div>
+          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
         </div>
 
-        <div class="mt-1 text-gray-900 text-xs">
-          <span v-if="attribute.type === attributesTypes.date">
-            {{
-              formatDate({
-                timestamp: organization[attribute.name],
-                subtractDays: null,
-                subtractMonths: null,
-                format: 'D MMMM, YYYY',
-              })
-            }}
-          </span>
-          <span v-else>
-            {{ attribute.type === attributesTypes.string ? toSentenceCase(organization[attribute.name]) : organization[attribute.name] }}
-          </span>
+        <component
+          :is="attribute.component"
+          v-if="attribute.component && attribute.type === AttributeType.ARRAY"
+          more-label=""
+          wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
+          item-class="border border-gray-200 px-1.5 text-xs rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
+          :title="attribute.label"
+          :value="organization[attribute.name]"
+          :slice-size="3"
+          :with-separators="false"
+          :is-link="attribute.isLink"
+        />
+        <component
+          :is="attribute.component"
+          v-else-if="attribute.component && attribute.type === AttributeType.JSON"
+          :attribute-value="organization[attribute.name]"
+          :key-parser="attribute.keyParser"
+          :value-parser="attribute.valueParser"
+          :filter-value="attribute.filterValue"
+        />
+        <div v-else class="mt-1 text-gray-900 text-xs">
+          {{ attribute.displayValue(organization[attribute.name]) }}
         </div>
       </div>
     </div>
@@ -37,9 +52,9 @@
 
 <script setup>
 import { computed, defineProps } from 'vue';
-import enrichmentAttributes, { attributesTypes } from '@/modules/organization/config/organization-enrichment-attributes';
-import { formatDate } from '@/utils/date';
-import { toSentenceCase } from '@/utils/string';
+import enrichmentAttributes from '@/modules/organization/config/enrichment';
+import { AttributeType } from '@/modules/organization/types/Attributes';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps({
   organization: {
@@ -48,5 +63,8 @@ const props = defineProps({
   },
 });
 
-const visibleAttributes = computed(() => enrichmentAttributes.filter((a) => props.organization[a.name] && a.showInAttributes));
+const visibleAttributes = computed(() => enrichmentAttributes
+  .filter((a) => ((props.organization[a.name] && a.type !== AttributeType.ARRAY && a.type !== AttributeType.JSON)
+    || (a.type === AttributeType.ARRAY && props.organization[a.name]?.length)
+    || (a.type === AttributeType.JSON && props.organization[a.name] && Object.keys(props.organization[a.name]))) && a.showInAttributes));
 </script>

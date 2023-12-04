@@ -46,6 +46,13 @@ const options = [
     defaultValue: false,
     description: 'Enrich members of the tenant',
   },
+  {
+    name: 'memberIds',
+    alias: 'i',
+    type: String,
+    description:
+      'Comma separated member ids that you would like to enrich - If this option is not present, script will enrich all members given limit.',
+  },
 ]
 const sections = [
   {
@@ -97,63 +104,62 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         const segmentIds = segments.map((segment) => segment.id)
 
         const optionsWithTenant = await SequelizeRepository.getDefaultIRepositoryOptions(
-          null,
+          userContext,
           tenant,
           segments,
         )
 
         if (enrichMembers) {
-          let offset = 0
-          let totalMembers = 0
+          if (parameters.memberIds) {
+            const memberIds = parameters.memberIds.split(',')
+            await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+            log.info(
+              { tenantId },
+              `Enrichment message for ${memberIds.length} sent to nodejs-worker!`,
+            )
+          } else {
+            let offset = 0
+            let totalMembers = 0
 
-          do {
-            const { rows: members, count: membersCount } = await MemberRepository.findAndCountAllv2(
-              { filter: {}, limit, offset, countOnly: false },
+            const { count } = await MemberRepository.getMemberIdsandCountForEnrich(
+              { countOnly: true },
               optionsWithTenant,
             )
+            totalMembers = count
+            log.info({ tenantId }, `Total enrichable members found in the tenant: ${totalMembers}`)
 
-            totalMembers = membersCount
-            log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
+            do {
+              const { ids: memberIds } = await MemberRepository.getMemberIdsandCountForEnrich(
+                { limit, offset },
+                optionsWithTenant,
+              )
 
-            // get all member ids for the tenant
-            const memberIds = members.map((member) => member.id)
+              await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
 
-            await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+              offset += limit
+            } while (totalMembers > offset)
+          }
 
-            offset += limit
-          } while (totalMembers > offset)
-
-          log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
+          log.info({ tenantId }, `Members enrichment operation finished for tenant: ${tenantId}`)
         }
 
         if (enrichOrganizations) {
-          let offset = 0
-          let totalOrganizations = 0
+          const organizations = await OrganizationRepository.findAndCountAll({}, optionsWithTenant)
 
-          do {
-            const organizations = await OrganizationRepository.findAndCountAll(
-              { limit, offset },
-              optionsWithTenant,
-            )
+          const totalOrganizations = organizations.count
 
-            totalOrganizations = organizations.count
+          log.info({ tenantId }, `Total organizations found in the tenant: ${totalOrganizations}`)
 
-            log.info({ tenantId }, `Total organizations found in the tenant: ${totalOrganizations}`)
+          const payload = {
+            type: NodeWorkerMessageType.NODE_MICROSERVICE,
+            service: 'enrich-organizations',
+            tenantId,
+            // Since there is no pagination implemented for the organizations enrichment,
+            // we set a limit of 10,000 to ensure all organizations are included when enriched in bulk.
+            maxEnrichLimit: 10000,
+          } as NodeWorkerMessageBase
 
-            for (const organization of organizations.rows) {
-              const payload = {
-                type: NodeWorkerMessageType.NODE_MICROSERVICE,
-                service: 'enrich-organizations',
-                tenantId: organization.id,
-                maxEnrichLimit: 5000,
-              } as NodeWorkerMessageBase
-
-              await sendNodeWorkerMessage(tenantId, payload)
-            }
-
-            offset += limit
-          } while (totalOrganizations > offset)
-
+          await sendNodeWorkerMessage(tenantId, payload)
           log.info(
             { tenantId },
             `Organizations enrichment operation finished for tenant ${tenantId}`,

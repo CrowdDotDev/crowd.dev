@@ -42,11 +42,15 @@ export const getDbInstance = (): DbInstance => {
   return dbInstance
 }
 
-let dbConnection: DbConnection | undefined
+const dbConnection: Record<string, DbConnection | undefined> = {}
 
-export const getDbConnection = (config: IDatabaseConfig, maxPoolSize?: number): DbConnection => {
-  if (dbConnection) {
-    return dbConnection
+export const getDbConnection = async (
+  config: IDatabaseConfig,
+  maxPoolSize?: number,
+  idleTimeoutMillis?: number,
+): Promise<DbConnection> => {
+  if (dbConnection[config.host]) {
+    return dbConnection[config.host]
   }
 
   log.info(
@@ -56,10 +60,15 @@ export const getDbConnection = (config: IDatabaseConfig, maxPoolSize?: number): 
 
   const dbInstance = getDbInstance()
 
-  dbConnection = dbInstance({
+  dbConnection[config.host] = dbInstance({
     ...config,
-    max: maxPoolSize || 5,
+    max: maxPoolSize || 20,
+    idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
+    // query_timeout: 30000,
+    application_name: process.env.SERVICE || 'unknown-app',
   })
 
-  return dbConnection
+  await dbConnection[config.host].connect()
+
+  return dbConnection[config.host]
 }

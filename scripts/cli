@@ -16,6 +16,15 @@ BUILDERS=`ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//'`
 
 _DC="docker compose"
 
+arch=$(uname -m)
+
+if [ "$arch" == 'arm64' ];
+then
+  DOCKER_PLATFORM_FLAGS="--platform=linux/arm64/v8"
+else
+  DOCKER_PLATFORM_FLAGS="--platform=linux/amd64"
+fi
+
 function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
         echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.local"
@@ -34,11 +43,11 @@ function prepare_dev_env() {
 
     set +eo pipefail
 
-    which $_DC >> /dev/null 2>&1
+    $_DC >> /dev/null 2>&1
 
     if [[ ! $? -eq 0 ]]; then
         _DC="docker-compose"
-        which $_DC >> /dev/null 2>&1
+        $_DC >> /dev/null 2>&1
 
         if [[ ! $? -eq 0 ]]; then
             error "Docker compose not detected!"
@@ -300,8 +309,7 @@ function scaffold_set_up_network() {
 
 function migrate_local() {
     say "Building flyway migration image..."
-    docker build -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
-
+    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
     say "Applying database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=db \
@@ -348,7 +356,7 @@ function check_init_premium() {
 }
 
 function install_libs() {
-    (cd $CLI_HOME/../services/scripts && ./install_lib_packages.sh && ./build_libs.sh)
+    (cd $CLI_HOME/../services/scripts && ./install_lib_packages.sh)
 }
 
 function init_unleash() {
@@ -363,7 +371,7 @@ function up_scaffold() {
 
 function post_up_scaffold() {
     migrate_local
-    bash nango-integrations.sh
+    bash $CLI_HOME/nango-integrations.sh
     check_init_premium
 }
 

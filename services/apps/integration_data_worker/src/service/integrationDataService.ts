@@ -5,9 +5,9 @@ import IntegrationDataRepository from '../repo/integrationData.repo'
 import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { WORKER_SETTINGS, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '@/conf'
+import { WORKER_SETTINGS, PLATFORM_CONFIG } from '../conf'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
-import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
+import telemetry from '@crowd/telemetry'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository
@@ -58,20 +58,20 @@ export default class IntegrationDataService extends LoggerBase {
     })
   }
 
-  public async processData(dataId: string): Promise<void> {
+  public async processData(dataId: string): Promise<boolean> {
     this.log.debug({ dataId }, 'Trying to process stream data!')
 
     const dataInfo = await this.repo.getDataInfo(dataId)
 
     if (!dataInfo) {
-      this.log.error({ dataId }, 'Data not found!')
+      telemetry.increment('data_sink_worker.process_data.not_found', 1)
       return
     }
 
     if (dataInfo.runId) {
       if (dataInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
         this.log.warn('Integration was deleted! Skipping data processing!')
-        return
+        return false
       }
 
       this.log = getChildLogger('stream-data-processor', this.log, {
@@ -108,7 +108,7 @@ export default class IntegrationDataService extends LoggerBase {
           type: dataInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     const cache = new RedisCache(
@@ -127,6 +127,7 @@ export default class IntegrationDataService extends LoggerBase {
         status: dataInfo.integrationState,
         settings: dataInfo.integrationSettings,
         token: dataInfo.integrationToken,
+        refreshToken: dataInfo.integrationRefreshToken,
       },
 
       data: dataInfo.data,
@@ -158,6 +159,14 @@ export default class IntegrationDataService extends LoggerBase {
         await this.updateIntegrationSettings(dataId, settings)
       },
 
+      updateIntegrationToken: async (token: string) => {
+        await this.updateIntegrationToken(dataId, token)
+      },
+
+      updateIntegrationRefreshToken: async (refreshToken: string) => {
+        await this.updateIntegrationRefreshToken(dataId, refreshToken)
+      },
+
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
         this.log.error({ message }, 'Aborting stream processing with error!')
         await this.triggerDataError(dataId, 'data-abort', message, metadata, error)
@@ -171,72 +180,64 @@ export default class IntegrationDataService extends LoggerBase {
         : undefined,
     }
 
-    this.log.debug('Marking data as in progress!')
-    await this.repo.markDataInProgress(dataId)
-    if (dataInfo.runId) {
-      await this.repo.touchRun(dataInfo.runId)
-    }
+    // this.log.debug('Marking data as in progress!')
+    // await this.repo.markDataInProgress(dataId)
+
+    // TODO we might need that later to check for stuck runs
+    // if (dataInfo.runId) {
+    //   await this.repo.touchRun(dataInfo.runId)
+    // }
 
     this.log.debug('Processing data!')
     try {
       await integrationService.processData(context)
       this.log.debug('Finished processing data!')
-      await this.repo.markDataProcessed(dataId)
+      await this.repo.deleteData(dataId)
+      return true
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
-      await this.triggerDataError(
-        dataId,
-        'data-process',
-        'Error while processing data!',
-        undefined,
-        err,
-      )
+      try {
+        await this.triggerDataError(
+          dataId,
+          'data-process',
+          'Error while processing data!',
+          undefined,
+          err,
+        )
 
-      if (dataInfo.retries + 1 <= WORKER_SETTINGS().maxDataRetries) {
-        // delay for #retries * 15 minutes
-        const until = addSeconds(new Date(), (dataInfo.retries + 1) * 15 * 60)
-        this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
-        await this.repo.delayData(dataId, until)
-      } else {
-        // stop run because of stream error
-        if (dataInfo.runId) {
-          this.log.warn('Reached maximum retries for data! Stopping the run!')
-          await this.triggerRunError(
-            dataInfo.runId,
-            'data-run-stop',
-            'Data reached maximum retries!',
-            {
-              retries: dataInfo.retries + 1,
-              maxRetries: WORKER_SETTINGS().maxDataRetries,
-            },
-          )
+        if (dataInfo.retries + 1 <= WORKER_SETTINGS().maxDataRetries) {
+          // delay for #retries * 15 minutes
+          const until = addSeconds(new Date(), (dataInfo.retries + 1) * 15 * 60)
+          this.log.warn({ until: until.toISOString() }, 'Retrying stream!')
+          await this.repo.delayData(dataId, until)
+        } else {
+          // stop run because of stream error
+          if (dataInfo.runId) {
+            this.log.warn('Reached maximum retries for data! Stopping the run!')
+            await this.triggerRunError(
+              dataInfo.runId,
+              'data-run-stop',
+              'Data reached maximum retries!',
+              {
+                retries: dataInfo.retries + 1,
+                maxRetries: WORKER_SETTINGS().maxDataRetries,
+              },
+            )
+          }
         }
+      } catch (err2) {
+        this.log.error(err2, 'Error while handling stream error!')
 
-        await sendSlackAlert({
-          slackURL: SLACK_ALERTING_CONFIG().url,
-          alertType: SlackAlertTypes.DATA_WORKER_ERROR,
-          integration: {
-            id: dataInfo.integrationId,
-            platform: dataInfo.integrationType,
-            tenantId: dataInfo.tenantId,
-            apiDataId: dataInfo.id,
-          },
-          userContext: {
-            currentTenant: {
-              name: dataInfo.name,
-              plan: dataInfo.plan,
-              isTrial: dataInfo.isTrialPlan,
-            },
-          },
-          log: this.log,
-          frameworkVersion: 'new',
-        })
-      }
-    } finally {
-      if (dataInfo.runId) {
-        await this.repo.touchRun(dataInfo.runId)
+        return false
       }
     }
+
+    // TODO we might need that later to check for stuck runs
+    // finally {
+    //   if (dataInfo.runId) {
+    //     await this.repo.touchRun(dataInfo.runId)
+    //   }
+    // }
   }
 
   private async publishCustom(
@@ -253,7 +254,12 @@ export default class IntegrationDataService extends LoggerBase {
         type,
         data: entity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        resultId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -278,7 +284,12 @@ export default class IntegrationDataService extends LoggerBase {
         type: IntegrationResultType.ACTIVITY,
         data: activity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(tenantId, platform, resultId)
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(
+        tenantId,
+        platform,
+        resultId,
+        activity.sourceId,
+      )
     } catch (err) {
       await this.triggerDataError(
         dataId,
@@ -307,6 +318,38 @@ export default class IntegrationDataService extends LoggerBase {
     }
   }
 
+  private async updateIntegrationToken(dataId: string, token: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration token!')
+      await this.repo.updateIntegrationToken(dataId, token)
+    } catch (err) {
+      await this.triggerRunError(
+        dataId,
+        'run-data-update-token',
+        'Error while updating token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationRefreshToken(dataId: string, refreshToken: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration refresh token!')
+      await this.repo.updateIntegrationRefreshToken(dataId, refreshToken)
+    } catch (err) {
+      await this.triggerRunError(
+        dataId,
+        'run-data-update-refresh-token',
+        'Error while updating refresh token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
   private async publishStream(
     tenantId: string,
     platform: string,
@@ -326,8 +369,14 @@ export default class IntegrationDataService extends LoggerBase {
       if (streamId) {
         if (runId) {
           await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+        } else if (webhookId) {
+          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
         } else {
-          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, streamId)
+          this.log.error(
+            { tenantId, platform, parentId, identifier, runId, webhookId },
+            'Need either runId or webhookId!',
+          )
+          throw new Error('Need either runId or webhookId!')
         }
       } else {
         this.log.debug({ identifier }, 'Child stream already exists!')

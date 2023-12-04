@@ -97,14 +97,25 @@
               class="flex items-center justify-center grow text-sm"
             >
               {{ integrationsNeedReconnectToString }} integration
-                need{{ integrationsInProgress.length > 1 ? '' : 's' }} to be reconnected due to a change in their API.
-                Please reconnect {{ integrationsInProgress.length > 1 ? 'them' : 'it' }} to continue receiving data.
+              need{{ integrationsInProgress.length > 1 ? '' : 's' }} to be reconnected due to a change in their API.
+              Please reconnect {{ integrationsInProgress.length > 1 ? 'them' : 'it' }} to continue receiving data.
               <router-link
                 :to="{ name: 'integration' }"
                 class="btn btn--sm btn--primary ml-4"
               >
                 Go to Integrations
               </router-link>
+            </div>
+          </banner>
+          <banner
+            v-if="showOrganizationsAlertBanner"
+            variant="alert"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              We're currently experiencing several issues with Organizations and are sorry for the inconvenience.
+              You can expect major improvements by Tuesday, Aug 15th. 🚧
             </div>
           </banner>
         </div>
@@ -117,8 +128,10 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
-import identify from '@/shared/monitoring/identify';
 import AppMenu from '@/modules/layout/components/menu.vue';
+import { mapActions as piniaMapActions } from 'pinia';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default {
   name: 'AppLayout',
@@ -154,8 +167,10 @@ export default {
         'tenant/showIntegrationsInProgressAlert',
       showIntegrationsNeedReconnectAlert:
         'tenant/showIntegrationsNeedReconnectAlert',
+      showOrganizationsAlertBanner: 'tenant/showOrganizationsAlertBanner',
       showBanner: 'tenant/showBanner',
     }),
+
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
         (i) => i.name,
@@ -207,8 +222,9 @@ export default {
   },
 
   async mounted() {
-    identify(this.currentUser);
     this.initPendo();
+    this.fetchActivityTypes();
+    this.fetchActivityChannels();
   },
 
   unmounted() {
@@ -218,6 +234,12 @@ export default {
   methods: {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
+    }),
+    ...piniaMapActions(useActivityStore, {
+      fetchActivityChannels: 'fetchActivityChannels',
+    }),
+    ...piniaMapActions(useActivityTypeStore, {
+      fetchActivityTypes: 'fetchActivityTypes',
     }),
 
     initPendo() {

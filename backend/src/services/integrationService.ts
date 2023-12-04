@@ -1,8 +1,10 @@
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
-import axios from 'axios'
+import lodash from 'lodash'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
+import { Error400, Error404, Error542 } from '@crowd/common'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -13,34 +15,39 @@ import {
   IHubspotTokenInfo,
   HubspotEndpoint,
   IHubspotManualSyncPayload,
+  getHubspotLists,
+  IProcessStreamContext,
 } from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
-import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
-import Error542 from '../errors/Error542'
 import track from '../segment/track'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
-import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
-import Error404 from '../errors/Error404'
-import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
-import { IntegrationRunState } from '../types/integrationRunTypes'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
 } from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
+import GithubReposRepository from '../database/repositories/githubReposRepository'
 import MemberService from './memberService'
 import OrganizationService from './organizationService'
+import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
+import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
+import MemberRepository from '@/database/repositories/memberRepository'
+import {
+  GroupsioIntegrationData,
+  GroupsioGetToken,
+  GroupsioVerifyGroup,
+} from '@/serverless/integrations/usecases/groupsio/types'
+import SearchSyncService from './searchSyncService'
 
-const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
+const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
 export default class IntegrationService {
   options: IServiceOptions
@@ -311,6 +318,7 @@ export default class IntegrationService {
       const installToken = await IntegrationService.getInstallToken(installId)
 
       const repos = await getInstalledRepositories(installToken)
+      const githubOwner = IntegrationService.extractOwner(repos, this.options)
 
       // TODO: I will do this later. For now they can add it manually.
       // // If the git integration is configured, we add the repos to the git config
@@ -327,14 +335,23 @@ export default class IntegrationService {
       //     remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
       //   })
       // }
+      let orgAvatar
+      try {
+        const response = await request('GET /users/{user}', {
+          user: githubOwner,
+        })
+        orgAvatar = response.data.avatar_url
+      } catch (err) {
+        this.options.log.warn(err, 'Error while fetching GitHub user!')
+      }
 
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GITHUB,
           token,
-          settings: { repos, updateMemberAttributes: true },
+          settings: { repos, updateMemberAttributes: true, orgAvatar },
           integrationIdentifier: installId,
-          status: 'in-progress',
+          status: 'mapping',
         },
         transaction,
       )
@@ -345,19 +362,75 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending GitHub message to int-run-worker!',
-    )
-    const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
-
     return integration
+  }
+
+  static extractOwner(repos, options) {
+    const owners = lodash.countBy(repos, 'owner')
+
+    if (Object.keys(owners).length === 1) {
+      return Object.keys(owners)[0]
+    }
+
+    options.log.warn('Multiple owners found in GitHub repos!', owners)
+
+    // return the owner with the most repos
+    return lodash.maxBy(Object.keys(owners), (owner) => owners[owner])
+  }
+
+  async mapGithubRepos(integrationId, mapping) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+      const integration = await IntegrationRepository.update(
+        integrationId,
+        { status: 'in-progress' },
+        txOptions,
+      )
+
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending GitHub message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
+  async getGithubRepos(integrationId) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      const mapping = await GithubReposRepository.getMapping(integrationId, txOptions)
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return mapping
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
   }
 
   /**
@@ -468,22 +541,25 @@ export default class IntegrationService {
       throw new Error('memberId is required in the payload while syncing member to hubspot!')
     }
 
-    // update member.attributes.syncRemote.hubspot to false
-    const memberService = new MemberService(this.options)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    const member = await memberService.findById(payload.memberId)
+    try {
+      const memberService = new MemberService(this.options)
 
-    if (!member.attributes.syncRemote) {
-      member.attributes.syncRemote = {
-        default: false,
-        [PlatformType.HUBSPOT]: false,
-      }
-    } else {
-      member.attributes.syncRemote[PlatformType.HUBSPOT] = false
-      member.attributes.syncRemote.default = false
+      const member = await memberService.findById(payload.memberId)
+
+      const memberSyncRemoteRepository = new MemberSyncRemoteRepository({
+        ...this.options,
+        transaction,
+      })
+      await memberSyncRemoteRepository.stopMemberManualSync(member.id)
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      this.options.log.error(err, 'Error while stopping hubspot member sync!')
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
     }
-
-    await memberService.update(payload.memberId, { attributes: member.attributes })
   }
 
   async hubspotSyncMember(payload: IHubspotManualSyncPayload) {
@@ -491,35 +567,30 @@ export default class IntegrationService {
       throw new Error('memberId is required in the payload while syncing member to hubspot!')
     }
 
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
     let integration
+    let member
+    let memberSyncRemote
 
     try {
       integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
         ...this.options,
+        transaction,
       })
-    } catch (err) {
-      this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
-      throw new Error404()
-    }
-    // update member.attributes.syncRemote.hubspot to true
-    const memberService = new MemberService(this.options)
 
-    const member = await memberService.findById(payload.memberId)
+      member = await MemberRepository.findById(payload.memberId, { ...this.options, transaction })
 
-    if (!member.attributes.syncRemote) {
-      member.attributes.syncRemote = {
-        default: true,
-        [PlatformType.HUBSPOT]: true,
-      }
-    } else {
-      member.attributes.syncRemote[PlatformType.HUBSPOT] = true
-      member.attributes.syncRemote.default = true
-    }
+      const memberSyncRemoteRepo = new MemberSyncRemoteRepository({ ...this.options, transaction })
 
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+      memberSyncRemote = await memberSyncRemoteRepo.markMemberForSyncing({
+        integrationId: integration.id,
+        memberId: member.id,
+        metaData: null,
+        syncFrom: 'manual',
+        lastSyncedAt: null,
+      })
 
-    // set integration.settings.syncRemoteEnabled to true, and mark member as syncRemote
-    try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.HUBSPOT,
@@ -530,10 +601,10 @@ export default class IntegrationService {
         },
         transaction,
       )
-      await memberService.update(payload.memberId, { attributes: member.attributes })
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
+      this.options.log.error(err, 'Error while starting Hubspot member sync!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
@@ -543,7 +614,13 @@ export default class IntegrationService {
       this.options.currentTenant.id,
       integration.id,
       payload.memberId,
+      memberSyncRemote.id,
     )
+
+    const searchSyncService = new SearchSyncService(this.options)
+
+    // send it to opensearch because in member.update we bypass while passing transactions
+    await searchSyncService.triggerMemberSync(this.options.currentTenant.id, member.id)
   }
 
   async hubspotStopSyncOrganization(payload: IHubspotManualSyncPayload) {
@@ -553,24 +630,23 @@ export default class IntegrationService {
       )
     }
 
-    // update organization.attributes.syncRemote.hubspot to false
-    const organizationService = new OrganizationService(this.options)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    const organization = await organizationService.findById(payload.organizationId)
+    try {
+      const organizationService = new OrganizationService(this.options)
 
-    if (!organization.attributes.syncRemote) {
-      organization.attributes.syncRemote = {
-        default: false,
-        [PlatformType.HUBSPOT]: false,
-      }
-    } else {
-      organization.attributes.syncRemote[PlatformType.HUBSPOT] = false
-      organization.attributes.syncRemote.default = false
+      const organization = await organizationService.findById(payload.organizationId)
+
+      const organizationSyncRemoteRepository = new OrganizationSyncRemoteRepository({
+        ...this.options,
+        transaction,
+      })
+      await organizationSyncRemoteRepository.stopOrganizationManualSync(organization.id)
+    } catch (err) {
+      this.options.log.error(err, 'Error while stopping Hubspot organization sync!')
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
     }
-
-    await organizationService.update(payload.organizationId, {
-      attributes: organization.attributes,
-    })
   }
 
   async hubspotSyncOrganization(payload: IHubspotManualSyncPayload) {
@@ -580,42 +656,35 @@ export default class IntegrationService {
       )
     }
 
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
     let integration
+    let organization
+    let organizationSyncRemote
 
     try {
       integration = await IntegrationRepository.findByPlatform(PlatformType.HUBSPOT, {
         ...this.options,
+        transaction,
       })
-    } catch (err) {
-      this.options.log.error(err, 'Error while fetching HubSpot integration from DB!')
-      throw new Error404()
-    }
-    // update organization.attributes.syncRemote.hubspot to true
-    const organizationService = new OrganizationService(this.options)
 
-    const organization = await organizationService.findById(payload.organizationId)
+      const organizationService = new OrganizationService(this.options)
 
-    if (!organization.attributes) {
-      organization.attributes = {
-        syncRemote: {
-          default: true,
-          [PlatformType.HUBSPOT]: true,
-        },
-      }
-    } else if (!organization.attributes.syncRemote) {
-      organization.attributes.syncRemote = {
-        default: true,
-        [PlatformType.HUBSPOT]: true,
-      }
-    } else {
-      organization.attributes.syncRemote[PlatformType.HUBSPOT] = true
-      organization.attributes.syncRemote.default = true
-    }
+      organization = await organizationService.findById(payload.organizationId)
 
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+      const organizationSyncRemoteRepo = new OrganizationSyncRemoteRepository({
+        ...this.options,
+        transaction,
+      })
 
-    // set integration.settings.syncRemoteEnabled to true, and mark organization as syncRemote
-    try {
+      organizationSyncRemote = await organizationSyncRemoteRepo.markOrganizationForSyncing({
+        integrationId: integration.id,
+        organizationId: organization.id,
+        metaData: null,
+        syncFrom: 'manual',
+        lastSyncedAt: null,
+      })
+
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.HUBSPOT,
@@ -626,22 +695,21 @@ export default class IntegrationService {
         },
         transaction,
       )
-      await organizationService.update(payload.organizationId, {
-        attributes: organization.attributes,
-      })
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
+      await integrationSyncWorkerEmitter.triggerSyncOrganization(
+        this.options.currentTenant.id,
+        integration.id,
+        payload.organizationId,
+        organizationSyncRemote.id,
+      )
     } catch (err) {
+      this.options.log.error(err, 'Error while starting Hubspot organization sync!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    const integrationSyncWorkerEmitter = await getIntegrationSyncWorkerEmitter()
-    await integrationSyncWorkerEmitter.triggerSyncOrganization(
-      this.options.currentTenant.id,
-      integration.id,
-      payload.organizationId,
-    )
   }
 
   async hubspotOnboard(onboardSettings: IHubspotOnboardingSettings) {
@@ -768,6 +836,39 @@ export default class IntegrationService {
     )
   }
 
+  async hubspotGetLists() {
+    const tenantId = this.options.currentTenant.id
+    const nangoId = `${tenantId}-${PlatformType.HUBSPOT}`
+
+    let token: string
+    try {
+      token = await getToken(nangoId, PlatformType.HUBSPOT, this.options.log)
+    } catch (err) {
+      this.options.log.error(err, 'Error while verifying HubSpot tenant token in Nango!')
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    if (!token) {
+      throw new Error400(this.options.language, 'errors.noNangoToken.message')
+    }
+
+    const context = {
+      log: this.options.log,
+      serviceSettings: {
+        nangoId,
+        nangoUrl: NANGO_CONFIG.url,
+        nangoSecretKey: NANGO_CONFIG.secretKey,
+      },
+    } as IProcessStreamContext
+
+    const memberLists = await getHubspotLists(nangoId, context)
+
+    return {
+      members: memberLists,
+      organizations: [], // hubspot doesn't support company lists yet
+    }
+  }
+
   async hubspotGetMappableFields() {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
@@ -783,7 +884,7 @@ export default class IntegrationService {
       HubspotEntity.MEMBERS,
       null,
       memberAttributeSettings,
-      identities,
+      identities.map((i) => i.platform),
     )
     const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
       HubspotEntity.ORGANIZATIONS,
@@ -832,7 +933,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties = await getHubspotProperties(
       nangoId,
@@ -857,7 +958,6 @@ export default class IntegrationService {
               [HubspotEntity.ORGANIZATIONS]: hubspotOrganizationProperties,
             },
           },
-          status: 'in-progress',
         },
         transaction,
       )
@@ -896,7 +996,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties: IHubspotProperty[] = await getHubspotProperties(
       nangoId,
@@ -1060,6 +1160,7 @@ export default class IntegrationService {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DEVTO,
+          token: integrationData.apiKey,
           settings: {
             users: integrationData.users,
             organizations: integrationData.organizations,
@@ -1128,10 +1229,11 @@ export default class IntegrationService {
       const integrations = await this.findAllByPlatform(PlatformType.GIT)
       return integrations.reduce((acc, integration) => {
         const {
+          id,
           segmentId,
           settings: { remotes },
         } = integration
-        acc[segmentId] = remotes
+        acc[segmentId] = { remotes, integrationId: id }
         return acc
       }, {})
     } catch (err) {
@@ -1241,7 +1343,6 @@ export default class IntegrationService {
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
       integration = await this.createOrUpdate(
@@ -1262,21 +1363,22 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Twitter message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration
@@ -1335,7 +1437,6 @@ export default class IntegrationService {
   async discourseConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
       integration = await this.createOrUpdate(
@@ -1353,23 +1454,130 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Discourse message to int-run-worker!',
+    )
+
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration
+  }
+
+  async groupsioConnectOrUpdate(integrationData: GroupsioIntegrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+
+    // integration data should have the following fields
+    // email, token, array of groups
+    // we shouldn't store password and 2FA token in the database
+    // user should update them every time thety change something
+
+    try {
+      this.options.log.info('Creating Groups.io integration!')
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.GROUPSIO,
+          settings: {
+            email: integrationData.email,
+            token: integrationData.token,
+            groups: integrationData.groupNames,
+            updateMemberAttributes: true,
+          },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Groups.io message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
+
+    return integration
+  }
+
+  async groupsioGetToken(data: GroupsioGetToken) {
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      url: 'https://groups.io/api/v1/login',
+      params: {
+        email: data.email,
+        password: data.password,
+        twofactor: data.twoFactorCode,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+
+    let response: AxiosResponse
+
+    try {
+      response = await axios(config)
+
+      // we need to get cookie from the response
+
+      const cookie = response.headers['set-cookie'][0].split(';')[0]
+
+      return {
+        groupsioCookie: cookie,
+      }
+    } catch (err) {
+      if ('two_factor_required' in response.data) {
+        throw new Error400(this.options.language, 'errors.groupsio.twoFactorRequired')
+      }
+      throw new Error400(this.options.language, 'errors.groupsio.invalidCredentials')
+    }
+  }
+
+  async groupsioVerifyGroup(data: GroupsioVerifyGroup) {
+    const groupName = data.groupName
+
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      url: `https://groups.io/api/v1/gettopics?group_name=${encodeURIComponent(groupName)}`,
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: data.cookie,
+      },
+    }
+
+    let response: AxiosResponse
+
+    try {
+      response = await axios(config)
+
+      return {
+        group: response?.data?.data?.group_id,
+      }
+    } catch (err) {
+      throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
+    }
   }
 }

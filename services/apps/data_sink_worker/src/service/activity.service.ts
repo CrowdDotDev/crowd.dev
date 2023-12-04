@@ -1,11 +1,11 @@
-import { IDbActivity, IDbActivityUpdateData } from '@/repo/activity.data'
-import MemberRepository from '@/repo/member.repo'
-import { isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
+import MemberRepository from '../repo/member.repo'
+import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { IActivityData, PlatformType } from '@crowd/types'
-import ActivityRepository from '@/repo/activity.repo'
+import { FeatureFlag, IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
+import ActivityRepository from '../repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
@@ -13,7 +13,13 @@ import isEqual from 'lodash.isequal'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
-import IntegrationRepository from '@/repo/integration.repo'
+import IntegrationRepository from '../repo/integration.repo'
+import GithubReposRepository from '../repo/githubRepos.repo'
+import MemberAffiliationService from './memberAffiliation.service'
+import { RedisClient } from '@crowd/redis'
+import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import { TEMPORAL_CONFIG } from '../conf'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -22,6 +28,9 @@ export default class ActivityService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -72,15 +81,52 @@ export default class ActivityService extends LoggerBase {
           username: activity.username,
           sentiment,
           attributes: activity.attributes || {},
-          body: activity.body,
-          title: activity.title,
+          body: escapeNullByte(activity.body),
+          title: escapeNullByte(activity.title),
           channel: activity.channel,
           url: activity.url,
+          organizationId: activity.organizationId,
         })
 
         return id
       })
-      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
+
+      if (
+        await isFeatureEnabled(
+          FeatureFlag.TEMPORAL_AUTOMATIONS,
+          async () => {
+            return {
+              tenantId,
+            }
+          },
+          this.unleash,
+          this.redisClient,
+          60,
+          tenantId,
+        )
+      ) {
+        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+          workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
+          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: 100,
+          },
+          args: [
+            {
+              tenantId,
+              activityId: id,
+            },
+          ],
+        })
+        this.log.info(
+          { workflowId: handle.workflowId },
+          'Started temporal workflow to process new activity automation!',
+        )
+      } else {
+        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
+      }
+
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
@@ -145,10 +191,11 @@ export default class ActivityService extends LoggerBase {
             username: toUpdate.username || original.username,
             sentiment: toUpdate.sentiment || original.sentiment,
             attributes: toUpdate.attributes || original.attributes,
-            body: toUpdate.body || original.body,
-            title: toUpdate.title || original.title,
+            body: escapeNullByte(toUpdate.body || original.body),
+            title: escapeNullByte(toUpdate.title || original.title),
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
+            organizationId: toUpdate.organizationId || original.organizationId,
           })
 
           return true
@@ -261,6 +308,11 @@ export default class ActivityService extends LoggerBase {
       url = data.url
     }
 
+    let organizationId: string | undefined
+    if (!arePrimitivesDbEqual(original.organizationId, data.organizationId)) {
+      organizationId = data.organizationId
+    }
+
     return {
       type,
       isContribution,
@@ -277,6 +329,7 @@ export default class ActivityService extends LoggerBase {
       title,
       channel,
       url,
+      organizationId,
     }
   }
 
@@ -285,6 +338,7 @@ export default class ActivityService extends LoggerBase {
     integrationId: string,
     platform: PlatformType,
     activity: IActivityData,
+    providedSegmentId?: string,
   ): Promise<void> {
     this.log = getChildLogger('ActivityService.processActivity', this.log, {
       integrationId,
@@ -357,162 +411,373 @@ export default class ActivityService extends LoggerBase {
       let activityId: string
 
       await this.store.transactionally(async (txStore) => {
-        const txRepo = new ActivityRepository(txStore, this.log)
-        const txMemberRepo = new MemberRepository(txStore, this.log)
-        const txMemberService = new MemberService(
-          txStore,
-          this.nodejsWorkerEmitter,
-          this.searchSyncWorkerEmitter,
-          this.log,
-        )
-        const txActivityService = new ActivityService(
-          txStore,
-          this.nodejsWorkerEmitter,
-          this.searchSyncWorkerEmitter,
-          this.log,
-        )
-        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        let segmentId: string
+        try {
+          const txRepo = new ActivityRepository(txStore, this.log)
+          const txMemberRepo = new MemberRepository(txStore, this.log)
+          const txMemberService = new MemberService(
+            txStore,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.unleash,
+            this.temporal,
+            this.redisClient,
+            this.log,
+          )
+          const txActivityService = new ActivityService(
+            txStore,
+            this.nodejsWorkerEmitter,
+            this.searchSyncWorkerEmitter,
+            this.redisClient,
+            this.unleash,
+            this.temporal,
+            this.log,
+          )
+          const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+          const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
+          const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
 
-        const dbIntegration = await txIntegrationRepo.findById(integrationId)
-        const segmentId = dbIntegration.segmentId
+          segmentId = providedSegmentId
+          if (!segmentId) {
+            const dbIntegration = await txIntegrationRepo.findById(integrationId)
+            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
+            segmentId =
+              platform === PlatformType.GITHUB && repoSegmentId
+                ? repoSegmentId
+                : dbIntegration.segmentId
+          }
 
-        // find existing activity
-        const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)
+          // find existing activity
+          const dbActivity = await txRepo.findExisting(
+            tenantId,
+            segmentId,
+            activity.sourceId,
+            platform,
+            activity.type,
+          )
 
-        let createActivity = false
+          if (dbActivity && dbActivity?.deletedAt) {
+            // we found an existing activity but it's deleted - nothing to do here
+            this.log.trace(
+              { activityId: dbActivity.id },
+              'Found existing activity but it is deleted, nothing to do here.',
+            )
+            return
+          }
 
-        if (dbActivity) {
-          this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
-          // process member data
-          let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
-          if (dbMember) {
-            // we found a member for the identity from the activity
-            this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+          let createActivity = false
 
-            // lets check if it's a match from what we have in the database activity that we got through sourceId
-            if (dbActivity.memberId !== dbMember.id) {
-              // the memberId from the dbActivity does not match the one we found from the identity
-              // we should remove the activity and let it recreate itself with the correct member
-              // this is probably a legacy problem before we had weak identities
-              this.log.warn(
+          if (dbActivity) {
+            this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
+            // process member data
+
+            let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
+            if (dbMember) {
+              // we found a member for the identity from the activity
+              this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+
+              // lets check if it's a match from what we have in the database activity that we got through sourceId
+              if (dbActivity.memberId !== dbMember.id) {
+                // the memberId from the dbActivity does not match the one we found from the identity
+                // we should remove the activity and let it recreate itself with the correct member
+                // this is probably a legacy problem before we had weak identities
+                this.log.warn(
+                  {
+                    activityMemberId: dbActivity.memberId,
+                    memberId: dbMember.id,
+                    activityType: activity.type,
+                  },
+                  'Exiting activity has a memberId that does not match the memberId for the platform:username identity! Deleting the activity!',
+                )
+
+                // delete activity
+                await txRepo.delete(dbActivity.id)
+                await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
+                createActivity = true
+              }
+
+              // update the member
+              await txMemberService.update(
+                dbMember.id,
+                tenantId,
+                segmentId,
+                integrationId,
                 {
-                  activityMemberId: dbActivity.memberId,
-                  memberId: dbMember.id,
-                  activityType: activity.type,
+                  attributes: member.attributes,
+                  emails: member.emails || [],
+                  joinedAt: member.joinedAt
+                    ? new Date(member.joinedAt)
+                    : new Date(activity.timestamp),
+                  weakIdentities: member.weakIdentities,
+                  identities: member.identities,
+                  organizations: member.organizations,
+                  reach: member.reach,
                 },
-                'Exiting activity has a memberId that does not match the memberId for the platform:username identity! Deleting the activity!',
+                dbMember,
+                false,
               )
 
-              // delete activity
-              await txRepo.delete(dbActivity.id)
-              await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
-              createActivity = true
+              if (!createActivity) {
+                // and use it's member id for the new activity
+                dbActivity.memberId = dbMember.id
+              }
+
+              memberId = dbMember.id
+            } else {
+              this.log.trace(
+                'We did not find a member for the identity provided! Updating the one from db activity.',
+              )
+              // we did not find a member for the identity from the activity
+              // which is weird since the memberId from the activity points to some member
+              // that does not have the identity from the new activity
+              // we should add the activity to the member
+              // merge member data with the one from the activity and the one from the database
+              // leave activity.memberId as is
+
+              dbMember = await txMemberRepo.findById(dbActivity.memberId)
+              await txMemberService.update(
+                dbMember.id,
+                tenantId,
+                segmentId,
+                integrationId,
+                {
+                  attributes: member.attributes,
+                  emails: member.emails || [],
+                  joinedAt: member.joinedAt
+                    ? new Date(member.joinedAt)
+                    : new Date(activity.timestamp),
+                  weakIdentities: member.weakIdentities,
+                  identities: member.identities,
+                  organizations: member.organizations,
+                  reach: member.reach,
+                },
+                dbMember,
+                false,
+              )
+
+              memberId = dbActivity.memberId
             }
 
-            // update the member
-            await txMemberService.update(
-              dbMember.id,
-              tenantId,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                emails: member.emails || [],
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                weakIdentities: member.weakIdentities,
-                identities: member.identities,
-              },
-              dbMember,
-              false,
-            )
+            // process object member data
+            // existing activity has it but now we don't anymore
+            if (dbActivity.objectMemberId && !objectMember) {
+              // TODO what to do here?
+              throw new Error(
+                `Activity ${dbActivity.id} has an object member but newly generated one does not!`,
+              )
+            }
+
+            if (objectMember) {
+              if (dbActivity.objectMemberId) {
+                let dbObjectMember = await txMemberRepo.findMember(
+                  tenantId,
+                  segmentId,
+                  platform,
+                  objectMemberUsername,
+                )
+
+                if (dbObjectMember) {
+                  // we found an existing object member for the identity from the activity
+                  this.log.trace(
+                    { objectMemberId: dbObjectMember.id },
+                    'Found existing object member.',
+                  )
+
+                  // lets check if it's a match from what we have in the database activity that we got through sourceId
+                  if (dbActivity.objectMemberId !== dbObjectMember.id) {
+                    // the memberId from the dbActivity does not match the one we found from the identity
+                    // we should remove the activity and let it recreate itself with the correct member
+                    // this is probably a legacy problem before we had weak identities
+                    this.log.warn(
+                      {
+                        activityObjectMemberId: dbActivity.objectMemberId,
+                        objectMemberId: dbObjectMember.id,
+                        activityType: activity.type,
+                      },
+                      'Exiting activity has a objectMemberId that does not match the object member for the platform:username identity! Deleting the activity!',
+                    )
+
+                    // delete activity
+                    await txRepo.delete(dbActivity.id)
+                    await this.searchSyncWorkerEmitter.triggerRemoveActivity(
+                      tenantId,
+                      dbActivity.id,
+                    )
+                    createActivity = true
+                  }
+
+                  // update the member
+                  await txMemberService.update(
+                    dbObjectMember.id,
+                    tenantId,
+                    segmentId,
+                    integrationId,
+                    {
+                      attributes: objectMember.attributes,
+                      emails: objectMember.emails || [],
+                      joinedAt: objectMember.joinedAt
+                        ? new Date(objectMember.joinedAt)
+                        : new Date(activity.timestamp),
+                      weakIdentities: objectMember.weakIdentities,
+                      identities: objectMember.identities,
+                      organizations: objectMember.organizations,
+                      reach: member.reach,
+                    },
+                    dbObjectMember,
+                    false,
+                  )
+
+                  if (!createActivity) {
+                    // and use it's member id for the new activity
+                    dbActivity.objectMemberId = dbObjectMember.id
+                  }
+
+                  objectMemberId = dbObjectMember.id
+                } else {
+                  this.log.trace(
+                    'We did not find a object member for the identity provided! Updating the one from db activity.',
+                  )
+                  // we did not find a member for the identity from the activity
+                  // which is weird since the memberId from the activity points to some member
+                  // that does not have the identity from the new activity
+                  // we should add the activity to the member
+                  // merge member data with the one from the activity and the one from the database
+                  // leave activity.memberId as is
+
+                  dbObjectMember = await txMemberRepo.findById(dbActivity.objectMemberId)
+                  await txMemberService.update(
+                    dbObjectMember.id,
+                    tenantId,
+                    segmentId,
+                    integrationId,
+                    {
+                      attributes: objectMember.attributes,
+                      emails: objectMember.emails || [],
+                      joinedAt: objectMember.joinedAt
+                        ? new Date(objectMember.joinedAt)
+                        : new Date(activity.timestamp),
+                      weakIdentities: objectMember.weakIdentities,
+                      identities: objectMember.identities,
+                      organizations: objectMember.organizations,
+                      reach: member.reach,
+                    },
+                    dbObjectMember,
+                    false,
+                  )
+
+                  objectMemberId = dbActivity.objectMemberId
+                }
+              }
+            }
 
             if (!createActivity) {
-              // and use it's member id for the new activity
-              dbActivity.memberId = dbMember.id
+              const organizationId = await txMemberAffiliationService.findAffiliation(
+                dbActivity.memberId,
+                segmentId,
+                dbActivity.timestamp,
+              )
+
+              // just update the activity now
+              await txActivityService.update(
+                dbActivity.id,
+                tenantId,
+                segmentId,
+                {
+                  type: activity.type,
+                  isContribution: activity.isContribution,
+                  score: activity.score,
+                  sourceId: activity.sourceId,
+                  sourceParentId: activity.sourceParentId,
+                  memberId: dbActivity.memberId,
+                  username,
+                  objectMemberId,
+                  objectMemberUsername,
+                  attributes: activity.attributes || {},
+                  body: activity.body,
+                  title: activity.title,
+                  channel: activity.channel,
+                  url: activity.url,
+                  organizationId,
+                },
+                dbActivity,
+                false,
+              )
+
+              activityId = dbActivity.id
             }
 
-            memberId = dbMember.id
+            // release lock for member inside activity exists - this migth be redundant, but just in case
           } else {
-            this.log.trace(
-              'We did not find a member for the identity provided! Updating the one from db activity.',
-            )
-            // we did not find a member for the identity from the activity
-            // which is weird since the memberId from the activity points to some member
-            // that does not have the identity from the new activity
-            // we should add the activity to the member
-            // merge member data with the one from the activity and the one from the database
-            // leave activity.memberId as is
+            this.log.trace('We did not find an existing activity. Creating a new one.')
+            createActivity = true
 
-            dbMember = await txMemberRepo.findById(dbActivity.memberId)
-            await txMemberService.update(
-              dbMember.id,
-              tenantId,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                emails: member.emails || [],
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                weakIdentities: member.weakIdentities,
-                identities: member.identities,
-              },
-              dbMember,
-              false,
-            )
+            // we don't have the activity yet in the database
+            // check if we have a member for the identity from the activity
+            const dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
+            if (dbMember) {
+              this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+              await txMemberService.update(
+                dbMember.id,
+                tenantId,
+                segmentId,
+                integrationId,
+                {
+                  attributes: member.attributes,
+                  emails: member.emails || [],
+                  joinedAt: member.joinedAt
+                    ? new Date(member.joinedAt)
+                    : new Date(activity.timestamp),
+                  weakIdentities: member.weakIdentities,
+                  identities: member.identities,
+                  organizations: member.organizations,
+                  reach: member.reach,
+                },
+                dbMember,
+                false,
+              )
+              memberId = dbMember.id
+            } else {
+              this.log.trace(
+                'We did not find a member for the identity provided! Creating a new one.',
+              )
+              memberId = await txMemberService.create(
+                tenantId,
+                segmentId,
+                integrationId,
+                {
+                  displayName: member.displayName || username,
+                  attributes: member.attributes,
+                  emails: member.emails || [],
+                  joinedAt: member.joinedAt
+                    ? new Date(member.joinedAt)
+                    : new Date(activity.timestamp),
+                  weakIdentities: member.weakIdentities,
+                  identities: member.identities,
+                  organizations: member.organizations,
+                  reach: member.reach,
+                },
+                false,
+              )
+            }
 
-            memberId = dbActivity.memberId
-          }
+            if (objectMember) {
+              // we don't have the activity yet in the database
+              // check if we have an object member for the identity from the activity
 
-          // process object member data
-          // existing activity has it but now we don't anymore
-          if (dbActivity.objectMemberId && !objectMember) {
-            // TODO what to do here?
-            throw new Error(
-              `Activity ${dbActivity.id} has an object member but newly generated one does not!`,
-            )
-          }
-
-          if (objectMember) {
-            if (dbActivity.objectMemberId) {
-              let dbObjectMember = await txMemberRepo.findMember(
+              const dbObjectMember = await txMemberRepo.findMember(
                 tenantId,
                 segmentId,
                 platform,
                 objectMemberUsername,
               )
-
               if (dbObjectMember) {
-                // we found an existing object member for the identity from the activity
                 this.log.trace(
                   { objectMemberId: dbObjectMember.id },
                   'Found existing object member.',
                 )
-
-                // lets check if it's a match from what we have in the database activity that we got through sourceId
-                if (dbActivity.objectMemberId !== dbObjectMember.id) {
-                  // the memberId from the dbActivity does not match the one we found from the identity
-                  // we should remove the activity and let it recreate itself with the correct member
-                  // this is probably a legacy problem before we had weak identities
-                  this.log.warn(
-                    {
-                      activityObjectMemberId: dbActivity.objectMemberId,
-                      objectMemberId: dbObjectMember.id,
-                      activityType: activity.type,
-                    },
-                    'Exiting activity has a objectMemberId that does not match the object member for the platform:username identity! Deleting the activity!',
-                  )
-
-                  // delete activity
-                  await txRepo.delete(dbActivity.id)
-                  await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
-                  createActivity = true
-                }
-
-                // update the member
                 await txMemberService.update(
                   dbObjectMember.id,
                   tenantId,
@@ -526,35 +791,23 @@ export default class ActivityService extends LoggerBase {
                       : new Date(activity.timestamp),
                     weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
+                    organizations: objectMember.organizations,
+                    reach: member.reach,
                   },
                   dbObjectMember,
                   false,
                 )
-
-                if (!createActivity) {
-                  // and use it's member id for the new activity
-                  dbActivity.objectMemberId = dbObjectMember.id
-                }
-
                 objectMemberId = dbObjectMember.id
               } else {
                 this.log.trace(
-                  'We did not find a object member for the identity provided! Updating the one from db activity.',
+                  'We did not find a member for the identity provided! Creating a new one.',
                 )
-                // we did not find a member for the identity from the activity
-                // which is weird since the memberId from the activity points to some member
-                // that does not have the identity from the new activity
-                // we should add the activity to the member
-                // merge member data with the one from the activity and the one from the database
-                // leave activity.memberId as is
-
-                dbObjectMember = await txMemberRepo.findById(dbActivity.objectMemberId)
-                await txMemberService.update(
-                  dbObjectMember.id,
+                objectMemberId = await txMemberService.create(
                   tenantId,
                   segmentId,
                   integrationId,
                   {
+                    displayName: objectMember.displayName || username,
                     attributes: objectMember.attributes,
                     emails: objectMember.emails || [],
                     joinedAt: objectMember.joinedAt
@@ -562,29 +815,34 @@ export default class ActivityService extends LoggerBase {
                       : new Date(activity.timestamp),
                     weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
+                    organizations: objectMember.organizations,
+                    reach: member.reach,
                   },
-                  dbObjectMember,
                   false,
                 )
-
-                objectMemberId = dbActivity.objectMemberId
               }
             }
           }
 
-          if (!createActivity) {
-            // just update the activity now
-            await txActivityService.update(
-              dbActivity.id,
+          if (createActivity) {
+            const organizationId = await txMemberAffiliationService.findAffiliation(
+              memberId,
+              segmentId,
+              activity.timestamp,
+            )
+
+            activityId = await txActivityService.create(
               tenantId,
               segmentId,
               {
                 type: activity.type,
+                platform,
+                timestamp: new Date(activity.timestamp),
+                sourceId: activity.sourceId,
                 isContribution: activity.isContribution,
                 score: activity.score,
-                sourceId: activity.sourceId,
                 sourceParentId: activity.sourceParentId,
-                memberId: dbActivity.memberId,
+                memberId,
                 username,
                 objectMemberId,
                 objectMemberUsername,
@@ -593,143 +851,19 @@ export default class ActivityService extends LoggerBase {
                 title: activity.title,
                 channel: activity.channel,
                 url: activity.url,
-              },
-              dbActivity,
-              false,
-            )
-
-            activityId = dbActivity.id
-          }
-        } else {
-          this.log.trace('We did not find an existing activity. Creating a new one.')
-          createActivity = true
-
-          // we don't have the activity yet in the database
-          // check if we have a member for the identity from the activity
-          const dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
-          if (dbMember) {
-            this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
-            await txMemberService.update(
-              dbMember.id,
-              tenantId,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                emails: member.emails || [],
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                weakIdentities: member.weakIdentities,
-                identities: member.identities,
-              },
-              dbMember,
-              false,
-            )
-            memberId = dbMember.id
-          } else {
-            this.log.trace(
-              'We did not find a member for the identity provided! Creating a new one.',
-            )
-            memberId = await txMemberService.create(
-              tenantId,
-              segmentId,
-              integrationId,
-              {
-                displayName: member.displayName || username,
-                attributes: member.attributes,
-                emails: member.emails || [],
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                weakIdentities: member.weakIdentities,
-                identities: member.identities,
+                organizationId,
               },
               false,
             )
           }
-
-          if (objectMember) {
-            // we don't have the activity yet in the database
-            // check if we have an object member for the identity from the activity
-            const dbObjectMember = await txMemberRepo.findMember(
-              tenantId,
-              segmentId,
-              platform,
-              objectMemberUsername,
-            )
-            if (dbObjectMember) {
-              this.log.trace({ objectMemberId: dbObjectMember.id }, 'Found existing object member.')
-              await txMemberService.update(
-                dbObjectMember.id,
-                tenantId,
-                segmentId,
-                integrationId,
-                {
-                  attributes: objectMember.attributes,
-                  emails: objectMember.emails || [],
-                  joinedAt: objectMember.joinedAt
-                    ? new Date(objectMember.joinedAt)
-                    : new Date(activity.timestamp),
-                  weakIdentities: objectMember.weakIdentities,
-                  identities: objectMember.identities,
-                },
-                dbObjectMember,
-                false,
-              )
-              objectMemberId = dbObjectMember.id
-            } else {
-              this.log.trace(
-                'We did not find a member for the identity provided! Creating a new one.',
-              )
-              objectMemberId = await txMemberService.create(
-                tenantId,
-                segmentId,
-                integrationId,
-                {
-                  displayName: objectMember.displayName || username,
-                  attributes: objectMember.attributes,
-                  emails: objectMember.emails || [],
-                  joinedAt: objectMember.joinedAt
-                    ? new Date(objectMember.joinedAt)
-                    : new Date(activity.timestamp),
-                  weakIdentities: objectMember.weakIdentities,
-                  identities: objectMember.identities,
-                },
-                false,
-              )
-            }
-          }
-        }
-
-        if (createActivity) {
-          activityId = await txActivityService.create(
-            tenantId,
-            segmentId,
-            {
-              type: activity.type,
-              platform,
-              timestamp: new Date(activity.timestamp),
-              sourceId: activity.sourceId,
-              isContribution: activity.isContribution,
-              score: activity.score,
-              sourceParentId: activity.sourceParentId,
-              memberId,
-              username,
-              objectMemberId,
-              objectMemberUsername,
-              attributes: activity.attributes || {},
-              body: activity.body,
-              title: activity.title,
-              channel: activity.channel,
-              url: activity.url,
-            },
-            false,
-          )
+        } finally {
+          // release locks matter what
         }
       })
 
-      await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+      if (memberId) {
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+      }
       if (objectMemberId) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId)
       }

@@ -39,18 +39,29 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             title,
             channel,
             url,
-            sentiment
-    from activities where "tenantId" = $(tenantId) and "segmentId" = $(segmentId) and "sourceId" = $(sourceId)
+            sentiment,
+            "deletedAt"
+    from activities
+    where "tenantId" = $(tenantId)
+      and "segmentId" = $(segmentId)
+      and "sourceId" = $(sourceId)
+      and platform = $(platform)
+      and type = $(type)
+    limit 1;
   `
   public async findExisting(
     tenantId: string,
     segmentId: string,
     sourceId: string,
+    platform: string,
+    type: string,
   ): Promise<IDbActivity | null> {
     const result = await this.db().oneOrNone(this.findExistingActivityQuery, {
       tenantId,
       segmentId,
       sourceId,
+      platform,
+      type,
     })
 
     return result
@@ -83,7 +94,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       promises.push(
         this.db().none(
           `
-          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) limit 1)
+          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and "deletedAt" IS NULL limit 1)
           where "id" = $(id) and "tenantId" = $(tenantId)
           `,
           {

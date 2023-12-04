@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import * as buffer from 'buffer'
 
 /**
  * Some activities will not have a remote(API) counterparts so they will miss sourceIds.
@@ -26,4 +27,19 @@ export function generateSourceIdHash(
 
   const data = `${uniqueRemoteId}-${type}-${timestamp}-${platform}`
   return `gen-${crypto.createHash('md5').update(data).digest('hex')}`
+}
+
+export function verifyWebhookSignature(
+  payload: string,
+  secret: string,
+  signatureHeader: string,
+): boolean {
+  const hmac = crypto.createHmac('sha256', secret)
+  hmac.update(payload)
+  const expectedSignature = `sha256=${hmac.digest('hex')}`
+
+  return crypto.timingSafeEqual(
+    buffer.Buffer.from(signatureHeader),
+    buffer.Buffer.from(expectedSignature),
+  )
 }

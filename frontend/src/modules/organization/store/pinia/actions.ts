@@ -5,7 +5,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 
 export default {
   fetchOrganizations(this: OrganizationState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
-    const mappedBody = reload ? this.savedFilterBody : body;
+    const mappedBody = reload ? { ...this.savedFilterBody, ...body } : body;
     this.selectedOrganizations = [];
     return OrganizationService.query(mappedBody)
       .then((data: Pagination<Organization>) => {

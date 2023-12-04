@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "module": "commonjs",
-    "declaration": true,
-    "outDir": "./dist",
+    "module": "Node16",
     "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
     "skipLibCheck": true,
     "moduleResolution": "node16",
@@ -12,8 +10,7 @@
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../../libs/*/dist"],
-      "@/*": ["./*"]
+      "@crowd/*": ["../../../libs/*/src"]
     }
   },
   "include": ["src/**/*"]

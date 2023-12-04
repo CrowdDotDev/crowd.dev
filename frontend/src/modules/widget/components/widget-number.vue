@@ -64,6 +64,10 @@ export default {
   },
 
   props: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
     config: {
       type: Object,
       default: () => ({
@@ -127,7 +131,7 @@ export default {
           'ri-radar-line bg-brand-50 text-brand-500 ',
         'avg-time-to-first-interaction':
           'ri-timer-flash-line bg-yellow-50 text-yellow-500 ',
-        members: 'ri-contacts-line bg-gray-900 text-white ',
+        contacts: 'ri-contacts-line bg-gray-900 text-white ',
         activities:
           'ri-radar-line bg-brand-50 text-brand-500 ',
       };
@@ -148,7 +152,7 @@ export default {
         if (measure) {
           iconKey = measure.toLowerCase().includes('activit')
             ? 'activities'
-            : 'members';
+            : 'contacts';
         } else {
           iconKey = null;
         }

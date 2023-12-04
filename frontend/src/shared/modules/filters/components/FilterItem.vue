@@ -5,14 +5,14 @@
       v-model:visible="isOpen"
       teleported
       placement="bottom-start"
-      width="320"
+      width="420"
       trigger="click"
       :popper-class="`!p-0 filter-list-item-popper filter-${props.config.type} filter-${props.config.id}`"
     >
       <template #reference>
         <div
           class="border border-gray-100 rounded-l-md h-8 flex items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition"
-          :class="{ '!bg-gray-100': isOpen }"
+          :class="[{ '!bg-gray-100': isOpen }, props.chipClasses]"
           data-qa="filter-list-chip"
         >
           <i class="text-base text-black mr-2" :class="config.iconClass" />
@@ -41,6 +41,7 @@
 
     <!-- Cancel -->
     <div
+      v-if="!props.hideRemove"
       class="border border-gray-100 rounded-r-md h-8 flex items-center p-2 bg-white -ml-px hover:bg-gray-100 transition cursor-pointer group"
       data-qa="filter-list-chip-close"
       @click="emit('remove')"
@@ -60,6 +61,8 @@ const props = defineProps<{
   modelValue: string,
   open: string;
   config: FilterConfig,
+  hideRemove?: boolean,
+  chipClasses?: string;
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: any): void, (e: 'remove'): void, (e: 'update:open', value: string): void}>();

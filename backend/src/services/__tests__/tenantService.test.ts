@@ -83,8 +83,8 @@ describe('TenantService tests', () => {
       const member3 = await memberService.upsert(memberToCreate3)
       let member4 = await memberService.upsert(memberToCreate4)
 
-      await memberService.addToMerge([{ members: [member1.id, member2.id], similarity: null }])
-      await memberService.addToMerge([{ members: [member3.id, member4.id], similarity: null }])
+      await memberService.addToMerge([{ members: [member1.id, member2.id], similarity: 1 }])
+      await memberService.addToMerge([{ members: [member3.id, member4.id], similarity: 0.5 }])
 
       member2 = await memberService.findById(member2.id)
       member4 = await memberService.findById(member4.id)
@@ -166,15 +166,14 @@ describe('TenantService tests', () => {
 
       tenantCreatedPlain.createdAt = tenantCreatedPlain.createdAt.toISOString().split('T')[0]
       tenantCreatedPlain.updatedAt = tenantCreatedPlain.updatedAt.toISOString().split('T')[0]
-      tenantCreatedPlain.trialEndsAt = tenantCreatedPlain.trialEndsAt.toISOString().split('T')[0]
 
       const tenantExpected = {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: Plans.values.growth,
-        isTrialPlan: true,
-        trialEndsAt: moment().add(14, 'days').toISOString().split('T')[0],
+        plan: Plans.values.essential,
+        isTrialPlan: false,
+        trialEndsAt: null,
         onboardedAt: null,
         integrationsRequired: ['github', 'discord'],
         hasSampleData: false,
@@ -221,10 +220,10 @@ describe('TenantService tests', () => {
       expect(suggestedTasks.rows.map((i) => i.name).sort()).toStrictEqual([
         'Check for negative reactions',
         'Engage with relevant content',
-        'Reach out to influential members',
-        'Reach out to poorly engaged members',
-        'Setup your team',
-        'Setup your workpace integrations',
+        'Reach out to influential contacts',
+        'Reach out to poorly engaged contacts',
+        'Set up your team',
+        'Set up your workspace integrations',
       ])
     })
   })

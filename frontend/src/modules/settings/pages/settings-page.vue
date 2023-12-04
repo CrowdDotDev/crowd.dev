@@ -2,7 +2,7 @@
   <app-page-wrapper>
     <div class="settings">
       <h4>
-        Settings
+        Manage workspace
       </h4>
       <el-tabs v-model="computedActiveTab" class="mt-10">
         <el-tab-pane
@@ -16,17 +16,12 @@
             class="pt-4"
           />
         </el-tab-pane>
-        <el-tab-pane label="Automations" name="automations">
-          <app-automation-list-page
-            v-if="activeTab === 'automations'"
-          />
-        </el-tab-pane>
         <el-tab-pane label="API Keys" name="api-keys">
           <app-api-keys-page
             v-if="activeTab === 'api-keys'"
           />
         </el-tab-pane>
-        <el-tab-pane label="Plans & pricing" name="plans">
+        <el-tab-pane label="Plans & billing" name="plans">
           <app-plans-page v-if="activeTab === 'plans'" />
         </el-tab-pane>
       </el-tabs>
@@ -39,7 +34,6 @@ import { mapGetters } from 'vuex';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import AppPlansPage from '@/modules/settings/pages/plans-page.vue';
 import UserListPage from '@/modules/user/pages/user-list-page.vue';
-import AutomationListPage from '@/modules/automation/pages/automation-list-page.vue';
 import { UserPermissions } from '@/modules/user/user-permissions';
 
 export default {
@@ -49,7 +43,6 @@ export default {
     AppApiKeysPage,
     AppPlansPage,
     'app-user-list-page': UserListPage,
-    'app-automation-list-page': AutomationListPage,
   },
 
   data() {

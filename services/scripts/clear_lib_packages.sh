@@ -13,4 +13,12 @@ for lib_dir in $CLI_HOME/../libs/*/; do
   fi
 done
 
+for archetype_dir in $CLI_HOME/../archetypes/*/; do
+  if [ -d "${archetype_dir}node_modules" ]; then
+    archetype=$(basename $archetype_dir)
+    yell "Removing node_modules for archetype: $archetype!"
+    (cd $archetype_dir && rm -rf node_modules) &
+  fi
+done
+
 wait

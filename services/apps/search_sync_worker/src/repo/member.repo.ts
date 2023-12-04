@@ -1,8 +1,8 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IDbMemberSyncData, IDbSegmentInfo } from './member.data'
-import { IMemberAttribute } from '@crowd/types'
 import { RedisCache, RedisClient } from '@crowd/redis'
+import { IMemberAttribute } from '@crowd/types'
+import { IDbMemberSyncData } from './member.data'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly cache: RedisCache
@@ -11,25 +11,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     super(dbStore, parentLog)
 
     this.cache = new RedisCache('memberAttributes', redisClient, this.log)
-  }
-
-  public async getParentSegmentIds(childSegmentIds: string[]): Promise<IDbSegmentInfo[]> {
-    const results = await this.db().any(
-      `
-      select s.id, pd.id as "parentId", gpd.id as "grandParentId"
-      from segments s
-              inner join segments pd
-                          on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
-                            pd."parentSlug" is not null
-              inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
-                                          gpd."grandparentSlug" is null and gpd."parentSlug" is null
-      where s.id in ($(childSegmentIds:csv));
-      `,
-      {
-        childSegmentIds,
-      },
-    )
-    return results
   }
 
   public async getTenantIds(): Promise<string[]> {
@@ -59,24 +40,126 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async getTenantMembersForSync(
     tenantId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+          select m.id
+          from members m
+          where m."tenantId" = $(tenantId) and 
+                m."deletedAt" is null and
+                m.id > $(lastId) and
+                (
+                  exists (select 1 from activities where "memberId" = m.id) or
+                  m."manuallyCreated"
+                ) and
+                exists (select 1 from "memberIdentities" where "memberId" = m.id)
+          order by m.id
+          limit ${perPage};`,
+        {
+          tenantId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+          select m.id
+          from members m
+          where m."tenantId" = $(tenantId) and 
+                m."deletedAt" is null and
+                (
+                  exists (select 1 from activities where "memberId" = m.id) or
+                  m."manuallyCreated"
+                ) and
+                exists (select 1 from "memberIdentities" where "memberId" = m.id)
+          order by m.id
+          limit ${perPage};`,
+        {
+          tenantId,
+        },
+      )
+    }
+
+    return results.map((r) => r.id)
+  }
+
+  public async getOrganizationMembersForSync(
+    organizationId: string,
+    perPage: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[]
+
+    if (lastId) {
+      results = await this.db().any(
+        `
+        select distinct mo."memberId"
+        from "memberOrganizations" mo
+        where mo."organizationId" = $(organizationId) and
+              mo."deletedAt" is null and
+              mo."memberId" > $(lastId) and
+              (
+                exists (select 1 from activities where "memberId" = mo."memberId") or
+                exists (select 1 from members where "memberId" = mo."memberId" and "manuallyCreated")
+              ) and
+              exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
+        order by mo."memberId"
+        limit ${perPage};`,
+        {
+          organizationId,
+          lastId,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+        select distinct mo."memberId"
+        from "memberOrganizations" mo
+        where mo."organizationId" = $(organizationId) and
+              mo."deletedAt" is null and
+              (
+                exists (select 1 from activities where "memberId" = mo."memberId") or
+                exists (select 1 from members where "memberId" = mo."memberId" and "manuallyCreated")
+              ) and
+              exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
+        order by mo."memberId"
+        limit ${perPage};`,
+        {
+          organizationId,
+        },
+      )
+    }
+
+    return results.map((r) => r.memberId)
+  }
+
+  public async getRemainingTenantMembersForSync(
+    tenantId: string,
     page: number,
     perPage: number,
     cutoffDate: string,
   ): Promise<string[]> {
     const results = await this.db().any(
       `
-        select m.id
-        from members m
-        where m."tenantId" = $(tenantId) and 
-              m."deletedAt" is null and
-              (
-                  m."searchSyncedAt" is null or 
-                  m."searchSyncedAt" < $(cutoffDate)
-              ) 
-              and
-              exists (select 1 from activities where "memberId" = m.id) and
-              exists (select 1 from "memberIdentities" where "memberId" = m.id)
-        limit ${perPage} offset ${(page - 1) * perPage};`,
+      select id from members m
+      where m."tenantId" = $(tenantId) and m."deletedAt" is null
+       and (
+        m."searchSyncedAt" is null or
+        m."searchSyncedAt" < $(cutoffDate)
+       ) and
+       (
+        exists (select 1 from activities where "memberId" = m.id) or
+          m."manuallyCreated"
+       )
+      limit ${perPage} offset ${(page - 1) * perPage};
+      `,
       {
         tenantId,
         cutoffDate,
@@ -89,111 +172,133 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
   public async getMemberData(ids: string[]): Promise<IDbMemberSyncData[]> {
     const results = await this.db().any(
       `
-      with to_merge_data as (select mtm."memberId",
-                                      array_agg(distinct mtm."toMergeId"::text) as to_merge_ids
-                              from "memberToMerge" mtm
-                                        inner join members m2 on mtm."toMergeId" = m2.id
-                              where mtm."memberId" in ($(ids:csv))
-                                and m2."deletedAt" is null
-                              group by mtm."memberId"),
-            no_merge_data as (select mnm."memberId",
-                                      array_agg(distinct mnm."noMergeId"::text) as no_merge_ids
-                              from "memberNoMerge" mnm
-                                        inner join members m2 on mnm."noMergeId" = m2.id
-                              where mnm."memberId" in ($(ids:csv))
-                                and m2."deletedAt" is null
-                              group by mnm."memberId"),
-            member_tags as (select mt."memberId",
-                                    json_agg(
-                                            json_build_object(
-                                                    'id', t.id,
-                                                    'name', t.name
-                                                )
-                                        )           as all_tags,
-                                    jsonb_agg(t.id) as all_ids
-                            from "memberTags" mt
-                                      inner join tags t on mt."tagId" = t.id
-                            where mt."memberId" in ($(ids:csv))
-                              and t."deletedAt" is null
-                            group by mt."memberId"),
-            member_organizations as (select mo."memberId",
-                                            os."segmentId",
-                                            json_agg(
-                                                    json_build_object(
-                                                            'id', o.id,
-                                                            'logo', o.logo,
-                                                            'displayName', o."displayName"
-                                                        )
-                                                )           as all_organizations,
-                                            jsonb_agg(o.id) as all_ids
-                                      from "memberOrganizations" mo
-                                              inner join organizations o on mo."organizationId" = o.id
-                                              inner join "organizationSegments" os on o.id = os."organizationId"
-                                      where mo."memberId" in ($(ids:csv))
-                                        and o."deletedAt" is null
-                                      group by mo."memberId", os."segmentId"),
-            identities as (select mi."memberId",
-                                  json_agg(
-                                          json_build_object(
-                                                  'platform', mi.platform,
-                                                  'username', mi.username
-                                              )
-                                      ) as identities
-                            from "memberIdentities" mi
-                            where mi."memberId" in ($(ids:csv))
-                            group by mi."memberId"),
-            activity_data as (select a."memberId",
-                                      a."segmentId",
-                                      count(a.id)                                                          as "activityCount",
-                                      max(a.timestamp)                                                     as "lastActive",
-                                      array_agg(distinct concat(a.platform, ':', a.type))
-                                      filter (where a.platform is not null)                                as "activityTypes",
-                                      array_agg(distinct a.platform) filter (where a.platform is not null) as "activeOn",
-                                      count(distinct a."timestamp"::date)                                  as "activeDaysCount",
-                                      round(avg(
-                                                    case
-                                                        when (a.sentiment ->> 'sentiment'::text) is not null
-                                                            then (a.sentiment ->> 'sentiment'::text)::double precision
-                                                        else null::double precision
-                                                        end)::numeric, 2)                                  as "averageSentiment"
-                              from activities a
-                              where a."memberId" in ($(ids:csv))
-                              group by a."memberId", a."segmentId")
-        select m.id,
-              m."tenantId",
-              ms."segmentId",
-              m."displayName",
-              m.attributes,
-              m.emails,
-              m.score,
-              m."lastEnriched",
-              m."joinedAt",
-              m."createdAt",
-              (m.reach -> 'total')::integer                      as "totalReach",
-              coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
-
-              ad."activeOn",
-              ad."activityCount",
-              ad."activityTypes",
-              ad."activeDaysCount",
-              ad."lastActive",
-              ad."averageSentiment",
-
-              i.identities,
-              coalesce(mo.all_organizations, json_build_array()) as organizations,
-              coalesce(mt.all_tags, json_build_array())          as tags,
-              coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
-              coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
-        from "memberSegments" ms
-                inner join members m on ms."memberId" = m.id
-                inner join identities i on m.id = i."memberId"
-                inner join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
-                left join to_merge_data tmd on m.id = tmd."memberId"
-                left join no_merge_data nmd on m.id = nmd."memberId"
-                left join member_tags mt on ms."memberId" = mt."memberId"
-                left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
-        where ms."memberId" in ($(ids:csv))
-          and m."deletedAt" is null;`,
+        WITH to_merge_data AS (
+            SELECT
+                mtm."memberId",
+                array_agg(DISTINCT mtm."toMergeId"::text) AS to_merge_ids
+            FROM "memberToMerge" mtm
+            INNER JOIN members m2 ON mtm."toMergeId" = m2.id
+            WHERE mtm."memberId" IN ($(ids:csv))
+              AND m2."deletedAt" IS NULL
+            GROUP BY mtm."memberId"
+        ),
+        no_merge_data AS (
+            SELECT
+                mnm."memberId",
+                array_agg(DISTINCT mnm."noMergeId"::text) AS no_merge_ids
+            FROM "memberNoMerge" mnm
+            INNER JOIN members m2 ON mnm."noMergeId" = m2.id
+            WHERE mnm."memberId" IN ($(ids:csv))
+              AND m2."deletedAt" IS NULL
+            GROUP BY mnm."memberId"
+        ),
+        member_tags AS (
+            SELECT
+                mt."memberId",
+                json_agg(json_build_object(
+                  'id', t.id,
+                  'name', t.name
+                )) AS all_tags,
+                jsonb_agg(t.id) AS all_ids
+            FROM "memberTags" mt
+            INNER JOIN tags t ON mt."tagId" = t.id
+            WHERE mt."memberId" IN ($(ids:csv))
+              AND t."deletedAt" IS NULL
+            GROUP BY mt."memberId"
+        ),
+        member_organizations AS (
+            SELECT
+                mo."memberId",
+                os."segmentId",
+                json_agg(json_build_object(
+                  'id', o.id,
+                  'logo', o.logo,
+                  'displayName', o."displayName",
+                  'memberOrganizations', json_build_object(
+                    'dateStart', mo."dateStart",
+                    'dateEnd', mo."dateEnd",
+                    'title', mo.title
+                  )
+                )) AS all_organizations,
+                jsonb_agg(o.id) AS all_ids
+            FROM "memberOrganizations" mo
+            INNER JOIN organizations o ON mo."organizationId" = o.id
+            INNER JOIN "organizationSegments" os ON o.id = os."organizationId"
+            WHERE mo."memberId" IN ($(ids:csv))
+              AND mo."deletedAt" IS NULL
+              AND o."deletedAt" IS NULL
+            GROUP BY mo."memberId", os."segmentId"
+        ),
+        identities AS (
+            SELECT
+                mi."memberId",
+                json_agg(json_build_object(
+                  'platform', mi.platform,
+                  'username', mi.username
+                )) AS identities
+            FROM "memberIdentities" mi
+            WHERE mi."memberId" IN ($(ids:csv))
+            GROUP BY mi."memberId"
+        ),
+        activity_data AS (
+            SELECT
+                a."memberId",
+                a."segmentId",
+                count(a.id) AS "activityCount",
+                max(a.timestamp) AS "lastActive",
+                array_agg(DISTINCT concat(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
+                array_agg(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
+                count(DISTINCT a."timestamp"::date) AS "activeDaysCount",
+                round(avg(
+                    CASE WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL THEN
+                        (a.sentiment ->> 'sentiment'::text)::double precision
+                    ELSE
+                        NULL::double precision
+                    END
+                )::numeric, 2) AS "averageSentiment"
+            FROM activities a
+            WHERE a."memberId" IN ($(ids:csv))
+            GROUP BY a."memberId", a."segmentId"
+        )
+        SELECT
+            m.id,
+            m."tenantId",
+            ms."segmentId",
+            m."displayName",
+            m.attributes,
+            m.emails,
+            m.score,
+            m."lastEnriched",
+            m."joinedAt",
+            m."manuallyCreated",
+            m."createdAt",
+            (m.reach -> 'total')::integer AS "totalReach",
+            coalesce(jsonb_array_length(m.contributions), 0) AS "numberOfOpenSourceContributions",
+            ad."activeOn",
+            ad."activityCount",
+            ad."activityTypes",
+            ad."activeDaysCount",
+            ad."lastActive",
+            ad."averageSentiment",
+            i.identities,
+            coalesce(mo.all_organizations, json_build_array()) AS organizations,
+            coalesce(mt.all_tags, json_build_array()) AS tags,
+            coalesce(tmd.to_merge_ids, ARRAY[]::text[]) AS "toMergeIds",
+            coalesce(nmd.no_merge_ids, ARRAY[]::text[]) AS "noMergeIds"
+        FROM "memberSegments" ms
+        INNER JOIN members m ON ms."memberId" = m.id
+        INNER JOIN identities i ON m.id = i."memberId"
+        LEFT JOIN activity_data ad ON ms."memberId" = ad."memberId"
+            AND ms."segmentId" = ad."segmentId"
+        LEFT JOIN to_merge_data tmd ON m.id = tmd."memberId"
+        LEFT JOIN no_merge_data nmd ON m.id = nmd."memberId"
+        LEFT JOIN member_tags mt ON ms."memberId" = mt."memberId"
+        LEFT JOIN member_organizations mo ON ms."memberId" = mo."memberId"
+            AND ms."segmentId" = mo."segmentId"
+        WHERE ms."memberId" IN ($(ids:csv))
+          AND m."deletedAt" IS NULL
+          AND (ad."memberId" IS NOT NULL OR m."manuallyCreated");
+      `,
       {
         ids,
       },
@@ -218,7 +323,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       from members m
       where m."tenantId" = $(tenantId ) and 
             m.id in ($(memberIds:csv)) and
-            exists(select 1 from activities a where a."memberId" = m.id) and
+            (
+              exists (select 1 from activities where "memberId" = m.id) or
+              m."manuallyCreated"
+            ) and
             exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
       `,
       {

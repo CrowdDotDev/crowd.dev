@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "Node16",
+    "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "moduleResolution": "node16",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@crowd/*": ["../../../libs/*/src"]
+    }
+  },
+  "include": ["src/**/*"]
+}

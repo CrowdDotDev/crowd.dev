@@ -9,10 +9,7 @@ export default async (req, res) => {
 
   const memberService = new MemberService(req)
 
-  const promises = membersToUpdate.reduce((acc, item) => {
-    acc.push(memberService.update(item.id, item))
-    return acc
-  }, [])
+  const promises = membersToUpdate.map((item) => memberService.update(item.id, item))
 
   const payload = await Promise.all(promises)
   await req.responseHandler.success(req, res, payload)

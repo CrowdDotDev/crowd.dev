@@ -1,8 +1,19 @@
 <template>
   <div>
     <div class="flex items-center justify-between">
-      <div class="font-medium text-black">
-        Identities
+      <div class="flex items-center gap-1">
+        <div class="font-medium text-black">
+          Identities
+        </div>
+        <el-tooltip placement="top">
+          <template #content>
+            Identities can be profiles on social platforms, emails, phone numbers,<br>
+            or unique identifiers from internal sources (e.g. web app log-in email).
+          </template>
+          <span>
+            <i class="ri-information-line text-xs" />
+          </span>
+        </el-tooltip>
       </div>
       <el-button
         class="btn btn-link btn-link--primary"
@@ -21,6 +32,8 @@
         <app-platform-list
           :username-handles="socialIdentities[platform]"
           :platform="platform"
+          :url="member.attributes?.url?.[platform]"
+          :attributes="member.attributes"
         />
       </div>
     </div>
@@ -34,18 +47,29 @@
       <el-divider class="border-t-gray-200" />
       <div class="mt-4">
         <a
-          v-for="email of emails"
+          v-for="(email, index) of emails"
           :key="email"
           class="py-2 px-6 -mx-6 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
           :href="`mailto:${email}`"
           target="_blank"
           rel="noopener noreferrer"
         >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="email" />
-            <span class="text-gray-900 text-xs">
-              {{ email }}</span>
-          </div>
+          <el-tooltip
+            placement="top"
+            :content="email"
+            :disabled="!showTooltip[index]"
+          >
+
+            <div
+              class="flex gap-3 items-center overflow-hidden mr-2"
+              @mouseover="handleOnMouseOver(index)"
+              @mouseleave="handleOnMouseLeave(index)"
+            >
+              <app-platform platform="email" />
+              <span ref="emailRef" class="text-gray-900 text-xs truncate">
+                {{ email }}</span>
+            </div>
+          </el-tooltip>
           <i
             class="ri-external-link-line text-gray-300"
           />
@@ -79,6 +103,21 @@ const props = defineProps({
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const identitiesDrawer = ref(false);
+
+const emailRef = ref([]);
+const showTooltip = ref([]);
+
+const handleOnMouseOver = (index) => {
+  if (!emailRef.value[index]) {
+    showTooltip.value[index] = false;
+  }
+
+  showTooltip.value[index] = emailRef.value[index].scrollWidth > emailRef.value[index].clientWidth;
+};
+
+const handleOnMouseLeave = (index) => {
+  showTooltip.value[index] = false;
+};
 
 const emails = computed(() => (props.member.emails
   // Filters out any falsy values (like `null`, `undefined)

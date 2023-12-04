@@ -23,8 +23,8 @@ export default async (req, res) => {
 
   const payload = await new EagleEyeContentService(req).query(req.body)
 
-  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-    track('EagleEyeContent Advanced Fitler', { ...payload }, { ...req })
+  if (req.body?.filter && Object.keys(req.body.filter).length > 0) {
+    track('EagleEyeContent Advanced Filter', { ...payload }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)

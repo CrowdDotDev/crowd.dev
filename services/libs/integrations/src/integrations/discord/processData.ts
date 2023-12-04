@@ -1,4 +1,4 @@
-import { ProcessDataHandler, IProcessDataContext } from '@/types'
+import { ProcessDataHandler, IProcessDataContext } from '../../types'
 import {
   IDiscordAPIData,
   DiscordApiMember,

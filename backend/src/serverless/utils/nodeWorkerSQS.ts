@@ -1,12 +1,12 @@
-import { MessageBodyAttributeMap } from 'aws-sdk/clients/sqs'
-import moment from 'moment'
 import { getServiceChildLogger } from '@crowd/logging'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
+import { SqsMessageAttributes, sendMessage } from '@crowd/sqs'
+import { AutomationTrigger } from '@crowd/types'
+import moment from 'moment'
 import { IS_TEST_ENV, SQS_CONFIG } from '../../conf'
-import { sendMessage } from '../../utils/sqs'
-import { NodeWorkerMessageType } from '../types/workerTypes'
-import { AutomationTrigger } from '../../types/automationTypes'
+import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { ExportableEntity } from '../microservices/nodejs/messageTypes'
+import { NodeWorkerMessageType } from '../types/workerTypes'
+import { SQS_CLIENT } from './serviceSQS'
 
 const log = getServiceChildLogger('nodeWorkerSQS')
 
@@ -24,7 +24,7 @@ export const sendNodeWorkerMessage = async (
   }
 
   // we can only delay for 15 minutes then we have to re-delay message
-  let attributes: MessageBodyAttributeMap
+  let attributes: SqsMessageAttributes
   let delay: number
   let delayed = false
   if (delaySeconds) {
@@ -62,23 +62,25 @@ export const sendNodeWorkerMessage = async (
     delayed = true
   }
 
+  const now = moment().valueOf()
+
   const params = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
-    MessageGroupId: delayed ? undefined : tenantId,
-    MessageDeduplicationId: delayed ? undefined : `${tenantId}-${moment().valueOf()}`,
+    MessageGroupId: delayed ? undefined : `${now}`,
+    MessageDeduplicationId: delayed ? undefined : `${tenantId}-${now}`,
     MessageBody: JSON.stringify(body),
     MessageAttributes: attributes,
     DelaySeconds: delay,
   }
 
-  log.info(
+  log.debug(
     {
       messageType: body.type,
       body,
     },
     'Sending nodejs-worker sqs message!',
   )
-  await sendMessage(params)
+  await sendMessage(SQS_CLIENT(), params)
 }
 
 export const sendNewActivityNodeSQSMessage = async (
@@ -149,4 +151,21 @@ export const sendBulkEnrichMessage = async (
     skipCredits,
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
+}
+
+export const sendOrgMergeMessage = async (
+  tenantId: string,
+  primaryOrgId: string,
+  secondaryOrgId: string,
+  notifyFrontend: boolean = true,
+): Promise<void> => {
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    service: 'org-merge',
+    tenantId,
+    primaryOrgId,
+    secondaryOrgId,
+    notifyFrontend,
+  }
+  await sendNodeWorkerMessage(tenantId, payload as NodeWorkerMessageBase)
 }

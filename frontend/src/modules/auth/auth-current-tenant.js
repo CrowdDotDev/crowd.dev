@@ -1,5 +1,5 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 
 /**
@@ -97,7 +97,7 @@ export default class AuthCurrentTenant {
     return null;
   }
 
-  static async set(tenant) {
+  static set(tenant) {
     if (!tenant) {
       return this.clear();
     }

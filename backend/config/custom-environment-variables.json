@@ -101,7 +101,8 @@
   },
   "twitter": {
     "clientId": "CROWD_TWITTER_CLIENT_ID",
-    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET"
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET",
+    "callbackUrl": "CROWD_TWITTER_CALLBACK_URL"
   },
   "slack": {
     "clientId": "CROWD_SLACK_CLIENT_ID",
@@ -157,6 +158,9 @@
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
   },
+  "githubToken": {
+    "token": "CROWD_GITHUB_TOKEN"
+  },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
   },
@@ -188,5 +192,23 @@
   "auth0": {
     "clientId": "CROWD_AUTH0_CLIENT_ID",
     "jwks": "CROWD_AUTH0_JWKS"
+  },
+  "crowdAnalytics": {
+    "isEnabled": "CROWD_ANALYTICS_IS_ENABLED",
+    "tenantId": "CROWD_ANALYTICS_TENANT_ID",
+    "baseUrl": "CROWD_ANALYTICS_BASE_URL",
+    "apiToken": "CROWD_ANALYTICS_API_TOKEN"
+  },
+  "temporal": {
+    "serverUrl": "CROWD_TEMPORAL_SERVER_URL",
+    "namespace": "CROWD_TEMPORAL_NAMESPACE",
+    "certificate": "CROWD_TEMPORAL_CERTIFICATE",
+    "privateKey": "CROWD_TEMPORAL_PRIVATE_KEY"
+  },
+  "searchSyncApi": {
+    "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
+  },
+  "openStatusApi": {
+    "baseUrl": "CROWD_OPENSTATUS_URL"
   }
 }

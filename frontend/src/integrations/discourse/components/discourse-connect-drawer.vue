@@ -20,6 +20,7 @@
       <el-form
         label-position="top"
         class="form"
+        @submit.prevent
       >
         <app-form-item
           class="mb-6"
@@ -286,7 +287,7 @@ const rules = {
 
 const $externalResults = ref({});
 
-const $v = useVuelidate(rules, form, { $externalResults });
+const $v = useVuelidate(rules, form, { $externalResults, $stopPropagation: true });
 
 // validate method
 async function validate() {

@@ -5,22 +5,39 @@
       <h4 class="text-base leading-6 font-semibold">
         My open tasks ({{ tasks.length }})
       </h4>
-      <el-tooltip
-        v-if="tasks.length > 0 || suggestedTasks.length > 0"
-        effect="dark"
-        content="Add task"
-        placement="top-start"
-      >
-        <el-button
-          v-if="taskCreatePermission"
-          class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
-          @click="addTask()"
+      <div class="flex items-center">
+        <el-tooltip
+          effect="dark"
+          content="All tasks"
+          placement="top-start"
         >
-          <i
-            class="ri-add-line text-lg leading-none text-gray-600"
-          />
-        </el-button>
-      </el-tooltip>
+          <router-link :to="{ name: 'task' }" class="mr-2">
+            <el-button
+              class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
+              @click="addTask()"
+            >
+              <i
+                class="ri-list-check-3 text-lg leading-none text-gray-600"
+              />
+            </el-button>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          effect="dark"
+          content="Add task"
+          placement="top-start"
+        >
+          <el-button
+            v-if="taskCreatePermission"
+            class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
+            @click="addTask()"
+          >
+            <i
+              class="ri-add-line text-lg leading-none text-gray-600"
+            />
+          </el-button>
+        </el-tooltip>
+      </div>
     </div>
     <!-- tasks list -->
     <div>
@@ -75,24 +92,11 @@
           </div>
         </div>
 
-        <div
-          v-if="tasks.length < taskCount"
-          class="flex justify-center pt-3 pb-1"
-        >
-          <div
-            class="flex items-center cursor-pointer"
-            @click="fetchTasks(true)"
-          >
-            <div
-              class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
-            />
-            <div
-              class="pl-2 text-xs leading-5 text-brand-500 font-medium"
-            >
-              Load more
-            </div>
-          </div>
-        </div>
+        <app-load-more
+          :is-visible="tasks.length < taskCount"
+          :is-loading="loadingTasks"
+          :fetch-fn="() => fetchTasks(true)"
+        />
       </div>
     </div>
   </div>
@@ -125,6 +129,7 @@ import {
 } from '@/modules/task/store/constants';
 import AppDashboardTaskSuggested from '@/modules/dashboard/components/task/dashboard-task-suggested.vue';
 import AppDashboardTaskItem from '@/modules/dashboard/components/task/dashboard-task-item.vue';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const store = useStore();
 const { currentUser, currentTenant } = mapGetters('auth');

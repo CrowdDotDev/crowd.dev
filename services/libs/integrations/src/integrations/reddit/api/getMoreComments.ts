@@ -1,10 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from '../../nango'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 import { PlatformType } from '@crowd/types'
 import { RedditMoreCommentsInput, RedditMoreCommentsResponse } from '../types'
 import { timeout } from '@crowd/common'
-import { getRateLimiter } from './handleRateLimit'
+import { handleRedditError } from './errorHandler'
 
 /**
  * Expand a list of comment IDs into a comment tree.
@@ -17,27 +17,23 @@ async function getMoreComments(
   input: RedditMoreCommentsInput,
   ctx: IProcessStreamContext,
 ): Promise<RedditMoreCommentsResponse> {
+  let config: AxiosRequestConfig
   try {
-    const rateLimiter = getRateLimiter(ctx)
-
     ctx.log.info({ message: 'Fetching more comments from a sub-reddit', input })
 
     // Wait for 1.5s for rate limits.
     // eslint-disable-next-line no-promise-executor-return
     await timeout(1500)
 
-    // Check if we can make a request - if not, it will throw a RateLimitError
-    await rateLimiter.checkRateLimit('getMoreComments')
-
     // Gett an access token from Nango
     const accessToken = await getNangoToken(input.nangoId, PlatformType.REDDIT, ctx)
 
-    const config: AxiosRequestConfig = {
+    config = {
       method: 'get',
       url: `http://oauth.reddit.com/api/morechildren?api_type=json`,
       params: {
         depth: 99,
-        link_id: input.postId,
+        link_id: `t3_${input.postId}`,
         children: input.children,
       },
       headers: {
@@ -45,14 +41,12 @@ async function getMoreComments(
       },
     }
 
-    // we are going to make a request, so increment the rate limit
-    await rateLimiter.incrementRateLimit()
-
     const response: RedditMoreCommentsResponse = (await axios(config)).data
     return response
   } catch (err) {
-    ctx.log.error({ err, input }, 'Error while getting posts in subreddit')
-    throw err
+    ctx.log.error({ err, input }, 'Error while getting more comments in subreddit')
+    const newErr = handleRedditError(err, config, input, ctx)
+    throw newErr
   }
 }
 

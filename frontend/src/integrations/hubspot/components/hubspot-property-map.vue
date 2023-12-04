@@ -10,7 +10,10 @@
     </div>
     <div class="w-1/2 py-2">
       <div class="flex items-center w-full">
-        <div class="ri-arrow-left-right-line text-base text-gray-400 mr-4 h-4 flex items-center" />
+        <div
+          class="text-base text-gray-400 mr-4 h-4 flex items-center"
+          :class="readOnly ? 'ri-arrow-right-line' : 'ri-arrow-left-right-line'"
+        />
         <el-select
           v-if="props.hubspotFields.length > 0"
           v-model="mapping"
@@ -21,6 +24,7 @@
           class="w-full"
           clearable
           placement="bottom-end"
+          filterable
         >
           <el-option
             v-for="hubspotField of props.hubspotFields"
@@ -47,6 +51,7 @@ const props = defineProps<{
   modelValue: string,
   field: string,
   enabled: boolean,
+  readOnly: boolean,
   hubspotFields: HubspotProperty[]
 }>();
 
@@ -71,11 +76,20 @@ const enabled = computed<boolean>({
 });
 
 const getLabel = (field: string) => {
-  const label = field
+  const is12MonthPresent = field.includes('12Month');
+  let sentence = field
     .replace('attributes.', '')
+    .replace('12Month', '')
     .replace('_', ' ')
-    .replace(/([A-Z])/g, ' $1');
-  return label.at(0).toUpperCase() + label.substring(1).toLowerCase();
+    .replace(/([A-Z])/g, ' $1')
+    .trim();
+
+  if (is12MonthPresent) {
+    sentence = sentence
+      .replace(/^/, 'Annual ');
+  }
+
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase();
 };
 </script>
 

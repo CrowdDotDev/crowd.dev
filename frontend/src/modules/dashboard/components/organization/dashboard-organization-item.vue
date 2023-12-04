@@ -33,7 +33,7 @@
       </div>
       <div>
         <p class="text-2xs leading-4.5 !text-gray-400">
-          {{ organization.memberCount }} member{{
+          {{ organization.memberCount }} contact{{
             organization.memberCount > 1 ? 's' : ''
           }}
         </p>
@@ -62,7 +62,7 @@ const props = defineProps({
 
 const entity = computed(() => ({
   avatar: props.organization.logo,
-  displayName: props.organization.name.replace('@', ''),
+  displayName: props.organization.displayName.replace('@', ''),
 }));
 </script>
 

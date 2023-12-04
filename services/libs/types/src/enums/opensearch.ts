@@ -6,11 +6,13 @@ export enum OpensearchFieldType {
   INT = 'int',
   DATE = 'date',
   OBJECT = 'obj',
-  OBJECT_ARR = 'obj_arr',
+  NESTED = 'nested',
   FLOAT = 'float',
+  BOOL = 'bool',
 }
 
 export enum OpenSearchIndex {
   MEMBERS = 'members',
   ACTIVITIES = 'activities',
+  ORGANIZATIONS = 'organizations',
 }

@@ -49,7 +49,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     const id = generateUUIDv1()
 
     const results = await this.db().oneOrNone(
-      `select "autoPublish" from "conversationSettings" where "tenantId" = $(tenantId) and (enabled is null or enabled = true)`,
+      `select "autoPublish" from "conversationSettings" where "tenantId" = $(tenantId) limit 1`,
       {
         tenantId,
       },
@@ -82,7 +82,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     slug: string,
   ): Promise<boolean> {
     const results = await this.db().any(
-      `select id from conversations where "tenantId" = $(tenantId) and slug = $(slug) and "segmentId" = $(segmentId)`,
+      `select id from conversations where "tenantId" = $(tenantId) and MD5(slug) = MD5($(slug)) and "segmentId" = $(segmentId)`,
       {
         tenantId,
         slug,

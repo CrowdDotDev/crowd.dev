@@ -1,9 +1,5 @@
 <template>
-  <query-renderer
-    v-if="cubejsApi"
-    :cubejs-api="cubejsApi"
-    :query="query"
-  >
+  <query-renderer v-if="cubejsApi" :cubejs-api="cubejsApi" :query="query">
     <template #default="{ resultSet, loading, error }">
       <div class="bg-white px-6 py-5 rounded-lg shadow">
         <!-- Widget Header -->
@@ -17,9 +13,7 @@
             />
           </div>
           <app-widget-period
-            :template="
-              PRODUCT_COMMUNITY_FIT_REPORT.nameAsId
-            "
+            :template="PRODUCT_COMMUNITY_FIT_REPORT.nameAsId"
             :widget="MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name"
             :period="period"
             :granularity="granularity"
@@ -79,19 +73,20 @@ import {
   MONTHLY_WIDGET_PERIOD_OPTIONS,
   SIX_MONTHS_PERIOD_FILTER,
 } from '@/modules/widget/widget-constants';
+import { getSelectedPeriodFromLabel } from '@/modules/widget/widget-utility';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries';
-import {
-  mapActions,
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import { MemberService } from '@/modules/member/member-service';
-import PRODUCT_COMMUNITY_FIT_REPORT, { MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET } from '@/modules/report/templates/config/productCommunityFit';
+import PRODUCT_COMMUNITY_FIT_REPORT, {
+  MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET,
+} from '@/modules/report/templates/config/productCommunityFit';
 import { parseAxisLabel } from '@/utils/reports';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   filters: {
@@ -104,7 +99,14 @@ const props = defineProps({
   },
 });
 
-const period = ref(SIX_MONTHS_PERIOD_FILTER);
+const route = useRoute();
+const router = useRouter();
+const period = ref(
+  getSelectedPeriodFromLabel(
+    route.query.activeContributorsPeriod,
+    SIX_MONTHS_PERIOD_FILTER,
+  ),
+);
 const granularity = ref(MONTHLY_GRANULARITY_FILTER);
 const drawerExpanded = ref();
 const drawerDate = ref();
@@ -160,7 +162,7 @@ const widgetChartOptions = computed(() => chartOptions('area', {
       for (let i = 0; i <= magnitude + 1; i += 1) {
         const newTickValue = 10 ** i;
 
-        if ((newTickValue) >= 1000) {
+        if (newTickValue >= 1000) {
           ticks.push({
             label: `${newTickValue / 2}`,
             value: newTickValue / 2,
@@ -181,9 +183,7 @@ const widgetChartOptions = computed(() => chartOptions('area', {
       ticks,
     });
   },
-  xTicksCallback: (
-    value,
-  ) => parseAxisLabel(value, granularity.value.value),
+  xTicksCallback: (value) => parseAxisLabel(value, granularity.value.value),
   annotationPlugin: {
     annotations: {
       idealRange: {
@@ -209,7 +209,7 @@ const datasets = computed(() => [
     measure: 'Members.count',
     granularity: granularity.value.value,
     ...(!props.isPublicView && {
-      tooltipBtn: 'View members',
+      tooltipBtn: 'View contacts',
     }),
     showLegend: false,
   },
@@ -231,6 +231,12 @@ const query = computed(() => TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS({
 const onUpdatePeriod = (updatedPeriod) => {
   period.value = updatedPeriod;
   granularity.value = MONTHLY_GRANULARITY_FILTER;
+  router.replace({
+    query: {
+      ...route.query,
+      activeContributorsPeriod: updatedPeriod.label,
+    },
+  });
 };
 
 // Fetch function to pass to detail drawer
@@ -256,9 +262,7 @@ const getActiveMembers = async ({ pagination }) => {
     offset: !pagination.count
       ? (pagination.currentPage - 1) * pagination.pageSize
       : 0,
-    limit: !pagination.count
-      ? pagination.pageSize
-      : pagination.count,
+    limit: !pagination.count ? pagination.pageSize : pagination.count,
   });
 };
 

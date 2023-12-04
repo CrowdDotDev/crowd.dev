@@ -1,0 +1,17 @@
+FROM node:16-alpine
+
+RUN apk add --update --no-cache bash
+
+WORKDIR /usr/crowd/app
+
+COPY ./services/scripts ./services/scripts
+COPY ./services/libs/ ./services/libs/
+RUN cd services/scripts && ./install_lib_packages.sh
+
+COPY ./services/apps/webhook_api/package.json ./services/apps/webhook_api/package-lock.json ./services/apps/webhook_api/tsconfig.json  ./services/apps/webhook_api/
+COPY ./services/apps/webhook_api/config ./services/apps/webhook_api/config
+COPY ./services/apps/webhook_api/src ./services/apps/webhook_api/src
+
+RUN cd services/apps/webhook_api && npm ci
+
+RUN npm cache clean --force

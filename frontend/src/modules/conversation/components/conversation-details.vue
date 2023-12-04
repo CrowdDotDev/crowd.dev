@@ -59,25 +59,10 @@
             />
           </el-tooltip>
           <div class="flex-grow leading-none">
-            <p class="text-xs pl-2 inline-flex">
-              <!-- activity message -->
-              <app-activity-message
-                :activity="conversation.conversationStarter"
-              />
-              <!-- activity timestamp -->
-              <span class="whitespace-nowrap text-gray-500"><span class="mx-1">·</span>{{
-                timeAgo(
-                  conversation.conversationStarter
-                    .timestamp,
-                )
-              }}</span>
-              <span v-if="sentiment" class="mx-1">·</span>
-              <!-- conversation starter sentiment -->
-              <app-activity-sentiment
-                v-if="sentiment"
-                :sentiment="sentiment"
-              />
-            </p>
+            <app-activity-header
+              :activity="conversation.conversationStarter"
+              class="text-xs pl-2 inline-flex"
+            />
           </div>
         </div>
       </div>
@@ -170,13 +155,11 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { formatDateToTimeAgo } from '@/utils/date';
+import { mapState } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
@@ -184,19 +167,20 @@ import AppConversationDetailsFooter from '@/modules/conversation/components/conv
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import config from '@/config';
+import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
   name: 'AppConversationDetails',
   components: {
     AppMemberDisplayName,
-    AppActivityMessage,
     AppConversationReply,
-    AppActivitySentiment,
     AppActivityContent,
     AppLoading,
     AppAvatar,
     AppConversationDetailsFooter,
+    AppActivityHeader,
   },
   props: {
     conversation: {
@@ -227,6 +211,9 @@ export default {
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser',
     }),
+    ...mapState(useActivityTypeStore, {
+      types: 'types',
+    }),
     platform() {
       return CrowdIntegrations.getConfig(
         this.conversation.conversationStarter?.platform,
@@ -234,10 +221,6 @@ export default {
     },
     member() {
       return this.conversation.conversationStarter.member;
-    },
-    sentiment() {
-      return this.conversation.conversationStarter.sentiment
-        .sentiment;
     },
     url() {
       return this.conversation.url;
@@ -264,7 +247,7 @@ export default {
     },
     sorterOptions() {
       const { platform } = this.conversation;
-      const defaultActivityTypes = this.currentTenant?.settings[0]?.activityTypes?.default;
+      const defaultActivityTypes = this.types.default;
       const options = [{
         value: 'all',
         label: 'All',
@@ -298,9 +281,6 @@ export default {
     },
   },
   methods: {
-    timeAgo(date) {
-      return formatDateToTimeAgo(date);
-    },
     doChangeSort(value) {
       if (value !== 'all') {
         this.loadingActivities = true;

@@ -1,6 +1,19 @@
-import { IMemberAttribute, IActivityData, IntegrationResultType, Entity } from '@crowd/types'
+import {
+  IMemberAttribute,
+  IActivityData,
+  IntegrationResultType,
+  Entity,
+  IAutomationData,
+} from '@crowd/types'
 import { Logger } from '@crowd/logging'
-import { ICache, IIntegration, IIntegrationStream, IRateLimiter } from '@crowd/types'
+import {
+  ICache,
+  IIntegration,
+  IIntegrationStream,
+  IRateLimiter,
+  IConcurrentRequestLimiter,
+} from '@crowd/types'
+import { DbConnection, DbTransaction } from '@crowd/database'
 
 import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
 import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
@@ -16,6 +29,8 @@ export interface IIntegrationContext {
 
   publishStream: <T>(identifier: string, metadata?: T) => Promise<void>
   updateIntegrationSettings: (settings: unknown) => Promise<void>
+  updateIntegrationToken: (token: string) => Promise<void>
+  updateIntegrationRefreshToken: (refreshToken: string) => Promise<void>
 
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }
@@ -23,6 +38,7 @@ export interface IIntegrationContext {
 export interface IIntegrationStartRemoteSyncContext {
   integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
   integration: IIntegration
+  automations: IAutomationData[]
   tenantId: string
   log: Logger
 }
@@ -32,11 +48,14 @@ export interface IIntegrationProcessRemoteSyncContext {
   integration: IIntegration
   log: Logger
   serviceSettings: IIntegrationServiceSettings
+  automation?: IAutomationData
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
   serviceSettings: IIntegrationServiceSettings
   platformSettings?: unknown
+  isManualRun?: boolean
+  manualSettings?: unknown
 }
 
 export interface IProcessStreamContext extends IIntegrationContext {
@@ -44,9 +63,13 @@ export interface IProcessStreamContext extends IIntegrationContext {
   serviceSettings: IIntegrationServiceSettings
   platformSettings?: unknown
 
+  setMessageVisibilityTimeout: (newTimeout: number) => Promise<void>
+
   publishData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
+
+  getDbConnection: () => DbConnection | DbTransaction
 
   /**
    * Global cache that is shared between all integrations
@@ -59,6 +82,10 @@ export interface IProcessStreamContext extends IIntegrationContext {
   integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+  getConcurrentRequestLimiter: (
+    maxConcurrentRequests: number,
+    cacheKey: string,
+  ) => IConcurrentRequestLimiter
 }
 
 export interface IProcessWebhookStreamContext {
@@ -87,6 +114,10 @@ export interface IProcessWebhookStreamContext {
   integrationCache: ICache
 
   getRateLimiter: (maxRequests: number, timeWindowSeconds: number, cacheKey: string) => IRateLimiter
+  getConcurrentRequestLimiter: (
+    maxConcurrentRequests: number,
+    cacheKey: string,
+  ) => IConcurrentRequestLimiter
 }
 
 export interface IProcessDataContext extends IIntegrationContext {
@@ -180,7 +211,6 @@ export interface IIntegrationDescriptor {
    * Function that will be called if defined, after an integration goes into done state.
    * Mainly responsible for sending queue messages to integration-sync-worker
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   startSyncRemote?: StartIntegrationSyncHandler
 
   /**

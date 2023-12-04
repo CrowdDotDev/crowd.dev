@@ -29,6 +29,10 @@
             {{ currentTemplate.name }}
           </h1>
           <div class="flex items-center gap-9">
+            <div class=" text-sm flex items-center gap-2">
+              <i class="text-gray-500 ri-time-line text-base" />
+              <span class="text-gray-500">Data on this page is refreshed every 15 min.</span>
+            </div>
             <div
               v-if="report.public"
               class="flex items-center gap-2"
@@ -104,6 +108,7 @@ import templates from '@/modules/report/templates/config';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useQuickStartStore } from '@/modules/quickstart/store';
 
 const props = defineProps({
   id: {
@@ -113,6 +118,7 @@ const props = defineProps({
 });
 
 const { doFind } = mapActions('report');
+const { getGuides } = useQuickStartStore();
 
 const store = useStore();
 
@@ -180,6 +186,7 @@ onMounted(async () => {
   loading.value = true;
   report.value = await doFind(props.id);
   loading.value = false;
+  getGuides();
 
   if (cubejsApi.value === null) {
     await getCubeToken();

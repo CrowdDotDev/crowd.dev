@@ -25,19 +25,32 @@
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
-              label="Associated members"
-              name="members"
+              label="Current contacts"
+              name="contacts"
             >
-              <app-organization-view-members
-                :organization-id="organization.id"
-              />
+              <template #label>
+                <span class="flex gap-2">
+                  <span>Current contacts</span>
+                  <el-tooltip
+                    content="Contacts that are currently a part of this organization."
+                    placement="top"
+                  >
+                    <i class="ri-information-line" />
+                  </el-tooltip>
+                </span>
+              </template>
+              <template #default>
+                <app-organization-view-members
+                  :organization-id="props.id"
+                />
+              </template>
             </el-tab-pane>
             <el-tab-pane
               label="Activities"
               name="activities"
             >
               <app-activity-timeline
-                :entity-id="organization.id"
+                :entity-id="props.id"
                 entity-type="organization"
               />
             </el-tab-pane>
@@ -71,7 +84,7 @@ const { organization } = storeToRefs(organizationStore);
 const { fetchOrganization } = organizationStore;
 
 const loading = ref(true);
-const tab = ref('members');
+const tab = ref('contacts');
 
 onMounted(() => {
   try {

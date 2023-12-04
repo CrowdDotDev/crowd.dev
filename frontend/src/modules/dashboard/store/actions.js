@@ -39,17 +39,17 @@ export default {
   async getTrendingConversations({ commit, state }) {
     state.conversations.loading = true;
     const { platform, period } = state.filters;
+
     return ConversationService.query({
       filter: {
         and: [
           {
             lastActive: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -104,6 +104,7 @@ export default {
   async getRecentActivities({ commit, state }) {
     state.activities.loading = true;
     const { platform, period } = state.filters;
+
     return ActivityService.query({
       filter: {
         ...DEFAULT_ACTIVITY_FILTERS,
@@ -111,11 +112,10 @@ export default {
           {
             timestamp: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -191,9 +191,10 @@ export default {
       activityIsContribution: null,
       activityTimestampFrom: moment()
         .utc()
-        .subtract(period.value, period.granularity)
+        .subtract(period.value - 1, period.granularity)
+        .startOf('day')
         .toISOString(),
-      activityTimestampTo: moment().utc(),
+      activityTimestampTo: moment().utc().endOf('day'),
       orderBy: 'activityCount_DESC',
       offset: 0,
       limit: 5,
@@ -211,6 +212,7 @@ export default {
   async getRecentMembers({ commit, state }) {
     state.members.loadingRecent = true;
     const { platform, period } = state.filters;
+
     return MemberService.listMembers({
       filter: {
         and: [
@@ -218,11 +220,10 @@ export default {
           {
             joinedAt: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -304,11 +305,10 @@ export default {
           {
             lastActive: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -349,11 +349,10 @@ export default {
           {
             joinedAt: {
               gte: moment()
+                .utc()
                 .startOf('day')
                 .subtract(
-                  period.granularity === 'day'
-                    ? period.value - 1
-                    : period.value,
+                  period.value - 1,
                   period.granularity,
                 )
                 .toISOString(),
@@ -404,7 +403,6 @@ export default {
               : []),
           ],
         }),
-      orderBy: '',
       limit: 1,
       offset: 0,
     })

@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
+import { SegmentStatus } from '@crowd/types'
+import { getTemporalClient } from '@crowd/temporal'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
@@ -10,9 +12,8 @@ import Roles from '../../security/roles'
 import UserRepository from '../repositories/userRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
-import { API_CONFIG, REDIS_CONFIG } from '../../conf'
+import { API_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
 import SettingsRepository from '../repositories/settingsRepository'
-import { SegmentStatus } from '../../types/segmentTypes'
 
 export default class SequelizeTestUtils {
   static async wipeDatabase(db) {
@@ -124,6 +125,7 @@ export default class SequelizeTestUtils {
       database: db,
       log,
       redis,
+      temporal: await getTemporalClient(TEMPORAL_CONFIG),
     } as IServiceOptions
   }
 
@@ -182,6 +184,7 @@ export default class SequelizeTestUtils {
       bypassPermissionValidation: true,
       log,
       redis,
+      temporal: await getTemporalClient(TEMPORAL_CONFIG),
     } as IRepositoryOptions
   }
 

@@ -1,3 +1,5 @@
+import { ITemporalConfig } from '@crowd/temporal'
+
 export enum ServiceType {
   API = 'api',
   NODEJS_WORKER = 'nodejs-worker',
@@ -99,6 +101,7 @@ export interface DevtoConfiguration {
 export interface TwitterConfiguration {
   clientId: string
   clientSecret: string
+  callbackUrl: string
   globalLimit?: number
   maxRetrospectInSeconds: number
   limitResetFrequencyDays: number
@@ -191,6 +194,10 @@ export interface EagleEyeConfiguration {
   apiKey: string
 }
 
+export interface GithubTokenConfiguration {
+  token: string
+}
+
 export interface UnleashConfiguration {
   url: string
   adminApiKey: string
@@ -231,4 +238,19 @@ export interface IOpenSearchConfig {
   region?: string
   accessKeyId?: string
   secretAccessKey?: string
+}
+
+export interface CrowdAnalyticsConfiguration {
+  isEnabled: string
+  tenantId: string
+  baseUrl: string
+  apiToken: string
+}
+
+export interface IBackendTemporalConfig extends ITemporalConfig {
+  automationsTaskQueue: string
+}
+
+export interface IOpenStatusApiConfig {
+  baseUrl: string
 }

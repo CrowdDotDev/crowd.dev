@@ -1,3 +1,4 @@
+import { DbColumnSet, DbInstance } from '@crowd/database'
 import { IntegrationRunState, IntegrationState, IntegrationStreamState } from '@crowd/types'
 
 export interface IStreamData {
@@ -7,6 +8,7 @@ export interface IStreamData {
   integrationState: IntegrationState
   integrationIdentifier: string | null
   integrationToken: string | null
+  integrationRefreshToken: string | null
   runState: IntegrationRunState | null
   webhookId: string | null
   runId: string | null
@@ -27,4 +29,29 @@ export interface IProcessableStream {
   integrationType: string
   runId: string | null
   webhookId: string | null
+}
+
+export interface IInsertableWebhookStream {
+  identifier: string
+  webhookId: string
+  data: unknown
+  integrationId: string
+  tenantId: string
+}
+
+let insertWebhookStreamColumnSet: DbColumnSet
+export function getInsertWebhookStreamColumnSet(instance: DbInstance): DbColumnSet {
+  if (insertWebhookStreamColumnSet) return insertWebhookStreamColumnSet
+
+  insertWebhookStreamColumnSet = new instance.helpers.ColumnSet(
+    ['webhookId', 'state', 'identifier', 'data', 'tenantId', 'integrationId'],
+    {
+      table: {
+        table: 'streams',
+        schema: 'integration',
+      },
+    },
+  )
+
+  return insertWebhookStreamColumnSet
 }

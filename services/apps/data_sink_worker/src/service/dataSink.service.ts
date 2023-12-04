@@ -1,19 +1,25 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, DataSinkWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
   IOrganization,
   IntegrationResultState,
   IntegrationResultType,
+  PlatformType,
 } from '@crowd/types'
 import DataSinkRepository from '../repo/dataSink.repo'
 import ActivityService from './activity.service'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import MemberService from './member.service'
-import { SLACK_ALERTING_CONFIG } from '@/conf'
-import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import { OrganizationService } from './organization.service'
+import { Unleash } from '@crowd/feature-flags'
+import { Client as TemporalClient } from '@crowd/temporal'
+import { IResultData } from '../repo/dataSink.data'
+import { addSeconds } from '@crowd/common'
+import { WORKER_SETTINGS } from '../conf'
+import telemetry from '@crowd/telemetry'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -22,6 +28,10 @@ export default class DataSinkService extends LoggerBase {
     private readonly store: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
+    private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -30,13 +40,13 @@ export default class DataSinkService extends LoggerBase {
   }
 
   private async triggerResultError(
-    resultId: string,
+    resultInfo: IResultData,
     location: string,
     message: string,
     metadata?: unknown,
     error?: Error,
   ): Promise<void> {
-    await this.repo.markResultError(resultId, {
+    await this.repo.markResultError(resultInfo.id, {
       location,
       message,
       metadata,
@@ -44,16 +54,68 @@ export default class DataSinkService extends LoggerBase {
       errorStack: error?.stack,
       errorString: error ? JSON.stringify(error) : undefined,
     })
+
+    if (resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
+      // delay for #retries * 2 minutes
+      const until = addSeconds(new Date(), (resultInfo.retries + 1) * 2 * 60)
+      this.log.warn({ until: until.toISOString() }, 'Retrying result!')
+      await this.repo.delayResult(resultInfo.id, until)
+    }
   }
 
-  public async processResult(resultId: string): Promise<void> {
+  public async checkResults(): Promise<void> {
+    this.log.info('Checking for delayed results!')
+
+    let results = await this.repo.transactionally(async (txRepo) => {
+      return await txRepo.getDelayedResults(10)
+    })
+
+    while (results.length > 0) {
+      this.log.info({ count: results.length }, 'Found delayed results!')
+
+      for (const result of results) {
+        this.log.info({ resultId: result.id }, 'Restarting delayed stream!')
+        await this.repo.resetResults([result.id])
+        await this.dataSinkWorkerEmitter.triggerResultProcessing(
+          result.tenantId,
+          result.platform,
+          result.id,
+          result.id,
+          `${result.id}-delayed-${Date.now()}`,
+        )
+      }
+
+      results = await this.repo.transactionally(async (txRepo) => {
+        return await txRepo.getDelayedResults(10)
+      })
+    }
+  }
+
+  public async createAndProcessActivityResult(
+    tenantId: string,
+    segmentId: string,
+    integrationId: string,
+    data: IActivityData,
+  ): Promise<void> {
+    this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
+
+    const resultId = await this.repo.createResult(tenantId, integrationId, {
+      type: IntegrationResultType.ACTIVITY,
+      data,
+      segmentId,
+    })
+
+    await this.processResult(resultId)
+  }
+
+  public async processResult(resultId: string): Promise<boolean> {
     this.log.debug({ resultId }, 'Processing result.')
 
     const resultInfo = await this.repo.getResultInfo(resultId)
 
     if (!resultInfo) {
-      this.log.error({ resultId }, 'Result not found.')
-      return
+      telemetry.increment('data_sync_worker.result_not_found', 1)
+      return false
     }
 
     this.log = getChildLogger('result-processor', this.log, {
@@ -70,110 +132,127 @@ export default class DataSinkService extends LoggerBase {
       this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
       if (resultInfo.state === IntegrationResultState.PROCESSED) {
         this.log.warn('Result has already been processed. Skipping...')
-        return
+        return false
       }
 
       await this.repo.resetResults([resultId])
-      return
+      return false
     }
 
-    this.log.debug('Marking result as in progress.')
-    await this.repo.markResultInProgress(resultId)
-    if (resultInfo.runId) {
-      await this.repo.touchRun(resultInfo.runId)
-    }
+    // this.log.debug('Marking result as in progress.')
+    // await this.repo.markResultInProgress(resultId)
 
     try {
       const data = resultInfo.data
-      switch (data.type) {
-        case IntegrationResultType.ACTIVITY: {
-          const service = new ActivityService(
-            this.store,
-            this.nodejsWorkerEmitter,
-            this.searchSyncWorkerEmitter,
-            this.log,
-          )
-          const activityData = data.data as IActivityData
+      await telemetry.measure(
+        'data_sink_worker.process_result',
+        async () => {
+          switch (data.type) {
+            case IntegrationResultType.ACTIVITY: {
+              const service = new ActivityService(
+                this.store,
+                this.nodejsWorkerEmitter,
+                this.searchSyncWorkerEmitter,
+                this.redisClient,
+                this.unleash,
+                this.temporal,
+                this.log,
+              )
+              const activityData = data.data as IActivityData
 
-          await service.processActivity(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            activityData,
-          )
-          break
-        }
+              const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
 
-        case IntegrationResultType.MEMBER_ENRICH: {
-          const service = new MemberService(
-            this.store,
-            this.nodejsWorkerEmitter,
-            this.searchSyncWorkerEmitter,
-            this.log,
-          )
-          const memberData = data.data as IMemberData
+              await service.processActivity(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                platform,
+                activityData,
+                data.segmentId,
+              )
+              break
+            }
 
-          await service.processMemberEnrich(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            memberData,
-          )
-          break
-        }
+            case IntegrationResultType.MEMBER_ENRICH: {
+              const service = new MemberService(
+                this.store,
+                this.nodejsWorkerEmitter,
+                this.searchSyncWorkerEmitter,
+                this.unleash,
+                this.temporal,
+                this.redisClient,
+                this.log,
+              )
+              const memberData = data.data as IMemberData
 
-        case IntegrationResultType.ORGANIZATION_ENRICH: {
-          const service = new OrganizationService(this.store, this.log)
-          const organizationData = data.data as IOrganization
+              await service.processMemberEnrich(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                resultInfo.platform,
+                memberData,
+              )
+              break
+            }
 
-          await service.processOrganizationEnrich(
-            resultInfo.tenantId,
-            resultInfo.integrationId,
-            resultInfo.platform,
-            organizationData,
-          )
-          break
-        }
+            case IntegrationResultType.ORGANIZATION_ENRICH: {
+              const service = new OrganizationService(this.store, this.log)
+              const organizationData = data.data as IOrganization
 
-        default: {
-          throw new Error(`Unknown result type: ${data.type}`)
-        }
-      }
+              await service.processOrganizationEnrich(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                resultInfo.platform,
+                organizationData,
+              )
+              break
+            }
+
+            case IntegrationResultType.TWITTER_MEMBER_REACH: {
+              const service = new MemberService(
+                this.store,
+                this.nodejsWorkerEmitter,
+                this.searchSyncWorkerEmitter,
+                this.unleash,
+                this.temporal,
+                this.redisClient,
+                this.log,
+              )
+              const memberData = data.data as IMemberData
+
+              await service.processMemberUpdate(
+                resultInfo.tenantId,
+                resultInfo.integrationId,
+                resultInfo.platform,
+                memberData,
+              )
+              break
+            }
+
+            default: {
+              throw new Error(`Unknown result type: ${data.type}`)
+            }
+          }
+        },
+        {
+          type: data.type,
+        },
+      )
       await this.repo.deleteResult(resultId)
+      return true
     } catch (err) {
       this.log.error(err, 'Error processing result.')
-      await this.triggerResultError(
-        resultId,
-        'process-result',
-        'Error processing result.',
-        undefined,
-        err,
-      )
-
-      await sendSlackAlert({
-        slackURL: SLACK_ALERTING_CONFIG().url,
-        alertType: SlackAlertTypes.SINK_WORKER_ERROR,
-        integration: {
-          id: resultInfo.integrationId,
-          platform: resultInfo.platform,
-          tenantId: resultInfo.tenantId,
-          resultId: resultInfo.id,
-          apiDataId: resultInfo.apiDataId,
-        },
-        userContext: {
-          currentTenant: {
-            name: resultInfo.name,
-            plan: resultInfo.plan,
-            isTrial: resultInfo.isTrialPlan,
-          },
-        },
-        log: this.log,
-        frameworkVersion: 'new',
-      })
-    } finally {
-      if (resultInfo.runId) {
-        await this.repo.touchRun(resultInfo.runId)
+      try {
+        await this.triggerResultError(
+          resultInfo,
+          'process-result',
+          'Error processing result.',
+          undefined,
+          err,
+        )
+      } catch (err2) {
+        this.log.error(err2, 'Error triggering result error.')
       }
+
+      return false
     }
   }
 }

@@ -1,6 +1,6 @@
+import { FeatureFlag } from '@crowd/types'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import { featureFlagMiddleware } from '../../middlewares/featureFlagMiddleware'
-import { FeatureFlag } from '../../types/common'
 
 export default (app) => {
   app.post(`/tenant/:tenantId/member/query`, safeWrap(require('./memberQuery').default))
@@ -26,6 +26,11 @@ export default (app) => {
   app.get(`/tenant/:tenantId/member`, safeWrap(require('./memberList').default))
   app.get(`/tenant/:tenantId/member/active`, safeWrap(require('./memberActiveList').default))
   app.get(`/tenant/:tenantId/member/:id`, safeWrap(require('./memberFind').default))
+  app.get(
+    `/tenant/:tenantId/member/github/:id`,
+    featureFlagMiddleware(FeatureFlag.FIND_GITHUB, 'errors.featureFlag.notEnabled'),
+    safeWrap(require('./memberFindGithub').default),
+  )
   app.put(`/tenant/:tenantId/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
   app.put(
     `/tenant/:tenantId/member/:memberId/no-merge`,

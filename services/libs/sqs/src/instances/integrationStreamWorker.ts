@@ -8,10 +8,12 @@ import {
   ProcessStreamQueueMessage,
   ProcessWebhookStreamQueueMessage,
 } from '@crowd/types'
+import { generateUUIDv1 } from '@crowd/common'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public async checkStreams() {
@@ -23,10 +25,7 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     runId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      `streams-${tenantId}-${platform}`,
-      new ContinueProcessingRunStreamsQueueMessage(runId),
-    )
+    await this.sendMessage(runId, new ContinueProcessingRunStreamsQueueMessage(runId))
   }
 
   public async triggerStreamProcessing(
@@ -34,11 +33,7 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     streamId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      `streams-${tenantId}-${platform}`,
-      new ProcessStreamQueueMessage(streamId),
-      streamId,
-    )
+    await this.sendMessage(generateUUIDv1(), new ProcessStreamQueueMessage(streamId))
   }
 
   public async triggerWebhookProcessing(
@@ -46,9 +41,6 @@ export class IntegrationStreamWorkerEmitter extends SqsQueueEmitter {
     platform: string,
     webhookId: string,
   ): Promise<void> {
-    await this.sendMessage(
-      `ws-streams-${tenantId}-${platform}`,
-      new ProcessWebhookStreamQueueMessage(webhookId),
-    )
+    await this.sendMessage(generateUUIDv1(), new ProcessWebhookStreamQueueMessage(webhookId))
   }
 }

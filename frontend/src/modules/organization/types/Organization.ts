@@ -1,4 +1,11 @@
+export interface OrganizationAttribute {
+  default: string;
+  sourceId?: any;
+  hubspot?: any;
+}
+
 export interface Organization{
+  attributes: Record<string, OrganizationAttribute>,
   activeOn: string[];
   activityCount: number;
   address: Record<string, string>;
@@ -29,7 +36,6 @@ export interface Organization{
   memberCount: number;
   naics: any[]
   name: string;
-  parentUrl: string | null;
   phoneNumbers: string[] | null;
   profiles: string[];
   revenueRange: string | null;

@@ -10,15 +10,14 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        Members can take up to two minutes to appear in the
-        list
+        No contacts are currently working in this organization.
       </p>
     </div>
     <div v-else>
       <div class="my-6">
         <el-input
           v-model="query"
-          placeholder="Search members"
+          placeholder="Search contacts"
           :prefix-icon="SearchIcon"
           clearable
           class="organization-view-members-search"
@@ -55,6 +54,7 @@
             </div>
             <app-member-identities
               :username="member.username"
+              :member="member"
             />
           </div>
         </div>

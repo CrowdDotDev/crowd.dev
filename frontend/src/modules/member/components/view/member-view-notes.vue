@@ -9,7 +9,7 @@
     v-else
     class="w-full text-gray-400 pt-8 italic text-sm"
   >
-    Connect integrations to add notes to members
+    Connect integrations to add notes to contacts
   </div>
   <div v-if="notes.length > 0" class="pt-6">
     <app-note-item
@@ -18,17 +18,11 @@
       :note="note"
       @reload="fetchNotes()"
     />
-    <div
-      v-if="notesCount > notes.length"
-      class="flex justify-center pt-4"
-    >
-      <el-button
-        class="btn btn-brand btn-brand--transparent"
-        @click="fetchNotes(notesPage + 1)"
-      >
-        <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
-      </el-button>
-    </div>
+    <app-load-more
+      :is-visible="notesCount > notes.length"
+      :is-loading="loadingNotes"
+      :fetch-fn="() => fetchNotes(notesPage + 1)"
+    />
   </div>
 </template>
 
@@ -41,6 +35,7 @@ import { NotePermissions } from '@/modules/notes/note-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppNoteItem from '@/modules/notes/components/note-item.vue';
 import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const props = defineProps({
   member: {
@@ -54,6 +49,7 @@ const notes = ref([]);
 const notesCount = ref(0);
 const notesPage = ref(0);
 const notesLimit = 20;
+const loadingNotes = ref(false);
 
 const isCreateLockedForSampleData = computed(() => new NotePermissions(
   currentTenant.value,
@@ -61,6 +57,7 @@ const isCreateLockedForSampleData = computed(() => new NotePermissions(
 ).createLockedForSampleData);
 
 const fetchNotes = (page = 0) => {
+  loadingNotes.value = true;
   notesPage.value = page;
   NoteService.list(
     {
@@ -76,6 +73,8 @@ const fetchNotes = (page = 0) => {
       notes.value = rows;
     }
     notesCount.value = count;
+  }).finally(() => {
+    loadingNotes.value = false;
   });
 };
 

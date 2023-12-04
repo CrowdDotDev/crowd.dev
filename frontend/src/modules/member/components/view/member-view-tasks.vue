@@ -45,24 +45,11 @@
           class="px-6"
           :task="task"
         />
-        <div
-          v-if="tasks.length < taskCount"
-          class="flex justify-center pt-8 pb-1"
-        >
-          <div
-            class="flex items-center cursor-pointer"
-            @click="fetchTasks(true)"
-          >
-            <div
-              class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
-            />
-            <div
-              class="pl-2 text-xs leading-5 text-brand-500 font-medium"
-            >
-              Load more
-            </div>
-          </div>
-        </div>
+        <app-load-more
+          :is-visible="tasks.length < taskCount"
+          :is-loading="loading"
+          :fetch-fn="() => fetchTasks(true)"
+        />
         <div
           v-if="tasks.length === 0"
           class="pt-16 pb-14 flex justify-center items-center"
@@ -100,6 +87,7 @@ import { TaskPermissions } from '@/modules/task/task-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppTaskItem from '@/modules/task/components/task-item.vue';
 import AppTaskForm from '@/modules/task/components/task-form.vue';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const props = defineProps({
   member: {
@@ -115,7 +103,7 @@ const tabs = ref([
   {
     label: 'Open',
     name: 'open',
-    emptyText: 'No open tasks associated with this member',
+    emptyText: 'No open tasks associated with this contact',
     filters: {
       type: 'regular',
       status: 'in-progress',
@@ -126,7 +114,7 @@ const tabs = ref([
     label: 'Completed',
     name: 'completed',
     emptyText:
-      'No completed tasks associated with this member',
+      'No completed tasks associated with this contact',
     filters: {
       type: 'regular',
       status: 'done',

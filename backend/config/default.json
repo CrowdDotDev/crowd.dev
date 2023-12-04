@@ -41,6 +41,7 @@
   "enrichment": {},
   "organizationEnrichment": {},
   "eagleEye": {},
+  "githubToken": {},
   "unleash": {
     "db": {}
   },
@@ -53,5 +54,13 @@
   "weeklyEmails": {
     "enabled": "true"
   },
-  "auth0": {}
+  "auth0": {},
+  "crowdAnalytics": {
+    "isEnabled": "false"
+  },
+  "temporal": {
+    "automationsTaskQueue": "automations"
+  },
+  "searchSyncApi": {},
+  "openStatusApi": {}
 }

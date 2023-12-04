@@ -17,6 +17,8 @@
           :tooltip-label="platformContent(platform).tooltipLabel"
           :as-link="platformContent(platform).asLink"
           :show-handles-badge="true"
+          :backup-url="member.attributes.url?.[platform]"
+          :attributes="member.attributes"
         />
       </div>
     </div>
@@ -35,13 +37,17 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  member: {
+    type: Object,
+    default: () => {},
+  },
 });
 
 const platformContent = (platform) => {
   const config = CrowdIntegrations.getConfig(platform) || {};
 
   return {
-    trackEventName: 'Click Member Contact',
+    trackEventName: 'Click Contact Contact',
     trackEventChannel: config.name || platform,
     tooltipLabel: `${config.name || platform} profile`,
     asLink: config.showProfileLink,
@@ -49,7 +55,7 @@ const platformContent = (platform) => {
 };
 
 const hasSocialIdentities = computed(
-  () => Object.keys(props.username).some((k) => !!props.username[k].length),
+  () => Object.values(props.username).some((k) => k.length > 0),
 );
 </script>
 

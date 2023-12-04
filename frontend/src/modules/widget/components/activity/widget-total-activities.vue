@@ -1,6 +1,8 @@
 <template>
   <div class="widget-total-activities">
-    <div class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100">
+    <div
+      class="flex justify-between items-center pb-5 mb-4 border-b border-gray-100"
+    >
       <app-widget-title
         text-size="text-base"
         :title="TOTAL_ACTIVITIES_WIDGET.name"
@@ -10,17 +12,11 @@
         :widget="TOTAL_ACTIVITIES_WIDGET.name"
         :period="period"
         module="report"
-        @on-update="
-          (updatedPeriod) => (period = updatedPeriod)
-        "
+        @on-update="onUpdatePeriod"
       />
     </div>
     <div>
-      <query-renderer
-        v-if="cubejsApi"
-        :cubejs-api="cubejsApi"
-        :query="query"
-      >
+      <query-renderer v-if="cubejsApi" :cubejs-api="cubejsApi" :query="query">
         <template #default="{ resultSet, loading, error }">
           <!-- Loading -->
           <app-widget-loading
@@ -36,9 +32,7 @@
             <div class="col-span-5">
               <app-widget-kpi
                 :current-value="kpiCurrentValue(resultSet)"
-                :previous-value="
-                  kpiPreviousValue(resultSet)
-                "
+                :previous-value="kpiPreviousValue(resultSet)"
                 :vs-label="`vs. last ${period.extendedLabel}`"
                 class="col-span-5"
               />
@@ -50,6 +44,7 @@
                 :chart-options="widgetChartOptions"
                 :granularity="granularity"
                 :is-grid-min-max="true"
+                :pivot-modifier="(pivot) => pivot.splice(0, 1)"
                 :show-min-as-value="true"
               />
             </div>
@@ -65,6 +60,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { ref, computed, defineProps } from 'vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { getSelectedPeriodFromLabel } from '@/modules/widget/widget-utility';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 
 import AppWidgetKpi from '@/modules/widget/components/shared/widget-kpi.vue';
@@ -73,15 +69,14 @@ import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vu
 import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.vue';
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
-import ACTIVITIES_REPORT, { TOTAL_ACTIVITIES_WIDGET } from '@/modules/report/templates/config/activities';
+import ACTIVITIES_REPORT, {
+  TOTAL_ACTIVITIES_WIDGET,
+} from '@/modules/report/templates/config/activities';
 
-import {
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
-import { getTimeGranularityFromPeriod } from '@/utils/reports';
-import {
-  TOTAL_ACTIVITIES_QUERY,
-} from '@/modules/widget/widget-queries';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { getTimeGranularityFromPeriod, parseAxisLabel } from '@/utils/reports';
+import { TOTAL_ACTIVITIES_QUERY } from '@/modules/widget/widget-queries';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   filters: {
@@ -94,13 +89,21 @@ const props = defineProps({
   },
 });
 
-const period = ref(SEVEN_DAYS_PERIOD_FILTER);
+const route = useRoute();
+const router = useRouter();
+const period = ref(
+  getSelectedPeriodFromLabel(
+    route.query.totalActivitiesPeriod,
+    SEVEN_DAYS_PERIOD_FILTER,
+  ),
+);
+const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 
 const widgetChartOptions = chartOptions('area', {
   legendPlugin: false,
+  xTicksCallback: (value) => parseAxisLabel(value, granularity.value),
 });
 
-const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const datasets = computed(() => [
   {
     name: TOTAL_ACTIVITIES_WIDGET.name,
@@ -119,11 +122,19 @@ const query = computed(() => TOTAL_ACTIVITIES_QUERY({
   selectedHasTeamActivities: props.filters.teamActivities,
 }));
 
+const onUpdatePeriod = (updatedPeriod) => {
+  period.value = updatedPeriod;
+  router.replace({
+    query: {
+      ...route.query,
+      totalActivitiesPeriod: updatedPeriod.label,
+    },
+  });
+};
+
 const kpiCurrentValue = (resultSet) => {
   const data = resultSet.chartPivot();
-  return Number(
-    data[data.length - 1]['Activities.cumulativeCount'],
-  ) || 0;
+  return Number(data[data.length - 1]['Activities.cumulativeCount']) || 0;
 };
 
 const kpiPreviousValue = (resultSet) => {
@@ -144,14 +155,11 @@ const chartResultSet = (resultSet) => {
   const clone = cloneDeep(resultSet);
 
   // We'll be excluding the first data point, since it's related to the last period
-  clone.loadResponses[0].data = spliceFirstValue(
-    clone.loadResponses[0].data,
-  );
+  clone.loadResponses[0].data = spliceFirstValue(clone.loadResponses[0].data);
 
   // Then we also fix the first entry of the dateRange
   clone.loadResponses[0].query.timeDimensions[0].dateRange[0] = moment(
-    clone.loadResponses[0].query.timeDimensions[0]
-      .dateRange[0],
+    clone.loadResponses[0].query.timeDimensions[0].dateRange[0],
   )
     .utc()
     .add(1, 'day')

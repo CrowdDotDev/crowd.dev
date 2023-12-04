@@ -11,7 +11,12 @@
           <div class="flex items-center gap-4">
             <app-member-sentiment :member="member" />
             <app-member-engagement-level :member="member" />
-            <app-member-dropdown :member="member" :show-view-member="false" />
+            <app-member-dropdown
+              :member="member"
+              :show-view-member="false"
+              @merge="isMergeDialogOpen = member"
+              @find-github="isFindGithubDrawerOpen = member"
+            />
           </div>
         </div>
         <app-member-organizations
@@ -34,9 +39,20 @@
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Location
-        </p>
+        <div class="flex items-center">
+          <p class="text-gray-400 font-medium text-2xs mr-2">
+            Location
+          </p>
+          <el-tooltip
+            v-if="getAttributeSourceName(member.attributes.location)"
+            :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
+            placement="top"
+            trigger="hover"
+          >
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
+
         <p class="mt-1 text-gray-900 text-xs">
           {{
             formattedInformation(member.attributes.location?.default, 'string')
@@ -45,16 +61,32 @@
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
-          Member since
+          Contact since
         </p>
         <p class="mt-1 text-gray-900 text-xs">
           {{ formattedInformation(member.joinedAt, 'date') }}
         </p>
       </div>
       <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Reach
-        </p>
+        <div class="flex items-center gap-1">
+          <p class="text-gray-400 font-medium text-2xs">
+            Reach
+          </p>
+          <el-tooltip placement="top">
+            <template #content>
+              Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+            </template>
+            <i class="ri-information-line text-gray-500 text-xs mr-1" />
+          </el-tooltip>
+          <el-tooltip
+            content="Source: GitHub"
+            placement="top"
+            trigger="hover"
+          >
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
+        </div>
+
         <p class="mt-1 text-gray-900 text-xs">
           <app-member-reach :member="member" />
         </p>
@@ -72,14 +104,19 @@
     <div class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
       <div class="text-sm">
         <app-tags :long="true" :member="member" @edit="isEditTagsDialogOpen = true" />
-        <app-tag-popover v-model="isEditTagsDialogOpen" :member="member"  />
+        <app-tag-popover v-model="isEditTagsDialogOpen" :member="member" />
       </div>
     </div>
+    <app-member-find-github-drawer
+      v-if="isFindGithubDrawerOpen"
+      v-model="isFindGithubDrawerOpen"
+    />
+    <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
 <script setup>
-import { defineProps, ref } from "vue";
+import { ref } from 'vue';
 import moment from 'moment/moment';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import { formatNumberToCompact, formatNumber } from '@/utils/number';
@@ -92,6 +129,10 @@ import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
+import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
+import AppSvg from '@/shared/svg/svg.vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 defineProps({
   member: {
@@ -101,6 +142,8 @@ defineProps({
 });
 
 const isEditTagsDialogOpen = ref(false);
+const isMergeDialogOpen = ref(null);
+const isFindGithubDrawerOpen = ref(null);
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information

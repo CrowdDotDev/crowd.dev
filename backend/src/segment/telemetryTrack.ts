@@ -3,6 +3,7 @@ import { Edition } from '@crowd/types'
 import { API_CONFIG, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import getTenatUser from './trackHelper'
+import { CROWD_ANALYTICS_PLATORM_NAME } from './addProductDataToCrowdTenant'
 
 const log = getServiceChildLogger('telemetryTrack')
 
@@ -23,6 +24,15 @@ export default function track(
     API_CONFIG.edition === Edition.COMMUNITY &&
     !email.includes('crowd.dev')
   ) {
+    if (
+      properties &&
+      properties?.platform &&
+      properties?.platform === CROWD_ANALYTICS_PLATORM_NAME
+    ) {
+      // no need to track crowd analytics events in segment
+      // and this is also to ensure we don't get into an infinite loop
+      return
+    }
     const Analytics = require('analytics-node')
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
 

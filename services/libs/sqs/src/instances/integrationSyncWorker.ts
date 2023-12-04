@@ -1,10 +1,11 @@
 import { Logger } from '@crowd/logging'
-import { IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
+import { AutomationSyncTrigger, IntegrationSyncWorkerQueueMessageType } from '@crowd/types'
 import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueEmitter } from '..'
+import { Tracer } from '@crowd/tracing'
 
 export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
-  constructor(client: SqsClient, parentLog: Logger) {
-    super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, parentLog)
+  constructor(client: SqsClient, tracer: Tracer, parentLog: Logger) {
+    super(client, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, tracer, parentLog)
   }
 
   public async triggerSyncMarkedMembers(tenantId: string, integrationId: string): Promise<void> {
@@ -15,13 +16,13 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      `integration-sync-marked-members-${tenantId}`,
+      integrationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_MEMBERS,
         tenantId,
         integrationId,
       },
-      `integration-sync-marked-members-${integrationId}`,
+      integrationId,
     )
   }
 
@@ -29,6 +30,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     tenantId: string,
     integrationId: string,
     memberId: string,
+    syncRemoteId: string,
   ): Promise<void> {
     if (!tenantId) {
       throw new Error('tenantId is required!')
@@ -41,15 +43,48 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('memberId is required!')
     }
 
+    if (!syncRemoteId) {
+      throw new Error('syncRemoteId is required!')
+    }
+
     await this.sendMessage(
-      `integration-sync-member-${tenantId}`,
+      memberId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_MEMBER,
         tenantId,
         integrationId,
         memberId,
+        syncRemoteId,
       },
-      `integration-sync-member-${memberId}`,
+      memberId,
+    )
+  }
+
+  public async triggerOnboardAutomation(
+    tenantId: string,
+    integrationId: string,
+    automationId: string,
+    automationTrigger: AutomationSyncTrigger,
+  ): Promise<void> {
+    if (!tenantId) {
+      throw new Error('tenantId is required!')
+    }
+    if (!automationId) {
+      throw new Error('automationId is required!')
+    }
+    if (!integrationId) {
+      throw new Error('integrationId is required!')
+    }
+    await this.sendMessage(
+      automationId,
+      {
+        type: IntegrationSyncWorkerQueueMessageType.ONBOARD_AUTOMATION,
+        tenantId,
+        integrationId,
+        automationId,
+        automationTrigger,
+      },
+      automationId,
     )
   }
 
@@ -64,13 +99,13 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
     await this.sendMessage(
-      `integration-sync-marked-organizations-${tenantId}`,
+      integrationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ALL_MARKED_ORGANIZATIONS,
         tenantId,
         integrationId,
       },
-      `integration-sync-marked-organizations-${integrationId}`,
+      integrationId,
     )
   }
 
@@ -78,6 +113,7 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
     tenantId: string,
     integrationId: string,
     organizationId: string,
+    syncRemoteId: string,
   ): Promise<void> {
     if (!tenantId) {
       throw new Error('tenantId is required!')
@@ -86,15 +122,20 @@ export class IntegrationSyncWorkerEmitter extends SqsQueueEmitter {
       throw new Error('integrationId is required!')
     }
 
+    if (!syncRemoteId) {
+      throw new Error('syncRemoteId is required!')
+    }
+
     await this.sendMessage(
-      `integration-sync-organization-${tenantId}`,
+      organizationId,
       {
         type: IntegrationSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
         tenantId,
         integrationId,
         organizationId,
+        syncRemoteId,
       },
-      `integration-sync-organization-${organizationId}`,
+      organizationId,
     )
   }
 }

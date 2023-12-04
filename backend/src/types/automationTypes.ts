@@ -1,82 +1,13 @@
-/**
- * all automation types that we are currently supporting
- */
-import { SearchCriteria } from './common'
-
-export enum AutomationType {
-  WEBHOOK = 'webhook',
-  SLACK = 'slack',
-}
-
-/**
- * automation can either be active or disabled
- */
-export enum AutomationState {
-  ACTIVE = 'active',
-  DISABLED = 'disabled',
-}
-
-/**
- * To determine the result of the execution if state == error -> error column will also be available
- */
-export enum AutomationExecutionState {
-  SUCCESS = 'success',
-  ERROR = 'error',
-}
-
-/**
- * What can trigger this automation
- */
-export enum AutomationTrigger {
-  NEW_ACTIVITY = 'new_activity',
-  NEW_MEMBER = 'new_member',
-}
-
-/**
- * For webhook automation we only need URL to which we will post information
- */
-export interface WebhookSettings {
-  url: string
-}
-
-/**
- * Settings for new activity trigger based automations
- */
-export interface NewActivitySettings {
-  types: string[]
-  platforms: string[]
-  keywords: string[]
-  teamMemberActivities: boolean
-}
-
-/**
- * Settings for new member trigger based automations
- */
-export interface NewMemberSettings {
-  platforms: string[]
-}
-
-/**
- * Union type to contain all different types of settings
- */
-export type AutomationSettings = WebhookSettings | NewActivitySettings | NewMemberSettings
-
-/**
- * This data is used by the frontend to display automations settings page
- */
-export interface AutomationData {
-  id: string
-  name: string
-  type: AutomationType
-  tenantId: string
-  trigger: AutomationTrigger
-  settings: AutomationSettings
-  state: AutomationState
-  createdAt: string
-  lastExecutionAt: string | null
-  lastExecutionState: AutomationExecutionState | null
-  lastExecutionError: unknown | null
-}
+import {
+  AutomationExecutionState,
+  AutomationSettings,
+  AutomationState,
+  AutomationSyncTrigger,
+  AutomationTrigger,
+  AutomationType,
+  IAutomationData,
+  SearchCriteria,
+} from '@crowd/types'
 
 /**
  * This data is used to create a new automation
@@ -84,7 +15,7 @@ export interface AutomationData {
 export interface CreateAutomationRequest {
   name: string
   type: AutomationType
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   settings: AutomationSettings
 }
 
@@ -109,7 +40,7 @@ export interface AutomationCriteria extends SearchCriteria {
 }
 
 export interface CreateAutomationExecutionRequest {
-  automation: AutomationData
+  automation: IAutomationData
   eventId: string
   payload: any
   state: AutomationExecutionState

@@ -3,7 +3,9 @@
     :username-handles="usernameHandles"
     :tooltip-label="tooltipLabel"
     :platform="platform"
+    :attributes="attributes"
     :href="asLink ? href : null"
+    :links="props.links"
   >
     <template #platform>
       <div class="relative">
@@ -47,7 +49,7 @@
               :alt="imageProperties.name"
               class="channels-icon"
             />
-            <i v-else class="ri-user-3-fill" />
+            <i v-else :class="props.customPlatformIconClass" />
           </component>
         </el-tooltip>
       </div>
@@ -85,6 +87,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  links: {
+    type: Array,
+    default: () => [],
+  },
   showHandlesBadge: {
     type: Boolean,
     default: false,
@@ -97,6 +103,18 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  backupUrl: {
+    type: String,
+    default: null,
+  },
+  attributes: {
+    type: Object,
+    default: null,
+  },
+  customPlatformIconClass: {
+    type: String,
+    default: 'ri-user-3-fill',
+  },
 });
 
 const imageProperties = computed(() => CrowdIntegrations.getConfig(props.platform));
@@ -105,7 +123,9 @@ const href = computed(() => {
     return props.href;
   }
 
-  return (props.usernameHandles.length === 1 ? CrowdIntegrations.getConfig(props.platform)?.url(props.usernameHandles[0]) : null);
+  return (props.usernameHandles.length === 1 || props.attributes?.url?.[props.platform]
+    ? (CrowdIntegrations.getConfig(props.platform)?.url({ username: props.usernameHandles[0], attributes: props.attributes }) ?? props.backupUrl)
+    : null);
 });
 
 const trackClick = () => {

@@ -1,18 +1,12 @@
 import lodash from 'lodash'
-import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { getCleanString } from '@crowd/common'
+import { getCleanString, Error400, Error404 } from '@crowd/common'
 import { Edition } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
-import Error400 from '../../errors/Error400'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import SegmentRepository from './segmentRepository'
-import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '../../types/common'
 import Plans from '../../security/plans'
 import { API_CONFIG } from '../../conf'
 
@@ -65,10 +59,6 @@ class TenantRepository {
       throw new Error400(options.language, 'tenant.url.exists')
     }
 
-    const trialEndsAt = moment().add(14, 'days').isAfter('2023-01-15')
-      ? moment().add(14, 'days').toISOString()
-      : '2023-01-15'
-
     const record = await options.database.tenant.create(
       {
         ...lodash.pick(data, [
@@ -80,9 +70,7 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.growth,
-        isTrialPlan: API_CONFIG.edition !== Edition.LFX,
-        trialEndsAt: API_CONFIG.edition !== Edition.LFX ? trialEndsAt : null,
+        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.essential,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -272,7 +260,7 @@ class TenantRepository {
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
-  static async findById(id, options: IRepositoryOptions, segments: string[] = []) {
+  static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const include = ['settings', 'conversationSettings']
@@ -282,32 +270,7 @@ class TenantRepository {
       transaction,
     })
 
-    const segmentRepository = new SegmentRepository({ ...options, currentTenant: record })
-    let segmentsFound
-
-    if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, { ...options, currentTenant: record }))) {
-      // return default segment
-      const defaultSegment = await segmentRepository.getDefaultSegment()
-      segmentsFound = defaultSegment ? [defaultSegment] : []
-    } else if (segments.length > 0) {
-      segmentsFound = await segmentRepository.findInIds(segments)
-    } else {
-      // no segment info sent, return all segments
-      segmentsFound = (await segmentRepository.querySubprojects({})).rows
-    }
-
-    if (
-      record &&
-      record.settings &&
-      record.settings[0] &&
-      record.settings[0].dataValues &&
-      segmentsFound.length > 0
-    ) {
-      record.settings[0].dataValues.activityTypes = SegmentRepository.getActivityTypes({
-        ...options,
-        currentTenant: record,
-        currentSegments: segmentsFound,
-      })
+    if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
       record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
     }
 
@@ -504,6 +467,22 @@ class TenantRepository {
     })
 
     return platforms
+  }
+
+  static async getTenantInfo(id: string, options: IRepositoryOptions) {
+    const query = `
+        select name, plan, "isTrialPlan", "trialEndsAt" from tenants where "id" = :tenantId
+    `
+    const parameters: any = {
+      tenantId: id,
+    }
+
+    const info = await options.database.sequelize.query(query, {
+      replacements: parameters,
+      type: QueryTypes.SELECT,
+    })
+
+    return info
   }
 }
 
