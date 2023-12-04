@@ -22,7 +22,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
-  const segmentId = req.query.segmentId
+  const segmentId = req.query.segments ? req.query.segments[0] : null
   if (!segmentId) {
     const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, req)
     if (segmentsEnabled) {
