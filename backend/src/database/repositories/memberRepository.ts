@@ -3234,7 +3234,12 @@ class MemberRepository {
    * @param returnPlain If true: return object, otherwise  return model
    * @returns The model/object with filled relations and files
    */
-  static async _populateRelations(record, options: IRepositoryOptions, returnPlain = true, segmentId?: string) {
+  static async _populateRelations(
+    record,
+    options: IRepositoryOptions,
+    returnPlain = true,
+    segmentId?: string,
+  ) {
     if (!record) {
       return record
     }
@@ -3249,7 +3254,11 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const activityAggregates = await MemberRepository.getActivityAggregates(output.id, options, segmentId)
+    const activityAggregates = await MemberRepository.getActivityAggregates(
+      output.id,
+      options,
+      segmentId,
+    )
 
     output.activeOn = activityAggregates?.activeOn || []
     output.activityCount = activityAggregates?.activityCount || 0
