@@ -37,10 +37,8 @@ export async function weeklyGetAndSendNextEmails(): Promise<void> {
         workflowId: `${TemporalWorkflowId.EMAIL_WEEKLY_ANALYTICS}/${tenant.tenantId}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-        workflowExecutionTimeout: '15 minutes',
         retry: {
           backoffCoefficient: 2,
-          maximumAttempts: 10,
           initialInterval: 2 * 1000,
           maximumInterval: 30 * 1000,
         },

@@ -30,6 +30,7 @@ const envvars = {
 Options is used to configure the worker service.
 */
 export interface Options {
+  maxTaskQueueActivitiesPerSecond?: number
   postgres: {
     enabled: boolean
   }
@@ -135,6 +136,7 @@ export class ServiceWorker extends Service {
         workflowBundle: workflowBundle,
         activities: require(path.resolve('./src/activities')),
         dataConverter: await getDataConverter(),
+        maxTaskQueueActivitiesPerSecond: this.options.maxTaskQueueActivitiesPerSecond,
       })
     } catch (err) {
       throw new Error(err)
