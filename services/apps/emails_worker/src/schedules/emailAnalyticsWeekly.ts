@@ -2,7 +2,6 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 
 import { svc } from '../main'
 import { weeklyGetAndSendNextEmails } from '../workflows'
-import { TemporalWorkflowId } from '@crowd/types'
 
 export const scheduleEmailAnalyticsWeekly = async () => {
   try {
@@ -16,7 +15,6 @@ export const scheduleEmailAnalyticsWeekly = async () => {
         catchupWindow: '1 minute',
       },
       action: {
-        workflowId: TemporalWorkflowId.EMAIL_WEEKLY_ANALYTICS,
         type: 'startWorkflow',
         workflowType: weeklyGetAndSendNextEmails,
         taskQueue: 'emails',
