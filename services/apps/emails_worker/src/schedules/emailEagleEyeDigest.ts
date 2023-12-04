@@ -2,6 +2,7 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 
 import { svc } from '../main'
 import { eagleeyeGetAndSendNextEmails } from '../workflows'
+import { TemporalWorkflowId } from '@crowd/types'
 
 export const scheduleEmailEagleEyeDigest = async () => {
   try {
@@ -19,6 +20,7 @@ export const scheduleEmailEagleEyeDigest = async () => {
         catchupWindow: '1 minute',
       },
       action: {
+        workflowId: TemporalWorkflowId.EMAIL_EAGLEEYE_DIGEST,
         type: 'startWorkflow',
         workflowType: eagleeyeGetAndSendNextEmails,
         taskQueue: 'emails',
