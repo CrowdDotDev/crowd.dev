@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import * as buffer from 'buffer'
-import { ENCRYPTION_SECRET_KEY, ENCRYPTION_INIT_VECTOR } from '../conf'
+import { ENCRYPTION_CONFIG } from '../conf'
 
 
 export function generateWebhookSecret(length: number = 32): string {
@@ -24,8 +24,8 @@ export function verifyWebhookSignature(
 
 export function encryptData(password: string): string {
   const algo = "aes-256-cbc";
-  const secretKey = ENCRYPTION_SECRET_KEY
-  const inVec = ENCRYPTION_INIT_VECTOR
+  const secretKey = ENCRYPTION_CONFIG.secretKey
+  const inVec = ENCRYPTION_CONFIG.initVector
   const cipherText = crypto.createCipheriv(algo, secretKey, inVec)
 
   let encryptedData = cipherText.update(password, "utf-8", "hex")
@@ -37,8 +37,8 @@ export function encryptData(password: string): string {
 
 export function decryptData(password: string): string {
   const algo = "aes-256-cbc";
-  const secretKey = ENCRYPTION_SECRET_KEY
-  const inVec = ENCRYPTION_INIT_VECTOR
+  const secretKey = ENCRYPTION_CONFIG.secretKey
+  const inVec = ENCRYPTION_CONFIG.initVector
   const decipherText = crypto.createDecipheriv(algo, secretKey, inVec)
 
   let decryptedData = decipherText.update(password, "hex", "utf-8")

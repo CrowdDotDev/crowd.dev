@@ -251,3 +251,8 @@ export interface CrowdAnalyticsConfiguration {
 export interface IBackendTemporalConfig extends ITemporalConfig {
   automationsTaskQueue: string
 }
+
+export interface EncryptionConfiguration {
+  secretKey: string
+  initVector: string
+}
