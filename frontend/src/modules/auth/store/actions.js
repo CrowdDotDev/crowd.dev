@@ -15,14 +15,15 @@ import {
 } from '@/modules/auth/auth-socket';
 
 export default {
-  async doInit({ commit, dispatch }) {
+  async doInit({ commit, dispatch, state }) {
     try {
       const token = AuthToken.get();
       if (token) {
         connectSocket(token);
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
-        dispatch('doRefreshTenant');
+
+        state.loadingInit = false;
         return currentUser;
       }
 
@@ -37,12 +38,6 @@ export default {
       return null;
     } finally {
       ProgressBar.done();
-    }
-  },
-
-  async doRefreshTenant({ state }) {
-    if (state.currentTenant.id !== AuthCurrentTenant.get()) {
-      state.currentTenant = await TenantService.fetchAndApply();
     }
   },
 
@@ -114,7 +109,6 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser,
         });
-        dispatch('doRefreshTenant');
 
         router.push('/');
       })
@@ -142,7 +136,6 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser: currentUser || null,
         });
-        dispatch('doRefreshTenant');
         router.push('/');
       })
       .catch((error) => {
@@ -162,7 +155,7 @@ export default {
     router.push('/auth/signin');
   },
 
-  doRefreshCurrentUser({ commit, dispatch }) {
+  doRefreshCurrentUser({ commit }) {
     const token = AuthToken.get();
     if (token) {
       return AuthService.fetchMe()
@@ -171,7 +164,6 @@ export default {
             currentUser,
           });
 
-          dispatch('doRefreshTenant');
           return currentUser;
         })
         .catch((error) => {
