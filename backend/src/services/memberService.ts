@@ -43,6 +43,7 @@ import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
 import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { ServiceType } from '@/conf/configTypes'
+import MemberOrganizationService from './memberOrganizationService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -663,10 +664,16 @@ export default class MemberService extends LoggerBase {
       delete toUpdate.activities
       // we already handled identities
       delete toUpdate.username
+      // we merge them manually
+      delete toUpdate.organizations
 
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
       await txService.update(originalId, toUpdate, false)
+
+      // update members that belong to source organization to destination org
+      const memberOrganizationService = new MemberOrganizationService(repoOptions)
+      await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
       // update activities to belong to the originalId member
       await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)

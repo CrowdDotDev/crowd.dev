@@ -1,5 +1,4 @@
-import { OpenSearchService } from '@crowd/opensearch'
-import { OpenSearchIndex } from '../types'
+import { OpenSearchService, OpenSearchIndex } from '@crowd/opensearch'
 import { getServiceLogger } from '@crowd/logging'
 import { OPENSEARCH_CONFIG } from 'conf'
 
