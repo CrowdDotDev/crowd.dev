@@ -107,7 +107,7 @@ export class OpenSearchService extends LoggerBase {
       const response = await this.client.indices.get({
         index: indexName,
       })
-      return response
+      return JSON.stringify(response?.body?.[indexName])
     } catch (err) {
       this.log.error(err, { indexName }, 'Failed to get index info!')
       throw err

@@ -25,7 +25,7 @@ setImmediate(async () => {
 
   await openSearchService.removeAlias(index, alias)
 
-  log.info(`Alias ${alias} is set to ${index}!`)
+  log.info(`Removed alias ${alias} from index ${index}`)
 
   process.exit(0)
 })
