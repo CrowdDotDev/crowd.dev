@@ -868,12 +868,68 @@ class MemberRepository {
   static async getActivityAggregates(
     memberId: string,
     options: IRepositoryOptions,
+    segmentId?: string
   ): Promise<ActivityAggregates> {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const replacements: Record<string, unknown> = {
+      memberId,
+      tenantId: currentTenant.id,
+    }
+
+    // query for all leaf segment ids
+    let extraCTEs = `
+      leaf_segment_ids AS (
+        select id
+        from segments
+        where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+      ),
+    `
+
+    if (segmentId) {
+      // we load data for a specific segment (can be leaf, parent or grand parent id)
+      replacements.segmentId = segmentId
+      extraCTEs = `
+        input_segment AS (
+          select
+            id,
+            slug,
+            "parentSlug",
+            "grandparentSlug"
+          from segments
+          where id = :segmentId
+            and "tenantId" = :tenantId
+        ),
+        segment_level AS (
+          select
+            case
+              when "parentSlug" is not null and "grandparentSlug" is not null
+                  then 'child'
+              when "parentSlug" is not null and "grandparentSlug" is null
+                  then 'parent'
+              when "parentSlug" is null and "grandparentSlug" is null
+                  then 'grandparent'
+              end as level,
+            id,
+            slug,
+            "parentSlug",
+            "grandparentSlug"
+          from input_segment
+        ),
+        leaf_segment_ids AS (
+          select s.id
+          from segments s
+          join segment_level sl on (sl.level = 'child' and s.id = sl.id)
+              or (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null)
+              or (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)
+        ),
+      `
+    }
+
     const query = `
+      with ${extraCTEs}
         SELECT
         a."memberId",
         a."segmentId",
@@ -890,6 +946,7 @@ class MemberRepository {
             END
         )::numeric, 2):: float AS "averageSentiment"
         FROM activities a
+        join leaf_segment_ids lfs on a."segmentId" = lfs.id
         WHERE a."memberId" = :memberId
         and a."tenantId" = :tenantId
         GROUP BY a."memberId", a."segmentId"
