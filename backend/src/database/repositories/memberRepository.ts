@@ -885,7 +885,7 @@ class MemberRepository {
         select id
         from segments
         where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-      ),
+      )
     `
 
     if (segmentId) {
@@ -924,7 +924,7 @@ class MemberRepository {
           join segment_level sl on (sl.level = 'child' and s.id = sl.id)
               or (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null)
               or (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)
-        ),
+        )
       `
     }
 
