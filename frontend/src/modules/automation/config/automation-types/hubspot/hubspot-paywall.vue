@@ -10,11 +10,11 @@
         Upgrade your plan to enable HubSpot automations
       </h3>
       <p class="text-sm text-center">
-        Send members or organizations to HubSpot based on certain conditions.
+        Send contacts or organizations to HubSpot based on certain conditions.
       </p>
       <div class="flex justify-center pt-8">
         <a
-          href="https://cal.com/team/crowddotdev/custom-plan"
+          href="https://cal.com/team/crowddotdev/sales"
           target="_blank"
           rel="noopener noreferrer"
           class="btn btn--md btn--bordered"

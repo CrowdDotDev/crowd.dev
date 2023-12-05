@@ -1,7 +1,6 @@
-import { DB_CONFIG, REDIS_CONFIG } from '@/conf'
-import { MemberRepository } from '@/repo/member.repo'
-import { MemberSyncService } from '@/service/member.sync.service'
-import { OpenSearchService } from '@/service/opensearch.service'
+import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from '../conf'
+import { MemberRepository } from '../repo/member.repo'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
@@ -18,7 +17,7 @@ if (processArguments.length !== 1) {
 const memberId = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 
@@ -26,9 +25,9 @@ setImmediate(async () => {
   const store = new DbStore(log, dbConnection)
 
   const repo = new MemberRepository(redis, store, log)
-  const service = new MemberSyncService(redis, store, openSearchService, log)
+  const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
 
-  const results = await repo.getMemberData([memberId])
+  const results = await repo.checkMembersExist([memberId])
 
   if (results.length === 0) {
     log.error(`Member ${memberId} not found!`)

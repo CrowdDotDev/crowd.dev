@@ -24,4 +24,5 @@ export interface IIntegration {
   status: IntegrationState
   settings: unknown
   token: string | null
+  refreshToken: string | null
 }

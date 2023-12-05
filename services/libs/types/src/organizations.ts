@@ -3,10 +3,12 @@ import { OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
   id?: string
+  displayName?: string
   url?: string
   description?: string
   emails?: string[]
   logo?: string
+  avatarUrl?: string
   tags?: string[]
   github?: IOrganizationSocial
   twitter?: IOrganizationSocial
@@ -31,8 +33,10 @@ export interface IOrganization {
   averageTenureByLevel?: Record<string, number>
   averageTenureByRole?: Record<string, number>
   employeeChurnRate?: Record<string, number>
+  employeeChurnRate12Month?: number
   employeeCountByMonth?: Record<string, number>
   employeeGrowthRate?: Record<string, number>
+  employeeGrowthRate12Month?: number
   employeeCountByMonthByLevel?: Record<string, number>
   employeeCountByMonthByRole?: Record<string, number>
   directSubsidiaries?: string[]
@@ -43,6 +47,9 @@ export interface IOrganization {
   weakIdentities?: IOrganizationIdentity[]
   members?: string[]
   source?: OrganizationSource
+  revenueRange?: Record<string, number>
+  revenueRangeMin?: number
+  revenueRangeMax?: number
   lastEnrichedAt?: string | Date
   tenantId?: string
 }
@@ -57,6 +64,7 @@ export interface IMemberOrganization {
   updatedAt?: string
   createdAt?: string
   source?: string
+  deletedAt?: string
 }
 
 export interface IOrganizationCache {
@@ -152,6 +160,10 @@ export interface IEnrichableOrganization extends IOrganization {
   orgActivityCount: number
 }
 
+export interface IOrganizationMergeSuggestion {
+  similarity: number
+  organizations: [string, string]
+}
 export interface IOrganizationIdSource {
   id: string
   source: string

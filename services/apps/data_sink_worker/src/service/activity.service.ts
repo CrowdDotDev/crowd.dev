@@ -1,11 +1,11 @@
-import { IDbActivity, IDbActivityUpdateData } from '@/repo/activity.data'
-import MemberRepository from '@/repo/member.repo'
-import { isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
+import MemberRepository from '../repo/member.repo'
+import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { IActivityData, PlatformType } from '@crowd/types'
-import ActivityRepository from '@/repo/activity.repo'
+import { FeatureFlag, IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
+import ActivityRepository from '../repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
@@ -13,14 +13,13 @@ import isEqual from 'lodash.isequal'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
-import IntegrationRepository from '@/repo/integration.repo'
-import GithubReposRepository from '@/repo/githubRepos.repo'
+import IntegrationRepository from '../repo/integration.repo'
+import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
-import { acquireLock, releaseLock } from '@crowd/redis'
-
-const MEMBER_LOCK_EXPIRE_AFTER = 10 * 60 // 10 minutes
-const MEMBER_LOCK_TIMEOUT_AFTER = 5 * 60 // 5 minutes
+import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import { TEMPORAL_CONFIG } from '../conf'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -30,6 +29,8 @@ export default class ActivityService extends LoggerBase {
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
+    private readonly unleash: Unleash | undefined,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -80,8 +81,8 @@ export default class ActivityService extends LoggerBase {
           username: activity.username,
           sentiment,
           attributes: activity.attributes || {},
-          body: activity.body,
-          title: activity.title,
+          body: escapeNullByte(activity.body),
+          title: escapeNullByte(activity.title),
           channel: activity.channel,
           url: activity.url,
           organizationId: activity.organizationId,
@@ -89,7 +90,43 @@ export default class ActivityService extends LoggerBase {
 
         return id
       })
-      await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
+
+      if (
+        await isFeatureEnabled(
+          FeatureFlag.TEMPORAL_AUTOMATIONS,
+          async () => {
+            return {
+              tenantId,
+            }
+          },
+          this.unleash,
+          this.redisClient,
+          60,
+          tenantId,
+        )
+      ) {
+        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+          workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
+          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: 100,
+          },
+          args: [
+            {
+              tenantId,
+              activityId: id,
+            },
+          ],
+        })
+        this.log.info(
+          { workflowId: handle.workflowId },
+          'Started temporal workflow to process new activity automation!',
+        )
+      } else {
+        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
+      }
+
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
@@ -154,8 +191,8 @@ export default class ActivityService extends LoggerBase {
             username: toUpdate.username || original.username,
             sentiment: toUpdate.sentiment || original.sentiment,
             attributes: toUpdate.attributes || original.attributes,
-            body: toUpdate.body || original.body,
-            title: toUpdate.title || original.title,
+            body: escapeNullByte(toUpdate.body || original.body),
+            title: escapeNullByte(toUpdate.title || original.title),
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
             organizationId: toUpdate.organizationId || original.organizationId,
@@ -382,6 +419,9 @@ export default class ActivityService extends LoggerBase {
             txStore,
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
+            this.unleash,
+            this.temporal,
+            this.redisClient,
             this.log,
           )
           const txActivityService = new ActivityService(
@@ -389,6 +429,8 @@ export default class ActivityService extends LoggerBase {
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
             this.redisClient,
+            this.unleash,
+            this.temporal,
             this.log,
           )
           const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
@@ -398,29 +440,39 @@ export default class ActivityService extends LoggerBase {
           segmentId = providedSegmentId
           if (!segmentId) {
             const dbIntegration = await txIntegrationRepo.findById(integrationId)
+            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
             segmentId =
-              platform === PlatformType.GITHUB
-                ? await txGithubReposRepo.findSegmentForRepo(tenantId, activity.channel)
+              platform === PlatformType.GITHUB && repoSegmentId
+                ? repoSegmentId
                 : dbIntegration.segmentId
           }
 
           // find existing activity
-          const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)
+          const dbActivity = await txRepo.findExisting(
+            tenantId,
+            segmentId,
+            activity.sourceId,
+            platform,
+            activity.type,
+          )
+
+          if (dbActivity && dbActivity?.deletedAt) {
+            // we found an existing activity but it's deleted - nothing to do here
+            this.log.trace(
+              { activityId: dbActivity.id },
+              'Found existing activity but it is deleted, nothing to do here.',
+            )
+            return
+          }
 
           let createActivity = false
 
           if (dbActivity) {
             this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
             // process member data
-
-            // acquiring lock for member inside activity exists
-            await acquireLock(
-              this.redisClient,
-              `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
-              'check-member-inside-activity-exists',
-              MEMBER_LOCK_EXPIRE_AFTER,
-              MEMBER_LOCK_TIMEOUT_AFTER,
-            )
 
             let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
             if (dbMember) {
@@ -462,15 +514,10 @@ export default class ActivityService extends LoggerBase {
                   weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
+                  reach: member.reach,
                 },
                 dbMember,
                 false,
-                async () =>
-                  await releaseLock(
-                    this.redisClient,
-                    `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
-                    'check-member-inside-activity-exists',
-                  ),
               )
 
               if (!createActivity) {
@@ -505,15 +552,10 @@ export default class ActivityService extends LoggerBase {
                   weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
+                  reach: member.reach,
                 },
                 dbMember,
                 false,
-                async () =>
-                  await releaseLock(
-                    this.redisClient,
-                    `member:processing:${tenantId}:${segmentId}:${platform}:${username}`,
-                    'check-member-inside-activity-exists',
-                  ),
               )
 
               memberId = dbActivity.memberId
@@ -582,6 +624,7 @@ export default class ActivityService extends LoggerBase {
                       weakIdentities: objectMember.weakIdentities,
                       identities: objectMember.identities,
                       organizations: objectMember.organizations,
+                      reach: member.reach,
                     },
                     dbObjectMember,
                     false,
@@ -619,6 +662,7 @@ export default class ActivityService extends LoggerBase {
                       weakIdentities: objectMember.weakIdentities,
                       identities: objectMember.identities,
                       organizations: objectMember.organizations,
+                      reach: member.reach,
                     },
                     dbObjectMember,
                     false,
@@ -689,6 +733,7 @@ export default class ActivityService extends LoggerBase {
                   weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
+                  reach: member.reach,
                 },
                 dbMember,
                 false,
@@ -712,6 +757,7 @@ export default class ActivityService extends LoggerBase {
                   weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
+                  reach: member.reach,
                 },
                 false,
               )
@@ -746,6 +792,7 @@ export default class ActivityService extends LoggerBase {
                     weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
+                    reach: member.reach,
                   },
                   dbObjectMember,
                   false,
@@ -769,6 +816,7 @@ export default class ActivityService extends LoggerBase {
                     weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
+                    reach: member.reach,
                   },
                   false,
                 )
@@ -810,15 +858,12 @@ export default class ActivityService extends LoggerBase {
           }
         } finally {
           // release locks matter what
-          await releaseLock(
-            this.redisClient,
-            `member:processing:${tenantId}:${platform}:${username}`,
-            'check-member-inside-activity-exists',
-          )
         }
       })
 
-      await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+      if (memberId) {
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+      }
       if (objectMemberId) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId)
       }

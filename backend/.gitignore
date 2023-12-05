@@ -10,3 +10,6 @@ dist/
 **/local_events
 
 **/try.ts
+
+*.tmp
+

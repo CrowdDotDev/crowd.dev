@@ -11,7 +11,10 @@ export const FEATURE_FLAGS = {
   memberEnrichment: 'member-enrichment',
   csvExport: 'csv-export',
   hubspot: 'hubspot',
+  findGitHub: 'find-github',
   logRocket: 'log-rocket',
+  developerMode: 'developer-mode',
+  twitter: 'twitter',
 };
 
 class FeatureFlagService {
@@ -25,7 +28,6 @@ class FeatureFlagService {
         appName: 'crowd-web-app',
         environment: 'production',
       };
-
       this.unleash = new UnleashClient(unleashConfig);
     }
   }
@@ -76,6 +78,7 @@ class FeatureFlagService {
     }
 
     const context = this.getContextFromTenant(tenant);
+
     if (context) {
       this.unleash.updateContext(context);
     }
@@ -100,14 +103,14 @@ class FeatureFlagService {
 
   premiumFeatureCopy() {
     if (config.isCommunityVersion) {
-      return 'Premium';
+      return 'Enterprise';
     }
-    return 'Growth';
+    return 'Scale';
   }
 
   scaleFeatureCopy() {
     if (config.isCommunityVersion) {
-      return 'Premium';
+      return 'Enterprise';
     }
     return 'Scale';
   }

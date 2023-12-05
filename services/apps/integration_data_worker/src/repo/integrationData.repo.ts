@@ -21,6 +21,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
             i.status   as "integrationState",
             i."integrationIdentifier",
             i.token   as "integrationToken",
+            i."refreshToken" as "integrationRefreshToken",
             r.state    as "runState",
             d."streamId",
             d."runId",
@@ -57,6 +58,64 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     })
 
     return results
+  }
+
+  public async getOldDataToProcess(limit: number): Promise<string[]> {
+    this.ensureTransactional()
+
+    try {
+      const results = await this.db().any(
+        `
+        select id
+        from integration."apiData"
+        where (
+                (state = $(errorState) and retries <= $(maxRetries))
+                or
+                (state = $(pendingState))
+                or
+                (state = $(delayedState) and "delayedUntil" < now())
+            )
+          and "updatedAt" < now() - interval '1 hour'
+        order by case when "webhookId" is not null then 0 else 1 end,
+                "webhookId" asc,
+                "updatedAt" desc
+        limit ${limit}
+        for update skip locked;
+        `,
+        {
+          errorState: IntegrationStreamDataState.ERROR,
+          pendingState: IntegrationStreamDataState.PENDING,
+          delayedState: IntegrationStreamDataState.DELAYED,
+          maxRetries: 5,
+        },
+      )
+
+      return results.map((s) => s.id)
+    } catch (err) {
+      this.log.error(err, 'Error getting old data to process')
+      throw err
+    }
+  }
+
+  public async touchUpdatedAt(dataIds: string[]): Promise<void> {
+    if (dataIds.length === 0) {
+      return
+    }
+
+    try {
+      await this.db().none(
+        `
+        update integration."apiData" set "updatedAt" = now()
+        where id in ($(dataIds:csv))
+      `,
+        {
+          dataIds,
+        },
+      )
+    } catch (err) {
+      this.log.error(err, 'Failed to touch updatedAt for data!')
+      throw err
+    }
   }
 
   public async markRunError(runId: string, error: unknown): Promise<void> {
@@ -107,6 +166,40 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
       {
         dataId,
         settings: JSON.stringify(settings),
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationToken(runId: string, token: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set token = $(token),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        token,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async updateIntegrationRefreshToken(runId: string, refreshToken: string): Promise<void> {
+    const result = await this.db().result(
+      `
+      update "integrations"
+      set "refreshToken" = $(refreshToken),
+          "updatedAt" = now()
+      where id = (select "integrationId" from integration.runs where id = $(runId) limit 1)
+    `,
+      {
+        runId,
+        refreshToken,
       },
     )
 

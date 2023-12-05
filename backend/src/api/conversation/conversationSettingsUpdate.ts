@@ -1,14 +1,12 @@
-import Error403 from '../../errors/Error403'
-import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
+import { Error403 } from '@crowd/common'
 import Permissions from '../../security/permissions'
 import ConversationService from '../../services/conversationService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import { FeatureFlag } from '../../types/common'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.conversationEdit)
 
-  if (req.body.customUrl && !(await isFeatureEnabled(FeatureFlag.COMMUNITY_HELP_CENTER_PRO, req))) {
+  if (req.body.customUrl) {
     await req.responseHandler.error(
       req,
       res,

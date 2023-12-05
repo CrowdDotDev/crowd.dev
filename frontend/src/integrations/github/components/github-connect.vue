@@ -6,8 +6,9 @@
 import { computed } from 'vue';
 import config from '@/config';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
+const emit = defineEmits(['inviteColleagues']);
 defineProps({
   integration: {
     type: Object,
@@ -15,6 +16,7 @@ defineProps({
   },
 });
 
+const route = useRoute();
 const router = useRouter();
 
 // We have 3 GitHub apps: test, test-local and prod
@@ -28,12 +30,12 @@ const connect = () => {
     titleClass: 'text-lg pt-2',
     message:
       `Only GitHub users with admin permissions are able to connect crowd.dev's GitHub integration.
-      If you are an organization member, you will need an approval from the GitHub workspace admin. <a href="https://docs.crowd.dev/docs/github-integration" target="_blank">Read more</a>`,
+      If you are an organization contact, you will need an approval from the GitHub workspace admin. <a href="https://docs.crowd.dev/docs/github-integration" target="_blank">Read more</a>`,
     icon: 'ri-information-line',
     confirmButtonText: 'I\'m the GitHub organization admin',
     cancelButtonText: 'Invite organization admin to this workspace',
-    verticalCancelButtonClass: 'btn btn--md btn--primary w-full',
-    verticalConfirmButtonClass: 'btn btn--md btn--bordered w-full !mb-2',
+    verticalCancelButtonClass: 'btn btn--md btn--bordererd w-full',
+    verticalConfirmButtonClass: 'btn btn--md btn--primary w-full !mb-2',
     vertical: true,
     distinguishCancelAndClose: true,
     autofocus: false,
@@ -42,9 +44,13 @@ const connect = () => {
     window.open(githubConnectUrl.value, '_self');
   }).catch((action) => {
     if (action === 'cancel') {
-      router.push({
-        name: 'settings',
-      });
+      if (route.name === 'onboard') {
+        emit('inviteColleagues');
+      } else {
+        router.push({
+          name: 'settings',
+        });
+      }
     }
   });
 };

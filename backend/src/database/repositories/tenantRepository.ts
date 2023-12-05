@@ -1,16 +1,12 @@
 import lodash from 'lodash'
-import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { getCleanString } from '@crowd/common'
+import { getCleanString, Error400, Error404 } from '@crowd/common'
 import { Edition } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
-import Error400 from '../../errors/Error400'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import SegmentRepository from './segmentRepository'
 import Plans from '../../security/plans'
 import { API_CONFIG } from '../../conf'
 
@@ -63,10 +59,6 @@ class TenantRepository {
       throw new Error400(options.language, 'tenant.url.exists')
     }
 
-    const trialEndsAt = moment().add(14, 'days').isAfter('2023-01-15')
-      ? moment().add(14, 'days').toISOString()
-      : '2023-01-15'
-
     const record = await options.database.tenant.create(
       {
         ...lodash.pick(data, [
@@ -78,9 +70,7 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.growth,
-        isTrialPlan: API_CONFIG.edition !== Edition.LFX,
-        trialEndsAt: API_CONFIG.edition !== Edition.LFX ? trialEndsAt : null,
+        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.essential,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -281,11 +271,6 @@ class TenantRepository {
     })
 
     if (record && record.settings && record.settings[0] && record.settings[0].dataValues) {
-      record.settings[0].dataValues.activityTypes =
-        await SegmentRepository.fetchTenantActivityTypes({
-          ...options,
-          currentTenant: record,
-        })
       record.settings[0].dataValues.slackWebHook = !!record.settings[0].dataValues.slackWebHook
     }
 

@@ -2,8 +2,19 @@
   <div class="member-view-aside panel">
     <div>
       <div class="flex items-center justify-between">
-        <div class="font-medium text-black">
-          Identities
+        <div class="flex items-center gap-1">
+          <div class="font-medium text-black">
+            Identities
+          </div>
+          <el-tooltip placement="top">
+            <template #content>
+              Identities can be profiles on social platforms, emails,<br>
+              or unique identifiers from internal sources.
+            </template>
+            <span>
+              <i class="ri-information-line text-xs" />
+            </span>
+          </el-tooltip>
         </div>
       </div>
       <div class="-mx-6 mt-6">
@@ -18,9 +29,10 @@
             rel="noopener noreferrer"
           >
             <div class="flex gap-3 items-center">
-              <app-platform :platform="identity.platform" custom-platform-icon-class="ri-community-fill" />
+              <app-platform :show-tooltip="true" :platform="identity.platform" custom-platform-icon-class="ri-community-fill" />
               <span class="text-gray-900 text-xs">
                 {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
+                  ?? identity.name
                   ?? getPlatformDetails(identity.platform)?.name
                   ?? identity.platform }}</span>
             </div>

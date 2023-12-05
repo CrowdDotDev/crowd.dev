@@ -1,0 +1,33 @@
+{
+  "name": "@crowd/archetype-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
+    "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
+    "format-check": "./node_modules/.bin/prettier --check .",
+    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@crowd/archetype-standard": "file:../../archetypes/standard",
+    "@crowd/database": "file:../../libs/database",
+    "@crowd/temporal": "file:../../libs/temporal",
+    "@temporalio/client": "~1.8.6",
+    "@temporalio/worker": "~1.8.6",
+    "@temporalio/workflow": "~1.8.6",
+    "config": "^3.3.9",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/config": "^3.3.1",
+    "@types/node": "^20.8.2",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  }
+}

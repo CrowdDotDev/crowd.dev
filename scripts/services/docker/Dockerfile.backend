@@ -1,30 +1,18 @@
 FROM node:16-alpine as builder
 
-RUN apk add --update --no-cache bash python3 build-base && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools
-
 WORKDIR /usr/crowd/app
+RUN corepack enable && apk add --update --no-cache python3 build-base && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools
 
-# build libraries
-COPY ./services/scripts ./services/scripts
-COPY ./services/libs ./services/libs
-RUN cd services/scripts && ./install_lib_packages.sh && ./build_libs.sh && ./clear_lib_packages.sh
-
-# install backend dependencies
-COPY ./backend/package.json ./backend/package-lock.json ./backend/
-RUN cd backend && npm ci
-
-FROM node:16-alpine as release
-
-RUN apk add --update --no-cache bash
-
-WORKDIR /usr/crowd/app
-
-ARG INSTALL_DEV_DEPENDENCIES="false"
-
-COPY ./services/scripts ./services/scripts
+COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
 COPY ./backend ./backend
-COPY --from=builder /usr/crowd/app/backend ./backend
-COPY --from=builder /usr/crowd/app/services/libs ./services/libs
-RUN if [ "$INSTALL_DEV_DEPENDENCIES" = "false" ]; then export NPM_I_ENV_OPTS="--omit=dev"; fi && cd services/scripts && ./install_lib_packages.sh ${NPM_I_ENV_OPTS}
+COPY ./services/libs ./services/libs
+RUN pnpm i --frozen-lockfile
 
-RUN npm cache clean --force
+FROM node:16-alpine as runner
+
+WORKDIR /usr/crowd/app
+RUN corepack enable
+
+COPY --from=builder /usr/crowd/app/node_modules ./node_modules
+COPY --from=builder /usr/crowd/app/services/libs ./services/libs
+COPY --from=builder /usr/crowd/app/backend ./backend

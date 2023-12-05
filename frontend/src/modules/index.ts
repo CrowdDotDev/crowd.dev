@@ -14,6 +14,7 @@ import report from '@/modules/report/report-module';
 import automation from '@/modules/automation/automation-module';
 import organization from '@/modules/organization/organization-module';
 import task from '@/modules/task/task-module';
+import quickstart from '@/modules/quickstart/quickstart-module';
 
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module';
 import user from '@/modules/user/user-module';
@@ -34,6 +35,7 @@ const modules: Record<string, any> = {
   report,
   automation,
   task,
+  quickstart,
   user,
   eagleEye,
   organization,

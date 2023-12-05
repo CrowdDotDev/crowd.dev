@@ -63,57 +63,61 @@ export default {
     },
   },
 
-  created() {
+  mounted() {
     this.doAcceptFromAuth(this.token);
   },
 
   methods: {
-    ...mapActions('auth', ['doSignout', 'doSelectTenant']),
+    ...mapActions('auth', ['doSignout', 'doSelectTenant', 'doWaitUntilInit']),
 
     doAcceptWithWrongEmail() {
       this.doAcceptFromAuth(this.token, true);
     },
-    doAcceptFromAuth(token, forceAcceptOtherEmail = false) {
+    async doAcceptFromAuth(token, forceAcceptOtherEmail = false) {
       if (this.loading) {
         return;
       }
+      try {
+        await this.doWaitUntilInit();
+        if (!this.signedIn) {
+          AuthInvitationToken.set(token);
+          router.push('/auth/signup');
+          return;
+        }
 
-      if (!this.signedIn) {
-        AuthInvitationToken.set(token);
-        router.push('/auth/signup');
-        return;
-      }
+        this.warningMessage = null;
+        this.loading = true;
 
-      this.warningMessage = null;
-      this.loading = true;
+        TenantService.acceptInvitation(
+          token,
+          forceAcceptOtherEmail,
+        )
+          .then((tenant) => this.doSelectTenant({ tenant }))
+          .then(() => {
+            this.warningMessage = null;
+            this.loading = false;
+          })
+          .catch((error) => {
+            if (Errors.errorCode(error) === 404) {
+              this.loading = false;
+              router.push('/');
+              return;
+            }
 
-      TenantService.acceptInvitation(
-        token,
-        forceAcceptOtherEmail,
-      )
-        .then((tenant) => this.doSelectTenant(tenant))
-        .then(() => {
-          this.warningMessage = null;
-          this.loading = false;
-        })
-        .catch((error) => {
-          if (Errors.errorCode(error) === 404) {
+            if (Errors.errorCode(error) === 400) {
+              this.warningMessage = Errors.selectMessage(error);
+              this.loading = false;
+              return;
+            }
+
+            Errors.handle(error);
+            this.warningMessage = null;
             this.loading = false;
             router.push('/');
-            return;
-          }
-
-          if (Errors.errorCode(error) === 400) {
-            this.warningMessage = Errors.selectMessage(error);
-            this.loading = false;
-            return;
-          }
-
-          Errors.handle(error);
-          this.warningMessage = null;
-          this.loading = false;
-          router.push('/');
-        });
+          });
+      } catch (_) {
+        router.push('/auth/signup');
+      }
     },
   },
 };

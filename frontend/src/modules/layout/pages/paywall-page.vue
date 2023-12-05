@@ -27,16 +27,19 @@
           <div class="text-gray-500 italic text-2xs">
             Available in {{ computedFeaturePlan }}
           </div>
-          <router-link
-            :to="{
-              name: 'settings',
-              query: { activeTab: 'plans' },
-            }"
-          >
-            <el-button class="btn btn--md btn--primary">
-              Upgrade plan
-            </el-button>
-          </router-link>
+          <el-tooltip content="Only admins can manage tenant plans" trigger="hover" placement="top" :disabled="upgradeEnabled">
+            <component
+              :is="upgradeEnabled ? 'router-link' : 'div'"
+              :to="{
+                name: 'settings',
+                query: { activeTab: 'plans' },
+              }"
+            >
+              <el-button class="btn btn--md btn--primary" :disabled="!upgradeEnabled">
+                Upgrade plan
+              </el-button>
+            </component>
+          </el-tooltip>
         </div>
       </div>
 
@@ -103,8 +106,12 @@ import config from '@/config';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import { pageContent } from '@/modules/layout/layout-page-content';
 import { FeatureFlag } from '@/utils/featureFlag';
+import { SettingsPermissions } from '@/modules/settings/settings-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const router = useRouter();
+
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const section = computed(
   () => router.currentRoute.value.name,
@@ -112,8 +119,16 @@ const section = computed(
 const page = computed(() => pageContent[section.value]);
 const computedFeaturePlan = computed(() => {
   if (config.isCommunityVersion) return 'Custom plan';
-  if (page.value.headerTitle === 'Eagle Eye') return 'Growth and Eagle Eye plans';
-  return 'Growth plan';
+  if (page.value.headerTitle === 'Eagle Eye') return 'Scale and Eagle Eye plans';
+  return 'Scale plan';
+});
+
+const upgradeEnabled = computed(() => {
+  const settingsPermissions = new SettingsPermissions(
+    currentTenant.value,
+    currentUser.value,
+  );
+  return settingsPermissions.edit;
 });
 </script>
 

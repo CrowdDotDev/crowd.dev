@@ -46,6 +46,13 @@ const options = [
     defaultValue: false,
     description: 'Enrich members of the tenant',
   },
+  {
+    name: 'memberIds',
+    alias: 'i',
+    type: String,
+    description:
+      'Comma separated member ids that you would like to enrich - If this option is not present, script will enrich all members given limit.',
+  },
 ]
 const sections = [
   {
@@ -103,25 +110,37 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         )
 
         if (enrichMembers) {
-          let offset = 0
-          let totalMembers = 0
+          if (parameters.memberIds) {
+            const memberIds = parameters.memberIds.split(',')
+            await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+            log.info(
+              { tenantId },
+              `Enrichment message for ${memberIds.length} sent to nodejs-worker!`,
+            )
+          } else {
+            let offset = 0
+            let totalMembers = 0
 
-          do {
-            const { ids: memberIds, count: membersCount } =
-              await MemberRepository.getMemberIdsandCount(
-                { limit, offset, countOnly: false },
+            const { count } = await MemberRepository.getMemberIdsandCountForEnrich(
+              { countOnly: true },
+              optionsWithTenant,
+            )
+            totalMembers = count
+            log.info({ tenantId }, `Total enrichable members found in the tenant: ${totalMembers}`)
+
+            do {
+              const { ids: memberIds } = await MemberRepository.getMemberIdsandCountForEnrich(
+                { limit, offset },
                 optionsWithTenant,
               )
 
-            totalMembers = membersCount
-            log.info({ tenantId }, `Total members found in the tenant: ${membersCount}`)
+              await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
 
-            await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+              offset += limit
+            } while (totalMembers > offset)
+          }
 
-            offset += limit
-          } while (totalMembers > offset)
-
-          log.info({ tenantId }, `Members enrichment operation finished for tenant ${tenantId}`)
+          log.info({ tenantId }, `Members enrichment operation finished for tenant: ${tenantId}`)
         }
 
         if (enrichOrganizations) {

@@ -1,11 +1,10 @@
 import moment from 'moment'
+import { generateUUIDv1, Error404 } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
 import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
-import { PlatformType } from '@crowd/types'
 import ActivityRepository from '../activityRepository'
-import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 
@@ -132,7 +131,7 @@ async function createActivitiesForMembers(memberIds: string[], organizationId: s
           neutral: 0.02,
           mixed: 0.0,
           label: 'positive',
-          sentiment: 0.98,
+          sentiment: 98,
         },
         isContribution: true,
         username: 'test',
@@ -256,6 +255,9 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
       await createActivitiesForMembers(memberIds, organizationCreated.id, mockIRepositoryOptions)
+      await mockIRepositoryOptions.database.sequelize.query(
+        'REFRESH MATERIALIZED VIEW mv_activities_cube',
+      )
 
       organizationCreated = await OrganizationRepository.findById(
         organizationCreated.id,

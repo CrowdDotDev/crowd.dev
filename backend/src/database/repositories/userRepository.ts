@@ -1,10 +1,10 @@
 import crypto from 'crypto'
 import Sequelize from 'sequelize'
 import lodash from 'lodash'
+import { Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeArrayUtils from '../utils/sequelizeArrayUtils'
@@ -542,12 +542,26 @@ export default class UserRepository {
     )
     record = record[0]
 
-    record = await this._populateRelations(record, options)
+    record = await this._populateRelations(record, options, {
+      where: {
+        status: 'active',
+      },
+    })
+
     record = {
       ...record,
       ...record.json,
     }
     delete record.json
+
+    // Remove sensitive fields
+    delete record.password
+    delete record.emailVerificationToken
+    delete record.emailVerificationTokenExpiresAt
+    delete record.providerId
+    delete record.passwordResetToken
+    delete record.passwordResetTokenExpiresAt
+    delete record.jwtTokenInvalidBefore
 
     if (!record) {
       throw new Error404()
@@ -780,7 +794,7 @@ export default class UserRepository {
     return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record, options: IRepositoryOptions) {
+  static async _populateRelations(record, options: IRepositoryOptions, filter = {}) {
     if (!record) {
       return record
     }
@@ -788,6 +802,7 @@ export default class UserRepository {
     const output = record.get({ plain: true })
 
     output.tenants = await record.getTenants({
+      ...filter,
       include: [
         {
           model: options.database.tenant,

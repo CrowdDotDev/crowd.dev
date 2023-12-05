@@ -1,8 +1,7 @@
+import { Error403 } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
-import AutomationRepository from '../../database/repositories/automationRepository'
-import Error403 from '../../errors/Error403'
-import { FeatureFlagRedisKey } from '../../types/common'
-import SegmentService from '../../services/segmentService'
+import { FeatureFlagRedisKey } from '@crowd/types'
+import AutomationRepository from '@/database/repositories/automationRepository'
 
 export default async (req, res) => {
   if (!req.currentUser || !req.currentUser.id) {
@@ -17,6 +16,7 @@ export default async (req, res) => {
     req.redis,
     req.log,
   )
+
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
     req.redis,
@@ -29,27 +29,11 @@ export default async (req, res) => {
         ...tenantUser.tenant.dataValues,
         csvExportCount: Number(await csvExportCountCache.get(tenantUser.tenant.id)) || 0,
         automationCount:
-          Number(await AutomationRepository.countAll(req.database, tenantUser.tenant.id)) || 0,
+          Number(await AutomationRepository.countAllActive(req.database, tenantUser.tenant.id)) ||
+          0,
         memberEnrichmentCount:
           Number(await memberEnrichmentCountCache.get(tenantUser.tenant.id)) || 0,
       }
-
-      const segmentService = new SegmentService(req)
-      const tenantSubprojects = await segmentService.getTenantSubprojects(tenantUser.tenant)
-      const activityTypes = await SegmentService.getTenantActivityTypes(tenantSubprojects)
-      const activityChannels = await SegmentService.getTenantActivityChannels(
-        tenantUser.tenant,
-        req,
-      )
-
-      // TODO: return actual activityTypes using segment information
-      tenantUser.tenant.dataValues.settings[0].dataValues = {
-        ...tenantUser.tenant.dataValues.settings[0].dataValues,
-        activityTypes,
-        activityChannels,
-        slackWebHook: !!tenantUser.tenant.settings[0].dataValues.slackWebHook,
-      }
-
       return tenantUser
     }),
   )

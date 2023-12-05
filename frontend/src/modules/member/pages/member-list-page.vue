@@ -4,7 +4,7 @@
       <div class="mb-10">
         <div class="flex items-center justify-between">
           <h4>
-            Members
+            Contacts
           </h4>
           <div class="flex items-center">
             <router-link
@@ -14,7 +14,12 @@
                 name: 'memberMergeSuggestions',
               }"
             >
-              <button :disabled="isEditLockedForSampleData" type="button" class="btn btn--bordered btn--md flex items-center">
+              <button
+                v-if="membersToMergeCount > 0"
+                :disabled="isEditLockedForSampleData"
+                type="button"
+                class="btn btn--bordered btn--md flex items-center"
+              >
                 <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
@@ -41,20 +46,22 @@
                 class="btn btn--primary btn--md"
                 :disabled="isCreateLockedForSampleData"
               >
-                Add member
+                Add contact
               </el-button>
             </router-link>
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all members from your community
+          Overview of all contacts that interacted with your product or community
         </div>
       </div>
 
       <cr-saved-views
         v-model="filters"
         :config="memberSavedViews"
-        :views="memberViews"
+        :filters="memberFilters"
+        :custom-filters="customAttributesFilter"
+        placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
       />
       <cr-filter
@@ -88,12 +95,14 @@ import {
 } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapGetters, mapActions } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
+import { useQuickStartStore } from '@/modules/quickstart/store';
+import { TenantService } from '@/modules/tenant/tenant-service';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
-import { memberSavedViews, memberViews } from '../config/saved-views/main';
+import { memberSavedViews } from '../config/saved-views/main';
 
 const memberStore = useMemberStore();
 const { getMemberCustomAttributes, fetchMembers } = memberStore;
@@ -104,6 +113,10 @@ const membersToMergeCount = ref(0);
 
 const { listByPlatform } = mapGetters('integration');
 const { currentUser, currentTenant } = mapGetters('auth');
+
+const { doRefreshCurrentUser } = mapActions('auth');
+
+const { getGuides } = useQuickStartStore();
 
 const memberFilter = ref<CrFilter | null>(null);
 
@@ -193,9 +206,14 @@ const onPaginationChange = ({
 };
 
 onMounted(() => {
+  doRefreshCurrentUser({});
   fetchMembersToMergeCount();
   doGetMembersCount();
   getMemberCustomAttributes();
   (window as any).analytics.page('Members');
+  TenantService.viewContacts()
+    .then(() => {
+      getGuides();
+    });
 });
 </script>

@@ -4,6 +4,7 @@ import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
+import { Error400, Error404, Error542 } from '@crowd/common'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -15,28 +16,21 @@ import {
   HubspotEndpoint,
   IHubspotManualSyncPayload,
   getHubspotLists,
+  IProcessStreamContext,
 } from '@crowd/integrations'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
-import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
-import Error542 from '../errors/Error542'
 import track from '../segment/track'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
-import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
-import Error404 from '../errors/Error404'
-import IntegrationRunRepository from '../database/repositories/integrationRunRepository'
-import { IntegrationRunState } from '../types/integrationRunTypes'
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
-  getSearchSyncWorkerEmitter,
 } from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
@@ -51,6 +45,7 @@ import {
   GroupsioGetToken,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
+import SearchSyncService from './searchSyncService'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -622,9 +617,10 @@ export default class IntegrationService {
       memberSyncRemote.id,
     )
 
+    const searchSyncService = new SearchSyncService(this.options)
+
     // send it to opensearch because in member.update we bypass while passing transactions
-    const searchSyncEmitter = await getSearchSyncWorkerEmitter()
-    await searchSyncEmitter.triggerMemberSync(this.options.currentTenant.id, member.id)
+    await searchSyncService.triggerMemberSync(this.options.currentTenant.id, member.id)
   }
 
   async hubspotStopSyncOrganization(payload: IHubspotManualSyncPayload) {
@@ -863,7 +859,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const memberLists = await getHubspotLists(nangoId, context)
 
@@ -937,7 +933,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties = await getHubspotProperties(
       nangoId,
@@ -1000,7 +996,7 @@ export default class IntegrationService {
         nangoUrl: NANGO_CONFIG.url,
         nangoSecretKey: NANGO_CONFIG.secretKey,
       },
-    }
+    } as IProcessStreamContext
 
     const hubspotMemberProperties: IHubspotProperty[] = await getHubspotProperties(
       nangoId,
@@ -1164,6 +1160,7 @@ export default class IntegrationService {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.DEVTO,
+          token: integrationData.apiKey,
           settings: {
             users: integrationData.users,
             organizations: integrationData.organizations,
@@ -1346,7 +1343,6 @@ export default class IntegrationService {
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
       integration = await this.createOrUpdate(
@@ -1367,21 +1363,22 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Twitter message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration
@@ -1440,7 +1437,6 @@ export default class IntegrationService {
   async discourseConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
-    let run
 
     try {
       integration = await this.createOrUpdate(
@@ -1458,21 +1454,23 @@ export default class IntegrationService {
         transaction,
       )
 
-      run = await new IntegrationRunRepository({ ...this.options, transaction }).create({
-        integrationId: integration.id,
-        tenantId: integration.tenantId,
-        onboarding: true,
-        state: IntegrationRunState.PENDING,
-      })
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
 
-    await sendNodeWorkerMessage(
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Discourse message to int-run-worker!',
+    )
+
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
       integration.tenantId,
-      new NodeWorkerIntegrationProcessMessage(run.id),
+      integration.platform,
+      integration.id,
+      true,
     )
 
     return integration

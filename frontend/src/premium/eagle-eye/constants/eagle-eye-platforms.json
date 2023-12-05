@@ -36,8 +36,8 @@
     "img": "https://cdn-icons-png.flaticon.com/512/2111/2111628.png"
   },
   "twitter": {
-    "label": "Twitter",
-    "img": "https://cdn-icons-png.flaticon.com/512/733/733579.png"
+    "label": "X/Twitter",
+    "img": "/images/integrations/twitter-x-black.png"
   },
   "youtube": {
     "label": "YouTube",

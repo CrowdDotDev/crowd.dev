@@ -15,7 +15,17 @@ export default (app) => {
   app.get(`/tenant`, safeWrap(require('./tenantList').default))
   app.get(`/tenant/url`, safeWrap(require('./tenantFind').default))
   app.get(`/tenant/:id`, safeWrap(require('./tenantFind').default))
+  app.get(`/tenant/:id/name`, safeWrap(require('./tenantFindName').default))
   app.get(`/tenant/:tenantId/membersToMerge`, safeWrap(require('./tenantMembersToMerge').default))
+  app.get(
+    `/tenant/:tenantId/organizationsToMerge`,
+    safeWrap(require('./tenantOrganizationsToMerge').default),
+  )
   app.post(`/tenant/:tenantId/sampleData`, safeWrap(require('./tenantGenerateSampleData').default))
   app.delete(`/tenant/:tenantId/sampleData`, safeWrap(require('./tenantDeleteSampleData').default))
+  app.post(
+    `/tenant/:tenantId/viewOrganizations`,
+    safeWrap(require('./tenantViewOrganizations').default),
+  )
+  app.post(`/tenant/:tenantId/viewContacts`, safeWrap(require('./tenantViewContacts').default))
 }

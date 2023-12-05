@@ -146,7 +146,7 @@ const identitiesForm = reactive({
       'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
   },
   twitter: {
-    label: 'Twitter',
+    label: 'X/Twitter',
     enabled:
       props.modelValue.identities?.some((el) => el.platform === 'twitter')
       || false,
@@ -172,6 +172,7 @@ function findPlatform(platform) {
 function onInputChange(newValue, key, value, index) {
   model.value.identities[index] = {
     ...props.modelValue.identities[index],
+    name: newValue,
     url: newValue.length ? `https://${value.urlPrefix}${newValue}` : null,
   };
 }

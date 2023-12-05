@@ -106,11 +106,8 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
   computed,
   ref,
-  watch,
   onMounted,
 } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -120,7 +117,6 @@ import AppActivityTypeListItem from '@/modules/activity/components/type/activity
 import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue';
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import {
-  mapGetters,
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
@@ -138,11 +134,9 @@ const emit = defineEmits(['update:modelValue']);
 
 // Store
 const store = useStore();
-const { currentTenant } = mapGetters('auth');
 const { doFetch } = mapActions('integration');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { setTypes } = activityTypeStore;
 
 // Drawer open
 const isFormModalOpen = ref(false);
@@ -155,16 +149,6 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
-
-watch(
-  () => currentTenant,
-  (tenant) => {
-    if (tenant.value?.settings.length > 0) {
-      setTypes(tenant.value.settings[0].activityTypes);
-    }
-  },
-  { immediate: true, deep: true },
-);
 
 const edit = (activityType) => {
   editableActivityType.value = activityType;

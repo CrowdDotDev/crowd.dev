@@ -1,4 +1,4 @@
-import { ProcessStreamHandler, IProcessStreamContext } from '@/types'
+import { ProcessStreamHandler, IProcessStreamContext } from '../../types'
 import {
   DiscordStreamType,
   DiscordRootStreamData,
@@ -110,6 +110,11 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     ctx,
   )
 
+  if (fromDiscordApi.length === 0) {
+    ctx.log.warn(`No avaliable channels found for guild ${guildId}, skipping...`)
+    return
+  }
+
   for (const channel of fromDiscordApi) {
     try {
       const config = {
@@ -202,7 +207,7 @@ const processMembersStream: ProcessStreamHandler = async (ctx) => {
       guildId: data.guildId,
       token: getDiscordToken(ctx),
       page: data.page,
-      perPage: 100,
+      perPage: 1000,
     },
     ctx,
   )

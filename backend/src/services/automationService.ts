@@ -1,26 +1,29 @@
-import { AutomationSyncTrigger, PlatformType } from '@crowd/types'
+import {
+  AutomationState,
+  AutomationSyncTrigger,
+  AutomationType,
+  IAutomationData,
+  PlatformType,
+  PageData,
+} from '@crowd/types'
+import { Error404 } from '@crowd/common'
 import {
   AutomationCriteria,
-  AutomationData,
-  AutomationState,
-  AutomationType,
   CreateAutomationRequest,
   UpdateAutomationRequest,
 } from '../types/automationTypes'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
-import { PageData } from '../types/common'
 import { ServiceBase } from './serviceBase'
 import { getIntegrationSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import IntegrationRepository from '@/database/repositories/integrationRepository'
-import Error404 from '@/errors/Error404'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 import AutomationExecutionRepository from '@/database/repositories/automationExecutionRepository'
 
 export default class AutomationService extends ServiceBase<
-  AutomationData,
+  IAutomationData,
   string,
   CreateAutomationRequest,
   UpdateAutomationRequest,
@@ -33,13 +36,13 @@ export default class AutomationService extends ServiceBase<
   /**
    * Creates a new active automation
    * @param req {CreateAutomationRequest} data used to create a new automation
-   * @returns {AutomationData} object for frontend to use
+   * @returns {IAutomationData} object for frontend to use
    */
-  override async create(req: CreateAutomationRequest): Promise<AutomationData> {
+  override async create(req: CreateAutomationRequest): Promise<IAutomationData> {
     const txOptions = await this.getTxRepositoryOptions()
 
     try {
-      // create an active automation
+      // create an automation
       const result = await new AutomationRepository(txOptions).create({
         ...req,
         state: AutomationState.ACTIVE,
@@ -95,9 +98,9 @@ export default class AutomationService extends ServiceBase<
    * have to be filled.
    * @param id of the existing automation that is being updated
    * @param req {UpdateAutomationRequest} data used to update an existing automation
-   * @returns {AutomationData} object for frontend to use
+   * @returns {IAutomationData} object for frontend to use
    */
-  override async update(id: string, req: UpdateAutomationRequest): Promise<AutomationData> {
+  override async update(id: string, req: UpdateAutomationRequest): Promise<IAutomationData> {
     const txOptions = await this.getTxRepositoryOptions()
 
     try {
@@ -150,18 +153,18 @@ export default class AutomationService extends ServiceBase<
   /**
    * Method used to fetch all tenants automation with filters available in the criteria parameter
    * @param criteria {AutomationCriteria} filters to be used when returning automations
-   * @returns {PageData<AutomationData>>}
+   * @returns {PageData<IAutomationData>>}
    */
-  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<AutomationData>> {
+  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<IAutomationData>> {
     return new AutomationRepository(this.options).findAndCountAll(criteria)
   }
 
   /**
    * Method used to fetch a single automation by its id
    * @param id automation id
-   * @returns {AutomationData}
+   * @returns {IAutomationData}
    */
-  override async findById(id: string): Promise<AutomationData> {
+  override async findById(id: string): Promise<IAutomationData> {
     return new AutomationRepository(this.options).findById(id)
   }
 

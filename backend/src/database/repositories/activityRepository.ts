@@ -1,17 +1,16 @@
 import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+import { ActivityDisplayService } from '@crowd/integrations'
+import { Error400, Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error400 from '../../errors/Error400'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import MemberRepository from './memberRepository'
-import ActivityDisplayService from '../../services/activityDisplayService'
 import SegmentRepository from './segmentRepository'
 
 const { Op } = Sequelize
@@ -290,6 +289,8 @@ class ActivityRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const where = {
       id: {
         [Op.in]: ids,
@@ -300,6 +301,7 @@ class ActivityRepository {
     const records = await options.database.activity.findAll({
       attributes: ['id'],
       where,
+      transaction,
     })
 
     return records.map((record) => record.id)

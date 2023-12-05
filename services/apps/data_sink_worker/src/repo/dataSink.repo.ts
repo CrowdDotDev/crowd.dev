@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import { IIntegrationResult, IntegrationResultState, PlatformType, TenantPlans } from '@crowd/types'
 import { IFailedResultData, IResultData } from './dataSink.data'
-import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -18,6 +18,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            r."streamId",
            r."apiDataId",
            r."integrationId",
+           r.retries,
+           r."delayedUntil",
            i.platform,
            t."hasSampleData", 
            t."plan",
@@ -53,6 +55,53 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     )
 
     return results.id
+  }
+
+  public async getOldResultsToProcess(limit: number): Promise<string[]> {
+    this.ensureTransactional()
+
+    try {
+      const results = await this.db().any(
+        `
+        select r.id
+        from integration.results r
+        where r.state = $(pendingState)
+          and r."updatedAt" < now() - interval '1 hour'
+        limit ${limit}
+        for update skip locked;
+        `,
+        {
+          pendingState: IntegrationResultState.PENDING,
+          plans: [TenantPlans.Growth, TenantPlans.Scale],
+        },
+      )
+
+      return results.map((s) => s.id)
+    } catch (err) {
+      this.log.error(err, 'Failed to get old results to process!')
+      throw err
+    }
+  }
+
+  public async touchUpdatedAt(resultIds: string[]): Promise<void> {
+    if (resultIds.length === 0) {
+      return
+    }
+
+    try {
+      await this.db().none(
+        `
+        update integration.results set "updatedAt" = now()
+        where id in ($(resultIds:csv))
+      `,
+        {
+          resultIds,
+        },
+      )
+    } catch (err) {
+      this.log.error(err, 'Failed to touch updatedAt for results!')
+      throw err
+    }
   }
 
   public async markResultInProgress(resultId: string): Promise<void> {
@@ -159,7 +208,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       `update integration.results
         set state = $(newState),
             error = null,
-            "updatedAt" = now()
+            "updatedAt" = now(),
+            "delayedUntil" = null
         where id in ($(resultIds:csv))`,
       {
         resultIds,
@@ -176,5 +226,51 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     })
 
     return result.map((r) => r.id)
+  }
+
+  public async delayResult(resultId: string, until: Date): Promise<void> {
+    const result = await this.db().result(
+      `update integration.results
+       set  state = $(state),
+            "delayedUntil" = $(until),
+            retries = coalesce(retries, 0) + 1,
+            "updatedAt" = now()
+       where id = $(resultId)`,
+      {
+        resultId,
+        until,
+        state: IntegrationResultState.DELAYED,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async getDelayedResults(
+    limit: number,
+  ): Promise<{ id: string; tenantId: string; platform: PlatformType }[]> {
+    this.ensureTransactional()
+
+    try {
+      const results = await this.db().any(
+        `
+        select r.id, r."tenantId", i.platform
+        from integration.results r
+        join integrations i on r."integrationId" = i.id
+        where r.state = $(delayedState)
+          and r."delayedUntil" < now()
+        limit ${limit}
+        for update skip locked;
+        `,
+        {
+          delayedState: IntegrationResultState.DELAYED,
+        },
+      )
+
+      return results.map((s) => ({ id: s.id, tenantId: s.tenantId, platform: s.platform }))
+    } catch (err) {
+      this.log.error(err, 'Failed to get delayed results!')
+      throw err
+    }
   }
 }

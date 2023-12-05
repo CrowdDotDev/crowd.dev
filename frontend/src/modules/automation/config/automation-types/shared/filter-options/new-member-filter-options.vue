@@ -2,7 +2,7 @@
   <div>
     <app-form-item
       class="pb-4"
-      label="Matching member platform(s)"
+      label="Matching contact platform(s)"
     >
       <el-select
         v-model="form.platforms"
@@ -77,7 +77,7 @@ const computedPlatformOptions = computed(() => [...active.value.map((item) => ({
 })),
 {
   value: 'twitter',
-  label: 'Twitter',
+  label: 'X/Twitter',
 },
 ]);
 

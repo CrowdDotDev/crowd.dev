@@ -128,8 +128,10 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import Banner from '@/shared/banner/banner.vue';
-import identify from '@/shared/monitoring/identify';
 import AppMenu from '@/modules/layout/components/menu.vue';
+import { mapActions as piniaMapActions } from 'pinia';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default {
   name: 'AppLayout',
@@ -168,6 +170,7 @@ export default {
       showOrganizationsAlertBanner: 'tenant/showOrganizationsAlertBanner',
       showBanner: 'tenant/showBanner',
     }),
+
     integrationsInProgressToString() {
       const arr = this.integrationsInProgress.map(
         (i) => i.name,
@@ -219,8 +222,9 @@ export default {
   },
 
   async mounted() {
-    identify(this.currentUser);
     this.initPendo();
+    this.fetchActivityTypes();
+    this.fetchActivityChannels();
   },
 
   unmounted() {
@@ -230,6 +234,12 @@ export default {
   methods: {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu',
+    }),
+    ...piniaMapActions(useActivityStore, {
+      fetchActivityChannels: 'fetchActivityChannels',
+    }),
+    ...piniaMapActions(useActivityTypeStore, {
+      fetchActivityTypes: 'fetchActivityTypes',
     }),
 
     initPendo() {

@@ -1,6 +1,5 @@
-import { DB_CONFIG } from '@/conf'
-import { OpenSearchService } from '@/service/opensearch.service'
-import { OrganizationSyncService } from '@/service/organization.sync.service'
+import { OrganizationSyncService, OpenSearchService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 
@@ -16,12 +15,12 @@ if (processArguments.length !== 1) {
 const tenantId = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const service = new OrganizationSyncService(store, openSearchService, log)
+  const service = new OrganizationSyncService(store, openSearchService, log, SERVICE_CONFIG())
 
   await service.syncTenantOrganizations(tenantId)
 

@@ -1,5 +1,9 @@
 {
   "slack": {
     "maxRetrospectInSeconds": 86400
+  },
+  "twitter": {
+    "maxRetrospectInSeconds": 86400,
+    "globalLimit": 10000
   }
 }

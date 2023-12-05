@@ -1,16 +1,12 @@
-import { Unleash } from 'unleash-client'
-import { Edition } from '@crowd/types'
-import { API_CONFIG } from '../conf'
-import { FeatureFlag } from '../types/common'
-import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
+import { isFeatureEnabled } from '@crowd/feature-flags'
+import { FeatureFlag } from '@crowd/types'
 import Plans from '../security/plans'
+import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
 
 export const PLAN_LIMITS = {
   [Plans.values.essential]: {
     [FeatureFlag.AUTOMATIONS]: 2,
     [FeatureFlag.CSV_EXPORT]: 2,
-    [FeatureFlag.MEMBER_ENRICHMENT]: 5,
-    [FeatureFlag.ORGANIZATION_ENRICHMENT]: 5,
   },
   [Plans.values.growth]: {
     [FeatureFlag.AUTOMATIONS]: 10,
@@ -19,10 +15,10 @@ export const PLAN_LIMITS = {
     [FeatureFlag.ORGANIZATION_ENRICHMENT]: 200,
   },
   [Plans.values.scale]: {
-    [FeatureFlag.AUTOMATIONS]: 100,
-    [FeatureFlag.CSV_EXPORT]: 100,
-    [FeatureFlag.MEMBER_ENRICHMENT]: 10000,
-    [FeatureFlag.ORGANIZATION_ENRICHMENT]: 2000,
+    [FeatureFlag.AUTOMATIONS]: 20,
+    [FeatureFlag.CSV_EXPORT]: 20,
+    [FeatureFlag.MEMBER_ENRICHMENT]: Infinity,
+    [FeatureFlag.ORGANIZATION_ENRICHMENT]: Infinity,
   },
   [Plans.values.enterprise]: {
     [FeatureFlag.AUTOMATIONS]: Infinity,
@@ -32,25 +28,9 @@ export const PLAN_LIMITS = {
   },
 }
 
-export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> => {
-  if (featureFlag === FeatureFlag.SEGMENTS) {
-    return API_CONFIG.edition === Edition.LFX
-  }
-
-  if ([Edition.COMMUNITY, Edition.LFX].includes(API_CONFIG.edition as Edition)) {
-    return true
-  }
-
-  const context = await getFeatureFlagTenantContext(
-    req.currentTenant,
-    req.database,
-    req.redis,
-    req.log,
+export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> =>
+  isFeatureEnabled(
+    featureFlag,
+    async () => getFeatureFlagTenantContext(req.currentTenant, req.database, req.redis, req.log),
+    req.unleash,
   )
-
-  const unleash: Unleash = req.unleash
-
-  const enabled = unleash.isEnabled(featureFlag, context)
-
-  return enabled
-}

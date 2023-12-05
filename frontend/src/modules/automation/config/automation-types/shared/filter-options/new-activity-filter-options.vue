@@ -74,7 +74,7 @@
         form.teamMemberActivities
       "
       class="text-gray-900"
-      label="Include activities from team members"
+      label="Include activities from team contacts"
     />
   </div>
 </template>
@@ -126,7 +126,7 @@ const computedPlatformOptions = computed(() => [...active.value.map((item) => ({
 })),
 {
   value: 'twitter',
-  label: 'Twitter',
+  label: 'X/Twitter',
 },
 ]);
 

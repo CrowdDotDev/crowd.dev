@@ -1,15 +1,15 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import { PlatformType } from '@crowd/types'
+import { Error404 } from '@crowd/common'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
-import ActivityDisplayService from '../../services/activityDisplayService'
 import SegmentRepository from './segmentRepository'
 
 const Op = Sequelize.Op

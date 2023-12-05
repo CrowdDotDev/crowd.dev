@@ -41,6 +41,7 @@
   "enrichment": {},
   "organizationEnrichment": {},
   "eagleEye": {},
+  "githubToken": {},
   "unleash": {
     "db": {}
   },
@@ -56,5 +57,10 @@
   "auth0": {},
   "crowdAnalytics": {
     "isEnabled": "false"
-  }
+  },
+  "temporal": {
+    "automationsTaskQueue": "automations"
+  },
+  "searchSyncApi": {},
+  "openStatusApi": {}
 }

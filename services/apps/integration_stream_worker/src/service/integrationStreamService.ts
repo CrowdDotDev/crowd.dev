@@ -1,12 +1,12 @@
 import { addSeconds, singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { DbConnection, DbStore, DbTransaction } from '@crowd/database'
 import {
   INTEGRATION_SERVICES,
   IProcessStreamContext,
   IProcessWebhookStreamContext,
 } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient, RateLimiter } from '@crowd/redis'
+import { RedisCache, RedisClient, RateLimiter, ConcurrentRequestLimiter } from '@crowd/redis'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
@@ -21,8 +21,8 @@ import {
 } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IStreamData } from '@/repo/integrationStream.data'
-import IncomingWebhookRepository from '@/repo/incomingWebhook.repo'
+import { IStreamData } from '../repo/integrationStream.data'
+import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
@@ -77,7 +77,6 @@ export default class IntegrationStreamService extends LoggerBase {
     let streams = await this.repo.getPendingStreams(runId, 20)
     while (streams.length > 0) {
       for (const stream of streams) {
-        this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
         this.streamWorkerEmitter.triggerStreamProcessing(
           stream.tenantId,
           stream.integrationType,
@@ -177,7 +176,7 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!webhookInfo) {
       this.log.error({ webhookId }, 'Webhook not found!')
-      return
+      return false
     }
 
     let streamId: string | undefined
@@ -199,11 +198,6 @@ export default class IntegrationStreamService extends LoggerBase {
         webhookInfo.tenantId,
       )
 
-      if (!streamId) {
-        this.log.error({ webhookId }, 'Could not create webhook stream!')
-        return
-      }
-
       this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
     } else {
       this.log.debug({ webhookId, streamId }, 'Found existing webhook stream, using it!')
@@ -214,20 +208,19 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ webhookStreamId: streamId }, 'Webhook stream not found!')
-      return
+      return false
     }
 
     if (streamInfo.runId) {
       this.log.warn({ streamId }, 'Stream is a regular stream! Processing as such!')
-      await this.processStream(streamId)
-      return
+      return await this.processStream(streamId)
     }
 
     if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
       this.log.warn('Integration is not correctly connected! Deleting the stream and webhook!')
       await this.repo.deleteStream(streamId)
       await this.webhookRepo.deleteWebhook(webhookId)
-      return
+      return false
     }
 
     this.log = getChildLogger('webhook-stream-processor', this.log, {
@@ -251,7 +244,7 @@ export default class IntegrationStreamService extends LoggerBase {
           type: streamInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     if (!integrationService.processWebhookStream) {
@@ -267,7 +260,7 @@ export default class IntegrationStreamService extends LoggerBase {
           type: streamInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     const cache = new RedisCache(
@@ -302,6 +295,7 @@ export default class IntegrationStreamService extends LoggerBase {
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,
+        refreshToken: streamInfo.integrationRefreshToken,
       },
 
       stream: {
@@ -355,6 +349,9 @@ export default class IntegrationStreamService extends LoggerBase {
       getRateLimiter: (maxRequests: number, timeWindowSeconds: number, counterKey: string) => {
         return new RateLimiter(globalCache, maxRequests, timeWindowSeconds, counterKey)
       },
+      getConcurrentRequestLimiter: (maxConcurrentRequests: number, counterKey: string) => {
+        return new ConcurrentRequestLimiter(globalCache, maxConcurrentRequests, counterKey)
+      },
     }
 
     this.log.debug('Processing webhook stream!')
@@ -389,30 +386,29 @@ export default class IntegrationStreamService extends LoggerBase {
 
     if (!streamInfo) {
       this.log.error({ streamId }, 'Stream not found!')
-      return
+      return false
     }
 
     if (streamInfo.webhookId) {
       this.log.warn({ streamId }, 'Stream is a webhook stream! Processing as such!')
-      await this.processWebhookStream(streamInfo.webhookId)
-      return
+      return await this.processWebhookStream(streamInfo.webhookId)
     }
 
     if (streamInfo.runState === IntegrationRunState.DELAYED) {
       this.log.warn('Run is delayed! Skipping stream processing!')
-      return
+      return false
     }
 
     if (streamInfo.runState === IntegrationRunState.INTEGRATION_DELETED) {
       this.log.warn('Integration was deleted! Skipping stream processing! Deleting the stream!')
       await this.repo.deleteStream(streamId)
-      return
+      return false
     }
 
     if (streamInfo.integrationState === IntegrationState.NEEDS_RECONNECT) {
       this.log.warn('Integration is not correctly connected! Deleting the stream!')
       await this.repo.deleteStream(streamId)
-      return
+      return false
     }
 
     this.log = getChildLogger('stream-processor', this.log, {
@@ -438,7 +434,7 @@ export default class IntegrationStreamService extends LoggerBase {
           type: streamInfo.integrationType,
         },
       )
-      return
+      return false
     }
 
     const cache = new RedisCache(
@@ -474,6 +470,7 @@ export default class IntegrationStreamService extends LoggerBase {
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,
+        refreshToken: streamInfo.integrationRefreshToken,
       },
 
       stream: {
@@ -509,11 +506,27 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       },
       setMessageVisibilityTimeout: async (newTimeout: number) => {
+        if (!receiptHandle) {
+          // this stream was triggerd manually (not from SQS), skipping visibility change
+          this.log.trace('No receipt handle provided, cannot change message visibility!')
+          return
+        }
         this.log.trace(`Changing message visibility of ${receiptHandle} to ${newTimeout}!`)
         await this.streamWorkerEmitter.setMessageVisibilityTimeout(receiptHandle, newTimeout)
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)
+      },
+      updateIntegrationToken: async (token: string) => {
+        await this.updateIntegrationToken(streamId, token)
+      },
+
+      updateIntegrationRefreshToken: async (refreshToken: string) => {
+        await this.updateIntegrationRefreshToken(streamId, refreshToken)
+      },
+
+      getDbConnection: (): DbConnection | DbTransaction => {
+        return this.repo.db()
       },
 
       abortWithError: async (message: string, metadata?: unknown, error?: Error) => {
@@ -526,6 +539,9 @@ export default class IntegrationStreamService extends LoggerBase {
       },
       getRateLimiter: (maxRequests: number, timeWindowSeconds: number, counterKey: string) => {
         return new RateLimiter(globalCache, maxRequests, timeWindowSeconds, counterKey)
+      },
+      getConcurrentRequestLimiter: (maxConcurrentRequests: number, counterKey: string) => {
+        return new ConcurrentRequestLimiter(globalCache, maxConcurrentRequests, counterKey)
       },
     }
 
@@ -578,6 +594,41 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       }
 
+      throw err
+    }
+  }
+
+  private async updateIntegrationToken(streamId: string, token: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration token!')
+      await this.repo.updateIntegrationToken(streamId, token)
+    } catch (err) {
+      await this.triggerRunError(
+        streamId,
+        'run-stream-update-token',
+        'Error while updating token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationRefreshToken(
+    streamId: string,
+    refreshToken: string,
+  ): Promise<void> {
+    try {
+      this.log.debug('Updating integration refresh token!')
+      await this.repo.updateIntegrationRefreshToken(streamId, refreshToken)
+    } catch (err) {
+      await this.triggerRunError(
+        streamId,
+        'run-stream-update-refresh-token',
+        'Error while updating refresh token!',
+        undefined,
+        err,
+      )
       throw err
     }
   }

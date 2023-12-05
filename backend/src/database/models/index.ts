@@ -45,8 +45,16 @@ function getCredentials(): Credentials {
   }
 }
 
-function models() {
+function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = null) {
   const database = {} as any
+
+  let readHost = SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost
+  let writeHost = DB_CONFIG.writeHost
+
+  if (databaseHostnameOverride) {
+    readHost = databaseHostnameOverride
+    writeHost = databaseHostnameOverride
+  }
 
   const credentials = getCredentials()
 
@@ -58,16 +66,18 @@ function models() {
       dialect: DB_CONFIG.dialect,
       dialectOptions: {
         application_name: SERVICE,
+        connectionTimeoutMillis: 5000,
+        query_timeout: queryTimeoutMilliseconds,
+        idle_in_transaction_session_timeout: 10000,
       },
       port: DB_CONFIG.port,
       replication: {
         read: [
           {
-            host:
-              SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost,
+            host: readHost,
           },
         ],
-        write: { host: DB_CONFIG.writeHost },
+        write: { host: writeHost },
       },
       pool: {
         max: SERVICE === configTypes.ServiceType.API ? 20 : 10,
@@ -116,6 +126,8 @@ function models() {
     require('./note').default,
     require('./memberActivityAggregatesMV').default,
     require('./segment').default,
+    require('./customView').default,
+    require('./customViewOrder').default,
   ]
 
   for (const notInitmodel of modelClasses) {

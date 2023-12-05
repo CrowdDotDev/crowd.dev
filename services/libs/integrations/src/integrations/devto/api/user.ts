@@ -14,9 +14,14 @@ export interface IDevToUser {
   profile_image: string
 }
 
-export const getUser = async (userId: number): Promise<IDevToUser | null> => {
+export const getUser = async (userId: number, apiKey?: string): Promise<IDevToUser | null> => {
   try {
-    const result = await axios.get(`https://dev.to/api/users/${userId}`)
+    const result = await axios.get(`https://dev.to/api/users/${userId}`, {
+      headers: {
+        Accept: 'application/vnd.forem.api-v1+json',
+        'api-key': apiKey || '',
+      },
+    })
     return result.data
   } catch (err) {
     // rate limit?
@@ -26,7 +31,7 @@ export const getUser = async (userId: number): Promise<IDevToUser | null> => {
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getUser(userId)
+          return getUser(userId, apiKey)
         }
       }
     } else if (err.response.status === 404) {

@@ -11,10 +11,15 @@
       <div
         v-if="organization[attribute.name]"
       >
-        <div
-          class="text-gray-400 font-medium text-2xs"
-        >
-          {{ attribute.label }}
+        <div class="flex items-center">
+          <div
+            class="text-gray-400 font-medium text-2xs mr-2"
+          >
+            {{ attribute.label }}
+          </div>
+          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+            <app-svg name="source" class="h-3 w-3" />
+          </el-tooltip>
         </div>
 
         <component
@@ -34,7 +39,6 @@
           v-else-if="attribute.component && attribute.type === AttributeType.JSON"
           :attribute-value="organization[attribute.name]"
           :key-parser="attribute.keyParser"
-          :nested-key-parser="attribute.nestedKeyParser"
           :value-parser="attribute.valueParser"
           :filter-value="attribute.filterValue"
         />
@@ -50,6 +54,7 @@
 import { computed, defineProps } from 'vue';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps({
   organization: {

@@ -172,11 +172,27 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   })
   .then(() => fetchOrganizations({ reload: true }));
 
-const handleMergeOrganizations = () => {
+const handleMergeOrganizations = async () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
+
+  Message.info(
+    null,
+    {
+      title: 'Organizations are being merged',
+    },
+  );
+
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
-    .then(() => fetchOrganizations({ reload: true }))
-    .catch(() => Message.error('There was an error merging organizations'));
+    .then(() => {
+      Message.closeAll();
+      Message.success('Organizations merged successfuly');
+
+      fetchOrganizations({ reload: true });
+    })
+    .catch(() => {
+      Message.closeAll();
+      Message.error('There was an error merging organizations');
+    });
 };
 
 const handleDoExport = async () => {
@@ -206,14 +222,14 @@ const handleDoExport = async () => {
         Description: o.description,
         Headline: o.headline,
         Website: o.website,
-        '# of members': o.memberCount,
+        '# of contacts': o.memberCount,
         '# of activities': o.activityCount,
         Location: o.location,
         Created: o.createdAt,
         Updated: o.updatedAt,
       })),
       ['Id', 'Name', 'Description',
-        'Headline', 'Headline', '# of members',
+        'Headline', 'Headline', '# of contacts',
         '# of activities', 'Location', 'Created', 'Updated',
       ],
       `organizations_${new Date().getTime()}`,
@@ -236,11 +252,19 @@ const handleCommand = async (command) => {
   } else if (command.action === 'mergeOrganizations') {
     await handleMergeOrganizations();
   } else if (command.action === 'markAsTeamOrganization') {
+    Message.info(
+      null,
+      {
+        title: 'Organizations are being updated',
+      },
+    );
+
     Promise.all(
       selectedOrganizations.value.map((row) => OrganizationService.update(row.id, {
         isTeamOrganization: command.value,
       })),
     ).then(() => {
+      Message.closeAll();
       Message.success(
         `${pluralize(
           'Organization',
@@ -252,7 +276,11 @@ const handleCommand = async (command) => {
       fetchOrganizations({
         reload: true,
       });
-    });
+    })
+      .catch(() => {
+        Message.closeAll();
+        Message.error('Error updating organizations');
+      });
   }
 };
 </script>

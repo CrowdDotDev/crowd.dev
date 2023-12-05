@@ -59,4 +59,36 @@ export class ActivityService {
 
     return response.data;
   }
+
+  static async listActivityTypes() {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/activity/type`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
+  static async listActivityChannels() {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/activity/channel`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
 }

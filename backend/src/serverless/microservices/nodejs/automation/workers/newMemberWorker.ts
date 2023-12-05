@@ -1,16 +1,16 @@
 import { getServiceChildLogger } from '@crowd/logging'
+import {
+  AutomationState,
+  AutomationTrigger,
+  AutomationType,
+  IAutomationData,
+  NewMemberSettings,
+} from '@crowd/types'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 import getUserContext from '../../../../../database/utils/getUserContext'
-import {
-  AutomationData,
-  AutomationState,
-  AutomationTrigger,
-  AutomationType,
-  NewMemberSettings,
-} from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
 
 const log = getServiceChildLogger('newMemberWorker')
@@ -22,14 +22,20 @@ const log = getServiceChildLogger('newMemberWorker')
  */
 export const shouldProcessMember = async (
   member: any,
-  automation: AutomationData,
+  automation: IAutomationData,
 ): Promise<boolean> => {
   const settings = automation.settings as NewMemberSettings
 
   let process = true
 
+  // check if member joined after automation was created
+  if (new Date(automation.createdAt) > new Date(member.joinedAt)) {
+    log.warn(`Ignoring automation ${automation.id} - Member ${member.id} joined before automation!`)
+    process = false
+  }
+
   // check whether member platforms matches
-  if (settings.platforms && settings.platforms.length > 0) {
+  if (process && settings.platforms && settings.platforms.length > 0) {
     const platforms = Object.keys(member.username)
     if (!platforms.some((platform) => settings.platforms.includes(platform))) {
       log.warn(

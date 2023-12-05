@@ -1,18 +1,33 @@
-import { Logger, getChildLogger, getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
-import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
-import moment from 'moment'
 import { timeout } from '@crowd/common'
-import { SQS_CONFIG } from '../conf'
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+import {
+  SqsDeleteMessageRequest,
+  SqsMessage,
+  SqsReceiveMessageRequest,
+  deleteMessage,
+  receiveMessage,
+  sendMessage,
+} from '@crowd/sqs'
+import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
+import moment from 'moment'
+import { getRedisClient, RedisClient } from '@crowd/redis'
+import { Sequelize, QueryTypes } from 'sequelize'
+import fs from 'fs'
+import path from 'path'
+import telemetry from '@crowd/telemetry'
+import { REDIS_CONFIG, SQS_CONFIG } from '../conf'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
-import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
-import { processIntegration, processIntegrationCheck, processWebhook } from './worker/integrations'
+import { processIntegration, processWebhook } from './worker/integrations'
+import { SQS_CLIENT } from '@/serverless/utils/serviceSQS'
+import { databaseInit } from '@/database/databaseConnection'
 
 /* eslint-disable no-constant-condition */
 
+const tracer = getServiceTracer()
 const serviceLogger = getServiceLogger()
 
 let exiting = false
@@ -24,24 +39,30 @@ process.on('SIGTERM', async () => {
   exiting = true
 })
 
-const receive = (delayed?: boolean): Promise<Message | undefined> => {
-  const params: ReceiveMessageRequest = {
+const receive = async (delayed?: boolean): Promise<SqsMessage | undefined> => {
+  const params: SqsReceiveMessageRequest = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     MessageAttributeNames: !delayed
       ? undefined
       : ['remainingDelaySeconds', 'tenantId', 'targetQueueUrl'],
   }
 
-  return receiveMessage(params)
+  const messages = await receiveMessage(SQS_CLIENT(), params)
+
+  if (messages && messages.length === 1) {
+    return messages[0]
+  }
+
+  return undefined
 }
 
 const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void> => {
-  const params: DeleteMessageRequest = {
+  const params: SqsDeleteMessageRequest = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     ReceiptHandle: receiptHandle,
   }
 
-  return deleteMessage(params)
+  return deleteMessage(SQS_CLIENT(), params)
 }
 
 async function handleDelayedMessages() {
@@ -55,38 +76,55 @@ async function handleDelayedMessages() {
     const message = await receive(true)
 
     if (message) {
-      const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
-      const messageLogger = getChildLogger('messageHandler', serviceLogger, {
-        messageId: message.MessageId,
-        type: msg.type,
-      })
-
-      if (message.MessageAttributes && message.MessageAttributes.remainingDelaySeconds) {
-        // re-delay
-        const newDelay = parseInt(message.MessageAttributes.remainingDelaySeconds.StringValue, 10)
-        const tenantId = message.MessageAttributes.tenantId.StringValue
-        messageLogger.debug({ newDelay, tenantId }, 'Re-delaying message!')
-        await sendNodeWorkerMessage(tenantId, msg, newDelay)
-      } else {
-        // just emit to the normal queue for processing
-        const tenantId = message.MessageAttributes.tenantId.StringValue
-
-        if (message.MessageAttributes.targetQueueUrl) {
-          const targetQueueUrl = message.MessageAttributes.targetQueueUrl.StringValue
-          messageLogger.debug({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
-          await sendMessage({
-            QueueUrl: targetQueueUrl,
-            MessageGroupId: tenantId,
-            MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,
-            MessageBody: JSON.stringify(msg),
+      await tracer.startActiveSpan('ProcessDelayedMessage', async (span) => {
+        try {
+          const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
+          const messageLogger = getChildLogger('messageHandler', serviceLogger, {
+            messageId: message.MessageId,
+            type: msg.type,
           })
-        } else {
-          messageLogger.debug({ tenantId }, 'Successfully delayed a message!')
-          await sendNodeWorkerMessage(tenantId, msg)
-        }
-      }
 
-      await removeFromQueue(message.ReceiptHandle, true)
+          if (message.MessageAttributes && message.MessageAttributes.remainingDelaySeconds) {
+            // re-delay
+            const newDelay = parseInt(
+              message.MessageAttributes.remainingDelaySeconds.StringValue,
+              10,
+            )
+            const tenantId = message.MessageAttributes.tenantId.StringValue
+            messageLogger.debug({ newDelay, tenantId }, 'Re-delaying message!')
+            await sendNodeWorkerMessage(tenantId, msg, newDelay)
+          } else {
+            // just emit to the normal queue for processing
+            const tenantId = message.MessageAttributes.tenantId.StringValue
+
+            if (message.MessageAttributes.targetQueueUrl) {
+              const targetQueueUrl = message.MessageAttributes.targetQueueUrl.StringValue
+              messageLogger.debug({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
+              await sendMessage(SQS_CLIENT(), {
+                QueueUrl: targetQueueUrl,
+                MessageGroupId: tenantId,
+                MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,
+                MessageBody: JSON.stringify(msg),
+              })
+            } else {
+              messageLogger.debug({ tenantId }, 'Successfully delayed a message!')
+              await sendNodeWorkerMessage(tenantId, msg)
+            }
+          }
+
+          await removeFromQueue(message.ReceiptHandle, true)
+          span.setStatus({
+            code: SpanStatusCode.OK,
+          })
+        } catch (err) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: err,
+          })
+        } finally {
+          span.end()
+        }
+      })
     } else {
       delayedHandlerLogger.trace('No message received!')
     }
@@ -110,7 +148,7 @@ async function handleMessages() {
   })
   handlerLogger.info('Listening for messages!')
 
-  const processSingleMessage = async (message: Message): Promise<void> => {
+  const processSingleMessage = async (message: SqsMessage): Promise<void> => {
     const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
     const messageLogger = getChildLogger('messageHandler', serviceLogger, {
@@ -130,7 +168,7 @@ async function handleMessages() {
         return
       }
 
-      messageLogger.info(
+      messageLogger.debug(
         { messageType: msg.type, messagePayload: JSON.stringify(msg) },
         'Received a new queue message!',
       )
@@ -138,9 +176,6 @@ async function handleMessages() {
       let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
 
       switch (msg.type) {
-        case NodeWorkerMessageType.INTEGRATION_CHECK:
-          processFunction = processIntegrationCheck
-          break
         case NodeWorkerMessageType.INTEGRATION_PROCESS:
           processFunction = processIntegration
           break
@@ -159,7 +194,8 @@ async function handleMessages() {
       }
 
       if (processFunction) {
-        await logExecutionTimeV2(
+        await telemetry.measure(
+          'nodejs_worker.process_message',
           async () => {
             // remove the message from the queue as it's about to be processed
             await removeFromQueue(message.ReceiptHandle)
@@ -172,8 +208,9 @@ async function handleMessages() {
               messagesInProgress.delete(message.MessageId)
             }
           },
-          messageLogger,
-          'Processing queue message!',
+          {
+            type: msg.type,
+          },
         )
       }
     } catch (err) {
@@ -210,7 +247,46 @@ async function handleMessages() {
   handlerLogger.warn('Exiting!')
 }
 
+let redis: RedisClient
+let seq: Sequelize
+
+const initRedisSeq = async () => {
+  if (!redis) {
+    redis = await getRedisClient(REDIS_CONFIG, true)
+  }
+
+  if (!seq) {
+    seq = (await databaseInit()).sequelize as Sequelize
+  }
+}
+
 setImmediate(async () => {
+  await initRedisSeq()
   const promises = [handleMessages(), handleDelayedMessages()]
   await Promise.all(promises)
 })
+
+const liveFilePath = path.join(__dirname, 'tmp/nodejs-worker-live.tmp')
+const readyFilePath = path.join(__dirname, 'tmp/nodejs-worker-ready.tmp')
+
+setInterval(async () => {
+  try {
+    await initRedisSeq()
+    serviceLogger.debug('Checking liveness and readiness for nodejs worker.')
+    const [redisPingRes, dbPingRes] = await Promise.all([
+      // ping redis,
+      redis.ping().then((res) => res === 'PONG'),
+      // ping database
+      seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+    ])
+
+    if (redisPingRes && dbPingRes) {
+      await Promise.all([
+        fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
+        fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
+      ])
+    }
+  } catch (err) {
+    serviceLogger.error(`Error checking liveness and readiness for nodejs worker: ${err}`)
+  }
+}, 5000)

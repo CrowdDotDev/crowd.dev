@@ -2,15 +2,15 @@
   <app-page-wrapper size="narrow">
     <router-link
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mt-1 mb-4"
-      :to="{ path: '/members' }"
+      :to="{ path: '/contacts' }"
     >
-      <i class="ri-arrow-left-s-line mr-2" />Members
+      <i class="ri-arrow-left-s-line mr-2" />Contacts
     </router-link>
     <h4 class="text-xl font-semibold leading-9 mb-1">
       Merging suggestions
     </h4>
     <div class="text-xs text-gray-600 pb-6">
-      crowd.dev is constantly checking your community for duplicate members.
+      crowd.dev is constantly checking your community for duplicate contacts.
       Here you can check all the merging suggestions.
     </div>
 
@@ -113,7 +113,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge members
+            Merge contacts
           </el-button>
         </div>
       </div>
@@ -127,7 +127,7 @@
         No merge suggestions
       </h5>
       <p class="text-sm text-center text-gray-600 leading-5">
-        We couldn’t find any duplicated members
+        We couldn’t find any duplicated contacts
       </p>
     </div>
   </app-page-wrapper>
@@ -200,11 +200,15 @@ const fetch = (page) => {
       offset.value = +res.offset;
       count.value = res.count;
       [membersToMerge.value] = res.rows;
+
       const { members } = membersToMerge.value;
+
+      primary.value = 0;
+
       // Set member with maximum identities and activities as primary
-      if (members.length > 2 && ((members[0].identities.length < members[1].identities.length)
+      if (members.length >= 2 && ((members[0].identities.length < members[1].identities.length)
         || (members[0].activityCount < members[1].activityCount))) {
-        primary.value = 1;
+        membersToMerge.value.members.reverse();
       }
     })
     .catch(() => {
@@ -240,17 +244,17 @@ const mergeSuggestion = () => {
     return;
   }
   sendingMerge.value = true;
-  primary.value = 0;
   MemberService.merge(
     membersToMerge.value.members[primary.value],
     membersToMerge.value.members[(primary.value + 1) % 2],
   )
     .then(() => {
-      Message.success('Members merged successfuly');
+      primary.value = 0;
+      Message.success('Contacts merged successfuly');
       fetch();
     })
     .catch(() => {
-      Message.error('There was an error merging members');
+      Message.error('There was an error merging contacts');
     })
     .finally(() => {
       sendingMerge.value = false;

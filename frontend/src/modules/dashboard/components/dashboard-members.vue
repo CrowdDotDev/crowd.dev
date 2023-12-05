@@ -2,14 +2,14 @@
   <div class="panel !p-6">
     <!-- header -->
     <app-dashboard-widget-header
-      title="Members"
+      title="Contacts"
       :total-loading="members.loadingRecent"
       :total="members.total"
       :route="{
         name: 'member',
-        query: filterQueryService().setQuery(allMembers.filter),
+        query: filterQueryService().setQuery(allContacts.config),
       }"
-      button-title="All members"
+      button-title="All contacts"
       report-name="Members report"
     />
 
@@ -22,7 +22,7 @@
             <h6
               class="text-sm leading-5 font-semibold mb-1"
             >
-              New members
+              New contacts
             </h6>
             <app-dashboard-count
               :loading="members.loadingRecent"
@@ -68,17 +68,13 @@
               <span
                 v-if="
                   member.lastActivity
-                    && getPlatformDetails(
-                      member.lastActivity.platform,
-                    )
                 "
               >joined
                 {{ formatDateToTimeAgo(member.joinedAt) }}
                 on
                 {{
-                  getPlatformDetails(
-                    member.lastActivity.platform,
-                  ).name
+                  getPlatformDetails(member.lastActivity.platform)?.name
+                    ?? member.lastActivity.platform
                 }}</span>
             </app-dashboard-member-item>
             <app-dashboard-empty-state
@@ -86,7 +82,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No new members during this period
+              No new contacts during this period
             </app-dashboard-empty-state>
             <div
               v-if="recentMembers.length >= 5"
@@ -96,7 +92,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allMembers.filter,
+                    ...allContacts.config,
                     joinedDate: {
                       value: periodRange,
                       operator: 'between',
@@ -116,18 +112,28 @@
       <section class="px-5 w-1/2">
         <div class="flex">
           <div class="w-5/12">
+            <div class="inline-flex items-center gap-2 mb-1">
+              <h6
+                class="text-sm leading-5 font-semibold"
+              >
+                Active <span>contacts</span>
+                <el-tooltip
+                  placement="top"
+                  content="Contacts for whom at least one activity was tracked in the selected time period."
+                  popper-class="max-w-[260px]"
+                >
+                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                </el-tooltip>
+              </h6>
+            </div>
+
             <!-- info -->
-            <h6
-              class="text-sm leading-5 font-semibold mb-1"
-            >
-              Active members
-            </h6>
             <app-dashboard-count
               :loading="members.loadingActive"
               :query="activeMembersCount"
             />
           </div>
-          <div class="w-7/12">
+          <div class="w-7/12 h-21">
             <!-- Chart -->
             <div
               v-if="members.loadingActive"
@@ -174,7 +180,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No active members during this period
+              No active contacts during this period
             </app-dashboard-empty-state>
             <div
               v-if="activeMembers.length >= 5"
@@ -184,7 +190,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allMembers.filter,
+                    ...allContacts.config,
                     lastActivityDate: {
                       value: periodRange,
                       operator: 'between',
@@ -221,8 +227,7 @@ import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import newAndActive from '@/modules/member/config/saved-views/views/new-and-active';
-import allMembers from '@/modules/member/config/saved-views/views/all-members';
+import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 
 export default {
   name: 'AppDashboardMember',
@@ -241,8 +246,7 @@ export default {
       activeMembersCount,
       formatDateToTimeAgo,
       filterQueryService,
-      newAndActive,
-      allMembers,
+      allContacts,
     };
   },
   computed: {

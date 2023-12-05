@@ -3,18 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "rm -rf dist && ./node_modules/.bin/tsc",
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
     "format": "./node_modules/.bin/prettier --write .",
     "format-check": "./node_modules/.bin/prettier --check .",
     "tsc-check": "./node_modules/.bin/tsc --noEmit"
-  },
-  "exports": {
-    ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
@@ -27,7 +19,11 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@crowd/database": "file:../database",
+    "@crowd/logging": "file:../logging",
+    "@crowd/redis": "file:../redis",
     "@crowd/types": "file:../types",
-    "@opensearch-project/opensearch": "^1.2.0"
+    "@opensearch-project/opensearch": "^1.2.0",
+    "axios": "^1.6.0"
   }
 }

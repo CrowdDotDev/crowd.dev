@@ -7,17 +7,17 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 
 const enrichedMember: BooleanFilterConfig = {
   id: 'enrichedMember',
-  label: 'Enriched member',
+  label: 'Enriched contact',
   iconClass: 'ri-sparkling-line',
   type: FilterConfigType.BOOLEAN,
   options: {},
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Enriched member', value, options);
+    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Enriched contact', value, options);
   },
   apiFilterRenderer({ value, include }: BooleanFilterValue): any[] {
     const filter = {
       lastEnriched: {
-        [value ? 'ne' : 'eq']: null,
+        [value ? 'eq' : 'ne']: null,
       },
     };
     return [
