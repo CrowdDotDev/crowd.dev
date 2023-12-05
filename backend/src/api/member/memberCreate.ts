@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = await new MemberService(req).upsert(req.body)
 
-  track('Member Manually Created', { ...payload }, { ...req })
+  track('Member Manually Created', { ...req.body }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }
