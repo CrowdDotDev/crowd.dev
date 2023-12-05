@@ -1,7 +1,6 @@
-import { DB_CONFIG } from '../conf'
+import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { ActivityRepository } from '../repo/activity.repo'
-import { ActivitySyncService } from '../service/activity.sync.service'
-import { OpenSearchService } from '../service/opensearch.service'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 
@@ -17,7 +16,7 @@ if (processArguments.length !== 1) {
 const activityId = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
@@ -26,7 +25,7 @@ setImmediate(async () => {
 
   const repo = new ActivityRepository(store, log)
 
-  const results = await repo.getActivityData([activityId])
+  const results = await repo.checkActivitiesExist([activityId])
 
   if (results.length === 0) {
     log.error(`Activity ${activityId} not found!`)

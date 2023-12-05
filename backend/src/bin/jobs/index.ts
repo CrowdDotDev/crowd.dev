@@ -2,7 +2,6 @@ import { CrowdJob } from '../../types/jobTypes'
 import integrationTicks from './integrationTicks'
 import weeklyAnalyticsEmailsCoordinator from './weeklyAnalyticsEmailsCoordinator'
 import memberScoreCoordinator from './memberScoreCoordinator'
-import checkSqsQueues from './checkSqsQueues'
 import refreshMaterializedViews from './refreshMaterializedViews'
 import refreshMaterializedViewsForCube from './refreshMaterializedViewsForCube'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
@@ -13,6 +12,7 @@ import refreshSampleData from './refreshSampleData'
 import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 import enrichOrganizations from './organizationEnricher'
+import refreshGroupsioToken from './refreshGroupsioToken'
 import { WEEKLY_EMAILS_CONFIG } from '../../conf'
 
 const EMAILS_ENABLED = WEEKLY_EMAILS_CONFIG.enabled === 'true'
@@ -20,7 +20,6 @@ const EMAILS_ENABLED = WEEKLY_EMAILS_CONFIG.enabled === 'true'
 const jobs: CrowdJob[] = [
   integrationTicks,
   memberScoreCoordinator,
-  checkSqsQueues,
   refreshMaterializedViews,
   refreshMaterializedViewsForCube,
   downgradeExpiredPlans,
@@ -31,6 +30,7 @@ const jobs: CrowdJob[] = [
   cleanUp,
   checkStuckIntegrationRuns,
   enrichOrganizations,
+  refreshGroupsioToken,
 ]
 
 if (EMAILS_ENABLED) {

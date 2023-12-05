@@ -63,6 +63,7 @@ const defaultConfig = {
   },
   isGitEnabled: import.meta.env.VUE_APP_IS_GIT_ENABLED,
   isGroupsioEnabled: import.meta.env.VUE_APP_IS_GROUPSIO_ENABLED,
+  isConfluenceEnabled: import.meta.env.VUE_APP_IS_CONFLUENCE_ENABLED,
   isTwitterEnabled: import.meta.env.VUE_APP_IS_TWITTER_ENABLED,
 };
 
@@ -120,6 +121,7 @@ const composedConfig = {
   isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
   isGroupsioEnabled: 'CROWD_VUE_APP_IS_GROUPSIO_ENABLED',
   isTwitterEnabled: 'CROWD_VUE_APP_IS_TWITTER_ENABLED',
+  isConfluenceEnabled: 'CROWD_VUE_APP_IS_CONFLUENCE_ENABLED',
 };
 
 const config = defaultConfig.backendUrl
@@ -132,5 +134,6 @@ config.hasPremiumModules = !config.isCommunityVersion
 config.isGitIntegrationEnabled = config.isGitEnabled === 'true';
 config.isGroupsioIntegrationEnabled = config.isGroupsioEnabled === 'true';
 config.isTwitterIntegrationEnabled = config.isTwitterEnabled === 'true';
+config.isConfluenceEnabled = config.isConfluenceEnabled === 'true';
 
 export default config;

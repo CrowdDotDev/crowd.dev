@@ -45,8 +45,16 @@ function getCredentials(): Credentials {
   }
 }
 
-function models(queryTimeoutMilliseconds: number) {
+function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = null) {
   const database = {} as any
+
+  let readHost = SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost
+  let writeHost = DB_CONFIG.writeHost
+
+  if (databaseHostnameOverride) {
+    readHost = databaseHostnameOverride
+    writeHost = databaseHostnameOverride
+  }
 
   const credentials = getCredentials()
 
@@ -66,11 +74,10 @@ function models(queryTimeoutMilliseconds: number) {
       replication: {
         read: [
           {
-            host:
-              SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost,
+            host: readHost,
           },
         ],
-        write: { host: DB_CONFIG.writeHost },
+        write: { host: writeHost },
       },
       pool: {
         max: SERVICE === configTypes.ServiceType.API ? 20 : 10,

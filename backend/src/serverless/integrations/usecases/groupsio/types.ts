@@ -1,6 +1,8 @@
 export interface GroupsioIntegrationData {
   email: string
   token: string
+  tokenExpiry: string
+  password: string
   groupNames: GroupName[]
 }
 
