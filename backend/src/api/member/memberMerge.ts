@@ -8,7 +8,11 @@ export default async (req, res) => {
 
   const payload = await new MemberService(req).merge(req.params.memberId, req.body.memberToMerge)
 
-  track('Merge members', { ...payload }, { ...req })
+  track(
+    'Merge members',
+    { memberId: req.params.memberId, memberToMergeId: req.body.memberToMerge },
+    { ...req },
+  )
 
   const status = payload.status || 200
 
