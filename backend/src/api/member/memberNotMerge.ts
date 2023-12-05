@@ -10,7 +10,11 @@ export default async (req, res) => {
     req.body.memberToNotMerge,
   )
 
-  track('Ignore merge members', { ...payload }, { ...req })
+  track(
+    'Ignore merge members',
+    { memberId: req.params.memberId, memberToNotMergeId: req.body.memberToNotMerge },
+    { ...req },
+  )
 
   await req.responseHandler.success(req, res, payload)
 }
