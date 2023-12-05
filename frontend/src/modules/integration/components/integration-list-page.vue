@@ -10,7 +10,7 @@
       <div class="text-xs text-gray-900">
         <span class="text-base">🧐</span> Missing something?
         <a
-          :href="supportUrl"
+          href="https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54"
           class="hover:underline"
         >Open an issue</a>
       </div>
@@ -98,11 +98,6 @@
     </div>
   </app-page-wrapper>
 </template>
-
-<script setup>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
-const supportUrl = CrowdIntegrations.getConfig('lfx').supportUrl || 'https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+';
-</script>
 
 <script>
 import { mapGetters } from 'vuex';
