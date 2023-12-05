@@ -1,9 +1,9 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { CrowdJob } from '../../types/jobTypes'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import moment from 'moment'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { CrowdJob } from '../../types/jobTypes'
 import { decryptData } from '../../utils/crypto'
 
 const log = getServiceChildLogger('refreshgroupsioTokenCronJob')
@@ -32,8 +32,8 @@ const job: CrowdJob = {
     )
 
     for (const integration of expiredGroupsIOTokens[0]) {
-      //update groups io token
-      let thisSetting: SetttingsObj = integration.settings
+      // update groups io token
+      const thisSetting: SetttingsObj = integration.settings
       const decryptedPassword = decryptData(thisSetting.password)
 
       const config: AxiosRequestConfig = {
@@ -54,7 +54,7 @@ const job: CrowdJob = {
 
         // we need to get cookie from the response  and it's expiry
         const cookie = response.headers['set-cookie'][0].split(';')[0]
-        let cookieExpiryString: string = response.headers['set-cookie'][0]
+        const cookieExpiryString: string = response.headers['set-cookie'][0]
           .split(';')[3]
           .split('=')[1]
         const cookieExpiry = moment(cookieExpiryString).format('YYYY-MM-DD HH:mm:ss.sss Z')

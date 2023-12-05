@@ -4,7 +4,6 @@ import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType } from '@crowd/types'
-import { encryptData } from '../utils/crypto'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -18,6 +17,7 @@ import {
   getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
+import { encryptData } from '../utils/crypto'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
 import Error400 from '../errors/Error400'
@@ -1578,7 +1578,7 @@ export default class IntegrationService {
       // we need to get cookie from the response
 
       const cookie = response.headers['set-cookie'][0].split(';')[0]
-      let cookieExpiryString: string = response.headers['set-cookie'][0].split(';')[3].split('=')[1]
+      const cookieExpiryString: string = response.headers['set-cookie'][0].split(';')[3].split('=')[1]
       const cookieExpiry = moment(cookieExpiryString).format('YYYY-MM-DD HH:mm:ss.sss Z')
 
       return {
