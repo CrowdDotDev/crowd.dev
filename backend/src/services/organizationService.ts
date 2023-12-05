@@ -29,6 +29,7 @@ import {
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
 import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import MemberOrganizationService from './memberOrganizationService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -152,11 +153,8 @@ export default class OrganizationService extends LoggerBase {
       await txService.update(originalId, toUpdate, false, false)
 
       // update members that belong to source organization to destination org
-      await OrganizationRepository.moveMembersBetweenOrganizations(
-        toMergeId,
-        originalId,
-        repoOptions,
-      )
+      const memberOrganizationService = new MemberOrganizationService(repoOptions)
+      await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
 
       // update activities that belong to source org to destination org
       await OrganizationRepository.moveActivitiesBetweenOrganizations(

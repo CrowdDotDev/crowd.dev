@@ -1049,6 +1049,9 @@ importers:
       '@crowd/logging':
         specifier: file:../../libs/logging
         version: file:services/libs/logging
+      '@crowd/opensearch':
+        specifier: file:../../libs/opensearch
+        version: file:services/libs/opensearch
       '@crowd/redis':
         specifier: file:../../libs/redis
         version: file:services/libs/redis

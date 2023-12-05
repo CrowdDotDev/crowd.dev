@@ -9,10 +9,13 @@ import {
 } from '@crowd/sqs'
 import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
-import { ActivitySyncService } from '../service/activity.sync.service'
-import { MemberSyncService } from '../service/member.sync.service'
-import { OpenSearchService } from '../service/opensearch.service'
-import { OrganizationSyncService } from '../service/organization.sync.service'
+import {
+  OpenSearchService,
+  ActivitySyncService,
+  MemberSyncService,
+  OrganizationSyncService,
+} from '@crowd/opensearch'
+import { SERVICE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
@@ -94,6 +97,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
+      SERVICE_CONFIG(),
     )
   }
 
@@ -110,6 +114,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
+      SERVICE_CONFIG(),
     )
   }
 

@@ -1,4 +1,4 @@
-import { IS_DEV_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
+import { IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
 import { UnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
@@ -150,7 +150,7 @@ export class QueuePriorityService {
           this.priorityLevelCalculationContextLoader,
           priorityLevelContextOverride,
         )
-      } else if (IS_DEV_ENV || IS_TEST_ENV) {
+      } else if (IS_DEV_ENV || IS_TEST_ENV || IS_STAGING_ENV) {
         priorityLevel = QueuePriorityLevel.NORMAL
       }
 
@@ -166,7 +166,7 @@ export class QueuePriorityService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     override?: any,
   ): Promise<QueuePriorityLevel> {
-    if (IS_DEV_ENV || IS_TEST_ENV) {
+    if (IS_DEV_ENV || IS_TEST_ENV || IS_STAGING_ENV) {
       return QueuePriorityLevel.NORMAL
     }
 
