@@ -1233,14 +1233,14 @@ export default class IntegrationService {
     let integration
     try {
       integration = await this.createOrUpdate(
-          {
-            platform: PlatformType.CONFLUENCE,
-            settings: {
-              remotes: integrationData.remotes,
-            },
-            status: 'done',
+        {
+          platform: PlatformType.CONFLUENCE,
+          settings: {
+            remotes: integrationData.remotes,
           },
-          transaction,
+          status: 'done',
+        },
+        transaction,
       )
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -1518,7 +1518,7 @@ export default class IntegrationService {
 
     try {
       this.options.log.info('Creating Groups.io integration!')
-      const encryptedPassword = encryptData(integrationData.password) 
+      const encryptedPassword = encryptData(integrationData.password)
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GROUPSIO,
@@ -1579,11 +1579,11 @@ export default class IntegrationService {
 
       const cookie = response.headers['set-cookie'][0].split(';')[0]
       let cookieExpiryString: string = response.headers['set-cookie'][0].split(';')[3].split('=')[1]
-      const cookieExpiry = moment(cookieExpiryString).format("YYYY-MM-DD HH:mm:ss.sss Z")
+      const cookieExpiry = moment(cookieExpiryString).format('YYYY-MM-DD HH:mm:ss.sss Z')
 
       return {
         groupsioCookie: cookie,
-        groupsioCookieExpiry: cookieExpiry
+        groupsioCookieExpiry: cookieExpiry,
       }
     } catch (err) {
       if ('two_factor_required' in response.data) {

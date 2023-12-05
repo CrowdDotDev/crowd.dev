@@ -67,7 +67,8 @@ export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
-export const ENCRYPTION_CONFIG: EncryptionConfiguration = config.get<EncryptionConfiguration>('encryption')
+export const ENCRYPTION_CONFIG: EncryptionConfiguration =
+  config.get<EncryptionConfiguration>('encryption')
 
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
 
