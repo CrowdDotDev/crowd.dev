@@ -1578,7 +1578,9 @@ export default class IntegrationService {
       // we need to get cookie from the response
 
       const cookie = response.headers['set-cookie'][0].split(';')[0]
-      const cookieExpiryString: string = response.headers['set-cookie'][0].split(';')[3].split('=')[1]
+      const cookieExpiryString: string = response.headers['set-cookie'][0]
+        .split(';')[3]
+        .split('=')[1]
       const cookieExpiry = moment(cookieExpiryString).format('YYYY-MM-DD HH:mm:ss.sss Z')
 
       return {
