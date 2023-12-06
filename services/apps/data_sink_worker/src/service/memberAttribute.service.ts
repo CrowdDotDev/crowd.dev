@@ -30,6 +30,7 @@ export default class MemberAttributeService extends LoggerBase {
             attributeName,
             attributeValue: attributes[attributeName],
           })
+          throw error
         }
       }
 
