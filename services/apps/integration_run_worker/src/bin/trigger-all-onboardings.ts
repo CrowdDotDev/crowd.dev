@@ -48,7 +48,6 @@ setImmediate(async () => {
           integration.type,
           integration.id,
           true,
-          true,
         )
 
         log.info('Sleeping for 5 minutes between starts of integration onboarding!')

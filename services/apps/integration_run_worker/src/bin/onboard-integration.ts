@@ -65,7 +65,6 @@ setImmediate(async () => {
         integration.type,
         integration.id,
         isOnboarding,
-        isOnboarding,
       )
     } else {
       log.error({ integrationId }, 'Integration not found!')
