@@ -68,7 +68,7 @@
         </p>
       </div>
       <div>
-        <div class="flex items-center gap-1">
+        <cr-enrichment-sneak-peak source="GitHub">
           <p class="text-gray-400 font-medium text-2xs">
             Reach
           </p>
@@ -78,15 +78,7 @@
             </template>
             <i class="ri-information-line text-gray-500 text-xs mr-1" />
           </el-tooltip>
-          <el-tooltip
-            content="Source: GitHub"
-            placement="top"
-            trigger="hover"
-          >
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
-
+        </cr-enrichment-sneak-peak>
         <p class="mt-1 text-gray-900 text-xs">
           <app-member-reach :member="member" />
         </p>
@@ -133,6 +125,7 @@ import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialo
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
 
 defineProps({
   member: {

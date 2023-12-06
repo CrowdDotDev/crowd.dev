@@ -102,6 +102,12 @@
             <path d="M0.5 5.93385C3.38978 5.6936 5.6936 3.38978 5.93385 0.5H6.06615C6.3064 3.38978 8.61024 5.6936 11.5 5.93385V6.06615C8.61024 6.3064 6.3064 8.61024 6.06615 11.5H5.93385C5.6936 8.61024 3.38978 6.3064 0.5 6.06615V5.93385Z" fill="#DDD6FE" stroke="#8B5CF6" stroke-linejoin="round"/>
         </svg>
     </symbol>
+
+    <symbol id="enrichment-star">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M0.5 5.93385C3.38978 5.6936 5.6936 3.38978 5.93385 0.5H6.06615C6.3064 3.38978 8.61024 5.6936 11.5 5.93385V6.06615C8.61024 6.3064 6.3064 8.61024 6.06615 11.5H5.93385C5.6936 8.61024 3.38978 6.3064 0.5 6.06615V5.93385Z" fill="currentColor" stroke="currentColor" stroke-linejoin="round"/>
+        </svg>
+    </symbol>
     <symbol id="git">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g clip-path="url(#clip)">
