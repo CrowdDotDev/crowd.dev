@@ -7,6 +7,6 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.eagleEyeActionCreate)
 
   const payload = await new EagleEyeContentService(req).search()
-  track('EagleEye backend search', { ...req.body }, { ...req })
+  track('EagleEye backend search', {}, { ...req })
   await req.responseHandler.success(req, res, payload)
 }

@@ -24,7 +24,7 @@ export default async (req, res) => {
   const payload = await new TaskService(req).query(req.body)
 
   if (req.body?.filter && Object.keys(req.body.filter).length > 0) {
-    track('Tasks Advanced Filter', { ...payload }, { ...req })
+    track('Tasks Advanced Filter', { ...req.body }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)
