@@ -22,6 +22,17 @@ export default class MemberAttributeService extends LoggerBase {
     }
 
     for (const attributeName of Object.keys(attributes)) {
+      if (typeof attributes[attributeName] === 'string') {
+        try {
+          attributes[attributeName] = JSON.parse(attributes[attributeName] as string)
+        } catch (error) {
+          this.log.error('Failed to parse attribute value', {
+            attributeName,
+            attributeValue: attributes[attributeName],
+          })
+        }
+      }
+
       const highestPriorityPlatform =
         MemberAttributeService.getHighestPriorityPlatformForAttributes(
           Object.keys(attributes[attributeName]),
