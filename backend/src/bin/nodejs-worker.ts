@@ -12,7 +12,7 @@ import fs from 'fs'
 import path from 'path'
 import { QueryTypes, Sequelize } from 'sequelize'
 import telemetry from '@crowd/telemetry'
-import { SQS_CLIENT } from '@/serverless/utils/serviceSQS'
+import { SQS_CLIENT, getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { databaseInit } from '@/database/databaseConnection'
 import { REDIS_CONFIG, SQS_CONFIG } from '../conf'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
@@ -179,6 +179,8 @@ const initRedisSeq = async () => {
 
 setImmediate(async () => {
   await initRedisSeq()
+
+  await getNodejsWorkerEmitter()
   await handleMessages()
 })
 
