@@ -17,7 +17,7 @@
           </div>
           <div class="text-xs text-gray-600">
             Monthly active contributors help to measure
-            “Product-Community Fit” for open-source
+            Project-Community Fit” for open-source
             companies. This report looks beyond the usual
             metrics (stars, forks, etc.) and analyzes how
             many people contributed to your community.
