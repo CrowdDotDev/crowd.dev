@@ -24,7 +24,7 @@ export default async (req, res) => {
   const payload = await new ConversationService(req).query(req.body)
 
   if (req.body?.filter && Object.keys(req.body.filter).length > 0) {
-    track('Conversations Advanced Filter', { ...payload }, { ...req })
+    track('Conversations Advanced Filter', { ...req.body }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)
