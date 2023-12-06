@@ -168,7 +168,7 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       new StripeWebhookQueueMessage(event),
       undefined,
       undefined,
-      QueuePriorityLevel.GLOBAL,
+      QueuePriorityLevel.SYSTEM,
     )
   }
 
@@ -179,7 +179,7 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       new SendgridWebhookQueueMessage(event),
       undefined,
       undefined,
-      QueuePriorityLevel.GLOBAL,
+      QueuePriorityLevel.SYSTEM,
     )
   }
 
@@ -190,7 +190,7 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       new RefreshSampleDataQueueMessage(),
       undefined,
       undefined,
-      QueuePriorityLevel.GLOBAL,
+      QueuePriorityLevel.SYSTEM,
     )
   }
 

@@ -40,7 +40,7 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
       new CheckRunsQueueMessage(),
       'global',
       undefined,
-      QueuePriorityLevel.GLOBAL,
+      QueuePriorityLevel.SYSTEM,
     )
   }
 

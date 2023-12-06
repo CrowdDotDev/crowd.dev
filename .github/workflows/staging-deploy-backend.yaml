@@ -3,12 +3,12 @@ name: Staging Deploy Backend services
 on:
   push:
     branches:
-      - 'staging/**'
-      - 'staging-**'
+      - "staging/**"
+      - "staging-**"
     paths:
-      - 'backend/**'
-      - 'services/libs/**'
-      - '!backend/src/serverless/microservices/python/**'
+      - "backend/**"
+      - "services/libs/**"
+      - "!backend/src/serverless/microservices/python/**"
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -76,6 +76,8 @@ jobs:
           service: nodejs-worker
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          prioritized: true
+          only_normal_queue_level: true
 
   deploy-job-generator:
     needs: build-and-push

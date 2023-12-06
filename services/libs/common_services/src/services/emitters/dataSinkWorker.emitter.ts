@@ -78,7 +78,7 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
       new CheckResultsQueueMessage(),
       'global',
       undefined,
-      QueuePriorityLevel.GLOBAL,
+      QueuePriorityLevel.SYSTEM,
     )
   }
 

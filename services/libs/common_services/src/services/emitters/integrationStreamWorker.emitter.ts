@@ -41,7 +41,7 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
       new CheckStreamsQueueMessage(),
       'global',
       undefined,
-      QueuePriorityLevel.GLOBAL,
+      QueuePriorityLevel.SYSTEM,
     )
   }
 
