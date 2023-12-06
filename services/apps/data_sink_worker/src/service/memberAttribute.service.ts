@@ -78,6 +78,8 @@ export default class MemberAttributeService extends LoggerBase {
             attributeName,
             attributeValue: attributes[attributeName],
           })
+
+          // if we can't parse the value, probably it is a custom attribute
           attributes[attributeName] = {
             custom: attributes[attributeName],
           }
