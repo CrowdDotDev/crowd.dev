@@ -71,7 +71,6 @@
 </template>
 
 <script setup>
-import { computed, defineProps } from 'vue';
 import {
   computed, defineProps, onMounted, ref,
 } from 'vue';
