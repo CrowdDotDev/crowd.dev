@@ -750,7 +750,6 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import employeeChurnRate from '@/modules/organization/config/enrichment/employeeChurnRate';
 import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppTagList from '@/modules/tag/components/tag-list.vue';

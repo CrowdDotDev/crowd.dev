@@ -38,7 +38,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps<{

@@ -124,7 +124,6 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
 // Props & emits
 const props = defineProps({

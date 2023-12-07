@@ -15,7 +15,8 @@
               }"
             >
               <button
-               v-if="membersToMergeCount > 0" :disabled="isEditLockedForSampleData"
+                v-if="membersToMergeCount > 0"
+                :disabled="isEditLockedForSampleData"
                 type="button"
                 class="btn btn--secondary btn--md flex items-center"
               >

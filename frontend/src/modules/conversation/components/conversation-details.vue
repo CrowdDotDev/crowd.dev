@@ -156,7 +156,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { mapState } from 'pinia';
+import { mapState, storeToRefs } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
@@ -169,7 +169,6 @@ import AppConversationDetailsFooter from '@/modules/conversation/components/conv
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import config from '@/config';
-import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ConversationPermissions } from '../conversation-permissions';
