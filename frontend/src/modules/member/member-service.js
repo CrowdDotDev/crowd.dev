@@ -73,6 +73,16 @@ export class MemberService {
     return response.data;
   }
 
+  static async findGithub(id) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/member/github/${id}`,
+    );
+
+    return response.data;
+  }
+
   static async export({
     filter,
     orderBy,
