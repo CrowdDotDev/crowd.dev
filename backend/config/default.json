@@ -63,5 +63,6 @@
     "automationsTaskQueue": "automations"
   },
   "searchSyncApi": {},
+  "encryption": {},
   "openStatusApi": {}
 }
