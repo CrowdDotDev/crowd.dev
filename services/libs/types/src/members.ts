@@ -36,6 +36,8 @@ export interface IMember {
   segmentId: string
   attributes: IAttributes
   emails: string[]
+  displayName?: string
+  avatarUrl?: string
   score: number
   lastEnriched: string
   joinedAt: string

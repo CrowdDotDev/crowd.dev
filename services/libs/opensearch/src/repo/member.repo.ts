@@ -268,9 +268,9 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
 
               ad."activeOn",
-              ad."activityCount",
+              ad."activityCount"::integer,
               ad."activityTypes",
-              ad."activeDaysCount",
+              ad."activeDaysCount"::integer,
               ad."lastActive",
               ad."averageSentiment",
 

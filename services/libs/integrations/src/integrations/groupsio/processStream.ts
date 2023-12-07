@@ -133,7 +133,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
         group: data.group,
         topic: data.topic,
         member,
-        sourceParentId: i > 0 ? response.data[0].id.toString() : null,
+        sourceParentId: i > 0 ? response.data[i - 1].id.toString() : null,
       },
     })
   }

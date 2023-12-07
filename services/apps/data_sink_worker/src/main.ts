@@ -1,7 +1,12 @@
 import { getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import {
+  NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
+  DataSinkWorkerEmitter,
+  getSqsClient,
+} from '@crowd/sqs'
 import {
   DB_CONFIG,
   SENTIMENT_CONFIG,
@@ -48,11 +53,14 @@ setImmediate(async () => {
 
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
 
+  const dataWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
+
   const queue = new WorkerQueueReceiver(
     sqsClient,
     dbConnection,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
+    dataWorkerEmitter,
     redisClient,
     unleash,
     temporal,
@@ -64,6 +72,7 @@ setImmediate(async () => {
   try {
     await nodejsWorkerEmitter.init()
     await searchSyncWorkerEmitter.init()
+    await dataWorkerEmitter.init()
 
     let processing = false
     setInterval(async () => {
@@ -77,6 +86,7 @@ setImmediate(async () => {
             redisClient,
             nodejsWorkerEmitter,
             searchSyncWorkerEmitter,
+            dataWorkerEmitter,
             unleash,
             temporal,
             log,
