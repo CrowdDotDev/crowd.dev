@@ -38,7 +38,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import { useQuickStartStore } from '@/modules/quickstart/store';
 import { storeToRefs } from 'pinia';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
@@ -48,10 +47,6 @@ const props = defineProps<{
 
 const { rows } = mapGetters('tenant');
 const { currentTenant } = mapGetters('auth');
-
-const storeQuickStartGuides = useQuickStartStore();
-const { notcompletedGuides, guides } = storeToRefs(storeQuickStartGuides);
-const { getGuides } = storeQuickStartGuides;
 
 const isPrimaryWorkspace = computed(() => {
   const tenants = rows.value;
@@ -67,7 +62,6 @@ const isPrimaryWorkspace = computed(() => {
 });
 
 onMounted(() => {
-  getGuides();
 });
 </script>
 
