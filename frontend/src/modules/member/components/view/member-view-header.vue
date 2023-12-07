@@ -68,16 +68,26 @@
         </p>
       </div>
       <div>
-        <cr-enrichment-sneak-peak source="GitHub">
-          <p class="text-gray-400 font-medium text-2xs">
-            Reach
-          </p>
-          <el-tooltip placement="top">
-            <template #content>
-              Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
-            </template>
-            <i class="ri-information-line text-gray-500 text-xs mr-1" />
-          </el-tooltip>
+        <cr-enrichment-sneak-peak type="contact">
+          <template #default="{ enabled }">
+            <p class="font-medium text-2xs" :class="enabled ? 'text-gray-400' : 'text-purple-400'">
+              Reach
+            </p>
+            <el-tooltip placement="top">
+              <template #content>
+                Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+              </template>
+              <i class="ri-information-line text-gray-500 text-xs mr-1" />
+            </el-tooltip>
+            <el-tooltip
+              content="Source: GitHub"
+              placement="top"
+              trigger="hover"
+              :disabled="!enabled"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </template>
         </cr-enrichment-sneak-peak>
         <p class="mt-1 text-gray-900 text-xs">
           <app-member-reach :member="member" />
