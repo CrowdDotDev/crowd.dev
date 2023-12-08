@@ -1467,7 +1467,6 @@ class OrganizationRepository {
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
-        JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
         LEFT JOIN "mergeActions" ma
           ON ma.type = :mergeActionType
           AND ma."tenantId" = :tenantId
@@ -1477,7 +1476,6 @@ class OrganizationRepository {
           )
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
-          AND to_merge_segments."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
       ),
       
