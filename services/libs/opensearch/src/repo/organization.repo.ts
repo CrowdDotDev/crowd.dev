@@ -250,7 +250,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."activityCount"::integer,
         md."memberCount"::integer,
         md."memberIds",
-        i.identities,
+        coalesce(i.identities, array []::jsonb[])            as "identities",
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
         coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds",
         o."weakIdentities"
