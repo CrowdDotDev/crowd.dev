@@ -19,7 +19,7 @@ import ActivityService from '../../services/activityService'
  */
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.activityRead)
-  const payload = await new ActivityService(req).findActivityTypes(req.params.segments)
+  const payload = await new ActivityService(req).findActivityTypes(req.query.segments)
 
   await req.responseHandler.success(req, res, payload)
 }
