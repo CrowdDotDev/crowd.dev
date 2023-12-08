@@ -142,6 +142,9 @@ export default class MemberService extends LoggerBase {
             memberId: id,
           },
         ],
+        searchAttributes: {
+          TenantId: [tenantId],
+        },
       })
       this.log.info(
         { workflowId: handle.workflowId },

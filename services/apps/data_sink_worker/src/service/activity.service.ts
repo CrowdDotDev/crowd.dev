@@ -104,6 +104,9 @@ export default class ActivityService extends LoggerBase {
             activityId: id,
           },
         ],
+        searchAttributes: {
+          TenantId: [tenantId],
+        },
       })
       this.log.info(
         { workflowId: handle.workflowId },

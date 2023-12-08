@@ -203,6 +203,9 @@ export default class ActivityService extends LoggerBase {
                   activityId: record.id,
                 },
               ],
+              searchAttributes: {
+                TenantId: [this.options.currentTenant.id],
+              },
             },
           )
           this.log.info(
