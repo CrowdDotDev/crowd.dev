@@ -230,10 +230,7 @@ const constaintConfiguration = {
   [FeatureFlag.TEMPORAL_MEMBERS_ENRICHMENT]: [
     [
       {
-        values: [
-          Plans.values.scale,
-          Plans.values.enterprise,
-        ],
+        values: [Plans.values.scale, Plans.values.enterprise],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
