@@ -50,54 +50,67 @@
         :key="attribute.id"
         class="attribute"
       >
-        <div class="flex items-center">
-          <p class="title pr-2">
-            {{ attribute.label }}
-            <el-tooltip
-              content="Skills are sorted by relevance"
-              placement="top"
-            >
-              <i
-                v-if="attribute.name === 'skills'"
-                class="ri-information-line"
-              />
-            </el-tooltip>
-          </p>
-          <el-tooltip
-            v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
-            :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
-            placement="top"
-            trigger="hover"
-          >
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
-        <div
-          v-if="attribute.type === 'multiSelect'"
-          class="multiSelect -mt-1"
-        >
-          <app-member-custom-attributes-array-renderer
-            :title="attribute.label"
-            :attribute="member.attributes[attribute.name]"
-            more-label=""
-            :slice-size="5"
-            :with-separators="false"
-            wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
-            item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
-          >
-            <template #itemSlot="{ item }">
-              {{ item }}
-            </template>
-          </app-member-custom-attributes-array-renderer>
-        </div>
-        <p v-else class="value break-words">
-          {{
-            formattedComputedAttributeValue(
-              member.attributes[attribute.name].default,
-            )
-          }}
-        </p>
+        <cr-enrichment-sneak-peak type="contact">
+          <template #default="{ enabled }">
+            <div>
+              <div class="flex items-center">
+                <p class="title pr-2" :class="{ '!text-purple-400': !enabled }">
+                  {{ attribute.label }}
+                  <el-tooltip
+                    content="Skills are sorted by relevance"
+                    placement="top"
+                  >
+                    <i
+                      v-if="attribute.name === 'skills'"
+                      class="ri-information-line"
+                    />
+                  </el-tooltip>
+                </p>
+                <el-tooltip
+                  v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
+                  :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
+                  placement="top"
+                  trigger="hover"
+                  :disabled="!enabled"
+                >
+                  <app-svg name="source" class="h-3 w-3" />
+                </el-tooltip>
+              </div>
+              <div v-if="!enabled" class="mt-1">
+                <div class="w-full h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
+              </div>
+              <div
+                v-else-if="attribute.type === 'multiSelect'"
+                class="multiSelect -mt-1"
+              >
+                <app-member-custom-attributes-array-renderer
+                  :title="attribute.label"
+                  :attribute="member.attributes[attribute.name]"
+                  more-label=""
+                  :slice-size="5"
+                  :with-separators="false"
+                  wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
+                  item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
+                >
+                  <template #itemSlot="{ item }">
+                    {{ item }}
+                  </template>
+                </app-member-custom-attributes-array-renderer>
+              </div>
+              <p v-else class="value break-words">
+                {{
+                  formattedComputedAttributeValue(
+                    member.attributes[attribute.name].default,
+                  )
+                }}
+              </p>
+            </div>
+          </template>
+        </cr-enrichment-sneak-peak>
       </div>
+    </div>
+    <div class="-mx-2 pt-2">
+      <cr-enrichment-sneak-peak-content type="contact" :dark="true" />
     </div>
 
     <app-member-manage-attributes-drawer
@@ -119,6 +132,8 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
+import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/encirhment-sneak-peak-content.vue';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 

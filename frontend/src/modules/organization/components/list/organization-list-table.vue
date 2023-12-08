@@ -391,34 +391,48 @@
                   prop="industry"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Industry
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                        <app-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                    </div>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <div class="flex items-center">
+                          <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                            Industry
+                          </div>
+                          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                            <app-svg name="source" class="h-3 w-3" />
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                   <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.industry" class="text-gray-900">
-                          {{
-                            toSentenceCase(scope.row.industry)
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <router-link
+                          :to="{
+                            name: 'organizationView',
+                            params: { id: scope.row.id },
+                          }"
+                          class="block h-full"
+                        >
+                          <div
+                            v-if="enabled"
+                            class="text-sm h-full flex items-center"
+                          >
+                            <span v-if="scope.row.industry" class="text-gray-900">
+                              {{
+                                toSentenceCase(scope.row.industry)
+                              }}
+                            </span>
+                            <span v-else class="text-gray-500">-</span>
+                          </div>
+                          <div v-else class="flex items-center h-full w-full pl-2">
+                            <div class="blur text-black">
+                              Nothing here
+                            </div>
+                          </div>
+                        </router-link>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                 </el-table-column>
 
@@ -429,34 +443,48 @@
                   prop="size"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Headcount
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                        <app-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                    </div>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <div class="flex items-center">
+                          <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                            Headcount
+                          </div>
+                          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                            <app-svg name="source" class="h-3 w-3" />
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                   <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.size" class="text-gray-900">
-                          {{
-                            scope.row.size
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <router-link
+                          :to="{
+                            name: 'organizationView',
+                            params: { id: scope.row.id },
+                          }"
+                          class="block h-full"
+                        >
+                          <div
+                            v-if="enabled"
+                            class="text-sm h-full flex items-center"
+                          >
+                            <span v-if="scope.row.size" class="text-gray-900">
+                              {{
+                                scope.row.size
+                              }}
+                            </span>
+                            <span v-else class="text-gray-500">-</span>
+                          </div>
+                          <div v-else class="flex items-center h-full w-full pl-2">
+                            <div class="blur text-black">
+                              Nothing here
+                            </div>
+                          </div>
+                        </router-link>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                 </el-table-column>
 
@@ -466,34 +494,48 @@
                   width="150"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Annual Revenue
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                        <app-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                    </div>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <div class="flex items-center">
+                          <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                            Annual Revenue
+                          </div>
+                          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                            <app-svg name="source" class="h-3 w-3" />
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                   <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.revenueRange" class="text-gray-900">
-                          {{
-                            revenueRange.displayValue(scope.row.revenueRange)
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <router-link
+                          :to="{
+                            name: 'organizationView',
+                            params: { id: scope.row.id },
+                          }"
+                          class="block h-full"
+                        >
+                          <div
+                            v-if="enabled"
+                            class="text-sm h-full flex items-center"
+                          >
+                            <span v-if="scope.row.revenueRange" class="text-gray-900">
+                              {{
+                                revenueRange.displayValue(scope.row.revenueRange)
+                              }}
+                            </span>
+                            <span v-else class="text-gray-500">-</span>
+                          </div>
+                          <div v-else class="flex items-center h-full w-full pl-2">
+                            <div class="blur text-black">
+                              Nothing here
+                            </div>
+                          </div>
+                        </router-link>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                 </el-table-column>
 
@@ -505,36 +547,51 @@
                   sortable
                 >
                   <template #header>
-                    <div class="inline-block">
-                      <div class="flex items-center">
-                        <div class="mr-2">
-                          Founded
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <div class="inline-block">
+                          <div class="flex items-center">
+                            <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                              Founded
+                            </div>
+                            <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                              <app-svg name="source" class="h-3 w-3" />
+                            </el-tooltip>
+                          </div>
                         </div>
-                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                          <app-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                      </div>
-                    </div>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                   <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.founded" class="text-gray-900">
-                          {{
-                            scope.row.founded
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <router-link
+                          :to="{
+                            name: 'organizationView',
+                            params: { id: scope.row.id },
+                          }"
+                          class="block h-full"
+                        >
+                          <div
+
+                            v-if="enabled"
+                            class="text-sm h-full flex items-center"
+                          >
+                            <span v-if="scope.row.founded" class="text-gray-900">
+                              {{
+                                scope.row.founded
+                              }}
+                            </span>
+                            <span v-else class="text-gray-500">-</span>
+                          </div>
+                          <div v-else class="flex items-center h-full w-full pl-2">
+                            <div class="blur text-black">
+                              Nothing here
+                            </div>
+                          </div>
+                        </router-link>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                 </el-table-column>
 
@@ -544,34 +601,48 @@
                   width="250"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Ann. Employee Growth Rate
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                        <app-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                    </div>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <div class="flex items-center">
+                          <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                            Ann. Employee Growth Rate
+                          </div>
+                          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                            <app-svg name="source" class="h-3 w-3" />
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                   <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
-                          {{
-                            employeeGrowthRate.valueParser(scope.row.employeeGrowthRate['12_month'])
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <router-link
+                          :to="{
+                            name: 'organizationView',
+                            params: { id: scope.row.id },
+                          }"
+                          class="block h-full"
+                        >
+                          <div
+                            v-if="enabled"
+                            class="text-sm h-full flex items-center"
+                          >
+                            <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
+                              {{
+                                employeeGrowthRate.valueParser(scope.row.employeeGrowthRate['12_month'])
+                              }}
+                            </span>
+                            <span v-else class="text-gray-500">-</span>
+                          </div>
+                          <div v-else class="flex items-center h-full w-full pl-2">
+                            <div class="blur text-black">
+                              Nothing here
+                            </div>
+                          </div>
+                        </router-link>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                 </el-table-column>
 
@@ -581,33 +652,49 @@
                   :width="tagsColumnWidth"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Smart Tags
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                        <app-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                    </div>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <div class="flex items-center">
+                          <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                            Smart Tags
+                          </div>
+                          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                            <app-svg name="source" class="h-3 w-3" />
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                   <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <app-tag-list
-                        v-if="scope.row.tags?.length"
-                        :member="{
-                          ...scope.row,
-                          tags: scope.row.tags.map((t) => ({ id: t, name: t })),
-                        }"
-                        :editable="false"
-                      />
-                      <span v-else class="text-gray-500">-</span>
-                    </router-link>
+                    <cr-enrichment-sneak-peak type="organization">
+                      <template #default="{ enabled }">
+                        <router-link
+
+                          :to="{
+                            name: 'organizationView',
+                            params: { id: scope.row.id },
+                          }"
+                          class="block h-full"
+                        >
+                          <div v-if="enabled">
+                            <app-tag-list
+                              v-if="scope.row.tags?.length"
+                              :member="{
+                                ...scope.row,
+                                tags: scope.row.tags.map((t) => ({ id: t, name: t })),
+                              }"
+                              :editable="false"
+                            />
+                            <span v-else class="text-gray-500">-</span>
+                          </div>
+                          <div v-else class="flex items-center h-full w-full pl-2">
+                            <div class="blur text-black">
+                              Nothing here
+                            </div>
+                          </div>
+                        </router-link>
+                      </template>
+                    </cr-enrichment-sneak-peak>
                   </template>
                 </el-table-column>
 
@@ -702,6 +789,7 @@ import revenueRange from '@/modules/organization/config/enrichment/revenueRange'
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';

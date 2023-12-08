@@ -119,6 +119,8 @@ import { withHttp } from '@/utils/string';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppPlatform from '@/shared/platform/platform.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import Plans from '@/security/plans';
 import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 
 const props = defineProps({
@@ -127,6 +129,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const { currentTenant } = mapGetters('auth');
 
 const showDivider = computed(
   () => (!!props.organization.emails?.length
@@ -150,13 +154,18 @@ const noIdentities = computed(() => (
       || props.organization.phoneNumbers.length === 0)
 ));
 
-const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
-  if (a.type === AttributeType.ARRAY) {
-    return !!props.organization[a.name]?.length;
+const shouldShowAttributes = computed(() => {
+  if (currentTenant.value.plan === Plans.values.essential) {
+    return true;
   }
+  return enrichmentAttributes.some((a) => {
+    if (a.type === AttributeType.ARRAY) {
+      return !!props.organization[a.name]?.length;
+    }
 
-  return !!props.organization[a.name];
-}));
+    return !!props.organization[a.name];
+  });
+});
 
 const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 

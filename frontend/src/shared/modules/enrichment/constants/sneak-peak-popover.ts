@@ -12,8 +12,8 @@ export const popoverContent: Record<EnrichSneakPeakPopoverType, EnrichSneakPeakP
   },
   [EnrichSneakPeakPopoverType.ORGANIZATION]: {
     title: 'Organization enrichment',
-    body: 'Get more insights about this organization by enriching it with valuable details such ' +
-      'as headcount, industry, location, and more...',
+    body: 'Get more insights about this organization by enriching it with valuable details such '
+      + 'as headcount, industry, location, and more...',
     link: 'https://docs.crowd.dev/docs/guides/organizations/organization-enrichment',
   },
 };

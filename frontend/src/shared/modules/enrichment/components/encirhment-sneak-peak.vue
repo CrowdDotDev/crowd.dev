@@ -1,7 +1,7 @@
 <template>
   <el-popover :disabled="isEnrichEnabled" placement="top" trigger="hover" width="240px" popper-class="!p-0">
     <template #reference>
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1 h-full">
         <slot :enabled="isEnrichEnabled" />
       </div>
     </template>

@@ -37,9 +37,8 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Certifications -->
-    <div class="flex items-center mb-4 mt-10">
+    <div v-if="member.attributes.certifications" class="flex items-center mb-4 mt-10">
       <div
-        v-if="member.attributes.certifications"
         class="font-medium text-black mr-2"
       >
         Certifications
@@ -74,9 +73,11 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Awards -->
-    <div class="flex items-center mb-4 mt-10">
+    <div
+      v-if="member.attributes.awards"
+      class="flex items-center mb-4 mt-10"
+    >
       <div
-        v-if="member.attributes.awards"
         class="font-medium text-black mr-2"
       >
         Awards
@@ -90,19 +91,20 @@
         <app-svg name="source" class="h-3 w-3" />
       </el-tooltip>
     </div>
-    <app-member-custom-attributes-array-renderer
-      title="Awards"
-      :attribute="member.attributes.awards"
-      more-label="items"
-    >
-      <template #itemSlot="{ item }">
-        <div
-          class="text-xs text-gray-900 break-keep text-left py-3"
-        >
-          {{ item }}
-        </div>
-      </template>
-    </app-member-custom-attributes-array-renderer>
+    <!--    <app-member-custom-attributes-array-renderer-->
+    <!--        -->
+    <!--      title="Awards"-->
+    <!--      :attribute="member.attributes.awards"-->
+    <!--      more-label="items"-->
+    <!--    >-->
+    <!--      <template #itemSlot="{ item }">-->
+    <!--        <div-->
+    <!--          class="text-xs text-gray-900 break-keep text-left py-3"-->
+    <!--        >-->
+    <!--          {{ item }}-->
+    <!--        </div>-->
+    <!--      </template>-->
+    <!--    </app-member-custom-attributes-array-renderer>-->
   </div>
 </template>
 

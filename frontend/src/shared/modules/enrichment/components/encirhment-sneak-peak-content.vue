@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4" :class="props.dark ? 'bg-purple-50' : 'bg-white'">
+  <div v-if="displayContent" class="p-4 rounded-md" :class="props.dark ? 'bg-purple-50' : 'bg-white'">
     <div class="flex items-center mb-3">
       <div class="w-5 h-5 rounded-full p-1 mr-2" :class="props.dark ? 'bg-purple-400' : 'bg-purple-100'">
         <app-svg name="enrichment-star" :class="props.dark ? 'text-purple-50' : 'text-purple-400'" />
@@ -40,11 +40,16 @@ import { computed } from 'vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { EnrichSneakPeakPopoverType, EnrichSneakPeakPopoverContent } from '@/shared/modules/enrichment/types/SneakPeakPopover';
 import { popoverContent } from '@/shared/modules/enrichment/constants/sneak-peak-popover';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import Plans from '@/security/plans';
 
 const props = defineProps<{
   type: EnrichSneakPeakPopoverType,
   dark?: boolean,
 }>();
+
+const { currentTenant } = mapGetters('auth');
+const displayContent = computed(() => currentTenant.value.plan === Plans.values.essential);
 
 const popover = computed<EnrichSneakPeakPopoverContent>(() => popoverContent[props.type || EnrichSneakPeakPopoverType.CONTACT]);
 </script>

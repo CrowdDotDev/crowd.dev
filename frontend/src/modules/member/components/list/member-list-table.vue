@@ -410,34 +410,49 @@
                 sortable="custom"
               >
                 <template #header>
-                  <span>Reach</span>
-                  <div class="inline-flex items-center ml-1 gap-2">
-                    <el-tooltip placement="top">
-                      <template #content>
-                        Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
-                      </template>
-                      <i class="ri-information-line text-xs" />
-                    </el-tooltip>
-                    <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
-                      <app-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                  </div>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <span :class="{ 'text-purple-400': !enabled }">Reach</span>
+                      <div class="inline-flex items-center ml-1 gap-2">
+                        <el-tooltip placement="top">
+                          <template #content>
+                            Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                          </template>
+                          <i class="ri-information-line text-xs" />
+                        </el-tooltip>
+                        <el-tooltip content="Source: GitHub" placement="top" trigger="hover" :disabled="!enabled">
+                          <app-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                      </div>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
                 <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    <app-member-reach
-                      :member="{
-                        ...scope.row,
-                        reach: scope.row.reach,
-                      }"
-                    />
-                  </router-link>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <router-link
+
+                        :to="{
+                          name: 'memberView',
+                          params: { id: scope.row.id },
+                        }"
+                        class="block h-full !text-gray-500"
+                      >
+                        <app-member-reach
+                          v-if="enabled"
+                          :member="{
+                            ...scope.row,
+                            reach: scope.row.reach,
+                          }"
+                        />
+                        <div v-else class="flex items-center h-full w-full pl-2">
+                          <div class="blur text-black">
+                            Nothing here
+                          </div>
+                        </div>
+                      </router-link>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
               </el-table-column>
 
@@ -447,35 +462,52 @@
                 width="200"
               >
                 <template #header>
-                  <div class="flex items-center">
-                    <div class="mr-2">
-                      Seniority Level
-                    </div>
-                    <el-tooltip
-                      content="Source: Enrichment"
-                      placement="top"
-                      trigger="hover"
-                    >
-                      <app-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                  </div>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <div class="flex items-center">
+                        <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                          Seniority Level
+                        </div>
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                          :disabled="!enabled"
+                        >
+                          <app-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                      </div>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
                 <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      v-if="scope.row.attributes?.seniorityLevel?.default"
-                      class="text-gray-900 text-sm"
-                    >
-                      {{ scope.row.attributes.seniorityLevel.default }}
-                    </div>
-                    <span v-else class="text-gray-900">-</span>
-                  </router-link>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <router-link
+
+                        :to="{
+                          name: 'memberView',
+                          params: { id: scope.row.id },
+                        }"
+                        class="block h-full"
+                      >
+                        <div v-if="enabled">
+                          <div
+                            v-if="scope.row.attributes?.seniorityLevel?.default"
+                            class="text-gray-900 text-sm"
+                          >
+                            {{ scope.row.attributes.seniorityLevel.default }}
+                          </div>
+                          <span v-else class="text-gray-900">-</span>
+                        </div>
+                        <div v-else class="flex items-center h-full w-full pl-2">
+                          <div class="blur text-black">
+                            Nothing here
+                          </div>
+                        </div>
+                      </router-link>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
               </el-table-column>
 
@@ -485,40 +517,57 @@
                 width="250"
               >
                 <template #header>
-                  <div class="flex items-center">
-                    <div class="mr-2">
-                      Programming Languages
-                    </div>
-                    <el-tooltip
-                      content="Source: Enrichment"
-                      placement="top"
-                      trigger="hover"
-                    >
-                      <app-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                  </div>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <div class="flex items-center">
+                        <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                          Programming Languages
+                        </div>
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                          :disabled="!enabled"
+                        >
+                          <app-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                      </div>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
                 <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <app-shared-tag-list
-                      v-if="scope.row.attributes.programmingLanguages?.default?.length"
-                      :list="scope.row.attributes.programmingLanguages.default"
-                      :slice-size="5"
-                    >
-                      <template #itemSlot="{ item }">
-                        <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
-                          {{ item }}
-                        </span>
-                      </template>
-                    </app-shared-tag-list>
-                    <span v-else class="text-gray-500">-</span>
-                  </router-link>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <router-link
+
+                        :to="{
+                          name: 'memberView',
+                          params: { id: scope.row.id },
+                        }"
+                        class="block h-full"
+                      >
+                        <div v-if="enabled">
+                          <app-shared-tag-list
+                            v-if="scope.row.attributes.programmingLanguages?.default?.length"
+                            :list="scope.row.attributes.programmingLanguages.default"
+                            :slice-size="5"
+                          >
+                            <template #itemSlot="{ item }">
+                              <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                                {{ item }}
+                              </span>
+                            </template>
+                          </app-shared-tag-list>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                        <div v-else class="flex items-center h-full w-full pl-2">
+                          <div class="blur text-black">
+                            Nothing here
+                          </div>
+                        </div>
+                      </router-link>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
               </el-table-column>
 
@@ -528,40 +577,56 @@
                 width="250"
               >
                 <template #header>
-                  <div class="flex items-center">
-                    <div class="mr-2">
-                      Skills
-                    </div>
-                    <el-tooltip
-                      content="Source: Enrichment"
-                      placement="top"
-                      trigger="hover"
-                    >
-                      <app-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                  </div>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <div class="flex items-center">
+                        <div class="mr-2" :class="{ 'text-purple-400': !enabled }">
+                          Skills
+                        </div>
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                          :disabled="!enabled"
+                        >
+                          <app-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                      </div>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
                 <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block"
-                  >
-                    <app-shared-tag-list
-                      v-if="scope.row.attributes.skills?.default?.length"
-                      :list="scope.row.attributes.skills.default"
-                      :slice-size="5"
-                    >
-                      <template #itemSlot="{ item }">
-                        <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
-                          {{ item }}
-                        </span>
-                      </template>
-                    </app-shared-tag-list>
-                    <span v-else class="text-gray-500">-</span>
-                  </router-link>
+                  <cr-enrichment-sneak-peak type="contact">
+                    <template #default="{ enabled }">
+                      <router-link
+                        :to="{
+                          name: 'memberView',
+                          params: { id: scope.row.id },
+                        }"
+                        class="block h-full"
+                      >
+                        <div v-if="enabled">
+                          <app-shared-tag-list
+                            v-if="scope.row.attributes.skills?.default?.length"
+                            :list="scope.row.attributes.skills.default"
+                            :slice-size="5"
+                          >
+                            <template #itemSlot="{ item }">
+                              <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                                {{ item }}
+                              </span>
+                            </template>
+                          </app-shared-tag-list>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                        <div v-else class="flex items-center h-full w-full pl-2">
+                          <div class="blur text-black">
+                            Nothing here
+                          </div>
+                        </div>
+                      </router-link>
+                    </template>
+                  </cr-enrichment-sneak-peak>
                 </template>
               </el-table-column>
 
@@ -677,6 +742,7 @@ import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberIdentities from '../member-identities.vue';
