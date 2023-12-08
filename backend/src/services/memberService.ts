@@ -460,40 +460,28 @@ export default class MemberService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
-            const handle = await this.options.temporal.workflow.start(
-              'processNewMemberAutomation',
-              {
-                workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
-                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-                workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-                retry: {
-                  maximumAttempts: 100,
-                },
+          const handle = await this.options.temporal.workflow.start('processNewMemberAutomation', {
+            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
+            taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+            retry: {
+              maximumAttempts: 100,
+            },
 
-                args: [
-                  {
-                    tenantId: this.options.currentTenant.id,
-                    memberId: record.id,
-                  },
-                ],
+            args: [
+              {
+                tenantId: this.options.currentTenant.id,
+                memberId: record.id,
               },
-            )
-            this.log.info(
-              { workflowId: handle.workflowId },
-              'Started temporal workflow to process new member automation!',
-            )
-          } else {
-            const emitter = await getNodejsWorkerEmitter()
-            await emitter.processAutomationForNewMember(
-              this.options.currentTenant.id,
-              record.id,
-              segment.id,
-              false,
-            )
-          }
+            ],
+            searchAttributes: {
+              TenantId: [this.options.currentTenant.id],
+            },
+          })
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new member automation!',
+          )
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }

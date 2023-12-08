@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { FeatureFlag, PlatformType, SyncMode, TemporalWorkflowId } from '@crowd/types'
+import { PlatformType, SyncMode, TemporalWorkflowId } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -189,38 +189,31 @@ export default class ActivityService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
-            const handle = await this.options.temporal.workflow.start(
-              'processNewActivityAutomation',
-              {
-                workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
-                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-                workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-                retry: {
-                  maximumAttempts: 100,
-                },
-                args: [
-                  {
-                    tenantId: this.options.currentTenant.id,
-                    activityId: record.id,
-                  },
-                ],
+          const handle = await this.options.temporal.workflow.start(
+            'processNewActivityAutomation',
+            {
+              workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
+              taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+              workflowIdReusePolicy:
+                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+              retry: {
+                maximumAttempts: 100,
               },
-            )
-            this.log.info(
-              { workflowId: handle.workflowId },
-              'Started temporal workflow to process new activity automation!',
-            )
-          } else {
-            const emitter = await getNodejsWorkerEmitter()
-            await emitter.processAutomationForNewActivity(
-              this.options.currentTenant.id,
-              record.id,
-              record.segmentId,
-              false,
-            )
-          }
+              args: [
+                {
+                  tenantId: this.options.currentTenant.id,
+                  activityId: record.id,
+                },
+              ],
+              searchAttributes: {
+                TenantId: [this.options.currentTenant.id],
+              },
+            },
+          )
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new activity automation!',
+          )
         } catch (err) {
           this.log.error(
             err,
