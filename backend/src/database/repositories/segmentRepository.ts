@@ -300,7 +300,7 @@ class SegmentRepository extends RepositoryBase<
           "grandparentSlug"
         from input_segment
       )
-        select *
+        select s.*
         from segments s
         join segment_level sl on (sl.level = 'child' and s.id = sl.id)
             or (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null)
