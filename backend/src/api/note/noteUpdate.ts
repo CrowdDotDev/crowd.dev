@@ -24,7 +24,7 @@ export default async (req, res) => {
 
   const payload = await new NoteService(req).update(req.params.id, req.body)
 
-  track('Note Updated', { id: payload.id }, { ...req })
+  track('Note Updated', { id: payload.id, data: req.body }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

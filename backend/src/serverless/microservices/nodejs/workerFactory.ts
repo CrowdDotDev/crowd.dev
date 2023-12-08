@@ -1,22 +1,12 @@
 /* eslint-disable no-case-declarations */
-import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
 import {
-  AutomationMessage,
   CsvExportMessage,
-  NewActivityAutomationMessage,
-  NewMemberAutomationMessage,
   NodeMicroserviceMessage,
-  ProcessAutomationMessage,
-  ProcessWebhookAutomationMessage,
   BulkEnrichMessage,
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
   OrganizationMergeMessage,
 } from './messageTypes'
-import newActivityWorker from './automation/workers/newActivityWorker'
-import newMemberWorker from './automation/workers/newMemberWorker'
-import webhookWorker from './automation/workers/webhookWorker'
-import slackWorker from './automation/workers/slackWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
@@ -26,7 +16,6 @@ import { refreshSampleDataWorker } from './integration-data-checker/refreshSampl
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 import { orgMergeWorker } from './org-merge/orgMergeWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
-import { API_CONFIG } from '../../../conf'
 
 /**
  * Worker factory for spawning different microservices
@@ -80,59 +69,6 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         bulkEnrichMessage.maxEnrichLimit,
       )
     }
-    case 'automation-process':
-      if (API_CONFIG.edition === Edition.LFX) {
-        return {}
-      }
-      const automationProcessRequest = event as ProcessAutomationMessage
-
-      switch (automationProcessRequest.automationType) {
-        case AutomationType.WEBHOOK:
-          const webhookProcessRequest = event as ProcessWebhookAutomationMessage
-          return webhookWorker(
-            tenant,
-            webhookProcessRequest.automationId,
-            webhookProcessRequest.automation,
-            webhookProcessRequest.eventId,
-            webhookProcessRequest.payload,
-          )
-        case AutomationType.SLACK:
-          const slackProcessRequest = event as ProcessWebhookAutomationMessage
-          return slackWorker(
-            tenant,
-            slackProcessRequest.automationId,
-            slackProcessRequest.automation,
-            slackProcessRequest.eventId,
-            slackProcessRequest.payload,
-          )
-        default:
-          throw new Error(`Invalid automation type ${automationProcessRequest.automationType}!`)
-      }
-
-    case 'automation':
-      if (API_CONFIG.edition === Edition.LFX) {
-        return {}
-      }
-      const automationRequest = event as AutomationMessage
-
-      switch (automationRequest.trigger) {
-        case AutomationTrigger.NEW_ACTIVITY:
-          const newActivityAutomationRequest = event as NewActivityAutomationMessage
-          return newActivityWorker(
-            tenant,
-            newActivityAutomationRequest.activityId,
-            newActivityAutomationRequest.segmentId,
-          )
-        case AutomationTrigger.NEW_MEMBER:
-          const newMemberAutomationRequest = event as NewMemberAutomationMessage
-          return newMemberWorker(
-            tenant,
-            newMemberAutomationRequest.memberId,
-            newMemberAutomationRequest.segmentId,
-          )
-        default:
-          throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
-      }
     case 'org-merge':
       const orgMergeMessage = event as OrganizationMergeMessage
       return orgMergeWorker(
