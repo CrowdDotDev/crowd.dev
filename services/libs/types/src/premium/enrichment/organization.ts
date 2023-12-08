@@ -1,6 +1,7 @@
-import { IOrganizationIdentity } from '@crowd/types'
+import { IOrganizationIdentity } from '../../'
 import { CompanyEnrichmentParams, CompanyResponse } from 'peopledatalabs'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type IEnrichmentResponse = CompanyResponse & { address?: any; geoLocation?: string }
 
 export type EnrichmentParams = CompanyEnrichmentParams
@@ -30,7 +31,7 @@ export interface IOrganization {
   linkedin?: ISocialNetwork
   crunchbase?: ISocialNetwork
   lastEnrichedAt?: Date
-  geoLocation?: String
+  geoLocation?: string
   address?: IEnrichmentResponse['location']
   ultimateParent: IEnrichmentResponse['ultimate_parent']
   immediateParent: IEnrichmentResponse['immediate_parent']

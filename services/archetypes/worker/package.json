@@ -12,6 +12,7 @@
     "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@crowd/database": "file:../../libs/database",
     "@crowd/temporal": "file:../../libs/temporal",
+    "@opensearch-project/opensearch": "^1.2.0",
     "@temporalio/client": "~1.8.6",
     "@temporalio/worker": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",
