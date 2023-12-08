@@ -7,28 +7,26 @@ import {
   SyncStatus,
   OrganizationSource,
   FeatureFlag,
+  PageData,
+  SegmentData,
+  SegmentProjectGroupNestedData,
+  SegmentProjectNestedData,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
+import { Error400, Error404 } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
-import Error404 from '../../errors/Error404'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
-import { PageData } from '../../types/common'
 import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
-import {
-  SegmentData,
-  SegmentProjectGroupNestedData,
-  SegmentProjectNestedData,
-} from '../../types/segmentTypes'
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -47,7 +45,6 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
-import Error400 from '../../errors/Error400'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import MemberAffiliationRepository from './memberAffiliationRepository'
@@ -3704,7 +3701,7 @@ class MemberRepository {
     })
   }
 
-  static async getMemberIdsandCount(
+  static async getMemberIdsandCountForEnrich(
     { limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
     options: IRepositoryOptions,
   ) {
@@ -3748,6 +3745,8 @@ class MemberRepository {
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = :tenantId
       AND ms."segmentId" IN (:segmentIds)
+      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
+      AND m."deletedAt" is NULL
     ) as count
     `
 
@@ -3767,6 +3766,8 @@ class MemberRepository {
       `SELECT m.id FROM members m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds) 
+      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
+      AND m."deletedAt" is NULL
       ORDER BY ${orderByString} 
       LIMIT :limit OFFSET :offset`,
       {
@@ -3779,6 +3780,82 @@ class MemberRepository {
       count: (memberCount[0] as any).count,
       ids: members.map((i: any) => i.id),
     }
+  }
+
+  static async moveNotesBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const deleteQuery = `
+      delete from "memberNotes" using "memberNotes" as mn2
+      where "memberNotes"."memberId" = :fromMemberId 
+      and "memberNotes"."noteId" = mn2."noteId"
+      and mn2."memberId" = :toMemberId;
+    `
+
+    await seq.query(deleteQuery, {
+      replacements: params,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
+    const updateQuery = `
+      update "memberNotes" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async moveTasksBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const deleteQuery = `
+      delete from "memberTasks" using "memberTasks" as mt2
+      where "memberTasks"."memberId" = :fromMemberId 
+      and "memberTasks"."taskId" = mt2."taskId"
+      and mt2."memberId" = :toMemberId;
+    `
+
+    await seq.query(deleteQuery, {
+      replacements: params,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+
+    const updateQuery = `
+      update "memberTasks" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
   }
 }
 

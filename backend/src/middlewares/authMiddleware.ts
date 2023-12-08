@@ -1,4 +1,4 @@
-import Error401 from '../errors/Error401'
+import { Error401 } from '@crowd/common'
 import AuthService from '../services/auth/authService'
 
 /**
@@ -34,7 +34,6 @@ export async function authMiddleware(req, res, next) {
 
   try {
     const currentUser: any = await AuthService.findByToken(idToken, req)
-
     req.currentUser = currentUser
 
     next()

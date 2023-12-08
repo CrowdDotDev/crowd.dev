@@ -1,6 +1,5 @@
 /* eslint-disable no-case-declarations */
 import { AutomationTrigger, AutomationType, Edition } from '@crowd/types'
-import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
   CsvExportMessage,
@@ -10,7 +9,6 @@ import {
   ProcessAutomationMessage,
   ProcessWebhookAutomationMessage,
   BulkEnrichMessage,
-  EagleEyeEmailDigestMessage,
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
   OrganizationMergeMessage,
@@ -23,7 +21,6 @@ import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
-import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
@@ -45,11 +42,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       return processStripeWebhook(event)
     case 'sendgrid-webhooks':
       return processSendgridWebhook(event)
-    case 'weekly-analytics-emails':
-      return weeklyAnalyticsEmailsWorker(tenant)
-    case 'eagle-eye-email-digest':
-      const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
-      return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user, eagleEyeDigestMessage.tenant)
+
     case 'integration-data-checker':
       const integrationDataCheckerMessage = event as IntegrationDataCheckerMessage
       return integrationDataCheckerWorker(

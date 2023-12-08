@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { ApiPubSubEmitter } from '@crowd/redis'
 import { Logger, getChildLogger, LoggerBase } from '@crowd/logging'
-import { singleOrDefault } from '@crowd/common'
+import { i18n, singleOrDefault } from '@crowd/common'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 import { sendSlackAlert, SlackAlertTypes } from '@crowd/alerting'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
@@ -28,7 +28,6 @@ import {
 import bulkOperations from '../../dbOperations/operationsWorker'
 import UserRepository from '../../../database/repositories/userRepository'
 import EmailSender from '../../../services/emailSender'
-import { i18n } from '../../../i18n'
 import { API_CONFIG, SLACK_ALERTING_CONFIG } from '../../../conf'
 import SegmentRepository from '../../../database/repositories/segmentRepository'
 

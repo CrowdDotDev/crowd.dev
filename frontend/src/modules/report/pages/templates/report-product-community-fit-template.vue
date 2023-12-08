@@ -88,7 +88,6 @@ import {
 import { toSentenceCase } from '@/utils/string';
 import PRODUCT_COMMUNITY_FIT_REPORT from '@/modules/report/templates/config/productCommunityFit';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 import { storeToRefs } from 'pinia';
 
 defineProps({
@@ -108,7 +107,6 @@ const { cubejsApi, cubejsToken } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
 
 const activityTypeStore = useActivityTypeStore();
-const { setTypes } = activityTypeStore;
 const { types } = storeToRefs(activityTypeStore);
 
 const isContributionTypeModalOpen = ref(false);
@@ -143,10 +141,6 @@ onMounted(async () => {
   if (cubejsApi.value === null) {
     await getCubeToken();
   }
-
-  ActivityTypeService.get().then((activityTypes) => {
-    setTypes(activityTypes);
-  });
 });
 
 const onContributionTypesClick = () => {

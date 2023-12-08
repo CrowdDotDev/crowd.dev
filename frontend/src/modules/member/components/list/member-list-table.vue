@@ -13,7 +13,7 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community contributors yet"
+        title="No contributors yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
         secondary-btn="Add contributor"
         @secondary-click="onSecondaryBtnClick"
@@ -22,7 +22,7 @@
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community contributors yet"
+        title="No contributors yet"
         description="Please consider that the first contributors may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
@@ -97,6 +97,7 @@
             >
               <el-table-column type="selection" width="75" fixed />
 
+              <!-- Contacts -->
               <el-table-column
                 label="Contributor"
                 prop="displayName"
@@ -128,7 +129,18 @@
                 </template>
               </el-table-column>
 
+              <!-- Organization & Title -->
               <el-table-column label="Organization & Title" width="220">
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Organization & Title
+                    </div>
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -145,133 +157,17 @@
                   </router-link>
                 </template>
               </el-table-column>
-              <el-table-column
-                label="# of Activities"
-                prop="activityCount"
-                width="200"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    {{ formatNumber(scope.row.activityCount) }}
-                  </router-link>
-                </template>
-              </el-table-column>
-              <el-table-column
-                label="Engagement Level"
-                prop="score"
-                width="200"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-engagement-level :member="scope.row" />
-                  </router-link>
-                </template>
-              </el-table-column>
-              <el-table-column
-                label="Last activity"
-                prop="lastActive"
-                width="250"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    <app-member-last-activity
-                      v-if="scope.row.lastActivity"
-                      :member="scope.row"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-if="showReach"
-                label="Reach"
-                prop="reach"
-                width="150"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    <app-member-reach
-                      :member="{
-                        ...scope.row,
-                        reach: scope.row.reach,
-                      }"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
 
-              <!-- Joined Date -->
-              <el-table-column
-                label="Joined Date"
-                width="200"
-                prop="joinedAt"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      v-if="scope.row.joinedAt"
-                      class="text-gray-900 text-sm"
-                    >
-                      {{ formatDateToTimeAgo(scope.row.joinedAt) }}
-                    </div>
-                    <span v-else class="text-gray-900">-</span>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- # of Open Source Contributions -->
-              <el-table-column
-                label="# of open source contributions"
-                width="200"
-                prop="numberOfOpenSourceContributions"
-                sortable
-              >
+              <!-- Identities -->
+              <el-table-column label="Identities" width="260">
                 <template #header>
+                  <span>Identities</span>
                   <el-tooltip placement="top">
                     <template #content>
-                      This refers to the total # of open source contributions a contributor did on GitHub.<br />
-                      To receive this attribute you have to enrich your contributors.
+                      Identities can be profiles on social platforms, emails, phone numbers,<br>
+                      or unique identifiers from internal sources (e.g. web app log-in email).
                     </template>
-                    # of open source contributions
+                    <i class="ri-information-line text-xs ml-1" />
                   </el-tooltip>
                 </template>
                 <template #default="scope">
@@ -279,28 +175,6 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <div data-qa="member-oss-contributions" class="text-gray-900 text-sm member-oss-contributions">
-                      {{
-                        formatNumberToCompact(
-                          scope.row.numberOfOpenSourceContributions,
-                        )
-                      }}
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <el-table-column label="Identities" width="240">
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -309,6 +183,7 @@
                 </template>
               </el-table-column>
 
+              <!-- Emails -->
               <el-table-column label="Emails" :width="emailsColumnWidth">
                 <template #default="scope">
                   <router-link
@@ -392,6 +267,313 @@
                 </template>
               </el-table-column>
 
+              <!-- Engagement level -->
+              <el-table-column
+                label="Engagement Level"
+                prop="score"
+                width="210"
+                sortable="custom"
+              >
+                <template #header>
+                  <span>Engagement Level</span>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Calculated based on the recency and importance of the activities<br>
+                      a contact has performed in relation to all other contacts.
+                      <br>E.g. a higher engagement level will be given to a contact who has written
+                      <br>in your Slack yesterday vs. someone who did so three weeks ago.
+                    </template>
+                    <i class="ri-information-line text-xs ml-1" />
+                  </el-tooltip>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block"
+                  >
+                    <app-member-engagement-level :member="scope.row" />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- # of Activities -->
+              <el-table-column
+                label="# of Activities"
+                prop="activityCount"
+                width="200"
+                sortable="custom"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    {{ formatNumber(scope.row.activityCount) }}
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Last activity -->
+              <el-table-column
+                label="Last activity"
+                prop="lastActive"
+                width="250"
+                sortable="custom"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    <app-member-last-activity
+                      v-if="scope.row.lastActivity"
+                      :member="scope.row"
+                    />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Joined Date -->
+              <el-table-column
+                label="Joined Date"
+                width="200"
+                prop="joinedAt"
+                sortable
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.joinedAt"
+                      class="text-gray-900 text-sm"
+                    >
+                      {{ formatDateToTimeAgo(scope.row.joinedAt) }}
+                    </div>
+                    <span v-else class="text-gray-900">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Location -->
+              <el-table-column
+                label="Location"
+                width="200"
+              >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Location
+                    </div>
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.attributes?.location?.default"
+                      class="text-gray-900 text-sm"
+                    >
+                      {{ scope.row.attributes.location.default }}
+                    </div>
+                    <span v-else class="text-gray-900">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Reach -->
+              <el-table-column
+                v-if="showReach"
+                label="Reach"
+                prop="reach"
+                width="180"
+                sortable="custom"
+              >
+                <template #header>
+                  <span>Reach</span>
+                  <div class="inline-flex items-center ml-1 gap-2">
+                    <el-tooltip placement="top">
+                      <template #content>
+                        Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                      </template>
+                      <i class="ri-information-line text-xs" />
+                    </el-tooltip>
+                    <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block !text-gray-500"
+                  >
+                    <app-member-reach
+                      :member="{
+                        ...scope.row,
+                        reach: scope.row.reach,
+                      }"
+                    />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Seniority Level -->
+              <el-table-column
+                label="Seniority Level"
+                width="200"
+              >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Seniority Level
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.attributes?.seniorityLevel?.default"
+                      class="text-gray-900 text-sm"
+                    >
+                      {{ scope.row.attributes.seniorityLevel.default }}
+                    </div>
+                    <span v-else class="text-gray-900">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Programming Languages -->
+              <el-table-column
+                label="Programming Languages"
+                width="250"
+              >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Programming Languages
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-shared-tag-list
+                      v-if="scope.row.attributes.programmingLanguages?.default?.length"
+                      :list="scope.row.attributes.programmingLanguages.default"
+                      :slice-size="5"
+                    >
+                      <template #itemSlot="{ item }">
+                        <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                          {{ item }}
+                        </span>
+                      </template>
+                    </app-shared-tag-list>
+                    <span v-else class="text-gray-500">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Skills -->
+              <el-table-column
+                label="Skills"
+                width="250"
+              >
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Skills
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-shared-tag-list
+                      v-if="scope.row.attributes.skills?.default?.length"
+                      :list="scope.row.attributes.skills.default"
+                      :slice-size="5"
+                    >
+                      <template #itemSlot="{ item }">
+                        <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                          {{ item }}
+                        </span>
+                      </template>
+                    </app-shared-tag-list>
+                    <span v-else class="text-gray-500">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Tags -->
               <el-table-column
                 :width="tagsColumnWidth"
                 :label="translate('entities.member.fields.tag')"
@@ -410,6 +592,7 @@
                 </template>
               </el-table-column>
 
+              <!-- Action button -->
               <el-table-column fixed="right">
                 <template #default="scope">
                   <router-link
@@ -467,11 +650,16 @@
         <app-member-dropdown-content
           v-if="selectedActionMember"
           :member="selectedActionMember"
+          @find-github="isFindGithubDrawerOpen = selectedActionMember"
           @merge="isMergeDialogOpen = selectedActionMember"
           @close-dropdown="closeDropdown"
         />
       </div>
     </el-popover>
+    <app-member-find-github-drawer
+      v-if="isFindGithubDrawerOpen"
+      v-model="isFindGithubDrawerOpen"
+    />
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
     <app-tag-popover v-model="isEditTagsDialogOpen" :member="editTagMember" @reload="fetchMembers({ reload: true })" />
   </div>
@@ -489,7 +677,7 @@ import AppMemberListToolbar from '@/modules/member/components/list/member-list-t
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumberToCompact, formatNumber } from '@/utils/number';
+import { formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -497,6 +685,9 @@ import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
+import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
+import AppSharedTagList from '@/shared/tag/tag-list.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberIdentities from '../member-identities.vue';
@@ -522,6 +713,8 @@ const showMemberDropdownPopover = ref(false);
 const memberDropdownPopover = ref(null);
 const actionBtnRefs = ref({});
 const selectedActionMember = ref(null);
+
+const isFindGithubDrawerOpen = ref(null);
 
 const props = defineProps({
   hasIntegrations: {
@@ -557,7 +750,7 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const defaultSort = computed(() => ({
-  field: 'lastActive',
+  prop: 'lastActive',
   order: 'descending',
 }));
 
@@ -600,7 +793,7 @@ const emailsColumnWidth = computed(() => {
       .reduce((a, b) => a + b, 0);
 
     if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
+      maxTabWidth = tabWidth > 300 ? 300 : tabWidth;
     }
   });
 

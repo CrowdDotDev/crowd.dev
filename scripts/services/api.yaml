@@ -11,7 +11,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:api'
+    command: 'pnpm run start:api'
     working_dir: /usr/crowd/app/backend
     env_file:
       - ../../backend/.env.dist.local
@@ -30,7 +30,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:api:dev'
+    command: 'pnpm run start:api:dev'
     working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'
     env_file:
@@ -58,6 +58,7 @@ services:
       - ../../services/libs/sentiment/src:/usr/crowd/app/services/libs/sentiment/src
       - ../../services/libs/sqs/src:/usr/crowd/app/services/libs/sqs/src
       - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src
+      - ../../services/libs/telemetry/src:/usr/crowd/app/services/libs/telemetry/src
       - ../../backend/src:/usr/crowd/app/backend/src
       - /usr/crowd/app/backend/node_modules
 

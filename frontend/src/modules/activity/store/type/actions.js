@@ -1,4 +1,5 @@
 import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
+import { ActivityService } from '@/modules/activity/activity-service';
 
 export default {
   createActivityType(data, segments) {
@@ -23,7 +24,11 @@ export default {
       return Promise.resolve(types);
     });
   },
-  setTypes(types) {
-    this.types = types;
+  fetchActivityTypes() {
+    return ActivityService.listActivityTypes()
+      .then((types) => {
+        this.types = types;
+        return Promise.resolve(types);
+      });
   },
 };

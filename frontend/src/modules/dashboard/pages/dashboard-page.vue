@@ -45,6 +45,7 @@
       v-if="selectedProjectGroup"
       class="border-l border-gray-200 overflow-auto px-5 py-6 h-screen"
     >
+      <cr-dashboard-upgrade-plan-widget v-if="displayUpgradeWidget" class="mb-10" />
       <app-dashboard-project-group />
     </aside>
   </div>
@@ -67,6 +68,8 @@ import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppDashboardProjectGroup from '@/modules/dashboard/components/dashboard-project-group.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import CrDashboardUpgradePlanWidget from '@/modules/dashboard/components/dashboard-upgrade-plan-widget.vue';
+import config from '@/config';
 
 const { currentTenant } = mapGetters('auth');
 const { cubejsApi } = mapGetters('widget');
@@ -83,6 +86,8 @@ const storeUnsubscribe = ref(null);
 const scrolled = ref(false);
 
 const loadingCubeToken = computed(() => !!cubejsApi.value);
+
+const displayUpgradeWidget = computed(() => currentTenant.value.plan === 'Essential' && !config.isCommunityVersion);
 
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
@@ -120,10 +125,6 @@ watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
 </script>
 
 <style lang="scss" scoped>
-aside {
-  width: 18.25rem;
-  min-width: 18.25rem;
-}
 .home-content {
   max-width: 60rem;
   width: 100%;

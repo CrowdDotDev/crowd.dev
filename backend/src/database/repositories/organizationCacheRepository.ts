@@ -1,7 +1,7 @@
 import lodash from 'lodash'
+import { Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 
 class OrganizationCacheRepository {

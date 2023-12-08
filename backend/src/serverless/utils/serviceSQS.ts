@@ -4,6 +4,7 @@ import {
   IntegrationStreamWorkerEmitter,
   IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
+  DataSinkWorkerEmitter,
   SqsClient,
   getSqsClient,
 } from '@crowd/sqs'

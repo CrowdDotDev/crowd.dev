@@ -1,17 +1,18 @@
+import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import { FeatureFlag, PlatformType, SyncMode, TemporalWorkflowId } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { FeatureFlag, PlatformType, SyncMode } from '@crowd/types'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { IS_DEV_ENV, IS_TEST_ENV, GITHUB_CONFIG, TEMPORAL_CONFIG } from '../conf'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
-import Error400 from '../errors/Error400'
 import telemetryTrack from '../segment/telemetryTrack'
 import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
@@ -19,11 +20,11 @@ import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
 import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
-import MemberService from './memberService'
-import SegmentService from './segmentService'
 import MemberAffiliationService from './memberAffiliationService'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
+import SegmentService from './segmentService'
+import TenantService from '@/services/tenantService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -192,7 +193,7 @@ export default class ActivityService extends LoggerBase {
             const handle = await this.options.temporal.workflow.start(
               'processNewActivityAutomation',
               {
-                workflowId: `new-activity-automation-${record.id}`,
+                workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
                 taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
                 workflowIdReusePolicy:
                   WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
@@ -745,6 +746,18 @@ export default class ActivityService extends LoggerBase {
 
   async findById(id) {
     return ActivityRepository.findById(id, this.options)
+  }
+
+  async findActivityTypes(id: string) {
+    const segmentService = new SegmentService(this.options)
+    const tenant = await new TenantService(this.options).findById(id)
+    const tenantSubprojects = await segmentService.getTenantSubprojects(tenant)
+    return SegmentService.getTenantActivityTypes(tenantSubprojects)
+  }
+
+  async findActivityChannels(id: string) {
+    const tenant = await new TenantService(this.options).findById(id)
+    return SegmentService.getTenantActivityChannels(tenant, this.options)
   }
 
   async findAllAutocomplete(search, limit) {

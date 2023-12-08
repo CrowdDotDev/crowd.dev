@@ -17,7 +17,6 @@ export default async (req, res) => {
   )) as any
 
   if (integration) {
-    req.log.info({ integrationId: integration.id }, 'Incoming GitHub Webhook!')
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
     const repo = new IncomingWebhookRepository(options)
 

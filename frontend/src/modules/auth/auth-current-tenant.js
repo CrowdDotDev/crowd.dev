@@ -92,7 +92,7 @@ export default class AuthCurrentTenant {
     return null;
   }
 
-  static async set(tenant) {
+  static set(tenant) {
     if (!tenant) {
       return this.clear();
     }
