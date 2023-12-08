@@ -258,18 +258,19 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import AppLfMenuProjectGroupSelection from '@/modules/lf/layout/components/lf-menu-project-group-selection.vue';
 import AppAccountDropdown from '@/modules/layout/components/account-dropdown.vue';
-import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { useStore } from 'vuex';
+import { useActivityStore } from '@/modules/activity/store/pinia';
 
 const store = useStore();
 
 const { currentTenant, currentUser } = mapGetters('auth');
 const { menuCollapsed: isCollapsed } = mapGetters('layout');
 
-const { setTypes } = useActivityTypeStore();
+const { fetchActivityTypes } = useActivityTypeStore();
+const { fetchActivityChannels } = useActivityStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -278,9 +279,8 @@ watch(
   selectedProjectGroup,
   (updatedProjectGroup) => {
     if (updatedProjectGroup) {
-      ActivityTypeService.get().then((response) => {
-        setTypes(response);
-      });
+      fetchActivityTypes([selectedProjectGroup.value.id]);
+      fetchActivityChannels([selectedProjectGroup.value.id]);
     }
   },
   { immediate: true, deep: true },

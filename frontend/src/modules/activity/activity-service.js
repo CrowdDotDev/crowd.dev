@@ -67,7 +67,7 @@ export class ActivityService {
     return response.data;
   }
 
-  static async listActivityTypes() {
+  static async listActivityTypes(segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -77,13 +77,16 @@ export class ActivityService {
         headers: {
           Authorization: sampleTenant?.token,
         },
+        params: {
+          segments,
+        },
       },
     );
 
     return response.data;
   }
 
-  static async listActivityChannels() {
+  static async listActivityChannels(segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -92,6 +95,9 @@ export class ActivityService {
       {
         headers: {
           Authorization: sampleTenant?.token,
+        },
+        params: {
+          segments,
         },
       },
     );
