@@ -223,6 +223,7 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { Member } from '../types/Member';
+import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 
 enum Actions {
   DELETE_CONTACT = 'deleteContact',
