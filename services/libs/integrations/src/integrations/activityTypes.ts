@@ -23,7 +23,6 @@ import { DiscourseActivityType } from './discourse/types'
 import { DISCOURSE_GRID } from './discourse/grid'
 import { Groupsio_GRID } from './groupsio/grid'
 import { GroupsioActivityType } from './groupsio/types'
-import { ConfluenceActivityType } from './confluence/types'
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
@@ -38,10 +37,6 @@ const defaultGithubChannelFormatter = (channel) => {
   const organization = channelSplit[3]
   const repo = channelSplit[4]
   return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">${repo}</a>`
-}
-
-const defaultConfluenceChannelFormatter = (channel) => {
-  return `<a href="${channel}" target="_blank">${channel}</a>`
 }
 
 const defaultStackoverflowFormatter = (activity) => {
@@ -761,23 +756,6 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '{channel}',
       },
       isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_LEAVE].isContribution,
-    },
-  },
-  [PlatformType.CONFLUENCE]: {
-    [ConfluenceActivityType.PAGE]: {
-      display: {
-        default: 'added a confluence page in {channel}',
-        short: 'added a page',
-        channel: '{channel}',
-        formatter: {
-          channel: defaultConfluenceChannelFormatter,
-          self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" target="_blank">xxx ${prNumberAndTitle}</a>`
-          },
-        },
-      },
-      isContribution: true,
     },
   },
 }
