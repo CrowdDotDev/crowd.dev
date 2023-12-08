@@ -363,7 +363,6 @@ export default class SegmentService extends LoggerBase {
     const segmentRepository = new SegmentRepository(this.options)
     const subprojects = await segmentRepository.getSegmentSubprojects(segments)
     return subprojects
-    
   }
 
   async getTenantSubprojects() {

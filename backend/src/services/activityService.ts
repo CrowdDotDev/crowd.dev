@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { FeatureFlag, PlatformType, SegmentData, SyncMode, TemporalWorkflowId } from '@crowd/types'
+import { PlatformType, SegmentData, SyncMode, TemporalWorkflowId } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -747,8 +747,7 @@ export default class ActivityService extends LoggerBase {
 
     if (!segments || segments.length === 0) {
       subprojects = await segmentService.getTenantSubprojects()
-    }
-    else {
+    } else {
       subprojects = await segmentService.getSegmentSubprojects(segments)
     }
 
@@ -756,19 +755,20 @@ export default class ActivityService extends LoggerBase {
   }
 
   async findActivityChannels(segments?: string[]) {
-
     const segmentService = new SegmentService(this.options)
 
     let subprojects: SegmentData[]
 
     if (!segments || segments.length === 0) {
       subprojects = await segmentService.getTenantSubprojects()
-    }
-    else {
+    } else {
       subprojects = await segmentService.getSegmentSubprojects(segments)
     }
 
-    return SegmentService.getTenantActivityChannels(subprojects.map((s) => s.id), this.options)
+    return SegmentService.getTenantActivityChannels(
+      subprojects.map((s) => s.id),
+      this.options,
+    )
   }
 
   async findAllAutocomplete(search, limit) {
