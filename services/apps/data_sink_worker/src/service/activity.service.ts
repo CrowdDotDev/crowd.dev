@@ -4,7 +4,7 @@ import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { FeatureFlag, IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
+import { IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
 import ActivityRepository from '../repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
@@ -17,7 +17,7 @@ import IntegrationRepository from '../repo/integration.repo'
 import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
-import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
+import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { TEMPORAL_CONFIG } from '../conf'
 
@@ -91,41 +91,24 @@ export default class ActivityService extends LoggerBase {
         return id
       })
 
-      if (
-        await isFeatureEnabled(
-          FeatureFlag.TEMPORAL_AUTOMATIONS,
-          async () => {
-            return {
-              tenantId,
-            }
+      const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+        workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
+        taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+        retry: {
+          maximumAttempts: 100,
+        },
+        args: [
+          {
+            tenantId,
+            activityId: id,
           },
-          this.unleash,
-          this.redisClient,
-          60,
-          tenantId,
-        )
-      ) {
-        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-          workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
-          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-          retry: {
-            maximumAttempts: 100,
-          },
-          args: [
-            {
-              tenantId,
-              activityId: id,
-            },
-          ],
-        })
-        this.log.info(
-          { workflowId: handle.workflowId },
-          'Started temporal workflow to process new activity automation!',
-        )
-      } else {
-        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
-      }
+        ],
+      })
+      this.log.info(
+        { workflowId: handle.workflowId },
+        'Started temporal workflow to process new activity automation!',
+      )
 
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
