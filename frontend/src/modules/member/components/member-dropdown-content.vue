@@ -222,6 +222,7 @@ import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
+import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 import { Member } from '../types/Member';
 
 enum Actions {
