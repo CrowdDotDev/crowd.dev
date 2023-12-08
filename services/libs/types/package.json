@@ -18,5 +18,8 @@
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.8",
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "peopledatalabs": "~6.1.5"
   }
 }

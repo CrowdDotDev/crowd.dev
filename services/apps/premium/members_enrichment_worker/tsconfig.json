@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "module": "commonjs",
+    "module": "Node16",
     "lib": ["es6", "es7", "es2017", "es2017.object", "es2015.promise"],
     "skipLibCheck": true,
-    "moduleResolution": "node",
     "sourceMap": true,
+    "moduleResolution": "node16",
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*/premium": ["../../*/src/premium"],
-      "@crowd/*": ["../../*/src"]
+      "@crowd/*/premium": ["../../../../libs/*/src/premium"],
+      "@crowd/*": ["../../../../libs/*/src"],
+      "@crowd/archetype-*": ["../../../../archetypes/*/src"]
     }
   },
   "include": ["src/**/*"]

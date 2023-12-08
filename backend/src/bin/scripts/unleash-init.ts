@@ -226,6 +226,22 @@ const constaintConfiguration = {
   ],
   [FeatureFlag.SEGMENTS]: [],
 
+  // temporal
+  [FeatureFlag.TEMPORAL_MEMBERS_ENRICHMENT]: [
+    [
+      {
+        values: [
+          Plans.values.scale,
+          Plans.values.enterprise,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
   [FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES]: [
     [
       {

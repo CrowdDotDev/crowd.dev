@@ -128,7 +128,7 @@
     "passport-google-oauth": "2.0.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-slack": "0.0.7",
-    "peopledatalabs": "^5.0.3",
+    "peopledatalabs": "~6.1.5",
     "pg": "^8.7.3",
     "pm2": "^5.2.0",
     "sanitize-html": "^2.7.1",

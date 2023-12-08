@@ -11,6 +11,9 @@ export enum FeatureFlag {
 
   // opensearch
   SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',
+
+  // temporal
+  TEMPORAL_MEMBERS_ENRICHMENT = 'temporal-members-enrichment',
 }
 
 export enum FeatureFlagRedisKey {

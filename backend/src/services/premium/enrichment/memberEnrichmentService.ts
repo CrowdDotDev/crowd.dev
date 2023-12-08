@@ -14,14 +14,6 @@ import {
   OrganizationSource,
   SyncMode,
 } from '@crowd/types'
-import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
-import { AttributeData } from '../../../database/attributes/attribute'
-import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
-import track from '../../../segment/track'
-import { Member } from '../../../serverless/integrations/types/messageTypes'
-import { IServiceOptions } from '../../IServiceOptions'
-import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
-import MemberService from '../../memberService'
 import {
   EnrichmentAPICertification,
   EnrichmentAPIContribution,
@@ -30,7 +22,15 @@ import {
   EnrichmentAPIResponse,
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
-} from './types/memberEnrichmentTypes'
+} from '@crowd/types/premium'
+import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
+import { AttributeData } from '../../../database/attributes/attribute'
+import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
+import track from '../../../segment/track'
+import { Member } from '../../../serverless/integrations/types/messageTypes'
+import { IServiceOptions } from '../../IServiceOptions'
+import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
+import MemberService from '../../memberService'
 import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'

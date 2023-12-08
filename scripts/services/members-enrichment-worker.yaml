@@ -1,0 +1,63 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: members-enrichment-worker
+  CROWD_TEMPORAL_TASKQUEUE: members-enrichment
+  SHELL: /bin/sh
+
+services:
+  members-enrichment-worker:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.members_enrichment_worker
+    command: 'pnpm run start'
+    working_dir: /usr/crowd/app/services/apps/members_enrichment_worker
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    restart: always
+    networks:
+      - crowd-bridge
+
+  members-enrichment-worker-dev:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.members_enrichment_worker
+    command: 'pnpm run dev'
+    working_dir: /usr/crowd/app/services/apps/premium/members_enrichment_worker
+    # user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    hostname: members-enrichment-worker
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../services/libs/alerting/src:/usr/crowd/app/services/libs/alerting/src
+      - ../../services/libs/common/src:/usr/crowd/app/services/libs/common/src
+      - ../../services/libs/conversations/src:/usr/crowd/app/services/libs/conversations/src
+      - ../../services/libs/cubejs/src:/usr/crowd/app/services/libs/cubejs/src
+      - ../../services/libs/database/src:/usr/crowd/app/services/libs/database/src
+      - ../../services/libs/integrations/src:/usr/crowd/app/services/libs/integrations/src
+      - ../../services/libs/ioc/src:/usr/crowd/app/services/libs/ioc/src
+      - ../../services/libs/logging/src:/usr/crowd/app/services/libs/logging/src
+      - ../../services/libs/opensearch/src:/usr/crowd/app/services/libs/opensearch/src
+      - ../../services/libs/redis/src:/usr/crowd/app/services/libs/redis/src
+      - ../../services/libs/sentiment/src:/usr/crowd/app/services/libs/sentiment/src
+      - ../../services/libs/sqs/src:/usr/crowd/app/services/libs/sqs/src
+      - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src
+      - ../../services/apps/premium/members_enrichment_worker/src:/usr/crowd/app/services/apps/premium/members_enrichment_worker/src
+
+networks:
+  crowd-bridge:
+    external: true

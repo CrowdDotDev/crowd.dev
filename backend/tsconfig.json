@@ -13,6 +13,7 @@
     "types": ["node", "jest"],
     "baseUrl": "./src",
     "paths": {
+      "@crowd/*/premium": ["../../services/libs/*/src/premium"],
       "@crowd/*": ["../../services/libs/*/src"],
       "@/*": ["./*"]
     },
