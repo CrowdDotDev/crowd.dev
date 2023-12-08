@@ -338,7 +338,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       select distinct mo."organizationId", a."segmentId"
       from "memberOrganizations" mo
       inner join activities a on mo."memberId" = a."memberId"
-      where mo."organizationId" in ($(ids:csv))'
+      where mo."organizationId" in ($(ids:csv));
       `,
       {
         ids,
