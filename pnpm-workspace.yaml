@@ -2,4 +2,5 @@ packages:
   - 'services/libs/*'
   - 'services/archetypes/*'
   - 'services/apps/*'
+  - 'services/apps/premium/*'
   - 'backend'

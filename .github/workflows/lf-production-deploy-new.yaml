@@ -27,8 +27,16 @@ on:
         description: Deploy emails-worker service?
         required: true
         type: boolean
+      deploy_merge_suggestions_worker:
+        description: Deploy merge-suggestions-worker service?
+        required: true
+        type: boolean
       deploy_entity_merging_worker:
         description: Deploy entity-merging-worker service?
+        required: true
+        type: boolean
+      deploy_members_enrichment_worker:
+        description: Deploy members-enrichment-worker service?
         required: true
         type: boolean
       deploy_script_executor:
@@ -174,6 +182,48 @@ jobs:
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
+  build-and-push-members-enrichment-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_members_enrichment_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: members-enrichment-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
+  build-and-push-merge-suggestions-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_merge_suggestions_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: merge-suggestions-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
   build-and-push-entity-merging-worker:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_entity_merging_worker }}
@@ -193,7 +243,7 @@ jobs:
 
       - name: Set docker image output
         id: image
-        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPU
 
   build-and-push-script-executor:
     runs-on: ubuntu-latest
@@ -328,6 +378,42 @@ jobs:
           image: ${{ needs.build-and-push-emails-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
+  deploy-members-enrichment-worker:
+    needs: build-and-push-members-enrichment-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_members_enrichment_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: members-enrichment-worker
+          image: ${{ needs.build-and-push-members-enrichment-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-merge-suggestions-worker:
+    needs: build-and-push-merge-suggestions-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_merge_suggestions_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: merge-suggestions-worker
+          image: ${{ needs.build-and-push-merge-suggestions-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+          
   deploy-entity-merging-worker:
     needs: build-and-push-entity-merging-worker
     runs-on: ubuntu-latest
