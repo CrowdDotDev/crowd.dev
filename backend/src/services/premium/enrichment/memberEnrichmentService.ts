@@ -353,11 +353,12 @@ export default class MemberEnrichmentService extends LoggerBase {
       const organizationService = new OrganizationService(options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
-
-          const organizationIdentities: IOrganizationIdentity[] = [{
-            name: workExperience.company,
-            platform: PlatformType.ENRICHMENT,
-          }]
+          const organizationIdentities: IOrganizationIdentity[] = [
+            {
+              name: workExperience.company,
+              platform: PlatformType.ENRICHMENT,
+            },
+          ]
 
           if (workExperience.companyLinkedInUrl) {
             organizationIdentities.push({
