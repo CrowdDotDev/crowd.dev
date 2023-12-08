@@ -260,9 +260,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     LEFT JOIN to_merge_data tmd on o.id = tmd."organizationId"
     LEFT JOIN no_merge_data nmd on o.id = nmd."organizationId"
     WHERE o.id = $(organizationId)
-      AND o."deletedAt" IS NULL
-      AND (md."organizationId" IS NOT NULL
-          OR o."manuallyCreated");
+      AND o."deletedAt" IS NULL;
       `,
       {
         organizationId,

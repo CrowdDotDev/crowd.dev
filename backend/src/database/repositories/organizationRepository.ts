@@ -1572,6 +1572,87 @@ class OrganizationRepository {
     return segments
   }
 
+  static async findByIdentities(
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const identityConditions = identities
+      .map(
+        (identity, index) => `
+            (oi.platform = :platform${index} and oi.name = :name${index})
+        `,
+      )
+      .join(' or ')
+
+    const results = await sequelize.query(
+      `
+      with
+          "organizationsWithIdentity" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where ${identityConditions} 
+          ),
+          "organizationsWithCounts" as (
+            select o.id, count(oi."organizationId") as total_counts
+            from organizations o
+            join "organizationIdentities" oi on o.id = oi."organizationId"
+            where o.id in (select "organizationId" from "organizationsWithIdentity")
+            group by o.id
+          )
+          select o.id,
+                  o.description,
+                  o.emails,
+                  o.logo,
+                  o.tags,
+                  o.github,
+                  o.twitter,
+                  o.linkedin,
+                  o.crunchbase,
+                  o.employees,
+                  o.location,
+                  o.website,
+                  o.type,
+                  o.size,
+                  o.headline,
+                  o.industry,
+                  o.founded,
+                  o.attributes
+          from organizations o
+          inner join "organizationsWithCounts" oc on o.id = oc.id
+          where o."tenantId" = :tenantId
+          order by oc.total_counts desc
+          limit 1;
+      `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          ...identities.reduce(
+            (acc, identity, index) => ({
+              ...acc,
+              [`platform${index}`]: identity.platform,
+              [`name${index}`]: identity.name,
+            }),
+            {},
+          ),
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
+  }
+
   static async findByIdentity(
     identity: IOrganizationIdentity,
     options: IRepositoryOptions,
