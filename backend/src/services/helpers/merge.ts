@@ -29,7 +29,7 @@ function customizer(originalField, newField) {
   if (lodash.isArray(originalField)) {
     return lodash.unionWith(originalField, newField, lodash.isEqual)
   }
-  if (newField == null || (originalField != null && originalField !== '')) {
+  if (newField == null) {
     return originalField
   }
 

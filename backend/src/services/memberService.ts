@@ -800,6 +800,8 @@ export default class MemberService extends LoggerBase {
 
         return toKeep
       },
+      attributes: (oldAttributes, newAttributes) =>
+        MemberService.safeMerge(oldAttributes, newAttributes),
     })
   }
 
@@ -1269,5 +1271,35 @@ export default class MemberService extends LoggerBase {
     // Total is the sum of all attributes
     out.total = lodash.sum(Object.values(out))
     return out
+  }
+
+  /**
+   * Merges two objects, preserving non-null values in the original object.
+   *
+   * @param originalObject - The original object
+   * @param newObject - The object to merge into the original
+   * @returns The merged object
+   */
+  static safeMerge(originalObject: any, newObject: any) {
+    const mergeCustomizer = (originalValue, newValue) => {
+      // Merge arrays, removing duplicates
+      if (lodash.isArray(originalValue)) {
+        return lodash.unionWith(originalValue, newValue, lodash.isEqual)
+      }
+
+      // Recursively merge nested objects
+      if (lodash.isPlainObject(originalValue)) {
+        return lodash.mergeWith({}, originalValue, newValue, mergeCustomizer)
+      }
+
+      // Preserve original non-null or non-empty values
+      if (newValue === null || (originalValue !== null && originalValue !== '')) {
+        return originalValue
+      }
+
+      return undefined
+    }
+
+    return lodash.mergeWith({}, originalObject, newObject, mergeCustomizer)
   }
 }
