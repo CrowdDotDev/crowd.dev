@@ -1180,7 +1180,12 @@ class OrganizationRepository {
       collapse: {
         field: 'uuid_organizationId',
       },
-      _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds', 'keyword_displayName'],
+      _source: [
+        'uuid_organizationId',
+        'nested_identities',
+        'uuid_arr_noMergeIds',
+        'keyword_displayName',
+      ],
     }
 
     let organizations: IOrganizationPartialAggregatesOpensearch[] = []
@@ -1261,6 +1266,11 @@ class OrganizationRepository {
                       minimum_should_match: 1,
                     },
                   },
+                },
+              },
+              {
+                match: {
+                  [`keyword_displayName`]: organization._source.keyword_displayName,
                 },
               },
             ],
