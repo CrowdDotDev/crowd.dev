@@ -31,10 +31,7 @@ import {
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import telemetryTrack from '../segment/telemetryTrack'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
-import {
-  sendExportCSVNodeSQSMessage,
-  sendNewMemberNodeSQSMessage,
-} from '../serverless/utils/nodeWorkerSQS'
+import { sendExportCSVNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
@@ -43,6 +40,7 @@ import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
 import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { ServiceType } from '@/conf/configTypes'
+import MemberOrganizationService from './memberOrganizationService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -462,34 +460,28 @@ export default class MemberService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
-            const handle = await this.options.temporal.workflow.start(
-              'processNewMemberAutomation',
-              {
-                workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
-                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-                workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-                retry: {
-                  maximumAttempts: 100,
-                },
+          const handle = await this.options.temporal.workflow.start('processNewMemberAutomation', {
+            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
+            taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+            retry: {
+              maximumAttempts: 100,
+            },
 
-                args: [
-                  {
-                    tenantId: this.options.currentTenant.id,
-                    memberId: record.id,
-                  },
-                ],
+            args: [
+              {
+                tenantId: this.options.currentTenant.id,
+                memberId: record.id,
               },
-            )
-            this.log.info(
-              { workflowId: handle.workflowId },
-              'Started temporal workflow to process new member automation!',
-            )
-          } else {
-            await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id, segment.id)
-          }
+            ],
+            searchAttributes: {
+              TenantId: [this.options.currentTenant.id],
+            },
+          })
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new member automation!',
+          )
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
@@ -663,10 +655,16 @@ export default class MemberService extends LoggerBase {
       delete toUpdate.activities
       // we already handled identities
       delete toUpdate.username
+      // we merge them manually
+      delete toUpdate.organizations
 
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
       await txService.update(originalId, toUpdate, false)
+
+      // update members that belong to source organization to destination org
+      const memberOrganizationService = new MemberOrganizationService(repoOptions)
+      await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
       // update activities to belong to the originalId member
       await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
@@ -1084,8 +1082,15 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, returnPlain = true, doPopulateRelations = true) {
-    return MemberRepository.findById(id, this.options, returnPlain, doPopulateRelations)
+  async findById(id, returnPlain = true, doPopulateRelations = true, segmentId?: string) {
+    return MemberRepository.findById(
+      id,
+      this.options,
+      returnPlain,
+      doPopulateRelations,
+      false,
+      segmentId,
+    )
   }
 
   async findAllAutocomplete(search, limit) {

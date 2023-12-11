@@ -11,10 +11,6 @@ export enum FeatureFlag {
 
   // opensearch
   SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',
-
-  // temporal
-  TEMPORAL_AUTOMATIONS = 'temporal-automations',
-  TEMPORAL_EMAILS = 'temporal-emails',
 }
 
 export enum FeatureFlagRedisKey {

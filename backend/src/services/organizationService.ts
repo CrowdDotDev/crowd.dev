@@ -29,6 +29,7 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
+import MemberOrganizationService from './memberOrganizationService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -151,11 +152,8 @@ export default class OrganizationService extends LoggerBase {
       await txService.update(originalId, toUpdate, false, false)
 
       // update members that belong to source organization to destination org
-      await OrganizationRepository.moveMembersBetweenOrganizations(
-        toMergeId,
-        originalId,
-        repoOptions,
-      )
+      const memberOrganizationService = new MemberOrganizationService(repoOptions)
+      await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
 
       // update activities that belong to source org to destination org
       await OrganizationRepository.moveActivitiesBetweenOrganizations(
@@ -528,21 +526,19 @@ export default class OrganizationService extends LoggerBase {
           'weakIdentities',
         ]
         fields.forEach((field) => {
-          if (field === 'website' && !existing.website && cache.website) {
-            updateData[field] = cache[field]
-          } else if (
-            field !== 'website' &&
-            cache[field] &&
-            !isEqual(cache[field], existing[field])
-          ) {
+          if (!existing[field] && cache[field]) {
             updateData[field] = cache[field]
           }
         })
 
-        record = await OrganizationRepository.update(existing.id, updateData, {
-          ...this.options,
-          transaction,
-        })
+        if (Object.keys(updateData).length > 0) {
+          record = await OrganizationRepository.update(existing.id, updateData, {
+            ...this.options,
+            transaction,
+          })
+        } else {
+          record = existing
+        }
       } else {
         await OrganizationRepository.checkIdentities(data, this.options)
 

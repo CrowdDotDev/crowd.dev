@@ -11,7 +11,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:api'
+    command: 'pnpm run start:api'
     working_dir: /usr/crowd/app/backend
     env_file:
       - ../../backend/.env.dist.local
@@ -30,7 +30,7 @@ services:
     build:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.backend
-    command: 'npm run start:api:dev'
+    command: 'pnpm run start:api:dev'
     working_dir: /usr/crowd/app/backend
     # user: '${USER_ID}:${GROUP_ID}'
     env_file:

@@ -356,12 +356,12 @@ function check_init_premium() {
 }
 
 function install_libs() {
-    (cd $CLI_HOME/../services/scripts && ./install_lib_packages.sh)
+    (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
 }
 
 function init_unleash() {
     install_libs
-    (cd $CLI_HOME/../backend && source source-local.sh && npm i && npm run script:unleash-init)
+    (cd $CLI_HOME/../backend && source source-local.sh && pnpm run script:unleash-init)
 }
 
 function up_scaffold() {

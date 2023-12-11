@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@crowd/logging": "file:../logging",
-    "@temporalio/client": "~1.8.6"
+    "@temporalio/client": "~1.8.6",
+    "@temporalio/common": "^1.8.6",
+    "@temporalio/proto": "~1.8.6"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",

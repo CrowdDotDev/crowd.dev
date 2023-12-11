@@ -15,13 +15,15 @@ import {
 } from '@/modules/auth/auth-socket';
 
 export default {
-  async doInit({ commit, dispatch }) {
+  async doInit({ commit, dispatch, state }) {
     try {
       const token = AuthToken.get();
       if (token) {
         connectSocket(token);
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
+
+        state.loadingInit = false;
         return currentUser;
       }
 
@@ -31,7 +33,6 @@ export default {
     } catch (error) {
       console.error(error);
       disconnectSocket();
-      console.log(error);
       commit('AUTH_INIT_ERROR');
       dispatch('doSignout');
       return null;
@@ -87,7 +88,7 @@ export default {
   },
 
   doRegisterEmailAndPassword(
-    { commit },
+    { commit, dispatch },
     {
       email, password, data = {}, acceptedTermsAndPrivacy,
     },
@@ -119,7 +120,7 @@ export default {
   },
 
   doSigninWithEmailAndPassword(
-    { commit },
+    { commit, dispatch },
     { email, password, rememberMe },
   ) {
     commit('AUTH_START');
@@ -162,6 +163,7 @@ export default {
           commit('CURRENT_USER_REFRESH_SUCCESS', {
             currentUser,
           });
+
           return currentUser;
         })
         .catch((error) => {
@@ -256,9 +258,6 @@ export default {
       return;
     }
 
-    if (immediate) {
-      state.currentTenant = tenant;
-    }
     AuthCurrentTenant.set(tenant);
 
     const initialState = buildInitialState(true);

@@ -3,9 +3,8 @@ import {
   startChild,
   ParentClosePolicy,
   ChildWorkflowCancellationType,
+  workflowInfo,
 } from '@temporalio/workflow'
-
-import { TemporalWorkflowId } from '@crowd/types'
 
 import * as activities from '../../activities/weekly-analytics/getNextEmails'
 import { weeklySendEmailAndUpdateHistory } from './sendEmailAndUpdateHistory'
@@ -30,17 +29,16 @@ weeklyGetAndSendNextEmails is a Temporal workflow that:
 */
 export async function weeklyGetAndSendNextEmails(): Promise<void> {
   const [tenants, calculatedTimes] = await Promise.all([weeklyGetNextEmails(), calculateTimes()])
+  const info = workflowInfo()
 
   await Promise.all(
     tenants.map((tenant) => {
       return startChild(weeklySendEmailAndUpdateHistory, {
-        workflowId: `${TemporalWorkflowId.EMAIL_WEEKLY_ANALYTICS}/${tenant.tenantId}`,
+        workflowId: `${info.workflowId}/${tenant.tenantId}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-        workflowExecutionTimeout: '15 minutes',
         retry: {
           backoffCoefficient: 2,
-          maximumAttempts: 10,
           initialInterval: 2 * 1000,
           maximumInterval: 30 * 1000,
         },

@@ -22,7 +22,11 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationUpdate)
   const payload = await new AutomationService(req).update(req.params.automationId, req.body.data)
 
-  track('Automation Updated', { ...payload }, { ...req })
+  track(
+    'Automation Updated',
+    { automationId: req.params.automationId, data: req.body.data },
+    { ...req },
+  )
 
   await req.responseHandler.success(req, res, payload)
 }

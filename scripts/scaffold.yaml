@@ -2,13 +2,12 @@ version: '3.1'
 
 services:
   cubejs:
-    image: cubejs/cube
+    build:
+      context: ../services/libs/cubejs
     restart: always
     ports:
       - '4000:4000'
       - '3001:3000'
-    volumes:
-      - '../services/libs/cubejs:/cube/conf'
     environment:
       - CUBEJS_DEV_MODE=true
       - CUBEJS_DB_HOST=db

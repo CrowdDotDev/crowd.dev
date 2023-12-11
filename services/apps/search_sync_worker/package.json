@@ -6,8 +6,8 @@
     "start": "SERVICE=search-sync-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=search-sync-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9234 -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug": "SERVICE=search-sync-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9234 -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug:local",
-    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug",
+    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
+    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
     "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
     "format-check": "./node_modules/.bin/prettier --check .",
@@ -32,7 +32,9 @@
     "script:create-versioned-index": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/create-versioned-index.ts",
     "script:reindex": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/reindex.ts",
     "script:create-alias": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/create-alias.ts",
-    "script:get-doc-count": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-doc-count.ts"
+    "script:remove-alias": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/remove-alias.ts",
+    "script:get-doc-count": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-doc-count.ts",
+    "script:get-index-info": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-index-info.ts"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",
@@ -42,6 +44,7 @@
     "@crowd/sqs": "file:../../libs/sqs",
     "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
+    "@crowd/opensearch": "file:../../libs/opensearch",
     "@opensearch-project/opensearch": "^1.2.0",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",

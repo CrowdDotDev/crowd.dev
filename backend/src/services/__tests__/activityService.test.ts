@@ -863,7 +863,8 @@ describe('ActivityService tests', () => {
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
       const segmentRepository = new SegmentRepository(mockIRepositoryOptions)
-      const activityChannels = await segmentRepository.fetchTenantActivityChannels()
+      const subprojectIds = (await segmentRepository.querySubprojects({})).rows.map((s) => s.id)
+      const activityChannels = await segmentRepository.fetchTenantActivityChannels(subprojectIds)
       expect(activityChannels[activity.platform].includes(activity.channel)).toBe(true)
     })
 
@@ -932,7 +933,8 @@ describe('ActivityService tests', () => {
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
       const segmentRepository = new SegmentRepository(mockIRepositoryOptions)
-      const activityChannels = await segmentRepository.fetchTenantActivityChannels()
+      const subprojectIds = (await segmentRepository.querySubprojects({})).rows.map((s) => s.id)
+      const activityChannels = await segmentRepository.fetchTenantActivityChannels(subprojectIds)
       expect(activityChannels[activity1.platform].length).toBe(1)
     })
   })

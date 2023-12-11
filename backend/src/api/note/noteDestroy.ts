@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = true
 
-  track('Note Destroyed', {}, { ...req })
+  track('Note Destroyed', { noteIds: req.query.ids }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }
