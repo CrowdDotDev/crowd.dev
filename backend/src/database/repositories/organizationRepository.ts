@@ -1153,7 +1153,7 @@ class OrganizationRepository {
           similarOrganization._source.keyword_displayName ===
           primaryOrganization._source.keyword_displayName
         ) {
-          return 0.95
+          return 0.98
         }
 
         for (const secondaryIdentity of similarOrganization._source.nested_identities) {
