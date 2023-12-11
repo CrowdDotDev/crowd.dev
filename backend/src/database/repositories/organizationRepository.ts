@@ -1379,7 +1379,7 @@ class OrganizationRepository {
             collapse: {
               field: 'uuid_organizationId',
             },
-            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities'],
+            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities', 'keyword_displayName'],
           }
 
           console.log(identitiesPartialQuery.should[1].nested.query.bool.should)
