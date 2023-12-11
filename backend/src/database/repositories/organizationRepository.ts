@@ -517,7 +517,64 @@ class OrganizationRepository {
     })
   }
 
-  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
+  static ORGANIZATION_UPDATE_COLUMNS = [
+    'displayName',
+    'description',
+    'emails',
+    'phoneNumbers',
+    'logo',
+    'tags',
+    'website',
+    'location',
+    'github',
+    'twitter',
+    'linkedin',
+    'crunchbase',
+    'employees',
+    'revenueRange',
+    'importHash',
+    'isTeamOrganization',
+    'employeeCountByCountry',
+    'type',
+    'ticker',
+    'headline',
+    'profiles',
+    'naics',
+    'industry',
+    'founded',
+    'size',
+    'employees',
+    'twitter',
+    'lastEnrichedAt',
+    'affiliatedProfiles',
+    'allSubsidiaries',
+    'alternativeDomains',
+    'alternativeNames',
+    'averageEmployeeTenure',
+    'averageTenureByLevel',
+    'averageTenureByRole',
+    'directSubsidiaries',
+    'employeeChurnRate',
+    'employeeCountByMonth',
+    'employeeGrowthRate',
+    'employeeCountByMonthByLevel',
+    'employeeCountByMonthByRole',
+    'gicsSector',
+    'grossAdditionsByMonth',
+    'grossDeparturesByMonth',
+    'ultimateParent',
+    'immediateParent',
+    'attributes',
+    'weakIdentities',
+  ]
+
+  static async update(
+    id,
+    data,
+    options: IRepositoryOptions,
+    overrideIdentities = false,
+    manualChange = false,
+  ) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -541,58 +598,40 @@ class OrganizationRepository {
       delete data.attributes.syncRemote
     }
 
+    if (manualChange) {
+      const manuallyChanged: string[] = record.manuallyChanged || []
+
+      for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
+        let changed = false
+        if (column in record && !(column in data)) {
+          // column was manually removed
+          changed = true
+        } else if (!(column in record) && column in data) {
+          // column was manually added
+          changed = true
+        } else if (column in record && column in data && record[column] !== data[column]) {
+          // column has been changed
+          changed = true
+        }
+
+        if (changed && !manuallyChanged.includes(column)) {
+          manuallyChanged.push(column)
+        }
+      }
+
+      data.manuallyChanged = manuallyChanged
+    } else {
+      // ignore columns that were manually changed
+      // by rewriting them with db data
+      const manuallyChanged: string[] = record.manuallyChanged || []
+      for (const manuallyChangedColumn of manuallyChanged) {
+        data[manuallyChangedColumn] = record[manuallyChangedColumn]
+      }
+    }
+
     record = await record.update(
       {
-        ...lodash.pick(data, [
-          'displayName',
-          'description',
-          'emails',
-          'phoneNumbers',
-          'logo',
-          'tags',
-          'website',
-          'location',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'revenueRange',
-          'importHash',
-          'isTeamOrganization',
-          'employeeCountByCountry',
-          'type',
-          'ticker',
-          'headline',
-          'profiles',
-          'naics',
-          'industry',
-          'founded',
-          'size',
-          'employees',
-          'twitter',
-          'lastEnrichedAt',
-          'affiliatedProfiles',
-          'allSubsidiaries',
-          'alternativeDomains',
-          'alternativeNames',
-          'averageEmployeeTenure',
-          'averageTenureByLevel',
-          'averageTenureByRole',
-          'directSubsidiaries',
-          'employeeChurnRate',
-          'employeeCountByMonth',
-          'employeeGrowthRate',
-          'employeeCountByMonthByLevel',
-          'employeeCountByMonthByRole',
-          'gicsSector',
-          'grossAdditionsByMonth',
-          'grossDeparturesByMonth',
-          'ultimateParent',
-          'immediateParent',
-          'attributes',
-          'weakIdentities',
-        ]),
+        ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
         updatedById: currentUser.id,
       },
       {

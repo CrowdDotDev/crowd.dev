@@ -221,6 +221,11 @@ export default (sequelize) => {
         type: DataTypes.JSONB,
         allowNull: true,
       },
+      manuallyChanged: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+        default: [],
+      },
     },
     {
       indexes: [
