@@ -1368,7 +1368,7 @@ class OrganizationRepository {
             _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities'],
           }
 
-          console.log(sameOrganizationsQueryBody)
+          console.log(identitiesPartialQuery.should[1].nested.query.bool.should)
 
           const organizationsToMerge: ISimilarOrganization[] =
             (
