@@ -1279,11 +1279,11 @@ class OrganizationRepository {
                   },
                 },
               },
-              {
-                term: {
-                  [`keyword_displayName`]: organization._source.keyword_displayName,
-                },
-              },
+              // {
+              //   term: {
+              //     [`keyword_displayName`]: organization._source.keyword_displayName,
+              //   },
+              // },
             ],
             minimum_should_match: 1,
             must_not: [
