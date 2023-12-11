@@ -40,6 +40,7 @@ interface IOrganizationPartialAggregatesOpensearch {
       string_name: string
     }[]
     uuid_arr_noMergeIds: string[]
+    keyword_displayName: string
   }
 }
 
@@ -1179,7 +1180,7 @@ class OrganizationRepository {
       collapse: {
         field: 'uuid_organizationId',
       },
-      _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds'],
+      _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds', 'keyword_displayName'],
     }
 
     let organizations: IOrganizationPartialAggregatesOpensearch[] = []
@@ -1313,6 +1314,13 @@ class OrganizationRepository {
                       prefix_length: 1,
                       fuzziness: 'auto',
                     },
+                  },
+                })
+
+                // exact search for displayName
+                identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                  match: {
+                    [`keyword_displayName`]: organization._source.keyword_displayName,
                   },
                 })
 
