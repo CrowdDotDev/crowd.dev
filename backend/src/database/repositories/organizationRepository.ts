@@ -606,15 +606,19 @@ class OrganizationRepository {
 
         // only check fields that are in the data object that will be updated
         if (column in data) {
-          if (record[column] !== null && (data[column] === null || data[column] === undefined)) {
-            // column was removed in the update -> will be set to null
+          if (
+            record[column] !== null &&
+            column in data &&
+            (data[column] === null || data[column] === undefined)
+          ) {
+            // column was removed in the update -> will be set to null by sequelize
             changed = true
           } else if (
             record[column] === null &&
             data[column] !== null &&
             data[column] !== undefined
           ) {
-            // column was null before now it's not
+            // column was null before now it's not anymore
             changed = true
           } else if (record[column] !== data[column]) {
             // column value has changed
