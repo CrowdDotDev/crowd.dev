@@ -153,20 +153,9 @@ services:
     build:
       context: scaffold/temporal
     restart: always
-    entrypoint: ["temporal", "server", "start-dev", "--ip", "0.0.0.0"]
     ports:
       - '7233:7233'
       - '8233:8233'
-    networks:
-      - crowd-bridge
-
-  temporal-setup:
-    build:
-      context: scaffold/temporal
-    restart: no
-    depends_on:
-      - temporal
-    command: "temporal operator search-attribute create --name TenantId --type Text --address temporal:7233"
     networks:
       - crowd-bridge
 
