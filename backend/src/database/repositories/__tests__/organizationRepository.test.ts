@@ -1235,7 +1235,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
-        manuallyChangedFields: null,
+        manuallyChangedFields: [],
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)
