@@ -1280,7 +1280,7 @@ class OrganizationRepository {
                 },
               },
               {
-                match: {
+                term: {
                   [`keyword_displayName`]: organization._source.keyword_displayName,
                 },
               },
