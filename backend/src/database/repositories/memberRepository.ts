@@ -887,7 +887,9 @@ class MemberRepository {
         filter: {
           and: [
             {
-              id: memberId
+              id: {
+                eq: memberId
+              }
             },
           ]
         },
