@@ -932,21 +932,14 @@ class MemberRepository {
       with ${extraCTEs}
         SELECT
         a."memberId",
-        a."segmentId",
         count(a.id)::integer AS "activityCount",
         max(a.timestamp) AS "lastActive",
         array_agg(DISTINCT concat(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
         array_agg(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
         count(DISTINCT a."timestamp"::date)::integer AS "activeDaysCount",
-        round(avg(
-            CASE WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL THEN
-                (a.sentiment ->> 'sentiment'::text)::double precision
-            ELSE
-                NULL::double precision
-            END
-        )::numeric, 2):: float AS "averageSentiment"
+        round(avg(a.sentiment)::numeric, 2):: float AS "averageSentiment"
         FROM leaf_segment_ids lfs
-        join activities a on a."segmentId" = lfs.id
+        join mv_activities_cube a on a."segmentId" = lfs.id
         WHERE a."memberId" = :memberId
         and a."tenantId" = :tenantId
         GROUP BY a."memberId", a."segmentId"
