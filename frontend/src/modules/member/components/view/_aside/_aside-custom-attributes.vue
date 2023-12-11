@@ -6,7 +6,7 @@
           Attributes
         </div>
         <el-tooltip
-          v-if="attributesSameSource"
+          v-if="isEnrichmentEnabled && attributesSameSource"
           :content="`Source: ${attributesSameSource}`"
           placement="top"
           trigger="hover"
@@ -50,63 +50,72 @@
         :key="attribute.id"
         class="attribute"
       >
-        <cr-enrichment-sneak-peak type="contact">
+        <cr-enrichment-sneak-peak v-if="hiddenAttributeNames.includes(attribute.name)" type="contact">
           <template #default="{ enabled }">
             <div>
               <div class="flex items-center">
                 <p class="title pr-2" :class="{ '!text-purple-400': !enabled }">
                   {{ attribute.label }}
-                  <el-tooltip
-                    content="Skills are sorted by relevance"
-                    placement="top"
-                  >
-                    <i
-                      v-if="attribute.name === 'skills'"
-                      class="ri-information-line"
-                    />
-                  </el-tooltip>
                 </p>
-                <el-tooltip
-                  v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
-                  :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
-                  placement="top"
-                  trigger="hover"
-                  :disabled="!enabled"
-                >
-                  <app-svg name="source" class="h-3 w-3" />
-                </el-tooltip>
+                <app-svg name="source" class="h-3 w-3" />
               </div>
-              <div v-if="!enabled" class="mt-1">
-                <div class="w-full h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
-              </div>
-              <div
-                v-else-if="attribute.type === 'multiSelect'"
-                class="multiSelect -mt-1"
-              >
-                <app-member-custom-attributes-array-renderer
-                  :title="attribute.label"
-                  :attribute="member.attributes[attribute.name]"
-                  more-label=""
-                  :slice-size="5"
-                  :with-separators="false"
-                  wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
-                  item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
-                >
-                  <template #itemSlot="{ item }">
-                    {{ item }}
-                  </template>
-                </app-member-custom-attributes-array-renderer>
-              </div>
-              <p v-else class="value break-words">
-                {{
-                  formattedComputedAttributeValue(
-                    member.attributes[attribute.name].default,
-                  )
-                }}
-              </p>
+              <div class="w-full h-3 bg-gradient-to-r from-gray-100 to-gray-50 mt-2" />
             </div>
           </template>
         </cr-enrichment-sneak-peak>
+        <div v-else>
+          <div class="flex items-center">
+            <p class="title pr-2" :class="{ '!text-purple-400': !enabled }">
+              {{ attribute.label }}
+              <el-tooltip
+                content="Skills are sorted by relevance"
+                placement="top"
+              >
+                <i
+                  v-if="attribute.name === 'skills'"
+                  class="ri-information-line"
+                />
+              </el-tooltip>
+            </p>
+            <el-tooltip
+              v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
+              :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
+              placement="top"
+              trigger="hover"
+              :disabled="!enabled"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
+          <div v-if="!enabled && hiddenAttributeNames.includes(attribute.name)" class="mt-1">
+            <div class="w-full h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
+          </div>
+          <div
+            v-else-if="attribute.type === 'multiSelect'"
+            class="multiSelect -mt-1"
+          >
+            <app-member-custom-attributes-array-renderer
+              :title="attribute.label"
+              :attribute="member.attributes[attribute.name]"
+              more-label=""
+              :slice-size="5"
+              :with-separators="false"
+              wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
+              item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
+            >
+              <template #itemSlot="{ item }">
+                {{ item }}
+              </template>
+            </app-member-custom-attributes-array-renderer>
+          </div>
+          <p v-else class="value break-words">
+            {{
+              formattedComputedAttributeValue(
+                member.attributes[attribute.name].default,
+              )
+            }}
+          </p>
+        </div>
       </div>
     </div>
     <div class="-mx-2 pt-2">
@@ -134,6 +143,8 @@ import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/encirhment-sneak-peak-content.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import Plans from '@/security/plans';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
@@ -151,35 +162,73 @@ const { customAttributes } = storeToRefs(memberStore);
 
 const attributesDrawer = ref(false);
 
+const { currentTenant } = mapGetters('auth');
+const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
+
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   store.getters['auth/currentTenant'],
   store.getters['auth/currentUser'],
 ).editLockedForSampleData);
 
-const computedCustomAttributes = computed(() => Object.values(customAttributes.value)
-  .filter((attribute) => (
-    attribute.show
-        && ![
-          'bio',
-          'url',
-          'location',
-          'emails',
-          'jobTitle',
-          'workExperiences', // we render them in _aside-work-experience
-          'certifications', // we render them in _aside-work-certifications
-          'education', // we render them in _aside-work-education
-          'awards', // we render them in _aside-work-awards
-        ].includes(attribute.name)
-        && props.member.attributes[attribute.name]
-  ))
-  .sort((a, b) => {
-    if (props.member.attributes[a.name].enrich) {
-      return props.member.attributes[b.name].enrich
-        ? 0
-        : -1;
-    }
-    return 1;
-  }));
+const hiddenAttributes = ref([
+  {
+    name: 'seniorityLevel',
+    label: 'Seniority level',
+    show: true,
+  },
+  {
+    name: 'programmingLanguages',
+    label: 'Programming languages',
+    show: true,
+  },
+  {
+    name: 'skills',
+    label: 'Skills',
+    show: true,
+  },
+  {
+    name: 'reach',
+    label: 'Reach',
+    show: false,
+  },
+]);
+
+const hiddenAttributeNames = computed(() => hiddenAttributes.value.map((att) => att.name));
+
+const computedCustomAttributes = computed(() => {
+  const attributes = Object.values(customAttributes.value)
+    .filter((attribute) => (
+      attribute.show
+          && ![
+            'bio',
+            'url',
+            'location',
+            'emails',
+            'jobTitle',
+            'workExperiences', // we render them in _aside-work-experience
+            'certifications', // we render them in _aside-work-certifications
+            'education', // we render them in _aside-work-education
+            'awards', // we render them in _aside-work-awards
+          ].includes(attribute.name)
+          && props.member.attributes[attribute.name]
+    ))
+    .sort((a, b) => {
+      if (props.member.attributes[a.name].enrich) {
+        return props.member.attributes[b.name].enrich
+          ? 0
+          : -1;
+      }
+      return 1;
+    });
+  const attributeNames = attributes.map((att) => att.name);
+  const staticAttributes = isEnrichmentEnabled.value
+    ? []
+    : hiddenAttributes.value.filter((att) => att.show && !attributeNames.includes(att.name));
+  return [
+    ...staticAttributes,
+    ...attributes,
+  ];
+});
 
 const attributesSameSource = computed(() => {
   const sources = computedCustomAttributes.value.map((attribute) => getAttributeSourceName(props.member.attributes[attribute.name]));

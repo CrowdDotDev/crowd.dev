@@ -7,6 +7,7 @@ const founded: OrganizationEnrichmentConfig = {
   type: AttributeType.NUMBER,
   showInForm: true,
   showInAttributes: true,
+  enrichmentSneakPeak: true,
   displayValue: (value) => value,
 };
 

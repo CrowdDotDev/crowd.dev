@@ -8,6 +8,7 @@ const industry: OrganizationEnrichmentConfig = {
   type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: true,
+  enrichmentSneakPeak: true,
   displayValue: (value) => toSentenceCase(value),
 };
 

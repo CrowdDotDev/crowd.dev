@@ -8,6 +8,7 @@ const tags: OrganizationEnrichmentConfig = {
   type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
+  enrichmentSneakPeak: true,
   component: OrganizationAttributesArrayRenderer,
 };
 

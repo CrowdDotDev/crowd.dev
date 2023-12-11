@@ -159,6 +159,7 @@ const formattedInformation = (value, type) => {
     value === undefined
     || value === null
     || value === -1
+    || value === ''
     // If the timestamp is 1970, we show "-"
     || (type === 'date' && moment(value).isBefore(moment().subtract(40, 'years')))
   ) {
