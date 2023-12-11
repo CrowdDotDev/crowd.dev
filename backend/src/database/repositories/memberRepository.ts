@@ -945,7 +945,7 @@ class MemberRepository {
                 NULL::double precision
             END
         )::numeric, 2):: float AS "averageSentiment"
-        FROM activities a
+        FROM mv_activities_cube a
         join leaf_segment_ids lfs on a."segmentId" = lfs.id
         WHERE a."memberId" = :memberId
         and a."tenantId" = :tenantId
