@@ -1382,7 +1382,7 @@ class OrganizationRepository {
             _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities', 'keyword_displayName'],
           }
 
-          console.log(identitiesPartialQuery.should[1].nested.query.bool.should)
+          console.log(`Getting similar organizations for ${organization._source.keyword_displayName}`)
 
           const organizationsToMerge: ISimilarOrganization[] =
             (
