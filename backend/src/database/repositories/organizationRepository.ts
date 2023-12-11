@@ -1256,6 +1256,11 @@ class OrganizationRepository {
           const identitiesPartialQuery = {
             should: [
               {
+                term: {
+                  [`keyword_displayName`]: organization._source.keyword_displayName,
+                },
+              },
+              {
                 nested: {
                   path: 'nested_weakIdentities',
                   query: {
@@ -1279,11 +1284,7 @@ class OrganizationRepository {
                   },
                 },
               },
-              {
-                term: {
-                  [`keyword_displayName`]: organization._source.keyword_displayName,
-                },
-              },
+
             ],
             minimum_should_match: 1,
             must_not: [
@@ -1307,7 +1308,7 @@ class OrganizationRepository {
           for (const identity of organization._source.nested_identities) {
             if (identity.string_name.length > 0) {
               // weak identity search
-              identitiesPartialQuery.should[0].nested.query.bool.should.push({
+              identitiesPartialQuery.should[1].nested.query.bool.should.push({
                 bool: {
                   must: [
                     { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
@@ -1328,7 +1329,7 @@ class OrganizationRepository {
               if (Number.isNaN(Number(identity.string_name))) {
                 hasFuzzySearch = true
                 // fuzzy search for identities
-                identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                identitiesPartialQuery.should[2].nested.query.bool.should.push({
                   match: {
                     [`nested_identities.keyword_name`]: {
                       query: cleanedIdentityName,
@@ -1340,7 +1341,7 @@ class OrganizationRepository {
 
                 // also check for prefix for identities that has more than 5 characters and no whitespace
                 if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
-                  identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                  identitiesPartialQuery.should[2].nested.query.bool.should.push({
                     prefix: {
                       [`nested_identities.keyword_name`]: {
                         value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
