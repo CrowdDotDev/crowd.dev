@@ -1,4 +1,4 @@
-import { IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
+import { EDITION, IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
 import { UnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
@@ -10,6 +10,7 @@ import {
   IQueueMessage,
   QueuePriorityLevel,
   TenantPlans,
+  Edition,
 } from '@crowd/types'
 
 export type QueuePriorityContextLoader = (
@@ -191,6 +192,14 @@ export class QueuePriorityService {
   private calculateQueuePriorityLevel(ctx: IQueuePriorityCalculationContext): QueuePriorityLevel {
     if (ctx.dbPriority) {
       return ctx.dbPriority
+    }
+
+    if (EDITION === Edition.LFX) {
+      if (ctx.onboarding) {
+        return QueuePriorityLevel.HIGH
+      }
+
+      return QueuePriorityLevel.NORMAL
     }
 
     if (ctx.plan === TenantPlans.Essential) {
