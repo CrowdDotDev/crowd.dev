@@ -593,7 +593,7 @@ describe('MemberService tests', () => {
         grossDeparturesByMonth: null,
         ultimateParent: null,
         immediateParent: null,
-        manuallyChanged: null,
+        manuallyChangedFields: null,
       })
     })
 
@@ -687,7 +687,7 @@ describe('MemberService tests', () => {
         grossDeparturesByMonth: null,
         ultimateParent: null,
         immediateParent: null,
-        manuallyChanged: null,
+        manuallyChangedFields: null,
       })
     })
 
@@ -740,7 +740,7 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
-        manuallyChanged: null,
+        manuallyChangedFields: null,
         memberOrganizations: {
           dateEnd: null,
           dateStart: null,

@@ -1,2 +1,2 @@
 alter table organizations
-    drop column "manuallyChanged";
+    drop column "manuallyChangedFields";

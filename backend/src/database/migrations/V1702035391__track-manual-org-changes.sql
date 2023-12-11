@@ -1,2 +1,2 @@
 alter table organizations
-    add column "manuallyChanged" text[] null;
+    add column "manuallyChangedFields" text[] null;

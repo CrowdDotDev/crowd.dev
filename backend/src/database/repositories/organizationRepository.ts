@@ -599,40 +599,51 @@ class OrganizationRepository {
     }
 
     if (manualChange) {
-      const manuallyChanged: string[] = record.manuallyChanged || []
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
 
       for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
         let changed = false
-        if (column in record && !(column in data)) {
-          // column was manually removed
-          changed = true
-        } else if (!(column in record) && column in data) {
-          // column was manually added
-          changed = true
-        } else if (column in record && column in data && record[column] !== data[column]) {
-          // column has been changed
-          changed = true
+
+        // only check fields that are in the data object that will be updated
+        if (column in data) {
+          if (record[column] !== null && (data[column] === null || data[column] === undefined)) {
+            // column was removed in the update -> will be set to null
+            changed = true
+          } else if (
+            record[column] === null &&
+            data[column] !== null &&
+            data[column] !== undefined
+          ) {
+            // column was null before now it's not
+            changed = true
+          } else if (record[column] !== data[column]) {
+            // column value has changed
+            changed = true
+          }
         }
 
-        if (changed && !manuallyChanged.includes(column)) {
-          manuallyChanged.push(column)
+        if (changed && !manuallyChangedFields.includes(column)) {
+          manuallyChangedFields.push(column)
         }
       }
 
-      data.manuallyChanged = manuallyChanged
+      data.manuallyChangedFields = manuallyChangedFields
     } else {
       // ignore columns that were manually changed
       // by rewriting them with db data
-      const manuallyChanged: string[] = record.manuallyChanged || []
-      for (const manuallyChangedColumn of manuallyChanged) {
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+      for (const manuallyChangedColumn of manuallyChangedFields) {
         data[manuallyChangedColumn] = record[manuallyChangedColumn]
       }
+
+      data.manuallyChangedFields = manuallyChangedFields
     }
 
     record = await record.update(
       {
         ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
         updatedById: currentUser.id,
+        manuallyChangedFields: data.manuallyChangedFields,
       },
       {
         transaction,

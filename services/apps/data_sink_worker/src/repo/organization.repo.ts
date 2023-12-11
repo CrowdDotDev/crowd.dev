@@ -452,7 +452,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async update(id: string, data: Partial<IDbUpdateOrganizationData>): Promise<void> {
     // handle manuallyChanged
     const result = await this.db().oneOrNone(
-      `select id, "manuallyChanged" from organizations where id = $(id)`,
+      `select id, "manuallyChangedFields" from organizations where id = $(id)`,
       {
         id,
       },
@@ -460,8 +460,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     if (!result) {
       throw new Error(`Organization with id ${id} not found!`)
     }
-    const manuallyChanged = result.manuallyChanged || []
-    for (const column of manuallyChanged) {
+    const manuallyChangedFields = result.manuallyChangedFields || []
+    for (const column of manuallyChangedFields) {
       if (column in data) {
         delete data[column]
       }
