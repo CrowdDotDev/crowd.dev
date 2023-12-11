@@ -942,7 +942,7 @@ class MemberRepository {
         join mv_activities_cube a on a."segmentId" = lfs.id
         WHERE a."memberId" = :memberId
         and a."tenantId" = :tenantId
-        GROUP BY a."memberId", a."segmentId"
+        GROUP BY a."memberId"
     `
 
     const data: ActivityAggregates[] = await seq.query(query, {
