@@ -30,6 +30,10 @@ SELECT
         WHEN (a.sentiment->>'sentiment')::integer > 66 THEN 'positive'
         ELSE 'neutral'
     END::VARCHAR(8) AS "sentimentMood",
+    CASE 
+        WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL THEN (a.sentiment ->> 'sentiment'::text)::double precision
+        ELSE NULL::double precision
+    END AS "sentiment",
     a."organizationId",
     a."segmentId",
     a."conversationId"
