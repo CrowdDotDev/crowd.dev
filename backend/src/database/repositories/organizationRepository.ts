@@ -1279,11 +1279,11 @@ class OrganizationRepository {
                   },
                 },
               },
-              // {
-              //   term: {
-              //     [`keyword_displayName`]: organization._source.keyword_displayName,
-              //   },
-              // },
+              {
+                term: {
+                  [`keyword_displayName`]: organization._source.keyword_displayName,
+                },
+              },
             ],
             minimum_should_match: 1,
             must_not: [
@@ -1393,6 +1393,8 @@ class OrganizationRepository {
             ).body?.hits?.hits || []
 
           for (const organizationToMerge of organizationsToMerge) {
+            console.log(`Found similar organization as ${organization._source.keyword_displayName}`)
+            console.log(organizationToMerge)
             yieldChunk.push({
               similarity: calculateSimilarity(organization, organizationToMerge),
               organizations: [
