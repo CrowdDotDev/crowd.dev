@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { PlatformType, SyncMode, TemporalWorkflowId } from '@crowd/types'
+import { PlatformType, SegmentData, SyncMode, TemporalWorkflowId } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -22,7 +22,6 @@ import MemberAffiliationService from './memberAffiliationService'
 import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
-import TenantService from '@/services/tenantService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -741,16 +740,35 @@ export default class ActivityService extends LoggerBase {
     return ActivityRepository.findById(id, this.options)
   }
 
-  async findActivityTypes(id: string) {
+  async findActivityTypes(segments?: string[]) {
     const segmentService = new SegmentService(this.options)
-    const tenant = await new TenantService(this.options).findById(id)
-    const tenantSubprojects = await segmentService.getTenantSubprojects(tenant)
-    return SegmentService.getTenantActivityTypes(tenantSubprojects)
+
+    let subprojects: SegmentData[]
+
+    if (!segments || segments.length === 0) {
+      subprojects = await segmentService.getTenantSubprojects()
+    } else {
+      subprojects = await segmentService.getSegmentSubprojects(segments)
+    }
+
+    return SegmentService.getTenantActivityTypes(subprojects)
   }
 
-  async findActivityChannels(id: string) {
-    const tenant = await new TenantService(this.options).findById(id)
-    return SegmentService.getTenantActivityChannels(tenant, this.options)
+  async findActivityChannels(segments?: string[]) {
+    const segmentService = new SegmentService(this.options)
+
+    let subprojects: SegmentData[]
+
+    if (!segments || segments.length === 0) {
+      subprojects = await segmentService.getTenantSubprojects()
+    } else {
+      subprojects = await segmentService.getSegmentSubprojects(segments)
+    }
+
+    return SegmentService.getTenantActivityChannels(
+      subprojects.map((s) => s.id),
+      this.options,
+    )
   }
 
   async findAllAutocomplete(search, limit) {
