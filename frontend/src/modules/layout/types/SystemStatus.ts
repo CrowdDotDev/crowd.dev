@@ -5,4 +5,5 @@ export enum Status {
   MajorOutage = 'major_outage',
   UnderMaintenance = 'under_maintenance', // currently not in use
   Unknown = 'unknown',
+  Incident = 'incident',
 }
