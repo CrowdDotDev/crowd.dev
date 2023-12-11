@@ -1327,13 +1327,6 @@ class OrganizationRepository {
                   },
                 })
 
-                // exact search for displayName
-                identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                  match: {
-                    [`keyword_displayName`]: organization._source.keyword_displayName,
-                  },
-                })
-
                 // also check for prefix for identities that has more than 5 characters and no whitespace
                 if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
                   identitiesPartialQuery.should[1].nested.query.bool.should.push({
