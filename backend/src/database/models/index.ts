@@ -66,7 +66,7 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
       dialect: DB_CONFIG.dialect,
       dialectOptions: {
         application_name: SERVICE,
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 15000,
         query_timeout: queryTimeoutMilliseconds,
         idle_in_transaction_session_timeout: 10000,
       },
