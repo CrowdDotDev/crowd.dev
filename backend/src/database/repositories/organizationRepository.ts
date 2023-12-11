@@ -50,6 +50,7 @@ interface ISimilarOrganization {
     uuid_organizationId: string
     nested_identities: IOrganizationIdentityOpensearch[]
     nested_weakIdentities: IOrganizationIdentityOpensearch[]
+    keyword_displayName: string
   }
 }
 
@@ -1136,6 +1137,7 @@ class OrganizationRepository {
       for (const primaryIdentity of primaryOrganization._source.nested_identities) {
         // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
         if (
+          similarOrganization._source.nested_weakIdentities &&
           similarOrganization._source.nested_weakIdentities.length > 0 &&
           similarOrganization._source.nested_weakIdentities.some(
             (weakIdentity) =>
@@ -1145,6 +1147,15 @@ class OrganizationRepository {
         ) {
           return 0.95
         }
+
+        // check displayName match
+        if (
+          similarOrganization._source.keyword_displayName ===
+          primaryOrganization._source.keyword_displayName
+        ) {
+          return 0.95
+        }
+
         for (const secondaryIdentity of similarOrganization._source.nested_identities) {
           const currentLevenstheinDistance = getLevenshteinDistance(
             primaryIdentity.string_name,
