@@ -1383,8 +1383,6 @@ class OrganizationRepository {
             _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities', 'keyword_displayName'],
           }
 
-          console.log(`Getting similar organizations for ${organization._source.keyword_displayName}`)
-
           const organizationsToMerge: ISimilarOrganization[] =
             (
               await options.opensearch.search({
@@ -1394,8 +1392,6 @@ class OrganizationRepository {
             ).body?.hits?.hits || []
 
           for (const organizationToMerge of organizationsToMerge) {
-            console.log(`Found similar organization as ${organization._source.keyword_displayName}`)
-            console.log(organizationToMerge)
             yieldChunk.push({
               similarity: calculateSimilarity(organization, organizationToMerge),
               organizations: [
