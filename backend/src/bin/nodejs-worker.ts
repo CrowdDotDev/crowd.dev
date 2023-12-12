@@ -65,9 +65,9 @@ const removeWorkerJob = (): void => {
   processingMessages--
 }
 
-async function handleMessages() {
+async function handleMessages(queue: string) {
   const handlerLogger = getChildLogger('messages', serviceLogger, {
-    queue: SQS_CONFIG.nodejsWorkerQueue,
+    queue,
   })
   handlerLogger.info('Listening for messages!')
 
@@ -181,7 +181,10 @@ setImmediate(async () => {
   await initRedisSeq()
 
   await getNodejsWorkerEmitter()
-  await handleMessages()
+  await Promise.all([
+    handleMessages(SQS_CONFIG.nodejsWorkerQueue),
+    handleMessages(SQS_CONFIG.nodejsWorkerPriorityQueue),
+  ])
 })
 
 const liveFilePath = path.join(__dirname, 'tmp/nodejs-worker-live.tmp')
