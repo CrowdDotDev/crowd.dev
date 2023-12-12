@@ -17,12 +17,12 @@ inputs:
   prioritized:
     description: Is the service listening on prioritized queues?
     required: false
-    default: "false"
+    default: 'false'
 
   only_normal_queue_level:
     description: Is the service prioritized but only listening on normal level? (staging/lf)
     required: false
-    default: "false"
+    default: 'false'
 
 runs:
   using: composite
@@ -36,12 +36,12 @@ runs:
         AWS_REGION: ${{ env.AWS_REGION }}
 
     - name: Deploy image (non prioritized)
-      if: inputs.prioritized == "false"
+      if: inputs.prioritized == 'false'
       shell: bash
       run: kubectl set image deployments/${{ inputs.service }}-dpl ${{ inputs.service }}=${{ inputs.image }}
 
     - name: Deploy image (prioritized)
-      if: inputs.prioritized == "true" && inputs.only_normal_queue_level == "false"
+      if: inputs.prioritized == 'true' && inputs.only_normal_queue_level == 'false'
       shell: bash
       run: |
         kubectl set image deployments/${{ inputs.service }}-system-dpl ${{ inputs.service }}-system=${{ inputs.image }}
@@ -50,10 +50,10 @@ runs:
         kubectl set image deployments/${{ inputs.service }}-urgent-dpl ${{ inputs.service }}-urgent=${{ inputs.image }}
 
     - name: Deploy image (prioritized - normal only)
-      if: inputs.prioritized == "true" && inputs.only_normal_queue_level == "true"
+      if: inputs.prioritized == 'true' && inputs.only_normal_queue_level == 'true'
       shell: bash
       run: kubectl set image deployments/${{ inputs.service }}-normal-dpl ${{ inputs.service }}-normal=${{ inputs.image }}
 
     - uses: ./.github/actions/slack-notify
       with:
-        message: "Service *${{ inputs.service }}* was just deployed using docker image `${{ inputs.image }}`"
+        message: 'Service *${{ inputs.service }}* was just deployed using docker image `${{ inputs.image }}`'
