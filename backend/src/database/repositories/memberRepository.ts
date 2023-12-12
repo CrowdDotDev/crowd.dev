@@ -870,7 +870,7 @@ class MemberRepository {
     options: IRepositoryOptions,
     segmentId?: string,
   ): Promise<ActivityAggregates> {
-    const segments = segmentId ? [segmentId] : []
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
 
     const memberFromOpensearch = (
       await this.findAndCountAllOpensearch(
