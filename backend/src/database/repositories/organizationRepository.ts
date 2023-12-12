@@ -2039,6 +2039,55 @@ class OrganizationRepository {
     return results
   }
 
+  static async findByIdOpensearch(
+    id: string,
+    options: IRepositoryOptions,
+    segmentId?: string,
+  ): Promise<any> {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    if (!segmentId) {
+      segmentId = SequelizeRepository.getSegmentIds(options)[0]
+    }
+
+    const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
+
+    const response = await options.opensearch.search({
+      index: OpenSearchIndex.ORGANIZATIONS,
+      body: {
+        query: {
+          bool: {
+            filter: [
+              {
+                term: {
+                  uuid_organizationId: id,
+                },
+              },
+              {
+                term: {
+                  uuid_tenantId: tenant.id,
+                },
+              },
+              {
+                term: {
+                  uuid_segmentId: segmentId,
+                },
+              },
+            ],
+          },
+        },
+      },
+    })
+
+    if (response.body.hits.total.value === 0) {
+      throw new Error404()
+    }
+
+    const translatedRow = translator.translateObjectToCrowd(response.body.hits.hits[0]._source)
+
+    return translatedRow
+  }
+
   static async findAndCountAllOpensearch(
     {
       filter = {} as any,

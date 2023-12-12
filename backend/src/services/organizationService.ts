@@ -724,6 +724,10 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrCreateByDomain(domain, this.options)
   }
 
+  async findByIdOpensearch(id: string, segmentId?: string) {
+    return OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+  }
+
   async query(data) {
     const advancedFilter = data.filter
     const orderBy = data.orderBy

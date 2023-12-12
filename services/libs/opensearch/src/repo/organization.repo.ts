@@ -195,6 +195,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."segmentId",
         o."tenantId",
         o.address,
+        o.tags,
+        o.ticker,
         o.attributes,
         o."createdAt",
         o."manuallyCreated",

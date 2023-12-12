@@ -34,7 +34,7 @@ export default async (req, res) => {
     }
   }
 
-  const payload = await new OrganizationService(req).findById(req.params.id, segmentId)
+  const payload = await new OrganizationService(req).findByIdOpensearch(req.params.id, segmentId)
 
   await req.responseHandler.success(req, res, payload)
 }
