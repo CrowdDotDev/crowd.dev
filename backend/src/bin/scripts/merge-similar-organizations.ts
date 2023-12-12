@@ -35,7 +35,7 @@ const options = [
   },
   {
     name: 'hardLimit',
-    alias: 'h',
+    alias: 'l',
     type: Boolean,
     defaultValue: false,
     description: `Hard limit for # of organizations that'll be merged. Mostly a flag for testing purposes.`,
