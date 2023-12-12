@@ -6,7 +6,7 @@ import {
   IntegrationStreamWorkerEmitter,
   DataSinkWorkerEmitter,
 } from '@crowd/sqs'
-import { IntegrationRunState, IntegrationType } from '@crowd/types'
+import { IntegrationRunState, IntegrationType , TenantPlans } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import MicroserviceRepository from '@/database/repositories/microserviceRepository'
 import IntegrationRepository from '@/database/repositories/integrationRepository'
@@ -214,7 +214,7 @@ export class IntegrationTickProcessor extends LoggerBase {
                 const delay = chunkIndex * DELAY_BETWEEN_CHUNKS
 
                 // Divide integrations into chunks for Discord
-                if (newIntService.type === IntegrationType.DISCORD) {
+                if (newIntService.type === IntegrationType.DISCORD && integration.tenant.plan !== TenantPlans.Essential) {
                   setTimeout(async () => {
                     logger.info(
                       { integrationId: integration.id },
