@@ -7,7 +7,7 @@ import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import ConversationService from '../conversationService'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { MemberAttributeName, PlatformType } from '@crowd/types'
+import { MemberAttributeName, PlatformType, SegmentStatus } from '@crowd/types'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
@@ -16,11 +16,9 @@ import { GITHUB_MEMBER_ATTRIBUTES, TWITTER_MEMBER_ATTRIBUTES } from '@crowd/inte
 import { populateSegments, switchSegments } from '../../database/utils/segmentTestUtils'
 import SegmentRepository from '../../database/repositories/segmentRepository'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
-import { SegmentStatus } from '../../types/segmentTypes'
 import OrganizationService from '../organizationService'
 import MemberSegmentAffiliationRepository from '../../database/repositories/memberSegmentAffiliationRepository'
 import SegmentService from '../segmentService'
-import { SegmentData } from '../../types/segmentTypes'
 import MemberAffiliationService from '../memberAffiliationService'
 
 const db = null
@@ -865,7 +863,8 @@ describe('ActivityService tests', () => {
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
       const segmentRepository = new SegmentRepository(mockIRepositoryOptions)
-      const activityChannels = await segmentRepository.fetchTenantActivityChannels()
+      const subprojectIds = (await segmentRepository.querySubprojects({})).rows.map((s) => s.id)
+      const activityChannels = await segmentRepository.fetchTenantActivityChannels(subprojectIds)
       expect(activityChannels[activity.platform].includes(activity.channel)).toBe(true)
     })
 
@@ -934,7 +933,8 @@ describe('ActivityService tests', () => {
 
       await new ActivityService(mockIRepositoryOptions).upsert(activity)
       const segmentRepository = new SegmentRepository(mockIRepositoryOptions)
-      const activityChannels = await segmentRepository.fetchTenantActivityChannels()
+      const subprojectIds = (await segmentRepository.querySubprojects({})).rows.map((s) => s.id)
+      const activityChannels = await segmentRepository.fetchTenantActivityChannels(subprojectIds)
       expect(activityChannels[activity1.platform].length).toBe(1)
     })
   })

@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
-import Error404 from '../../errors/Error404'
+import { Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'

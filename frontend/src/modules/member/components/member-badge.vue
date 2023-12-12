@@ -76,7 +76,7 @@ const computedTooltipContent = (tooltip) => {
       props.member.joinedAt,
     ).format('MMM DD, YYYY')}`;
   } if (tooltip === 'team') {
-    return 'Team contributor';
+    return 'This contributor belongs to your organization';
   }
   return 'Bot';
 };

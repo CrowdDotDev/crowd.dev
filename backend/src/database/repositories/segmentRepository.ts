@@ -2,10 +2,8 @@ import lodash from 'lodash'
 import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
-import { ActivityTypeSettings } from '@crowd/types'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import { RepositoryBase } from './repositoryBase'
 import {
+  ActivityTypeSettings,
   SegmentCreateData,
   SegmentData,
   SegmentLevel,
@@ -15,9 +13,12 @@ import {
   SegmentStatus,
   SegmentUpdateChildrenPartialData,
   SegmentUpdateData,
-} from '../../types/segmentTypes'
-import { PageData, QueryData } from '../../types/common'
-import Error404 from '../../errors/Error404'
+  PageData,
+  QueryData,
+} from '@crowd/types'
+import { Error404 } from '@crowd/common'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import { RepositoryBase } from './repositoryBase'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -268,7 +269,58 @@ class SegmentRepository extends RepositoryBase<
     }, {})
   }
 
-  async fetchTenantActivityChannels() {
+  async getSegmentSubprojects(segments: string[]) {
+    const transaction = this.transaction
+
+    const records = await this.options.database.sequelize.query(
+      `
+      with input_segment AS (
+        select
+          id,
+          slug,
+          "parentSlug",
+          "grandparentSlug"
+        from segments
+        where id in (:segmentIds)
+          and "tenantId" = :tenantId
+      ),
+      segment_level AS (
+        select
+          case
+            when "parentSlug" is not null and "grandparentSlug" is not null
+                then 'child'
+            when "parentSlug" is not null and "grandparentSlug" is null
+                then 'parent'
+            when "parentSlug" is null and "grandparentSlug" is null
+                then 'grandparent'
+            end as level,
+          id,
+          slug,
+          "parentSlug",
+          "grandparentSlug"
+        from input_segment
+      )
+        select s.*
+        from segments s
+        join segment_level sl on (sl.level = 'child' and s.id = sl.id)
+            or (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null)
+            or (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)
+        where status = 'active';
+      `,
+      {
+        replacements: {
+          tenantId: this.options.currentTenant.id,
+          segmentIds: segments,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return records
+  }
+
+  async fetchTenantActivityChannels(segmentIds: string[]) {
     const transaction = this.transaction
 
     const records = await this.options.database.sequelize.query(
@@ -278,11 +330,13 @@ class SegmentRepository extends RepositoryBase<
           json_agg(DISTINCT "channel") AS "channels"
         FROM "segmentActivityChannels"
         WHERE "tenantId" = :tenantId
+        and "segmentId" in (:segmentIds)
         GROUP BY "platform";
       `,
       {
         replacements: {
           tenantId: this.options.currentTenant.id,
+          segmentIds,
         },
         type: QueryTypes.SELECT,
         transaction,

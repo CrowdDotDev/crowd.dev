@@ -39,22 +39,29 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             title,
             channel,
             url,
-            sentiment
+            sentiment,
+            "deletedAt"
     from activities
     where "tenantId" = $(tenantId)
       and "segmentId" = $(segmentId)
       and "sourceId" = $(sourceId)
-      and "deletedAt" is null
+      and platform = $(platform)
+      and type = $(type)
+    limit 1;
   `
   public async findExisting(
     tenantId: string,
     segmentId: string,
     sourceId: string,
+    platform: string,
+    type: string,
   ): Promise<IDbActivity | null> {
     const result = await this.db().oneOrNone(this.findExistingActivityQuery, {
       tenantId,
       segmentId,
       sourceId,
+      platform,
+      type,
     })
 
     return result
@@ -66,6 +73,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
 
   private async updateParentIds(
     tenantId: string,
+    segmentId: string,
     id: string,
     data: IDbActivityCreateData | IDbActivityUpdateData,
   ): Promise<void> {
@@ -74,10 +82,12 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
         `
         update activities set "parentId" = $(id)
         where "tenantId" = $(tenantId) and "sourceParentId" = $(sourceId)
+        and "segmentId" = $(segmentId)
       `,
         {
           id,
           tenantId,
+          segmentId,
           sourceId: data.sourceId,
         },
       ),
@@ -87,12 +97,13 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       promises.push(
         this.db().none(
           `
-          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and "deletedAt" IS NULL limit 1)
-          where "id" = $(id) and "tenantId" = $(tenantId)
+          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and  "segmentId" = $(segmentId) and "deletedAt" IS NULL limit 1)
+          where "id" = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)
           `,
           {
             id,
             tenantId,
+            segmentId,
             sourceParentId: data.sourceParentId,
           },
         ),
@@ -117,7 +128,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
 
     await this.db().none(query)
 
-    await this.updateParentIds(tenantId, id, data)
+    await this.updateParentIds(tenantId, segmentId, id, data)
 
     return id
   }
@@ -145,6 +156,6 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
 
     this.checkUpdateRowCount(result.rowCount, 1)
 
-    await this.updateParentIds(tenantId, id, data)
+    await this.updateParentIds(tenantId, segmentId, id, data)
   }
 }

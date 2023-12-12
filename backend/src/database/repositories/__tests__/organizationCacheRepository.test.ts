@@ -1,6 +1,6 @@
+import { Error404 } from '@crowd/common'
 import organizationCacheRepository from '../organizationCacheRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 
 const db = null
 

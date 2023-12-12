@@ -4,11 +4,18 @@ import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '
 
 import { Config, Service } from '@crowd/archetype-standard'
 import { getDbConnection, DbStore } from '@crowd/database'
+import { getDataConverter } from '@crowd/temporal'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
 const envvars = {
-  worker: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE', 'CROWD_TEMPORAL_TASKQUEUE'],
+  worker: [
+    'CROWD_TEMPORAL_SERVER_URL',
+    'CROWD_TEMPORAL_NAMESPACE',
+    'CROWD_TEMPORAL_TASKQUEUE',
+    'CROWD_TEMPORAL_ENCRYPTION_KEY_ID',
+    'CROWD_TEMPORAL_ENCRYPTION_KEY',
+  ],
   postgres: [
     'CROWD_DB_READ_HOST',
     'CROWD_DB_WRITE_HOST',
@@ -23,6 +30,7 @@ const envvars = {
 Options is used to configure the worker service.
 */
 export interface Options {
+  maxTaskQueueActivitiesPerSecond?: number
   postgres: {
     enabled: boolean
   }
@@ -127,6 +135,8 @@ export class ServiceWorker extends Service {
         showStackTraceSources: true,
         workflowBundle: workflowBundle,
         activities: require(path.resolve('./src/activities')),
+        dataConverter: await getDataConverter(),
+        maxTaskQueueActivitiesPerSecond: this.options.maxTaskQueueActivitiesPerSecond,
       })
     } catch (err) {
       throw new Error(err)

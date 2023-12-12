@@ -99,7 +99,7 @@ class Permissions {
       },
       userRead: {
         id: 'userRead',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedRoles: [roles.admin, roles.projectAdmin],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -110,7 +110,7 @@ class Permissions {
       },
       userAutocomplete: {
         id: 'userAutocomplete',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedRoles: [roles.admin, roles.projectAdmin],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -868,7 +868,7 @@ class Permissions {
       },
       eagleEyeActionCreate: {
         id: 'eagleEyeActionCreate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -879,7 +879,7 @@ class Permissions {
       },
       eagleEyeActionDestroy: {
         id: 'eagleEyeActionDestroy',
-        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -890,7 +890,7 @@ class Permissions {
       },
       eagleEyeContentCreate: {
         id: 'eagleEyeContentCreate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -912,7 +912,7 @@ class Permissions {
       },
       eagleEyeContentSearch: {
         id: 'eagleEyeContentSearch',
-        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -923,7 +923,7 @@ class Permissions {
       },
       eagleEyeContentEdit: {
         id: 'eagleEyeContentEdit',
-        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
         allowedPlans: [
           plans.growth,
           plans.essential,
@@ -1139,50 +1139,6 @@ class Permissions {
       segmentEdit: {
         id: 'segmentEdit',
         allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedPlans: [
-          plans.essential,
-          plans.growth,
-          plans.eagleEye,
-          plans.enterprise,
-          plans.scale,
-        ],
-      },
-      customViewCreate: {
-        id: 'customViewCreate',
-        allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [
-          plans.essential,
-          plans.growth,
-          plans.eagleEye,
-          plans.enterprise,
-          plans.scale,
-        ],
-      },
-      customViewEdit: {
-        id: 'customViewEdit',
-        allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [
-          plans.essential,
-          plans.growth,
-          plans.eagleEye,
-          plans.enterprise,
-          plans.scale,
-        ],
-      },
-      customViewDestroy: {
-        id: 'customViewDestroy',
-        allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [
-          plans.essential,
-          plans.growth,
-          plans.eagleEye,
-          plans.enterprise,
-          plans.scale,
-        ],
-      },
-      customViewRead: {
-        id: 'customViewRead',
-        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.essential,
           plans.growth,

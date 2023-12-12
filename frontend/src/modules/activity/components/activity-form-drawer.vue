@@ -182,8 +182,8 @@ import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import formChangeDetector from '@/shared/form/form-change';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
-import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 // Props & emits
 const props = defineProps({
@@ -210,10 +210,13 @@ const emit = defineEmits([
 // Store
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { setTypes } = activityTypeStore;
+const { fetchActivityTypes } = activityTypeStore;
 
 const activityStore = useActivityStore();
-const { fetchActivities } = activityStore;
+const { fetchActivities, fetchActivityChannels } = activityStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 // Form control
 const form = reactive({
@@ -382,9 +385,8 @@ watch(
   () => props.subprojectId,
   (subprojectId) => {
     if (subprojectId) {
-      LfService.findSegment(subprojectId).then((response) => {
-        setTypes(response.activityTypes);
-      });
+      fetchActivityTypes([selectedProjectGroup.value.id]);
+      fetchActivityChannels([selectedProjectGroup.value.id]);
     }
   },
   { immediate: true, deep: true },

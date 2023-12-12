@@ -810,7 +810,7 @@ const en = {
   /* eslint-disable */
   validation: {
     mixed: {
-      default: 'path} is invalid',
+      default: '{path} is invalid',
       required: 'This field is required',
       oneOf:
         '{path} must be one of the following values: ${values}',

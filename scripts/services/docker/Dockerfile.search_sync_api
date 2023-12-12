@@ -1,17 +1,17 @@
-FROM node:16-alpine
-
-RUN apk add --update --no-cache bash
+FROM node:16-alpine as builder
 
 WORKDIR /usr/crowd/app
+RUN corepack enable && apk add --update --no-cache python3 build-base && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools
 
-COPY ./services/scripts ./services/scripts
-COPY ./services/libs/ ./services/libs/
-RUN cd services/scripts && ./install_lib_packages.sh
+COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
+COPY ./services ./services
+RUN pnpm i --frozen-lockfile
 
-COPY ./services/apps/search_sync_api/package.json ./services/apps/search_sync_api/package-lock.json ./services/apps/search_sync_api/tsconfig.json  ./services/apps/search_sync_api/
-COPY ./services/apps/search_sync_api/config ./services/apps/search_sync_api/config
-COPY ./services/apps/search_sync_api/src ./services/apps/search_sync_api/src
+FROM node:16-alpine as runner
 
-RUN cd services/apps/search_sync_api && npm ci
+WORKDIR /usr/crowd/app
+RUN corepack enable
 
-RUN npm cache clean --force
+COPY --from=builder /usr/crowd/app/node_modules ./node_modules
+COPY --from=builder /usr/crowd/app/services/libs ./services/libs
+COPY --from=builder /usr/crowd/app/services/apps/search_sync_api/ ./services/apps/search_sync_api

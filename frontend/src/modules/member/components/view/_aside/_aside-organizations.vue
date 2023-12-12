@@ -1,9 +1,19 @@
 <template>
   <div class="mt-10">
     <div class="flex items-center justify-between">
-      <div class="font-medium text-black">
-        Organizations
+      <div class="flex items-center">
+        <div class="font-medium text-black mr-2">
+          Organizations
+        </div>
+        <el-tooltip
+          content="Source: Enrichment & GitHub"
+          placement="top"
+          trigger="hover"
+        >
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
       </div>
+
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
@@ -99,6 +109,7 @@ import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/m
 import { Member } from '@/modules/member/types/Member';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppSvg from '@/shared/svg/svg.vue';
 
 defineProps<{
   member: Member

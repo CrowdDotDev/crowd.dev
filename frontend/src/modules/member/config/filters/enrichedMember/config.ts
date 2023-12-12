@@ -17,7 +17,7 @@ const enrichedMember: BooleanFilterConfig = {
   apiFilterRenderer({ value, include }: BooleanFilterValue): any[] {
     const filter = {
       lastEnriched: {
-        [value ? 'ne' : 'eq']: null,
+        [value ? 'eq' : 'ne']: null,
       },
     };
     return [

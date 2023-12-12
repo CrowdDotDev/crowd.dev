@@ -6,8 +6,8 @@
     "start": "SERVICE=search-sync-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=search-sync-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9234 -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug": "SERVICE=search-sync-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9234 -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug:local",
-    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec npm run start:debug",
+    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
+    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
     "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
     "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
     "format-check": "./node_modules/.bin/prettier --check .",
@@ -33,8 +33,8 @@
     "script:reindex": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/reindex.ts",
     "script:create-alias": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/create-alias.ts",
     "script:remove-alias": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/remove-alias.ts",
-    "script:get-doc-count": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-doc-count.ts",
-    "script:get-index-info": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-index-info.ts"
+    "script:get-index-info": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-index-info.ts",
+    "script:get-doc-count": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/get-doc-count.ts"
   },
   "dependencies": {
     "@crowd/common": "file:../../libs/common",

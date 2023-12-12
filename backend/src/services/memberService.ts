@@ -1,22 +1,25 @@
 /* eslint-disable no-continue */
 
+import { SERVICE, Error400, isDomainExcluded } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
-import lodash from 'lodash'
-import moment from 'moment-timezone'
-import validator from 'validator'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   FeatureFlag,
   IOrganization,
   ISearchSyncOptions,
   MemberAttributeType,
   SyncMode,
+  TemporalWorkflowId,
 } from '@crowd/types'
-import { SERVICE, isDomainExcluded } from '@crowd/common'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import lodash from 'lodash'
+import moment from 'moment-timezone'
+import validator from 'validator'
+import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
+import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import {
@@ -25,23 +28,19 @@ import {
   IMemberMergeSuggestionsType,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
-import Error400 from '../errors/Error400'
+import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import telemetryTrack from '../segment/telemetryTrack'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
-import {
-  sendExportCSVNodeSQSMessage,
-  sendNewMemberNodeSQSMessage,
-} from '../serverless/utils/nodeWorkerSQS'
+import { sendExportCSVNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
-import SettingsService from './settingsService'
-import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
-import SegmentRepository from '../database/repositories/segmentRepository'
-import { TEMPORAL_CONFIG } from '@/conf'
 import SearchSyncService from './searchSyncService'
+import SettingsService from './settingsService'
+import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { ServiceType } from '@/conf/configTypes'
+import MemberOrganizationService from './memberOrganizationService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -461,34 +460,28 @@ export default class MemberService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
-            const handle = await this.options.temporal.workflow.start(
-              'processNewMemberAutomation',
-              {
-                workflowId: `new-member-automation-${record.id}`,
-                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-                workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-                retry: {
-                  maximumAttempts: 100,
-                },
+          const handle = await this.options.temporal.workflow.start('processNewMemberAutomation', {
+            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
+            taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+            retry: {
+              maximumAttempts: 100,
+            },
 
-                args: [
-                  {
-                    tenantId: this.options.currentTenant.id,
-                    memberId: record.id,
-                  },
-                ],
+            args: [
+              {
+                tenantId: this.options.currentTenant.id,
+                memberId: record.id,
               },
-            )
-            this.log.info(
-              { workflowId: handle.workflowId },
-              'Started temporal workflow to process new member automation!',
-            )
-          } else {
-            await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id, segment.id)
-          }
+            ],
+            searchAttributes: {
+              TenantId: [this.options.currentTenant.id],
+            },
+          })
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new member automation!',
+          )
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
@@ -641,6 +634,12 @@ export default class MemberService extends LoggerBase {
         repoOptions,
       )
 
+      // Update notes to belong to the originalId member
+      await MemberRepository.moveNotesBetweenMembers(toMergeId, originalId, repoOptions)
+
+      // Update tasks to belong to the originalId member
+      await MemberRepository.moveTasksBetweenMembers(toMergeId, originalId, repoOptions)
+
       // Get tags as array of ids (findById returns them as models)
       original.tags = original.tags.map((i) => i.get({ plain: true }).id)
       toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
@@ -656,10 +655,16 @@ export default class MemberService extends LoggerBase {
       delete toUpdate.activities
       // we already handled identities
       delete toUpdate.username
+      // we merge them manually
+      delete toUpdate.organizations
 
       // Update original member
       const txService = new MemberService(repoOptions as IServiceOptions)
       await txService.update(originalId, toUpdate, false)
+
+      // update members that belong to source organization to destination org
+      const memberOrganizationService = new MemberOrganizationService(repoOptions)
+      await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
       // update activities to belong to the originalId member
       await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
@@ -787,6 +792,29 @@ export default class MemberService extends LoggerBase {
         return toKeep
       },
     })
+  }
+
+  async findGithub(memberId) {
+    const memberIdentities = (await MemberRepository.findById(memberId, this.options)).username
+    const axios = require('axios')
+    // GitHub allows a maximum of 5 parameters
+    const identities = Object.values(memberIdentities).flat().slice(0, 5)
+    // Join the usernames for search
+    const identitiesQuery = identities.join('+OR+')
+    const url = `https://api.github.com/search/users?q=${identitiesQuery}`
+    const headers = {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${GITHUB_TOKEN_CONFIG.token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+    }
+    const response = await axios.get(url, { headers })
+    const data = response.data.items.map((item) => ({
+      username: item.login,
+      avatarUrl: item.avatar_url,
+      score: item.score,
+      url: item.html_url,
+    }))
+    return data
   }
 
   /**

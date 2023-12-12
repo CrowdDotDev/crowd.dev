@@ -15,7 +15,7 @@
           v-if="!hasOrganizations"
           icon="ri-community-line"
           title="No organizations yet"
-          description="We couldn't track any organizations related to your community contributors."
+          description="We couldn't track any organizations related to your contributors."
           cta-btn="Add organization"
           @cta-click="onCtaClick"
         />
@@ -100,7 +100,7 @@
                 <el-table-column
                   label="Organization"
                   prop="displayName"
-                  width="260"
+                  width="240"
                   fixed
                   sortable
                 >
@@ -124,12 +124,52 @@
                   </template>
                 </el-table-column>
 
+                <!-- Website -->
+                <el-table-column label="Website" width="180">
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                      }"
+                      class="block"
+                    >
+                      <div
+                        class="text-sm h-full flex items-center"
+                      >
+                        <a
+                          v-if="scope.row.website"
+                          class="text-gray-500 hover:!text-brand-500"
+                          :href="withHttp(scope.row.website)"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          @click.stop
+                        >{{ scope.row.website }}</a>
+                        <span
+                          v-else
+                          class="text-gray-500"
+                        >-</span>
+                      </div>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
                 <!-- Headline -->
                 <el-table-column
                   label="Headline"
                   prop="headline"
                   width="300"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Headline
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -158,8 +198,21 @@
                   </template>
                 </el-table-column>
 
-                <!-- Website -->
-                <el-table-column label="Website" width="220">
+                <!-- Identities -->
+                <el-table-column
+                  label="Identities"
+                  width="240"
+                >
+                  <template #header>
+                    <span>Identities</span>
+                    <el-tooltip placement="top">
+                      <template #content>
+                        Identities can be profiles on social platforms, emails,<br>
+                        or unique identifiers from internal sources.
+                      </template>
+                      <i class="ri-information-line text-xs ml-1" />
+                    </el-tooltip>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -172,20 +225,14 @@
                       }"
                       class="block"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <a
-                          v-if="scope.row.website"
-                          class="text-gray-500 hover:!text-brand-500"
-                          :href="withHttp(scope.row.website)"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          @click.stop
-                        >{{ scope.row.website }}</a>
+                      <div class="h-full flex items-center">
+                        <app-organization-identities
+                          v-if="scope.row.identities.length > 0"
+                          :organization="scope.row"
+                        />
                         <span
                           v-else
-                          class="text-gray-500"
+                          class="text-gray-900"
                         >-</span>
                       </div>
                     </router-link>
@@ -256,6 +303,40 @@
                   </template>
                 </el-table-column>
 
+                <!-- TBD: Last active -->
+                <el-table-column
+                  label="Last active"
+                  prop="lastActive"
+                  width="150"
+                  sortable="lastActive"
+                >
+                  <template #default="scope">
+                    <router-link
+                      :to="{
+                        name: 'organizationView',
+                        params: { id: scope.row.id },
+                        query: {
+                          projectGroup: selectedProjectGroup?.id,
+                          segmentId: scope.row.segmentId,
+                        },
+                      }"
+                      class="block"
+                    >
+                      <span
+                        v-if="scope.row.lastActive"
+                        class="text-gray-900 text-sm h-full flex items-center"
+                      >
+
+                        {{ formatDateToTimeAgo(scope.row.lastActive) }}
+                      </span>
+                      <span
+                        v-else
+                        class="text-gray-900"
+                      >-</span>
+                    </router-link>
+                  </template>
+                </el-table-column>
+
                 <!-- Joined Date -->
                 <el-table-column
                   label="Joined Date"
@@ -293,98 +374,22 @@
                   </template>
                 </el-table-column>
 
-                <!-- Identities -->
-                <el-table-column
-                  label="Identities"
-                  width="240"
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div class="h-full flex items-center">
-                        <app-organization-identities
-                          v-if="scope.row.identities.length > 0"
-                          :organization="scope.row"
-                        />
-                        <span
-                          v-else
-                          class="text-gray-900"
-                        >-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Emails -->
-                <el-table-column
-                  label="Emails"
-                  :width="emailsColumnWidth"
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
-                        class="text-sm cursor-auto flex flex-wrap gap-1"
-                      >
-                        <el-tooltip
-                          v-for="email of scope.row.emails
-                            || []"
-                          :key="email"
-                          :disabled="!email"
-                          popper-class="custom-identity-tooltip"
-                          placement="top"
-                        >
-                          <template #content>
-                            <span>Send email
-                              <i
-                                v-if="email"
-                                class="ri-external-link-line text-gray-400"
-                              /></span>
-                          </template>
-                          <div @click.prevent>
-                            <a
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              class="badge--interactive"
-                              :href="`mailto:${email}`"
-                              @click.stop="trackEmailClick"
-                            >{{ email }}</a>
-                          </div>
-                        </el-tooltip>
-                      </div>
-                      <span
-                        v-else
-                        class="text-gray-500"
-                      >-</span>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
                 <!-- Location -->
                 <el-table-column
                   label="Location"
                   width="150"
                   prop="location"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Location
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -417,6 +422,16 @@
                   width="150"
                   prop="industry"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Industry
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -443,12 +458,22 @@
                   </template>
                 </el-table-column>
 
-                <!-- Size -->
+                <!-- Headcount -->
                 <el-table-column
                   label="Headcount"
                   width="150"
                   prop="size"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Headcount
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -475,12 +500,21 @@
                   </template>
                 </el-table-column>
 
-                <!-- Type -->
+                <!-- Inferred Revenue -->
                 <el-table-column
-                  label="Type"
+                  label="Annual Revenue"
                   width="150"
-                  prop="type"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Annual Revenue
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -496,9 +530,9 @@
                       <div
                         class="text-sm h-full flex items-center"
                       >
-                        <span v-if="scope.row.type" class="text-gray-900">
+                        <span v-if="scope.row.revenueRange" class="text-gray-900">
                           {{
-                            toSentenceCase(scope.row.type)
+                            revenueRange.displayValue(scope.row.revenueRange)
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
@@ -514,6 +548,18 @@
                   prop="founded"
                   sortable
                 >
+                  <template #header>
+                    <div class="inline-block">
+                      <div class="flex items-center">
+                        <div class="mr-2">
+                          Founded
+                        </div>
+                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                          <app-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                      </div>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -540,38 +586,21 @@
                   </template>
                 </el-table-column>
 
-                <!-- Employee Churn Rate -->
-                <el-table-column
-                  label="Ann. Employee Churn Rate"
-                  width="220"
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.employeeChurnRate?.['12_month']" class="text-gray-900">
-                          {{
-                            employeeChurnRate.valueParser(scope.row.employeeChurnRate['12_month'])
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
                 <!-- Employee Growth Rate -->
                 <el-table-column
                   label="Ann. Employee Growth Rate"
-                  width="230"
+                  width="250"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Ann. Employee Growth Rate
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -594,65 +623,21 @@
                   </template>
                 </el-table-column>
 
-                <!-- Employee Count -->
-                <el-table-column
-                  label="Employee Count"
-                  width="150"
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.employees" class="text-gray-900">
-                          {{
-                            scope.row.employees
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Inferred Revenue -->
-                <el-table-column
-                  label="Annual Revenue"
-                  width="150"
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.revenueRange" class="text-gray-900">
-                          {{
-                            revenueRange.displayValue(scope.row.revenueRange)
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
                 <!-- Tags -->
                 <el-table-column
-                  label="Tags"
+                  label="Smart tags"
                   :width="tagsColumnWidth"
                 >
+                  <template #header>
+                    <div class="flex items-center">
+                      <div class="mr-2">
+                        Smart Tags
+                      </div>
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -765,11 +750,11 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import employeeChurnRate from '@/modules/organization/config/enrichment/employeeChurnRate';
 import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
@@ -829,7 +814,7 @@ const pagination = computed({
 });
 
 const defaultSort = computed(() => ({
-  field: filters.value.order.prop,
+  prop: filters.value.order.prop,
   order: filters.value.order.order,
 }));
 
@@ -856,7 +841,7 @@ const tagsColumnWidth = computed(() => {
     }
   });
 
-  return Math.min(maxTabWidth + 100, 500);
+  return Math.min(maxTabWidth + 150, 500);
 });
 
 document.onmouseup = () => {
@@ -965,26 +950,6 @@ const onTableMouseover = () => {
 const onTableMouseLeft = () => {
   isTableHovered.value = false;
   isScrollbarVisible.value = isCursorDown.value;
-};
-
-const emailsColumnWidth = computed(() => {
-  let maxTabWidth = 0;
-  organizations.value.forEach((row) => {
-    const tabWidth = row.emails
-      ?.map((email) => (email ? email.length * 12 : 0))
-      .reduce((a, b) => a + b, 0);
-
-    if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
-    }
-  });
-  return maxTabWidth;
-});
-
-const trackEmailClick = () => {
-  window.analytics.track('Click Organization Contact', {
-    channel: 'Email',
-  });
 };
 
 watch(table, (newValue) => {
