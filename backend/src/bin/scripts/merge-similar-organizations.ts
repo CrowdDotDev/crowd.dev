@@ -28,7 +28,7 @@ const options = [
   {
     name: 'similarityThreshold',
     alias: 's',
-    type: Boolean,
+    type: String,
     defaultValue: false,
     description:
       'Similarity threshold of organization merge suggestions. Suggestions lower than this value will not be merged. Defaults to 0.95',
@@ -36,7 +36,7 @@ const options = [
   {
     name: 'hardLimit',
     alias: 'l',
-    type: Boolean,
+    type: String,
     defaultValue: false,
     description: `Hard limit for # of organizations that'll be merged. Mostly a flag for testing purposes.`,
   },
