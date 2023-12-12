@@ -23,7 +23,6 @@ export interface SQSConfiguration {
   host?: string
   port?: number
   nodejsWorkerQueue: string
-  nodejsWorkerDelayableQueue: string
   integrationRunWorkerQueue: string
   pythonWorkerQueue: string
   aws: AwsCredentials

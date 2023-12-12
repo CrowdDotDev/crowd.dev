@@ -20,7 +20,6 @@ import organizationCacheRepository from '../database/repositories/organizationCa
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
-import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import {
@@ -29,6 +28,7 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
 
 export default class OrganizationService extends LoggerBase {
@@ -44,7 +44,8 @@ export default class OrganizationService extends LoggerBase {
 
     await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
 
-    await sendOrgMergeMessage(tenantId, originalId, toMergeId)
+    const emitter = await getNodejsWorkerEmitter()
+    await emitter.mergeOrg(tenantId, originalId, toMergeId)
   }
 
   async mergeSync(originalId, toMergeId) {
@@ -193,10 +194,16 @@ export default class OrganizationService extends LoggerBase {
       await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
 
       // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(originalId)
+      await searchSyncService.triggerOrganizationMembersSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(originalId)
+      await searchSyncService.triggerOrganizationActivitiesSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return { status: 200, mergedId: originalId }

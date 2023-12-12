@@ -3,11 +3,11 @@ name: LF Staging Deploy Search Sync Worker
 on:
   push:
     branches:
-      - 'lf-staging/**'
-      - 'lf-staging-**'
+      - "lf-staging/**"
+      - "lf-staging-**"
     paths:
-      - 'services/libs/**'
-      - 'services/apps/search_sync_worker/**'
+      - "services/libs/**"
+      - "services/apps/search_sync_worker/**"
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -58,3 +58,5 @@ jobs:
           service: search-sync-worker
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          only_normal_queue_level: true
+          prioritized: true
