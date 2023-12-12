@@ -384,12 +384,7 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      try {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
-      }
-      catch(error) {
-        this.log.error(error, 'Failed to sync member')
-      }
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
       result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)
