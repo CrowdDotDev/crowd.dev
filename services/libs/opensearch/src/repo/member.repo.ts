@@ -252,7 +252,39 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                                         end)::numeric, 2)                                  as "averageSentiment"
                               from activities a
                               where a."memberId" in ($(ids:csv))
-                              group by a."memberId", a."segmentId")
+                              group by a."memberId", a."segmentId"),
+          member_notes as (
+                select mn."memberId",
+                json_agg(
+                      json_build_object(
+                              'id', n.id,
+                              'body', n.body
+                          )
+                )           as all_notes,
+                jsonb_agg(n.id) as all_ids
+                from "memberNotes" mn
+                  inner join notes n on mn."noteId" = n.id
+                  where mn."memberId" = $(memberId)
+                  and n."deletedAt" is null
+                  group by mn."memberId"),
+          member_tasks as (
+                select mtk."memberId",
+                json_agg(
+                      json_build_object(
+                              'id', tk.id,
+                              'name', tk.name,
+                              'body', tk.body,
+                              'status', tk.status,
+                              'dueDate', tk."dueDate",
+                              'type', tk.type
+                          )
+                )           as all_tasks,
+                jsonb_agg(tk.id) as all_ids
+                from "memberTasks" mtk
+                  inner join tasks tk on mtk."taskId" = tk.id
+                  where mtk."memberId" = $(memberId)
+                  and tk."deletedAt" is null
+                  group by mtk."memberId")
         select m.id,
               m."tenantId",
               ms."segmentId",
@@ -277,6 +309,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               i.identities,
               coalesce(mo.all_organizations, json_build_array()) as organizations,
               coalesce(mt.all_tags, json_build_array())          as tags,
+              coalesce(mn.all_notes, json_build_array())          as notes,
+              coalesce(mtk.all_tasks, json_build_array())          as tasks,
               coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
               coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
         from "memberSegments" ms
@@ -287,6 +321,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                 left join no_merge_data nmd on m.id = nmd."memberId"
                 left join member_tags mt on ms."memberId" = mt."memberId"
                 left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
+                left join member_notes mn on ms."memberId" = mn."memberId"
+                left join member_tasks mtk on ms."memberId" = mtk."memberId"
         where ms."memberId" in ($(ids:csv))
           and m."deletedAt" is null
           and (ad."memberId" is not null or m."manuallyCreated");`,
@@ -388,7 +424,39 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
             from activities a
             where a."memberId" = $(memberId)
             and a."segmentId" = $(segmentId)
-            group by a."memberId")
+            group by a."memberId"),
+      member_notes as (
+            select mn."memberId",
+            json_agg(
+                  json_build_object(
+                          'id', n.id,
+                          'body', n.body
+                      )
+            )           as all_notes,
+            jsonb_agg(n.id) as all_ids
+            from "memberNotes" mn
+              inner join notes n on mn."noteId" = n.id
+              where mn."memberId" = $(memberId)
+              and n."deletedAt" is null
+              group by mn."memberId"),
+      member_tasks as (
+            select mtk."memberId",
+            json_agg(
+                  json_build_object(
+                          'id', tk.id,
+                          'name', tk.name,
+                          'body', tk.body,
+                          'status', tk.status,
+                          'dueDate', tk."dueDate",
+                          'type', tk.type
+                      )
+            )           as all_tasks,
+            jsonb_agg(tk.id) as all_ids
+            from "memberTasks" mtk
+              inner join tasks tk on mtk."taskId" = tk.id
+              where mtk."memberId" = $(memberId)
+              and tk."deletedAt" is null
+              group by mtk."memberId")
       select 
         m.id,
         m."tenantId",
@@ -414,6 +482,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         i.identities,
         coalesce(mo.all_organizations, json_build_array()) as organizations,
         coalesce(mt.all_tags, json_build_array())          as tags,
+        coalesce(mn.all_notes, json_build_array())          as notes,
+        coalesce(mtk.all_tasks, json_build_array())          as tasks,
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
         coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
       from members m
@@ -422,6 +492,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         left join to_merge_data tmd on m.id = tmd."memberId"
         left join no_merge_data nmd on m.id = nmd."memberId"
         left join member_tags mt on m.id = mt."memberId"
+        left join member_notes mn on m.id = mn."memberId"
+        left join member_tasks mtk on m.id = mtk."memberId"
         left join member_organizations mo on m.id = mo."memberId"
       where m.id = $(memberId)
       and m."deletedAt" is null

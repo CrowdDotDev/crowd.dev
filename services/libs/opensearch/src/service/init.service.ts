@@ -202,7 +202,22 @@ export class InitService {
       ],
       toMergeIds: ['3690742c-c5de-4d9a-aef8-1e3eaf57233d'],
       noMergeIds: ['b176d053-c53e-42d2-88d2-6fbc3e34184c'],
-
+      notes: [
+        {
+          id: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
+          body: 'This is a fake note 1',
+        },
+      ],
+      tasks: [
+        {
+          id: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
+          name: 'Fake Task 1',
+          body: 'This is a fake task 1',
+          status: 'completed',
+          dueDate: new Date().toISOString(),
+          type: 'type1',
+        },
+      ],
       attributes: {},
       manuallyCreated: false,
     }

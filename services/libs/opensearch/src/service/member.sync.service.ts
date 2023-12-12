@@ -592,6 +592,8 @@ export class MemberSyncService {
     member.averageSentiment = null
     member.tags = []
     member.organizations = []
+    member.notes = []
+    member.tasks = []
 
     for (const m of members) {
       member.activeOn.push(...m.activeOn)
@@ -615,6 +617,8 @@ export class MemberSyncService {
       }
       member.tags.push(...m.tags)
       member.organizations.push(...m.organizations)
+      member.notes.push(...m.notes)
+      member.tasks.push(...m.tasks)
     }
 
     // average sentiment with the total number of members that have sentiment set
@@ -631,6 +635,8 @@ export class MemberSyncService {
     member.activityTypes = distinct(member.activityTypes)
     member.tags = distinctBy(member.tags, (t) => t.id)
     member.organizations = distinctBy(member.organizations, (o) => o.id)
+    member.notes = distinctBy(member.notes, (n) => n.id)
+    member.tasks = distinctBy(member.tasks, (t) => t.id)
 
     return member
   }
@@ -721,7 +727,29 @@ export class MemberSyncService {
       })
     }
 
+    const p_notes = []
+    for (const note of data.notes) {
+      p_notes.push({
+        uuid_id: note.id,
+        string_body: note.body,
+      })
+    }
+
+    const p_tasks = []
+    for (const task of data.tasks) {
+      p_tasks.push({
+        uuid_id: task.id,
+        string_name: task.name,
+        string_body: task.body,
+        string_status: task.status,
+        date_dueDate: task.dueDate,
+        string_type: task.type,
+      })
+    }
+
     p.nested_tags = p_tags
+    p.nested_notes = p_notes
+    p.nested_tasks = p_tasks
 
     p.uuid_arr_toMergeIds = data.toMergeIds
     p.uuid_arr_noMergeIds = data.noMergeIds
