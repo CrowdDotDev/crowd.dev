@@ -899,13 +899,13 @@ class MemberRepository {
       }, options)).rows[0]
 
       return {
-        activeDaysCount: dataFromOpensearch.activeDaysCount,
-        activityCount: dataFromOpensearch.activityCount,
-        activityTypes: dataFromOpensearch.activityTypes,
-        activeOn: dataFromOpensearch.activeOn,
-        averageSentiment: dataFromOpensearch.averageSentiment,
-        lastActive: dataFromOpensearch.lastActive,
-        memberId: dataFromOpensearch.id,
+        activeDaysCount: dataFromOpensearch?.activeDaysCount || 0,
+        activityCount: dataFromOpensearch?.activityCount || 0,
+        activityTypes: dataFromOpensearch?.activityTypes || [],
+        activeOn: dataFromOpensearch?.activeOn || [],
+        averageSentiment: dataFromOpensearch?.averageSentiment || 0,
+        lastActive: dataFromOpensearch?.lastActive || null,
+        memberId,
         segmentId,
       }
     }
