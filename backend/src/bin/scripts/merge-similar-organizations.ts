@@ -135,7 +135,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
           let counter = 0
           for (const row of result) {
             console.log(`Merging ${row.organizationId} into ${row.toMergeId}...`)
-            await orgService.mergeAsync(row.organizationId, row.toMergeId)
+            // await orgService.mergeAsync(row.organizationId, row.toMergeId)
 
             if (parameters.hardLimit && counter >= parameters.hardLimit) {
               console.log(`Hard limit of ${parameters.hardLimit} reached. Exiting...`)
