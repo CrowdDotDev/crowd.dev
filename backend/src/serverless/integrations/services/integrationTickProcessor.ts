@@ -6,7 +6,7 @@ import {
   IntegrationStreamWorkerEmitter,
   DataSinkWorkerEmitter,
 } from '@crowd/sqs'
-import { IntegrationRunState, IntegrationType , TenantPlans } from '@crowd/types'
+import { IntegrationRunState, IntegrationType, TenantPlans } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import MicroserviceRepository from '@/database/repositories/microserviceRepository'
 import IntegrationRepository from '@/database/repositories/integrationRepository'
@@ -213,8 +213,21 @@ export class IntegrationTickProcessor extends LoggerBase {
                 const chunkIndex = Math.min(Math.floor(rand), CHUNKS - 1)
                 const delay = chunkIndex * DELAY_BETWEEN_CHUNKS
 
+                if (
+                  newIntService.type === IntegrationType.DISCORD &&
+                  integration.tenant.plan === TenantPlans.Essential
+                ) {
+                  // not triggering discord integrations for essential plan, only paid plans
+                  logger.info(
+                    { integrationId: integration.id },
+                    'Not triggering new integration check for Discord for essential plan!',
+                  )
+                  // eslint-disable-next-line no-continue
+                  continue
+                }
+
                 // Divide integrations into chunks for Discord
-                if (newIntService.type === IntegrationType.DISCORD && integration.tenant.plan !== TenantPlans.Essential) {
+                if (newIntService.type === IntegrationType.DISCORD) {
                   setTimeout(async () => {
                     logger.info(
                       { integrationId: integration.id },
