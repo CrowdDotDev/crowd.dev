@@ -872,7 +872,7 @@ class MemberRepository {
   ): Promise<ActivityAggregates> {
     const segments = segmentId ? [segmentId] : []
 
-    const dataFromOpensearch = (
+    const memberFromOpensearch = (
       await this.findAndCountAllOpensearch(
         {
           filter: {
@@ -893,13 +893,13 @@ class MemberRepository {
     ).rows?.[0]
 
     return {
-      activeDaysCount: dataFromOpensearch.activeDaysCount,
-      activityCount: dataFromOpensearch.activityCount,
-      activityTypes: dataFromOpensearch.activityTypes,
-      activeOn: dataFromOpensearch.activeOn,
-      averageSentiment: dataFromOpensearch.averageSentiment,
-      lastActive: dataFromOpensearch.lastActive,
-      memberId: dataFromOpensearch.id,
+      activeDaysCount: memberFromOpensearch?.activeDaysCount || 0,
+      activityCount: memberFromOpensearch?.activityCount || 0,
+      activityTypes: memberFromOpensearch?.activityTypes || [],
+      activeOn: memberFromOpensearch?.activeOn || [],
+      averageSentiment: memberFromOpensearch?.averageSentiment || 0,
+      lastActive: memberFromOpensearch?.lastActive || null,
+      memberId: memberFromOpensearch.id,
       segmentId,
     }
   }
