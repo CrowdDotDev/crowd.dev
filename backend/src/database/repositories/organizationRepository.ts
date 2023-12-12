@@ -2043,49 +2043,32 @@ class OrganizationRepository {
     id: string,
     options: IRepositoryOptions,
     segmentId?: string,
-  ): Promise<any> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
+  ): Promise<PageData<any>> {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
 
-    if (!segmentId) {
-      segmentId = SequelizeRepository.getSegmentIds(options)[0]
-    }
-
-    const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
-
-    const response = await options.opensearch.search({
-      index: OpenSearchIndex.ORGANIZATIONS,
-      body: {
-        query: {
-          bool: {
-            filter: [
-              {
-                term: {
-                  uuid_organizationId: id,
-                },
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
               },
-              {
-                term: {
-                  uuid_tenantId: tenant.id,
-                },
-              },
-              {
-                term: {
-                  uuid_segmentId: segmentId,
-                },
-              },
-            ],
-          },
+            },
+          ],
         },
+        limit: 1,
+        offset: 0,
+        segments,
       },
-    })
+      options,
+    )
 
-    if (response.body.hits.total.value === 0) {
+    if (response.count === 0) {
       throw new Error404()
     }
 
-    const translatedRow = translator.translateObjectToCrowd(response.body.hits.hits[0]._source)
-
-    return translatedRow
+    return response.rows[0]
   }
 
   static async findAndCountAllOpensearch(
