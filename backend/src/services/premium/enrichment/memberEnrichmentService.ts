@@ -390,6 +390,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
       return result
     } catch (error) {
+      this.log.error(error, 'Error while enriching a member!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
