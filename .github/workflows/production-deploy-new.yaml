@@ -68,7 +68,7 @@ jobs:
       - name: Set docker image output
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
-  
+
   build-and-push-search-sync-api:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_search_sync_api }}
@@ -233,6 +233,7 @@ jobs:
           service: search-sync-worker
           image: ${{ needs.build-and-push-search-sync-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          prioritized: true
 
   deploy-search-sync-api:
     needs: build-and-push-search-sync-api
@@ -269,6 +270,7 @@ jobs:
           service: integration-sync-worker
           image: ${{ needs.build-and-push-integration-sync-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          prioritized: true
 
   deploy-webhook-api:
     needs: build-and-push-webhook-api

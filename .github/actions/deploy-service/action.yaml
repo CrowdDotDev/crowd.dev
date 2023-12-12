@@ -14,6 +14,16 @@ inputs:
     description: To which cloud cluster to deploy
     required: true
 
+  prioritized:
+    description: Is the service listening on prioritized queues?
+    required: false
+    default: 'false'
+
+  only_normal_queue_level:
+    description: Is the service prioritized but only listening on normal level? (staging/lf)
+    required: false
+    default: 'false'
+
 runs:
   using: composite
   steps:
@@ -25,9 +35,24 @@ runs:
         AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: ${{ env.AWS_REGION }}
 
-    - name: Deploy image
+    - name: Deploy image (non prioritized)
+      if: inputs.prioritized == 'false'
       shell: bash
       run: kubectl set image deployments/${{ inputs.service }}-dpl ${{ inputs.service }}=${{ inputs.image }}
+
+    - name: Deploy image (prioritized)
+      if: inputs.prioritized == 'true' && inputs.only_normal_queue_level == 'false'
+      shell: bash
+      run: |
+        kubectl set image deployments/${{ inputs.service }}-system-dpl ${{ inputs.service }}-system=${{ inputs.image }}
+        kubectl set image deployments/${{ inputs.service }}-normal-dpl ${{ inputs.service }}-normal=${{ inputs.image }}
+        kubectl set image deployments/${{ inputs.service }}-high-dpl ${{ inputs.service }}-high=${{ inputs.image }}
+        kubectl set image deployments/${{ inputs.service }}-urgent-dpl ${{ inputs.service }}-urgent=${{ inputs.image }}
+
+    - name: Deploy image (prioritized - normal only)
+      if: inputs.prioritized == 'true' && inputs.only_normal_queue_level == 'true'
+      shell: bash
+      run: kubectl set image deployments/${{ inputs.service }}-normal-dpl ${{ inputs.service }}-normal=${{ inputs.image }}
 
     - uses: ./.github/actions/slack-notify
       with:

@@ -128,9 +128,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
                s."tenantId",
                i.platform as "integrationType",
                s."runId",
-               s."webhookId"
+               s."webhookId",
+               run.onboarding
         from integration.streams s
         inner join integrations i on i.id = s."integrationId"
+        left join integration.runs run on run.id = s."runId"
         where s.state = $(delayedState) and s."delayedUntil" < now()
         order by s."delayedUntil" asc
         limit ${perPage} offset ${(page - 1) * perPage}
@@ -155,9 +157,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
         `
           select s.id,
                  s."tenantId",
-                 i.platform as "integrationType"
+                 i.platform as "integrationType",
+                 run.onboarding
           from integration.streams s
           inner join integrations i on i.id = s."integrationId"
+          left join integration.runs run on run.id = s."runId"
           where s."runId" = $(runId) and s.state = $(state) and s.id > $(lastId)
           order by s.id
           limit ${limit}
@@ -173,9 +177,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
         `
           select s.id,
                  s."tenantId",
-                 i.platform as "integrationType"
+                 i.platform as "integrationType",
+                 run.onboarding
           from integration.streams s
           inner join integrations i on i.id = s."integrationId"
+          left join integration.runs run on run.id = s."runId"
           where s."runId" = $(runId) and s.state = $(state)
           order by s.id
           limit ${limit}

@@ -1,21 +1,19 @@
-import {
-  IMemberAttribute,
-  IActivityData,
-  IntegrationResultType,
-  Entity,
-  IAutomationData,
-} from '@crowd/types'
+import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
+  Entity,
+  IActivityData,
+  IAutomationData,
   ICache,
+  IConcurrentRequestLimiter,
   IIntegration,
   IIntegrationStream,
+  IIntegrationSyncWorkerEmitter,
+  IMemberAttribute,
   IRateLimiter,
-  IConcurrentRequestLimiter,
+  IntegrationResultType,
 } from '@crowd/types'
-import { DbConnection, DbTransaction } from '@crowd/database'
 
-import { IntegrationSyncWorkerEmitter } from '@crowd/sqs'
 import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
 
 export interface IIntegrationContext {
@@ -36,7 +34,7 @@ export interface IIntegrationContext {
 }
 
 export interface IIntegrationStartRemoteSyncContext {
-  integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
+  integrationSyncWorkerEmitter: IIntegrationSyncWorkerEmitter
   integration: IIntegration
   automations: IAutomationData[]
   tenantId: string

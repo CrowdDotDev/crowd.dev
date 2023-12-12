@@ -1,4 +1,5 @@
 import {
+  CrowdQueue,
   ISqsQueueConfig,
   SqsFifoThroughputLimitType,
   SqsQueueDeduplicationType,
@@ -6,7 +7,7 @@ import {
 } from './types'
 
 export const INTEGRATION_RUN_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
-  name: 'integration-run-worker',
+  name: CrowdQueue.INTEGRATION_RUN_WORKER,
   type: SqsQueueType.FIFO,
   waitTimeSeconds: 20, // seconds
   visibilityTimeout: 30, // seconds
@@ -17,7 +18,7 @@ export const INTEGRATION_RUN_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
 }
 
 export const INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
-  name: 'integration-stream-worker',
+  name: CrowdQueue.INTEGRATION_STREAM_WORKER,
   type: SqsQueueType.FIFO,
   waitTimeSeconds: 20, // seconds
   visibilityTimeout: 30, // seconds
@@ -28,7 +29,7 @@ export const INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
 }
 
 export const INTEGRATION_DATA_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
-  name: 'integration-data-worker',
+  name: CrowdQueue.INTEGRATION_DATA_WORKER,
   type: SqsQueueType.FIFO,
   waitTimeSeconds: 20, // seconds
   visibilityTimeout: 30, // seconds
@@ -39,7 +40,7 @@ export const INTEGRATION_DATA_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
 }
 
 export const DATA_SINK_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
-  name: 'data-sink-worker',
+  name: CrowdQueue.DATA_SINK_WORKER,
   type: SqsQueueType.FIFO,
   waitTimeSeconds: 20, // seconds
   visibilityTimeout: 30, // seconds
@@ -50,7 +51,7 @@ export const DATA_SINK_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
 }
 
 export const NODEJS_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
-  name: 'nodejs-worker',
+  name: CrowdQueue.NODEJS_WORKER,
   type: SqsQueueType.FIFO,
   waitTimeSeconds: 20, // seconds
   visibilityTimeout: 30, // seconds
@@ -61,7 +62,7 @@ export const NODEJS_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
 }
 
 export const SEARCH_SYNC_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
-  name: 'search-sync-worker',
+  name: CrowdQueue.SEARCH_SYNC_WORKER,
   type: SqsQueueType.FIFO,
   waitTimeSeconds: 20, // seconds
   visibilityTimeout: 30, // seconds
@@ -72,7 +73,7 @@ export const SEARCH_SYNC_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
 }
 
 export const INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS: ISqsQueueConfig = {
-  name: 'integration-sync-worker',
+  name: CrowdQueue.INTEGRATION_SYNC_WORKER,
   type: SqsQueueType.FIFO,
   waitTimeSeconds: 20, // seconds
   visibilityTimeout: 30, // seconds

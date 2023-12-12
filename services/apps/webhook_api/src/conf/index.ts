@@ -1,7 +1,9 @@
 import { IDatabaseConfig } from '@crowd/database'
 import { ISqsClientConfig } from '@crowd/sqs'
 import config from 'config'
-
+import { IUnleashConfig } from '@crowd/feature-flags'
+import { SERVICE } from '@crowd/common'
+import { IRedisConfiguration } from '@crowd/redis'
 export interface IWebhookApiServiceConfig {
   port: number
 }
@@ -28,4 +30,21 @@ export const DB_CONFIG = (): IDatabaseConfig => {
 
   dbConfig = config.get<IDatabaseConfig>('db')
   return dbConfig
+}
+
+let unleashConfig: IUnleashConfig | undefined
+export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
+  if (unleashConfig) return unleashConfig
+
+  unleashConfig = Object.assign({ appName: SERVICE }, config.get<IUnleashConfig>('unleash'))
+
+  return unleashConfig
+}
+
+let redisConfig: IRedisConfiguration
+export const REDIS_CONFIG = (): IRedisConfiguration => {
+  if (redisConfig) return redisConfig
+
+  redisConfig = config.get<IRedisConfiguration>('redis')
+  return redisConfig
 }

@@ -3,11 +3,11 @@ name: Staging Deploy Data Sink Worker
 on:
   push:
     branches:
-      - 'staging/**'
-      - 'staging-**'
+      - "staging/**"
+      - "staging-**"
     paths:
-      - 'services/libs/**'
-      - 'services/apps/data_sink_worker/**'
+      - "services/libs/**"
+      - "services/apps/data_sink_worker/**"
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -58,3 +58,5 @@ jobs:
           service: data-sink-worker
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          only_normal_queue_level: true
+          prioritized: true
