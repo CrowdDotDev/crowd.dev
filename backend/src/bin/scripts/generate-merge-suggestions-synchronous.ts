@@ -62,7 +62,7 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || !parameters.tenant) {
+if (parameters.help || !parameters.tenant || !parameters.allTenants) {
   console.log(usage)
 } else {
   setImmediate(async () => {
