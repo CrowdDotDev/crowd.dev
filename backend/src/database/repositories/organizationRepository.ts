@@ -1338,7 +1338,6 @@ class OrganizationRepository {
                   },
                 },
               },
-
             ],
             minimum_should_match: 1,
             must_not: [
@@ -1434,7 +1433,12 @@ class OrganizationRepository {
             collapse: {
               field: 'uuid_organizationId',
             },
-            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities', 'keyword_displayName'],
+            _source: [
+              'uuid_organizationId',
+              'nested_identities',
+              'nested_weakIdentities',
+              'keyword_displayName',
+            ],
           }
 
           const organizationsToMerge: ISimilarOrganization[] =

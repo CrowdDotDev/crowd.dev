@@ -71,9 +71,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
     if (parameters.allTenants) {
       tenantIds = (await TenantService._findAndCountAllForEveryUser({})).rows
       if (parameters.plan) {
-        tenantIds = tenantIds.filter((tenant) =>
-          parameters.plan.split(',').includes(tenant.plan),
-        )
+        tenantIds = tenantIds.filter((tenant) => parameters.plan.split(',').includes(tenant.plan))
       }
       tenantIds = tenantIds.map((t) => t.id)
     } else if (parameters.tenant) {
@@ -97,7 +95,6 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
       )
 
       console.log(`Done generating organization merge suggestions for tenant ${tenantId}!`)
-
     }
 
     process.exit(0)
