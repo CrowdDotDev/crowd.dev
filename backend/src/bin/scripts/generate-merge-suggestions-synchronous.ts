@@ -98,7 +98,6 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
 
       console.log(`Done generating organization merge suggestions for tenant ${tenantId}!`)
 
-      process.exit(0)
     }
 
     process.exit(0)
