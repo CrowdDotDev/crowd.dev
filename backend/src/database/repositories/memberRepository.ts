@@ -11,6 +11,7 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
+  TemporalWorkflowId,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
@@ -47,7 +48,6 @@ import {
 } from './types/memberTypes'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
-import MemberAffiliationRepository from './memberAffiliationRepository'
 
 const { Op } = Sequelize
 
@@ -968,7 +968,23 @@ class MemberRepository {
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
     await affiliationRepository.setForMember(memberId, data)
-    await MemberAffiliationRepository.update(memberId, options)
+    await options.temporal.workflow.start('memberUpdate', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [
+        {
+          member: {
+            id: memberId,
+          },
+        },
+      ],
+      searchAttributes: {
+        TenantId: [options.currentTenant.id],
+      },
+    })
   }
 
   static async getAffiliations(
@@ -3494,7 +3510,23 @@ class MemberRepository {
     )
 
     if (updateAffiliation) {
-      await MemberAffiliationRepository.update(memberId, options)
+      await options.temporal.workflow.start('memberUpdate', {
+        taskQueue: 'profiles',
+        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          {
+            member: {
+              id: memberId,
+            },
+          },
+        ],
+        searchAttributes: {
+          TenantId: [options.currentTenant.id],
+        },
+      })
     }
   }
 
