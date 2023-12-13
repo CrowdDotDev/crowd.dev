@@ -19,8 +19,13 @@ inputs:
     required: false
     default: 'false'
 
-  only_normal_queue_level:
-    description: Is the service prioritized but only listening on normal level? (staging/lf)
+  staging:
+    description: Is the service prioritized and deployed to staging?
+    required: false
+    default: 'false'
+
+  lfx:
+    description: Is the service prioritized and deployed to lfx?
     required: false
     default: 'false'
 
@@ -40,8 +45,8 @@ runs:
       shell: bash
       run: kubectl set image deployments/${{ inputs.service }}-dpl ${{ inputs.service }}=${{ inputs.image }}
 
-    - name: Deploy image (prioritized)
-      if: inputs.prioritized == 'true' && inputs.only_normal_queue_level == 'false'
+    - name: Deploy image (prioritized - production)
+      if: inputs.prioritized == 'true' && inputs.lfx == 'false'
       shell: bash
       run: |
         kubectl set image deployments/${{ inputs.service }}-system-dpl ${{ inputs.service }}-system=${{ inputs.image }}
@@ -49,8 +54,16 @@ runs:
         kubectl set image deployments/${{ inputs.service }}-high-dpl ${{ inputs.service }}-high=${{ inputs.image }}
         kubectl set image deployments/${{ inputs.service }}-urgent-dpl ${{ inputs.service }}-urgent=${{ inputs.image }}
 
-    - name: Deploy image (prioritized - normal only)
-      if: inputs.prioritized == 'true' && inputs.only_normal_queue_level == 'true'
+    - name: Deploy image (prioritized - lfx production)
+      if: inputs.prioritized == 'true' && inputs.lfx == 'true'
+      shell: bash
+      run: |
+        kubectl set image deployments/${{ inputs.service }}-system-dpl ${{ inputs.service }}-system=${{ inputs.image }}
+        kubectl set image deployments/${{ inputs.service }}-normal-dpl ${{ inputs.service }}-normal=${{ inputs.image }}
+        kubectl set image deployments/${{ inputs.service }}-high-dpl ${{ inputs.service }}-high=${{ inputs.image }}
+
+    - name: Deploy image (prioritized - staging)
+      if: inputs.prioritized == 'true' && inputs.staging == 'true'
       shell: bash
       run: kubectl set image deployments/${{ inputs.service }}-normal-dpl ${{ inputs.service }}-normal=${{ inputs.image }}
 
