@@ -8,7 +8,7 @@ import TenantService from '@/services/tenantService'
 import OrganizationService from '@/services/organizationService'
 import getUserContext from '@/database/utils/getUserContext'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import { MergeActionType, MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
+import { MergeActionState, MergeActionType, MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 
 /* eslint-disable no-console */
 
@@ -139,9 +139,17 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
           // Process the result here, e.g.
           // for (const row of result) { /* process row */ }
           for (const row of result) {
-            console.log(`Merging [${row.organizationId}] "${row.orgDisplayName}" into ${row.toMergeId} "${row.mergeDisplayName}"...`)
-            await MergeActionsRepository.add(MergeActionType.ORG, row.organizationId, row.toMergeId, userContext)
-            await orgService.mergeSync(row.organizationId, row.toMergeId)
+
+            try {
+              console.log(`Merging [${row.organizationId}] "${row.orgDisplayName}" into ${row.toMergeId} "${row.mergeDisplayName}"...`)
+              await MergeActionsRepository.add(MergeActionType.ORG, row.organizationId, row.toMergeId, userContext)
+              await orgService.mergeSync(row.organizationId, row.toMergeId)
+            }
+            catch(err){
+              console.log("Error merging organizations - continuing with the rest", err)
+              await MergeActionsRepository.setState(MergeActionType.ORG, row.organizationId, row.toMergeId, MergeActionState.ERROR, userContext)
+            }
+         
 
             if (parameters.hardLimit && counter >= parameters.hardLimit) {
               console.log(`Hard limit of ${parameters.hardLimit} reached. Exiting...`)
