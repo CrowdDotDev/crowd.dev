@@ -33,9 +33,9 @@ process.on('SIGTERM', async () => {
   exiting = true
 })
 
-const receive = async (): Promise<SqsMessage | undefined> => {
+const receive = async (queue: string): Promise<SqsMessage | undefined> => {
   const params: SqsReceiveMessageRequest = {
-    QueueUrl: SQS_CONFIG.nodejsWorkerQueue,
+    QueueUrl: queue,
   }
 
   const messages = await receiveMessage(SQS_CLIENT(), params)
@@ -47,9 +47,9 @@ const receive = async (): Promise<SqsMessage | undefined> => {
   return undefined
 }
 
-const removeFromQueue = (receiptHandle: string): Promise<void> => {
+const removeFromQueue = (queue: string, receiptHandle: string): Promise<void> => {
   const params: SqsDeleteMessageRequest = {
-    QueueUrl: SQS_CONFIG.nodejsWorkerQueue,
+    QueueUrl: queue,
     ReceiptHandle: receiptHandle,
   }
 
@@ -78,7 +78,7 @@ async function handleMessages(queue: string) {
         messageLogger.warn(
           'Skipping enrich_member_organizations message! Purging the queue because they are not needed anymore!',
         )
-        await removeFromQueue(message.ReceiptHandle)
+        await removeFromQueue(queue, message.ReceiptHandle)
         return
       }
 
@@ -103,7 +103,7 @@ async function handleMessages(queue: string) {
           'nodejs_worker.process_message',
           async () => {
             // remove the message from the queue as it's about to be processed
-            await removeFromQueue(message.ReceiptHandle)
+            await removeFromQueue(queue, message.ReceiptHandle)
             messagesInProgress.set(message.MessageId, msg)
             try {
               await processFunction(msg, messageLogger)
@@ -140,7 +140,7 @@ async function handleMessages(queue: string) {
   // noinspection InfiniteLoopJS
   while (!exiting) {
     if (isWorkerAvailable()) {
-      const message = await receive()
+      const message = await receive(queue)
 
       if (message) {
         addWorkerJob()
