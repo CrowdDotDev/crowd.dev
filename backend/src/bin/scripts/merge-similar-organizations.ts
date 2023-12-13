@@ -89,7 +89,6 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
       const userContext: IRepositoryOptions = await getUserContext(tenantId)
       const orgService = new OrganizationService(userContext)
 
-      let offset = 0
       let hasMoreData = true
       let counter = 0
 
@@ -126,7 +125,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
           {
             replacements: {
               similarityThreshold: parameters.similarityThreshold || 0.95,
-              offset,
+              offset: 0,
               tenantId,
             },
             type: QueryTypes.SELECT,
@@ -158,7 +157,6 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
 
             counter += 1
           }
-          offset += 100
         }
       }
     }
