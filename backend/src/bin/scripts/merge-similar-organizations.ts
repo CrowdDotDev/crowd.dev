@@ -115,7 +115,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
                     "ot"."toMergeId" = "org2"."id"
                 WHERE 
                     ("ot".similarity > :similarityThreshold) AND
-                    ("org1"."displayName" = "org2"."displayName") AND
+                    ("org1"."displayName" ilike "org2"."displayName") AND
                     ("org1"."tenantId" = :tenantId) AND
                     ("org2"."tenantId" = :tenantId)
                 ORDER BY 
