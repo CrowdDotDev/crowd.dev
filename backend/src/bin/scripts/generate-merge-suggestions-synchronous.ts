@@ -9,6 +9,7 @@ import getUserContext from '@/database/utils/getUserContext'
 import SegmentService from '@/services/segmentService'
 import { OPENSEARCH_CONFIG } from '@/conf'
 import OrganizationService from '@/services/organizationService'
+import TenantService from '@/services/tenantService'
 
 /* eslint-disable no-console */
 
@@ -21,6 +22,20 @@ const options = [
     type: String,
     description:
       'The unique ID of that tenant that you would like to generate merge suggestions for.',
+  },
+  {
+    name: 'plan',
+    alias: 'p',
+    type: String,
+    description:
+      'Comma separated plans - works with allTenants flag. Only generate suggestions for tenants with specific plans. Available plans: Growth, Scale, Enterprise',
+  },
+  {
+    name: 'allTenants',
+    alias: 'a',
+    type: Boolean,
+    defaultValue: false,
+    description: 'Set this flag to merge similar organizations for all tenants.',
   },
   {
     name: 'help',
@@ -51,7 +66,21 @@ if (parameters.help || !parameters.tenant) {
   console.log(usage)
 } else {
   setImmediate(async () => {
-    const tenantIds = parameters.tenant.split(',')
+    let tenantIds
+
+    if (parameters.allTenants) {
+      tenantIds = (await TenantService._findAndCountAllForEveryUser({})).rows
+      if (parameters.plan) {
+        tenantIds = tenantIds.filter((tenant) =>
+          parameters.plan.split(',').includes(tenant.plan),
+        )
+      }
+      tenantIds = tenantIds.map((t) => t.id)
+    } else if (parameters.tenant) {
+      tenantIds = parameters.tenant.split(',')
+    } else {
+      tenantIds = []
+    }
 
     for (const tenantId of tenantIds) {
       const userContext: IRepositoryOptions = await getUserContext(tenantId)
