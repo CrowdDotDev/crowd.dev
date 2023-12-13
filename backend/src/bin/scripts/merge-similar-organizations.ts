@@ -139,7 +139,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
 
             if (parameters.hardLimit && counter >= parameters.hardLimit) {
               console.log(`Hard limit of ${parameters.hardLimit} reached. Exiting...`)
-              break
+              process.exit(0)
             }
 
             counter += 1
