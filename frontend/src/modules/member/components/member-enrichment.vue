@@ -37,7 +37,7 @@
           class="btn btn--primary btn--full !h-8"
           :disabled="isEditLockedForSampleData"
           @click="onEnrichmentClick"
-        >Enrich member</el-button>
+        >Enrich contact</el-button>
         <el-button
           v-else
           class="btn btn--primary btn--full !h-8"
