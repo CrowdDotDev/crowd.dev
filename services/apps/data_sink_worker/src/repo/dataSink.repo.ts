@@ -2,7 +2,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IIntegrationResult, IntegrationResultState, TenantPlans } from '@crowd/types'
 import { IDelayedResults, IFailedResultData, IResultData } from './dataSink.data'
-import { distinct } from '@crowd/common'
+import { distinct, singleOrDefault } from '@crowd/common'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -293,9 +293,12 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
           },
         )
 
-        for (const runInfo of runInfos) {
-          for (const result of resultData.filter((r) => r.runId === runInfo.id)) {
+        for (const result of resultData) {
+          const runInfo = singleOrDefault(runInfos, (r) => r.id === result.runId)
+          if (runInfo) {
             result.onboarding = runInfo.onboarding
+          } else {
+            result.onboarding = true
           }
         }
       }
