@@ -1,26 +1,30 @@
-import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
-import { Logger } from '@crowd/logging'
+import {
+  IntegrationDataWorkerEmitter,
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+} from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/database'
+import { Logger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
 import {
   INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
-  IntegrationRunWorkerEmitter,
-  IntegrationDataWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
   SqsClient,
-  SqsQueueReceiver,
+  SqsPrioritizedQueueReciever,
 } from '@crowd/sqs'
+import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   ContinueProcessingRunStreamsQueueMessage,
   IQueueMessage,
   IntegrationStreamWorkerQueueMessageType,
   ProcessStreamQueueMessage,
   ProcessWebhookStreamQueueMessage,
+  QueuePriorityLevel,
 } from '@crowd/types'
-import { RedisClient } from '@crowd/redis'
 import IntegrationStreamService from '../service/integrationStreamService'
 
-export class WorkerQueueReceiver extends SqsQueueReceiver {
+export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   constructor(
+    level: QueuePriorityLevel,
     client: SqsClient,
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
@@ -32,6 +36,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     maxConcurrentProcessing: number,
   ) {
     super(
+      level,
       client,
       INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
       maxConcurrentProcessing,

@@ -32,7 +32,10 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerOrganizationMembersSync(organizationId: string): Promise<void> {
+  public async triggerOrganizationMembersSync(
+    tenantId: string,
+    organizationId: string,
+  ): Promise<void> {
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
@@ -82,7 +85,10 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerOrganizationActivitiesSync(organizationId: string): Promise<void> {
+  public async triggerOrganizationActivitiesSync(
+    tenantId: string,
+    organizationId: string,
+  ): Promise<void> {
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }

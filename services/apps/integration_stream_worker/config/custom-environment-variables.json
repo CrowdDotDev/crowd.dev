@@ -19,6 +19,10 @@
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
   },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "apiKey": "CROWD_UNLEASH_BACKEND_API_KEY"
+  },
   "nango": {
     "url": "CROWD_NANGO_URL",
     "secretKey": "CROWD_NANGO_SECRET_KEY"
@@ -47,5 +51,8 @@
     "clientId": "CROWD_TWITTER_CLIENT_ID",
     "clientSecret": "CROWD_TWITTER_CLIENT_SECRET",
     "callbackUrl": "CROWD_TWITTER_CALLBACK_URL"
+  },
+  "worker": {
+    "queuePriorityLevel": "QUEUE_PRIORITY_LEVEL"
   }
 }

@@ -1,16 +1,19 @@
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG } from './conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WORKER_SETTINGS } from './conf'
 import { getRedisClient } from '@crowd/redis'
-import { getDbConnection } from '@crowd/database'
+import { DbStore, getDbConnection } from '@crowd/database'
+import { getSqsClient } from '@crowd/sqs'
+import { WorkerQueueReceiver } from './queue'
+import { processOldStreamsJob } from './jobs/processOldStreams'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationDataWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
-import { WorkerQueueReceiver } from './queue'
-import { processOldStreamsJob } from './jobs/processOldStreams'
+  PriorityLevelContextRepository,
+  QueuePriorityContextLoader,
+} from '@crowd/common_services'
+import { getUnleashClient } from '@crowd/feature-flags'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -21,16 +24,44 @@ const PROCESSING_INTERVAL_MINUTES = 5
 setImmediate(async () => {
   log.info('Starting integration stream worker...')
 
+  const unleash = await getUnleashClient(UNLEASH_CONFIG())
+
   const sqsClient = getSqsClient(SQS_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(sqsClient, tracer, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(sqsClient, tracer, log)
+  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    priorityLevelRepo.loadPriorityLevelContext(tenantId)
+
+  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
+  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
 
   const queue = new WorkerQueueReceiver(
+    WORKER_SETTINGS().queuePriorityLevel,
     sqsClient,
     redisClient,
     dbConnection,

@@ -519,7 +519,64 @@ class OrganizationRepository {
     })
   }
 
-  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
+  static ORGANIZATION_UPDATE_COLUMNS = [
+    'displayName',
+    'description',
+    'emails',
+    'phoneNumbers',
+    'logo',
+    'tags',
+    'website',
+    'location',
+    'github',
+    'twitter',
+    'linkedin',
+    'crunchbase',
+    'employees',
+    'revenueRange',
+    'importHash',
+    'isTeamOrganization',
+    'employeeCountByCountry',
+    'type',
+    'ticker',
+    'headline',
+    'profiles',
+    'naics',
+    'industry',
+    'founded',
+    'size',
+    'employees',
+    'twitter',
+    'lastEnrichedAt',
+    'affiliatedProfiles',
+    'allSubsidiaries',
+    'alternativeDomains',
+    'alternativeNames',
+    'averageEmployeeTenure',
+    'averageTenureByLevel',
+    'averageTenureByRole',
+    'directSubsidiaries',
+    'employeeChurnRate',
+    'employeeCountByMonth',
+    'employeeGrowthRate',
+    'employeeCountByMonthByLevel',
+    'employeeCountByMonthByRole',
+    'gicsSector',
+    'grossAdditionsByMonth',
+    'grossDeparturesByMonth',
+    'ultimateParent',
+    'immediateParent',
+    'attributes',
+    'weakIdentities',
+  ]
+
+  static async update(
+    id,
+    data,
+    options: IRepositoryOptions,
+    overrideIdentities = false,
+    manualChange = false,
+  ) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -543,59 +600,56 @@ class OrganizationRepository {
       delete data.attributes.syncRemote
     }
 
+    if (manualChange) {
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+
+      for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
+        let changed = false
+
+        // only check fields that are in the data object that will be updated
+        if (column in data) {
+          if (
+            record[column] !== null &&
+            column in data &&
+            (data[column] === null || data[column] === undefined)
+          ) {
+            // column was removed in the update -> will be set to null by sequelize
+            changed = true
+          } else if (
+            record[column] === null &&
+            data[column] !== null &&
+            data[column] !== undefined
+          ) {
+            // column was null before now it's not anymore
+            changed = true
+          } else if (record[column] !== data[column]) {
+            // column value has changed
+            changed = true
+          }
+        }
+
+        if (changed && !manuallyChangedFields.includes(column)) {
+          manuallyChangedFields.push(column)
+        }
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    } else {
+      // ignore columns that were manually changed
+      // by rewriting them with db data
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+      for (const manuallyChangedColumn of manuallyChangedFields) {
+        data[manuallyChangedColumn] = record[manuallyChangedColumn]
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    }
+
     record = await record.update(
       {
-        ...lodash.pick(data, [
-          'displayName',
-          'description',
-          'emails',
-          'phoneNumbers',
-          'logo',
-          'tags',
-          'website',
-          'location',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'revenueRange',
-          'importHash',
-          'isTeamOrganization',
-          'employeeCountByCountry',
-          'type',
-          'ticker',
-          'headline',
-          'profiles',
-          'naics',
-          'industry',
-          'founded',
-          'size',
-          'employees',
-          'twitter',
-          'lastEnrichedAt',
-          'affiliatedProfiles',
-          'allSubsidiaries',
-          'alternativeDomains',
-          'alternativeNames',
-          'averageEmployeeTenure',
-          'averageTenureByLevel',
-          'averageTenureByRole',
-          'directSubsidiaries',
-          'employeeChurnRate',
-          'employeeCountByMonth',
-          'employeeGrowthRate',
-          'employeeCountByMonthByLevel',
-          'employeeCountByMonthByRole',
-          'gicsSector',
-          'grossAdditionsByMonth',
-          'grossDeparturesByMonth',
-          'ultimateParent',
-          'immediateParent',
-          'attributes',
-          'weakIdentities',
-        ]),
+        ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
         updatedById: currentUser.id,
+        manuallyChangedFields: data.manuallyChangedFields,
       },
       {
         transaction,
