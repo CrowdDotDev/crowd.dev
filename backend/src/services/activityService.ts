@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { FeatureFlag, PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
+import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
