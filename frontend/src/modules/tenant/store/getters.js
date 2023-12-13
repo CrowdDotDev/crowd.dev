@@ -1,6 +1,7 @@
 import sharedGetters from '@/shared/store/getters';
 import { router } from '@/router';
 import moment from 'moment';
+import Plans from '@/security/plans';
 
 export default {
   ...sharedGetters(),
@@ -75,6 +76,18 @@ export default {
     return today.isSameOrBefore(limit, 'day');
   },
 
+  showUpgradeEssentialBanner: (
+    _state,
+    _getters,
+    _rootState,
+    rootGetters,
+  ) => {
+    const today = moment();
+    const limit = moment('2024-01-01').startOf('day');
+    const currentTenant = rootGetters['auth/currentTenant'];
+    return currentTenant.plan === Plans.values.essential && today.isBefore(limit);
+  },
+
   showBanner: (_state, getters) => (
     getters.showSampleDataAlert
       || getters.showIntegrationsErrorAlert
@@ -82,6 +95,7 @@ export default {
       || getters.showIntegrationsInProgressAlert
       || getters.showIntegrationsNeedReconnectAlert
       || getters.showOrganizationsAlertBanner
+      || getters.showUpgradeEssentialBanner
   ),
 
   limit: () => 40,

@@ -19,6 +19,10 @@
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
   },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "apiKey": "CROWD_UNLEASH_BACKEND_API_KEY"
+  },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
   },
@@ -30,5 +34,8 @@
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
+  },
+  "worker": {
+    "queuePriorityLevel": "QUEUE_PRIORITY_LEVEL"
   }
 }

@@ -1,12 +1,14 @@
-import { getDbConnection } from '@crowd/database'
+import {
+  PriorityLevelContextRepository,
+  DataSinkWorkerEmitter,
+  QueuePriorityContextLoader,
+  SearchSyncWorkerEmitter,
+  NodejsWorkerEmitter,
+} from '@crowd/common_services'
+import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import {
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  DataSinkWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
+import { getSqsClient } from '@crowd/sqs'
 import {
   DB_CONFIG,
   SENTIMENT_CONFIG,
@@ -14,6 +16,7 @@ import {
   REDIS_CONFIG,
   UNLEASH_CONFIG,
   TEMPORAL_CONFIG,
+  WORKER_SETTINGS,
 } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
@@ -49,13 +52,39 @@ setImmediate(async () => {
     initializeSentimentAnalysis(SENTIMENT_CONFIG())
   }
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
+  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
 
-  const dataWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
+
+  const dataWorkerEmitter = new DataSinkWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
 
   const queue = new WorkerQueueReceiver(
+    WORKER_SETTINGS().queuePriorityLevel,
     sqsClient,
     dbConnection,
     nodejsWorkerEmitter,

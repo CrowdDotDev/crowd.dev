@@ -7,12 +7,14 @@ import { ISqsClientConfig } from '@crowd/sqs'
 import { ITemporalConfig } from '@crowd/temporal'
 import config from 'config'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
+import { QueuePriorityLevel } from '@crowd/types'
 export interface ISlackAlertingConfig {
   url: string
 }
 
 export interface IWorkerConfig {
   maxStreamRetries: number
+  queuePriorityLevel: QueuePriorityLevel
 }
 
 let workerSettings: IWorkerConfig
