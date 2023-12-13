@@ -1,6 +1,7 @@
 import { IDatabaseConfig } from '@crowd/database'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
+import { QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
 export interface IOpenSearchConfig {
@@ -12,6 +13,7 @@ export interface IOpenSearchConfig {
 
 export interface IServiceConfig {
   edition: string
+  queuePriorityLevel: QueuePriorityLevel
 }
 
 let serviceConfig: IServiceConfig

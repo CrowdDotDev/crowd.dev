@@ -1,9 +1,9 @@
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import IntegrationDataRepository from '../repo/integrationData.repo'
 import IntegrationDataService from '../service/integrationDataService'
+import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/common_services'
 
 export const processOldDataJob = async (
   dbConn: DbConnection,

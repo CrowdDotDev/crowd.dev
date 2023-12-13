@@ -421,7 +421,7 @@ class MemberRepository {
 
       const query = `
         INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
-        VALUES ${placeholders.join(', ')} ON CONFLICT DO NOTHING;
+        VALUES ${placeholders.join(', ')} on conflict do nothing;
       `
       try {
         await seq.query(query, {
@@ -879,24 +879,28 @@ class MemberRepository {
       tenantId: currentTenant.id,
     }
 
-
     if (segmentId) {
       // we load data for a specific segment (can be leaf, parent or grand parent id)
-    
-      const dataFromOpensearch = (await this.findAndCountAllOpensearch({
-        filter: {
-          and: [
-            {
-              id: {
-                eq: memberId
-              }
+
+      const dataFromOpensearch = (
+        await this.findAndCountAllOpensearch(
+          {
+            filter: {
+              and: [
+                {
+                  id: {
+                    eq: memberId,
+                  },
+                },
+              ],
             },
-          ]
-        },
-        limit: 1,
-        offset: 0,
-        segments: [segmentId],
-      }, options)).rows[0]
+            limit: 1,
+            offset: 0,
+            segments: [segmentId],
+          },
+          options,
+        )
+      ).rows[0]
 
       return {
         activeDaysCount: dataFromOpensearch?.activeDaysCount || 0,

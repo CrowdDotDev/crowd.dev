@@ -1,16 +1,11 @@
-import { asyncWrap } from '../middleware/error'
-import { WebhooksRepository } from '../repos/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
-import { getServiceTracer } from '@crowd/tracing'
-import { IntegrationStreamWorkerEmitter } from '@crowd/sqs'
 import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'
 import { verifyWebhookSignature } from 'utils/crypto'
-
-const tracer = getServiceTracer()
+import { asyncWrap } from '../middleware/error'
+import { WebhooksRepository } from '../repos/webhooks.repo'
 
 export const installDiscourseRoutes = async (app: express.Express) => {
-  let emitter: IntegrationStreamWorkerEmitter
   app.post(
     '/discourse/:tenantId/',
     asyncWrap(async (req, res) => {
@@ -59,12 +54,11 @@ export const installDiscourseRoutes = async (app: express.Express) => {
           },
         )
 
-        if (!emitter) {
-          emitter = new IntegrationStreamWorkerEmitter(req.sqs, tracer, req.log)
-          await emitter.init()
-        }
-
-        await emitter.triggerWebhookProcessing(integration.tenantId, integration.platform, id)
+        await req.emitters.integrationStreamWorker.triggerWebhookProcessing(
+          integration.tenantId,
+          integration.platform,
+          id,
+        )
 
         res.sendStatus(204)
       } else {

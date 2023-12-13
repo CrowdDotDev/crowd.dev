@@ -7,6 +7,7 @@
     "automationsTaskQueue": "automations"
   },
   "worker": {
-    "maxStreamRetries": 5
+    "maxStreamRetries": 5,
+    "queuePriorityLevel": "normal"
   }
 }
