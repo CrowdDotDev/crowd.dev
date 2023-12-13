@@ -86,6 +86,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
     for (const tenantId of tenantIds) {
       let offset = 0
       let hasMoreData = true
+      let counter = 0
 
       while (hasMoreData) {
         // find organization merge suggestions of tenant
@@ -132,7 +133,6 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
         } else {
           // Process the result here, e.g.
           // for (const row of result) { /* process row */ }
-          let counter = 0
           for (const row of result) {
             console.log(`Merging [${row.organizationId}] "${row.orgDisplayName}" into ${row.toMergeId} "${row.mergeDisplayName}"...`)
             // await orgService.mergeAsync(row.organizationId, row.toMergeId)
