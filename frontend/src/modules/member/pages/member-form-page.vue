@@ -348,7 +348,7 @@ onMounted(() => {
   if (isEditPage.value) {
     const { id } = route.params;
 
-    store.dispatch('member/doFind', { id })
+    store.dispatch('member/doFind', { id, segments: [selectedProjectGroup.value.id] })
       .then((res) => {
         record.value = res;
         isPageLoading.value = false;
