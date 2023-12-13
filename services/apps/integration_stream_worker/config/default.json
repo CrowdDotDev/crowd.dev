@@ -2,9 +2,11 @@
   "db": {},
   "sqs": {},
   "redis": {},
+  "unleash": {},
   "nango": {},
   "worker": {
-    "maxStreamRetries": 5
+    "maxStreamRetries": 5,
+    "queuePriorityLevel": "normal"
   },
   "slack": {
     "maxRetrospectInSeconds": 86400

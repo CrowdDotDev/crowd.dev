@@ -1,6 +1,7 @@
 {
   "service": {
-    "edition": "CROWD_EDITION"
+    "edition": "CROWD_EDITION",
+    "queuePriorityLevel": "QUEUE_PRIORITY_LEVEL"
   },
   "db": {
     "host": "CROWD_DB_WRITE_HOST",

@@ -1,7 +1,10 @@
+import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/database'
+import { IUnleashConfig } from '@crowd/feature-flags'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
+import { QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
 export interface INangoConfig {
@@ -39,6 +42,7 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
 
 export interface IWorkerConfig {
   maxRetries: number
+  queuePriorityLevel: QueuePriorityLevel
 }
 
 let workerConfig: IWorkerConfig
@@ -89,4 +93,13 @@ export const PLATFORM_CONFIG = (platform: string): unknown | undefined => {
 
 export const SEARCH_SYNC_API_CONFIG = (): ISearchSyncApiConfig => {
   return config.get<ISearchSyncApiConfig>('searchSyncApi')
+}
+
+let unleashConfig: IUnleashConfig | undefined
+export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
+  if (unleashConfig) return unleashConfig
+
+  unleashConfig = Object.assign({ appName: SERVICE }, config.get<IUnleashConfig>('unleash'))
+
+  return unleashConfig
 }

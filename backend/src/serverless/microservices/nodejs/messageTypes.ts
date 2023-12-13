@@ -1,4 +1,4 @@
-import { AutomationTrigger, AutomationType } from '@crowd/types'
+import { AutomationTrigger, AutomationType, ExportableEntity } from '@crowd/types'
 
 export type BaseNodeMicroserviceMessage = {
   service: string
@@ -66,10 +66,6 @@ export type BaseOutput = { status: number; msg?: string }
 
 export interface AnalyticsEmailsOutput extends BaseOutput {
   emailSent: boolean
-}
-
-export enum ExportableEntity {
-  MEMBERS = 'members',
 }
 
 export type BulkEnrichMessage = {

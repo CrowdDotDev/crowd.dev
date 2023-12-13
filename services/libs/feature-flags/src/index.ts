@@ -57,7 +57,7 @@ export const getUnleashClient = async (cfg: IUnleashConfig): Promise<Unleash | u
 
 export const isFeatureEnabled = async (
   flag: FeatureFlag,
-  contextLoader: () => Promise<Context>,
+  contextLoader: UnleashContextLoader,
   client?: Unleash,
   redis?: RedisClient,
   redisTimeoutSeconds?: number,
@@ -95,3 +95,6 @@ export const isFeatureEnabled = async (
 }
 
 export * from 'unleash-client'
+
+export type UnleashClient = Unleash
+export type UnleashContextLoader = () => Promise<Context>
