@@ -421,7 +421,7 @@ class MemberRepository {
 
       const query = `
         INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
-        VALUES ${placeholders.join(', ')};
+        VALUES ${placeholders.join(', ')} ON CONFLICT DO NOTHING;
       `
       try {
         await seq.query(query, {
@@ -879,77 +879,60 @@ class MemberRepository {
       tenantId: currentTenant.id,
     }
 
+
+    if (segmentId) {
+      // we load data for a specific segment (can be leaf, parent or grand parent id)
+    
+      const dataFromOpensearch = (await this.findAndCountAllOpensearch({
+        filter: {
+          and: [
+            {
+              id: {
+                eq: memberId
+              }
+            },
+          ]
+        },
+        limit: 1,
+        offset: 0,
+        segments: [segmentId],
+      }, options)).rows[0]
+
+      return {
+        activeDaysCount: dataFromOpensearch?.activeDaysCount || 0,
+        activityCount: dataFromOpensearch?.activityCount || 0,
+        activityTypes: dataFromOpensearch?.activityTypes || [],
+        activeOn: dataFromOpensearch?.activeOn || [],
+        averageSentiment: dataFromOpensearch?.averageSentiment || 0,
+        lastActive: dataFromOpensearch?.lastActive || null,
+        memberId,
+        segmentId,
+      }
+    }
+
     // query for all leaf segment ids
-    let extraCTEs = `
+    const extraCTEs = `
       leaf_segment_ids AS (
         select id
         from segments
         where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
       )
     `
-
-    if (segmentId) {
-      // we load data for a specific segment (can be leaf, parent or grand parent id)
-      replacements.segmentId = segmentId
-      extraCTEs = `
-        input_segment AS (
-          select
-            id,
-            slug,
-            "parentSlug",
-            "grandparentSlug"
-          from segments
-          where id = :segmentId
-            and "tenantId" = :tenantId
-        ),
-        segment_level AS (
-          select
-            case
-              when "parentSlug" is not null and "grandparentSlug" is not null
-                  then 'child'
-              when "parentSlug" is not null and "grandparentSlug" is null
-                  then 'parent'
-              when "parentSlug" is null and "grandparentSlug" is null
-                  then 'grandparent'
-              end as level,
-            id,
-            slug,
-            "parentSlug",
-            "grandparentSlug"
-          from input_segment
-        ),
-        leaf_segment_ids AS (
-          select s.id
-          from segments s
-          join segment_level sl on (sl.level = 'child' and s.id = sl.id)
-              or (sl.level = 'parent' and s."parentSlug" = sl.slug and s."grandparentSlug" is not null)
-              or (sl.level = 'grandparent' and s."grandparentSlug" = sl.slug)
-        )
-      `
-    }
-
     const query = `
       with ${extraCTEs}
         SELECT
         a."memberId",
-        a."segmentId",
         count(a.id)::integer AS "activityCount",
         max(a.timestamp) AS "lastActive",
         array_agg(DISTINCT concat(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
         array_agg(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
         count(DISTINCT a."timestamp"::date)::integer AS "activeDaysCount",
-        round(avg(
-            CASE WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL THEN
-                (a.sentiment ->> 'sentiment'::text)::double precision
-            ELSE
-                NULL::double precision
-            END
-        )::numeric, 2):: float AS "averageSentiment"
-        FROM activities a
-        join leaf_segment_ids lfs on a."segmentId" = lfs.id
+        round(avg(a.sentiment)::numeric, 2):: float AS "averageSentiment"
+        FROM leaf_segment_ids lfs
+        join mv_activities_cube a on a."segmentId" = lfs.id
         WHERE a."memberId" = :memberId
         and a."tenantId" = :tenantId
-        GROUP BY a."memberId", a."segmentId"
+        GROUP BY a."memberId"
     `
 
     const data: ActivityAggregates[] = await seq.query(query, {
@@ -1654,8 +1637,8 @@ class MemberRepository {
     ['emails', 'm.emails'],
   ])
 
-  static async countMembersPerSegment(options: IRepositoryOptions) {
-    const countResults = await MemberRepository.countMembersForSegments(options)
+  static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
+    const countResults = await MemberRepository.countMembers(options, segmentIds)
     return countResults.reduce((acc, curr: any) => {
       acc[curr.segmentId] = parseInt(curr.totalCount, 10)
       return acc
@@ -1724,25 +1707,6 @@ class MemberRepository {
         tenantId: options.currentTenant.id,
         segmentIds,
         ...params,
-      },
-      type: QueryTypes.SELECT,
-    })
-  }
-
-  static async countMembersForSegments(options: IRepositoryOptions) {
-    const countQuery = `
-      SELECT
-          COUNT(ms."memberId") AS "totalCount",
-          ms."segmentId"
-      FROM "memberSegments" ms
-      WHERE ms."tenantId" = :tenantId
-      GROUP BY ms."segmentId"
-    `
-
-    const seq = SequelizeRepository.getSequelize(options)
-    return seq.query(countQuery, {
-      replacements: {
-        tenantId: options.currentTenant.id,
       },
       type: QueryTypes.SELECT,
     })

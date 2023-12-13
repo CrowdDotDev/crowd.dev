@@ -47,7 +47,6 @@ SELECT
 FROM organizations o
 JOIN "memberOrganizations" mo ON o.id = mo."organizationId"
 JOIN members m ON mo."memberId" = m.id
-JOIN activities a ON o.id = a."organizationId"
 GROUP BY o.id
 ;
 
