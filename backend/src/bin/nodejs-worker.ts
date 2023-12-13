@@ -82,7 +82,7 @@ async function handleMessages(queue: string) {
         return
       }
 
-      messageLogger.info({ messageType: msg.type }, 'Received a new queue message!')
+      messageLogger.debug({ messageType: msg.type }, 'Received a new queue message!')
 
       let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
 
