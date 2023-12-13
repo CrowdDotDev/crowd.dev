@@ -6,6 +6,8 @@ import path from 'path'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantService from '@/services/tenantService'
 import OrganizationService from '@/services/organizationService'
+import getUserContext from '@/database/utils/getUserContext'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 
 /* eslint-disable no-console */
 
@@ -71,8 +73,6 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
   setImmediate(async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
-    const orgService = new OrganizationService(options)
-
     let tenantIds
 
     if (parameters.allTenants) {
@@ -84,6 +84,10 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
     }
 
     for (const tenantId of tenantIds) {
+
+      const userContext: IRepositoryOptions = await getUserContext(tenantId)
+      const orgService = new OrganizationService(userContext)
+
       let offset = 0
       let hasMoreData = true
       let counter = 0
