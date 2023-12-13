@@ -258,7 +258,7 @@ class IntegrationRepository {
         status: 'done',
         platform,
       },
-       include: [
+      include: [
         {
           model: options.database.tenant,
           as: 'tenant',

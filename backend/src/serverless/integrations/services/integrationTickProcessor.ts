@@ -129,17 +129,17 @@ export class IntegrationTickProcessor extends LoggerBase {
             const delay = chunkIndex * DELAY_BETWEEN_CHUNKS
 
             if (
-                  newIntService.type === IntegrationType.DISCORD &&
-                  integration.tenant.plan === TenantPlans.Essential
-                ) {
-                  // not triggering discord integrations for essential plan, only paid plans
-                  logger.info(
-                    { integrationId: integration.id },
-                    'Not triggering new integration check for Discord for essential plan!',
-                  )
-                  // eslint-disable-next-line no-continue
-                  continue
-                }
+              newIntService.type === IntegrationType.DISCORD &&
+              integration.tenant.plan === TenantPlans.Essential
+            ) {
+              // not triggering discord integrations for essential plan, only paid plans
+              logger.info(
+                { integrationId: integration.id },
+                'Not triggering new integration check for Discord for essential plan!',
+              )
+              // eslint-disable-next-line no-continue
+              continue
+            }
 
             // Divide integrations into chunks for Discord
             if (newIntService.type === IntegrationType.DISCORD) {
