@@ -223,7 +223,7 @@ export default class MemberEnrichmentService extends LoggerBase {
    * @param memberId - the ID of the member to enrich
    * @returns a promise that resolves to the enrichment data for the member
    */
-  async enrichOne(memberId) {
+  async enrichOne(memberId, instantSync = false) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const options = {
       ...this.options,
@@ -236,7 +236,9 @@ export default class MemberEnrichmentService extends LoggerBase {
         await this.getAttributes()
       }
 
-      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
+      // Determine sync mode based on 'instantSync' flag
+      const syncMode = instantSync ? SyncMode.SYNCHRONOUS : SyncMode.ASYNCHRONOUS
+      const searchSyncService = new SearchSyncService(this.options, syncMode)
 
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(options)
@@ -363,7 +365,7 @@ export default class MemberEnrichmentService extends LoggerBase {
             },
             {
               doSync: true,
-              mode: SyncMode.ASYNCHRONOUS,
+              mode: syncMode,
             },
           )
 
@@ -386,7 +388,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
-      result = await memberService.findById(result.id, true, false)
+      result = await memberService.findByIdOpensearch(result.id)
       await SequelizeRepository.commitTransaction(transaction)
       return result
     } catch (error) {

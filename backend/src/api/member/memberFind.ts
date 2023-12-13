@@ -34,9 +34,9 @@ export default async (req, res) => {
     }
   }
 
-  const payload = await new MemberService(req).findById(req.params.id, true, true, segmentId)
+  // const payload = await new MemberService(req).findById(req.params.id, true, true, segmentId)
 
-  // const payload = await new MemberService(req).findByIdOpensearch(req.params.id, segmentId)
+  const payload = await new MemberService(req).findByIdOpensearch(req.params.id, segmentId)
 
   await req.responseHandler.success(req, res, payload)
 }

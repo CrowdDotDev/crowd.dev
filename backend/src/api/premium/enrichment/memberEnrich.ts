@@ -29,7 +29,7 @@ const log = getServiceLogger()
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
-  const payload = await new MemberEnrichmentService(req).enrichOne(req.params.id)
+  const payload = await new MemberEnrichmentService(req).enrichOne(req.params.id, true)
 
   track('Single member enrichment', { memberId: req.params.id }, { ...req })
 

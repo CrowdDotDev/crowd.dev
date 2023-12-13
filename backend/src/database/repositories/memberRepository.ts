@@ -48,6 +48,7 @@ import {
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import MemberAffiliationRepository from './memberAffiliationRepository'
+import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
 
@@ -1169,6 +1170,10 @@ class MemberRepository {
   static async findByIdOpensearch(id, options: IRepositoryOptions, segmentId?: string) {
     const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
 
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, options)
+    ).rows
+
     const response = await this.findAndCountAllOpensearch(
       {
         filter: {
@@ -1182,6 +1187,7 @@ class MemberRepository {
         },
         limit: 1,
         offset: 0,
+        attributesSettings: memberAttributeSettings,
         segments,
       },
       options,
