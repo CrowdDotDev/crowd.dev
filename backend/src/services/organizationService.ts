@@ -498,7 +498,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       if (!existing) {
-        existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
+        existing = await OrganizationRepository.findByIdentities(data.identities, this.options)
       }
 
       if (existing) {
