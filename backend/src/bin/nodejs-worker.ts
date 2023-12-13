@@ -56,15 +56,6 @@ const removeFromQueue = (receiptHandle: string): Promise<void> => {
   return deleteMessage(SQS_CLIENT(), params)
 }
 
-let processingMessages = 0
-const isWorkerAvailable = (): boolean => processingMessages <= 3
-const addWorkerJob = (): void => {
-  processingMessages++
-}
-const removeWorkerJob = (): void => {
-  processingMessages--
-}
-
 async function handleMessages(queue: string) {
   const handlerLogger = getChildLogger('messages', serviceLogger, {
     queue,
@@ -91,10 +82,7 @@ async function handleMessages(queue: string) {
         return
       }
 
-      messageLogger.debug(
-        { messageType: msg.type, messagePayload: JSON.stringify(msg) },
-        'Received a new queue message!',
-      )
+      messageLogger.info({ messageType: msg.type }, 'Received a new queue message!')
 
       let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
 
@@ -129,10 +117,24 @@ async function handleMessages(queue: string) {
             type: msg.type,
           },
         )
+      } else {
+        messageLogger.error(
+          { messageType: msg.type },
+          'Error while parsing queue message! Invalid type.',
+        )
       }
     } catch (err) {
       messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
     }
+  }
+
+  let processingMessages = 0
+  const isWorkerAvailable = (): boolean => processingMessages <= 3
+  const addWorkerJob = (): void => {
+    processingMessages++
+  }
+  const removeWorkerJob = (): void => {
+    processingMessages--
   }
 
   // noinspection InfiniteLoopJS
