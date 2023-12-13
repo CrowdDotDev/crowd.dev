@@ -135,7 +135,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
           // for (const row of result) { /* process row */ }
           for (const row of result) {
             console.log(`Merging [${row.organizationId}] "${row.orgDisplayName}" into ${row.toMergeId} "${row.mergeDisplayName}"...`)
-            // await orgService.mergeAsync(row.organizationId, row.toMergeId)
+            await orgService.mergeSync(row.organizationId, row.toMergeId)
 
             if (parameters.hardLimit && counter >= parameters.hardLimit) {
               console.log(`Hard limit of ${parameters.hardLimit} reached. Exiting...`)
