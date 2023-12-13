@@ -258,6 +258,13 @@ class IntegrationRepository {
         status: 'done',
         platform,
       },
+      include: [
+        {
+          model: options.database.tenant,
+          as: 'tenant',
+          required: true,
+        },
+      ],
       limit: perPage,
       offset: (page - 1) * perPage,
       order: [['id', 'ASC']],
