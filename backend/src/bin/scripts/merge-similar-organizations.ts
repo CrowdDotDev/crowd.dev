@@ -138,8 +138,6 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
         if (result.length === 0) {
           hasMoreData = false
         } else {
-          // Process the result here, e.g.
-          // for (const row of result) { /* process row */ }
           for (const row of result) {
             try {
               console.log(
