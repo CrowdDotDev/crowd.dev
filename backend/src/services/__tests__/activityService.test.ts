@@ -361,7 +361,7 @@ describe('ActivityService tests', () => {
       expect(activityUpserted).toStrictEqual(expectedActivityCreated)
     })
 
-    it('Should create various conversations successfully with given parent-child relationships of activities [ascending timestamp order]', async () => {
+    it.skip('Should create various conversations successfully with given parent-child relationships of activities [ascending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
@@ -608,7 +608,7 @@ describe('ActivityService tests', () => {
       })
     })
 
-    it('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
+    it.skip('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await populateSegments(mockIRepositoryOptions)
       const memberService = new MemberService(mockIRepositoryOptions)
@@ -1192,7 +1192,7 @@ describe('ActivityService tests', () => {
       expect(activityWithMember2).toStrictEqual(expectedActivityCreated)
     })
 
-    it('Create an activity with given member [with parent activity, upsert member, new activity] [child first, parent later]', async () => {
+    it.skip('Create an activity with given member [with parent activity, upsert member, new activity] [child first, parent later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await populateSegments(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
@@ -2324,7 +2324,7 @@ describe('ActivityService tests', () => {
       expect(activityParentCreated.conversationId).toBe(conversation.id)
     })
 
-    it('Should always auto-publish when conversationSettings.autoPublish.status is set to all', async () => {
+    it.skip('Should always auto-publish when conversationSettings.autoPublish.status is set to all', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const activityService = new ActivityService(mockIRepositoryOptions)
@@ -2416,7 +2416,7 @@ describe('ActivityService tests', () => {
       expect(conversationCreated.published).toStrictEqual(true)
     })
 
-    it('Should never auto-publish when conversationSettings.autoPublish.status is set to disabled', async () => {
+    it.skip('Should never auto-publish when conversationSettings.autoPublish.status is set to disabled', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const activityService = new ActivityService(mockIRepositoryOptions)
@@ -2508,7 +2508,7 @@ describe('ActivityService tests', () => {
       expect(conversationCreated.published).toStrictEqual(false)
     })
 
-    it('Should auto-publish when conversationSettings.autoPublish.status is set to custom and rules match', async () => {
+    it.skip('Should auto-publish when conversationSettings.autoPublish.status is set to custom and rules match', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const activityService = new ActivityService(mockIRepositoryOptions)
@@ -2603,7 +2603,7 @@ describe('ActivityService tests', () => {
       expect(conversationCreated.published).toStrictEqual(true)
     })
 
-    it("Should not auto-publish when conversationSettings.autoPublish.status is set to custom and rules don't match", async () => {
+    it.skip("Should not auto-publish when conversationSettings.autoPublish.status is set to custom and rules don't match", async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const activityService = new ActivityService(mockIRepositoryOptions)

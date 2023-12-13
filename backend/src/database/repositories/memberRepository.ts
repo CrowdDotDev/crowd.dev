@@ -916,27 +916,34 @@ class MemberRepository {
 
     // query for all leaf segment ids
     const extraCTEs = `
-      leaf_segment_ids AS (
-        select id
-        from segments
-        where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-      )
+    leaf_segment_ids AS (
+      select id
+      from segments
+      where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+    )
     `
     const query = `
       with ${extraCTEs}
         SELECT
         a."memberId",
+        a."segmentId",
         count(a.id)::integer AS "activityCount",
         max(a.timestamp) AS "lastActive",
         array_agg(DISTINCT concat(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
         array_agg(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
         count(DISTINCT a."timestamp"::date)::integer AS "activeDaysCount",
-        round(avg(a.sentiment)::numeric, 2):: float AS "averageSentiment"
-        FROM leaf_segment_ids lfs
-        join mv_activities_cube a on a."segmentId" = lfs.id
+        round(avg(
+            CASE WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL THEN
+                (a.sentiment ->> 'sentiment'::text)::double precision
+            ELSE
+                NULL::double precision
+            END
+        )::numeric, 2):: float AS "averageSentiment"
+        FROM activities a
+        join leaf_segment_ids lfs on a."segmentId" = lfs.id
         WHERE a."memberId" = :memberId
         and a."tenantId" = :tenantId
-        GROUP BY a."memberId"
+        GROUP BY a."memberId", a."segmentId"
     `
 
     const data: ActivityAggregates[] = await seq.query(query, {
