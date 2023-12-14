@@ -208,6 +208,7 @@ jobs:
           service: search-sync-worker
           image: ${{ needs.build-and-push-search-sync-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: prod
           prioritized: true
 
   deploy-search-sync-api:
@@ -245,6 +246,7 @@ jobs:
           service: integration-sync-worker
           image: ${{ needs.build-and-push-integration-sync-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: prod
           prioritized: true
 
   deploy-webhook-api:

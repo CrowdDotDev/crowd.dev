@@ -237,6 +237,7 @@ jobs:
           service: nodejs-worker
           image: ${{ needs.build-and-push-backend.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: prod
           prioritized: true
 
   deploy-discord-ws:
@@ -292,6 +293,7 @@ jobs:
           service: integration-run-worker
           image: ${{ needs.build-and-push-integration-run-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: prod
           prioritized: true
 
   deploy-integration-stream-worker:
@@ -311,6 +313,7 @@ jobs:
           service: integration-stream-worker
           image: ${{ needs.build-and-push-integration-stream-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: prod
           prioritized: true
 
   deploy-integration-data-worker:
@@ -330,6 +333,7 @@ jobs:
           service: integration-data-worker
           image: ${{ needs.build-and-push-integration-data-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: prod
           prioritized: true
 
   deploy-data-sink-worker:
@@ -349,6 +353,7 @@ jobs:
           service: data-sink-worker
           image: ${{ needs.build-and-push-data-sink-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: prod
           prioritized: true
 
   deploy-frontend:
