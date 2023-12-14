@@ -140,25 +140,24 @@ async function spawnClient(
   })
 
   // listen to discord events
-  client.on(Events.GuildMemberAdd, async (m) => {
-    const member = m as any
+  client.on(Events.GuildMemberAdd, async (member) => {
+    // discord.js is cruel. member object here is typed,
+    // but it has custom toString and toJSON methods
+    // and they you print and JSON.stringify it
+    // the structure turns out to be different
     await executeIfNotExists(
-      `member-${member.userId}`,
+      `discord-ws-member-${member.user.id}-${member.guild.id}`,
       cache,
       async () => {
         logger.debug(
           {
             member: member.displayName,
-            guildId: member.guildId ?? member.guild.id,
-            userId: member.userId,
+            guildId: member.guild.id,
+            userId: member.user.id,
           },
           'Member joined guild!',
         )
-        await processPayload(
-          DiscordWebsocketEvent.MEMBER_ADDED,
-          member,
-          member.guildId ?? member.guild.id,
-        )
+        await processPayload(DiscordWebsocketEvent.MEMBER_ADDED, member, member.guild.id)
       },
       delayMilliseconds,
     )
@@ -167,7 +166,7 @@ async function spawnClient(
   client.on(Events.MessageCreate, async (message) => {
     if (message.type === MessageType.Default || message.type === MessageType.Reply) {
       await executeIfNotExists(
-        `msg-${message.id}`,
+        `discord-ws-msg-${message.id}`,
         cache,
         async () => {
           logger.debug(
