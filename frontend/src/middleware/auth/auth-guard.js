@@ -1,6 +1,7 @@
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import config from '@/config';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import { isTrialExpired } from '@/utils/date';
 
 function isGoingToIntegrationsPage(to) {
   return to.name === 'integration';
@@ -47,6 +48,13 @@ export default async function ({
     && !permissionChecker.isEmailVerified
   ) {
     router.push({ path: '/auth/email-unverified' });
+    return;
+  }
+
+  if (isTrialExpired(store.getters['auth/currentTenant'])) {
+    if (!window.location.href.includes('/onboard/plans')) {
+      window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
+    }
     return;
   }
 

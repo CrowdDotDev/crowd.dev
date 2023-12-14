@@ -70,7 +70,7 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.essential,
+        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : null,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },

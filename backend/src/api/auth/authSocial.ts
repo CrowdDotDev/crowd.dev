@@ -2,6 +2,7 @@ import passport from 'passport'
 import { getServiceChildLogger } from '@crowd/logging'
 import { API_CONFIG, GITHUB_CONFIG, GOOGLE_CONFIG } from '../../conf'
 import AuthService from '../../services/auth/authService'
+import TenantService from '@/services/tenantService'
 
 const log = getServiceChildLogger('AuthSocial')
 
@@ -23,6 +24,11 @@ export default (app, routes) => {
       req.body.tenantId,
       req,
     )
+    if (!req.body.tenantId) {
+      await new TenantService(req).create({
+        name: 'temporaryName',
+      })
+    }
 
     await req.responseHandler.success(req, res, payload)
   })

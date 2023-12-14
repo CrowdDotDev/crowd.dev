@@ -58,6 +58,12 @@ export const getTrialDate = (tenant) => {
 
   return `Trial (${daysLeft < 0 ? 0 : daysLeft} days left)`;
 };
+export const isTrialExpired = (tenant) => {
+  if (config.isCommunityVersion) {
+    return false;
+  }
+  return !tenant.plan || (tenant.isTrialPlan && moment().isAfter(moment(tenant.trialEndsAt)));
+};
 
 export const isCurrentDateAfterGivenWorkingDays = (date, workingDays = 3) => {
   const givenDate = new Date(date);

@@ -1,4 +1,5 @@
 import AuthService from '../../services/auth/authService'
+import TenantService from '@/services/tenantService'
 
 export default async (req, res) => {
   if (!req.body.acceptedTermsAndPrivacy) {
@@ -14,6 +15,11 @@ export default async (req, res) => {
     req.body.acceptedTermsAndPrivacy,
     req,
   )
+
+  req.currentUser = await AuthService.findByToken(payload, req)
+  await new TenantService(req).create({
+    name: 'temporaryName',
+  })
 
   return req.responseHandler.success(req, res, payload)
 }
