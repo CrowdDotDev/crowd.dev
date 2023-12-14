@@ -34,9 +34,13 @@ export default async (req, res) => {
     }
   }
 
-  // const payload = await new MemberService(req).findById(req.params.id, true, true, segmentId)
+  let payload
+  if (await isFeatureEnabled(FeatureFlag.SERVE_PROFILES_OPENSEARCH, req)) {
+    payload = await new MemberService(req).findByIdOpensearch(req.params.id, segmentId)
+    payload.message = 'Serving profiles from OpenSearch'
+  }
 
-  const payload = await new MemberService(req).findByIdOpensearch(req.params.id, segmentId)
+  payload = await new MemberService(req).findById(req.params.id, true, true, segmentId)
 
   await req.responseHandler.success(req, res, payload)
 }
