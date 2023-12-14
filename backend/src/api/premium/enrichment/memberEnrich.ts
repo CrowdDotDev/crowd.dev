@@ -1,6 +1,6 @@
 import { RedisCache } from '@crowd/redis'
 import { getServiceLogger } from '@crowd/logging'
-import { FeatureFlagRedisKey } from '@crowd/types'
+import { FeatureFlagRedisKey, SyncMode } from '@crowd/types'
 import { getSecondsTillEndOfMonth } from '../../../utils/timing'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
@@ -29,7 +29,7 @@ const log = getServiceLogger()
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
-  const payload = await new MemberEnrichmentService(req).enrichOne(req.params.id, true)
+  const payload = await new MemberEnrichmentService(req).enrichOne(req.params.id, SyncMode.SYNCHRONOUS)
 
   track('Single member enrichment', { memberId: req.params.id }, { ...req })
 

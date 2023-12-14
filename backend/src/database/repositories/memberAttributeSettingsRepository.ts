@@ -230,7 +230,6 @@ class MemberAttributeSettingsRepository {
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined,
       order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
-      transaction: SequelizeRepository.getTransaction(options),
     })
 
     rows = await this._populateRelationsForRows(rows)

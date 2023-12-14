@@ -390,11 +390,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
           where mo."memberId" = $(memberId)
           and mo."deletedAt" is null
           and o."deletedAt" is null
-          and exists (select 1
-            from activities a
-            where a."memberId" = mo."memberId"
-              and a."organizationId" = mo."organizationId"
-              and a."segmentId" = $(segmentId))
           group by mo."memberId"),
       identities as (
           select mi."memberId",
