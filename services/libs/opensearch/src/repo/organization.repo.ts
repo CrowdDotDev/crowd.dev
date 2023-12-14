@@ -250,7 +250,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."activityCount"::integer,
         md."memberCount"::integer,
         md."memberIds",
-        i.identities,
+        coalesce(i.identities, '[]'::jsonb)            as "identities",
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
         coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds",
         o."weakIdentities"
@@ -260,9 +260,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     LEFT JOIN to_merge_data tmd on o.id = tmd."organizationId"
     LEFT JOIN no_merge_data nmd on o.id = nmd."organizationId"
     WHERE o.id = $(organizationId)
-      AND o."deletedAt" IS NULL
-      AND (md."organizationId" IS NOT NULL
-          OR o."manuallyCreated");
+      AND o."deletedAt" IS NULL;
       `,
       {
         organizationId,
@@ -337,9 +335,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getOrganizationSegmentCouples(ids): Promise<IOrganizationSegmentMatrix> {
     const results = await this.db().any(
       `
-      select distinct a."segmentId", a."organizationId"
-      from activities a
-      where a."organizationId" in ($(ids:csv));
+      select distinct mo."organizationId", a."segmentId"
+      from "memberOrganizations" mo
+      inner join activities a on mo."memberId" = a."memberId"
+      where mo."organizationId" in ($(ids:csv));
       `,
       {
         ids,
