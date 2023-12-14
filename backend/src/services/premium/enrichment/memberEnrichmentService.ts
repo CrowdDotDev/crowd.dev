@@ -386,7 +386,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
-      result = await memberService.findByIdOpensearch(result.id)
+      result = await memberService.findById(result.id)
       await SequelizeRepository.commitTransaction(transaction)
       return result
     } catch (error) {
