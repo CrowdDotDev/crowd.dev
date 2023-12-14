@@ -243,6 +243,7 @@
               <app-platform :platform="identity.platform" />
               <span class="text-xs">
                 {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
+                  ?? identity.name
                   ?? getPlatformDetails(identity.platform)?.name
                   ?? identity.platform }}</span>
             </div>
