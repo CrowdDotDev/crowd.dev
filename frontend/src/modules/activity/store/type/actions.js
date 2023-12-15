@@ -24,8 +24,8 @@ export default {
       return Promise.resolve(types);
     });
   },
-  fetchActivityTypes() {
-    return ActivityService.listActivityTypes()
+  fetchActivityTypes(segments) {
+    return ActivityService.listActivityTypes(segments)
       .then((types) => {
         this.types = types;
         return Promise.resolve(types);

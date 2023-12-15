@@ -1,8 +1,8 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { getSqsClient } from '@crowd/sqs'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { IntegrationState } from '@crowd/types'
 import {
@@ -10,6 +10,13 @@ import {
   GithubManualIntegrationSettings,
   GithubManualStreamType,
 } from '@crowd/integrations'
+import {
+  IntegrationRunWorkerEmitter,
+  PriorityLevelContextRepository,
+  QueuePriorityContextLoader,
+} from '@crowd/common_services'
+import { getUnleashClient } from '@crowd/feature-flags'
+import { getRedisClient } from '@crowd/redis'
 
 const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
   switch (stream) {
@@ -66,12 +73,18 @@ setImmediate(async () => {
     process.exit(1)
   }
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
-  await emitter.init()
-
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+  const unleash = await getUnleashClient(UNLEASH_CONFIG())
+  const redis = await getRedisClient(REDIS_CONFIG())
+
+  const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    priorityLevelRepo.loadPriorityLevelContext(tenantId)
+
+  const sqsClient = getSqsClient(SQS_CONFIG())
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  await emitter.init()
 
   const repo = new IntegrationRunRepository(store, log)
 

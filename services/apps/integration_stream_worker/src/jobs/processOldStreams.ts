@@ -1,14 +1,14 @@
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
+import { IInsertableWebhookStream } from '../repo/integrationStream.data'
+import IntegrationStreamRepository from '../repo/integrationStream.repo'
+import IntegrationStreamService from '../service/integrationStreamService'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-} from '@crowd/sqs'
-import { IInsertableWebhookStream } from '../repo/integrationStream.data'
-import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import IntegrationStreamService from '../service/integrationStreamService'
+} from '@crowd/common_services'
 
 export const processOldStreamsJob = async (
   dbConn: DbConnection,

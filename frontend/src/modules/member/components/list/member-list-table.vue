@@ -750,8 +750,8 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const defaultSort = computed(() => ({
-  prop: 'lastActive',
-  order: 'descending',
+  prop: filters.value.order.prop,
+  order: filters.value.order.order,
 }));
 
 const integrations = computed(

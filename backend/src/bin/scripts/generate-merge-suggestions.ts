@@ -2,9 +2,7 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
-import { NodeWorkerMessageBase } from '@/types/mq/nodeWorkerMessageBase'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 /* eslint-disable no-console */
 
@@ -48,13 +46,9 @@ if (parameters.help || !parameters.tenant) {
 } else {
   setImmediate(async () => {
     const tenantIds = parameters.tenant.split(',')
-
+    const emitter = await getNodejsWorkerEmitter()
     for (const tenantId of tenantIds) {
-      await sendNodeWorkerMessage(tenantId, {
-        type: NodeWorkerMessageType.NODE_MICROSERVICE,
-        tenant: tenantId,
-        service: 'merge-suggestions',
-      } as NodeWorkerMessageBase)
+      await emitter.mergeSuggestions(tenantId)
     }
 
     process.exit(0)

@@ -1,11 +1,10 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { FeatureFlag, PlatformType, SyncMode, TemporalWorkflowId } from '@crowd/types'
+import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -14,7 +13,6 @@ import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
 import telemetryTrack from '../segment/telemetryTrack'
-import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
@@ -24,7 +22,6 @@ import MemberAffiliationService from './memberAffiliationService'
 import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
-import TenantService from '@/services/tenantService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -189,36 +186,31 @@ export default class ActivityService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
-            const handle = await this.options.temporal.workflow.start(
-              'processNewActivityAutomation',
-              {
-                workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
-                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-                workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-                retry: {
-                  maximumAttempts: 100,
-                },
-                args: [
-                  {
-                    tenantId: this.options.currentTenant.id,
-                    activityId: record.id,
-                  },
-                ],
+          const handle = await this.options.temporal.workflow.start(
+            'processNewActivityAutomation',
+            {
+              workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
+              taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+              workflowIdReusePolicy:
+                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+              retry: {
+                maximumAttempts: 100,
               },
-            )
-            this.log.info(
-              { workflowId: handle.workflowId },
-              'Started temporal workflow to process new activity automation!',
-            )
-          } else {
-            await sendNewActivityNodeSQSMessage(
-              this.options.currentTenant.id,
-              record.id,
-              record.segmentId,
-            )
-          }
+              args: [
+                {
+                  tenantId: this.options.currentTenant.id,
+                  activityId: record.id,
+                },
+              ],
+              searchAttributes: {
+                TenantId: [this.options.currentTenant.id],
+              },
+            },
+          )
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new activity automation!',
+          )
         } catch (err) {
           this.log.error(
             err,
@@ -748,16 +740,35 @@ export default class ActivityService extends LoggerBase {
     return ActivityRepository.findById(id, this.options)
   }
 
-  async findActivityTypes(id: string) {
+  async findActivityTypes(segments?: string[]) {
     const segmentService = new SegmentService(this.options)
-    const tenant = await new TenantService(this.options).findById(id)
-    const tenantSubprojects = await segmentService.getTenantSubprojects(tenant)
-    return SegmentService.getTenantActivityTypes(tenantSubprojects)
+
+    let subprojects: SegmentData[]
+
+    if (!segments || segments.length === 0) {
+      subprojects = await segmentService.getTenantSubprojects()
+    } else {
+      subprojects = await segmentService.getSegmentSubprojects(segments)
+    }
+
+    return SegmentService.getTenantActivityTypes(subprojects)
   }
 
-  async findActivityChannels(id: string) {
-    const tenant = await new TenantService(this.options).findById(id)
-    return SegmentService.getTenantActivityChannels(tenant, this.options)
+  async findActivityChannels(segments?: string[]) {
+    const segmentService = new SegmentService(this.options)
+
+    let subprojects: SegmentData[]
+
+    if (!segments || segments.length === 0) {
+      subprojects = await segmentService.getTenantSubprojects()
+    } else {
+      subprojects = await segmentService.getSegmentSubprojects(segments)
+    }
+
+    return SegmentService.getTenantActivityChannels(
+      subprojects.map((s) => s.id),
+      this.options,
+    )
   }
 
   async findAllAutocomplete(search, limit) {

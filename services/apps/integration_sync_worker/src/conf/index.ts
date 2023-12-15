@@ -1,10 +1,11 @@
 import { IDatabaseConfig } from '@crowd/database'
 import { ISqsClientConfig } from '@crowd/sqs'
-import { IOpenSearchConfig } from '@crowd/types'
+import { IOpenSearchConfig, QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
 export interface IServiceConfig {
   edition: string
+  queuePriorityLevel: QueuePriorityLevel
 }
 export interface INangoConfig {
   url: string

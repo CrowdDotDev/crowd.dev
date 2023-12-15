@@ -189,7 +189,10 @@ export default class SegmentService extends LoggerBase {
   async queryProjectGroups(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjectGroups(search)
 
-    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(this.options)
+    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
+      this.options,
+      result.rows.map((s) => s.id),
+    )
     this.setMembersCount(result.rows, SegmentLevel.PROJECT_GROUP, membersCountPerSegment)
     return result
   }
@@ -354,11 +357,14 @@ export default class SegmentService extends LoggerBase {
     await segmentRepository.addActivityChannel(segment.id, data.platform, data.channel)
   }
 
-  async getTenantSubprojects(tenant: any) {
-    const segmentRepository = new SegmentRepository({
-      ...this.options,
-      currentTenant: tenant,
-    })
+  async getSegmentSubprojects(segments: string[]) {
+    const segmentRepository = new SegmentRepository(this.options)
+    const subprojects = await segmentRepository.getSegmentSubprojects(segments)
+    return subprojects
+  }
+
+  async getTenantSubprojects() {
+    const segmentRepository = new SegmentRepository(this.options)
 
     const { rows } = await segmentRepository.querySubprojects({})
     return rows
@@ -384,13 +390,10 @@ export default class SegmentService extends LoggerBase {
     }, {})
   }
 
-  static async getTenantActivityChannels(tenant: any, options: any) {
-    const segmentRepository = new SegmentRepository({
-      ...options,
-      currentTenant: tenant,
-    })
+  static async getTenantActivityChannels(segments: string[], options: any) {
+    const segmentRepository = new SegmentRepository(options)
 
-    const activityChannels = await segmentRepository.fetchTenantActivityChannels()
+    const activityChannels = await segmentRepository.fetchTenantActivityChannels(segments)
     return activityChannels
   }
 
@@ -457,7 +460,10 @@ export default class SegmentService extends LoggerBase {
       return
     }
 
-    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(this.options)
+    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
+      this.options,
+      subprojectIds,
+    )
     this.setMembersCount(segments, level, membersCountPerSegment)
   }
 

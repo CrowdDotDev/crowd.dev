@@ -1,7 +1,6 @@
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, DataSinkWorkerEmitter } from '@crowd/sqs'
 import {
   IActivityData,
   IMemberData,
@@ -19,6 +18,11 @@ import { Client as TemporalClient } from '@crowd/temporal'
 import { IResultData } from '../repo/dataSink.data'
 import { addSeconds } from '@crowd/common'
 import { WORKER_SETTINGS } from '../conf'
+import {
+  DataSinkWorkerEmitter,
+  NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 import telemetry from '@crowd/telemetry'
 
 export default class DataSinkService extends LoggerBase {
@@ -81,6 +85,7 @@ export default class DataSinkService extends LoggerBase {
           result.platform,
           result.id,
           result.id,
+          result.onboarding === null ? true : result.onboarding,
           `${result.id}-delayed-${Date.now()}`,
         )
       }
@@ -165,6 +170,7 @@ export default class DataSinkService extends LoggerBase {
               await service.processActivity(
                 resultInfo.tenantId,
                 resultInfo.integrationId,
+                resultInfo.onboarding === null ? true : resultInfo.onboarding,
                 platform,
                 activityData,
                 data.segmentId,

@@ -76,6 +76,7 @@ import {
 } from 'vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
+import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 import { MemberPermissions } from '../member-permissions';
 import AppMemberFindGithubDrawer from './member-find-github-drawer.vue';
 

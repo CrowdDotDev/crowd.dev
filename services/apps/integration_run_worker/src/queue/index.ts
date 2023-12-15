@@ -1,20 +1,23 @@
-import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
-import { Logger } from '@crowd/logging'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  IntegrationSyncWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/database'
+import { Logger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {
   INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
   SqsClient,
-  SqsQueueReceiver,
+  SqsPrioritizedQueueReciever,
 } from '@crowd/sqs'
+import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   GenerateRunStreamsQueueMessage,
   IQueueMessage,
   IntegrationRunWorkerQueueMessageType,
+  QueuePriorityLevel,
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
@@ -22,8 +25,9 @@ import IntegrationRunService from '../service/integrationRunService'
 
 /* eslint-disable no-case-declarations */
 
-export class WorkerQueueReceiver extends SqsQueueReceiver {
+export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   constructor(
+    level: QueuePriorityLevel,
     client: SqsClient,
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
@@ -36,7 +40,14 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, tracer, parentLog)
+    super(
+      level,
+      client,
+      INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
+      maxConcurrentProcessing,
+      tracer,
+      parentLog,
+    )
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

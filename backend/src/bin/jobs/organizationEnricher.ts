@@ -1,11 +1,9 @@
-import cronGenerator from 'cron-time-generator'
 import { getServiceLogger } from '@crowd/logging'
+import cronGenerator from 'cron-time-generator'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { CrowdJob } from '../../types/jobTypes'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import TenantRepository from '../../database/repositories/tenantRepository'
+import { CrowdJob } from '../../types/jobTypes'
 
 const job: CrowdJob = {
   name: 'organization enricher',
@@ -18,14 +16,10 @@ async function sendWorkerMessage() {
   const log = getServiceLogger()
   const tenants = await TenantRepository.getPayingTenantIds(options)
   log.info(tenants)
+
+  const emitter = await getNodejsWorkerEmitter()
   for (const { id } of tenants) {
-    const payload = {
-      type: NodeWorkerMessageType.NODE_MICROSERVICE,
-      service: 'enrich-organizations',
-      tenantId: id,
-    } as NodeWorkerMessageBase
-    log.info({ payload }, 'enricher worker payload')
-    await sendNodeWorkerMessage(id, payload)
+    await emitter.enrichOrganizations(id)
   }
 }
 
