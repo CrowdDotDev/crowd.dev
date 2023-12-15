@@ -43,6 +43,7 @@ export interface IDbMemberSyncData {
   averageSentiment: number | null
 
   identities: IDbMemberIdentityData[]
+  weakIdentities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
   toMergeIds: string[]

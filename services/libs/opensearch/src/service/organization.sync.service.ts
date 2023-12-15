@@ -546,10 +546,23 @@ export class OrganizationSyncService {
       p_identities.push({
         string_platform: identity.platform,
         string_name: identity.name,
+        keyword_name: identity.name,
         string_url: identity.url,
       })
     }
     p.nested_identities = p_identities
+
+    // weak identities
+    const p_weakIdentities = []
+    for (const identity of data.weakIdentities) {
+      p_weakIdentities.push({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        keyword_name: identity.name,
+        string_url: identity.url,
+      })
+    }
+    p.nested_weakIdentities = p_weakIdentities
 
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null

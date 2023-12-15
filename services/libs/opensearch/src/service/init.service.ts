@@ -182,6 +182,12 @@ export class InitService {
           username: 'Test Member',
         },
       ],
+      weakIdentities: [
+        {
+          platform: 'github',
+          username: 'fakeWeakIdentity',
+        },
+      ],
       organizations: [
         {
           id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',

@@ -411,7 +411,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         ad."lastActive",
         ad."averageSentiment",
 
-        i.identities,
+        coalesce(i.identities, '[]'::json)            as "identities",
+        coalesce(m."weakIdentities", '[]'::jsonb)            as "weakIdentities",
         coalesce(mo.all_organizations, json_build_array()) as organizations,
         coalesce(mt.all_tags, json_build_array())          as tags,
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",

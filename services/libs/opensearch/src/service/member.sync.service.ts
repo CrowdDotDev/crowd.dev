@@ -675,6 +675,7 @@ export class MemberSyncService {
 
     p.obj_attributes = p_attributes
     p.string_arr_emails = data.emails || []
+    p.keyword_emails = data.emails || []
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
@@ -694,9 +695,20 @@ export class MemberSyncService {
       p_identities.push({
         string_platform: identity.platform,
         string_username: identity.username,
+        keyword_username: identity.username,
       })
     }
     p.nested_identities = p_identities
+
+    const p_weakIdentities = []
+    for (const identity of data.weakIdentities) {
+      p_weakIdentities.push({
+        string_platform: identity.platform,
+        string_username: identity.username,
+        keyword_username: identity.username,
+      })
+    }
+    p.nested_weakIdentities = p_weakIdentities
 
     const p_organizations = []
     for (const organization of data.organizations) {
