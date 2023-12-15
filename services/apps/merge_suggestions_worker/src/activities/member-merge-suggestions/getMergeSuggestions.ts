@@ -140,7 +140,7 @@ export async function getMergeSuggestions(
     for (const noMergeId of noMergeIds) {
       identitiesPartialQuery.must_not.push({
         term: {
-          uuid_organizationId: noMergeId,
+          uuid_memberId: noMergeId,
         },
       })
     }
@@ -191,7 +191,7 @@ export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise
   suggestions = removeDuplicateSuggestions(suggestions)
 
   // check all suggestion ids exists in the db
-  const uniqueOrganizationIds = Array.from(
+  const uniqueMemberIds = Array.from(
     suggestions.reduce((acc, suggestion) => {
       acc.add(suggestion.members[0])
       acc.add(suggestion.members[1])
@@ -200,7 +200,7 @@ export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise
   )
 
   // filter non existing member ids from suggestions
-  const nonExistingIds = await findNonExistingIds(uniqueOrganizationIds)
+  const nonExistingIds = await findNonExistingIds(uniqueMemberIds)
 
   suggestions = suggestions.filter(
     (s) => !nonExistingIds.includes(s.members[0]) && !nonExistingIds.includes(s.members[1]),
