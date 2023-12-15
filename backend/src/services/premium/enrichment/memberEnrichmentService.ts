@@ -225,9 +225,6 @@ export default class MemberEnrichmentService extends LoggerBase {
   async enrichOne(memberId, syncMode = SyncMode.ASYNCHRONOUS) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    // Set the transaction on the options object to prevent premature commit in services
-    this.options.transaction = transaction
-
     try {
       // If the attributes have not been fetched yet, fetch them
       if (!this.attributes) {
@@ -394,7 +391,6 @@ export default class MemberEnrichmentService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
-      // TODO: check frontend if we need to return the enriched member
       result = await MemberRepository.findByIdOpensearch(result.id, this.options)
       return result
     } catch (error) {
