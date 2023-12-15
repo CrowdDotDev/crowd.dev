@@ -4,7 +4,7 @@ import * as activities from '../activities/member-merge-suggestions/getMergeSugg
 
 // import { IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
 
-import { IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
+import { IMemberMergeSuggestion, IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
 import { IMemberPartialAggregatesOpensearch } from 'types'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
@@ -12,7 +12,7 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 export async function generateMemberMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
-  const PAGE_SIZE = 2000
+  const PAGE_SIZE = 500
 
   let result: IMemberPartialAggregatesOpensearch[]
   let lastUuid: string
@@ -24,15 +24,21 @@ export async function generateMemberMergeSuggestions(
 
     lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
 
-    // get merge suggestions for each member
-    for (const member of result) {
-      const mergeSuggestions = await activity.getMergeSuggestions(args.tenantId, member)
+    // Gather all promises for merge suggestions
+    const mergeSuggestionsPromises: Promise<IMemberMergeSuggestion[]>[] = result.map((member) =>
+      activity.getMergeSuggestions(args.tenantId, member),
+    )
 
-      if (mergeSuggestions.length > 0) {
-        await activity.addToMerge(mergeSuggestions)
-      }
+    // Wait for all merge suggestion promises to resolve
+    const mergeSuggestionsResults: IMemberMergeSuggestion[][] =
+      await Promise.all(mergeSuggestionsPromises)
+
+    // concat resulting arrays
+    const allMergeSuggestions: IMemberMergeSuggestion[] = [].concat(...mergeSuggestionsResults)
+
+    // Add all merge suggestions to add to merge
+    if (allMergeSuggestions.length > 0) {
+      await activity.addToMerge(allMergeSuggestions)
     }
-
-    //
   } while (result.length > 0)
 }
