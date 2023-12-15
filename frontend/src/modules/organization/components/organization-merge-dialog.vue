@@ -72,6 +72,7 @@ import AppOrganizationMergeSuggestionsDetails
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationSelectionDropdown from '@/modules/organization/components/organization-selection-dropdown.vue';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   modelValue: {
@@ -85,7 +86,10 @@ const emit = defineEmits(['update:modelValue']);
 const route = useRoute();
 const router = useRouter();
 
-const { fetchOrganizations, fetchOrganization } = useOrganizationStore();
+const organizationStore = useOrganizationStore();
+const {
+  mergedOrganizations,
+} = storeToRefs(organizationStore);
 
 const originalOrganizationPrimary = ref(true);
 const sendingMerge = ref(false);
@@ -119,14 +123,26 @@ const mergeSuggestion = () => {
     originalOrganizationPrimary.value ? organizationToMerge.value?.id : props.modelValue?.id,
   )
     .then(() => {
-      Message.success('Organizations merged successfuly');
+      const primaryOrganization = originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value;
+      const secondaryOrganization = originalOrganizationPrimary.value ? organizationToMerge.value : props.modelValue;
+
+      organizationStore
+        .addMergedOrganizations(primaryOrganization.id, secondaryOrganization.id);
+
+      const processesRunning = Object.keys(mergedOrganizations.value).length;
+
+      Message.closeAll();
+      Message.info(null, {
+        title: 'Organizations merging in progress',
+        message: processesRunning > 1 ? `${processesRunning} processes running` : null,
+      });
 
       emit('update:modelValue', null);
 
       if (route.name === 'organizationView') {
         const { id } = originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value;
 
-        fetchOrganization(id).then(() => {
+        organizationStore.fetchOrganization(id).then(() => {
           router.replace({
             params: {
               id,
@@ -134,12 +150,13 @@ const mergeSuggestion = () => {
           });
         });
       } else if (route.name === 'organization') {
-        fetchOrganizations({ reload: true });
+        organizationStore.fetchOrganizations({ reload: true });
       }
 
       changeOrganization();
     })
     .catch(() => {
+      Message.closeAll();
       Message.error('There was an error merging organizations');
     })
     .finally(() => {
