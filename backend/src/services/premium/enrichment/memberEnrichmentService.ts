@@ -520,9 +520,7 @@ export default class MemberEnrichmentService extends LoggerBase {
 
         // Assign 'value' to 'member.attributes[attributeName].enrichment'
         member.attributes[attributeName].enrichment = value
-        this.log.info('before createAttributeAndUpdateOptions...')
         await this.createAttributeAndUpdateOptions(attributeName, attribute, value)
-        this.log.info('after createAttributeAndUpdateOptions...')
       }
     }
 
