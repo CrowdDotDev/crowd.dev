@@ -21,14 +21,13 @@ export const calculateSimilarity = (
 ): number => {
   let smallestEditDistance: number = null
 
-  console.log('CALCULATING SIMILARITY!!!')
-  console.log(primaryMember)
-  console.log(similarMember)
-
   let similarPrimaryIdentity: IMemberIdentityOpensearch = null
 
   // check displayName match
-  if (similarMember.keyword_displayName === primaryMember.keyword_displayName) {
+  if (
+    similarMember.keyword_displayName.toLowerCase() ===
+    primaryMember.keyword_displayName.toLowerCase()
+  ) {
     return 0.98
   }
 

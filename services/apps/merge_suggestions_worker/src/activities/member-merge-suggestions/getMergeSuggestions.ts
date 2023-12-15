@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  IMemberId,
-  IMemberNoMerge,
   IMemberPartialAggregatesOpensearch,
-  ISimilarMember,
+  IMemberPartialAggregatesOpensearchRawResult,
+  IMemberQueryBody,
   ISimilarMemberOpensearch,
 } from 'types'
 import { svc } from '../../main'
 import { IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
-import { calculateSimilarity, chunkArray, prefixLength, removeDuplicateSuggestions } from 'utils'
+import { calculateSimilarity, prefixLength } from 'utils'
+import MemberMergeSuggestionsRepository from 'repo/memberMergeSuggestions.repo'
 
 export async function getMergeSuggestions(
   tenantId: string,
@@ -16,7 +16,10 @@ export async function getMergeSuggestions(
 ): Promise<IMemberMergeSuggestion[]> {
   console.log(`Getting merge suggestions for ${member.uuid_memberId}`)
   const mergeSuggestions: IMemberMergeSuggestion[] = []
-
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
   const identitiesPartialQuery: any = {
     should: [
       {
@@ -98,7 +101,7 @@ export async function getMergeSuggestions(
           // fuzzy search for identities
           identitiesPartialQuery.should[2].nested.query.bool.should.push({
             match: {
-              [`nested_identities.keyword_username`]: {
+              [`nested_identities.string_username`]: {
                 query: cleanedIdentityName,
                 prefix_length: 1,
                 fuzziness: '2',
@@ -134,7 +137,7 @@ export async function getMergeSuggestions(
     })
   }
 
-  const noMergeIds = await findNoMergeIds(member.uuid_memberId)
+  const noMergeIds = await memberMergeSuggestionsRepo.findNoMergeIds(member.uuid_memberId)
 
   if (noMergeIds && noMergeIds.length > 0) {
     for (const noMergeId of noMergeIds) {
@@ -171,147 +174,77 @@ export async function getMergeSuggestions(
     ).body?.hits?.hits || []
 
   for (const memberToMerge of membersToMerge) {
-    console.log('A')
     mergeSuggestions.push({
       similarity: calculateSimilarity(member, memberToMerge._source),
       members: [member.uuid_memberId, memberToMerge._source.uuid_memberId],
     })
   }
 
-  console.log('Returning merge suggestions')
-  console.log(mergeSuggestions)
-
   return mergeSuggestions
 }
 
 export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
-  console.log('ADDING TO MERGE SUGGESTIONS ')
-  console.log(suggestions)
-  // Remove possible duplicates
-  suggestions = removeDuplicateSuggestions(suggestions)
-
-  // check all suggestion ids exists in the db
-  const uniqueMemberIds = Array.from(
-    suggestions.reduce((acc, suggestion) => {
-      acc.add(suggestion.members[0])
-      acc.add(suggestion.members[1])
-      return acc
-    }, new Set<string>()),
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
   )
-
-  // filter non existing member ids from suggestions
-  const nonExistingIds = await findNonExistingIds(uniqueMemberIds)
-
-  suggestions = suggestions.filter(
-    (s) => !nonExistingIds.includes(s.members[0]) && !nonExistingIds.includes(s.members[1]),
-  )
-
-  // Process suggestions in chunks of 100 or less
-  const suggestionChunks: IMemberMergeSuggestion[][] = chunkArray<IMemberMergeSuggestion>(
-    suggestions,
-    100,
-  )
-
-  const insertValues = (
-    memberId: string,
-    toMergeId: string,
-    similarity: number | null,
-    index: number,
-  ) => {
-    const idPlaceholder = (key: string) => `${key}${index}`
-    return {
-      query: `($(${idPlaceholder('memberId')}), $(${idPlaceholder('toMergeId')}), $(${idPlaceholder(
-        'similarity',
-      )}), NOW(), NOW())`,
-      replacements: {
-        [idPlaceholder('memberId')]: memberId,
-        [idPlaceholder('toMergeId')]: toMergeId,
-        [idPlaceholder('similarity')]: similarity,
-      },
-    }
-  }
-
-  for (const suggestionChunk of suggestionChunks) {
-    const placeholders: string[] = []
-    let replacements: Record<string, unknown> = {}
-
-    suggestionChunk.forEach((suggestion, index) => {
-      const { query, replacements: chunkReplacements } = insertValues(
-        suggestion.members[0],
-        suggestion.members[1],
-        suggestion.similarity,
-        index,
-      )
-      placeholders.push(query)
-      replacements = { ...replacements, ...chunkReplacements }
-    })
-
-    const query = `
-      INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
-      VALUES ${placeholders.join(', ')}
-      on conflict do nothing;
-    `
-    try {
-      await svc.postgres.writer.connection().any(query, replacements)
-    } catch (error) {
-      svc.log.error('error adding members to merge', error)
-      throw error
-    }
-  }
+  await memberMergeSuggestionsRepo.addToMerge(suggestions)
 }
 
-async function findNonExistingIds(memberIds: string[]): Promise<string[]> {
-  let idValues = ``
-
-  for (let i = 0; i < memberIds.length; i++) {
-    idValues += `('${memberIds[i]}'::uuid)`
-
-    if (i !== memberIds.length - 1) {
-      idValues += ','
-    }
-  }
-
-  const query = `WITH id_list (id) AS (
-    VALUES
-        ${idValues}
-      )
-      SELECT id
-      FROM id_list
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM members m
-          WHERE m.id = id_list.id
-      );`
-
+export async function getMembers(
+  tenantId: string,
+  batchSize: number = 100,
+  afterMemberId?: string,
+): Promise<IMemberPartialAggregatesOpensearch[]> {
   try {
-    const results: IMemberId[] = await svc.postgres.writer.connection().any(query)
-
-    return results.map((r) => r.id)
-  } catch (error) {
-    svc.log.error('Error while getting non existing members from db', error)
-    throw error
-  }
-}
-
-async function findNoMergeIds(memberId: string): Promise<string[]> {
-  try {
-    const results: IMemberNoMerge[] = await svc.postgres.writer.connection().any(
-      `select mnm."memberId", mnm."noMergeId" from "memberNoMerge" mnm
-      where mnm."memberId" = $(id) or mnm."noMergeId" = $(id);`,
-      {
-        id: memberId,
+    const queryBody: IMemberQueryBody = {
+      from: 0,
+      size: batchSize,
+      query: {
+        bool: {
+          filter: [
+            {
+              term: {
+                uuid_tenantId: tenantId,
+              },
+            },
+          ],
+        },
       },
-    )
-    return Array.from(
-      results.reduce((acc, r) => {
-        if (memberId === r.memberId) {
-          acc.add(r.noMergeId)
-        } else if (memberId === r.noMergeId) {
-          acc.add(r.memberId)
-        }
-        return acc
-      }, new Set<string>()),
-    )
+      sort: {
+        [`uuid_memberId`]: 'asc',
+      },
+      collapse: {
+        field: 'uuid_memberId',
+      },
+      _source: [
+        'uuid_memberId',
+        'nested_identities',
+        'uuid_arr_noMergeIds',
+        'keyword_displayName',
+        'string_arr_emails',
+      ],
+    }
+
+    if (afterMemberId) {
+      queryBody.query.bool.filter.push({
+        range: {
+          uuid_memberId: {
+            gt: afterMemberId,
+          },
+        },
+      })
+    }
+
+    const members: IMemberPartialAggregatesOpensearchRawResult[] =
+      (
+        await svc.opensearch.client.search({
+          index: OpenSearchIndex.MEMBERS,
+          body: queryBody,
+        })
+      ).body?.hits?.hits || []
+
+    return members.map((member) => member._source)
   } catch (err) {
     throw new Error(err)
   }

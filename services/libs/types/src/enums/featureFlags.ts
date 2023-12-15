@@ -15,6 +15,7 @@ export enum FeatureFlag {
 
   // temporal
   TEMPORAL_MEMBERS_ENRICHMENT = 'temporal-members-enrichment',
+  TEMPORAL_MEMBER_MERGE_SUGGESTIONS = 'temporal-member-merge-suggestions',
 }
 
 export enum FeatureFlagRedisKey {

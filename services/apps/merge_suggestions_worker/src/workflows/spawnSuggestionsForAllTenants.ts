@@ -9,16 +9,13 @@ import {
 import * as activities from '../activities/getAllTenants'
 import { generateMemberMergeSuggestions } from './generateMemberMergeSuggestions'
 
-// Configure timeouts and retry policies to fetch emails to send.
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
 export async function spawnSuggestionsForAllTenants(): Promise<void> {
-  // const [tenants] = await Promise.all([getAllTenants()])
   const tenants = await activity.getAllTenants()
-  console.log('Got all tenants! ')
+  console.log('Generating merge suggestions for:')
   console.log(tenants)
   const info = workflowInfo()
-
   await Promise.all(
     tenants.map((tenant) => {
       return startChild(generateMemberMergeSuggestions, {
