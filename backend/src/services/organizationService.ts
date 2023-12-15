@@ -206,7 +206,12 @@ export default class OrganizationService extends LoggerBase {
       )
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
-      return { status: 200, mergedId: originalId, original: original.displayName, toMerge: toMerge.displayName }
+      return {
+        status: 200,
+        mergedId: originalId,
+        original: original.displayName,
+        toMerge: toMerge.displayName,
+      }
     } catch (err) {
       this.options.log.error(err, 'Error while merging organizations!', {
         originalId,

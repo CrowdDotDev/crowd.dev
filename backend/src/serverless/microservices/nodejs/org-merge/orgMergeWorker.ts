@@ -4,7 +4,15 @@ import { REDIS_CONFIG } from '../../../../conf'
 import getUserContext from '../../../../database/utils/getUserContext'
 import OrganizationService from '../../../../services/organizationService'
 
-async function doNotifyFrontend({ log, success, tenantId, primaryOrgId, secondaryOrgId, original, toMerge }) {
+async function doNotifyFrontend({
+  log,
+  success,
+  tenantId,
+  primaryOrgId,
+  secondaryOrgId,
+  original,
+  toMerge,
+}) {
   const redis = await getRedisClient(REDIS_CONFIG, true)
   const apiPubSubEmitter = new RedisPubSubEmitter(
     'api-pubsub',
@@ -25,7 +33,7 @@ async function doNotifyFrontend({ log, success, tenantId, primaryOrgId, secondar
         primaryOrgId,
         secondaryOrgId,
         original,
-        toMerge
+        toMerge,
       }),
       undefined,
       tenantId,
@@ -64,7 +72,7 @@ async function orgMergeWorker(
       primaryOrgId,
       secondaryOrgId,
       original,
-      toMerge
+      toMerge,
     })
   }
 }
