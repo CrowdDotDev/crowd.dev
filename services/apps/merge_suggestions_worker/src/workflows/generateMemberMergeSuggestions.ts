@@ -1,8 +1,5 @@
-/* eslint-disable no-constant-condition */
 import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../activities/member-merge-suggestions/getMergeSuggestions'
-
-// import { IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
 
 import { IMemberMergeSuggestion, IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
 import { IMemberPartialAggregatesOpensearch } from 'types'
@@ -18,8 +15,6 @@ export async function generateMemberMergeSuggestions(
   let lastUuid: string
 
   do {
-    console.log({ lastUuid, PAGE_SIZE }, `Getting a new page of members from opensearch!`)
-
     result = await activity.getMembers(args.tenantId, PAGE_SIZE, lastUuid)
 
     lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null

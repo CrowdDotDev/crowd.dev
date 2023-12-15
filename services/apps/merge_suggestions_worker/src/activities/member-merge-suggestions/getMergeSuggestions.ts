@@ -14,7 +14,6 @@ export async function getMergeSuggestions(
   tenantId: string,
   member: IMemberPartialAggregatesOpensearch,
 ): Promise<IMemberMergeSuggestion[]> {
-  console.log(`Getting merge suggestions for ${member.uuid_memberId}`)
   const mergeSuggestions: IMemberMergeSuggestion[] = []
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
