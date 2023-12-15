@@ -104,7 +104,7 @@ export async function getMergeSuggestions(
               [`nested_identities.string_username`]: {
                 query: cleanedIdentityName,
                 prefix_length: 1,
-                fuzziness: '2',
+                fuzziness: 'auto',
               },
             },
           })
