@@ -12,7 +12,7 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 export async function generateMemberMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
-  const PAGE_SIZE = 200
+  const PAGE_SIZE = 2000
 
   let result: IMemberPartialAggregatesOpensearch[]
   let lastUuid: string
@@ -20,7 +20,7 @@ export async function generateMemberMergeSuggestions(
   do {
     console.log({ lastUuid, PAGE_SIZE }, `Getting a new page of members from opensearch!`)
 
-    result = await activity.getMembers(args.tenantId, 200, lastUuid)
+    result = await activity.getMembers(args.tenantId, PAGE_SIZE, lastUuid)
 
     lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
 
