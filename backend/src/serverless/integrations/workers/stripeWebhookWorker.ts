@@ -7,7 +7,7 @@ import { Stripe } from 'stripe'
 import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { PLANS_CONFIG, REDIS_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
-import Plans from '../../../security/plans'
+import StripeService from '@/services/stripeService'
 
 const log = getServiceChildLogger('stripeWebhookWorker')
 
@@ -61,7 +61,7 @@ export const processStripeWebhook = async (message: any) => {
       )
 
       // get subscription information from checkout event
-      const subscription = await stripe.subscriptions.retrieve(
+      const subscription = await StripeService.retreiveSubscription(
         stripeWebhookMessage.data.object.subscription,
       )
 
@@ -69,14 +69,10 @@ export const processStripeWebhook = async (message: any) => {
       const tenantId = stripeWebhookMessage.data.object.client_reference_id
 
       const tenant = await options.database.tenant.findByPk(tenantId)
+      const productId = (subscription as any).plan.product
+      const productPlan = StripeService.getPlanFromProductId(productId)
 
-      let productPlan
-
-      if ((subscription as any).plan.product === PLANS_CONFIG.stripeEagleEyePlanProductId) {
-        productPlan = Plans.values.eagleEye
-      } else if ((subscription as any).plan.product === PLANS_CONFIG.stripeGrowthPlanProductId) {
-        productPlan = Plans.values.growth
-      } else {
+      if (!productPlan) {
         log.error({ subscription }, `Unknown product in subscription`)
         process.exit(1)
       }

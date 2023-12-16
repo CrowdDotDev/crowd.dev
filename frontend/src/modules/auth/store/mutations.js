@@ -21,7 +21,7 @@ export default {
       payload.currentUser,
     );
     if (isTrialExpired(state.currentTenant)) {
-      if (!window.location.href.includes('/onboard/plans')) {
+      if (!window.location.href.includes('/onboard/plans') && !window.location.href.includes('/onboard/payment')) {
         window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
       }
       return;
@@ -121,7 +121,7 @@ export default {
     );
     console.log(payload.currentTenant);
     if (isTrialExpired(state.currentTenant)) {
-      if (!window.location.href.includes('/onboard/plans')) {
+      if (!window.location.href.includes('/onboard/plans') && !window.location.href.includes('/onboard/payment')) {
         window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
       }
       return;
