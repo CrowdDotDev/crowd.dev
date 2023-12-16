@@ -6,8 +6,8 @@ import {
   AutomationTrigger,
   AutomationType,
   IAutomationData,
+  SearchCriteria,
 } from '@crowd/types'
-import { SearchCriteria } from './common'
 
 /**
  * This data is used to create a new automation

@@ -7,8 +7,8 @@ import {
   SLACK_MEMBER_ATTRIBUTES,
   TWITTER_MEMBER_ATTRIBUTES,
 } from '@crowd/integrations'
+import { Error400 } from '@crowd/common'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import Error400 from '../../errors/Error400'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeType } from '@crowd/types'
 import { RedisCache, getRedisClient } from '@crowd/redis'

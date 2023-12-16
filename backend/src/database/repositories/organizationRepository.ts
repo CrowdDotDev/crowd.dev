@@ -2,28 +2,26 @@ import lodash, { chunk } from 'lodash'
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { PageData } from '@crowd/common'
+import { Error404, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
-  IMemberOrganization,
   IOrganization,
   IOrganizationIdentity,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
+  SegmentData,
   SyncStatus,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { SegmentData } from '@/types/segmentTypes'
 import SegmentRepository from './segmentRepository'
 import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 
@@ -42,6 +40,7 @@ interface IOrganizationPartialAggregatesOpensearch {
       string_name: string
     }[]
     uuid_arr_noMergeIds: string[]
+    keyword_displayName: string
   }
 }
 
@@ -51,6 +50,7 @@ interface ISimilarOrganization {
     uuid_organizationId: string
     nested_identities: IOrganizationIdentityOpensearch[]
     nested_weakIdentities: IOrganizationIdentityOpensearch[]
+    keyword_displayName: string
   }
 }
 
@@ -519,69 +519,64 @@ class OrganizationRepository {
     })
   }
 
-  static async removeMemberRole(role: IMemberOrganization, options: IRepositoryOptions) {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
+  static ORGANIZATION_UPDATE_COLUMNS = [
+    'displayName',
+    'description',
+    'emails',
+    'phoneNumbers',
+    'logo',
+    'tags',
+    'website',
+    'location',
+    'github',
+    'twitter',
+    'linkedin',
+    'crunchbase',
+    'employees',
+    'revenueRange',
+    'importHash',
+    'isTeamOrganization',
+    'employeeCountByCountry',
+    'type',
+    'ticker',
+    'headline',
+    'profiles',
+    'naics',
+    'industry',
+    'founded',
+    'size',
+    'employees',
+    'twitter',
+    'lastEnrichedAt',
+    'affiliatedProfiles',
+    'allSubsidiaries',
+    'alternativeDomains',
+    'alternativeNames',
+    'averageEmployeeTenure',
+    'averageTenureByLevel',
+    'averageTenureByRole',
+    'directSubsidiaries',
+    'employeeChurnRate',
+    'employeeCountByMonth',
+    'employeeGrowthRate',
+    'employeeCountByMonthByLevel',
+    'employeeCountByMonthByRole',
+    'gicsSector',
+    'grossAdditionsByMonth',
+    'grossDeparturesByMonth',
+    'ultimateParent',
+    'immediateParent',
+    'attributes',
+    'weakIdentities',
+  ]
 
-    let deleteMemberRole = `DELETE FROM "memberOrganizations" 
-                                            WHERE 
-                                            "organizationId" = :organizationId and 
-                                            "memberId" = :memberId`
-
-    const replacements = {
-      organizationId: role.organizationId,
-      memberId: role.memberId,
-    } as any
-
-    if (role.dateStart === null) {
-      deleteMemberRole += ` and "dateStart" is null `
-    } else {
-      deleteMemberRole += ` and "dateStart" = :dateStart `
-      replacements.dateStart = (role.dateStart as Date).toISOString()
-    }
-
-    if (role.dateEnd === null) {
-      deleteMemberRole += ` and "dateEnd" is null `
-    } else {
-      deleteMemberRole += ` and "dateEnd" = :dateEnd `
-      replacements.dateEnd = (role.dateEnd as Date).toISOString()
-    }
-
-    await seq.query(deleteMemberRole, {
-      replacements,
-      type: QueryTypes.DELETE,
-      transaction,
-    })
-  }
-
-  static async addMemberRole(
-    role: IMemberOrganization,
+  static async update(
+    id,
+    data,
     options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-
-    const query = `
-          insert into "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
-          values (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
-          on conflict do nothing;
-    `
-
-    await sequelize.query(query, {
-      replacements: {
-        memberId: role.memberId,
-        organizationId: role.organizationId,
-        title: role.title || null,
-        dateStart: role.dateStart,
-        dateEnd: role.dateEnd,
-        source: role.source || null,
-      },
-      type: QueryTypes.INSERT,
-      transaction,
-    })
-  }
-
-  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
+    overrideIdentities = false,
+    manualChange = false,
+  ) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -605,59 +600,56 @@ class OrganizationRepository {
       delete data.attributes.syncRemote
     }
 
+    if (manualChange) {
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+
+      for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
+        let changed = false
+
+        // only check fields that are in the data object that will be updated
+        if (column in data) {
+          if (
+            record[column] !== null &&
+            column in data &&
+            (data[column] === null || data[column] === undefined)
+          ) {
+            // column was removed in the update -> will be set to null by sequelize
+            changed = true
+          } else if (
+            record[column] === null &&
+            data[column] !== null &&
+            data[column] !== undefined
+          ) {
+            // column was null before now it's not anymore
+            changed = true
+          } else if (record[column] !== data[column]) {
+            // column value has changed
+            changed = true
+          }
+        }
+
+        if (changed && !manuallyChangedFields.includes(column)) {
+          manuallyChangedFields.push(column)
+        }
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    } else {
+      // ignore columns that were manually changed
+      // by rewriting them with db data
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+      for (const manuallyChangedColumn of manuallyChangedFields) {
+        data[manuallyChangedColumn] = record[manuallyChangedColumn]
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    }
+
     record = await record.update(
       {
-        ...lodash.pick(data, [
-          'displayName',
-          'description',
-          'emails',
-          'phoneNumbers',
-          'logo',
-          'tags',
-          'website',
-          'location',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'revenueRange',
-          'importHash',
-          'isTeamOrganization',
-          'employeeCountByCountry',
-          'type',
-          'ticker',
-          'headline',
-          'profiles',
-          'naics',
-          'industry',
-          'founded',
-          'size',
-          'employees',
-          'twitter',
-          'lastEnrichedAt',
-          'affiliatedProfiles',
-          'allSubsidiaries',
-          'alternativeDomains',
-          'alternativeNames',
-          'averageEmployeeTenure',
-          'averageTenureByLevel',
-          'averageTenureByRole',
-          'directSubsidiaries',
-          'employeeChurnRate',
-          'employeeCountByMonth',
-          'employeeGrowthRate',
-          'employeeCountByMonthByLevel',
-          'employeeCountByMonthByRole',
-          'gicsSector',
-          'grossAdditionsByMonth',
-          'grossDeparturesByMonth',
-          'ultimateParent',
-          'immediateParent',
-          'attributes',
-          'weakIdentities',
-        ]),
+        ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
         updatedById: currentUser.id,
+        manuallyChangedFields: data.manuallyChangedFields,
       },
       {
         transaction,
@@ -1126,42 +1118,6 @@ class OrganizationRepository {
     }
   }
 
-  static async findMembersBelongToBothOrganizations(
-    organizationId1: string,
-    organizationId2: string,
-    options: IRepositoryOptions,
-  ): Promise<IMemberOrganization[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-
-    const results = await sequelize.query(
-      `
-      SELECT  mo.*
-      FROM "memberOrganizations" AS mo
-      WHERE mo."deletedAt" is null and
-         mo."memberId" IN (
-          SELECT "memberId"
-          FROM "memberOrganizations"
-          WHERE "organizationId" = :organizationId1
-      )
-      AND mo."memberId" IN (
-          SELECT "memberId"
-          FROM "memberOrganizations"
-          WHERE "organizationId" = :organizationId2);
-    `,
-      {
-        replacements: {
-          organizationId1,
-          organizationId2,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    return results as IMemberOrganization[]
-  }
-
   static async moveActivitiesBetweenOrganizations(
     fromOrganizationId: string,
     toOrganizationId: string,
@@ -1235,6 +1191,7 @@ class OrganizationRepository {
       for (const primaryIdentity of primaryOrganization._source.nested_identities) {
         // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
         if (
+          similarOrganization._source.nested_weakIdentities &&
           similarOrganization._source.nested_weakIdentities.length > 0 &&
           similarOrganization._source.nested_weakIdentities.some(
             (weakIdentity) =>
@@ -1244,6 +1201,15 @@ class OrganizationRepository {
         ) {
           return 0.95
         }
+
+        // check displayName match
+        if (
+          similarOrganization._source.keyword_displayName ===
+          primaryOrganization._source.keyword_displayName
+        ) {
+          return 0.98
+        }
+
         for (const secondaryIdentity of similarOrganization._source.nested_identities) {
           const currentLevenstheinDistance = getLevenshteinDistance(
             primaryIdentity.string_name,
@@ -1279,7 +1245,12 @@ class OrganizationRepository {
       collapse: {
         field: 'uuid_organizationId',
       },
-      _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds'],
+      _source: [
+        'uuid_organizationId',
+        'nested_identities',
+        'uuid_arr_noMergeIds',
+        'keyword_displayName',
+      ],
     }
 
     let organizations: IOrganizationPartialAggregatesOpensearch[] = []
@@ -1290,25 +1261,6 @@ class OrganizationRepository {
         queryBody.query = {
           bool: {
             filter: [
-              {
-                bool: {
-                  should: [
-                    {
-                      range: {
-                        int_activityCount: {
-                          gt: 0,
-                        },
-                      },
-                    },
-                    {
-                      term: {
-                        bool_manuallyCreated: true,
-                      },
-                    },
-                  ],
-                  minimum_should_match: 1,
-                },
-              },
               {
                 term: {
                   uuid_tenantId: tenant.id,
@@ -1328,25 +1280,6 @@ class OrganizationRepository {
         queryBody.query = {
           bool: {
             filter: [
-              {
-                bool: {
-                  should: [
-                    {
-                      range: {
-                        int_activityCount: {
-                          gt: 0,
-                        },
-                      },
-                    },
-                    {
-                      term: {
-                        bool_manuallyCreated: true,
-                      },
-                    },
-                  ],
-                  minimum_should_match: 1,
-                },
-              },
               {
                 term: {
                   uuid_tenantId: tenant.id,
@@ -1376,6 +1309,11 @@ class OrganizationRepository {
         ) {
           const identitiesPartialQuery = {
             should: [
+              {
+                term: {
+                  [`keyword_displayName`]: organization._source.keyword_displayName,
+                },
+              },
               {
                 nested: {
                   path: 'nested_weakIdentities',
@@ -1415,25 +1353,6 @@ class OrganizationRepository {
                   uuid_tenantId: tenant.id,
                 },
               },
-              {
-                bool: {
-                  should: [
-                    {
-                      range: {
-                        int_activityCount: {
-                          gt: 0,
-                        },
-                      },
-                    },
-                    {
-                      term: {
-                        bool_manuallyCreated: true,
-                      },
-                    },
-                  ],
-                  minimum_should_match: 1,
-                },
-              },
             ],
           }
 
@@ -1442,7 +1361,7 @@ class OrganizationRepository {
           for (const identity of organization._source.nested_identities) {
             if (identity.string_name.length > 0) {
               // weak identity search
-              identitiesPartialQuery.should[0].nested.query.bool.should.push({
+              identitiesPartialQuery.should[1].nested.query.bool.should.push({
                 bool: {
                   must: [
                     { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
@@ -1463,7 +1382,7 @@ class OrganizationRepository {
               if (Number.isNaN(Number(identity.string_name))) {
                 hasFuzzySearch = true
                 // fuzzy search for identities
-                identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                identitiesPartialQuery.should[2].nested.query.bool.should.push({
                   match: {
                     [`nested_identities.keyword_name`]: {
                       query: cleanedIdentityName,
@@ -1475,7 +1394,7 @@ class OrganizationRepository {
 
                 // also check for prefix for identities that has more than 5 characters and no whitespace
                 if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
-                  identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                  identitiesPartialQuery.should[2].nested.query.bool.should.push({
                     prefix: {
                       [`nested_identities.keyword_name`]: {
                         value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
@@ -1514,7 +1433,12 @@ class OrganizationRepository {
             collapse: {
               field: 'uuid_organizationId',
             },
-            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities'],
+            _source: [
+              'uuid_organizationId',
+              'nested_identities',
+              'nested_weakIdentities',
+              'keyword_displayName',
+            ],
           }
 
           const organizationsToMerge: ISimilarOrganization[] =
@@ -1567,7 +1491,6 @@ class OrganizationRepository {
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organizationSegments" os ON os."organizationId" = org.id
-        JOIN "organizationSegments" to_merge_segments on to_merge_segments."organizationId" = otm."toMergeId"
         LEFT JOIN "mergeActions" ma
           ON ma.type = :mergeActionType
           AND ma."tenantId" = :tenantId
@@ -1577,7 +1500,6 @@ class OrganizationRepository {
           )
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
-          AND to_merge_segments."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
       ),
       
@@ -1643,176 +1565,6 @@ class OrganizationRepository {
     return { rows: [{ organizations: [], similarity: 0 }], count: 0, limit, offset }
   }
 
-  static async moveMembersBetweenOrganizations(
-    fromOrganizationId: string,
-    toOrganizationId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let removeRoles: IMemberOrganization[] = []
-
-    let addRoles: IMemberOrganization[] = []
-
-    // first, handle members that belong to both organizations,
-    // then make a full update on remaining org2 members (that doesn't belong to o1)
-    const memberRolesWithBothOrganizations = await this.findMembersBelongToBothOrganizations(
-      fromOrganizationId,
-      toOrganizationId,
-      options,
-    )
-
-    const primaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
-      (m) => m.organizationId === toOrganizationId,
-    )
-    const secondaryOrganizationMemberRoles = memberRolesWithBothOrganizations.filter(
-      (m) => m.organizationId === fromOrganizationId,
-    )
-
-    for (const memberOrganization of secondaryOrganizationMemberRoles) {
-      // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
-      if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
-        removeRoles.push(memberOrganization)
-      }
-      // it's a current role, also check org1 to see which one starts earlier
-      else if (memberOrganization.dateStart !== null && memberOrganization.dateEnd === null) {
-        const currentRoles = primaryOrganizationMemberRoles.filter(
-          (mo) =>
-            mo.memberId === memberOrganization.memberId &&
-            mo.dateStart !== null &&
-            mo.dateEnd === null,
-        )
-        if (currentRoles.length === 0) {
-          // no current role in org1, add the memberOrganization to org1
-          addRoles.push(memberOrganization)
-        } else if (currentRoles.length === 1) {
-          const currentRole = currentRoles[0]
-          if (new Date(memberOrganization.dateStart) <= new Date(currentRoles[0].dateStart)) {
-            // add a new role with earlier dateStart
-            addRoles.push({
-              id: currentRole.id,
-              dateStart: (memberOrganization.dateStart as Date).toISOString(),
-              dateEnd: null,
-              memberId: currentRole.memberId,
-              organizationId: currentRole.organizationId,
-              title: currentRole.title,
-              source: currentRole.source,
-            })
-
-            // remove current role
-            removeRoles.push(currentRole)
-          }
-
-          // delete role from org2
-          removeRoles.push(memberOrganization)
-        } else {
-          throw new Error(`Member ${memberOrganization.memberId} has more than one current roles.`)
-        }
-      } else if (memberOrganization.dateStart === null && memberOrganization.dateEnd !== null) {
-        throw new Error(`Member organization with dateEnd and without dateStart!`)
-      } else {
-        // both dateStart and dateEnd exists
-        const foundIntersectingRoles = primaryOrganizationMemberRoles.filter((mo) => {
-          const primaryStart = new Date(mo.dateStart)
-          const primaryEnd = new Date(mo.dateEnd)
-          const secondaryStart = new Date(memberOrganization.dateStart)
-          const secondaryEnd = new Date(memberOrganization.dateEnd)
-
-          return (
-            mo.memberId === memberOrganization.memberId &&
-            mo.dateStart !== null &&
-            mo.dateEnd !== null &&
-            ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
-              (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
-              (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
-              (primaryStart < secondaryStart && secondaryEnd > primaryEnd))
-          )
-        })
-
-        // rebuild dateRanges using intersecting roles coming from primary and secondary organizations
-        const startDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
-          new Date(org.dateStart).getTime(),
-        )
-        const endDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
-          new Date(org.dateEnd).getTime(),
-        )
-
-        addRoles.push({
-          dateStart: new Date(Math.min.apply(null, startDates)).toISOString(),
-          dateEnd: new Date(Math.max.apply(null, endDates)).toISOString(),
-          memberId: memberOrganization.memberId,
-          organizationId: toOrganizationId,
-          title:
-            foundIntersectingRoles.length > 0
-              ? foundIntersectingRoles[0].title
-              : memberOrganization.title,
-          source:
-            foundIntersectingRoles.length > 0
-              ? foundIntersectingRoles[0].source
-              : memberOrganization.source,
-        })
-
-        // we'll delete all roles that intersect with incoming org member roles and create a merged role
-        for (const r of foundIntersectingRoles) {
-          removeRoles.push(r)
-        }
-      }
-
-      for (const removeRole of removeRoles) {
-        await this.removeMemberRole(removeRole, options)
-      }
-
-      for (const addRole of addRoles) {
-        await this.addMemberRole(addRole, options)
-      }
-
-      addRoles = []
-      removeRoles = []
-    }
-
-    // update rest of the o2 members
-    const remainingRoles = (await seq.query(
-      `
-        SELECT *
-        FROM "memberOrganizations"
-        WHERE "organizationId" = :fromOrganizationId 
-        AND "deletedAt" IS NULL
-        AND "memberId" NOT IN (
-            SELECT "memberId" 
-            FROM "memberOrganizations" 
-            WHERE "organizationId" = :toOrganizationId
-            AND "deletedAt" IS NULL
-        );
-      `,
-      {
-        replacements: {
-          toOrganizationId,
-          fromOrganizationId,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )) as IMemberOrganization[]
-
-    for (const role of remainingRoles) {
-      await this.removeMemberRole(role, options)
-      await this.addMemberRole(
-        {
-          title: role.title,
-          dateStart: role.dateStart,
-          dateEnd: role.dateEnd,
-          memberId: role.memberId,
-          organizationId: toOrganizationId,
-          source: role.source,
-          deletedAt: role.deletedAt,
-        },
-        options,
-      )
-    }
-  }
-
   static async getOrganizationSegments(
     organizationId: string,
     options: IRepositoryOptions,
@@ -1840,6 +1592,87 @@ class OrganizationRepository {
     const segments = await segmentRepository.findInIds(segmentIds)
 
     return segments
+  }
+
+  static async findByIdentities(
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const identityConditions = identities
+      .map(
+        (identity, index) => `
+            (oi.platform = :platform${index} and oi.name = :name${index})
+        `,
+      )
+      .join(' or ')
+
+    const results = await sequelize.query(
+      `
+      with
+          "organizationsWithIdentity" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where ${identityConditions} 
+          ),
+          "organizationsWithCounts" as (
+            select o.id, count(oi."organizationId") as total_counts
+            from organizations o
+            join "organizationIdentities" oi on o.id = oi."organizationId"
+            where o.id in (select "organizationId" from "organizationsWithIdentity")
+            group by o.id
+          )
+          select o.id,
+                  o.description,
+                  o.emails,
+                  o.logo,
+                  o.tags,
+                  o.github,
+                  o.twitter,
+                  o.linkedin,
+                  o.crunchbase,
+                  o.employees,
+                  o.location,
+                  o.website,
+                  o.type,
+                  o.size,
+                  o.headline,
+                  o.industry,
+                  o.founded,
+                  o.attributes
+          from organizations o
+          inner join "organizationsWithCounts" oc on o.id = oc.id
+          where o."tenantId" = :tenantId
+          order by oc.total_counts desc
+          limit 1;
+      `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          ...identities.reduce(
+            (acc, identity, index) => ({
+              ...acc,
+              [`platform${index}`]: identity.platform,
+              [`name${index}`]: identity.name,
+            }),
+            {},
+          ),
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
   }
 
   static async findByIdentity(

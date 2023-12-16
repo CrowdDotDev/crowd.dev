@@ -1,4 +1,4 @@
-import Error400 from '../../errors/Error400'
+import { Error400 } from '@crowd/common'
 import UserRepository from '../../database/repositories/userRepository'
 import UserCreator from './userCreator'
 import { IServiceOptions } from '../IServiceOptions'

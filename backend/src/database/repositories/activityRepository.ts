@@ -2,11 +2,10 @@ import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { Error400, Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error400 from '../../errors/Error400'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
@@ -707,7 +706,7 @@ class ActivityRepository {
     )
     const { count } = countRow
 
-    return { rows, count, limit: parsed.limit, offset: parsed.offset }
+    return { rows, count: parseInt(count, 10), limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

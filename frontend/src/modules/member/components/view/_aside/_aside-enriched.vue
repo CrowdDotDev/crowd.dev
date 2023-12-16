@@ -1,12 +1,22 @@
 <template>
   <div>
     <!-- Education -->
-    <div
-      v-if="member.attributes.education"
-      class="font-medium text-black mb-4 mt-10"
-    >
-      Education
+    <div v-if="member.attributes.education" class="flex items-center mb-4 mt-10">
+      <div
+        class="font-medium text-black mr-2"
+      >
+        Education
+      </div>
+      <el-tooltip
+        v-if="getAttributeSourceName(member.attributes.education)"
+        :content="`Source: ${getAttributeSourceName(member.attributes.education)}`"
+        placement="top"
+        trigger="hover"
+      >
+        <app-svg name="source" class="h-3 w-3" />
+      </el-tooltip>
     </div>
+
     <app-member-custom-attributes-array-renderer
       title="Education"
       :attribute="member.attributes.education"
@@ -27,12 +37,23 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Certifications -->
-    <div
-      v-if="member.attributes.certifications"
-      class="font-medium text-black mb-4 mt-10"
-    >
-      Certifications
+    <div class="flex items-center mb-4 mt-10">
+      <div
+        v-if="member.attributes.certifications"
+        class="font-medium text-black mr-2"
+      >
+        Certifications
+      </div>
+      <el-tooltip
+        v-if="getAttributeSourceName(member.attributes.certifications)"
+        :content="`Source: ${getAttributeSourceName(member.attributes.certifications)}`"
+        placement="top"
+        trigger="hover"
+      >
+        <app-svg name="source" class="h-3 w-3" />
+      </el-tooltip>
     </div>
+
     <app-member-custom-attributes-array-renderer
       title="Certifications"
       :attribute="member.attributes.certifications"
@@ -53,11 +74,21 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Awards -->
-    <div
-      v-if="member.attributes.awards"
-      class="font-medium text-black mb-4 mt-10"
-    >
-      Awards
+    <div class="flex items-center mb-4 mt-10">
+      <div
+        v-if="member.attributes.awards"
+        class="font-medium text-black mr-2"
+      >
+        Awards
+      </div>
+      <el-tooltip
+        v-if="getAttributeSourceName(member.attributes.awards)"
+        :content="`Source: ${getAttributeSourceName(member.attributes.awards)}`"
+        placement="top"
+        trigger="hover"
+      >
+        <app-svg name="source" class="h-3 w-3" />
+      </el-tooltip>
     </div>
     <app-member-custom-attributes-array-renderer
       title="Awards"
@@ -77,6 +108,8 @@
 
 <script setup>
 import { defineProps } from 'vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
 defineProps({

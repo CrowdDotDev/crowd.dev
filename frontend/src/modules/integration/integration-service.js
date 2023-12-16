@@ -408,7 +408,7 @@ export class IntegrationService {
     return response.data.isWebhooksReceived;
   }
 
-  static async groupsioConnect(email, token, groupNames) {
+  static async groupsioConnect(email, token, tokenExpiry, password, groupNames) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
@@ -416,6 +416,8 @@ export class IntegrationService {
       {
         email,
         token,
+        tokenExpiry,
+        password,
         groupNames,
         ...getSegments(),
       },

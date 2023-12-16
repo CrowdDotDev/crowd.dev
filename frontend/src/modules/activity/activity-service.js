@@ -66,4 +66,42 @@ export class ActivityService {
 
     return response.data;
   }
+
+  static async listActivityTypes(segments) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/activity/type`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+        params: {
+          segments,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
+  static async listActivityChannels(segments) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/activity/channel`,
+      {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+        params: {
+          segments,
+        },
+      },
+    );
+
+    return response.data;
+  }
 }

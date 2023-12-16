@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center gap-3">
     <div
-      v-if="organization.identities.length > 0"
+      v-if="organization.identities?.length > 0"
       class="flex items-center gap-2"
     >
       <div
@@ -12,6 +12,7 @@
           :platform="platform"
           :username-handles="getHandlesByPlatform(platform)"
           :links="getUrlsByPlatform(platform)"
+          :href="getUrlsByPlatform(platform)[0]"
           :track-event-name="getPlatformDetails(platform)?.trackEventName"
           :track-event-channel="getPlatformDetails(platform)?.trackEventChannel"
           :tooltip-label="getPlatformDetails(platform)?.tooltipLabel"
@@ -52,8 +53,8 @@
 </template>
 
 <script setup>
-import { withHttp } from '@/utils/string';
 import { defineProps, computed } from 'vue';
+import { withHttp } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps({
@@ -67,7 +68,10 @@ const platforms = computed(() => [...new Set(props.organization.identities.map((
 
 const getHandlesByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
-  .map((i) => getPlatformDetails(i.platform)?.organization.handle(i) ?? getPlatformDetails(i.platform)?.name ?? i.platform);
+  .map((i) => (getPlatformDetails(i.platform)?.organization?.handle(i)
+    ?? getPlatformDetails(i.platform)?.name
+    ?? i.name));
+
 const getUrlsByPlatform = (platform) => props.organization.identities
   .filter((i) => i.platform === platform)
   .map((i) => getIdentityLink(i));
@@ -77,7 +81,15 @@ const showDivider = computed(
     && platforms.value,
 );
 
-const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
+const getPlatformDetails = (platform) => {
+  const config = CrowdIntegrations.getConfig(platform) || {};
+  return {
+    trackEventName: "Click Organization's Identity",
+    trackEventChannel: config.name || platform,
+    tooltipLabel: `${config.name || platform} profile`,
+    asLink: config.showProfileLink,
+  };
+};
 
 const getIdentityLink = (identity) => {
   if (identity.url) {

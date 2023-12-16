@@ -3,6 +3,7 @@ import {
   ComprehendClient,
   DetectSentimentCommand,
   DetectSentimentResponse,
+  LanguageCode,
 } from '@aws-sdk/client-comprehend'
 import { IS_DEV_ENV } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -56,7 +57,7 @@ export const getSentiment = async (text: string): Promise<ISentimentAnalysisResu
 
   const params = {
     Text: preparedText,
-    LanguageCode: 'en',
+    LanguageCode: LanguageCode.EN,
   }
 
   try {
@@ -104,7 +105,7 @@ export const getSentimentBatch = async (
 
   const params = {
     TextList: textArray.map(prepareText),
-    LanguageCode: 'en',
+    LanguageCode: LanguageCode.EN,
   }
 
   try {

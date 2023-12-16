@@ -18,6 +18,7 @@ router.post(
     )
     const { organizationIds } = req.body
     try {
+      req.log.trace(`Calling organizationSyncService.syncOrganizations for ${organizationIds}`)
       await organizationSyncService.syncOrganizations(organizationIds)
       res.sendStatus(200)
     } catch (error) {
@@ -38,6 +39,9 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      req.log.trace(
+        `Calling organizationSyncService.syncTenantOrganizations for tenant ${tenantId}`,
+      )
       await organizationSyncService.syncTenantOrganizations(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -58,6 +62,9 @@ router.post(
 
     const { tenantId } = req.body
     try {
+      req.log.trace(
+        `Calling organizationSyncService.cleanupOrganizationIndex for tenant ${tenantId}`,
+      )
       await organizationSyncService.cleanupOrganizationIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
@@ -78,6 +85,9 @@ router.post(
 
     const { organizationId } = req.body
     try {
+      req.log.trace(
+        `Calling organizationSyncService.removeOrganization for organization ${organizationId}`,
+      )
       await organizationSyncService.removeOrganization(organizationId)
       res.sendStatus(200)
     } catch (error) {

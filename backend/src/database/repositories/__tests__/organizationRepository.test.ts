@@ -1,11 +1,10 @@
 import moment from 'moment'
+import { generateUUIDv1, Error404 } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
 import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
-import { PlatformType } from '@crowd/types'
 import ActivityRepository from '../activityRepository'
-import { generateUUIDv1 } from '@crowd/common'
 
 const db = null
 
@@ -228,6 +227,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: null,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
     })
@@ -308,6 +308,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: null,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
 
@@ -365,6 +366,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: null,
       }
       const organizationById = await OrganizationRepository.findById(
         organizationCreated.id,
@@ -1415,6 +1417,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: [],
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)

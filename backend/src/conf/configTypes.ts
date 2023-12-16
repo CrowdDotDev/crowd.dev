@@ -23,7 +23,7 @@ export interface SQSConfiguration {
   host?: string
   port?: number
   nodejsWorkerQueue: string
-  nodejsWorkerDelayableQueue: string
+  nodejsWorkerPriorityQueue: string
   integrationRunWorkerQueue: string
   pythonWorkerQueue: string
   aws: AwsCredentials
@@ -199,6 +199,10 @@ export interface EagleEyeConfiguration {
   apiKey: string
 }
 
+export interface GithubTokenConfiguration {
+  token: string
+}
+
 export interface UnleashConfiguration {
   url: string
   adminApiKey: string
@@ -250,4 +254,13 @@ export interface CrowdAnalyticsConfiguration {
 
 export interface IBackendTemporalConfig extends ITemporalConfig {
   automationsTaskQueue: string
+}
+
+export interface EncryptionConfiguration {
+  secretKey: string
+  initVector: string
+}
+
+export interface IOpenStatusApiConfig {
+  baseUrl: string
 }

@@ -37,9 +37,16 @@ import {
   WeeklyEmailsConfiguration,
   CrowdAnalyticsConfiguration,
   IBackendTemporalConfig,
+  EncryptionConfiguration,
+  IOpenStatusApiConfig,
+  GithubTokenConfiguration,
 } from './configTypes'
 
 // TODO-kube
+
+export const ENCRYPTION_SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY
+
+export const ENCRYPTION_INIT_VECTOR = process.env.ENCRYPTION_INIT_VECTOR
 
 export const KUBE_MODE: boolean = process.env.KUBE_MODE !== undefined
 
@@ -61,6 +68,9 @@ export const IS_STAGING_ENV: boolean = process.env.NODE_ENV === 'staging'
 export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
+
+export const ENCRYPTION_CONFIG: EncryptionConfiguration =
+  config.get<EncryptionConfiguration>('encryption')
 
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
 
@@ -116,6 +126,9 @@ export const ORGANIZATION_ENRICHMENT_CONFIG: OrganizationEnrichmentConfiguration
 
 export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfiguration>('eagleEye')
 
+export const GITHUB_TOKEN_CONFIG: GithubTokenConfiguration =
+  config.get<GithubTokenConfiguration>('githubToken')
+
 export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
 
 export const OPENSEARCH_CONFIG: IOpenSearchConfig = config.get<IOpenSearchConfig>('opensearch')
@@ -145,3 +158,6 @@ export const TEMPORAL_CONFIG: IBackendTemporalConfig =
 
 export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
   config.get<ISearchSyncApiConfig>('searchSyncApi')
+
+export const OPEN_STATUS_API_CONFIG: IOpenStatusApiConfig =
+  config.get<IOpenStatusApiConfig>('openStatusApi')

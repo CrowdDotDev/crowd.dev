@@ -1,7 +1,7 @@
 <template>
   <el-container v-if="currentTenant" class="flex-col">
     <app-lf-header />
-    <el-container style="height: calc(100vh - 60px);">
+    <el-container style="height: calc(100vh - 60px)">
       <!-- App menu -->
       <app-lf-menu />
 
@@ -20,6 +20,9 @@ import { mapActions, mapGetters } from 'vuex';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
 import AppLfHeader from '@/modules/lf/layout/components/lf-header.vue';
+import { mapActions as piniaMapActions } from 'pinia';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default {
   name: 'AppLayout',
@@ -44,7 +47,9 @@ export default {
         const param = this.$route.query.menu === 'true' || false;
 
         if (updatedValue !== param) {
-          this.$router.replace({ query: { ...this.$route.query, menu: updatedValue } });
+          this.$router.replace({
+            query: { ...this.$route.query, menu: updatedValue },
+          });
         }
       },
     },
@@ -63,12 +68,21 @@ export default {
 
   async mounted() {
     this.initPendo();
+    this.fetchActivityTypes();
+    this.fetchActivityChannels();
   },
 
   methods: {
     ...mapActions({
       toggleMenu: 'layout/toggleMenu',
     }),
+    ...piniaMapActions(useActivityStore, {
+      fetchActivityChannels: 'fetchActivityChannels',
+    }),
+    ...piniaMapActions(useActivityTypeStore, {
+      fetchActivityTypes: 'fetchActivityTypes',
+    }),
+
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values

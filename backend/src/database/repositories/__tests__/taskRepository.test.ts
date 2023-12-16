@@ -1,11 +1,10 @@
 import moment from 'moment'
+import { PlatformType } from '@crowd/types'
+import { generateUUIDv1, Error404 } from '@crowd/common'
 import TaskRepository from '../taskRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
 import ActivityRepository from '../activityRepository'
-import { PlatformType } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 
 const db = null

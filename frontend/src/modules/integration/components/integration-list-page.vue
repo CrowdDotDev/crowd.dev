@@ -4,8 +4,8 @@
     <h4>Integrations</h4>
     <div class="flex items-center justify-between">
       <div class="text-xs text-gray-500">
-        Connect with all data sources that are relevant to
-        your community
+        Connect with all data sources where interactions happen with your brand and product.
+        <br>When we detect an activity, we sync it to your workspace.
       </div>
       <div class="text-xs text-gray-900">
         <span class="text-base">🧐</span> Missing something?

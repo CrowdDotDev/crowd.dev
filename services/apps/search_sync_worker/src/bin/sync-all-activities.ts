@@ -1,7 +1,6 @@
-import { DB_CONFIG } from '../conf'
+import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { ActivityRepository } from '../repo/activity.repo'
-import { ActivitySyncService } from '../service/activity.sync.service'
-import { OpenSearchService } from '../service/opensearch.service'
 import { timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
@@ -11,7 +10,7 @@ const log = getServiceLogger()
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)

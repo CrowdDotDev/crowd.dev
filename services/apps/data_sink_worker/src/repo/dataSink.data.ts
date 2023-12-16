@@ -1,4 +1,9 @@
-import { IIntegrationResult, IntegrationResultState, PlatformType } from '@crowd/types'
+import {
+  IIntegrationResult,
+  IQueuePriorityCalculationContext,
+  IntegrationResultState,
+  PlatformType,
+} from '@crowd/types'
 
 export interface IResultData {
   id: string
@@ -6,6 +11,7 @@ export interface IResultData {
   data: IIntegrationResult
 
   runId: string | null
+  onboarding: boolean | null
   webhookId: string | null
   streamId: string
   apiDataId: string
@@ -17,10 +23,21 @@ export interface IResultData {
   plan: string
   isTrialPlan: boolean
   name: string
+
+  retries: number
+  delayedUntil: string | null
 }
 
-export interface IFailedResultData {
+export interface IFailedResultData extends IQueuePriorityCalculationContext {
   id: string
+  onboarding: boolean | null
   tenantId: string
   platform: string
+}
+
+export interface IDelayedResults {
+  id: string
+  tenantId: string
+  platform: PlatformType
+  onboarding: boolean | null
 }

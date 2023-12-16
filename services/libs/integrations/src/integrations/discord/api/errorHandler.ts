@@ -1,6 +1,7 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
 import { RateLimitError } from '@crowd/types'
 import { IProcessStreamContext } from '../../../types'
+import telemetry from '@crowd/telemetry'
 
 export const handleDiscordError = (
   err: AxiosError,
@@ -23,7 +24,7 @@ export const handleDiscordError = (
   }
 
   if (err && err.response && err.response.status === 429) {
-    logger.warn('Discord API rate limit exceeded')
+    telemetry.increment('discord.api.rate_limit', 1)
     let rateLimitResetSeconds = 60
 
     if (err.response.headers['x-ratelimit-reset-after']) {

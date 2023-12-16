@@ -1,4 +1,4 @@
-import Error403 from '../../errors/Error403'
+import { Error403 } from '@crowd/common'
 import TenantService from '../../services/tenantService'
 import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'

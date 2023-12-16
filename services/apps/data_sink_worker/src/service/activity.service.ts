@@ -4,22 +4,22 @@ import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { FeatureFlag, IActivityData, PlatformType } from '@crowd/types'
+import { IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
 import ActivityRepository from '../repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
 import IntegrationRepository from '../repo/integration.repo'
 import GithubReposRepository from '../repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
-import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
+import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { TEMPORAL_CONFIG } from '../conf'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -42,6 +42,7 @@ export default class ActivityService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     activity: IActivityCreateData,
+    onboarding: boolean,
     fireSync = true,
   ): Promise<string> {
     try {
@@ -91,52 +92,42 @@ export default class ActivityService extends LoggerBase {
         return id
       })
 
-      if (
-        await isFeatureEnabled(
-          FeatureFlag.TEMPORAL_AUTOMATIONS,
-          async () => {
-            return {
-              tenantId,
-            }
+      const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+        workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
+        taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+        retry: {
+          maximumAttempts: 100,
+        },
+        args: [
+          {
+            tenantId,
+            activityId: id,
           },
-          this.unleash,
-          this.redisClient,
-          60,
-          tenantId,
-        )
-      ) {
-        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-          workflowId: `new-activity-automation-${id}`,
-          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-          retry: {
-            maximumAttempts: 100,
-          },
-          args: [
-            {
-              tenantId,
-              activityId: id,
-            },
-          ],
-        })
-        this.log.info(
-          { workflowId: handle.workflowId },
-          'Started temporal workflow to process new activity automation!',
-        )
-      } else {
-        await this.nodejsWorkerEmitter.processAutomationForNewActivity(tenantId, id, segmentId)
-      }
+        ],
+        searchAttributes: {
+          TenantId: [tenantId],
+        },
+      })
+      this.log.info(
+        { workflowId: handle.workflowId },
+        'Started temporal workflow to process new activity automation!',
+      )
 
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          tenantId,
+          activity.memberId,
+          onboarding,
+        )
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
       }
 
       if (affectedIds.length > 0) {
         for (const affectedId of affectedIds.filter((i) => i !== id)) {
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId)
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId, onboarding)
         }
       }
 
@@ -150,6 +141,7 @@ export default class ActivityService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    onboarding: boolean,
     segmentId: string,
     activity: IActivityUpdateData,
     original: IDbActivity,
@@ -209,8 +201,12 @@ export default class ActivityService extends LoggerBase {
         await this.conversationService.processActivity(tenantId, segmentId, id)
 
         if (fireSync) {
-          await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
+          await this.searchSyncWorkerEmitter.triggerMemberSync(
+            tenantId,
+            activity.memberId,
+            onboarding,
+          )
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
         }
       }
     } catch (err) {
@@ -336,6 +332,7 @@ export default class ActivityService extends LoggerBase {
   public async processActivity(
     tenantId: string,
     integrationId: string,
+    onboarding: boolean,
     platform: PlatformType,
     activity: IActivityData,
     providedSegmentId?: string,
@@ -451,7 +448,22 @@ export default class ActivityService extends LoggerBase {
           }
 
           // find existing activity
-          const dbActivity = await txRepo.findExisting(tenantId, segmentId, activity.sourceId)
+          const dbActivity = await txRepo.findExisting(
+            tenantId,
+            segmentId,
+            activity.sourceId,
+            platform,
+            activity.type,
+          )
+
+          if (dbActivity && dbActivity?.deletedAt) {
+            // we found an existing activity but it's deleted - nothing to do here
+            this.log.trace(
+              { activityId: dbActivity.id },
+              'Found existing activity but it is deleted, nothing to do here.',
+            )
+            return
+          }
 
           let createActivity = false
 
@@ -480,7 +492,11 @@ export default class ActivityService extends LoggerBase {
 
                 // delete activity
                 await txRepo.delete(dbActivity.id)
-                await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
+                await this.searchSyncWorkerEmitter.triggerRemoveActivity(
+                  tenantId,
+                  dbActivity.id,
+                  onboarding,
+                )
                 createActivity = true
               }
 
@@ -488,6 +504,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -526,6 +543,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -590,6 +608,7 @@ export default class ActivityService extends LoggerBase {
                     await this.searchSyncWorkerEmitter.triggerRemoveActivity(
                       tenantId,
                       dbActivity.id,
+                      onboarding,
                     )
                     createActivity = true
                   }
@@ -598,6 +617,7 @@ export default class ActivityService extends LoggerBase {
                   await txMemberService.update(
                     dbObjectMember.id,
                     tenantId,
+                    onboarding,
                     segmentId,
                     integrationId,
                     {
@@ -636,6 +656,7 @@ export default class ActivityService extends LoggerBase {
                   await txMemberService.update(
                     dbObjectMember.id,
                     tenantId,
+                    onboarding,
                     segmentId,
                     integrationId,
                     {
@@ -669,6 +690,7 @@ export default class ActivityService extends LoggerBase {
               await txActivityService.update(
                 dbActivity.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 {
                   type: activity.type,
@@ -707,6 +729,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -730,6 +753,7 @@ export default class ActivityService extends LoggerBase {
               )
               memberId = await txMemberService.create(
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -766,6 +790,7 @@ export default class ActivityService extends LoggerBase {
                 await txMemberService.update(
                   dbObjectMember.id,
                   tenantId,
+                  onboarding,
                   segmentId,
                   integrationId,
                   {
@@ -789,6 +814,7 @@ export default class ActivityService extends LoggerBase {
                 )
                 objectMemberId = await txMemberService.create(
                   tenantId,
+                  onboarding,
                   segmentId,
                   integrationId,
                   {
@@ -838,6 +864,7 @@ export default class ActivityService extends LoggerBase {
                 url: activity.url,
                 organizationId,
               },
+              onboarding,
               false,
             )
           }
@@ -846,12 +873,14 @@ export default class ActivityService extends LoggerBase {
         }
       })
 
-      await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+      if (memberId) {
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId, onboarding)
+      }
       if (objectMemberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId, onboarding)
       }
       if (activityId) {
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId)
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')

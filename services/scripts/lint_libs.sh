@@ -9,7 +9,7 @@ for lib_dir in $CLI_HOME/../libs/*/; do
   if [ -f "${lib_dir}package.json" ]; then
     lib=$(basename $lib_dir)
     yell "Checking linting, prettier and typescript for library: $lib!"
-    (cd "$lib_dir" && npm run lint && npm run format-check && npm run tsc-check && say "Library $lib: linter, prettier and typescript checked!" && nl)    
+    (cd "$lib_dir" && pnpm run lint && pnpm run format-check && pnpm run tsc-check && say "Library $lib: linter, prettier and typescript checked!" && nl)    
   fi
 done
 
@@ -17,6 +17,6 @@ for archetype_dir in $CLI_HOME/../archetypes/*/; do
   if [ -f "${archetype_dir}package.json" ]; then
     archetype=$(basename $archetype_dir)
     yell "Checking linting, prettier and typescript for archetype: $archetype!"
-    (cd "$archetype_dir" && npm run lint && npm run format-check && npm run tsc-check && say "Archetype $archetype: linter, prettier and typescript checked!" && nl)    
+    (cd "$archetype_dir" && pnpm run lint && pnpm run format-check && pnpm run tsc-check && say "Archetype $archetype: linter, prettier and typescript checked!" && nl)    
   fi
 done

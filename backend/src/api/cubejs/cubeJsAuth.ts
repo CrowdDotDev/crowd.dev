@@ -1,4 +1,4 @@
-import CubeJsService from '../../services/cubejs/cubeJsService'
+import { CubeJsService } from '@crowd/cubejs'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 // import PermissionChecker from '../../services/user/permissionChecker'
 // import Permissions from '../../security/permissions'

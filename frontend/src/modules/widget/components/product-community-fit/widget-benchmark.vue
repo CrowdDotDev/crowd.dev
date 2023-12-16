@@ -60,7 +60,7 @@
           <template #description>
             <span>Considering the contribution history of over
               150,000 open-source repositories, we come to the
-              conclusion that you {{ average < 20 ? 'didn\'t achieve Early signals of Product-Community Fit' : 'had' }}
+              conclusion that you {{ average < 20 ? 'didn\'t achieve Early signals of Project-Community Fit' : 'had' }}
               <span v-if="average >= 20" class="font-medium">{{ getInsightContent }}</span>{{
                 period.label === 'All time'
                   ? ' since the beginning of your community.'
@@ -119,14 +119,14 @@ const average = ref(0);
 
 const getInsightContent = computed(() => {
   if (average.value >= 20 && average.value <= 50) {
-    return 'Early signals of Product-Community Fit';
+    return 'Early signals of Project-Community Fit';
   } if (average.value > 50 && average.value <= 100) {
-    return 'Strong emerging signals of Product-Community Fit';
+    return 'Strong emerging signals of Project-Community Fit';
   } if (average.value > 100 && average.value <= 200) {
-    return 'Great Product-Community Fit';
+    return 'Great Project-Community Fit';
   }
 
-  return 'Scale beyond Product-Community Fit';
+  return 'Scale beyond Project-Community Fit';
 });
 
 const benchmarkChartOptions = computed(() => chartOptions('bar', {
@@ -189,22 +189,22 @@ const benchmarkChartOptions = computed(() => chartOptions('bar', {
       const labels = [
         { text: '' },
         {
-          text: 'Early signals of Product-Community Fit (20-50)',
+          text: 'Early signals of Project-Community Fit (20-50)',
           color: getMatch(20, 50).color,
           fontWeight: getMatch(20, 50).fontWeight,
         },
         {
-          text: 'Strong emerging signals of Product-Community Fit (51-100)',
+          text: 'Strong emerging signals of Project-Community Fit (51-100)',
           color: getMatch(51, 100).color,
           fontWeight: getMatch(51, 100).fontWeight,
         },
         {
-          text: 'Great Product-Community Fit (101-200)',
+          text: 'Great Project-Community Fit (101-200)',
           color: getMatch(101, 200).color,
           fontWeight: getMatch(101, 200).fontWeight,
         },
         {
-          text: 'Scale beyond Product-Community Fit (200+)',
+          text: 'Scale beyond Project-Community Fit (200+)',
           color: getMatch(201).color,
           fontWeight: getMatch(201).fontWeight,
         },

@@ -214,7 +214,7 @@ const datasets = computed(() => [
     showLegend: false,
   },
   {
-    name: 'Product-Community Fit',
+    name: 'Project-Community Fit',
     backgroundColor: '#F6FAFF',
     borderColor: 'transparent',
     pointStyle: 'rect',

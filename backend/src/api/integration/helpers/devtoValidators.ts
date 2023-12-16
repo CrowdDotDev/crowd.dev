@@ -1,4 +1,4 @@
-import Error400 from '../../../errors/Error400'
+import { Error400 } from '@crowd/common'
 import Permissions from '../../../security/permissions'
 import { getOrganization } from '../../../serverless/integrations/usecases/devto/getOrganization'
 import { getUserByUsername } from '../../../serverless/integrations/usecases/devto/getUser'

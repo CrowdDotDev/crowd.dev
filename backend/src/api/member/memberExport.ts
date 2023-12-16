@@ -43,7 +43,7 @@ export default async (req, res) => {
 
   identifyTenant(req)
 
-  track('Member CSV Export', {}, { ...req }, req.currentUser.id)
+  track('Member CSV Export', {}, { ...req.body }, req.currentUser.id)
 
   await req.responseHandler.success(req, res, payload)
 }

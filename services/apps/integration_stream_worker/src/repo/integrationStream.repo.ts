@@ -6,7 +6,6 @@ import {
   IntegrationStreamDataState,
   IntegrationStreamState,
   WebhookState,
-  WebhookType,
 } from '@crowd/types'
 import {
   IInsertableWebhookStream,
@@ -31,26 +30,25 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     try {
       const results = await this.db().any(
         `
-        select  iw.id,
+          SELECT iw.id,
                 iw."tenantId",
                 iw."integrationId",
                 iw.state,
                 iw.type,
                 iw.payload,
-                iw."createdAt" as "createdAt",
-                i.platform as "platform"
-        from "incomingWebhooks" iw
-                 inner join integrations i on iw."integrationId" = i.id
-                 left join integration.streams s on iw.id = s."webhookId"
-        where s.id is null
-          and iw.type <> $(discourseType)
-          and iw.state = $(pendingState)
-          and iw."createdAt" < now() - interval '1 hour'
-        limit ${limit}
-        for update skip locked;
+                iw."createdAt" AS "createdAt",
+                i.platform AS "platform"
+          FROM "incomingWebhooks" iw
+          INNER JOIN integrations i ON iw."integrationId" = i.id
+          WHERE NOT EXISTS (
+              SELECT 1 FROM integration.streams s WHERE iw.id = s."webhookId"
+          )
+          AND iw.state = $(pendingState)
+          AND iw."createdAt" < NOW() - INTERVAL '1 hour'
+          LIMIT ${limit}
+          FOR UPDATE SKIP LOCKED;
         `,
         {
-          discourseType: WebhookType.DISCOURSE,
           pendingState: WebhookState.PENDING,
         },
       )
@@ -130,9 +128,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
                s."tenantId",
                i.platform as "integrationType",
                s."runId",
-               s."webhookId"
+               s."webhookId",
+               run.onboarding
         from integration.streams s
         inner join integrations i on i.id = s."integrationId"
+        left join integration.runs run on run.id = s."runId"
         where s.state = $(delayedState) and s."delayedUntil" < now()
         order by s."delayedUntil" asc
         limit ${perPage} offset ${(page - 1) * perPage}
@@ -157,9 +157,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
         `
           select s.id,
                  s."tenantId",
-                 i.platform as "integrationType"
+                 i.platform as "integrationType",
+                 run.onboarding
           from integration.streams s
           inner join integrations i on i.id = s."integrationId"
+          left join integration.runs run on run.id = s."runId"
           where s."runId" = $(runId) and s.state = $(state) and s.id > $(lastId)
           order by s.id
           limit ${limit}
@@ -175,9 +177,11 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
         `
           select s.id,
                  s."tenantId",
-                 i.platform as "integrationType"
+                 i.platform as "integrationType",
+                 run.onboarding
           from integration.streams s
           inner join integrations i on i.id = s."integrationId"
+          left join integration.runs run on run.id = s."runId"
           where s."runId" = $(runId) and s.state = $(state)
           order by s.id
           limit ${limit}

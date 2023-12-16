@@ -3,6 +3,8 @@ import { store } from '@/store';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed } from 'vue';
 import { extractRepoNameFromUrl } from '@/utils/string';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { storeToRefs } from 'pinia';
 
 export default class ActivityChannelsField extends JSONField {
   constructor(name, label, config = {}) {
@@ -13,13 +15,14 @@ export default class ActivityChannelsField extends JSONField {
   }
 
   dropdownOptions() {
-    const activityChannels = computed(() => store.getters['auth/currentTenant']?.settings[0].activityChannels || {});
+    const activityStore = useActivityStore();
+    const { activityChannels } = storeToRefs(activityStore);
 
     return Object.entries(activityChannels.value).map(([platform, channels]) => ({
       label: {
         type: 'platform',
         key: platform,
-        value: CrowdIntegrations.getConfig(platform).name,
+        value: CrowdIntegrations.getConfig(platform)?.name ?? platform,
       },
       nestedOptions: channels.map((channel) => ({
         value: channel,

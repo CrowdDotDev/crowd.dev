@@ -7,7 +7,7 @@ on:
       - 'staging-**'
     paths:
       - 'services/libs/**'
-      - 'services/apps/automations-worker/**'
+      - 'services/apps/automations_worker/**'
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}

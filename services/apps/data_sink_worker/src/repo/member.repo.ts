@@ -41,7 +41,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
       where "tenantId" = $(tenantId)
-      and $(email) = ANY ("emails")
+      and "emails" @> ARRAY[$(email)]
       limit 1
     `,
       {

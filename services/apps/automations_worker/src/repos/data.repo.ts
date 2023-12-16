@@ -126,11 +126,11 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       await Promise.all(promises)
     }
 
-    // TODO calculate display
-
     // calculate engagement
-    for (const activity of results) {
-      activity.engagement = activity.member.score || 0
+    if (loadChildTables) {
+      for (const activity of results) {
+        activity.engagement = activity.member.score || 0
+      }
     }
 
     return results

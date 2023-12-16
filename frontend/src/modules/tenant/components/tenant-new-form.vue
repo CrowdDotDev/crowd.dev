@@ -8,7 +8,7 @@
       <div class="px-6 pb-6">
         <app-form-item
           class="pb-8"
-          label="Community name"
+          label="Workspace name"
           :required="true"
           :validation="$v.tenantName"
           :error-messages="{

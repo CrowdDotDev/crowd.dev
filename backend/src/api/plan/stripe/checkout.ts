@@ -1,6 +1,5 @@
+import { Error400, Error403 } from '@crowd/common'
 import { PLANS_CONFIG } from '../../../conf'
-import Error400 from '../../../errors/Error400'
-import Error403 from '../../../errors/Error403'
 import Plans from '../../../security/plans'
 import TenantService from '../../../services/tenantService'
 import { tenantSubdomain } from '../../../services/tenantSubdomain'

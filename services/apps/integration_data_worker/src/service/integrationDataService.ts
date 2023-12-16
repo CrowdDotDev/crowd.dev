@@ -1,12 +1,13 @@
+import { addSeconds, singleOrDefault } from '@crowd/common'
+import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/database'
+import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import IntegrationDataRepository from '../repo/integrationData.repo'
+import telemetry from '@crowd/telemetry'
 import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
-import { addSeconds, singleOrDefault } from '@crowd/common'
-import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
-import { WORKER_SETTINGS, PLATFORM_CONFIG } from '../conf'
-import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
+import { PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
+import IntegrationDataRepository from '../repo/integrationData.repo'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository
@@ -63,7 +64,7 @@ export default class IntegrationDataService extends LoggerBase {
     const dataInfo = await this.repo.getDataInfo(dataId)
 
     if (!dataInfo) {
-      this.log.error({ dataId }, 'Data not found!')
+      telemetry.increment('data_sink_worker.process_data.not_found', 1)
       return
     }
 
@@ -135,11 +136,24 @@ export default class IntegrationDataService extends LoggerBase {
       cache,
 
       publishActivity: async (activity) => {
-        await this.publishActivity(dataInfo.tenantId, dataInfo.integrationType, dataId, activity)
+        await this.publishActivity(
+          dataInfo.tenantId,
+          dataInfo.integrationType,
+          dataId,
+          dataInfo.onboarding === null ? true : dataInfo.onboarding,
+          activity,
+        )
       },
 
       publishCustom: async (entity, type) => {
-        await this.publishCustom(dataInfo.tenantId, dataInfo.integrationType, dataId, type, entity)
+        await this.publishCustom(
+          dataInfo.tenantId,
+          dataInfo.integrationType,
+          dataId,
+          dataInfo.onboarding === null ? true : dataInfo.onboarding,
+          type,
+          entity,
+        )
       },
 
       publishStream: async (identifier, data) => {
@@ -148,6 +162,7 @@ export default class IntegrationDataService extends LoggerBase {
           dataInfo.integrationType,
           dataInfo.streamId,
           identifier,
+          dataInfo.onboarding === null ? true : dataInfo.onboarding,
           data,
           dataInfo.runId,
           dataInfo.webhookId,
@@ -243,6 +258,7 @@ export default class IntegrationDataService extends LoggerBase {
     tenantId: string,
     platform: string,
     dataId: string,
+    onboarding: boolean,
     type: IntegrationResultType,
     entity: unknown,
   ): Promise<void> {
@@ -258,6 +274,7 @@ export default class IntegrationDataService extends LoggerBase {
         platform,
         resultId,
         resultId,
+        onboarding,
       )
     } catch (err) {
       await this.triggerDataError(
@@ -275,6 +292,7 @@ export default class IntegrationDataService extends LoggerBase {
     tenantId: string,
     platform: string,
     dataId: string,
+    onboarding: boolean,
     activity: IActivityData,
   ): Promise<void> {
     try {
@@ -288,6 +306,7 @@ export default class IntegrationDataService extends LoggerBase {
         platform,
         resultId,
         activity.sourceId,
+        onboarding,
       )
     } catch (err) {
       await this.triggerDataError(
@@ -354,6 +373,7 @@ export default class IntegrationDataService extends LoggerBase {
     platform: string,
     parentId: string,
     identifier: string,
+    onboarding: boolean,
     data?: unknown,
     runId?: string,
     webhookId?: string,
@@ -367,7 +387,12 @@ export default class IntegrationDataService extends LoggerBase {
       const streamId = await this.repo.publishStream(parentId, identifier, data, runId, webhookId)
       if (streamId) {
         if (runId) {
-          await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+          await this.streamWorkerEmitter.triggerStreamProcessing(
+            tenantId,
+            platform,
+            streamId,
+            onboarding,
+          )
         } else if (webhookId) {
           await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
         } else {

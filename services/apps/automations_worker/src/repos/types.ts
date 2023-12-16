@@ -13,6 +13,8 @@ export interface IMemberData {
 
   lastActivityId: string
   lastActivity: IActivityData
+
+  joinedAt: string
 }
 
 export interface IActivityData {
@@ -21,6 +23,7 @@ export interface IActivityData {
   platform: string
   attributes: any
   body: string
+  timestamp: string
 
   // a bunch more but we just passing them as the payload - not needed here for now
 

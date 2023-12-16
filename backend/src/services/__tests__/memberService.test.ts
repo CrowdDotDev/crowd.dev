@@ -1,10 +1,9 @@
+import { generateUUIDv1, Error400, Error404 } from '@crowd/common'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import MemberService from '../memberService'
 import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
-import Error404 from '../../errors/Error404'
-import Error400 from '../../errors/Error400'
 import { MemberAttributeName, MemberAttributeType, PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
@@ -13,7 +12,6 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
-import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 import {
   DEVTO_MEMBER_ATTRIBUTES,
@@ -595,6 +593,7 @@ describe('MemberService tests', () => {
         grossDeparturesByMonth: null,
         ultimateParent: null,
         immediateParent: null,
+        manuallyChangedFields: null,
       })
     })
 
@@ -688,6 +687,7 @@ describe('MemberService tests', () => {
         grossDeparturesByMonth: null,
         ultimateParent: null,
         immediateParent: null,
+        manuallyChangedFields: null,
       })
     })
 
@@ -740,6 +740,7 @@ describe('MemberService tests', () => {
         emails: null,
         phoneNumbers: null,
         logo: null,
+        manuallyChangedFields: null,
         memberOrganizations: {
           dateEnd: null,
           dateStart: null,

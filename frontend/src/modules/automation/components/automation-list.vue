@@ -43,8 +43,9 @@
 
               class="popover-item h-auto mb-1 py-2 px-2.5"
               :class="{
-                'hover:bg-white !cursor-default': !automationType.canCreate(store),
+                'hover:bg-white': !automationType.canCreate(store),
                 'opacity-50': automationType.disabled && automationType.disabled(store),
+                'cursor-pointer hover:bg-gray-50': !!automationType.canCreate(store),
               }"
               @click="createAutomation(key)"
             >
@@ -103,8 +104,8 @@
     <app-empty-state-cta
       v-else
       icon="ri-flow-chart"
-      title="Start to automate manual tasks"
-      description="Create config actions or send Slack notifications when a new activity happens, or a new contributor joins your community "
+      title="Start automating your workflows"
+      :description="`Take instant action on your data. For example, set up Slack notifications for new contributors, sync high-intent contributors with HubSpot, or set up a Webhook to trigger a workflow with Zapier or Make. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
     />
 
     <!-- Add/Edit Webhook form drawer -->
@@ -130,10 +131,8 @@ import AppAutomationForm from '@/modules/automation/components/automation-form.v
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
-import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 import { useStore } from 'vuex';
 import config from '@/config';
-import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { automationTypes } from '../config/automation-types';
 
 const options = ref([
@@ -156,9 +155,6 @@ const {
   filter, loadingAutomations, automations,
 } = storeToRefs(automationStore);
 const { getAutomations, changeAutomationFilter } = automationStore;
-
-const activityTypeStore = useActivityTypeStore();
-const { setTypes } = activityTypeStore;
 
 const store = useStore();
 const fetchIntegrations = () => store.dispatch('integration/doFetch');
@@ -193,9 +189,6 @@ const plan = (type) => {
 onMounted(async () => {
   fetchIntegrations();
   getAutomations();
-
-  const activityTypes = await ActivityTypeService.get();
-  setTypes(activityTypes);
 });
 
 </script>

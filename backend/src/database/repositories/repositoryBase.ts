@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars */
 import { Sequelize } from 'sequelize'
+import { PageData, SearchCriteria } from '@crowd/types'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { PageData, SearchCriteria } from '../../types/common'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeRepository from './sequelizeRepository'
 

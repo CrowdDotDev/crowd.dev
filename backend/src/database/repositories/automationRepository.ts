@@ -1,9 +1,14 @@
-import { AutomationState, AutomationSyncTrigger, FeatureFlag, IAutomationData } from '@crowd/types'
+import {
+  AutomationState,
+  AutomationSyncTrigger,
+  FeatureFlag,
+  IAutomationData,
+  PageData,
+} from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
+import { Error404 } from '@crowd/common'
 import { PLAN_LIMITS } from '@/feature-flags/isFeatureEnabled'
-import Error404 from '../../errors/Error404'
 import { AutomationCriteria } from '../../types/automationTypes'
-import { PageData } from '../../types/common'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import { RepositoryBase } from './repositoryBase'

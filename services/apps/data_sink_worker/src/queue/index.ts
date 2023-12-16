@@ -1,30 +1,32 @@
 import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { DbConnection, DbStore } from '@crowd/database'
-import {
-  DATA_SINK_WORKER_QUEUE_SETTINGS,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  SqsClient,
-  SqsQueueReceiver,
-} from '@crowd/sqs'
+import { DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient, SqsPrioritizedQueueReciever } from '@crowd/sqs'
 import {
   CreateAndProcessActivityResultQueueMessage,
   DataSinkWorkerQueueMessageType,
   IQueueMessage,
   ProcessIntegrationResultQueueMessage,
+  QueuePriorityLevel,
 } from '@crowd/types'
 import DataSinkService from '../service/dataSink.service'
 import { RedisClient } from '@crowd/redis'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
+import {
+  DataSinkWorkerEmitter,
+  NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 
-export class WorkerQueueReceiver extends SqsQueueReceiver {
+export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   constructor(
+    level: QueuePriorityLevel,
     client: SqsClient,
     private readonly dbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
@@ -32,7 +34,14 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(client, DATA_SINK_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, tracer, parentLog)
+    super(
+      level,
+      client,
+      DATA_SINK_WORKER_QUEUE_SETTINGS,
+      maxConcurrentProcessing,
+      tracer,
+      parentLog,
+    )
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
@@ -44,6 +53,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
           new DbStore(this.log, this.dbConn, undefined, false),
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
+          this.dataSinkWorkerEmitter,
           this.redisClient,
           this.unleash,
           this.temporal,
@@ -63,6 +73,10 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
               msg.integrationId,
               msg.activityData,
             )
+            break
+          }
+          case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
+            await service.checkResults()
             break
           }
 

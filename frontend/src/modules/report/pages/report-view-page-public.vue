@@ -294,7 +294,7 @@ export default {
         excludeSegments: !this.segmentId,
         segments: [this.segmentId],
       });
-      this.currentTenant = await TenantService.find(
+      this.currentTenant = await TenantService.findName(
         this.tenantId,
       );
     } else {

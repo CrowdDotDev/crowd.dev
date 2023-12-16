@@ -90,6 +90,7 @@ const tab = ref('activities');
 onMounted(async () => {
   await store.dispatch('member/doFind', {
     id: props.id,
+    segments: [selectedProjectGroup.value?.id],
   });
 
   if (

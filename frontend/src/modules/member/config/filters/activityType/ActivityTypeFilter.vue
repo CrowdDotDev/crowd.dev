@@ -15,7 +15,6 @@ import {
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
@@ -28,7 +27,6 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:data', value: any),}>();
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { setTypes } = activityTypeStore;
 
 const store = useStore();
 
@@ -78,9 +76,5 @@ watch(() => types, (typesValue: any) => {
 
 onMounted(async () => {
   await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));
-
-  const activityTypes = await ActivityTypeService.get();
-
-  setTypes(activityTypes);
 });
 </script>

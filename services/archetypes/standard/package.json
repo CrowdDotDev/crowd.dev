@@ -15,6 +15,7 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/redis": "file:../../libs/redis",
+    "@crowd/types": "file:../../libs/types",
     "@temporalio/client": "~1.8.6",
     "config": "^3.3.9",
     "kafkajs": "~2.2.4",

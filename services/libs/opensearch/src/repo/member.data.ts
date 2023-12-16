@@ -48,3 +48,13 @@ export interface IDbMemberSyncData {
   toMergeIds: string[]
   noMergeIds: string[]
 }
+
+export interface IMemberSegmentMatrixItem {
+  segmentId: string
+  processed: boolean
+  data: IDbMemberSyncData
+}
+
+export interface IMemberSegmentMatrix {
+  [key: string]: IMemberSegmentMatrixItem[]
+}

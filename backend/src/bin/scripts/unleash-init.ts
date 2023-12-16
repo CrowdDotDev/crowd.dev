@@ -129,6 +129,7 @@ const constaintConfiguration = {
       },
     ],
   ],
+  [FeatureFlag.FIND_GITHUB]: [[]],
   [FeatureFlag.LINKEDIN]: [
     [
       {
@@ -224,25 +225,6 @@ const constaintConfiguration = {
     ],
   ],
   [FeatureFlag.SEGMENTS]: [],
-
-  // temporal
-  [FeatureFlag.TEMPORAL_AUTOMATIONS]: [
-    [
-      {
-        values: [
-          Plans.values.scale,
-          Plans.values.eagleEye,
-          Plans.values.enterprise,
-          Plans.values.essential,
-          Plans.values.growth,
-        ],
-        inverted: false,
-        operator: 'IN',
-        contextName: 'plan',
-        caseInsensitive: false,
-      },
-    ],
-  ],
 
   [FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES]: [
     [
@@ -411,7 +393,7 @@ async function createStrategy(flag: FeatureFlag, constraints: any[]): Promise<vo
   }
 
   log.info(`Feature flag ${flag} constraints not found - creating...`)
-
+  constraints = constraints || []
   for (const constraint of constraints) {
     const id = generateUUIDv1()
     await seq.query(

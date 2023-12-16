@@ -176,8 +176,7 @@
 .btn {
   &--twitter,
   &--twitter:hover {
-    background-color: rgba(29, 155, 240, 0.15);
-    color: #1d9bf0;
+    @apply bg-white border border-gray-200;
   }
 
   &--discord,

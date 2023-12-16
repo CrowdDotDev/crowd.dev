@@ -47,7 +47,7 @@ i18nInit();
   const isSocialOnboardRequested = AuthService.isSocialOnboardRequested();
 
   AuthToken.applyFromLocationUrlIfExists();
-  await TenantService.fetchAndApply();
+  store.state.auth.currentTenant = await TenantService.fetchAndApply();
   if (isSocialOnboardRequested) {
     await AuthService.socialOnboard();
   }

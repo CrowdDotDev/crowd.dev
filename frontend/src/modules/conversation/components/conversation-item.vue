@@ -19,20 +19,21 @@
         />
         <div class="flex items-center">
           <el-tooltip
+            v-if="platform"
             effect="dark"
             :content="platform.name"
             placement="top"
           >
             <img
               :alt="platform.name"
-              class="w-4 h-4"
+              class="w-4 h-4 mr-2"
               :src="platform.image"
             />
           </el-tooltip>
           <div class="flex-grow leading-none">
             <app-activity-header
               :activity="conversation.conversationStarter"
-              class="text-xs leading-4 pl-2 flex flex-wrap"
+              class="text-xs leading-4 flex flex-wrap"
             />
           </div>
         </div>

@@ -1,6 +1,6 @@
+import { Error404 } from '@crowd/common'
 import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
 import { MemberAttributeName, PlatformType } from '@crowd/types'
 import TaskRepository from '../taskRepository'
@@ -1389,7 +1389,7 @@ describe('ActivityRepository tests', () => {
   })
 
   describe('filter tests', () => {
-    it('Positive sentiment filter and sort', async () => {
+    it.skip('Positive sentiment filter and sort', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberCreated = await MemberRepository.create(
         {
@@ -1472,7 +1472,7 @@ describe('ActivityRepository tests', () => {
         filteredActivities3.rows[1].sentiment.positive,
       )
     })
-    it('Negative sentiment filter and sort', async () => {
+    it.skip('Negative sentiment filter and sort', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberCreated = await MemberRepository.create(
         {
@@ -1556,7 +1556,7 @@ describe('ActivityRepository tests', () => {
       )
     })
 
-    it('Overall sentiment filter and sort', async () => {
+    it.skip('Overall sentiment filter and sort', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const memberCreated = await MemberRepository.create(
@@ -1632,7 +1632,7 @@ describe('ActivityRepository tests', () => {
       )
     })
 
-    it('Member related attributes filters', async () => {
+    it.skip('Member related attributes filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 

@@ -1,6 +1,9 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import { Connection, Client } from '@temporalio/client'
 
+import { getDataConverter } from './encryption/data-converter'
+import { EncryptionCodec } from './encryption/encryption-codec'
+
 export interface ITemporalConfig {
   serverUrl: string
   namespace: string
@@ -44,9 +47,11 @@ export const getTemporalClient = async (cfg: ITemporalConfig): Promise<Client> =
     connection,
     namespace: cfg.namespace,
     identity: cfg.identity,
+    dataConverter: await getDataConverter(),
   })
 
   return client
 }
 
+export { getDataConverter, EncryptionCodec }
 export * from '@temporalio/client'

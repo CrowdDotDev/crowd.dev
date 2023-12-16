@@ -2,8 +2,10 @@
   "db": {},
   "sqs": {},
   "redis": {},
+  "unleash": {},
   "nango": {},
   "worker": {
-    "maxRetries": 5
+    "maxRetries": 5,
+    "queuePriorityLevel": "normal"
   }
 }

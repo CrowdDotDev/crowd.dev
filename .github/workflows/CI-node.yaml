@@ -22,20 +22,17 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install and build libraries
-        run: ../services/scripts/install_lib_packages.sh
-
-      - name: Install root dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: cd .. && corepack enable && pnpm i --frozen-lockfile
 
       - name: Check linting
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Check formatting
-        run: npm run format-check
+        run: pnpm run format-check
 
       - name: Check typescript
-        run: npm run tsc-check
+        run: pnpm run tsc-check
 
   lint-format-services:
     runs-on: ubuntu-latest
@@ -53,8 +50,8 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install packages
-        run: ./scripts/install_all_packages.sh
+      - name: Install dependencies
+        run: cd .. && corepack enable && pnpm i --frozen-lockfile
 
       - name: Check library linting, format and typescript
         run: ./scripts/lint_libs.sh
@@ -79,15 +76,12 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install and build libraries
-        run: ../services/scripts/install_lib_packages.sh
-
-      - name: Install root dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: cd .. && corepack enable && pnpm i --frozen-lockfile
 
       - name: Run tests
         working-directory: ./backend
-        run: SERVICE=test npm test -- --testPathIgnorePatterns=serverless
+        run: SERVICE=test pnpm test -- --testPathIgnorePatterns=serverless
 
   tests-serverless:
     needs: lint-format
@@ -106,12 +100,9 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install and build libraries
-        run: ../services/scripts/install_lib_packages.sh
-
       - name: Install dependencies
-        run: npm ci
+        run: cd .. && corepack enable && pnpm i --frozen-lockfile
 
       - name: Run tests
         working-directory: ./backend
-        run: SERVICE=test npm test -- --testPathPattern="serverless\/"
+        run: SERVICE=test pnpm test -- --testPathPattern="serverless\/"

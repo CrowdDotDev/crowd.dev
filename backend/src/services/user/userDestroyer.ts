@@ -1,8 +1,8 @@
 import assert from 'assert'
+import { Error400 } from '@crowd/common'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import UserRepository from '../../database/repositories/userRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
-import Error400 from '../../errors/Error400'
 import Plans from '../../security/plans'
 import { IServiceOptions } from '../IServiceOptions'
 

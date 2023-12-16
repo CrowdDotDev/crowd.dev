@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars */
+import { PageData, SearchCriteria } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
-import { PageData, SearchCriteria } from '../types/common'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 

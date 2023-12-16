@@ -148,11 +148,14 @@ export class Service {
       }
     })
 
-    this.config.envvars.forEach((envvar) => {
-      if (!process.env[envvar]) {
-        missing.push(envvar)
-      }
-    })
+    // Only validate service-related environment variables when applicable.
+    if (this.config.envvars) {
+      this.config.envvars.forEach((envvar) => {
+        if (!process.env[envvar]) {
+          missing.push(envvar)
+        }
+      })
+    }
 
     // Only validate Kafka-related environment variables if enabled.
     if (this.config.producer.enabled) {
@@ -254,6 +257,8 @@ export class Service {
       await this.temporal.connection.close()
     }
 
-    this._unleash.destroy()
+    if (this._unleash) {
+      this._unleash.destroy()
+    }
   }
 }

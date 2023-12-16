@@ -16,15 +16,10 @@
       </el-form-item>
       <el-form-item>
         <template #label>
-          <div class="flex gap-2">
+          <div class="flex items-center gap-2">
             {{ fields.headline.label }}
-            <el-tooltip
-              content="Organization enrichment"
-              placement="top"
-            >
-              <div class="form-enrichment-badge">
-                <app-svg name="enrichment" />
-              </div>
+            <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+              <app-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -51,15 +46,10 @@
       </el-form-item>
       <el-form-item class="w-1/2">
         <template #label>
-          <div class="flex gap-2">
+          <div class="flex gap-2 items-center">
             {{ fields.employees.label }}
-            <el-tooltip
-              content="Organization enrichment"
-              placement="top"
-            >
-              <div class="form-enrichment-badge">
-                <app-svg name="enrichment" />
-              </div>
+            <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+              <app-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -71,15 +61,10 @@
       </el-form-item>
       <el-form-item class="w-1/2">
         <template #label>
-          <div class="flex gap-2">
+          <div class="flex gap-2 items-center">
             {{ fields.revenueRange.label }}
-            <el-tooltip
-              content="Organization enrichment"
-              placement="top"
-            >
-              <div class="form-enrichment-badge">
-                <app-svg name="enrichment" />
-              </div>
+            <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+              <app-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>

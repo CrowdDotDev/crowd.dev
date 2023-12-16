@@ -2,8 +2,7 @@ import config from '@/config';
 import ConfluenceConnect from './components/confluence-connect.vue';
 
 export default {
-  enabled: config.isConfluenceEnabled,
-  hideAsIntegration: !config.isConfluenceEnabled,
+  enabled: true,
   name: 'Confluence',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',

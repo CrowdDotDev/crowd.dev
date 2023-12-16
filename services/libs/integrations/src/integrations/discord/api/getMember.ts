@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { DiscordApiMember } from '../types'
 import { handleDiscordError } from './errorHandler'
 import { IProcessStreamContext } from '../../../types'
+import { retryWrapper } from './handleRateLimit'
 
 export const getMember = async (
   guildId: string,
@@ -18,13 +19,15 @@ export const getMember = async (
     },
   }
 
-  try {
-    const response = await axios(config)
-    return response.data
-  } catch (err) {
-    const newErr = handleDiscordError(err, config, { guildId, userId }, ctx)
-    if (newErr) {
-      throw newErr
+  return await retryWrapper(3, async () => {
+    try {
+      const response = await axios(config)
+      return response.data
+    } catch (err) {
+      const newErr = handleDiscordError(err, config, { guildId, userId }, ctx)
+      if (newErr) {
+        throw newErr
+      }
     }
-  }
+  })
 }

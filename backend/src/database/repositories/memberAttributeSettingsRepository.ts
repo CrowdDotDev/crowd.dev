@@ -1,8 +1,8 @@
 import Sequelize from 'sequelize'
 import { RedisCache } from '@crowd/redis'
+import { Error400, Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import Error404 from '../../errors/Error404'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { AttributeData } from '../attributes/attribute'
 import {
@@ -11,7 +11,6 @@ import {
   MemberAttributeSettingsCriteria,
   MemberAttributeSettingsCriteriaResult,
 } from './types/memberAttributeSettingsTypes'
-import Error400 from '../../errors/Error400'
 
 const Op = Sequelize.Op
 

@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash'
-import { websiteNormalizer } from '@crowd/common'
+import { Error400, websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,
@@ -11,10 +11,14 @@ import {
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import MemberRepository from '../database/repositories/memberRepository'
+import {
+  MergeActionState,
+  MergeActionType,
+  MergeActionsRepository,
+} from '../database/repositories/mergeActionsRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import Error400 from '../errors/Error400'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
@@ -24,12 +28,8 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
-import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
-import {
-  MergeActionsRepository,
-  MergeActionType,
-  MergeActionState,
-} from '../database/repositories/mergeActionsRepository'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import MemberOrganizationService from './memberOrganizationService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -44,7 +44,8 @@ export default class OrganizationService extends LoggerBase {
 
     await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
 
-    await sendOrgMergeMessage(tenantId, originalId, toMergeId)
+    const emitter = await getNodejsWorkerEmitter()
+    await emitter.mergeOrg(tenantId, originalId, toMergeId)
   }
 
   async mergeSync(originalId, toMergeId) {
@@ -181,11 +182,8 @@ export default class OrganizationService extends LoggerBase {
         '[Merge Organizations] - Moving members to original organisation! ',
       )
       // update members that belong to source organization to destination org
-      await OrganizationRepository.moveMembersBetweenOrganizations(
-        toMergeId,
-        originalId,
-        repoOptions,
-      )
+      const memberOrganizationService = new MemberOrganizationService(repoOptions)
+      await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
 
       this.log.info(
         { originalId, toMergeId },
@@ -259,10 +257,16 @@ export default class OrganizationService extends LoggerBase {
       await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
 
       // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(originalId)
+      await searchSyncService.triggerOrganizationMembersSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(originalId)
+      await searchSyncService.triggerOrganizationActivitiesSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       this.log.info(
         { originalId, toMergeId },
@@ -562,7 +566,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       if (!existing) {
-        existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
+        existing = await OrganizationRepository.findByIdentities(data.identities, this.options)
       }
 
       if (existing) {
@@ -597,21 +601,19 @@ export default class OrganizationService extends LoggerBase {
           'weakIdentities',
         ]
         fields.forEach((field) => {
-          if (field === 'website' && !existing.website && cache.website) {
-            updateData[field] = cache[field]
-          } else if (
-            field !== 'website' &&
-            cache[field] &&
-            !isEqual(cache[field], existing[field])
-          ) {
+          if (!existing[field] && cache[field]) {
             updateData[field] = cache[field]
           }
         })
 
-        record = await OrganizationRepository.update(existing.id, updateData, {
-          ...this.options,
-          transaction,
-        })
+        if (Object.keys(updateData).length > 0) {
+          record = await OrganizationRepository.update(existing.id, updateData, {
+            ...this.options,
+            transaction,
+          })
+        } else {
+          record = existing
+        }
       } else {
         await OrganizationRepository.checkIdentities(data, this.options)
 
@@ -677,7 +679,13 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
-  async update(id, data, overrideIdentities = false, syncToOpensearch = true) {
+  async update(
+    id,
+    data,
+    overrideIdentities = false,
+    syncToOpensearch = true,
+    manualChange = false,
+  ) {
     let tx
 
     try {
@@ -719,7 +727,13 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const record = await OrganizationRepository.update(id, data, repoOptions, overrideIdentities)
+      const record = await OrganizationRepository.update(
+        id,
+        data,
+        repoOptions,
+        overrideIdentities,
+        manualChange,
+      )
 
       await SequelizeRepository.commitTransaction(tx)
 

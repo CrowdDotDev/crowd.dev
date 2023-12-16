@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
+import { Error404 } from '@crowd/common'
 import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationCreate,
@@ -7,7 +8,6 @@ import {
 } from '../../types/memberSegmentAffiliationTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import Error404 from '../../errors/Error404'
 import SequelizeRepository from './sequelizeRepository'
 
 class MemberSegmentAffiliationRepository extends RepositoryBase<

@@ -21,7 +21,11 @@
           Connect a Groups.io account. You must be a group owner to authenticate.
         </div>
       </div>
-      <el-form label-position="top" class="form">
+      <el-form
+        label-position="top"
+        class="form"
+        @submit.prevent
+      >
         <app-form-item
           v-if="!isAPIConnectionValid"
           class="
@@ -208,6 +212,7 @@ const isVerifyingAccount = ref(false);
 const isAPIConnectionValid = ref(false);
 const accountVerificationFailed = ref(false);
 const cookie = ref('');
+const cookieExpiry = ref('');
 const loading = ref(false);
 
 const cantConnect = computed(() => {
@@ -248,8 +253,9 @@ const validateAccount = async () => {
   accountVerificationFailed.value = false;
   try {
     const response = await IntegrationService.groupsioGetToken(form.email, form.password, form.twoFactorCode);
-    const { groupsioCookie } = response;
+    const { groupsioCookie, groupsioCookieExpiry } = response;
     cookie.value = groupsioCookie;
+    cookieExpiry.value = groupsioCookieExpiry;
     isAPIConnectionValid.value = true;
   } catch (e) {
     isAPIConnectionValid.value = false;
@@ -356,6 +362,8 @@ const connect = async () => {
   doGroupsioConnect({
     email: form.email,
     token: cookie.value,
+    tokenExpiry: cookieExpiry.value,
+    password: form.password,
     groupNames: form.groups,
     isUpdate: !!props.integration.settings?.email,
   })

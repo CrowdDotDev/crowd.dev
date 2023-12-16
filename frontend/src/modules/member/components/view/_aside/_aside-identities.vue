@@ -1,8 +1,19 @@
 <template>
   <div>
     <div class="flex items-center justify-between">
-      <div class="font-medium text-black">
-        Identities
+      <div class="flex items-center gap-1">
+        <div class="font-medium text-black">
+          Identities
+        </div>
+        <el-tooltip placement="top">
+          <template #content>
+            Identities can be profiles on social platforms, emails, phone numbers,<br>
+            or unique identifiers from internal sources (e.g. web app log-in email).
+          </template>
+          <span>
+            <i class="ri-information-line text-xs" />
+          </span>
+        </el-tooltip>
       </div>
       <el-button
         class="btn btn-link btn-link--primary"

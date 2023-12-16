@@ -1,5 +1,4 @@
-import Error403 from '../../errors/Error403'
-import { i18n } from '../../i18n'
+import { i18n, Error403 } from '@crowd/common'
 import SampleDataService from '../../services/sampleDataService'
 import track from '../../segment/track'
 import Permissions from '../../security/permissions'

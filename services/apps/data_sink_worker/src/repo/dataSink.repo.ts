@@ -1,7 +1,8 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IIntegrationResult, IntegrationResultState, TenantPlans } from '@crowd/types'
-import { IFailedResultData, IResultData } from './dataSink.data'
+import { IDelayedResults, IFailedResultData, IResultData } from './dataSink.data'
+import { distinct, singleOrDefault } from '@crowd/common'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -18,14 +19,18 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            r."streamId",
            r."apiDataId",
            r."integrationId",
+           r.retries,
+           r."delayedUntil",
            i.platform,
            t."hasSampleData", 
            t."plan",
            t."isTrialPlan",
-           t."name"
+           t."name",
+           run.onboarding
     from integration.results r
         inner join integrations i on r."integrationId" = i.id
         inner join tenants t on t.id = r."tenantId"
+        left join integration.runs run on run.id = r."runId"
     where r.id = $(resultId)
   `
   public async getResultInfo(resultId: string): Promise<IResultData | null> {
@@ -160,9 +165,14 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     const results = await this.db().any(
       `select r.id,
               r."tenantId",
-              i.platform
+              i.platform,
+              t.plan,
+              t."priorityLevel" as "dbPriority",
+              run.onboarding
         from integration.results r
          inner join integrations i on i.id = r."integrationId"
+         inner join tenants t on t.id = r."tenantId"
+         left join integration.runs run on run.id = r."runId"
         where r.state = $(state)
        order by r."createdAt" asc
        limit $(perPage) offset $(offset)`,
@@ -184,9 +194,14 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     const results = await this.db().any(
       `select r.id,
               r."tenantId",
-              i.platform
+              i.platform,
+              t.plan,
+              t."priorityLevel" as "dbPriority",
+              run.onboarding
         from integration.results r
          inner join integrations i on i.id = r."integrationId"
+         inner join tenants t on t.id = r."tenantId"
+         inner join integration.runs run on run.id = r."runId"
         where r."runId" = $(runId) and r.state = $(state)
        order by r."createdAt" asc
        limit $(perPage) offset $(offset)`,
@@ -206,7 +221,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       `update integration.results
         set state = $(newState),
             error = null,
-            "updatedAt" = now()
+            "updatedAt" = now(),
+            "delayedUntil" = null
         where id in ($(resultIds:csv))`,
       {
         resultIds,
@@ -223,5 +239,74 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     })
 
     return result.map((r) => r.id)
+  }
+
+  public async delayResult(resultId: string, until: Date): Promise<void> {
+    const result = await this.db().result(
+      `update integration.results
+       set  state = $(state),
+            "delayedUntil" = $(until),
+            retries = coalesce(retries, 0) + 1,
+            "updatedAt" = now()
+       where id = $(resultId)`,
+      {
+        resultId,
+        until,
+        state: IntegrationResultState.DELAYED,
+      },
+    )
+
+    this.checkUpdateRowCount(result.rowCount, 1)
+  }
+
+  public async getDelayedResults(limit: number): Promise<IDelayedResults[]> {
+    this.ensureTransactional()
+
+    try {
+      const resultData = await this.db().any(
+        `
+        select r.id,
+               r."tenantId",
+               i.platform,
+               r."runId"
+        from integration.results r
+        inner join integrations i on r."integrationId" = i.id
+        where r.state = $(delayedState) and r."delayedUntil" < now()
+        limit ${limit}
+        for update skip locked;
+        `,
+        {
+          delayedState: IntegrationResultState.DELAYED,
+        },
+      )
+
+      const runIds = distinct(resultData.map((r) => r.runId))
+      if (runIds.length > 0) {
+        const runInfos = await this.db().any(
+          `
+        select id, onboarding
+        from integration.runs
+        where id in ($(runIds:csv))
+        `,
+          {
+            runIds,
+          },
+        )
+
+        for (const result of resultData) {
+          const runInfo = singleOrDefault(runInfos, (r) => r.id === result.runId)
+          if (runInfo) {
+            result.onboarding = runInfo.onboarding
+          } else {
+            result.onboarding = true
+          }
+        }
+      }
+
+      return resultData
+    } catch (err) {
+      this.log.error(err, 'Failed to get delayed results!')
+      throw err
+    }
   }
 }

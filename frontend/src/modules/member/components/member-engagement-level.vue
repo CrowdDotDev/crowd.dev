@@ -16,19 +16,29 @@
           class="block mr-2 text-xs font-semibold text-gray-500"
         >-</span>
       </div>
-      <div
+      <el-tooltip
         v-else
-        class="member-engagement-level"
-        :class="`member-engagement-level--${computedEngagementLevel.label.toLowerCase()}`"
+        placement="top"
       >
-        <span class="member-engagement-level-value">
-          {{ Math.round(computedEngagementLevel.value) }}
-        </span>
+        <template #content>
+          Calculated based on the recency and importance of the activities<br>
+          a contact has performed in relation to all other contacts.
+        </template>
 
-        <span class="member-engagement-level-label" data-qa="member-engagement-level-label">
-          {{ computedEngagementLevel.label }}
-        </span>
-      </div>
+        <div
+
+          class="member-engagement-level"
+          :class="`member-engagement-level--${computedEngagementLevel.label.toLowerCase()}`"
+        >
+          <span class="member-engagement-level-value">
+            {{ Math.round(computedEngagementLevel.value) }}
+          </span>
+
+          <span class="member-engagement-level-label" data-qa="member-engagement-level-label">
+            {{ computedEngagementLevel.label }}
+          </span>
+        </div>
+      </el-tooltip>
     </div>
   </div>
 </template>

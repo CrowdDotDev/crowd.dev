@@ -647,7 +647,7 @@ export default {
     async doGroupsioConnect(
       { commit },
       {
-        email, token, groupNames, isUpdate,
+        email, token, tokenExpiry, password, groupNames, isUpdate,
       },
     ) {
       console.log('doGroupsioConnect', email, token, groupNames, isUpdate);
@@ -658,6 +658,8 @@ export default {
         const integration = await IntegrationService.groupsioConnect(
           email,
           token,
+          tokenExpiry,
+          password,
           groupNames,
         );
 

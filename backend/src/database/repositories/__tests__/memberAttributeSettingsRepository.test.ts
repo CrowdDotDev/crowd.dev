@@ -1,8 +1,7 @@
+import { Error400, Error404 } from '@crowd/common'
+import { MemberAttributeType } from '@crowd/types'
 import MemberAttributeSettingsRepository from '../memberAttributeSettingsRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Error404 from '../../../errors/Error404'
-import Error400 from '../../../errors/Error400'
-import { MemberAttributeType } from '@crowd/types'
 
 const db = null
 

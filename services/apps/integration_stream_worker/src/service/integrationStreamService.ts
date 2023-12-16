@@ -8,11 +8,6 @@ import {
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient, RateLimiter, ConcurrentRequestLimiter } from '@crowd/redis'
 import {
-  IntegrationDataWorkerEmitter,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-} from '@crowd/sqs'
-import {
   IntegrationRunState,
   IntegrationState,
   IntegrationStreamType,
@@ -23,6 +18,11 @@ import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 import IntegrationStreamRepository from '../repo/integrationStream.repo'
 import { IStreamData } from '../repo/integrationStream.data'
 import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
+import {
+  IntegrationDataWorkerEmitter,
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+} from '@crowd/common_services'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
@@ -57,6 +57,7 @@ export default class IntegrationStreamService extends LoggerBase {
             stream.tenantId,
             stream.integrationType,
             stream.id,
+            stream.onboarding === null ? true : stream.onboarding,
           )
         } else {
           await this.streamWorkerEmitter.triggerWebhookProcessing(
@@ -77,11 +78,11 @@ export default class IntegrationStreamService extends LoggerBase {
     let streams = await this.repo.getPendingStreams(runId, 20)
     while (streams.length > 0) {
       for (const stream of streams) {
-        this.log.info({ streamId: stream.id }, 'Triggering stream processing!')
         this.streamWorkerEmitter.triggerStreamProcessing(
           stream.tenantId,
           stream.integrationType,
           stream.id,
+          stream.onboarding === null ? true : stream.onboarding,
         )
       }
 
@@ -316,6 +317,7 @@ export default class IntegrationStreamService extends LoggerBase {
           streamInfo.tenantId,
           streamInfo.integrationType,
           streamId,
+          streamInfo.onboarding === null ? true : streamInfo.onboarding,
           data,
           undefined,
         )
@@ -333,6 +335,7 @@ export default class IntegrationStreamService extends LoggerBase {
           streamInfo.integrationType,
           streamId,
           identifier,
+          streamInfo.onboarding === null ? true : streamInfo.onboarding,
           data,
           undefined,
           webhookId,
@@ -490,6 +493,7 @@ export default class IntegrationStreamService extends LoggerBase {
           streamInfo.tenantId,
           streamInfo.integrationType,
           streamId,
+          streamInfo.onboarding === null ? true : streamInfo.onboarding,
           data,
           streamInfo.runId,
         )
@@ -500,6 +504,7 @@ export default class IntegrationStreamService extends LoggerBase {
           streamInfo.integrationType,
           streamId,
           identifier,
+          streamInfo.onboarding === null ? true : streamInfo.onboarding,
           data,
           streamInfo.runId,
           undefined,
@@ -513,7 +518,11 @@ export default class IntegrationStreamService extends LoggerBase {
           return
         }
         this.log.trace(`Changing message visibility of ${receiptHandle} to ${newTimeout}!`)
-        await this.streamWorkerEmitter.setMessageVisibilityTimeout(receiptHandle, newTimeout)
+        await this.streamWorkerEmitter.setMessageVisibilityTimeout(
+          streamInfo.tenantId,
+          receiptHandle,
+          newTimeout,
+        )
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings)
@@ -572,6 +581,7 @@ export default class IntegrationStreamService extends LoggerBase {
         streamInfo.tenantId,
         streamInfo.integrationType,
         streamInfo.runId,
+        streamInfo.onboarding,
       )
     }
   }
@@ -639,6 +649,7 @@ export default class IntegrationStreamService extends LoggerBase {
     platform: string,
     parentId: string,
     identifier: string,
+    onboarding: boolean,
     data?: unknown,
     runId?: string,
     webhookId?: string,
@@ -653,7 +664,12 @@ export default class IntegrationStreamService extends LoggerBase {
         // publising normal stream
         const streamId = await this.repo.publishStream(parentId, identifier, data, runId)
         if (streamId) {
-          await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+          await this.streamWorkerEmitter.triggerStreamProcessing(
+            tenantId,
+            platform,
+            streamId,
+            onboarding,
+          )
         } else {
           this.log.debug({ identifier }, 'Child stream already exists!')
         }
@@ -684,13 +700,14 @@ export default class IntegrationStreamService extends LoggerBase {
     tenantId: string,
     platform: string,
     streamId: string,
+    onboarding: boolean,
     data: unknown,
     runId?: string,
   ): Promise<void> {
     try {
       this.log.debug('Publishing new stream data!')
       const dataId = await this.repo.publishData(streamId, data)
-      await this.dataWorkerEmitter.triggerDataProcessing(tenantId, platform, dataId)
+      await this.dataWorkerEmitter.triggerDataProcessing(tenantId, platform, dataId, onboarding)
     } catch (err) {
       if (runId) {
         await this.triggerRunError(

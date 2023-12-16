@@ -1,5 +1,5 @@
 import { FeatureFlag } from '@crowd/types'
-import Error403 from '../errors/Error403'
+import { Error403 } from '@crowd/common'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 
 export function featureFlagMiddleware(featureFlag: FeatureFlag, errorMessage: string) {

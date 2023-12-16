@@ -450,6 +450,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   }
 
   public async update(id: string, data: Partial<IDbUpdateOrganizationData>): Promise<void> {
+    // handle manuallyChanged
+    const result = await this.db().oneOrNone(
+      `select id, "manuallyChangedFields" from organizations where id = $(id)`,
+      {
+        id,
+      },
+    )
+    if (!result) {
+      throw new Error(`Organization with id ${id} not found!`)
+    }
+    const manuallyChangedFields = result.manuallyChangedFields || []
+    for (const column of manuallyChangedFields) {
+      if (column in data) {
+        delete data[column]
+      }
+    }
+
     const keys = Object.keys(data)
     keys.push('updatedAt')
     // construct dynamic column set
@@ -458,6 +475,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         table: 'organizations',
       },
     })
+
     const updatedAt = new Date()
     const oneMinuteAgo = new Date(updatedAt.getTime() - 60 * 1000)
     const prepared = RepositoryBase.prepare(

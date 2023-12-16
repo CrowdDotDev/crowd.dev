@@ -23,8 +23,6 @@
 <script setup>import { computed, onMounted } from 'vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import ACTIVITIES_REPORT from '@/modules/report/templates/config/activities';
-import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 
 defineProps({
   filters: {
@@ -36,9 +34,6 @@ defineProps({
 const { cubejsApi, cubejsToken } = mapGetters('widget');
 const { getCubeToken } = mapActions('widget');
 
-const activityTypeStore = useActivityTypeStore();
-const { setTypes } = activityTypeStore;
-
 const loadingCube = computed(
   () => cubejsToken.value === null,
 );
@@ -47,10 +42,6 @@ onMounted(async () => {
   if (cubejsApi.value === null) {
     await getCubeToken();
   }
-
-  ActivityTypeService.get().then((activityTypes) => {
-    setTypes(activityTypes);
-  });
 });
 </script>
 
