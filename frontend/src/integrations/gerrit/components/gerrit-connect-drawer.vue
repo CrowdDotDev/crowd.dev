@@ -1,11 +1,11 @@
 <template>
   <app-drawer
-      v-model="isVisible"
-      custom-class="integration-gerrit-drawer"
-      title="Gerrit"
-      pre-title="Integration"
-      has-border
-      @close="cancel"
+    v-model="isVisible"
+    custom-class="integration-gerrit-drawer"
+    title="Gerrit"
+    pre-title="Integration"
+    has-border
+    @close="cancel"
   >
     <template #beforeTitle>
       <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
@@ -20,39 +20,37 @@
 
       <el-form class="mt-2" @submit.prevent>
         <el-input
-            id="devUrl"
-            v-model="form.orgURL"
-            class="text-green-500"
-            spellcheck="false"
-            placeholder="Enter Organization URL"
-        >
-        </el-input>
+          id="devUrl"
+          v-model="form.orgURL"
+          class="text-green-500"
+          spellcheck="false"
+          placeholder="Enter Organization URL"
+        />
         <el-input
-            id="devUrl"
-            v-model="form.projectName"
-            class="text-green-500"
-            spellcheck="false"
-            placeholder="Enter Project Name"
-        >
-        </el-input>
+          id="devUrl"
+          v-model="form.projectName"
+          class="text-green-500"
+          spellcheck="false"
+          placeholder="Enter Project Name"
+        />
       </el-form>
     </template>
 
     <template #footer>
       <div>
         <el-button
-            class="btn btn--md btn--secondary mr-4"
-            :disabled="loading"
-            @click="cancel"
+          class="btn btn--md btn--secondary mr-4"
+          :disabled="loading"
+          @click="cancel"
         >
           Cancel
         </el-button>
         <el-button
-            id="gerritConnect"
-            :disabled="$v.$invalid || !hasFormChanged || loading"
-            class="btn btn--md btn--primary"
-            :loading="loading"
-            @click="connect"
+          id="gerritConnect"
+          :disabled="$v.$invalid || !hasFormChanged || loading"
+          class="btn btn--md btn--primary"
+          :loading="loading"
+          @click="connect"
         >
           <app-i18n code="common.connect" />
         </el-button>
@@ -117,12 +115,12 @@ const connect = async () => {
     orgURL: form.orgURL,
     projectName: form.projectName,
   })
-      .then(() => {
-        isVisible.value = false;
-      })
-      .finally(() => {
-        loading.value = false;
-      });
+    .then(() => {
+      isVisible.value = false;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 </script>
 
