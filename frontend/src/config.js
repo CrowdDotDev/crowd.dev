@@ -51,6 +51,14 @@ const defaultConfig = {
         .VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
     customerPortalLink:
       import.meta.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || '',
+    scaleMonthlyPaymentLink:
+      import.meta.env.VUE_APP_STRIPE_SCALE_MONTHLY_PLAN_PAYMENT_LINK || '',
+    scaleYearlyPaymentLink:
+      import.meta.env.VUE_APP_STRIPE_SCALE_YEARLY_PLAN_PAYMENT_LINK || '',
+    essentialMonthlyPaymentLink:
+      import.meta.env.VUE_APP_STRIPE_ESSENTIAL_MONTHLY_PLAN_PAYMENT_LINK || '',
+    essentialYearlyPaymentLink:
+      import.meta.env.VUE_APP_STRIPE_ESSENTIAL_YEARLY_PLAN_PAYMENT_LINK || '',
   },
   sampleTenant: {
     id: import.meta.env.VUE_APP_SAMPLE_TENANT_ID,

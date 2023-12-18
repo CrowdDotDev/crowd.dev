@@ -85,16 +85,22 @@ export const plans = {
         },
       ],
       ctaLabel: {
-        [Plans.values.essential]: 'Start a 30-day trial',
+        [Plans.values.none]: 'Subscribe to Essential',
+        [Plans.values.essential]: null,
         [Plans.values.eagleEye]: 'Downgrade to Essential',
         [Plans.values.growth]: 'Downgrade to Essential',
         [Plans.values.scale]: 'Downgrade to Essential',
         [Plans.values.enterprise]: 'Downgrade to Essential',
       },
       ctaAction: {
+        [Plans.values.none]: ({ monthlyPayment }) => {
+          const monthlyLink = config.stripe.essentialMonthlyPaymentLink;
+          const yearlyLink = config.stripe.essentialYearlyPaymentLink;
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+        },
         [Plans.values.essential]: ({ monthlyPayment }) => {
-          const monthlyLink = 'https://buy.stripe.com/6oE9E88OUdkG87u9AG';
-          const yearlyLink = 'https://buy.stripe.com/aEUbMgghm2G24VicMT';
+          const monthlyLink = config.stripe.essentialMonthlyPaymentLink;
+          const yearlyLink = config.stripe.essentialYearlyPaymentLink;
           window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
         },
         [Plans.values.eagleEye]: openCustomerPortalLink,
@@ -150,15 +156,33 @@ export const plans = {
         },
       ],
       ctaLabel: {
-        [Plans.values.eagleEye]: 'Book a demo',
-        [Plans.values.essential]: 'Book a demo',
-        [Plans.values.growth]: 'Book a demo',
+        [Plans.values.none]: 'Subscribe to Scale',
+        [Plans.values.eagleEye]: 'Upgrade to Scale',
+        [Plans.values.essential]: 'Upgrade to Scale',
+        [Plans.values.growth]: 'Upgrade to Scale',
         [Plans.values.enterprise]: 'Downgrade to Scale',
       },
       ctaAction: {
-        [Plans.values.eagleEye]: intoToCrowdDevCal,
-        [Plans.values.essential]: intoToCrowdDevCal,
-        [Plans.values.growth]: intoToCrowdDevCal,
+        [Plans.values.none]: ({ monthlyPayment }) => {
+          const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
+          const yearlyLink = config.stripe.scaleYearlyPaymentLink;
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+        },
+        [Plans.values.eagleEye]: ({ monthlyPayment }) => {
+          const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
+          const yearlyLink = config.stripe.scaleYearlyPaymentLink;
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+        },
+        [Plans.values.essential]: ({ monthlyPayment }) => {
+          const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
+          const yearlyLink = config.stripe.scaleYearlyPaymentLink;
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+        },
+        [Plans.values.growth]: ({ monthlyPayment }) => {
+          const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
+          const yearlyLink = config.stripe.scaleYearlyPaymentLink;
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+        },
         [Plans.values.enterprise]: openCustomerPortalLink,
       },
     },
@@ -208,12 +232,14 @@ export const plans = {
         },
       ],
       ctaLabel: {
+        [Plans.values.none]: 'Book a demo',
         [Plans.values.eagleEye]: 'Book a demo',
         [Plans.values.essential]: 'Book a demo',
         [Plans.values.growth]: 'Book a demo',
         [Plans.values.scale]: 'Book a demo',
       },
       ctaAction: {
+        [Plans.values.none]: customPlanCal,
         [Plans.values.eagleEye]: customPlanCal,
         [Plans.values.essential]: customPlanCal,
         [Plans.values.growth]: customPlanCal,

@@ -21,7 +21,7 @@ const job: CrowdJob = {
 
     for (const tenant of expiredTrialTenants[0]) {
       await dbOptions.database.tenant.update(
-        { isTrialPlan: false, trialEndsAt: null, plan: Plans.values.essential },
+        { plan: null },
         { returning: true, raw: true, where: { id: tenant.id } },
       )
     }
@@ -34,7 +34,7 @@ const job: CrowdJob = {
 
     for (const tenant of expiredNonTrialTenants[0]) {
       await dbOptions.database.tenant.update(
-        { plan: Plans.values.essential },
+        { plan: null },
         { returning: true, raw: true, where: { id: tenant.id } },
       )
     }

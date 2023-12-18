@@ -13,6 +13,7 @@ import {
   connectSocket,
   disconnectSocket,
 } from '@/modules/auth/auth-socket';
+import config from '@/config';
 
 export default {
   async doInit({ commit, dispatch, state }) {
@@ -146,7 +147,6 @@ export default {
   },
 
   async doSignout({ commit }) {
-    commit('AUTH_START');
     AuthService.signout();
     commit('AUTH_SUCCESS', {
       currentUser: null,

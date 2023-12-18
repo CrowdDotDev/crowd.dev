@@ -3,16 +3,16 @@
     <div class="flex justify-center pt-16 pb-4">
       <div>
         <h4 v-if="loading" class="text-xl font-semibold leading-8 text-center">
-          Payment successful
+          Processing your subscription
         </h4>
         <h4 v-else class="text-xl font-semibold leading-8 text-center">
-          Error confirming payment
+          Error confirming subscription
         </h4>
         <p v-if="loading" class="text-sm text-gray-600 leading-5 text-center">
-          Please wait for our system to process your payment
+          Please wait for our system to process your subscription
         </p>
         <p v-else class="text-sm text-gray-600 leading-5 text-center">
-          There was an error confirming payment, please contact our support
+          There was an error confirming subscription, please contact our support
         </p>
 
         <div class="flex justify-center pt-3">
@@ -33,22 +33,21 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { AuthService } from '@/modules/auth/auth-service';
+import config from '@/config';
 
 const route = useRoute();
-const router = useRouter();
 
 const { sessionId } = route.query;
 
 const loading = ref<boolean>(true);
 
 onMounted(() => {
-  console.log(sessionId);
   AuthService.confirmPayment(sessionId)
     .then(() => {
-      router.push({ name: 'settings', query: { activeTab: 'plans' } });
+      window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/settings?activeTab=plans`;
     })
     .catch(() => {
       loading.value = false;

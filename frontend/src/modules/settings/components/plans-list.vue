@@ -59,11 +59,11 @@
               </div>
 
               <el-button
-                v-if="plan.ctaLabel[activePlan]"
+                v-if="plan.ctaLabel[activePlan ?? Plans.values.none]"
                 class="btn btn--md btn--full btn--primary mt-6"
                 @click="() => handleOnCtaClick(plan)"
               >
-                {{ plan.ctaLabel[activePlan] }}
+                {{ plan.ctaLabel[activePlan ?? Plans.values.none] ?? `Subscribe to ${plan.title}` }}
               </el-button>
             </div>
 
@@ -175,9 +175,6 @@ onMounted(() => {
 });
 
 const getBadge = (plan) => {
-  if (plan === crowdHostedPlans.essential) {
-    return null;
-  }
   if (plan === crowdHostedPlans.scale && [crowdHostedPlans.essential, crowdHostedPlans.eagleEye].includes(activePlan.value)) {
     // Recommended plan
     return {
@@ -207,7 +204,7 @@ const handleOnCtaClick = ({ key, ctaAction }) => {
     requestedPlan: key,
   });
 
-  ctaAction[activePlan.value]({
+  ctaAction[activePlan.value ?? Plans.values.none]({
     displayCalDialog,
     monthlyPayment: monthlyPayment.value,
   });
