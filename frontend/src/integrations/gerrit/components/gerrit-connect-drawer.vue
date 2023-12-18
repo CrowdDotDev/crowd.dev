@@ -67,7 +67,6 @@ import {
   computed, onMounted, reactive, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppArrayInput from '@/shared/form/array-input.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 
