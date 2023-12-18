@@ -5,7 +5,7 @@ export default async (req, res) => {
   if (!req.body.acceptedTermsAndPrivacy) {
     return res.status(422).send({ error: 'Please accept terms of service and privacy policy' })
   }
-  const {token, user} = await AuthService.signup(
+  const { token, user } = await AuthService.signup(
     req.body.email,
     req.body.password,
     req.body.invitationToken,

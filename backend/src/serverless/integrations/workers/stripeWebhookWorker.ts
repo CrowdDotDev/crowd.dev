@@ -1,4 +1,4 @@
-import { timeout } from '@crowd/common'
+import { Error404, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
 import { ApiWebsocketMessage } from '@crowd/types'
@@ -54,6 +54,36 @@ export const processStripeWebhook = async (message: any) => {
   const stripeWebhookMessage = message.event
 
   switch (stripeWebhookMessage.type) {
+    case 'customer.subscription.updated': {
+      const tenant = await options.database.tenant.findOne({
+        where: { stripeSubscriptionId: stripeWebhookMessage.data.object.subscription },
+      })
+
+      const subscription = await StripeService.retreiveSubscription(
+        stripeWebhookMessage.data.object.subscription,
+      )
+      const productId = subscription.plan.product
+
+      const trialEnd = subscription.trial_end
+
+      const subscriptionEndsAt = subscription.current_period_end
+
+      const productPlan = StripeService.getPlanFromProductId(productId)
+
+      if (!productPlan) {
+        throw new Error404()
+      }
+
+      await tenant.update({
+        plan: subscription.status === 'active' ? productPlan : null,
+        isTrialPlan: !!trialEnd,
+        trialEndsAt: trialEnd ? moment(trialEnd, 'X').toISOString() : null,
+        stripeSubscriptionId: subscription.id,
+        planSubscriptionEndsAt: moment(subscriptionEndsAt, 'X').toISOString(),
+      })
+
+      break
+    }
     case 'checkout.session.completed': {
       log.info(
         { tenant: stripeWebhookMessage.data.object.client_reference_id },
