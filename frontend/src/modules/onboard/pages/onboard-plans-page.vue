@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <div class="container pb-2">
+    <div class="container pb-2 mt-6">
       <app-plans-list />
     </div>
   </div>
