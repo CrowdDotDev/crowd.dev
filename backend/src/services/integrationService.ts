@@ -1259,14 +1259,14 @@ export default class IntegrationService {
     let integration
     try {
       integration = await this.createOrUpdate(
-          {
-            platform: PlatformType.GERRIT,
-            settings: {
-              remote: integrationData.remote,
-            },
-            status: 'done',
+        {
+          platform: PlatformType.GERRIT,
+          settings: {
+            remote: integrationData.remote,
           },
-          transaction,
+          status: 'done',
+        },
+        transaction,
       )
 
       await SequelizeRepository.commitTransaction(transaction)
