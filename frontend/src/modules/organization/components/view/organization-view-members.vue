@@ -1,5 +1,14 @@
 <template>
   <div class="organization-view-members">
+    <div class="my-6">
+      <el-input
+        v-model="query"
+        placeholder="Search contributors"
+        :prefix-icon="SearchIcon"
+        clearable
+        class="organization-view-members-search"
+      />
+    </div>
     <div
       v-if="members.length === 0"
       class="flex items-center justify-center pt-20 pb-17"
@@ -14,15 +23,6 @@
       </p>
     </div>
     <div v-else>
-      <div class="my-6">
-        <el-input
-          v-model="query"
-          placeholder="Search contributors"
-          :prefix-icon="SearchIcon"
-          clearable
-          class="organization-view-members-search"
-        />
-      </div>
       <div>
         <div
           v-for="member in members"
@@ -135,7 +135,7 @@ const fetchMembers = async () => {
   if (query.value && query.value !== '') {
     filterToApply.or = [
       {
-        name: {
+        displayName: {
           textContains: query.value,
         },
       },
@@ -145,7 +145,7 @@ const fetchMembers = async () => {
         },
       },
       {
-        email: {
+        emails: {
           textContains: query.value,
         },
       },
