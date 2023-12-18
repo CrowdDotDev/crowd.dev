@@ -20,6 +20,7 @@ import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { TEMPORAL_CONFIG } from '../conf'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { GithubActivityType } from '@crowd/integrations'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -447,14 +448,25 @@ export default class ActivityService extends LoggerBase {
                 : dbIntegration.segmentId
           }
 
-          // find existing activity
-          const dbActivity = await txRepo.findExisting(
-            tenantId,
-            segmentId,
-            activity.sourceId,
-            platform,
-            activity.type,
-          )
+          let dbActivity: IDbActivity | null
+
+          if (
+            [PlatformType.GITHUB, PlatformType.GIT].includes(platform) &&
+            activity.type === GithubActivityType.AUTHORED_COMMIT
+          ) {
+            // we are looking up without platform and type, so we can find the activity with platform = github
+            // and "enrich" it with git data
+            dbActivity = await txRepo.findExistingBySourceId(tenantId, segmentId, activity.sourceId)
+          } else {
+            // find existing activity
+            dbActivity = await txRepo.findExisting(
+              tenantId,
+              segmentId,
+              activity.sourceId,
+              platform,
+              activity.type,
+            )
+          }
 
           if (dbActivity && dbActivity?.deletedAt) {
             // we found an existing activity but it's deleted - nothing to do here

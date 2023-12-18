@@ -67,6 +67,49 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     return result
   }
 
+  public async findExistingBySourceId(
+    tenantId: string,
+    segmentId: string,
+    sourceId: string,
+  ): Promise<IDbActivity | null> {
+    const result = await this.db().oneOrNone(
+      `
+      select  id,
+              type,
+              platform,
+              timestamp,
+              "isContribution",
+              score,
+              "sourceId",
+              "sourceParentId",
+              "parentId",
+              "memberId",
+              username,
+              "objectMemberId",
+              "objectMemberUsername",
+              attributes,
+              body,
+              title,
+              channel,
+              url,
+              sentiment,
+              "deletedAt"
+      from activities
+      where "tenantId" = $(tenantId)
+        and "segmentId" = $(segmentId)
+        and "sourceId" = $(sourceId)
+      limit 1;
+    `,
+      {
+        tenantId,
+        segmentId,
+        sourceId,
+      },
+    )
+
+    return result
+  }
+
   public async delete(id: string): Promise<void> {
     await this.db().none('delete from activities where id = $(id)', { id })
   }
