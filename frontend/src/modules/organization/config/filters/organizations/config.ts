@@ -19,7 +19,7 @@ const organizations: MultiSelectAsyncFilterConfig = {
         value: organization.id,
         logo: organization.logo,
       }))),
-    remotePopulateItems: (ids: string[]) => OrganizationService.listAutocomplete({
+    remotePopulateItems: (ids: string[]) => OrganizationService.query({
       filter: {
         and: [
           ...DEFAULT_ORGANIZATION_FILTERS,
@@ -28,7 +28,7 @@ const organizations: MultiSelectAsyncFilterConfig = {
           },
         ],
       },
-      orderBy: null,
+      orderBy: 'displayName_ASC',
       limit: ids.length,
       offset: 0,
     })

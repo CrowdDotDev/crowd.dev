@@ -13,6 +13,7 @@ import {
   PlatformType,
   OrganizationSource,
   SyncMode,
+  IOrganizationIdentity,
 } from '@crowd/types'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
@@ -352,14 +353,24 @@ export default class MemberEnrichmentService extends LoggerBase {
       const organizationService = new OrganizationService(options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
+          const organizationIdentities: IOrganizationIdentity[] = [
+            {
+              name: workExperience.company,
+              platform: PlatformType.ENRICHMENT,
+            },
+          ]
+
+          if (workExperience.companyLinkedInUrl) {
+            organizationIdentities.push({
+              name: workExperience.companyLinkedInUrl.split('/').pop(),
+              platform: PlatformType.LINKEDIN,
+              url: workExperience.companyLinkedInUrl,
+            })
+          }
+
           const org = await organizationService.createOrUpdate(
             {
-              identities: [
-                {
-                  name: workExperience.company,
-                  platform: PlatformType.ENRICHMENT,
-                },
-              ],
+              identities: organizationIdentities,
             },
             {
               doSync: true,

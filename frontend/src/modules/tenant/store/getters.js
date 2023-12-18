@@ -2,6 +2,7 @@ import sharedGetters from '@/shared/store/getters';
 import { router } from '@/router';
 import moment from 'moment';
 import Plans from '@/security/plans';
+import config from '@/config';
 
 export default {
   ...sharedGetters(),
@@ -85,7 +86,8 @@ export default {
     const today = moment();
     const limit = moment('2024-01-01').startOf('day');
     const currentTenant = rootGetters['auth/currentTenant'];
-    return currentTenant.plan === Plans.values.essential && today.isBefore(limit);
+
+    return !config.isCommunityVersion && currentTenant.plan === Plans.values.essential && today.isBefore(limit);
   },
 
   showBanner: (_state, getters) => (
