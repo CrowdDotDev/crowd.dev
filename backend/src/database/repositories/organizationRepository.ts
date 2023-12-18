@@ -2144,6 +2144,38 @@ class OrganizationRepository {
     return results
   }
 
+  static async findByIdOpensearch(
+    id: string,
+    options: IRepositoryOptions,
+    segmentId?: string,
+  ): Promise<PageData<any>> {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
+
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
+              },
+            },
+          ],
+        },
+        limit: 1,
+        offset: 0,
+        segments,
+      },
+      options,
+    )
+
+    if (response.count === 0) {
+      throw new Error404()
+    }
+
+    return response.rows[0]
+  }
+
   static async findAndCountAllOpensearch(
     {
       filter = {} as any,
