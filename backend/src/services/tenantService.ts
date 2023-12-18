@@ -595,10 +595,10 @@ export default class TenantService {
     const { sessionId } = args
     const session = await StripeService.retreiveSession(sessionId)
     const subscription = await StripeService.retreiveSubscription(
-      session.subscription?.id ?? session.subscription,
+      (session.subscription as any)?.id ?? session.subscription,
     )
 
-    const productId = subscription.plan.product
+    const productId = (subscription as any).plan.product
 
     const trialEnd = subscription.trial_end
 

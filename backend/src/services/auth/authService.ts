@@ -320,7 +320,6 @@ class AuthService {
           reject(err)
           return
         }
-        console.log('decoded', decoded)
 
         const { id } = decoded
         const jwtTokenIat = decoded.iat
