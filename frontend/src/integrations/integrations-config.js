@@ -18,6 +18,7 @@ import n8n from './n8n';
 import lfx from './custom/lfx';
 import groupsio from './groupsio';
 import confluence from './confluence';
+import gerrit from './gerrit';
 import cvent from './custom/cvent';
 import tnc from './custom/tnc';
 
@@ -43,6 +44,7 @@ class IntegrationsConfig {
       // make,
       facebook,
       confluence,
+      gerrit,
     };
   }
 
