@@ -706,7 +706,7 @@ class ActivityRepository {
     )
     const { count } = countRow
 
-    return { rows, count, limit: parsed.limit, offset: parsed.offset }
+    return { rows, count: parseInt(count, 10), limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

@@ -2,11 +2,13 @@ import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsC
 import allOrganizations from './views/all-organizations';
 
 import teamOrganization from './settings/teamOrganization/config';
+import hasActivities from './settings/hasActivities/config';
 
 export const organizationSavedViews: SavedViewsConfig = {
   defaultView: allOrganizations,
   settings: {
     teamOrganization,
+    hasActivities,
   },
   sorting: {
     displayName: 'Organization',

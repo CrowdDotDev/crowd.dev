@@ -1,5 +1,7 @@
 {
-  "service": {},
+  "service": {
+    "queuePriorityLevel": "normal"
+  },
   "db": {},
   "sqs": {},
   "redis": {},

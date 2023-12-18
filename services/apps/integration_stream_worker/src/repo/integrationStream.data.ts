@@ -29,6 +29,7 @@ export interface IProcessableStream {
   integrationType: string
   runId: string | null
   webhookId: string | null
+  onboarding: boolean | null
 }
 
 export interface IInsertableWebhookStream {

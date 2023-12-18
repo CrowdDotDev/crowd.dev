@@ -1,7 +1,7 @@
 <template>
   <el-container v-if="currentTenant" class="flex-col">
     <app-lf-header />
-    <el-container style="height: calc(100vh - 60px);">
+    <el-container style="height: calc(100vh - 60px)">
       <!-- App menu -->
       <app-lf-menu />
 
@@ -47,7 +47,9 @@ export default {
         const param = this.$route.query.menu === 'true' || false;
 
         if (updatedValue !== param) {
-          this.$router.replace({ query: { ...this.$route.query, menu: updatedValue } });
+          this.$router.replace({
+            query: { ...this.$route.query, menu: updatedValue },
+          });
         }
       },
     },

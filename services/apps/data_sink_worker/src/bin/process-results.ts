@@ -12,15 +12,17 @@ import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import {
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  DataSinkWorkerEmitter,
-  getSqsClient,
-} from '@crowd/sqs'
+import { getSqsClient } from '@crowd/sqs'
 import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import {
+  DataSinkWorkerEmitter,
+  NodejsWorkerEmitter,
+  PriorityLevelContextRepository,
+  QueuePriorityContextLoader,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -44,28 +46,52 @@ setImmediate(async () => {
   }
 
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const redisClient = await getRedisClient(REDIS_CONFIG())
+  const redis = await getRedisClient(REDIS_CONFIG())
+  const dbConnection = await getDbConnection(DB_CONFIG())
+  const store = new DbStore(log, dbConnection)
+
+  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   initializeSentimentAnalysis(SENTIMENT_CONFIG())
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, tracer, log)
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
+    sqsClient,
+    redis,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
   await nodejsWorkerEmitter.init()
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(sqsClient, tracer, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
+    sqsClient,
+    redis,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
   await searchSyncWorkerEmitter.init()
 
-  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, tracer, log)
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
+    sqsClient,
+    redis,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
   await dataSinkWorkerEmitter.init()
-
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
 
   const service = new DataSinkService(
     store,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     dataSinkWorkerEmitter,
-    redisClient,
+    redis,
     unleash,
     temporal,
     log,

@@ -227,6 +227,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: null,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
     })
@@ -307,6 +308,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: null,
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
 
@@ -364,6 +366,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: null,
       }
       const organizationById = await OrganizationRepository.findById(
         organizationCreated.id,
@@ -1414,6 +1417,7 @@ describe('OrganizationRepository tests', () => {
         isTeamOrganization: false,
         attributes: {},
         weakIdentities: [],
+        manuallyChangedFields: [],
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)

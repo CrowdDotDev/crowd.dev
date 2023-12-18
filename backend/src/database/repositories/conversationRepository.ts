@@ -440,7 +440,7 @@ class ConversationRepository {
       },
     )
     const { count } = countRow
-    return { rows, count }
+    return { rows, count: parseInt(count, 10) }
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

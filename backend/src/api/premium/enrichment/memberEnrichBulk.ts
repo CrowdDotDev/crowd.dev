@@ -5,11 +5,11 @@ import { FeatureFlag, FeatureFlagRedisKey } from '@crowd/types'
 import { getSecondsTillEndOfMonth } from '../../../utils/timing'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
-import { sendBulkEnrichMessage } from '../../../serverless/utils/nodeWorkerSQS'
 import PermissionChecker from '../../../services/user/permissionChecker'
 import track from '../../../segment/track'
 import { PLAN_LIMITS } from '../../../feature-flags/isFeatureEnabled'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 const log = getServiceLogger()
 
@@ -54,7 +54,8 @@ export default async (req, res) => {
   )
 
   // send the message
-  await sendBulkEnrichMessage(tenant, membersToEnrich, segmentIds)
+  const emitter = await getNodejsWorkerEmitter()
+  await emitter.bulkEnrich(tenant, membersToEnrich, segmentIds)
 
   // update enrichment count, we'll also check failed enrichments and deduct these from grand total in bulkEnrichmentWorker
   const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()

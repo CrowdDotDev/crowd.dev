@@ -29,6 +29,7 @@ export interface IStartIntegrationRunData {
 
 export interface IPendingDelayedRun {
   id: string
+  onboarding: boolean
   tenantId: string
   integrationType: string
 }

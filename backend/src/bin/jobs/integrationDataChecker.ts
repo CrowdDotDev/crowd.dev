@@ -1,8 +1,6 @@
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 
 const job: CrowdJob = {
   name: 'Integration Data Checker',
@@ -17,13 +15,9 @@ const job: CrowdJob = {
       },
     })
 
+    const emitter = await getNodejsWorkerEmitter()
     for (const integration of integrations) {
-      await sendNodeWorkerMessage(integration.id, {
-        tenantId: integration.tenantId,
-        type: NodeWorkerMessageType.NODE_MICROSERVICE,
-        integrationId: integration.id,
-        service: 'integration-data-checker',
-      } as NodeWorkerMessageBase)
+      await emitter.integrationDataChecker(integration.tenantId, integration.id)
     }
   },
 }
