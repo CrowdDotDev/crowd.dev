@@ -6,7 +6,7 @@ import {
 } from '@crowd/common_services'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
 import { LoggerBase, getChildLogger } from '@crowd/logging'
-import { IntegrationType } from '@crowd/types'
+import { IntegrationType, TenantPlans } from '@crowd/types'
 import IntegrationRepository from '@/database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
@@ -127,6 +127,19 @@ export class IntegrationTickProcessor extends LoggerBase {
             const rand = Math.random() * CHUNKS
             const chunkIndex = Math.min(Math.floor(rand), CHUNKS - 1)
             const delay = chunkIndex * DELAY_BETWEEN_CHUNKS
+
+            if (
+              newIntService.type === IntegrationType.DISCORD &&
+              integration.tenant.plan === TenantPlans.Essential
+            ) {
+              // not triggering discord integrations for essential plan, only paid plans
+              logger.info(
+                { integrationId: integration.id },
+                'Not triggering new integration check for Discord for essential plan!',
+              )
+              // eslint-disable-next-line no-continue
+              continue
+            }
 
             // Divide integrations into chunks for Discord
             if (newIntService.type === IntegrationType.DISCORD) {

@@ -2,6 +2,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IIntegrationResult, IntegrationResultState, TenantPlans } from '@crowd/types'
 import { IDelayedResults, IFailedResultData, IResultData } from './dataSink.data'
+import { distinct, singleOrDefault } from '@crowd/common'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -262,18 +263,15 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     this.ensureTransactional()
 
     try {
-      const results = await this.db().any(
+      const resultData = await this.db().any(
         `
-        select r.id, 
-               r."tenantId", 
-               i.platform, 
-               run.onboarding
-        from 
-          integration.results r
+        select r.id,
+               r."tenantId",
+               i.platform,
+               r."runId"
+        from integration.results r
         inner join integrations i on r."integrationId" = i.id
-        left join integration.runs run on run.id = r."runId"
-        where r.state = $(delayedState)
-          and r."delayedUntil" < now()
+        where r.state = $(delayedState) and r."delayedUntil" < now()
         limit ${limit}
         for update skip locked;
         `,
@@ -282,7 +280,30 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
         },
       )
 
-      return results
+      const runIds = distinct(resultData.map((r) => r.runId))
+      if (runIds.length > 0) {
+        const runInfos = await this.db().any(
+          `
+        select id, onboarding
+        from integration.runs
+        where id in ($(runIds:csv))
+        `,
+          {
+            runIds,
+          },
+        )
+
+        for (const result of resultData) {
+          const runInfo = singleOrDefault(runInfos, (r) => r.id === result.runId)
+          if (runInfo) {
+            result.onboarding = runInfo.onboarding
+          } else {
+            result.onboarding = true
+          }
+        }
+      }
+
+      return resultData
     } catch (err) {
       this.log.error(err, 'Failed to get delayed results!')
       throw err

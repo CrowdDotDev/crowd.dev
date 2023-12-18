@@ -162,7 +162,7 @@ importers:
         specifier: ^4.1.1
         version: 4.2.0
       discord.js:
-        specifier: ^14.7.1
+        specifier: ^14.14.1
         version: 14.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       dotenv:
         specifier: 8.2.0
@@ -16740,7 +16740,7 @@ packages:
       https-proxy-agent: 5.0.1
       node-fetch: 2.7.0
       stream-events: 1.0.5
-      uuid: 8.3.0
+      uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -17497,11 +17497,6 @@ packages:
     hasBin: true
     dev: false
 
-  /uuid@8.3.0:
-    resolution: {integrity: sha512-fX6Z5o4m6XsXBdli9g7DtWgAx+osMsRRZFKma1mIUsLCz6vRvv+pz5VNbyu9UEDzpMWulZfvpgb/cmDXVulYFQ==}
-    hasBin: true
-    dev: false
-
   /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
@@ -18128,6 +18123,7 @@ packages:
     transitivePeerDependencies:
       - aws-crt
       - bluebird
+      - debug
       - pg-native
       - supports-color
     dev: false
