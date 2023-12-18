@@ -1,5 +1,5 @@
 <template>
-  <div class="panel mt-6">
+  <div>
     <div class="flex justify-center">
       <div
         class="h-8 border-solid border-gray-200 border-r border-y first:border-l flex items-center
@@ -38,7 +38,7 @@
                 class="flex flex-wrap justify-between items-center gap-2  mb-3.5"
               >
                 <!-- Title -->
-                <h6 class="text-gray-900">
+                <h6 class="text-gray-900 text-base">
                   {{ plan.title }}
                 </h6>
                 <!-- Badge -->

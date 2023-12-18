@@ -5,9 +5,17 @@
     <div class="flex flex-col justify-between gap-3 basis-3/5">
       <div>
         <span class="text-xs text-gray-400 font-medium">Current plan</span>
-        <h5 class="text-gray-900">
-          {{ activePlan }}
-        </h5>
+        <div class="flex items-center">
+          <h5 class="text-gray-900 mr-3">
+            {{ activePlan }}
+          </h5>
+          <span
+            v-if="getTrialDate(currentTenant)"
+            class="badge badge--xs badge--light-yellow !bg-yellow-50"
+          >{{
+            getTrialDate(currentTenant)
+          }}</span>
+        </div>
         <span class="text-2xs text-gray-500">Active since {{ moment(currentTenant.createdAt).format('MMMM DD, YYYY') }}</span>
       </div>
       <el-button
@@ -55,7 +63,9 @@
       </div>
     </div>
   </div>
-  <app-plans-list />
+  <div class="panel mt-6">
+    <app-plans-list />
+  </div>
   <app-dialog
     v-model="isCalDialogOpen"
     size="2extra-large"
@@ -75,6 +85,7 @@ import { planLimits } from '@/security/plans-limits';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import moment from 'moment';
 import AppPlansList from '@/modules/settings/components/plans-list.vue';
+import { getTrialDate } from '@/utils/date';
 
 const communityPlans = Plans.communityValues;
 

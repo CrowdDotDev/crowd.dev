@@ -599,6 +599,9 @@ export default class TenantService {
     )
 
     const productId = subscription.plan.product
+
+    const trialEnd = subscription.trial_end
+
     const subscriptionEndsAt = subscription.current_period_end
 
     const productPlan = StripeService.getPlanFromProductId(productId)
@@ -609,8 +612,8 @@ export default class TenantService {
 
     return this.update(tenantId, {
       plan: productPlan,
-      isTrialPlan: false,
-      trialEndsAt: null,
+      isTrialPlan: !!trialEnd,
+      trialEndsAt: trialEnd ? moment(trialEnd, 'X').toISOString() : null,
       stripeSubscriptionId: subscription.id,
       planSubscriptionEndsAt: moment(subscriptionEndsAt, 'X').toISOString(),
     })
