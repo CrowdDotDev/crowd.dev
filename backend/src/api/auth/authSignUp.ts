@@ -16,7 +16,7 @@ export default async (req, res) => {
     req,
   )
 
-  req.currentUser = await AuthService.findByToken(payload, req)
+  req.currentUser = await AuthService.findByEmail(req.body.email, req)
   await new TenantService(req).create({
     name: 'temporaryName',
   })
