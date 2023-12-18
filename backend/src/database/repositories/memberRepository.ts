@@ -48,6 +48,7 @@ import {
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import MemberAffiliationRepository from './memberAffiliationRepository'
+import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
 
@@ -1158,6 +1159,39 @@ class MemberRepository {
       },
       transaction,
     })
+  }
+
+  static async findByIdOpensearch(id, options: IRepositoryOptions, segmentId?: string) {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
+
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, options)
+    ).rows
+
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
+              },
+            },
+          ],
+        },
+        limit: 1,
+        offset: 0,
+        attributesSettings: memberAttributeSettings,
+        segments,
+      },
+      options,
+    )
+
+    if (response.count === 0) {
+      throw new Error404()
+    }
+
+    return response.rows[0]
   }
 
   static async findAndCountActiveOpensearch(
