@@ -119,7 +119,7 @@ class AuthService {
           existingUser.id,
         )
 
-        return { token, id: existingUser.id }
+        return token
       }
 
       firstName = firstName || email.split('@')[0]
@@ -187,7 +187,7 @@ class AuthService {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      return { token, id: newUser.id }
+      return token
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
@@ -320,6 +320,7 @@ class AuthService {
           reject(err)
           return
         }
+        console.log('decoded', decoded)
 
         const { id } = decoded
         const jwtTokenIat = decoded.iat
