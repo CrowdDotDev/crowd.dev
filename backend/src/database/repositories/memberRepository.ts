@@ -421,7 +421,7 @@ class MemberRepository {
 
       const query = `
         INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
-        VALUES ${placeholders.join(', ')};
+        VALUES ${placeholders.join(', ')} on conflict do nothing;
       `
       try {
         await seq.query(query, {

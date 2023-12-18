@@ -1,15 +1,13 @@
+import { timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
+import { ApiWebsocketMessage } from '@crowd/types'
 import moment from 'moment'
 import { Stripe } from 'stripe'
-import { timeout } from '@crowd/common'
-import { ApiWebsocketMessage } from '@crowd/types'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { PLANS_CONFIG, REDIS_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import Plans from '../../../security/plans'
-import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
-import { NodeWorkerMessageType } from '../../types/workerTypes'
-import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
 const log = getServiceChildLogger('stripeWebhookWorker')
 
@@ -24,11 +22,8 @@ export default async function stripeWebhookWorker(req) {
 
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, sig, PLANS_CONFIG.stripWebhookSigningSecret)
-    await sendNodeWorkerMessage(event.id, {
-      type: NodeWorkerMessageType.NODE_MICROSERVICE,
-      event,
-      service: 'stripe-webhooks',
-    } as NodeWorkerMessageBase)
+    const emitter = await getNodejsWorkerEmitter()
+    await emitter.stripeWebhook(event)
   } catch (err) {
     log.error(`Webhook Error: ${err.message}`)
     return {

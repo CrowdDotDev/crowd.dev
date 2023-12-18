@@ -118,6 +118,27 @@
               You can expect major improvements by Tuesday, Aug 15th. 🚧
             </div>
           </banner>
+          <banner
+            v-if="showUpgradeEssentialBanner"
+            variant="alert"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              <p>
+                crowd.dev's free plan ends on <span class="font-semibold"> January 1st, 2024</span>.
+                Your access to this workspace will be revoked after.
+              </p>
+              <router-link :to="{ name: 'settings', query: { activeTab: 'plans' } }">
+                <el-button
+                  class="btn btn--sm btn--primary ml-4"
+                  :loading="loading"
+                >
+                  Upgrade workspace
+                </el-button>
+              </router-link>
+            </div>
+          </banner>
         </div>
         <router-view />
       </el-main>
@@ -168,6 +189,7 @@ export default {
       showIntegrationsNeedReconnectAlert:
         'tenant/showIntegrationsNeedReconnectAlert',
       showOrganizationsAlertBanner: 'tenant/showOrganizationsAlertBanner',
+      showUpgradeEssentialBanner: 'tenant/showUpgradeEssentialBanner',
       showBanner: 'tenant/showBanner',
     }),
 
