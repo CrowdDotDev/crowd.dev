@@ -611,9 +611,6 @@ export default {
       { orgURL, projectName, isUpdate },
     ) {
       try {
-        console.log('xxxxxxxxx');
-        console.log(orgURL);
-        console.log(projectName);
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.gerritConnect(
