@@ -12,7 +12,7 @@ export default {
     description: 'Sync documentation activities from your repos.',
   },
   image:
-    '/images/integrations/conf.jpg',
+    '/images/integrations/gerrit.png',
   connectComponent: GerritConnect,
   url: () => null,
   showProfileLink: false,

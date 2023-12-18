@@ -1290,7 +1290,7 @@ export default class IntegrationService {
           {
             platform: PlatformType.GERRIT,
             settings: {
-              remotes: integrationData.remotes,
+              remote: integrationData.remote,
             },
             status: 'done',
           },

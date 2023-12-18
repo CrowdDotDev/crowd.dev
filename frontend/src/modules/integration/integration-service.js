@@ -346,10 +346,10 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async gerritConnect(remotes) {
+  static async gerritConnect(remote) {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(`/tenant/${tenantId}/gerrit-connect`, {
-      remotes,
+      remote,
       ...getSegments(),
     });
 

@@ -607,25 +607,31 @@ export default {
     },
 
     async doGerritConnect(
-        { commit },
-        { remotes, isUpdate },
+      { commit },
+      { orgURL, projectName, isUpdate },
     ) {
       try {
+        console.log('xxxxxxxxx');
+        console.log(orgURL);
+        console.log(projectName);
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.gerritConnect(
-            remotes,
+          {
+            orgURL,
+            projectName,
+          },
         );
 
         commit('CREATE_SUCCESS', integration);
 
         Message.success(
-            'The first activities will show up in a couple of seconds. <br /> <br /> '
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
             + 'This process might take a few minutes to finish, depending on the amount of data.',
-            {
-              title:
+          {
+            title:
                   `Gerrit integration ${isUpdate ? 'updated' : 'created'} successfully`,
-            },
+          },
         );
 
         router.push({

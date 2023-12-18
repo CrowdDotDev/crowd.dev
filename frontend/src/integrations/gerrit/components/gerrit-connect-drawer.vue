@@ -1,75 +1,60 @@
 <template>
   <app-drawer
-    v-model="isVisible"
-    custom-class="integration-gerrit-drawer"
-    title="Gerrit"
-    pre-title="Integration"
-    has-border
-    @close="cancel"
+      v-model="isVisible"
+      custom-class="integration-gerrit-drawer"
+      title="Gerrit"
+      pre-title="Integration"
+      has-border
+      @close="cancel"
   >
     <template #beforeTitle>
       <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
-        Remote URL(s)
+        Remote URL
       </div>
       <div class="text-2xs text-gray-500">
         Connect remotes for each Gerrit repository.
       </div>
 
       <el-form class="mt-2" @submit.prevent>
-        <app-array-input
-          v-for="(_, ii) of form.remotes"
-          :key="ii"
-          v-model="form.remotes[ii]"
-          placeholder="https://wiki.hyperledger.org"
-        >
-
-          <template #after>
-            <el-button
-              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
-              @click="removeRemote(ii)"
-            >
-              <i class="ri-delete-bin-line text-lg" />
-            </el-button>
-          </template>
-        </app-array-input>
-
         <el-input
-            ref="focus"
+            id="devUrl"
             v-model="form.orgURL"
-            placeholder="https://gerrit.opnfv.org"
-        />
+            class="text-green-500"
+            spellcheck="false"
+            placeholder="Enter Organization URL"
+        >
+        </el-input>
         <el-input
-            ref="focus"
+            id="devUrl"
             v-model="form.projectName"
-            placeholder="apex-puppet-tripleo"
-        />
+            class="text-green-500"
+            spellcheck="false"
+            placeholder="Enter Project Name"
+        >
+        </el-input>
       </el-form>
-
-<!--      <el-button class="btn btn-link btn-link&#45;&#45;primary" @click="addRemote()">
-        + Add remote URL
-      </el-button>-->
     </template>
 
     <template #footer>
       <div>
         <el-button
-          class="btn btn--md btn--secondary mr-4"
-          :disabled="loading"
-          @click="cancel"
+            class="btn btn--md btn--secondary mr-4"
+            :disabled="loading"
+            @click="cancel"
         >
           Cancel
         </el-button>
         <el-button
-          id="gerritConnect"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
-          :loading="loading"
-          @click="connect"
+            id="gerritConnect"
+            :disabled="$v.$invalid || !hasFormChanged || loading"
+            class="btn btn--md btn--primary"
+            :loading="loading"
+            @click="connect"
         >
-          {{ integration.settings?.remotes?.length ? 'Update' : 'Connect' }}
+          <app-i18n code="common.connect" />
         </el-button>
       </div>
     </template>
@@ -100,7 +85,8 @@ const props = defineProps({
 
 const loading = ref(false);
 const form = reactive({
-  remotes: [''],
+  orgURL: '',
+  projectName: '',
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -118,19 +104,8 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('gerrit').image);
 
 onMounted(() => {
-  if (props.integration?.settings?.remotes?.length) {
-    form.remotes = props.integration.settings.remotes;
-  }
   formSnapshot();
 });
-
-const addRemote = () => {
-  form.remotes.push('');
-};
-
-const removeRemote = (index) => {
-  form.remotes.splice(index, 1);
-};
 
 const cancel = () => {
   isVisible.value = false;
@@ -140,15 +115,15 @@ const connect = async () => {
   loading.value = true;
 
   doGerritConnect({
-    remotes: form.remotes,
-    isUpdate: props.integration?.settings?.remotes?.length,
+    orgURL: form.orgURL,
+    projectName: form.projectName,
   })
-    .then(() => {
-      isVisible.value = false;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+      .then(() => {
+        isVisible.value = false;
+      })
+      .finally(() => {
+        loading.value = false;
+      });
 };
 </script>
 
