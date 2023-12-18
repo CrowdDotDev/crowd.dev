@@ -4,6 +4,7 @@ import { SERVICE, Error400, isDomainExcluded } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
+  ExportableEntity,
   FeatureFlag,
   IOrganization,
   ISearchSyncOptions,
@@ -30,8 +31,6 @@ import {
 } from '../database/repositories/types/memberTypes'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import telemetryTrack from '../segment/telemetryTrack'
-import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
-import { sendExportCSVNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
@@ -40,6 +39,7 @@ import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
 import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { ServiceType } from '@/conf/configTypes'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
 
 export default class MemberService extends LoggerBase {
@@ -791,6 +791,8 @@ export default class MemberService extends LoggerBase {
 
         return toKeep
       },
+      attributes: (oldAttributes, newAttributes) =>
+        MemberService.safeMerge(oldAttributes, newAttributes),
     })
   }
 
@@ -1201,14 +1203,15 @@ export default class MemberService extends LoggerBase {
   }
 
   async export(data) {
-    const result = await sendExportCSVNodeSQSMessage(
+    const emitter = await getNodejsWorkerEmitter()
+    await emitter.exportCSV(
       this.options.currentTenant.id,
       this.options.currentUser.id,
       ExportableEntity.MEMBERS,
       SequelizeRepository.getSegmentIds(this.options),
       data,
     )
-    return result
+    return {}
   }
 
   async findMembersWithMergeSuggestions(args) {
@@ -1260,5 +1263,35 @@ export default class MemberService extends LoggerBase {
     // Total is the sum of all attributes
     out.total = lodash.sum(Object.values(out))
     return out
+  }
+
+  /**
+   * Merges two objects, preserving non-null values in the original object.
+   *
+   * @param originalObject - The original object
+   * @param newObject - The object to merge into the original
+   * @returns The merged object
+   */
+  static safeMerge(originalObject: any, newObject: any) {
+    const mergeCustomizer = (originalValue, newValue) => {
+      // Merge arrays, removing duplicates
+      if (lodash.isArray(originalValue)) {
+        return lodash.unionWith(originalValue, newValue, lodash.isEqual)
+      }
+
+      // Recursively merge nested objects
+      if (lodash.isPlainObject(originalValue)) {
+        return lodash.mergeWith({}, originalValue, newValue, mergeCustomizer)
+      }
+
+      // Preserve original non-null or non-empty values
+      if (newValue === null || (originalValue !== null && originalValue !== '')) {
+        return originalValue
+      }
+
+      return undefined
+    }
+
+    return lodash.mergeWith({}, originalObject, newObject, mergeCustomizer)
   }
 }

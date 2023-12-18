@@ -12,5 +12,15 @@
     "port": "CROWD_SQS_PORT",
     "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
     "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY"
+  },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "apiKey": "CROWD_UNLEASH_BACKEND_API_KEY"
+  },
+  "redis": {
+    "username": "CROWD_REDIS_USERNAME",
+    "password": "CROWD_REDIS_PASSWORD",
+    "host": "CROWD_REDIS_HOST",
+    "port": "CROWD_REDIS_PORT"
   }
 }
