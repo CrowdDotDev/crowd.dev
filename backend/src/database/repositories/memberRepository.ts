@@ -20,6 +20,7 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404 } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -972,6 +973,7 @@ class MemberRepository {
     await options.temporal.workflow.start('memberUpdate', {
       taskQueue: 'profiles',
       workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
       retry: {
         maximumAttempts: 10,
       },
@@ -3547,6 +3549,7 @@ class MemberRepository {
       await options.temporal.workflow.start('memberUpdate', {
         taskQueue: 'profiles',
         workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
         retry: {
           maximumAttempts: 10,
         },
