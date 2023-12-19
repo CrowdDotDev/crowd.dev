@@ -117,7 +117,7 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('gerrit').image);
 
 onMounted(() => {
-  if (props.integration?.settings?.remotes) {
+  if (props.integration?.settings?.remote) {
     form.orgURL = props.integration.settings.remote.orgURL;
     form.projectName = props.integration.settings.remote.projectName;
     form.user = props.integration.settings.remote.user;
