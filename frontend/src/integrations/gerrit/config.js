@@ -24,13 +24,10 @@ export default {
     typeIcon: 'gerrit',
   },
   conversationDisplay: {
-    showConversationAttributes: true,
-    replyContent: () => null,
-    attributes: (attributes) => ({
-      changes: attributes.lines,
-      changesCopy: 'line',
-      insertions: attributes.insertions,
-      deletions: attributes.deletions,
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
     }),
   },
   organization: {

@@ -25,7 +25,7 @@ const connect = () => {
 
 // eslint-disable-next-line no-undef
 const hasSettings = computed(
-  () => props.integration.settings?.remotes.length,
+  () => props.integration.settings?.remote.orgURL,
 );
 const settings = () => {
   drawerVisible.value = true;
