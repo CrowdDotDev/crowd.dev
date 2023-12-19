@@ -786,10 +786,115 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
   },
   [PlatformType.GERRIT]: {
-    [GerritActivityType.CHANGESET]: {
+    [GerritActivityType.CHANGESET_CREATED]: {
       display: {
-        default: 'added a gerrit changeset in {channel}',
+        default: 'Created a gerrit changeset in {channel}',
+        short: 'created a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_MERGED]: {
+      display: {
+        default: 'Merged a gerrit changeset in {channel}',
+        short: 'merged a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_CLOSED]: {
+      display: {
+        default: 'Closed a gerrit changeset in {channel}',
+        short: 'closed a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_ABANDONED]: {
+      display: {
+        default: 'Abandoned a gerrit changeset in {channel}',
+        short: 'abandoned a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_COMMENT_CREATED]: {
+      display: {
+        default: 'added a comment to gerrit changeset in {channel}',
+        short: 'added a comment to changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.PATCHSET_CREATED]: {
+      display: {
+        default: 'created a gerrit patchset in {channel}',
+        short: 'created a patchset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.PATCHSET_COMMENT_CREATED]: {
+      display: {
+        default: 'added a comment to gerrit patchset in {channel}',
         short: 'added a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.PATCHSET_APPROVAL_CREATED]: {
+      display: {
+        default: 'created a gerrit patchset approval in {channel}',
+        short: 'created a patchset approval',
         channel: '{channel}',
         formatter: {
           channel: defaultGerritChannelFormatter,

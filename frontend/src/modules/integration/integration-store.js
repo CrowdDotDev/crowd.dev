@@ -608,7 +608,7 @@ export default {
 
     async doGerritConnect(
       { commit },
-      { orgURL, projectName, isUpdate },
+      { orgURL, projectName, user, key, isUpdate },
     ) {
       try {
         commit('CREATE_STARTED');
@@ -617,6 +617,8 @@ export default {
           {
             orgURL,
             projectName,
+            user,
+            key,
           },
         );
 

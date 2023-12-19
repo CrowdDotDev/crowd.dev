@@ -33,6 +33,20 @@
           spellcheck="false"
           placeholder="Enter Project Name"
         />
+        <el-input
+            id="devUrl"
+            v-model="form.user"
+            class="text-green-500 mt-2"
+            spellcheck="false"
+            placeholder="Enter username"
+        />
+        <el-input
+            id="devUrl"
+            v-model="form.key"
+            class="text-green-500 mt-2"
+            spellcheck="false"
+            placeholder="Enter Project key"
+        />
       </el-form>
     </template>
 
@@ -84,6 +98,8 @@ const loading = ref(false);
 const form = reactive({
   orgURL: '',
   projectName: '',
+  user: '',
+  key: ''
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -104,6 +120,8 @@ onMounted(() => {
   if (props.integration?.settings?.remotes) {
     form.orgURL = props.integration.settings.remote.orgURL;
     form.projectName = props.integration.settings.remote.projectName;
+    form.user = props.integration.settings.remote.user;
+    form.key = props.integration.settings.remote.key;
   }
   formSnapshot();
 });
@@ -118,6 +136,8 @@ const connect = async () => {
   doGerritConnect({
     orgURL: form.orgURL,
     projectName: form.projectName,
+    user: form.user,
+    key: form.key,
   })
     .then(() => {
       isVisible.value = false;
