@@ -64,7 +64,7 @@ const defaultConfig = {
   isGitEnabled: import.meta.env.VUE_APP_IS_GIT_ENABLED,
   isGroupsioEnabled: import.meta.env.VUE_APP_IS_GROUPSIO_ENABLED,
   isConfluenceEnabled: import.meta.env.VUE_APP_IS_CONFLUENCE_ENABLED,
-  isGERRITEnabled: import.meta.env.VUE_APP_IS_GERRIT_ENABLED,
+  isGerritEnabled: import.meta.env.VUE_APP_IS_GERRIT_ENABLED,
   isTwitterEnabled: import.meta.env.VUE_APP_IS_TWITTER_ENABLED,
 };
 
