@@ -67,10 +67,11 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     return result
   }
 
-  public async findExistingBySourceId(
+  public async findExistingBySourceIdAndChannel(
     tenantId: string,
     segmentId: string,
     sourceId: string,
+    channel: string,
   ): Promise<IDbActivity | null> {
     const result = await this.db().oneOrNone(
       `
@@ -98,12 +99,14 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       where "tenantId" = $(tenantId)
         and "segmentId" = $(segmentId)
         and "sourceId" = $(sourceId)
+        and channel = $(channel)
       limit 1;
     `,
       {
         tenantId,
         segmentId,
         sourceId,
+        channel,
       },
     )
 

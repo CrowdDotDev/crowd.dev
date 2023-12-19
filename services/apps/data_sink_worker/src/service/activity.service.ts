@@ -189,6 +189,7 @@ export default class ActivityService extends LoggerBase {
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
             organizationId: toUpdate.organizationId || original.organizationId,
+            platform: toUpdate.platform || (original.platform as PlatformType),
           })
 
           return true
@@ -310,6 +311,11 @@ export default class ActivityService extends LoggerBase {
       organizationId = data.organizationId
     }
 
+    let platform: PlatformType | undefined
+    if (!arePrimitivesDbEqual(original.platform, data.platform)) {
+      platform = data.platform
+    }
+
     return {
       type,
       isContribution,
@@ -327,6 +333,7 @@ export default class ActivityService extends LoggerBase {
       channel,
       url,
       organizationId,
+      platform,
     }
   }
 
@@ -451,12 +458,27 @@ export default class ActivityService extends LoggerBase {
           let dbActivity: IDbActivity | null
 
           if (
-            [PlatformType.GITHUB, PlatformType.GIT].includes(platform) &&
-            activity.type === GithubActivityType.AUTHORED_COMMIT
+            (platform === PlatformType.GITHUB &&
+              activity.type === GithubActivityType.AUTHORED_COMMIT) ||
+            platform === PlatformType.GIT
           ) {
             // we are looking up without platform and type, so we can find the activity with platform = github
             // and "enrich" it with git data
-            dbActivity = await txRepo.findExistingBySourceId(tenantId, segmentId, activity.sourceId)
+            // we also include channel here, because different repos (channels) might have the same commit hash
+
+            if (!activity.channel) {
+              this.log.error('Missing activity channel for github authored commit or git activity!')
+              throw new Error(
+                'Missing activity channel for github authored commit or git activity!',
+              )
+            }
+
+            dbActivity = await txRepo.findExistingBySourceIdAndChannel(
+              tenantId,
+              segmentId,
+              activity.sourceId,
+              activity.channel,
+            )
           } else {
             // find existing activity
             dbActivity = await txRepo.findExisting(
@@ -720,6 +742,10 @@ export default class ActivityService extends LoggerBase {
                   channel: activity.channel,
                   url: activity.url,
                   organizationId,
+                  platform:
+                    platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
+                      ? PlatformType.GITHUB
+                      : (dbActivity.platform as PlatformType),
                 },
                 dbActivity,
                 false,
