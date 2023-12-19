@@ -666,9 +666,6 @@ export default class MemberService extends LoggerBase {
       const memberOrganizationService = new MemberOrganizationService(repoOptions)
       await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
-      // update activities to belong to the originalId member
-      await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
-
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
@@ -679,10 +676,19 @@ export default class MemberService extends LoggerBase {
         currentSegments: secondMemberSegments,
       })
 
-      // Delete toMerge member
-      await MemberRepository.destroy(toMergeId, repoOptions, true)
-
       await SequelizeRepository.commitTransaction(tx)
+
+      await this.options.temporal.workflow.start('finishMemberMerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishMemberMerging/${originalId}/${toMergeId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [originalId, toMergeId, this.options.currentTenant.id],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       if (syncOptions.doSync) {
         try {

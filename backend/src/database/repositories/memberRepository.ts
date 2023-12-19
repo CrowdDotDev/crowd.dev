@@ -345,32 +345,6 @@ class MemberRepository {
     }
   }
 
-  static async moveActivitiesBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const query = `
-      update activities set "memberId" = :toMemberId where "memberId" = :fromMemberId and "tenantId" = :tenantId;
-    `
-
-    await seq.query(query, {
-      replacements: {
-        fromMemberId,
-        toMemberId,
-        tenantId: tenant.id,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
-  }
-
   static async addToMerge(
     suggestions: IMemberMergeSuggestion[],
     options: IRepositoryOptions,
