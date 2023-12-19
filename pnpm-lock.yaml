@@ -973,9 +973,6 @@ importers:
       '@crowd/common':
         specifier: file:../../../libs/common
         version: file:services/libs/common
-      '@crowd/feature-flags':
-        specifier: file:../../../libs/feature-flags
-        version: file:services/libs/feature-flags
       '@crowd/opensearch':
         specifier: file:../../../libs/opensearch
         version: file:services/libs/opensearch

@@ -1,5 +1,4 @@
-import { IMember, FeatureFlag } from '@crowd/types'
-import { isFeatureEnabled } from '@crowd/feature-flags'
+import { IMember } from '@crowd/types'
 
 import { svc } from '../main'
 
@@ -46,23 +45,5 @@ export async function getMembers(): Promise<IMember[]> {
     throw new Error(err)
   }
 
-  // Filter rows to only return tenants with this feature flag enabled.
-  const members: IMember[] = []
-  for (const row of rows) {
-    if (
-      await isFeatureEnabled(
-        FeatureFlag.TEMPORAL_MEMBERS_ENRICHMENT,
-        async () => {
-          return {
-            tenantId: row.tenantId,
-          }
-        },
-        svc.unleash,
-      )
-    ) {
-      members.push(row)
-    }
-  }
-
-  return members
+  return rows
 }

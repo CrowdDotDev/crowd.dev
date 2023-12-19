@@ -17,7 +17,6 @@
     "@crowd/archetype-standard": "file:../../../archetypes/standard",
     "@crowd/archetype-worker": "file:../../../archetypes/worker",
     "@crowd/common": "file:../../../libs/common",
-    "@crowd/feature-flags": "file:../../../libs/feature-flags",
     "@crowd/opensearch": "file:../../../libs/opensearch",
     "@crowd/types": "file:../../../libs/types",
     "@temporalio/activity": "~1.8.6",
