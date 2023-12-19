@@ -29,7 +29,7 @@
         <el-input
           id="devUrl"
           v-model="form.projectName"
-          class="text-green-500"
+          class="text-green-500 mt-2"
           spellcheck="false"
           placeholder="Enter Project Name"
         />
@@ -101,6 +101,10 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('gerrit').image);
 
 onMounted(() => {
+  if (props.integration?.settings?.remotes) {
+    form.orgURL = props.integration.settings.remote.orgURL;
+    form.projectName = props.integration.settings.remote.projectName;
+  }
   formSnapshot();
 });
 
