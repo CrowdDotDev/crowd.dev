@@ -15,7 +15,7 @@
         Remote URL
       </div>
       <div class="text-2xs text-gray-500">
-        Connect remotes for each Gerrit repository.
+        Connect remote Gerrit repository.
       </div>
 
       <el-form class="mt-2" @submit.prevent>
