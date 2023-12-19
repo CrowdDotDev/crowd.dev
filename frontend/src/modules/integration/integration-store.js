@@ -609,11 +609,11 @@ export default {
     async doGerritConnect(
       { commit },
       {
-              orgURL,
-              projectName,
-              user,
-              key,
-              isUpdate,
+        orgURL,
+        projectName,
+        user,
+        key,
+        isUpdate,
       },
     ) {
       try {
