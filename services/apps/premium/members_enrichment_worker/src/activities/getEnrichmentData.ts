@@ -32,6 +32,10 @@ export async function enrichMemberUsingGitHubHandle(
     throw new Error(err)
   }
 
+  if (!response.profile) {
+    return null
+  }
+
   return response.profile
 }
 
@@ -60,6 +64,10 @@ export async function enrichMemberUsingEmailAddress(
     response = (await axios(config)).data
   } catch (err) {
     throw new Error(err)
+  }
+
+  if (!response.profile) {
+    return null
   }
 
   return response.profile

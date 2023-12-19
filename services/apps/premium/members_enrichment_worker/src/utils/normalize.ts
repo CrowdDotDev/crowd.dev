@@ -109,6 +109,19 @@ export const normalize = async (
   member: IMember,
   enriched: EnrichmentAPIMember,
 ): Promise<IMember> => {
+  if (enriched === null) {
+    try {
+      await tx.query(
+        `UPDATE members SET "lastEnriched" = NOW() WHERE id = $1 AND "tenantId" = $2;`,
+        [member.id, member.tenantId],
+      )
+    } catch (err) {
+      throw new Error(err)
+    }
+
+    return member
+  }
+
   try {
     member = await fillPlatformData(tx, member, enriched)
   } catch (err) {

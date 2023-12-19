@@ -56,14 +56,6 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
     }
   }
 
-  // No need to continue if no data has been enriched.
-  if (!enriched) {
-    return {
-      member: input,
-      enrichment: null,
-    }
-  }
-
   try {
     await normalizeEnrichedMember({
       member: input,
@@ -71,6 +63,14 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
     })
   } catch (err) {
     throw new Error(err)
+  }
+
+  // No need to continue if no data has been enriched.
+  if (!enriched) {
+    return {
+      member: input,
+      enrichment: null,
+    }
   }
 
   try {
