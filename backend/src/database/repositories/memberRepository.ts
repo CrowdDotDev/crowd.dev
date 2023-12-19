@@ -1201,12 +1201,12 @@ class MemberRepository {
 
     // Get special attributes from memberAttributeSettings
     const specialAttributes = memberAttributeSettings
-      .filter(setting => setting.type === 'special')
-      .map(setting => setting.name)
+      .filter((setting) => setting.type === 'special')
+      .map((setting) => setting.name)
 
     // Parse special attributes that are indexed as strings
-    if (result.attributes){
-      specialAttributes.forEach(attr => {
+    if (result.attributes) {
+      specialAttributes.forEach((attr) => {
         if (result.attributes[attr]) {
           result.attributes[attr] = JSON.parse(result.attributes[attr])
         }
@@ -1218,19 +1218,19 @@ class MemberRepository {
       result.organizations.sort((a, b) => {
         const dateStartA = a.memberOrganizations.dateStart
         const dateStartB = b.memberOrganizations.dateStart
-    
+
         if (!dateStartA && !dateStartB) {
           return 0
         }
-    
+
         if (!dateStartA) {
           return 1
         }
-    
+
         if (!dateStartB) {
           return -1
         }
-    
+
         return new Date(dateStartB).getTime() - new Date(dateStartA).getTime()
       })
     }
