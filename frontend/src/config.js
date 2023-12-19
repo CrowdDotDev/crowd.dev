@@ -137,6 +137,5 @@ config.isGitIntegrationEnabled = config.isGitEnabled === 'true';
 config.isGroupsioIntegrationEnabled = config.isGroupsioEnabled === 'true';
 config.isTwitterIntegrationEnabled = config.isTwitterEnabled === 'true';
 config.isConfluenceEnabled = config.isConfluenceEnabled === 'true';
-config.isGerritEnabled = config.isGerritEnabled === 'true';
 
 export default config;
