@@ -24,6 +24,7 @@ import { DISCOURSE_GRID } from './discourse/grid'
 import { Groupsio_GRID } from './groupsio/grid'
 import { GroupsioActivityType } from './groupsio/types'
 import { ConfluenceActivityType } from './confluence/types'
+import {GerritActivityType} from "./gerrit/types";
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
@@ -41,6 +42,10 @@ const defaultGithubChannelFormatter = (channel) => {
 }
 
 const defaultConfluenceChannelFormatter = (channel) => {
+  return `<a href="${channel}" target="_blank">${channel}</a>`
+}
+
+const defaultGerritChannelFormatter = (channel) => {
   return `<a href="${channel}" target="_blank">${channel}</a>`
 }
 
@@ -773,7 +778,24 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultConfluenceChannelFormatter,
           self: (activity) => {
             const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" target="_blank">xxx ${prNumberAndTitle}</a>`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+  },
+  [PlatformType.CONFLUENCE]: {
+    [GerritActivityType.CHANGESET]: {
+      display: {
+        default: 'added a gerrit changeset in {channel}',
+        short: 'added a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
           },
         },
       },
