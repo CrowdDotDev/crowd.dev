@@ -24,7 +24,7 @@ import { DISCOURSE_GRID } from './discourse/grid'
 import { Groupsio_GRID } from './groupsio/grid'
 import { GroupsioActivityType } from './groupsio/types'
 import { ConfluenceActivityType } from './confluence/types'
-import { GerritActivityType } from "./gerrit/types";
+import { GerritActivityType } from './gerrit/types';
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
