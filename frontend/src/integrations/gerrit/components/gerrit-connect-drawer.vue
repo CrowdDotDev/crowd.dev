@@ -34,18 +34,18 @@
           placeholder="Enter Project Name"
         />
         <el-input
-            id="devUrl"
-            v-model="form.user"
-            class="text-green-500 mt-2"
-            spellcheck="false"
-            placeholder="Enter username"
+          id="devUrl"
+          v-model="form.user"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter username"
         />
         <el-input
-            id="devUrl"
-            v-model="form.key"
-            class="text-green-500 mt-2"
-            spellcheck="false"
-            placeholder="Enter Project key"
+          id="devUrl"
+          v-model="form.key"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter Project key"
         />
       </el-form>
     </template>
