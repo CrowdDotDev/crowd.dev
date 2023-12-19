@@ -145,7 +145,6 @@ export default class MemberEnrichmentService extends LoggerBase {
 
   async bulkEnrich(memberIds: string[], notifyFrontend: boolean = true) {
     const redis = await getRedisClient(REDIS_CONFIG, true)
-    const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
     const apiPubSubEmitter = new RedisPubSubEmitter(
       'api-pubsub',
@@ -160,7 +159,6 @@ export default class MemberEnrichmentService extends LoggerBase {
       try {
         await this.enrichOne(memberId)
         enrichedMembers++
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberId)
         this.log.info(`Enriched member ${memberId}`)
       } catch (err) {
         if (
@@ -224,12 +222,8 @@ export default class MemberEnrichmentService extends LoggerBase {
    * @param memberId - the ID of the member to enrich
    * @returns a promise that resolves to the enrichment data for the member
    */
-  async enrichOne(memberId) {
+  async enrichOne(memberId, syncMode = SyncMode.ASYNCHRONOUS) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const options = {
-      ...this.options,
-      transaction,
-    }
 
     try {
       // If the attributes have not been fetched yet, fetch them
@@ -237,10 +231,10 @@ export default class MemberEnrichmentService extends LoggerBase {
         await this.getAttributes()
       }
 
-      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
+      const searchSyncService = new SearchSyncService(this.options, syncMode)
 
       // Create an instance of the MemberService and use it to look up the member
-      const memberService = new MemberService(options)
+      const memberService = new MemberService(this.options)
       const member = await memberService.findById(memberId, false, false)
 
       // If the member's GitHub handle or email address is not available, throw an error
@@ -290,7 +284,7 @@ export default class MemberEnrichmentService extends LoggerBase {
               // add the member to merge suggestions
               await MemberRepository.addToMerge(
                 [{ similarity: 0.9, members: [memberId, existingMember.id] }],
-                options,
+                this.options,
               )
 
               if (Array.isArray(normalized.username[platform])) {
@@ -311,8 +305,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
 
       // save raw data to cache
-      await MemberEnrichmentCacheRepository.upsert(memberId, enrichmentData, options)
-
+      await MemberEnrichmentCacheRepository.upsert(memberId, enrichmentData, this.options)
       // We are updating the displayName only if the existing one has one word only
       // And we are using an update here instead of the upsert because
       // upsert always takes the existing displayName
@@ -334,7 +327,7 @@ export default class MemberEnrichmentService extends LoggerBase {
           memberId: member.id,
           enrichedFrom,
         },
-        options,
+        this.options,
       )
 
       let result = await memberService.upsert(
@@ -350,7 +343,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       // for every work experience in `enrichmentData`
       //   - upsert organization
       //   - upsert `memberOrganization` relation
-      const organizationService = new OrganizationService(options)
+      const organizationService = new OrganizationService(this.options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
           const organizationIdentities: IOrganizationIdentity[] = [
@@ -374,7 +367,7 @@ export default class MemberEnrichmentService extends LoggerBase {
             },
             {
               doSync: true,
-              mode: SyncMode.ASYNCHRONOUS,
+              mode: syncMode,
             },
           )
 
@@ -390,15 +383,15 @@ export default class MemberEnrichmentService extends LoggerBase {
             dateEnd,
             source: OrganizationSource.ENRICHMENT,
           }
-          await MemberRepository.createOrUpdateWorkExperience(data, options)
-          await OrganizationRepository.includeOrganizationToSegments(org.id, options)
+          await MemberRepository.createOrUpdateWorkExperience(data, this.options)
+          await OrganizationRepository.includeOrganizationToSegments(org.id, this.options)
         }
       }
 
+      await SequelizeRepository.commitTransaction(transaction)
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
-      result = await memberService.findById(result.id, true, false)
-      await SequelizeRepository.commitTransaction(transaction)
+      result = await MemberRepository.findByIdOpensearch(result.id, this.options)
       return result
     } catch (error) {
       this.log.error(error, 'Error while enriching a member!')
@@ -523,7 +516,6 @@ export default class MemberEnrichmentService extends LoggerBase {
 
         // Assign 'value' to 'member.attributes[attributeName].enrichment'
         member.attributes[attributeName].enrichment = value
-
         await this.createAttributeAndUpdateOptions(attributeName, attribute, value)
       }
     }
