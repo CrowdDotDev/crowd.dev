@@ -99,7 +99,7 @@ const form = reactive({
   orgURL: '',
   projectName: '',
   user: '',
-  key: ''
+  key: '',
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
