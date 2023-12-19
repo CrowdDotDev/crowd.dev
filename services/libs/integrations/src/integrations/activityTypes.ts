@@ -785,7 +785,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       isContribution: true,
     },
   },
-  [PlatformType.CONFLUENCE]: {
+  [PlatformType.GERRIT]: {
     [GerritActivityType.CHANGESET]: {
       display: {
         default: 'added a gerrit changeset in {channel}',
