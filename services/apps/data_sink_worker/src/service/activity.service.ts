@@ -487,6 +487,7 @@ export default class ActivityService extends LoggerBase {
               activity.sourceId,
               platform,
               activity.type,
+              activity.channel,
             )
           }
 
