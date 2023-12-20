@@ -1,5 +1,6 @@
 import { isNullOrUndefined } from '@crowd/common'
 import { ITableName } from './types'
+import pgp from 'pg-promise'
 
 export const escapeTableName = (tableName: ITableName): string => {
   return `${
@@ -14,3 +15,9 @@ export const arePrimitivesDbEqual = (a: unknown, b: unknown): boolean => {
 
   return a === b
 }
+
+export const eqOrNull = (value: string) => ({
+  rawType: true,
+  toPostgres: () =>
+    pgp.as.format(`${value === null || value === undefined ? 'IS NULL' : '= $1'}`, value),
+})
