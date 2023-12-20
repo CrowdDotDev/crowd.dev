@@ -491,7 +491,7 @@
                 <!-- Inferred Revenue -->
                 <el-table-column
                   label="Annual Revenue"
-                  width="150"
+                  width="180"
                 >
                   <template #header>
                     <cr-enrichment-sneak-peak type="organization">

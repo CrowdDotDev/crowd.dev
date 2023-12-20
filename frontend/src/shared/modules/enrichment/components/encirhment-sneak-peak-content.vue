@@ -8,7 +8,7 @@
         {{ popover.title }}
       </p>
     </div>
-    <p class="text-2xs leading-4.5 text-gray-600 mb-4">
+    <p class="text-2xs leading-4.5 text-gray-600 mb-4 break-normal text-left whitespace-normal">
       {{ popover.body }}
     </p>
     <router-link

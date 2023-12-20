@@ -59,10 +59,15 @@
                 </p>
                 <app-svg name="source" class="h-3 w-3" />
               </div>
-              <div class="w-full h-3 bg-gradient-to-r from-gray-100 to-gray-50 mt-2" />
+              <div class="w-full mt-2">
+                <div class="blur text-gray-900 text-xs">
+                  Nothing here
+                </div>
+              </div>
             </div>
           </template>
         </cr-enrichment-sneak-peak>
+
         <div v-else>
           <div class="flex items-center">
             <p class="title pr-2" :class="{ '!text-purple-400': !enabled }">
@@ -88,7 +93,11 @@
             </el-tooltip>
           </div>
           <div v-if="!enabled && hiddenAttributeNames.includes(attribute.name)" class="mt-1">
-            <div class="w-full h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
+            <div class="w-full">
+              <div class="blur text-gray-900 text-xs">
+                Nothing here
+              </div>
+            </div>
           </div>
           <div
             v-else-if="attribute.type === 'multiSelect'"

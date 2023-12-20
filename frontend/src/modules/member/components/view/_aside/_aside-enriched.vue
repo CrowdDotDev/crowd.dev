@@ -73,38 +73,38 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Awards -->
-    <div
-      v-if="member.attributes.awards"
-      class="flex items-center mb-4 mt-10"
-    >
+    <div v-if="member.attributes.awards">
       <div
-        class="font-medium text-black mr-2"
+        class="flex items-center mb-4 mt-10"
       >
-        Awards
+        <div
+          class="font-medium text-black mr-2"
+        >
+          Awards
+        </div>
+        <el-tooltip
+          v-if="getAttributeSourceName(member.attributes.awards)"
+          :content="`Source: ${getAttributeSourceName(member.attributes.awards)}`"
+          placement="top"
+          trigger="hover"
+        >
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
       </div>
-      <el-tooltip
-        v-if="getAttributeSourceName(member.attributes.awards)"
-        :content="`Source: ${getAttributeSourceName(member.attributes.awards)}`"
-        placement="top"
-        trigger="hover"
+      <app-member-custom-attributes-array-renderer
+        title="Awards"
+        :attribute="member.attributes.awards"
+        more-label="items"
       >
-        <app-svg name="source" class="h-3 w-3" />
-      </el-tooltip>
+        <template #itemSlot="{ item }">
+          <div
+            class="text-xs text-gray-900 break-keep text-left py-3"
+          >
+            {{ item }}
+          </div>
+        </template>
+      </app-member-custom-attributes-array-renderer>
     </div>
-    <!--    <app-member-custom-attributes-array-renderer-->
-    <!--        -->
-    <!--      title="Awards"-->
-    <!--      :attribute="member.attributes.awards"-->
-    <!--      more-label="items"-->
-    <!--    >-->
-    <!--      <template #itemSlot="{ item }">-->
-    <!--        <div-->
-    <!--          class="text-xs text-gray-900 break-keep text-left py-3"-->
-    <!--        >-->
-    <!--          {{ item }}-->
-    <!--        </div>-->
-    <!--      </template>-->
-    <!--    </app-member-custom-attributes-array-renderer>-->
   </div>
 </template>
 

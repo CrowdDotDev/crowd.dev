@@ -133,7 +133,11 @@
                 )
               }}
             </p>
-            <div v-else class="w-full mt-2 h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
+            <div v-else class="w-full mt-2">
+              <div class="blur text-gray-900 text-xs">
+                Nothing here
+              </div>
+            </div>
           </div>
         </template>
       </cr-enrichment-sneak-peak>
@@ -168,7 +172,11 @@
                 )
               }}
             </p>
-            <div v-else class="w-full mt-2 h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
+            <div v-else class="w-full mt-2">
+              <div class="blur text-gray-900 text-xs">
+                Nothing here
+              </div>
+            </div>
           </div>
         </template>
       </cr-enrichment-sneak-peak>

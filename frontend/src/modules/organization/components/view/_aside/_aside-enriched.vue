@@ -18,7 +18,11 @@
             </div>
             <app-svg name="source" class="h-3 w-3" />
           </div>
-          <div class="w-full mt-2 h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
+          <div class="w-full mt-2">
+            <div class="blur text-gray-900 text-xs">
+              Nothing here
+            </div>
+          </div>
         </div>
       </cr-enrichment-sneak-peak>
       <div v-else-if="organization[attribute.name]">
@@ -58,7 +62,7 @@
         </div>
       </div>
     </div>
-    <cr-enrichment-sneak-peak-content type="organization" :dark="true" class="mt-3 -mx-2" />
+    <cr-enrichment-sneak-peak-content type="organization" :dark="true" class="mt-10 -mx-2" />
   </div>
 </template>
 

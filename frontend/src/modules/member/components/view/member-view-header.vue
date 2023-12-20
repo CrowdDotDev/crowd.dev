@@ -93,7 +93,11 @@
               <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
                 <app-member-reach :member="member" />
               </p>
-              <div v-else class="w-full mt-1 h-3 bg-gradient-to-r from-gray-100 to-gray-50" />
+              <div v-else class="w-full mt-1">
+                <div class="blur text-gray-900 text-xs">
+                  Nothing here
+                </div>
+              </div>
             </div>
           </template>
         </cr-enrichment-sneak-peak>
