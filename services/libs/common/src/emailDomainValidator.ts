@@ -1,4 +1,4 @@
-const excludeDomains = [
+const blacklistedDomains = [
   'gmail.com',
   'yahoo.com',
   'hotmail.com',
@@ -104,8 +104,19 @@ const excludeDomains = [
   'pm.me',
   'duck.com',
   'zoho.com',
+  'users.noreply.github.com',
+  '126.com',
+  '163.com',
+  'foxmail.com',
 ]
 
+/**
+ * Checks if a domain is part of the excluded domains.
+ * These domains are public email providers and not organizations.
+ *
+ * @param {string} domain - The domain name to check.
+ * @return {boolean} true if the domain is excluded, false otherwise.
+ */
 export const isDomainExcluded = (domain: string) => {
-  return excludeDomains.includes(domain)
+  return blacklistedDomains.includes(domain)
 }
