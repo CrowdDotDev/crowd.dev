@@ -1,25 +1,30 @@
 import { BatchProcessor } from '@crowd/common'
-import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { DbConnection, DbStore } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import {
+  SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
+  SqsClient,
+  SqsPrioritizedQueueReciever,
+} from '@crowd/sqs'
+import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
+import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 import {
   OpenSearchService,
   ActivitySyncService,
   MemberSyncService,
   OrganizationSyncService,
 } from '@crowd/opensearch'
-import { RedisClient } from '@crowd/redis'
-import { SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
-import { IQueueMessage, SearchSyncWorkerQueueMessageType } from '@crowd/types'
-import { SERVICE_CONFIG } from 'conf'
+import { SERVICE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export class WorkerQueueReceiver extends SqsQueueReceiver {
+export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
   private readonly organizationBatchProcessor: BatchProcessor<string>
 
   constructor(
+    level: QueuePriorityLevel,
     private readonly redisClient: RedisClient,
     client: SqsClient,
     private readonly dbConn: DbConnection,
@@ -29,6 +34,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     maxConcurrentProcessing: number,
   ) {
     super(
+      level,
       client,
       SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
       maxConcurrentProcessing,
@@ -112,7 +118,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     )
   }
 
-  protected override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
+  public override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
     await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
       try {
         this.log.trace({ messageType: message.type }, 'Processing message!')

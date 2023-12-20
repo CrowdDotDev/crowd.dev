@@ -10,7 +10,6 @@ import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import SettingsRepository from './settings.repo'
 import { ConversationService } from '@crowd/conversations'
 import IntegrationRepository from '../repo/integration.repo'
@@ -20,6 +19,8 @@ import { RedisClient } from '@crowd/redis'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { TEMPORAL_CONFIG } from '../conf'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { GithubActivityType } from '@crowd/integrations'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -42,6 +43,7 @@ export default class ActivityService extends LoggerBase {
     tenantId: string,
     segmentId: string,
     activity: IActivityCreateData,
+    onboarding: boolean,
     fireSync = true,
   ): Promise<string> {
     try {
@@ -116,13 +118,17 @@ export default class ActivityService extends LoggerBase {
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          tenantId,
+          activity.memberId,
+          onboarding,
+        )
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
       }
 
       if (affectedIds.length > 0) {
         for (const affectedId of affectedIds.filter((i) => i !== id)) {
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId)
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId, onboarding)
         }
       }
 
@@ -136,6 +142,7 @@ export default class ActivityService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    onboarding: boolean,
     segmentId: string,
     activity: IActivityUpdateData,
     original: IDbActivity,
@@ -182,6 +189,7 @@ export default class ActivityService extends LoggerBase {
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
             organizationId: toUpdate.organizationId || original.organizationId,
+            platform: toUpdate.platform || (original.platform as PlatformType),
           })
 
           return true
@@ -195,8 +203,12 @@ export default class ActivityService extends LoggerBase {
         await this.conversationService.processActivity(tenantId, segmentId, id)
 
         if (fireSync) {
-          await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, activity.memberId)
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id)
+          await this.searchSyncWorkerEmitter.triggerMemberSync(
+            tenantId,
+            activity.memberId,
+            onboarding,
+          )
+          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
         }
       }
     } catch (err) {
@@ -299,6 +311,11 @@ export default class ActivityService extends LoggerBase {
       organizationId = data.organizationId
     }
 
+    let platform: PlatformType | undefined
+    if (!arePrimitivesDbEqual(original.platform, data.platform)) {
+      platform = data.platform
+    }
+
     return {
       type,
       isContribution,
@@ -316,12 +333,14 @@ export default class ActivityService extends LoggerBase {
       channel,
       url,
       organizationId,
+      platform,
     }
   }
 
   public async processActivity(
     tenantId: string,
     integrationId: string,
+    onboarding: boolean,
     platform: PlatformType,
     activity: IActivityData,
     providedSegmentId?: string,
@@ -436,14 +455,41 @@ export default class ActivityService extends LoggerBase {
                 : dbIntegration.segmentId
           }
 
-          // find existing activity
-          const dbActivity = await txRepo.findExisting(
-            tenantId,
-            segmentId,
-            activity.sourceId,
-            platform,
-            activity.type,
-          )
+          let dbActivity: IDbActivity | null
+
+          if (
+            (platform === PlatformType.GITHUB &&
+              activity.type === GithubActivityType.AUTHORED_COMMIT) ||
+            platform === PlatformType.GIT
+          ) {
+            // we are looking up without platform and type, so we can find the activity with platform = github
+            // and "enrich" it with git data
+            // we also include channel here, because different repos (channels) might have the same commit hash
+
+            if (!activity.channel) {
+              this.log.error('Missing activity channel for github authored commit or git activity!')
+              throw new Error(
+                'Missing activity channel for github authored commit or git activity!',
+              )
+            }
+
+            dbActivity = await txRepo.findExistingBySourceIdAndChannel(
+              tenantId,
+              segmentId,
+              activity.sourceId,
+              activity.channel,
+            )
+          } else {
+            // find existing activity
+            dbActivity = await txRepo.findExisting(
+              tenantId,
+              segmentId,
+              activity.sourceId,
+              platform,
+              activity.type,
+              activity.channel,
+            )
+          }
 
           if (dbActivity && dbActivity?.deletedAt) {
             // we found an existing activity but it's deleted - nothing to do here
@@ -481,7 +527,11 @@ export default class ActivityService extends LoggerBase {
 
                 // delete activity
                 await txRepo.delete(dbActivity.id)
-                await this.searchSyncWorkerEmitter.triggerRemoveActivity(tenantId, dbActivity.id)
+                await this.searchSyncWorkerEmitter.triggerRemoveActivity(
+                  tenantId,
+                  dbActivity.id,
+                  onboarding,
+                )
                 createActivity = true
               }
 
@@ -489,6 +539,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -527,6 +578,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -591,6 +643,7 @@ export default class ActivityService extends LoggerBase {
                     await this.searchSyncWorkerEmitter.triggerRemoveActivity(
                       tenantId,
                       dbActivity.id,
+                      onboarding,
                     )
                     createActivity = true
                   }
@@ -599,6 +652,7 @@ export default class ActivityService extends LoggerBase {
                   await txMemberService.update(
                     dbObjectMember.id,
                     tenantId,
+                    onboarding,
                     segmentId,
                     integrationId,
                     {
@@ -637,6 +691,7 @@ export default class ActivityService extends LoggerBase {
                   await txMemberService.update(
                     dbObjectMember.id,
                     tenantId,
+                    onboarding,
                     segmentId,
                     integrationId,
                     {
@@ -670,6 +725,7 @@ export default class ActivityService extends LoggerBase {
               await txActivityService.update(
                 dbActivity.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 {
                   type: activity.type,
@@ -687,6 +743,10 @@ export default class ActivityService extends LoggerBase {
                   channel: activity.channel,
                   url: activity.url,
                   organizationId,
+                  platform:
+                    platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
+                      ? PlatformType.GITHUB
+                      : (dbActivity.platform as PlatformType),
                 },
                 dbActivity,
                 false,
@@ -708,6 +768,7 @@ export default class ActivityService extends LoggerBase {
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -731,6 +792,7 @@ export default class ActivityService extends LoggerBase {
               )
               memberId = await txMemberService.create(
                 tenantId,
+                onboarding,
                 segmentId,
                 integrationId,
                 {
@@ -767,6 +829,7 @@ export default class ActivityService extends LoggerBase {
                 await txMemberService.update(
                   dbObjectMember.id,
                   tenantId,
+                  onboarding,
                   segmentId,
                   integrationId,
                   {
@@ -790,6 +853,7 @@ export default class ActivityService extends LoggerBase {
                 )
                 objectMemberId = await txMemberService.create(
                   tenantId,
+                  onboarding,
                   segmentId,
                   integrationId,
                   {
@@ -839,6 +903,7 @@ export default class ActivityService extends LoggerBase {
                 url: activity.url,
                 organizationId,
               },
+              onboarding,
               false,
             )
           }
@@ -848,13 +913,13 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (memberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId, onboarding)
       }
       if (objectMemberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId, onboarding)
       }
       if (activityId) {
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId)
+        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')

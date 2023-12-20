@@ -1,8 +1,8 @@
 import { FeatureFlag } from '@crowd/types'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import Permissions from '../../security/permissions'
 import OrganizationService from '../../services/organizationService'
 import PermissionChecker from '../../services/user/permissionChecker'
+import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 
 /**
  * GET /tenant/{tenantId}/organization/{id}
@@ -34,7 +34,14 @@ export default async (req, res) => {
     }
   }
 
-  const payload = await new OrganizationService(req).findById(req.params.id, segmentId)
+  let payload
+  if (await isFeatureEnabled(FeatureFlag.SERVE_PROFILES_OPENSEARCH, req)) {
+    payload = await new OrganizationService(req).findByIdOpensearch(req.params.id, segmentId)
+    // temp flag to notifiy the client that this is an opensearch response
+    payload.fromOpensearch = true
+  } else {
+    payload = await new OrganizationService(req).findById(req.params.id, segmentId)
+  }
 
   await req.responseHandler.success(req, res, payload)
 }

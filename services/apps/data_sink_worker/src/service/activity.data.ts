@@ -1,3 +1,5 @@
+import { PlatformType } from '@crowd/types'
+
 export interface IActivityCreateData {
   type: string
   isContribution: boolean
@@ -34,4 +36,5 @@ export interface IActivityUpdateData {
   channel?: string
   url?: string
   organizationId?: string
+  platform?: PlatformType
 }

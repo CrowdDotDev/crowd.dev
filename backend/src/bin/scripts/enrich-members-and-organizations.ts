@@ -1,16 +1,14 @@
+import { getServiceLogger } from '@crowd/logging'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { getServiceLogger } from '@crowd/logging'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import MemberRepository from '@/database/repositories/memberRepository'
-import { sendBulkEnrichMessage, sendNodeWorkerMessage } from '@/serverless/utils/nodeWorkerSQS'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { NodeWorkerMessageType } from '@/serverless/types/workerTypes'
-import { NodeWorkerMessageBase } from '@/types/mq/nodeWorkerMessageBase'
-import getUserContext from '@/database/utils/getUserContext'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import MemberRepository from '@/database/repositories/memberRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import getUserContext from '@/database/utils/getUserContext'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import SegmentService from '@/services/segmentService'
 
 /* eslint-disable no-console */
@@ -80,6 +78,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
     const enrichMembers = parameters.member
     const enrichOrganizations = parameters.organization
     const limit = 1000
+    const emitter = await getNodejsWorkerEmitter()
 
     for (const tenantId of tenantIds) {
       const options = await SequelizeRepository.getDefaultIRepositoryOptions()
@@ -112,7 +111,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
         if (enrichMembers) {
           if (parameters.memberIds) {
             const memberIds = parameters.memberIds.split(',')
-            await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+            await emitter.bulkEnrich(tenantId, memberIds, segmentIds, false, true)
             log.info(
               { tenantId },
               `Enrichment message for ${memberIds.length} sent to nodejs-worker!`,
@@ -134,7 +133,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
                 optionsWithTenant,
               )
 
-              await sendBulkEnrichMessage(tenantId, memberIds, segmentIds, false, true)
+              await emitter.bulkEnrich(tenantId, memberIds, segmentIds, false, true)
 
               offset += limit
             } while (totalMembers > offset)
@@ -150,16 +149,7 @@ if (parameters.help || (!parameters.tenant && (!parameters.organization || !para
 
           log.info({ tenantId }, `Total organizations found in the tenant: ${totalOrganizations}`)
 
-          const payload = {
-            type: NodeWorkerMessageType.NODE_MICROSERVICE,
-            service: 'enrich-organizations',
-            tenantId,
-            // Since there is no pagination implemented for the organizations enrichment,
-            // we set a limit of 10,000 to ensure all organizations are included when enriched in bulk.
-            maxEnrichLimit: 10000,
-          } as NodeWorkerMessageBase
-
-          await sendNodeWorkerMessage(tenantId, payload)
+          await emitter.enrichOrganizations(tenantId, 10000)
           log.info(
             { tenantId },
             `Organizations enrichment operation finished for tenant ${tenantId}`,

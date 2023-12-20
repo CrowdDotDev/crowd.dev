@@ -8,9 +8,9 @@ on:
         required: true
         type: boolean
       deploy_search_sync_api:
-          description: Deploy search-sync-api service?
-          required: true
-          type: boolean
+        description: Deploy search-sync-api service?
+        required: true
+        type: boolean
       deploy_integration_sync_worker:
         description: Deploy integration-sync-worker service?
         required: true
@@ -25,6 +25,10 @@ on:
         type: boolean
       deploy_emails_worker:
         description: Deploy emails-worker service?
+        required: true
+        type: boolean
+      deploy_entity_merging_worker:
+        description: Deploy entity-merging-worker service?
         required: true
         type: boolean
       deploy_script_executor:
@@ -64,7 +68,7 @@ jobs:
       - name: Set docker image output
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
-  
+
   build-and-push-search-sync-api:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_search_sync_api }}
@@ -170,6 +174,27 @@ jobs:
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
+  build-and-push-entity-merging-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_entity_merging_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: entity-merging-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
   build-and-push-script-executor:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_script_executor }}
@@ -208,6 +233,8 @@ jobs:
           service: search-sync-worker
           image: ${{ needs.build-and-push-search-sync-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: lfx_prod
+          prioritized: true
 
   deploy-search-sync-api:
     needs: build-and-push-search-sync-api
@@ -244,6 +271,8 @@ jobs:
           service: integration-sync-worker
           image: ${{ needs.build-and-push-integration-sync-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          cloud_env: lfx_prod
+          prioritized: true
 
   deploy-webhook-api:
     needs: build-and-push-webhook-api
@@ -297,6 +326,24 @@ jobs:
         with:
           service: emails-worker
           image: ${{ needs.build-and-push-emails-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-entity-merging-worker:
+    needs: build-and-push-entity-merging-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_entity_merging_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: entity-merging-worker
+          image: ${{ needs.build-and-push-entity-merging-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-script-executor:

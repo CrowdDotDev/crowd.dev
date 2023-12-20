@@ -73,6 +73,10 @@ const StatusDisplay = {
     label: 'Under Maintenance',
     color: 'bg-gray-500',
   },
+  [Status.Incident]: {
+    label: 'Incident',
+    color: 'bg-yellow-500',
+  },
 } as const;
 
 const label = computed(() => {

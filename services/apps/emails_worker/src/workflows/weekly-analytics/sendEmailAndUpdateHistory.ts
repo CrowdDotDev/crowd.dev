@@ -24,7 +24,7 @@ const {
   getTotalActivitiesPreviousWeek,
   getNewActivitiesThisWeek,
   getNewActivitiesPreviousWeek,
-} = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
+} = proxyActivities<typeof activities>({ startToCloseTimeout: '5 minutes' })
 
 // Configure timeouts and retry policies to fetch content from the database.
 const {
@@ -36,7 +36,7 @@ const {
   getTopActivityTypes,
   getConversations,
   getActiveTenantIntegrations,
-} = proxyActivities<typeof activities>({ startToCloseTimeout: '10 seconds' })
+} = proxyActivities<typeof activities>({ startToCloseTimeout: '20 seconds' })
 
 // Configure timeouts and retry policies to actually send the email.
 const { weeklySendEmail } = proxyActivities<typeof activities>({

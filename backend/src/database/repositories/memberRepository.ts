@@ -48,6 +48,7 @@ import {
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import MemberAffiliationRepository from './memberAffiliationRepository'
+import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
 
@@ -344,32 +345,6 @@ class MemberRepository {
     }
   }
 
-  static async moveActivitiesBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const query = `
-      update activities set "memberId" = :toMemberId where "memberId" = :fromMemberId and "tenantId" = :tenantId;
-    `
-
-    await seq.query(query, {
-      replacements: {
-        fromMemberId,
-        toMemberId,
-        tenantId: tenant.id,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
-  }
-
   static async addToMerge(
     suggestions: IMemberMergeSuggestion[],
     options: IRepositoryOptions,
@@ -421,7 +396,7 @@ class MemberRepository {
 
       const query = `
         INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
-        VALUES ${placeholders.join(', ')};
+        VALUES ${placeholders.join(', ')} on conflict do nothing;
       `
       try {
         await seq.query(query, {
@@ -1164,6 +1139,39 @@ class MemberRepository {
       },
       transaction,
     })
+  }
+
+  static async findByIdOpensearch(id, options: IRepositoryOptions, segmentId?: string) {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
+
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, options)
+    ).rows
+
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
+              },
+            },
+          ],
+        },
+        limit: 1,
+        offset: 0,
+        attributesSettings: memberAttributeSettings,
+        segments,
+      },
+      options,
+    )
+
+    if (response.count === 0) {
+      throw new Error404()
+    }
+
+    return response.rows[0]
   }
 
   static async findAndCountActiveOpensearch(

@@ -1,10 +1,14 @@
+import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/database'
+import { IUnleashConfig } from '@crowd/feature-flags'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
+import { QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
 export interface IWorkerConfig {
   maxStreamRetries: number
+  queuePriorityLevel: QueuePriorityLevel
 }
 
 export interface INangoConfig {
@@ -72,4 +76,13 @@ export const PLATFORM_CONFIG = (platform: string): unknown | undefined => {
     platformMap.set(platform, null)
     return undefined
   }
+}
+
+let unleashConfig: IUnleashConfig | undefined
+export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
+  if (unleashConfig) return unleashConfig
+
+  unleashConfig = Object.assign({ appName: SERVICE }, config.get<IUnleashConfig>('unleash'))
+
+  return unleashConfig
 }
