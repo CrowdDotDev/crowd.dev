@@ -178,6 +178,33 @@ export class InitService {
       lastActive: new Date().toISOString(),
       averageSentiment: 20.32,
 
+      contributions: [
+        {
+          id: '112529472',
+          url: 'https://github.com/bachman/pied-piper',
+          topics: ['compression', 'data', 'middle-out', 'Java'],
+          summary: 'Pied Piper: 10 commits in 1 day',
+          numberCommits: 10,
+          lastCommitDate: '2023-03-10',
+          firstCommitDate: '2023-03-01',
+        },
+      ],
+
+      affiliations: [
+        {
+          id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',
+          segmentId: 'ce36b0b0-1fc4-4637-955d-afb8a6b58e48',
+          segmentSlug: 'test-segment',
+          segmentName: 'Test Segment',
+          segmentParentName: 'Test Parent Segment',
+          organizationId: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
+          organizationName: 'Test Organization',
+          organizationLogo: 'https://placehold.co/400',
+          dateStart: new Date().toISOString(),
+          dateEnd: new Date().toISOString(),
+        },
+      ],
+
       identities: [
         {
           platform: 'devto',

@@ -2161,7 +2161,14 @@ class OrganizationRepository {
       throw new Error404()
     }
 
-    return response.rows[0]
+    const result = response.rows[0]
+
+    // Parse attributes that are indexed as strings
+    if (result.attributes) {
+      result.attributes = JSON.parse(result.attributes)
+    }
+
+    return result
   }
 
   static async findAndCountAllOpensearch(

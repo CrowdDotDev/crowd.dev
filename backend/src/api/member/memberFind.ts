@@ -37,8 +37,6 @@ export default async (req, res) => {
   let payload
   if (await isFeatureEnabled(FeatureFlag.SERVE_PROFILES_OPENSEARCH, req)) {
     payload = await new MemberService(req).findByIdOpensearch(req.params.id, segmentId)
-    // temp flag to notifiy the client that this is an opensearch response
-    payload.fromOpensearch = true
   } else {
     payload = await new MemberService(req).findById(req.params.id, true, true, segmentId)
   }

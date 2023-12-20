@@ -33,6 +33,29 @@ export interface IDbMemberOrganization {
   }
 }
 
+export interface IDbMemberAffiliationData {
+  id: string
+  segmentId: string
+  segmentSlug: string
+  segmentName: string
+  segmentParentName: string
+  organizationId: string
+  organizationName: string
+  organizationLogo: string
+  dateStart: string
+  dateEnd: string
+}
+
+export interface IDbMemberContributionData {
+  id: string
+  url: string
+  topics: string[] | null
+  summary: string | null
+  numberCommits: number
+  lastCommitDate: string
+  firstCommitDate: string
+}
+
 export interface IDbMemberSyncData {
   id: string
   tenantId: string
@@ -56,6 +79,8 @@ export interface IDbMemberSyncData {
   lastActive: string
   averageSentiment: number | null
 
+  contributions: IDbMemberContributionData[]
+  affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
