@@ -122,10 +122,10 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
               options: [
                 {
-                  options: attribute.options.map((option) => ({
+                  options: attribute.options?.map((option) => ({
                     value: option,
                     label: option,
-                  })),
+                  })) || [],
                 },
               ],
             },
