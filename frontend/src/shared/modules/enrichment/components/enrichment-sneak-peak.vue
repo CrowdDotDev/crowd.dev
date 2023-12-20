@@ -1,5 +1,12 @@
 <template>
-  <el-popover :disabled="isEnrichEnabled" placement="top" trigger="hover" width="240px" popper-class="!p-0">
+  <el-popover
+    :disabled="isEnrichEnabled"
+    placement="top"
+    trigger="hover"
+    width="240px"
+    popper-class="!p-0 !mb-[-12px]"
+    :hide-after="100"
+  >
     <template #reference>
       <div class="inline-flex items-center gap-1 h-full">
         <slot :enabled="isEnrichEnabled" />
@@ -13,7 +20,7 @@
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
 import Plans from '@/security/plans';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/encirhment-sneak-peak-content.vue';
+import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { EnrichSneakPeakPopoverType } from '@/shared/modules/enrichment/types/SneakPeakPopover';
 
 const props = defineProps<{

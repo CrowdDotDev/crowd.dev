@@ -8,6 +8,7 @@ const founded: OrganizationEnrichmentConfig = {
   showInForm: true,
   showInAttributes: true,
   enrichmentSneakPeak: true,
+  enrichmentSneakPeakValue: '2021',
   displayValue: (value) => value,
 };
 

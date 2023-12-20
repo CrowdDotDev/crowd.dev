@@ -50,27 +50,29 @@
         :key="attribute.id"
         class="attribute"
       >
+        <!-- Enrichment sneak peak attributes -->
         <cr-enrichment-sneak-peak v-if="hiddenAttributeNames.includes(attribute.name)" type="contact">
-          <template #default="{ enabled }">
+          <template #default>
             <div>
               <div class="flex items-center">
-                <p class="title pr-2" :class="{ '!text-purple-400': !enabled }">
+                <p class="title pr-2 !text-purple-400">
                   {{ attribute.label }}
                 </p>
                 <app-svg name="source" class="h-3 w-3" />
               </div>
               <div class="w-full mt-2">
-                <div class="blur text-gray-900 text-xs">
-                  Nothing here
+                <div class="blur-[6px] text-gray-900 text-xs select-none">
+                  {{ attribute.value }}
                 </div>
               </div>
             </div>
           </template>
         </cr-enrichment-sneak-peak>
 
+        <!-- Remaining attributes that are not hidden -->
         <div v-else>
           <div class="flex items-center">
-            <p class="title pr-2" :class="{ '!text-purple-400': !enabled }">
+            <p class="title pr-2">
               {{ attribute.label }}
               <el-tooltip
                 content="Skills are sorted by relevance"
@@ -87,20 +89,12 @@
               :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
               placement="top"
               trigger="hover"
-              :disabled="!enabled"
             >
               <app-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
-          <div v-if="!enabled && hiddenAttributeNames.includes(attribute.name)" class="mt-1">
-            <div class="w-full">
-              <div class="blur text-gray-900 text-xs">
-                Nothing here
-              </div>
-            </div>
-          </div>
           <div
-            v-else-if="attribute.type === 'multiSelect'"
+            v-if="attribute.type === 'multiSelect'"
             class="multiSelect -mt-1"
           >
             <app-member-custom-attributes-array-renderer
@@ -127,6 +121,8 @@
         </div>
       </div>
     </div>
+
+    <!-- CTA widget -->
     <div class="-mx-2 pt-2">
       <cr-enrichment-sneak-peak-content type="contact" :dark="true" />
     </div>
@@ -150,8 +146,8 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/encirhment-sneak-peak-content.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
@@ -183,22 +179,26 @@ const hiddenAttributes = ref([
   {
     name: 'seniorityLevel',
     label: 'Seniority level',
+    value: 'Senior',
     show: true,
   },
   {
     name: 'programmingLanguages',
     label: 'Programming languages',
+    value: 'Javascript, Java',
     show: true,
   },
   {
     name: 'skills',
     label: 'Skills',
     show: true,
+    value: 'Web development',
   },
   {
     name: 'reach',
     label: 'Reach',
     show: false,
+    value: 150,
   },
 ]);
 

@@ -94,8 +94,8 @@
                 <app-member-reach :member="member" />
               </p>
               <div v-else class="w-full mt-1">
-                <div class="blur text-gray-900 text-xs">
-                  Nothing here
+                <div class="blur-[6px] text-gray-900 text-xs select-none">
+                  150
                 </div>
               </div>
             </div>
@@ -144,7 +144,7 @@ import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialo
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 
 defineProps({
   member: {

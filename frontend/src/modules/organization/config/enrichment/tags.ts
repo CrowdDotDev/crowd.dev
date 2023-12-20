@@ -9,6 +9,7 @@ const tags: OrganizationEnrichmentConfig = {
   showInForm: true,
   showInAttributes: true,
   enrichmentSneakPeak: true,
+  enrichmentSneakPeakValue: 'Software',
   component: OrganizationAttributesArrayRenderer,
 };
 

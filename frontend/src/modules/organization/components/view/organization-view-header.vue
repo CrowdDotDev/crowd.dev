@@ -134,8 +134,8 @@
               }}
             </p>
             <div v-else class="w-full mt-2">
-              <div class="blur text-gray-900 text-xs">
-                Nothing here
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                11-50
               </div>
             </div>
           </div>
@@ -173,8 +173,8 @@
               }}
             </p>
             <div v-else class="w-full mt-2">
-              <div class="blur text-gray-900 text-xs">
-                Nothing here
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                $1M-$10M
               </div>
             </div>
           </div>
@@ -216,7 +216,7 @@ import AppOrganizationDropdown from '@/modules/organization/components/organizat
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({

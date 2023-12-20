@@ -9,6 +9,7 @@ const industry: OrganizationEnrichmentConfig = {
   showInForm: true,
   showInAttributes: true,
   enrichmentSneakPeak: true,
+  enrichmentSneakPeakValue: 'Software',
   displayValue: (value) => toSentenceCase(value),
 };
 

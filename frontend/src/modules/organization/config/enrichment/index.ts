@@ -32,6 +32,7 @@ export interface OrganizationEnrichmentConfig {
   showInForm: boolean; // Display in Organization Form
   showInAttributes: boolean; // Display in Organization Profile
   enrichmentSneakPeak?: boolean; // Display as a sneak peak attribute
+  enrichmentSneakPeakValue?: string; // Value to display in sneak peak
   isLink?: boolean; // If attribute is a url
   component?: any; // Component that will render attribute in organization profile
   displayValue?: (value: any) => string; // Formatter for displaying attribute value

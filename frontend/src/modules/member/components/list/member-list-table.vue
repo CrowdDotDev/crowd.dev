@@ -445,9 +445,9 @@
                             reach: scope.row.reach,
                           }"
                         />
-                        <div v-else class="flex items-center h-full w-full pl-2">
-                          <div class="blur text-black">
-                            Nothing here
+                        <div v-else class="flex items-center h-full w-full pl-3">
+                          <div class="blur-[6px] text-gray-900 select-none">
+                            150
                           </div>
                         </div>
                       </router-link>
@@ -500,9 +500,9 @@
                           </div>
                           <span v-else class="text-gray-900">-</span>
                         </div>
-                        <div v-else class="flex items-center h-full w-full pl-2">
-                          <div class="blur text-black">
-                            Nothing here
+                        <div v-else class="flex items-center h-full w-full pl-3">
+                          <div class="blur-[6px] text-gray-900 select-none">
+                            Senior
                           </div>
                         </div>
                       </router-link>
@@ -560,9 +560,9 @@
                           </app-shared-tag-list>
                           <span v-else class="text-gray-500">-</span>
                         </div>
-                        <div v-else class="flex items-center h-full w-full pl-2">
-                          <div class="blur text-black">
-                            Nothing here
+                        <div v-else class="flex items-center h-full w-full pl-3">
+                          <div class="blur-[6px] text-gray-900 select-none">
+                            Javascript, Java
                           </div>
                         </div>
                       </router-link>
@@ -619,9 +619,9 @@
                           </app-shared-tag-list>
                           <span v-else class="text-gray-500">-</span>
                         </div>
-                        <div v-else class="flex items-center h-full w-full pl-2">
-                          <div class="blur text-black">
-                            Nothing here
+                        <div v-else class="flex items-center h-full w-full pl-3">
+                          <div class="blur-[6px] text-gray-900 select-none">
+                            Web development
                           </div>
                         </div>
                       </router-link>
@@ -742,7 +742,7 @@ import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberIdentities from '../member-identities.vue';

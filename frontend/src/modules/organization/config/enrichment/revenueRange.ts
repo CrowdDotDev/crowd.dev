@@ -28,6 +28,7 @@ const revenueRange: OrganizationEnrichmentConfig = {
   showInForm: false,
   showInAttributes: false,
   enrichmentSneakPeak: true,
+  enrichmentSneakPeakValue: '$1M-$10M',
   displayValue: (value) => {
     if (!Object.keys(value || {}).length) {
       return '-';

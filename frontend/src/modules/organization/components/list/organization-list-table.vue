@@ -425,9 +425,9 @@
                             </span>
                             <span v-else class="text-gray-500">-</span>
                           </div>
-                          <div v-else class="flex items-center h-full w-full pl-2">
-                            <div class="blur text-black">
-                              Nothing here
+                          <div v-else class="flex items-center h-full w-full pl-3">
+                            <div class="blur-[6px] text-gray-900 select-none">
+                              Software
                             </div>
                           </div>
                         </router-link>
@@ -477,9 +477,9 @@
                             </span>
                             <span v-else class="text-gray-500">-</span>
                           </div>
-                          <div v-else class="flex items-center h-full w-full pl-2">
-                            <div class="blur text-black">
-                              Nothing here
+                          <div v-else class="flex items-center h-full w-full pl-3">
+                            <div class="blur-[6px] text-gray-900 select-none">
+                              11-50
                             </div>
                           </div>
                         </router-link>
@@ -528,9 +528,9 @@
                             </span>
                             <span v-else class="text-gray-500">-</span>
                           </div>
-                          <div v-else class="flex items-center h-full w-full pl-2">
-                            <div class="blur text-black">
-                              Nothing here
+                          <div v-else class="flex items-center h-full w-full pl-3">
+                            <div class="blur-[6px] text-gray-900 select-none">
+                              $1M-$10M
                             </div>
                           </div>
                         </router-link>
@@ -584,9 +584,9 @@
                             </span>
                             <span v-else class="text-gray-500">-</span>
                           </div>
-                          <div v-else class="flex items-center h-full w-full pl-2">
-                            <div class="blur text-black">
-                              Nothing here
+                          <div v-else class="flex items-center h-full w-full pl-3">
+                            <div class="blur-[6px] text-gray-900 select-none">
+                              2021
                             </div>
                           </div>
                         </router-link>
@@ -635,9 +635,9 @@
                             </span>
                             <span v-else class="text-gray-500">-</span>
                           </div>
-                          <div v-else class="flex items-center h-full w-full pl-2">
-                            <div class="blur text-black">
-                              Nothing here
+                          <div v-else class="flex items-center h-full w-full pl-3">
+                            <div class="blur-[6px] text-gray-900 select-none">
+                              10.25%
                             </div>
                           </div>
                         </router-link>
@@ -687,9 +687,9 @@
                             />
                             <span v-else class="text-gray-500">-</span>
                           </div>
-                          <div v-else class="flex items-center h-full w-full pl-2">
-                            <div class="blur text-black">
-                              Nothing here
+                          <div v-else class="flex items-center h-full w-full pl-3">
+                            <div class="blur-[6px] text-gray-900 select-none">
+                              Software
                             </div>
                           </div>
                         </router-link>
@@ -789,7 +789,7 @@ import revenueRange from '@/modules/organization/config/enrichment/revenueRange'
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import AppOrganizationIdentities from '../organization-identities.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';

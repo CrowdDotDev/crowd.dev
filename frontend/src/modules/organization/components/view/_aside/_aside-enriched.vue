@@ -19,8 +19,8 @@
             <app-svg name="source" class="h-3 w-3" />
           </div>
           <div class="w-full mt-2">
-            <div class="blur text-gray-900 text-xs">
-              Nothing here
+            <div class="blur-[6px] text-gray-900 text-xs select-none">
+              {{ attribute.enrichmentSneakPeakValue }}
             </div>
           </div>
         </div>
@@ -71,8 +71,8 @@ import { computed, defineProps } from 'vue';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/encirhment-sneak-peak.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/encirhment-sneak-peak-content.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
 
