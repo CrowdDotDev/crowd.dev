@@ -13,8 +13,6 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 
 export async function spawnSuggestionsForAllTenants(): Promise<void> {
   const tenants = await activity.getAllTenants()
-  console.log('Generating merge suggestions for:')
-  console.log(tenants)
   const info = workflowInfo()
   await Promise.all(
     tenants.map((tenant) => {
