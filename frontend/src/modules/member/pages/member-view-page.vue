@@ -20,8 +20,11 @@
         <div class="row-span-4">
           <app-member-view-aside :member="member" />
         </div>
+        <app-member-view-contributions-cta
+          v-if="!isEnrichmentEnabled"
+        />
         <app-member-view-contributions
-          v-if="member.contributions"
+          v-else-if="member.contributions"
           :contributions="member.contributions"
           class="col-span-2"
         />
@@ -75,9 +78,11 @@ import AppMemberViewHeader from '@/modules/member/components/view/member-view-he
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
 import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
+import AppMemberViewContributionsCta from '@/modules/member/components/view/member-view-contributions-cta.vue';
 import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import Plans from '@/security/plans';
 
 const store = useStore();
 const props = defineProps({
@@ -94,6 +99,7 @@ const { customAttributes } = storeToRefs(memberStore);
 const { getMemberCustomAttributes } = memberStore;
 
 const member = computed(() => store.getters['member/find'](props.id) || {});
+const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
 
 const isTaskLocked = computed(
   () => new TaskPermissions(
