@@ -3,7 +3,7 @@ import * as activities from '../activities/member-merge-suggestions/getMergeSugg
 
 import { IMemberMergeSuggestion, IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
 import { IMemberPartialAggregatesOpensearch } from 'types'
-import { chunkArray } from 'utils'
+import { chunkArray } from '../utils'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
