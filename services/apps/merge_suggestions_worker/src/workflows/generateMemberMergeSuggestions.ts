@@ -3,6 +3,7 @@ import * as activities from '../activities/member-merge-suggestions/getMergeSugg
 
 import { IMemberMergeSuggestion, IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
 import { IMemberPartialAggregatesOpensearch } from 'types'
+import { chunkArray } from 'utils'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
@@ -10,6 +11,7 @@ export async function generateMemberMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
   const PAGE_SIZE = 50
+  const PARALLEL_SUGGESTION_PROCESSING = 10
 
   let result: IMemberPartialAggregatesOpensearch[]
   let lastUuid: string
@@ -24,12 +26,17 @@ export async function generateMemberMergeSuggestions(
       activity.getMergeSuggestions(args.tenantId, member),
     )
 
-    // Wait for all merge suggestion promises to resolve
-    const mergeSuggestionsResults: IMemberMergeSuggestion[][] =
-      await Promise.all(mergeSuggestionsPromises)
+    const promiseChunks = chunkArray<Promise<IMemberMergeSuggestion[]>>(
+      mergeSuggestionsPromises,
+      PARALLEL_SUGGESTION_PROCESSING,
+    )
 
-    // concat resulting arrays
-    const allMergeSuggestions: IMemberMergeSuggestion[] = [].concat(...mergeSuggestionsResults)
+    const allMergeSuggestions: IMemberMergeSuggestion[] = []
+
+    for (const promiseChunk of promiseChunks) {
+      const mergeSuggestionsResults: IMemberMergeSuggestion[][] = await Promise.all(promiseChunk)
+      allMergeSuggestions.push(...mergeSuggestionsResults.flat())
+    }
 
     // Add all merge suggestions to add to merge
     if (allMergeSuggestions.length > 0) {
