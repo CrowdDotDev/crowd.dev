@@ -53,6 +53,10 @@ export default (app) => {
     `/tenant/:tenantId/confluence-connect`,
     safeWrap(require('./helpers/confluenceAuthenticate').default),
   )
+  app.put(
+    `/tenant/:tenantId/gerrit-connect`,
+    safeWrap(require('./helpers/gerritAuthenticate').default),
+  )
   app.get(
     '/tenant/:tenantId/devto-validate',
     safeWrap(require('./helpers/devtoValidators').default),

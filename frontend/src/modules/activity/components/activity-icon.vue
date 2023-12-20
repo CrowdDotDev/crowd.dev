@@ -91,6 +91,13 @@ const icons = ref({
       bgColor: 'bg-white',
     },
   },
+  gerrit: {
+    page: {
+      imgSrc: '/images/integrations/gerrit.jpg',
+      color: 'text-black',
+      bgColor: 'bg-white',
+    },
+  },
 });
 </script>
 
