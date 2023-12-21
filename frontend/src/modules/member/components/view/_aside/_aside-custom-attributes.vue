@@ -55,7 +55,7 @@
           <template #default>
             <div>
               <div class="flex items-center">
-                <p class="title pr-2 !text-purple-400">
+                <p class="title pr-2" :class="{ '!text-purple-400': !isEnrichmentEnabled }">
                   {{ attribute.label }}
                 </p>
                 <app-svg name="source" class="h-3 w-3" />

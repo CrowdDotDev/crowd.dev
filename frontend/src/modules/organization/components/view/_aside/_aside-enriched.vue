@@ -12,7 +12,8 @@
         <div>
           <div class="flex items-center">
             <div
-              class="font-medium text-2xs mr-2 text-purple-400"
+              class="font-medium text-2xs mr-2"
+              :class="{ 'text-purple-400': !isEnrichmentEnabled }"
             >
               {{ attribute.label }}
             </div>
