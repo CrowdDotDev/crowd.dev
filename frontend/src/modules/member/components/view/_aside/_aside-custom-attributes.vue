@@ -51,18 +51,18 @@
         class="attribute"
       >
         <!-- Enrichment sneak peak attributes -->
-        <cr-enrichment-sneak-peak v-if="hiddenAttributeNames.includes(attribute.name)" type="contact">
+        <cr-enrichment-sneak-peak v-if="!isEnrichmentEnabled && hiddenAttributeNames.includes(attribute.name)" type="contact">
           <template #default>
             <div>
               <div class="flex items-center">
-                <p class="title pr-2" :class="{ '!text-purple-400': !isEnrichmentEnabled }">
+                <p class="title pr-2 !text-purple-400">
                   {{ attribute.label }}
                 </p>
                 <app-svg name="source" class="h-3 w-3" />
               </div>
               <div class="w-full mt-2">
                 <div class="blur-[6px] text-gray-900 text-xs select-none">
-                  {{ attribute.value }}
+                  {{ hiddenAttributes.find((a) => a.name === attribute.name).value }}
                 </div>
               </div>
             </div>
