@@ -58,6 +58,8 @@ export interface IDbOrganizationSyncData {
   employeeChurnRate12Month: number | null
   employeeGrowthRate12Month: number | null
   tags: string[] | null
+  ticker: string | null
+  manuallyChangedFields: string[] | null
 
   // aggregate data
   joinedAt: string
