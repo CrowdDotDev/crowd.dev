@@ -30,11 +30,11 @@
         <div class="flex items-center">
           <div
             class="text-gray-400 font-medium text-2xs mr-2"
-            :class="{ 'text-purple-400': !enabled }"
+            :class="{ 'text-purple-400': !isEnrichmentEnabled }"
           >
             {{ attribute.label }}
           </div>
-          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichmentEnabled">
             <app-svg name="source" class="h-3 w-3" />
           </el-tooltip>
         </div>
