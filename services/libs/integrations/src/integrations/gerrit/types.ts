@@ -1,9 +1,9 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 export enum GerritActivityType {
-  CHANGESET_CREATED = 'changeset-CREATED',
-  CHANGESET_MERGED = 'changeset-MERGED',
-  CHANGESET_CLOSED = 'changeset-CLOSED',
-  CHANGESET_ABANDONED = 'changeset-ABANDONED',
+  CHANGESET_CREATED = 'changeset-created',
+  CHANGESET_MERGED = 'changeset-merged',
+  CHANGESET_CLOSED = 'changeset-closed',
+  CHANGESET_ABANDONED = 'changeset-abandoned',
 
   CHANGESET_COMMENT_CREATED = 'changeset_comment-created',
 
