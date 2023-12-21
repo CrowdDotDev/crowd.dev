@@ -24,7 +24,6 @@
       />
       <app-member-aside-enriched
         :member="member"
-        class="mt-10"
       />
     </div>
   </div>
