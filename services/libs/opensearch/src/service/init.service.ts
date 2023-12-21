@@ -50,6 +50,8 @@ export class InitService {
       employeeChurnRate12Month: 0.12,
       employeeGrowthRate12Month: 0.12,
       attributes: {},
+      ticker: 'FAKE',
+      manuallyChangedFields: [],
       createdAt: new Date().toISOString(),
       description: 'Fake organization',
       displayName: 'Fake organization',

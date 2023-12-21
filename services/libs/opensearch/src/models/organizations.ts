@@ -19,6 +19,7 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     },
     address: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     logo: {
       type: OpensearchFieldType.STRING,
@@ -41,8 +42,16 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     tags: {
       type: OpensearchFieldType.STRING_ARR,
     },
+    naics: {
+      type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
+    },
+    ticker: {
+      type: OpensearchFieldType.STRING,
+    },
     employeeCountByCountry: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employees: {
       type: OpensearchFieldType.INT,
@@ -128,6 +137,13 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
         fromOpensearch: 'nested_identities',
       },
     },
+    weakIdentities: {
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_weakIdentities.string_name',
+        fromOpensearch: 'nested_weakIdentities',
+      },
+    },
     isTeamOrganization: {
       type: OpensearchFieldType.BOOL,
     },
@@ -135,10 +151,10 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.BOOL,
     },
     immediateParent: {
-      type: OpensearchFieldType.STRING_ARR,
+      type: OpensearchFieldType.STRING,
     },
     ultimateParent: {
-      type: OpensearchFieldType.STRING_ARR,
+      type: OpensearchFieldType.STRING,
     },
     affiliatedProfiles: {
       type: OpensearchFieldType.STRING_ARR,
@@ -154,12 +170,15 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     },
     averageEmployeeTenure: {
       type: OpensearchFieldType.FLOAT,
+      preventNestedFieldTranslation: true,
     },
     averageTenureByLevel: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     averageTenureByRole: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     directSubsidiaries: {
       type: OpensearchFieldType.STRING_ARR,
@@ -170,6 +189,7 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     },
     employeeCountByMonth: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employeeGrowthRate: {
       type: OpensearchFieldType.OBJECT,
@@ -177,24 +197,31 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     },
     employeeCountByMonthByLevel: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employeeCountByMonthByRole: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     gicsSector: {
-      type: OpensearchFieldType.STRING_ARR,
+      type: OpensearchFieldType.STRING,
     },
     grossAdditionsByMonth: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     grossDeparturesByMonth: {
       type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     employeeChurnRate12Month: {
       type: OpensearchFieldType.FLOAT,
     },
     employeeGrowthRate12Month: {
       type: OpensearchFieldType.FLOAT,
+    },
+    manuallyChangedFields: {
+      type: OpensearchFieldType.STRING_ARR,
     },
   }
 }
