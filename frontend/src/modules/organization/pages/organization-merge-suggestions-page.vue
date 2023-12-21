@@ -139,10 +139,17 @@ import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
 const { currentTenant, currentUser } = mapGetters('auth');
+
+const organizationStore = useOrganizationStore();
+const {
+  mergedOrganizations,
+} = storeToRefs(organizationStore);
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -245,16 +252,32 @@ const mergeSuggestion = () => {
     return;
   }
   sendingMerge.value = true;
+
   OrganizationService.mergeOrganizations(
     organizationsToMerge.value.organizations[primary.value].id,
     organizationsToMerge.value.organizations[(primary.value + 1) % 2].id,
   )
     .then(() => {
+      const primaryOrganization = organizationsToMerge.value.organizations[primary.value];
+      const secondaryOrganization = organizationsToMerge.value.organizations[(primary.value + 1) % 2].id;
+
+      organizationStore
+        .addMergedOrganizations(primaryOrganization.id, secondaryOrganization.id);
+
       primary.value = 0;
-      Message.success('Organizations merged successfuly');
+
+      const processesRunning = Object.keys(mergedOrganizations.value).length;
+
+      Message.closeAll();
+      Message.info(null, {
+        title: 'Organizations merging in progress',
+        message: processesRunning > 1 ? `${processesRunning} processes running...` : null,
+      });
+
       fetch();
     })
-    .catch(() => {
+    .catch((e) => {
+      Message.closeAll();
       Message.error('There was an error merging organizations');
     })
     .finally(() => {

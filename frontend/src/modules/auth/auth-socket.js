@@ -1,5 +1,5 @@
 import io from 'socket.io-client';
-import { computed } from 'vue';
+import { computed, h } from 'vue';
 import pluralize from 'pluralize';
 import config from '@/config';
 import { store } from '@/store';
@@ -9,8 +9,19 @@ import {
   getEnrichmentMax,
 } from '@/modules/member/member-enrichment';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { router } from '@/router';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 let socketIoClient;
+
+const SocketEvents = {
+  connect: 'connect',
+  disconnect: 'disconnect',
+  integrationCompleted: 'integration-completed',
+  tenantPlanUpgraded: 'tenant-plan-upgraded',
+  bulkEnrichment: 'bulk-enrichment',
+  orgMerge: 'org-merge',
+};
 
 export const connectSocket = (token) => {
   if (socketIoClient && socketIoClient.connected) {
@@ -36,15 +47,15 @@ export const connectSocket = (token) => {
     forceNew: true,
   });
 
-  socketIoClient.on('connect', () => {
+  socketIoClient.on(SocketEvents.connect, () => {
     console.info('Socket connected');
   });
 
-  socketIoClient.on('disconnect', () => {
+  socketIoClient.on(SocketEvents.disconnect, () => {
     console.info('Socket disconnected');
   });
 
-  socketIoClient.on('integration-completed', (data) => {
+  socketIoClient.on(SocketEvents.integrationCompleted, (data) => {
     console.info('Integration onboarding done', data);
     store.dispatch(
       'integration/doFind',
@@ -53,7 +64,7 @@ export const connectSocket = (token) => {
   });
 
   socketIoClient.on(
-    'tenant-plan-upgraded',
+    SocketEvents.tenantPlanUpgraded,
     async (data) => {
       console.info(
         'Tenant plan is upgraded. Force a hard refresh!',
@@ -72,7 +83,7 @@ export const connectSocket = (token) => {
     },
   );
 
-  socketIoClient.on('bulk-enrichment', async (data) => {
+  socketIoClient.on(SocketEvents.bulkEnrichment, async (data) => {
     let parsed = data;
     if (typeof data === 'string') {
       parsed = JSON.parse(parsed);
@@ -114,6 +125,73 @@ export const connectSocket = (token) => {
         const { fetchMembers } = useMemberStore();
         await fetchMembers({ reload: true });
       }
+    }
+  });
+
+  socketIoClient.on(SocketEvents.orgMerge, (payload) => {
+    const {
+      success,
+      tenantId,
+      primaryOrgId,
+      secondaryOrgId,
+      original,
+      toMerge,
+    } = JSON.parse(payload);
+
+    if (currentTenant.value.id !== tenantId) {
+      return;
+    }
+
+    const { mergedOrganizations, removeMergedOrganizations } = useOrganizationStore();
+
+    const buttonElement = h(
+      'el-button',
+      {
+        class: 'btn btn--xs btn--bordered !h-6 !w-fit',
+        onClick: () => {
+          router.push({
+            name: 'organizationView',
+            params: { id: primaryOrgId },
+          });
+          Message.closeAll();
+        },
+      },
+      'View organization',
+    );
+
+    const messageElements = [buttonElement];
+
+    if (original && toMerge) {
+      const descriptionElement = h(
+        'span',
+        {
+          innerHTML: `${toMerge} merged with ${original}.`,
+        },
+      );
+
+      removeMergedOrganizations(primaryOrgId);
+
+      messageElements.unshift(descriptionElement);
+    }
+
+    Message.closeAll();
+
+    if (success) {
+      Message.success(
+        h(
+          'div',
+          {
+            class: 'flex flex-col gap-2',
+          },
+          messageElements,
+        ),
+        {
+          title:
+            'Organizations merged successfully',
+        },
+      );
+    } else {
+      Message.error(`There was an error merging ${toMerge} with ${original}`);
     }
   });
 };
