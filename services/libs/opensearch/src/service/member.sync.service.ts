@@ -686,13 +686,13 @@ export class MemberSyncService {
     }
 
     p.obj_attributes = p_attributes
+    p.obj_reach = data.reach
     p.string_arr_emails = data.emails || []
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
     p.date_createdAt = new Date(data.createdAt).toISOString()
     p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
-    p.int_totalReach = data.totalReach
     p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
