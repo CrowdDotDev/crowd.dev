@@ -457,14 +457,6 @@ export default class ActivityService extends LoggerBase {
 
           let dbActivity: IDbActivity | null
 
-          // strip .git from the end of the channel for github and git platforms
-          if (platform === PlatformType.GITHUB || platform === PlatformType.GIT) {
-            // remove .git from the end of the channel
-            if (activity.channel?.endsWith('.git')) {
-              activity.channel = activity.channel.slice(0, -4)
-            }
-          }
-
           if (
             (platform === PlatformType.GITHUB &&
               activity.type === GithubActivityType.AUTHORED_COMMIT) ||
