@@ -685,8 +685,11 @@ export class MemberSyncService {
       }
     }
 
+    // If the 'reach' data from the database is a number instead of an object,
+    // we convert it into an object with a 'total' property holding the original number.
+    p.obj_reach = typeof data.reach === 'object' ? data.reach : { total: data.reach }
+
     p.obj_attributes = p_attributes
-    p.obj_reach = data.reach
     p.string_arr_emails = data.emails || []
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
