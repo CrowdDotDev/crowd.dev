@@ -6,7 +6,7 @@
           Choose your plan
         </h4>
         <p class="text-sm text-gray-600 leading-5 text-center">
-          Pick plan which fits the needs for your company
+          Pricing plans suited for your company stage.
         </p>
       </div>
     </div>

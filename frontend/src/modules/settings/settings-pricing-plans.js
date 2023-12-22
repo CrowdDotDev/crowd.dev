@@ -85,7 +85,7 @@ export const plans = {
         },
       ],
       ctaLabel: {
-        [Plans.values.none]: 'Subscribe to Essential',
+        [Plans.values.none]: 'Start 30-days free trial',
         [Plans.values.essential]: null,
         [Plans.values.eagleEye]: 'Downgrade to Essential',
         [Plans.values.growth]: 'Downgrade to Essential',
@@ -156,7 +156,7 @@ export const plans = {
         },
       ],
       ctaLabel: {
-        [Plans.values.none]: 'Subscribe to Scale',
+        [Plans.values.none]: 'Start 30-days free trial',
         [Plans.values.eagleEye]: 'Upgrade to Scale',
         [Plans.values.essential]: 'Upgrade to Scale',
         [Plans.values.growth]: 'Upgrade to Scale',
@@ -232,11 +232,11 @@ export const plans = {
         },
       ],
       ctaLabel: {
-        [Plans.values.none]: 'Book a demo',
-        [Plans.values.eagleEye]: 'Book a demo',
-        [Plans.values.essential]: 'Book a demo',
-        [Plans.values.growth]: 'Book a demo',
-        [Plans.values.scale]: 'Book a demo',
+        [Plans.values.none]: 'Book a call',
+        [Plans.values.eagleEye]: 'Book a call',
+        [Plans.values.essential]: 'Book a call',
+        [Plans.values.growth]: 'Book a call',
+        [Plans.values.scale]: 'Book a call',
       },
       ctaAction: {
         [Plans.values.none]: customPlanCal,
