@@ -66,8 +66,7 @@
           clearable
           placeholder="All sub-projects"
           class="w-52"
-          @change="onSubProjectChange"
-          @clear="reloadActivities"
+          @change="fetchActivities({ reset: true })"
         >
           <el-option
             v-for="segment of segments"
@@ -444,10 +443,6 @@ onMounted(async () => {
   await store.dispatch('integration/doFetch', segments.value.map((s) => s.id));
   await fetchActivities();
 });
-
-const onSubProjectChange = () => {
-  fetchActivities();
-};
 </script>
 
 <script>
