@@ -11,11 +11,11 @@ import {
   PlatformType,
   SyncMode,
 } from '@crowd/types'
+import { EnrichmentParams, IEnrichmentResponse } from '@crowd/types/premium'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
-import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import SearchSyncService from '@/services/searchSyncService'
 
