@@ -10,7 +10,7 @@
       />
     </div>
     <div
-      v-if="members.length === 0"
+      v-if="!members.length && !loading"
       class="flex items-center justify-center pt-20 pb-17"
     >
       <i
@@ -22,7 +22,7 @@
         No contributors are currently working in this organization.
       </p>
     </div>
-    <div v-else>
+    <div v-else-if="!!members.length && !loading">
       <div>
         <div
           v-for="member in members"
@@ -59,25 +59,25 @@
             />
           </div>
         </div>
-        <div
-          v-if="loading"
-          v-loading="loading"
-          class="app-page-spinner"
-        />
-        <div
-          v-if="!noMore"
-          class="flex justify-center pt-4"
-        >
-          <el-button
-            class="btn btn-link btn-link--primary"
-            :disabled="loading"
-            @click="fetchMembers"
-          >
-            <i class="ri-arrow-down-line mr-2" />Load
-            more
-          </el-button>
-        </div>
       </div>
+    </div>
+    <div
+      v-else
+      v-loading="loading"
+      class="app-page-spinner"
+    />
+    <div
+      v-if="!noMore"
+      class="flex justify-center pt-4"
+    >
+      <el-button
+        class="btn btn-link btn-link--primary"
+        :disabled="loading"
+        @click="fetchMembers"
+      >
+        <i class="ri-arrow-down-line mr-2" />Load
+        more
+      </el-button>
     </div>
   </div>
 </template>
