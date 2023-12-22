@@ -147,7 +147,7 @@ export const connectSocket = (token) => {
     const buttonElement = h(
       'el-button',
       {
-        class: 'btn btn--xs btn--bordered !h-6 !w-fit',
+        class: 'btn btn--xs btn--secondary !h-6 !w-fit',
         onClick: () => {
           router.push({
             name: 'organizationView',
