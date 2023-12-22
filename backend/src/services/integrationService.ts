@@ -1201,12 +1201,18 @@ export default class IntegrationService {
   async gitConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
+    const stripGit = (url: string) => {
+      if (url.endsWith('.git')) {
+        return url.slice(0, -4)
+      }
+      return url
+    }
     try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GIT,
           settings: {
-            remotes: integrationData.remotes,
+            remotes: integrationData.remotes.map((remote) => stripGit(remote)),
           },
           status: 'done',
         },
