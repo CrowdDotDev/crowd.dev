@@ -64,6 +64,8 @@
         <el-select
           v-model="selectedSegment"
           clearable
+          filterable
+          no-match-text="Sub-project not found"
           placeholder="All sub-projects"
           class="w-52"
           @change="fetchActivities({ reset: true })"
