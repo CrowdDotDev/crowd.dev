@@ -685,6 +685,10 @@ export class MemberSyncService {
       }
     }
 
+    // If the 'reach' data from the database is a number instead of an object,
+    // we convert it into an object with a 'total' property holding the original number.
+    p.obj_reach = typeof data.reach === 'object' ? data.reach : { total: data.reach }
+
     p.obj_attributes = p_attributes
     p.string_arr_emails = data.emails || []
     p.int_score = data.score
@@ -692,7 +696,6 @@ export class MemberSyncService {
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
     p.date_createdAt = new Date(data.createdAt).toISOString()
     p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
-    p.int_totalReach = data.totalReach
     p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount

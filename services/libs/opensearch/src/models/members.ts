@@ -39,11 +39,8 @@ export class MembersOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.BOOL,
     },
     reach: {
-      type: OpensearchFieldType.INT,
-      customTranslation: {
-        toOpensearch: 'int_totalReach',
-        fromOpensearch: 'int_totalReach',
-      },
+      type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     numberOfOpenSourceContributions: {
       type: OpensearchFieldType.INT,
