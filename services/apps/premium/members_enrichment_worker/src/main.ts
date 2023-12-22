@@ -1,31 +1,35 @@
 import { Config } from '@crowd/archetype-standard'
 import { ServiceWorker, Options } from '@crowd/archetype-worker'
 
+import { scheduleMembersEnrichment } from './schedules'
+
 const config: Config = {
-  envvars: [],
   producer: {
     enabled: false,
   },
   temporal: {
-    enabled: false,
+    enabled: true,
   },
   redis: {
-    enabled: false,
+    enabled: true,
   },
 }
 
 const options: Options = {
   postgres: {
-    enabled: false,
+    enabled: true,
   },
   opensearch: {
-    enabled: false,
+    enabled: true,
   },
 }
 
-const svc = new ServiceWorker(config, options)
+export const svc = new ServiceWorker(config, options)
 
 setImmediate(async () => {
   await svc.init()
+
+  await scheduleMembersEnrichment()
+
   await svc.start()
 })
