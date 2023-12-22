@@ -11,7 +11,7 @@ import { enrichMember } from './enrichMember'
 // Configure timeouts and retry policies to retrieve members to enrich from the
 // database.
 const { getMembers } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 seconds',
+  startToCloseTimeout: '75 seconds',
 })
 
 /*
@@ -45,6 +45,4 @@ export async function getMembersToEnrich(): Promise<void> {
       })
     }),
   )
-
-  return
 }

@@ -60,7 +60,7 @@ export async function updateMergeSuggestions(input: EnrichingMember): Promise<IM
                   usernames.push(username[platform])
                 } else if (Array.isArray(username[platform])) {
                   if (username[platform].length === 0) {
-                    // throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+                    return input.member
                   } else if (typeof username[platform] === 'string') {
                     usernames.push(...username[platform])
                   } else if (typeof username[platform][0] === 'object') {
@@ -69,10 +69,10 @@ export async function updateMergeSuggestions(input: EnrichingMember): Promise<IM
                 } else if (typeof username[platform] === 'object') {
                   usernames.push(username[platform].username)
                 } else {
-                  // throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+                  return input.member
                 }
               } else {
-                // throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
+                return input.member
               }
             }
 
@@ -131,29 +131,55 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
     try {
       await svc.postgres.writer.connection().tx(async (tx) => {
         for (const workExperience of input.enrichment.work_experiences) {
-          const org = await tx.query(
-            `INSERT INTO organizations (id, "tenantId", "displayName", website, linkedin, location, "createdAt", "updatedAt")
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
-            ON CONFLICT (website,"tenantId") WHERE website IS NOT NULL DO
-            UPDATE SET "displayName" = EXCLUDED."displayName"
-            RETURNING id;`,
-            [
-              generateUUIDv4(),
-              input.member.tenantId,
-              workExperience.company,
-              workExperience.companyUrl,
-              workExperience.companyLinkedInUrl
-                ? {
-                    url: workExperience.companyLinkedInUrl,
-                    handle: workExperience.companyLinkedInUrl.split('/').pop(),
-                  }
-                : null,
-              workExperience.location,
-              new Date(Date.now()),
-            ],
+          // Find the organization id. We first try to retrieve it, or we then try
+          // to upsert it. We first need a select to find occurence via displayed
+          // name.
+          let orgId: string
+          const existing = await svc.postgres.reader.connection().query(
+            `SELECT id FROM organizations
+            WHERE "displayName" ILIKE $1
+            AND "tenantId" = $2
+            AND "deletedAt" IS NULL;`,
+            [workExperience.company, input.member.tenantId],
           )
 
-          organizations.push(org[0].id)
+          if (existing && existing[0]) {
+            orgId = existing[0].id
+          } else {
+            orgId = generateUUIDv4()
+
+            const upserted = await tx.query(
+              `INSERT INTO organizations (id, "tenantId", "displayName", website, linkedin, location, "createdAt", "updatedAt")
+              VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+              ON CONFLICT (website, "tenantId")
+                WHERE website IS NOT NULL
+                DO UPDATE SET
+                  "displayName" = EXCLUDED."displayName",
+                  linkedin = EXCLUDED.linkedin,
+                  location = EXCLUDED.location,
+                  "updatedAt" = NOW()
+              RETURNING id;`,
+              [
+                orgId,
+                input.member.tenantId,
+                workExperience.company,
+                workExperience.companyUrl,
+                workExperience.companyLinkedInUrl
+                  ? {
+                      url: workExperience.companyLinkedInUrl,
+                      handle: workExperience.companyLinkedInUrl.split('/').pop(),
+                    }
+                  : null,
+                workExperience.location,
+              ],
+            )
+
+            if (upserted) {
+              orgId = upserted[0].id
+            }
+          }
+
+          organizations.push(orgId)
 
           const organizationIdentities: IOrganizationIdentity[] = [
             {
@@ -163,11 +189,14 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
           ]
 
           if (workExperience.companyLinkedInUrl) {
-            organizationIdentities.push({
-              name: workExperience.companyLinkedInUrl.split('/').pop(),
-              platform: PlatformType.LINKEDIN,
-              url: workExperience.companyLinkedInUrl,
-            })
+            const name = workExperience.companyLinkedInUrl.split('/').pop()
+            if (name) {
+              organizationIdentities.push({
+                name: name,
+                platform: PlatformType.LINKEDIN,
+                url: workExperience.companyLinkedInUrl,
+              })
+            }
           }
 
           for (const orgIdentity of organizationIdentities) {
@@ -175,11 +204,9 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
               `INSERT INTO "organizationIdentities" ("organizationId", "tenantId", name, platform, url)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT ON CONSTRAINT "organizationIdentities_platform_name_tenantId_key"
-            DO
-              UPDATE SET name = EXCLUDED.name, url = EXCLUDED.url
-              RETURNING "organizationId", "tenantId", name, platform, url;`,
+            DO UPDATE SET name = EXCLUDED.name, url = EXCLUDED.url;`,
               [
-                org[0].id,
+                orgId,
                 input.member.tenantId,
                 orgIdentity.name,
                 orgIdentity.platform,
@@ -194,7 +221,7 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
 
           const data = {
             memberId: input.member.id,
-            organizationId: org[0].id,
+            organizationId: orgId,
             title: workExperience.title,
             dateStart: workExperience.startDate,
             dateEnd,
@@ -211,7 +238,7 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
                 AND "dateStart" IS NULL
                 AND "dateEnd" IS NULL
               `,
-              [input.member.id, org[0].id],
+              [input.member.id, orgId],
             )
           } else {
             const rows = await svc.postgres.reader.connection().query(
@@ -221,7 +248,7 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
                 AND "dateStart" IS NOT NULL
                 AND "deletedAt" IS NULL
               `,
-              [input.member.id, org[0].id],
+              [input.member.id, orgId],
             )
             const row = rows[0]
 
@@ -251,7 +278,7 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
               VALUES ($1, $2, NOW(), NOW(), $3, $4, $5, $6)
               ${onConflict};
             `,
-            [input.member.id, org[0].id, data.title, data.dateStart, data.dateEnd, data.source],
+            [input.member.id, orgId, data.title, data.dateStart, data.dateEnd, data.source],
           )
         }
       })

@@ -20,6 +20,20 @@ import {
 import { DbTransaction } from '@crowd/database'
 import { generateUUIDv4 } from '@crowd/common'
 
+const priorities: string[] = [
+  'custom',
+  'twitter',
+  'github',
+  'linkedin',
+  'reddit',
+  'devto',
+  'hackernews',
+  'slack',
+  'discord',
+  'enrichment',
+  'crowd',
+]
+
 const attributeSettings = {
   [MemberAttributeName.AVATAR_URL]: {
     fields: ['profile_pic_url'],
@@ -112,7 +126,7 @@ export const normalize = async (
   if (enriched === null) {
     try {
       await tx.query(
-        `UPDATE members SET "lastEnriched" = NOW() WHERE id = $1 AND "tenantId" = $2;`,
+        `UPDATE members SET "lastEnriched" = NOW(), "updatedAt" = NOW() WHERE id = $1 AND "tenantId" = $2;`,
         [member.id, member.tenantId],
       )
     } catch (err) {
@@ -123,12 +137,6 @@ export const normalize = async (
   }
 
   try {
-    member = await fillPlatformData(tx, member, enriched)
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  try {
     member = await fillAttributes(tx, member, enriched)
   } catch (err) {
     throw new Error(err)
@@ -136,6 +144,12 @@ export const normalize = async (
 
   try {
     member = await fillSkills(tx, member, enriched)
+  } catch (err) {
+    throw new Error(err)
+  }
+
+  try {
+    member = await fillPlatformData(tx, member, enriched)
   } catch (err) {
     throw new Error(err)
   }
@@ -233,7 +247,8 @@ const fillPlatformData = async (
       emails = $2,
       attributes = $3,
       contributions = $4,
-      "lastEnriched" = NOW()
+      "lastEnriched" = NOW(),
+      "updatedAt" = NOW()
     WHERE id = $5 AND "tenantId" = $6;`,
       [
         member.displayName,
@@ -319,10 +334,17 @@ const fillAttributes = async (
       value = fn(value)
 
       // Assign 'value' to 'member.attributes[attributeName].enrichment'
+      // Then, apply the attribute in 'default' key, following the priority.
       member.attributes[attributeName].enrichment = value
+      for (const platform of priorities) {
+        if (member.attributes[attributeName][platform]) {
+          member.attributes[attributeName]['default'] = value
+          break
+        }
+      }
 
       try {
-        member = await createAttributeAndUpdateOptions(tx, member, attributeName, attribute, value)
+        await createAttributeAndUpdateOptions(tx, member, attributeName, attribute, value)
       } catch (err) {
         throw new Error(err)
       }
@@ -357,8 +379,22 @@ const fillSkills = async (
         .map((s: EnrichmentAPISkills) => s.skill),
     ])
 
+    // Assign 'value' to 'member.attributes['skills'].enrichment'
+    // Then, apply the attribute in 'default' key, following the priority.
+    for (const platform of priorities) {
+      if (member.attributes[MemberEnrichmentAttributeName.SKILLS][platform]) {
+        member.attributes[MemberEnrichmentAttributeName.SKILLS]['default'] = lodash.uniq([
+          // Use 'lodash.orderBy' to sort the skills by weight in descending order
+          ...lodash
+            .orderBy(enriched.skills || [], ['weight'], ['desc'])
+            .map((s: EnrichmentAPISkills) => s.skill),
+        ])
+        break
+      }
+    }
+
     try {
-      member = await createAttributeAndUpdateOptions(
+      await createAttributeAndUpdateOptions(
         tx,
         member,
         MemberEnrichmentAttributeName.SKILLS,
@@ -385,58 +421,72 @@ const createAttributeAndUpdateOptions = async (
   attributeName,
   attribute,
   value,
-): Promise<IMember> => {
+): Promise<void> => {
   // Check if attribute type is 'MULTI_SELECT' and the attribute already exists
-  if (
-    attribute.type === MemberAttributeType.MULTI_SELECT &&
-    lodash.find(member.attributes, { name: attributeName })
-  ) {
-    // Find attributeSettings by name
-    const attributeSettings = lodash.find(member.attributes, { name: attributeName })
-    // Get options
-    let options = attributeSettings.options || []
-    options = lodash.uniq([...options, ...value])
-
-    try {
-      await tx.query(
-        `UPDATE "memberAttributeSettings"
-        SET options = $1
-        WHERE id = $2 AND "tenantId" = $3;`,
-        [options, attributeSettings.id, member.tenantId],
-      )
-    } catch (err) {
-      throw new Error(err)
+  if (attribute.type === MemberAttributeType.MULTI_SELECT && member.attributes[attributeName]) {
+    for (const option of value) {
+      try {
+        await tx.query(
+          `UPDATE "memberAttributeSettings"
+          SET options = array_append(options, $1), "updatedAt" = NOW()
+          WHERE name = $2 AND "tenantId" = $3
+          AND $1 <> ALL(options);`,
+          [option, attributeName, member.tenantId],
+        )
+      } catch (err) {
+        throw new Error(err)
+      }
     }
   }
 
   // Check if the attribute does not exist and it is not a default attribute
-  if (!(lodash.find(member.attributes, { name: attributeName }) || attribute.default)) {
+  if (!(member.attributes[attributeName] || attribute.default)) {
     // Create new attribute if it does not exist
     try {
-      await tx.query(
-        `INSERT INTO "memberAttributeSettings" (id, "tenantId", name, label, type, show, "canDelete", options, "createdAt", "updatedAt")
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
-        ON CONFLICT (name,"tenantId") DO UPDATE
-        SET options = EXCLUDED.options, "updatedAt" = $9;`,
-        [
-          generateUUIDv4(),
-          member.tenantId,
-          attributeName,
-          MemberEnrichmentAttributes[attributeName]?.label || MemberAttributes[attributeName].label,
-          attribute?.type ||
-            MemberEnrichmentAttributes[attributeName]?.type ||
-            MemberAttributes[attributeName].type ||
-            MemberAttributeType.STRING,
-          attributeName !== MemberEnrichmentAttributeName.EMAILS,
-          false,
-          attribute.type === MemberAttributeType.MULTI_SELECT ? attribute.options : [],
-          new Date(Date.now()),
-        ],
-      )
+      if (attribute.type === MemberAttributeType.MULTI_SELECT) {
+        await tx.query(
+          `INSERT INTO "memberAttributeSettings" (id, "tenantId", name, label, type, show, "canDelete", options, "createdAt", "updatedAt")
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+          ON CONFLICT (name, "tenantId") DO UPDATE
+          SET options = array_append("memberAttributeSettings".options, $9), "updatedAt" = NOW();`,
+          [
+            generateUUIDv4(),
+            member.tenantId,
+            attributeName,
+            MemberEnrichmentAttributes[attributeName]?.label ||
+              MemberAttributes[attributeName].label,
+            attribute?.type ||
+              MemberEnrichmentAttributes[attributeName]?.type ||
+              MemberAttributes[attributeName].type ||
+              MemberAttributeType.STRING,
+            attributeName !== MemberEnrichmentAttributeName.EMAILS,
+            false,
+            value,
+          ],
+        )
+      } else {
+        await tx.query(
+          `INSERT INTO "memberAttributeSettings" (id, "tenantId", name, label, type, show, "canDelete", options, "createdAt", "updatedAt")
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+          ON CONFLICT (name, "tenantId") DO NOTHING;`,
+          [
+            generateUUIDv4(),
+            member.tenantId,
+            attributeName,
+            MemberEnrichmentAttributes[attributeName]?.label ||
+              MemberAttributes[attributeName].label,
+            attribute?.type ||
+              MemberEnrichmentAttributes[attributeName]?.type ||
+              MemberAttributes[attributeName].type ||
+              MemberAttributeType.STRING,
+            attributeName !== MemberEnrichmentAttributeName.EMAILS,
+            false,
+            null,
+          ],
+        )
+      }
     } catch (err) {
       throw new Error(err)
     }
   }
-
-  return member
 }

@@ -16,7 +16,7 @@ const { enrichMemberUsingGitHubHandle, enrichMemberUsingEmailAddress } = proxyAc
 // suggestions and related organizations in the database.
 const { normalizeEnrichedMember, updateMergeSuggestions, updateOrganizations } = proxyActivities<
   typeof activities
->({ startToCloseTimeout: '10 seconds' })
+>({ startToCloseTimeout: '30 seconds' })
 
 // Configure timeouts and retry policies to sync enriched data to OpenSearch.
 const { syncMembersToOpensearch, syncOrganizationsToOpensearch } = proxyActivities<
