@@ -168,7 +168,9 @@ export class InitService {
       lastEnriched: new Date().toISOString(),
       joinedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      totalReach: 20,
+      reach: {
+        total: 20,
+      },
       numberOfOpenSourceContributions: 10,
 
       activeOn: ['devto'],

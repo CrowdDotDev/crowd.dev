@@ -39,11 +39,12 @@ export interface IMember {
   displayName?: string
   avatarUrl?: string
   score: number
-  lastEnriched: string
+  lastEnriched?: Date | null
+  enrichedBy?: string[] | null
   joinedAt: string
   createdAt: string
   manuallyCreated: boolean
-  reach: number
+  reach?: number
   numberOfOpenSourceContributions: number
   activeOn: string[]
   activityCount: number
@@ -55,8 +56,22 @@ export interface IMember {
   toMergeIds: string[]
   noMergeIds: string[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  username: any
+  username: PlatformIdentities
   lastActivity: unknown
+  bio?: string
+  location?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  contributions?: any
+}
+
+export type PlatformIdentities = {
+  [K in keyof typeof PlatformType]?: [MemberIdentity]
+}
+
+export interface MemberIdentity {
+  username: string
+  integrationId: string
+  sourceId?: string
 }
 
 export interface IMemberSyncRemoteData {

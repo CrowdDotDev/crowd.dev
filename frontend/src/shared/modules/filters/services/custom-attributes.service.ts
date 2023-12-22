@@ -112,7 +112,7 @@ export const customAttributesService = () => {
         }
         // Multiselect type
         if (attribute.type === FilterCustomAttributeType.MULTISELECT
-          || (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options.length > 0)) {
+          || (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options?.length > 0)) {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,

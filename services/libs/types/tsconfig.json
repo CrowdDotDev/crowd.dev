@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "baseUrl": "./src",
     "paths": {
+      "@crowd/*/premium": ["../../*/src/premium"],
       "@crowd/*": ["../../*/src"]
     }
   },

@@ -68,7 +68,7 @@ export interface IDbMemberSyncData {
   joinedAt: string
   createdAt: string
   manuallyCreated: boolean
-  totalReach: number
+  reach: unknown | null
   numberOfOpenSourceContributions: number
 
   // member activity data

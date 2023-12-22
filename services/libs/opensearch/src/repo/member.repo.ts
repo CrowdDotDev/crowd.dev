@@ -319,7 +319,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m."joinedAt",
               m."manuallyCreated",
               m."createdAt",
-              (m.reach -> 'total')::integer                      as "totalReach",
+              m.reach,
               coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
 
               ad."activeOn",
@@ -512,7 +512,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         m."joinedAt",
         m."manuallyCreated",
         m."createdAt",
-        (m.reach -> 'total')::integer                      as "totalReach",
+        m.reach,
         coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
 
         ad."activeOn",
