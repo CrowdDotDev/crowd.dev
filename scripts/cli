@@ -524,6 +524,13 @@ do
             start
             exit;
         ;;
+        clean-start-backend)
+            declare -a INGORED_SERVICES=("frontend")
+            CLEAN_START=1
+            DEV=1
+            start
+            exit;
+        ;;
         start-backend)
             declare -a INGORED_SERVICES=("frontend")
             start

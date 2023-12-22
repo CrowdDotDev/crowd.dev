@@ -27,4 +27,12 @@ export default {
         return Promise.resolve(organization);
       });
   },
+
+  addMergedOrganizations(this: OrganizationState, primaryId: string, secondaryId: string) {
+    this.mergedOrganizations[primaryId] = secondaryId;
+  },
+
+  removeMergedOrganizations(this: OrganizationState, primaryId: string) {
+    delete this.mergedOrganizations[primaryId];
+  },
 };

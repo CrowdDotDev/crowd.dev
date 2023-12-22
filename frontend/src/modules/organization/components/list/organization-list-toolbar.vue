@@ -111,6 +111,7 @@ const organizationStore = useOrganizationStore();
 const {
   selectedOrganizations,
   filters,
+  mergedOrganizations,
 } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
 
@@ -175,17 +176,19 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
 const handleMergeOrganizations = async () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
 
-  Message.info(
-    null,
-    {
-      title: 'Organizations are being merged',
-    },
-  );
-
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
     .then(() => {
       Message.closeAll();
-      Message.success('Organizations merged successfuly');
+
+      organizationStore
+        .addMergedOrganizations(firstOrganization.id, secondOrganization.id);
+
+      const processesRunning = Object.keys(mergedOrganizations.value).length;
+
+      Message.info(null, {
+        title: 'Organizations merging in progress',
+        message: processesRunning > 1 ? `${processesRunning} processes running` : null,
+      });
 
       fetchOrganizations({ reload: true });
     })
