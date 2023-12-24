@@ -75,10 +75,12 @@ export const processStripeWebhook = async (message: any) => {
         throw new Error404()
       }
 
+      const trialPeriod = moment(trialEnd, 'X').isAfter(moment())
+
       await tenant.update({
         plan: subscription.status === 'active' ? productPlan : null,
-        isTrialPlan: !!trialEnd,
-        trialEndsAt: trialEnd ? moment(trialEnd, 'X').toISOString() : null,
+        isTrialPlan: !!trialEnd && trialPeriod,
+        trialEndsAt: trialEnd && trialPeriod ? moment(trialEnd, 'X').toISOString() : null,
         stripeSubscriptionId: subscription.id,
         planSubscriptionEndsAt: moment(subscriptionEndsAt, 'X').toISOString(),
       })
