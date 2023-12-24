@@ -56,11 +56,11 @@ export const processStripeWebhook = async (message: any) => {
   switch (stripeWebhookMessage.type) {
     case 'customer.subscription.updated': {
       const tenant = await options.database.tenant.findOne({
-        where: { stripeSubscriptionId: stripeWebhookMessage.data.object.subscription },
+        where: { stripeSubscriptionId: stripeWebhookMessage.data.object.id },
       })
 
       const subscription = await StripeService.retreiveSubscription(
-        stripeWebhookMessage.data.object.subscription,
+        stripeWebhookMessage.data.object.id,
       )
 
       const productId = (subscription as any).plan.product
