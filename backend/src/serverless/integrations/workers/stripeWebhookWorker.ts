@@ -78,7 +78,7 @@ export const processStripeWebhook = async (message: any) => {
       const trialPeriod = moment(trialEnd, 'X').isAfter(moment())
 
       await tenant.update({
-        plan: subscription.status === 'active' ? productPlan : null,
+        plan: ['active', 'trialing'].includes(subscription.status) ? productPlan : null,
         isTrialPlan: !!trialEnd && trialPeriod,
         trialEndsAt: trialEnd && trialPeriod ? moment(trialEnd, 'X').toISOString() : null,
         stripeSubscriptionId: subscription.id,
