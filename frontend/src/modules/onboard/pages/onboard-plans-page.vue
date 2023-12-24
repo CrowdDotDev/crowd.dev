@@ -1,5 +1,8 @@
 <template>
   <div class="overflow-auto mb-20">
+    <div class="w-72 pt-2 absolute top-0 lef-0">
+      <cr-menu-workspace v-if="currentUser.tenants.length > 1" :plain="true" />
+    </div>
     <div class="flex justify-center pt-16">
       <div>
         <h4 class="text-xl font-semibold leading-8 text-center">
@@ -19,6 +22,11 @@
 
 <script setup lang="ts">
 import AppPlansList from '@/modules/settings/components/plans-list.vue';
+import CrMenuWorkspace from '@/modules/layout/components/menu/menu-workspace.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+
+const { currentUser } = mapGetters('auth');
+
 </script>
 
 <style lang="scss" scoped>

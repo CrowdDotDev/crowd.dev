@@ -132,6 +132,7 @@ import config from '@/config';
 import Plans from '@/security/plans';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { isTrialExpired } from '@/utils/date';
 import { plans } from '../settings-pricing-plans';
 
 const crowdHostedPlans = Plans.values;
@@ -167,7 +168,7 @@ const activePlan = computed(() => {
       : communityPlans.community;
   }
   // Crowd Hosted Versions
-  return currentTenant.value.plan;
+  return isTrialExpired(currentTenant.value) ? null : currentTenant.value.plan;
 });
 
 onMounted(() => {

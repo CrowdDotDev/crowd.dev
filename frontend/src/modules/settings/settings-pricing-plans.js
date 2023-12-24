@@ -96,12 +96,12 @@ export const plans = {
         [Plans.values.none]: ({ monthlyPayment }) => {
           const monthlyLink = config.stripe.essentialMonthlyPaymentLink;
           const yearlyLink = config.stripe.essentialYearlyPaymentLink;
-          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_self');
         },
         [Plans.values.essential]: ({ monthlyPayment }) => {
           const monthlyLink = config.stripe.essentialMonthlyPaymentLink;
           const yearlyLink = config.stripe.essentialYearlyPaymentLink;
-          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_self');
         },
         [Plans.values.eagleEye]: openCustomerPortalLink,
         [Plans.values.growth]: openCustomerPortalLink,
@@ -166,22 +166,22 @@ export const plans = {
         [Plans.values.none]: ({ monthlyPayment }) => {
           const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
           const yearlyLink = config.stripe.scaleYearlyPaymentLink;
-          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_self');
         },
         [Plans.values.eagleEye]: ({ monthlyPayment }) => {
           const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
           const yearlyLink = config.stripe.scaleYearlyPaymentLink;
-          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_self');
         },
         [Plans.values.essential]: ({ monthlyPayment }) => {
           const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
           const yearlyLink = config.stripe.scaleYearlyPaymentLink;
-          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_self');
         },
         [Plans.values.growth]: ({ monthlyPayment }) => {
           const monthlyLink = config.stripe.scaleMonthlyPaymentLink;
           const yearlyLink = config.stripe.scaleYearlyPaymentLink;
-          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_blank');
+          window.open(monthlyPayment ? monthlyLink : yearlyLink, '_self');
         },
         [Plans.values.enterprise]: openCustomerPortalLink,
       },

@@ -14,6 +14,7 @@ import {
   disconnectSocket,
 } from '@/modules/auth/auth-socket';
 import config from '@/config';
+import { isTrialExpired } from '@/utils/date';
 
 export default {
   async doInit({ commit, dispatch, state }) {
@@ -267,7 +268,11 @@ export default {
     await dispatch('doRefreshCurrentUser');
 
     if (redirect) {
-      router.push('/');
+      if (isTrialExpired(tenant)) {
+        router.push({ name: 'onboardPlans' });
+      } else {
+        router.push('/');
+      }
     }
   },
 

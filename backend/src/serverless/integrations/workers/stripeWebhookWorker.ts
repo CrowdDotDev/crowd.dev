@@ -62,6 +62,7 @@ export const processStripeWebhook = async (message: any) => {
       const subscription = await StripeService.retreiveSubscription(
         stripeWebhookMessage.data.object.subscription,
       )
+
       const productId = (subscription as any).plan.product
 
       const trialEnd = subscription.trial_end

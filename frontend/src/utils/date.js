@@ -56,7 +56,7 @@ export const getTrialDate = (tenant) => {
     'days',
   );
 
-  return `Trial (${daysLeft < 0 ? 0 : daysLeft} days left)`;
+  return `Trial (${daysLeft < 0 ? 0 : daysLeft + 1} days left)`;
 };
 export const isTrialExpired = (tenant) => {
   if (config.isCommunityVersion) {
