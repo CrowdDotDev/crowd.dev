@@ -3,7 +3,8 @@ import { PermissionChecker } from '@/modules/user/permission-checker';
 
 const OnboardPage = () => import('@/modules/onboard/pages/onboard-page.vue');
 const OnboardBookADemoPage = () => import('@/modules/onboard/pages/onboard-book-a-demo-page.vue');
-
+const OnboardPlansPage = () => import('@/modules/onboard/pages/onboard-plans-page.vue');
+const OnboardPaymentSuccess = () => import('@/modules/onboard/pages/onboard-payment-success.vue');
 export default [
   {
     name: 'onboard',
@@ -26,6 +27,23 @@ export default [
     meta: {
       auth: true,
       title: 'Onboarding',
+    },
+  },
+  {
+    name: 'onboardPlans',
+    path: '/onboard/plans',
+    component: OnboardPlansPage,
+    meta: {
+      auth: true,
+      title: 'Choose plan',
+    },
+  },
+  {
+    name: 'onboardPaymentSuccess',
+    path: '/onboard/payment/success',
+    component: OnboardPaymentSuccess,
+    meta: {
+      title: 'Payment successful',
     },
   },
 ];

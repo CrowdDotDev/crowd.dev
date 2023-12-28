@@ -9,6 +9,7 @@ class Plans {
       enterprise: 'Enterprise',
       scale: 'Scale',
       eagleEye: 'Eagle Eye',
+      none: 'none',
     };
   }
 
