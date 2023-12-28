@@ -59,6 +59,10 @@ export const processStripeWebhook = async (message: any) => {
         where: { stripeSubscriptionId: stripeWebhookMessage.data.object.id },
       })
 
+      if (!tenant) {
+        throw new Error404()
+      }
+
       const subscription = await StripeService.retreiveSubscription(
         stripeWebhookMessage.data.object.id,
       )
@@ -83,6 +87,25 @@ export const processStripeWebhook = async (message: any) => {
         trialEndsAt: trialEnd && trialPeriod ? moment(trialEnd, 'X').toISOString() : null,
         stripeSubscriptionId: subscription.id,
         planSubscriptionEndsAt: moment(subscriptionEndsAt, 'X').toISOString(),
+      })
+
+      break
+    }
+    case 'customer.subscription.deleted': {
+      const tenant = await options.database.tenant.findOne({
+        where: { stripeSubscriptionId: stripeWebhookMessage.data.object.id },
+      })
+
+      if (!tenant) {
+        throw new Error404()
+      }
+
+      await tenant.update({
+        plan: null,
+        isTrialPlan: false,
+        trialEndsAt: null,
+        stripeSubscriptionId: stripeWebhookMessage.data.object.id,
+        planSubscriptionEndsAt: moment().toISOString(),
       })
 
       break
