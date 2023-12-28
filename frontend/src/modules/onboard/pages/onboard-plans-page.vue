@@ -1,7 +1,9 @@
 <template>
   <div class="overflow-auto mb-20">
-    <div class="w-72 pt-2 absolute top-0 lef-0">
-      <cr-menu-workspace v-if="currentUser.tenants.length > 1" :plain="true" />
+    <div class="w-72 pt-3 pl-3 absolute top-0 lef-0">
+      <div class="bg-white shadow rounded-md">
+        <cr-menu-workspace v-if="currentUser.tenants.length > 1" :plain="true" />
+      </div>
     </div>
     <div class="flex justify-center pt-16">
       <div>

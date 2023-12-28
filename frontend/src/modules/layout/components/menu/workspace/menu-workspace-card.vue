@@ -18,7 +18,7 @@
             <span
               v-if="isTrialExpired(props.tenant)"
               class="badge badge--xs badge--red hover:cursor-pointer"
-            >{{ props.tenant.plan ? 'Subscription expired' : 'Not subscribed' }}</span>
+            >{{ props.tenant.plan ? 'Trial expired' : 'Not subscribed' }}</span>
             <router-link
               v-else-if="getTrialDate(props.tenant)"
               :to="{ name: 'settings', query: { activeTab: 'plans' } }"
