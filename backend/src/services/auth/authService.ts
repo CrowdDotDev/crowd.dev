@@ -119,7 +119,7 @@ class AuthService {
           existingUser.id,
         )
 
-        return token
+        return { token, user: existingUser }
       }
 
       firstName = firstName || email.split('@')[0]
@@ -187,7 +187,7 @@ class AuthService {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      return token
+      return { token, user: newUser }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 

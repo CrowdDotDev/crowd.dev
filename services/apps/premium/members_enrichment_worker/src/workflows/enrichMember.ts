@@ -16,12 +16,12 @@ const { enrichMemberUsingGitHubHandle, enrichMemberUsingEmailAddress } = proxyAc
 // suggestions and related organizations in the database.
 const { normalizeEnrichedMember, updateMergeSuggestions, updateOrganizations } = proxyActivities<
   typeof activities
->({ startToCloseTimeout: '10 seconds' })
+>({ startToCloseTimeout: '30 seconds' })
 
 // Configure timeouts and retry policies to sync enriched data to OpenSearch.
 const { syncMembersToOpensearch, syncOrganizationsToOpensearch } = proxyActivities<
   typeof activities
->({ startToCloseTimeout: '10 seconds' })
+>({ startToCloseTimeout: '15 seconds' })
 
 /*
 enrichMember is a Temporal workflow that:
@@ -56,14 +56,6 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
     }
   }
 
-  // No need to continue if no data has been enriched.
-  if (!enriched) {
-    return {
-      member: input,
-      enrichment: null,
-    }
-  }
-
   try {
     await normalizeEnrichedMember({
       member: input,
@@ -71,6 +63,14 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
     })
   } catch (err) {
     throw new Error(err)
+  }
+
+  // No need to continue if no data has been enriched.
+  if (!enriched) {
+    return {
+      member: input,
+      enrichment: null,
+    }
   }
 
   try {

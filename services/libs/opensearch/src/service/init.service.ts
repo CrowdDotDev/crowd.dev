@@ -50,6 +50,8 @@ export class InitService {
       employeeChurnRate12Month: 0.12,
       employeeGrowthRate12Month: 0.12,
       attributes: {},
+      ticker: 'FAKE',
+      manuallyChangedFields: [],
       createdAt: new Date().toISOString(),
       description: 'Fake organization',
       displayName: 'Fake organization',
@@ -166,7 +168,9 @@ export class InitService {
       lastEnriched: new Date().toISOString(),
       joinedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      totalReach: 20,
+      reach: {
+        total: 20,
+      },
       numberOfOpenSourceContributions: 10,
 
       activeOn: ['devto'],
@@ -175,6 +179,33 @@ export class InitService {
       activeDaysCount: 20,
       lastActive: new Date().toISOString(),
       averageSentiment: 20.32,
+
+      contributions: [
+        {
+          id: '112529472',
+          url: 'https://github.com/bachman/pied-piper',
+          topics: ['compression', 'data', 'middle-out', 'Java'],
+          summary: 'Pied Piper: 10 commits in 1 day',
+          numberCommits: 10,
+          lastCommitDate: '2023-03-10',
+          firstCommitDate: '2023-03-01',
+        },
+      ],
+
+      affiliations: [
+        {
+          id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',
+          segmentId: 'ce36b0b0-1fc4-4637-955d-afb8a6b58e48',
+          segmentSlug: 'test-segment',
+          segmentName: 'Test Segment',
+          segmentParentName: 'Test Parent Segment',
+          organizationId: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
+          organizationName: 'Test Organization',
+          organizationLogo: 'https://placehold.co/400',
+          dateStart: new Date().toISOString(),
+          dateEnd: new Date().toISOString(),
+        },
+      ],
 
       identities: [
         {
@@ -208,7 +239,22 @@ export class InitService {
       ],
       toMergeIds: ['3690742c-c5de-4d9a-aef8-1e3eaf57233d'],
       noMergeIds: ['b176d053-c53e-42d2-88d2-6fbc3e34184c'],
-
+      notes: [
+        {
+          id: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
+          body: 'This is a fake note 1',
+        },
+      ],
+      tasks: [
+        {
+          id: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
+          name: 'Fake Task 1',
+          body: 'This is a fake task 1',
+          status: 'completed',
+          dueDate: new Date().toISOString(),
+          type: 'type1',
+        },
+      ],
       attributes: {},
       manuallyCreated: false,
     }

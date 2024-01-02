@@ -8,6 +8,20 @@ export interface IDbMemberTagData {
   name: string
 }
 
+export interface IDbMemberNoteData {
+  id: string
+  body: string
+}
+
+export interface IDbMemberTaskData {
+  id: string
+  name: string
+  body: string
+  status: string
+  dueDate: string
+  type: string
+}
+
 export interface IDbMemberOrganization {
   id: string
   logo: string | null
@@ -17,6 +31,29 @@ export interface IDbMemberOrganization {
     dateStart: string
     dateEnd: string
   }
+}
+
+export interface IDbMemberAffiliationData {
+  id: string
+  segmentId: string
+  segmentSlug: string
+  segmentName: string
+  segmentParentName: string
+  organizationId: string
+  organizationName: string
+  organizationLogo: string
+  dateStart: string
+  dateEnd: string
+}
+
+export interface IDbMemberContributionData {
+  id: string
+  url: string
+  topics: string[] | null
+  summary: string | null
+  numberCommits: number
+  lastCommitDate: string
+  firstCommitDate: string
 }
 
 export interface IDbMemberSyncData {
@@ -31,7 +68,7 @@ export interface IDbMemberSyncData {
   joinedAt: string
   createdAt: string
   manuallyCreated: boolean
-  totalReach: number
+  reach: unknown | null
   numberOfOpenSourceContributions: number
 
   // member activity data
@@ -42,12 +79,16 @@ export interface IDbMemberSyncData {
   lastActive: string
   averageSentiment: number | null
 
+  contributions: IDbMemberContributionData[]
+  affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
   weakIdentities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
   toMergeIds: string[]
   noMergeIds: string[]
+  notes: IDbMemberNoteData[]
+  tasks: IDbMemberTaskData[]
 }
 
 export interface IMemberSegmentMatrixItem {

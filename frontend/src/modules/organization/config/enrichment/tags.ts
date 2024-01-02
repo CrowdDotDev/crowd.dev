@@ -8,6 +8,8 @@ const tags: OrganizationEnrichmentConfig = {
   type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
+  enrichmentSneakPeak: true,
+  enrichmentSneakPeakValue: 'Software',
   component: OrganizationAttributesArrayRenderer,
 };
 

@@ -21,7 +21,7 @@ in database to OpenSearch.
 */
 export async function syncMembersToOpensearch(input: string[]): Promise<void> {
   try {
-    syncMembers.syncMembers(input)
+    await syncMembers.syncMembers(input)
   } catch (err) {
     throw new Error(err)
   }
@@ -35,7 +35,7 @@ organizations in database to OpenSearch.
 */
 export async function syncOrganizationsToOpensearch(input: string[]): Promise<void> {
   try {
-    syncOrganizations.syncOrganizations(input)
+    await syncOrganizations.syncOrganizations(input)
   } catch (err) {
     throw new Error(err)
   }

@@ -7,7 +7,7 @@
     <template #content>
       <div class="px-6 pb-6">
         <app-form-item
-          class="pb-8"
+          class="pb-3"
           label="Workspace name"
           :required="true"
           :validation="$v.tenantName"
@@ -40,6 +40,7 @@ import {
 } from 'vue';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -47,6 +48,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'createdTenant', value: boolean): void }>();
 
 const store = useStore();
+const router = useRouter();
 
 const loading = ref(false);
 const tenantName = ref(null);
@@ -90,6 +92,10 @@ const onBtnClick = () => {
         store.dispatch('auth/doSelectTenant', { tenant });
         return Promise.resolve();
       }))
+    .then(() => {
+      router.push({ name: 'onboardPlans' });
+      return Promise.resolve();
+    })
     .finally(() => {
       loading.value = false;
     });
