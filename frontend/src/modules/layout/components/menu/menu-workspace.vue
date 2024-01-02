@@ -20,6 +20,7 @@
       </template>
       <div>
         <cr-menu-workspace-popover
+          :plain="props.plain"
           @click="popover.hide()"
           @add="addWorkspace = true"
           @edit="editWorkspace = $event"
@@ -47,7 +48,6 @@
     <app-tenant-new-form
       v-if="addWorkspace"
       v-model="addWorkspace"
-      @created-tenant="showTenantCreatedModal = true"
     />
     <app-tenant-created-modal
       v-if="showTenantCreatedModal"
@@ -69,6 +69,10 @@ import AppTenantNewForm from '@/modules/tenant/components/tenant-new-form.vue';
 import AppTenantCreatedModal from '@/modules/tenant/components/tenant-created-modal.vue';
 import AppTenantForm from '@/modules/tenant/components/tenant-form.vue';
 import { TenantModel } from '@/modules/tenant/types/TenantModel';
+
+const props = defineProps<{
+  plain?: boolean
+}>();
 
 const isDropdownOpen = ref(false);
 const { doFetch } = mapActions('tenant');

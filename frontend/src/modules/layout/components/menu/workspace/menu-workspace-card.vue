@@ -12,17 +12,21 @@
             {{ props.tenant.name }}
           </h6>
           <div class="flex items-center flex-nowrap">
-            <p class="text-2xs text-gray-500">
+            <p v-if="props.tenant.plan" class="text-2xs text-gray-500 mr-1">
               {{ getPlan(props.tenant.plan) }}
             </p>
+            <span
+              v-if="isTrialExpired(props.tenant)"
+              class="badge badge--xs badge--red hover:cursor-pointer"
+            >{{ props.tenant.plan ? 'Trial expired' : 'Not subscribed' }}</span>
             <router-link
+              v-else-if="getTrialDate(props.tenant)"
               :to="{ name: 'settings', query: { activeTab: 'plans' } }"
               class="flex items-center"
               @click.stop
             >
               <span
-                v-if="getTrialDate(props.tenant)"
-                class="badge badge--xs badge--light-yellow ml-1 hover:cursor-pointer"
+                class="badge badge--xs badge--light-yellow hover:cursor-pointer"
               >{{
                 getTrialDate(props.tenant)
               }}</span>
@@ -39,7 +43,7 @@
 
 <script setup lang="ts">
 import config from '@/config';
-import { getTrialDate } from '@/utils/date';
+import { getTrialDate, isTrialExpired } from '@/utils/date';
 import { TenantModel } from '@/modules/tenant/types/TenantModel';
 
 const props = defineProps<{

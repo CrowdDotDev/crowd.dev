@@ -110,6 +110,8 @@ const dialogSize = computed(() => {
     return 'el-dialog--sm';
   } if (props.size === 'medium') {
     return 'el-dialog--md';
+  } if (props.size === 'large') {
+    return 'el-dialog--lg';
   } if (props.size === 'extra-large') {
     return 'el-dialog--xl';
   } if (props.size === '2extra-large') {
