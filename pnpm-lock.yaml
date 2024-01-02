@@ -669,6 +669,9 @@ importers:
       '@crowd/feature-flags':
         specifier: file:../../libs/feature-flags
         version: file:services/libs/feature-flags
+      '@crowd/redis':
+        specifier: file:../../libs/redis
+        version: file:services/libs/redis
       '@crowd/types':
         specifier: file:../../libs/types
         version: file:services/libs/types
