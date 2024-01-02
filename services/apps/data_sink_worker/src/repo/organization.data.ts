@@ -200,7 +200,6 @@ export function getInsertCacheOrganizationColumnSet(instance: DbInstance): DbCol
   insertCacheOrganizationColumnSet = new instance.helpers.ColumnSet(
     [
       'id',
-      'name',
       'url',
       'description',
       'emails',
@@ -212,7 +211,6 @@ export function getInsertCacheOrganizationColumnSet(instance: DbInstance): DbCol
       'crunchbase',
       'employees',
       'location',
-      'website',
       'type',
       'size',
       'headline',

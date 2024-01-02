@@ -1,5 +1,12 @@
+import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import {
+  IOrganization,
+  IOrganizationIdSource,
+  IOrganizationIdentity,
+  SyncStatus,
+} from '@crowd/types'
 import {
   IDbCacheOrganization,
   IDbInsertOrganizationCacheData,
@@ -9,58 +16,47 @@ import {
   IDbUpdateOrganizationData,
   getInsertCacheOrganizationColumnSet,
   getInsertOrganizationColumnSet,
-  getUpdateCacheOrganizationColumnSet,
-  getUpdateOrganizationColumnSet,
 } from './organization.data'
-import { generateUUIDv1 } from '@crowd/common'
-import {
-  IOrganizationIdentity,
-  SyncStatus,
-  IOrganization,
-  IOrganizationIdSource,
-} from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
-  private readonly updateCacheOrganizationColumnSet: DbColumnSet
 
   private readonly insertOrganizationColumnSet: DbColumnSet
-  private readonly updateOrganizationColumnSet: DbColumnSet
 
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
 
     this.insertCacheOrganizationColumnSet = getInsertCacheOrganizationColumnSet(this.dbInstance)
-    this.updateCacheOrganizationColumnSet = getUpdateCacheOrganizationColumnSet(this.dbInstance)
-
     this.insertOrganizationColumnSet = getInsertOrganizationColumnSet(this.dbInstance)
-    this.updateOrganizationColumnSet = getUpdateOrganizationColumnSet(this.dbInstance)
   }
 
   public async findCacheByName(name: string): Promise<IDbCacheOrganization | null> {
     const result = await this.db().oneOrNone(
       `
-      select  id,
-              name,
-              url,
-              description,
-              emails,
-              logo,
-              tags,
-              github,
-              twitter,
-              linkedin,
-              crunchbase,
-              employees,
-              location,
-              website,
-              type,
-              size,
-              headline,
-              industry,
-              founded
-      from "organizationCaches"
-      where name = $(name);`,
+      select  oc.id,
+              oc.name,
+              oc.url,
+              oc.description,
+              oc.emails,
+              oc.logo,
+              oc.tags,
+              oc.github,
+              oc.twitter,
+              oc.linkedin,
+              oc.crunchbase,
+              oc.employees,
+              oc.location,
+              oc.website,
+              oc.type,
+              oc.size,
+              oc.headline,
+              oc.industry,
+              oc.founded
+      from 
+        "organizationCacheIdentities" oci 
+        inner join "organizationCaches" oc on
+          oci.id = oc.id
+      where oci.name = $(name);`,
       { name },
     )
 
