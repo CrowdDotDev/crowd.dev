@@ -16,8 +16,11 @@ export async function generateMemberMergeSuggestions(
   let result: IMemberPartialAggregatesOpensearch[]
   let lastUuid: string
 
+  // get the latest createdAt of tenant's member suggestions, we'll only get members created after that for new suggestions
+  const lastCreatedAt = await activity.findTenantsLatestSuggestionCreatedAt(args.tenantId)
+
   do {
-    result = await activity.getMembers(args.tenantId, PAGE_SIZE, lastUuid)
+    result = await activity.getMembers(args.tenantId, PAGE_SIZE, lastUuid, lastCreatedAt)
 
     lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
 

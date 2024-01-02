@@ -2,23 +2,36 @@ export interface ITenantId {
   tenantId: string
 }
 
-interface IMemberQueryFilter {
-  term?: {
+interface ITermFilter {
+  term: {
     uuid_tenantId: string
   }
-  range?: {
-    uuid_memberId?: {
+}
+
+interface IRangeFilterMemberId {
+  range: {
+    uuid_memberId: {
       gt: string
     }
   }
 }
+
+interface IRangeFilterCreatedAt {
+  range: {
+    date_createdAt: {
+      gt: string
+    }
+  }
+}
+
+export type IMemberFilter = ITermFilter | IRangeFilterMemberId | IRangeFilterCreatedAt
 
 export interface IMemberQueryBody {
   from: number
   size: number
   query: {
     bool: {
-      filter: IMemberQueryFilter[]
+      filter: IMemberFilter[]
     }
   }
   sort: {
@@ -41,6 +54,7 @@ export interface IMemberPartialAggregatesOpensearch {
   uuid_arr_noMergeIds: string[]
   keyword_displayName: string
   string_arr_emails: string[]
+  int_activityCount: number
 }
 
 export interface IMemberPartialAggregatesOpensearchRawResult {
@@ -53,6 +67,7 @@ export interface ISimilarMember {
   nested_weakIdentities: IMemberIdentityOpensearch[]
   keyword_displayName: string
   string_arr_emails: string[]
+  int_activityCount: number
 }
 
 export interface ISimilarMemberOpensearch {
@@ -62,6 +77,10 @@ export interface ISimilarMemberOpensearch {
 export interface IMemberNoMerge {
   memberId: string
   noMergeId: string
+}
+
+export interface IMemberMergeSuggestionsLatestCreatedAt {
+  latestCreatedAt: string
 }
 
 export interface IMemberId {

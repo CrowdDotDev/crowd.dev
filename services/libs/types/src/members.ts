@@ -86,5 +86,6 @@ export interface IMemberSyncRemoteData {
 
 export interface IMemberMergeSuggestion {
   similarity: number
+  activityEstimate: number
   members: [string, string]
 }

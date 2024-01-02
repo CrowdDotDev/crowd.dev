@@ -2,16 +2,15 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 
 import { svc } from '../main'
 import { spawnSuggestionsForAllTenants } from 'workflows/spawnSuggestionsForAllTenants'
-// import { eagleeyeGetAndSendNextEmails } from '../workflows'
 
 export const scheduleGenerateMemberMergeSuggestions = async () => {
   try {
     await svc.temporal.schedule.create({
-      scheduleId: 'member-merge-suggestions-v2',
+      scheduleId: 'member-merge-suggestions',
       spec: {
         intervals: [
           {
-            every: '1 minute',
+            every: '2 hours',
           },
         ],
       },

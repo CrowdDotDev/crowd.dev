@@ -10,6 +10,17 @@ import { IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
 import { calculateSimilarity, prefixLength } from 'utils'
 import MemberMergeSuggestionsRepository from 'repo/memberMergeSuggestions.repo'
 
+/**
+ * Finds similar members of given member in a tenant
+ * Members are similar if:
+ * - they have exactly same or similar looking identities (with max levenshtein distance = 2 OR same prefix)
+ * - they have exactly same emails
+ * - they have exactly same display name
+ * @param tenantId
+ * @param member
+ * @returns similar members in an array with calculated similarity score and activityEstimate
+ * Activity estimate is calculated by adding activity counts of both members
+ */
 export async function getMergeSuggestions(
   tenantId: string,
   member: IMemberPartialAggregatesOpensearch,
@@ -161,6 +172,7 @@ export async function getMergeSuggestions(
       'nested_weakIdentities',
       'keyword_displayName',
       'string_arr_emails',
+      'int_activityCount',
     ],
   }
 
@@ -175,6 +187,8 @@ export async function getMergeSuggestions(
   for (const memberToMerge of membersToMerge) {
     mergeSuggestions.push({
       similarity: calculateSimilarity(member, memberToMerge._source),
+      activityEstimate:
+        (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
       members: [member.uuid_memberId, memberToMerge._source.uuid_memberId],
     })
   }
@@ -190,10 +204,19 @@ export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise
   await memberMergeSuggestionsRepo.addToMerge(suggestions)
 }
 
+export async function findTenantsLatestSuggestionCreatedAt(tenantId: string): Promise<string> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  return memberMergeSuggestionsRepo.findTenantsLatestSuggestionCreatedAt(tenantId)
+}
+
 export async function getMembers(
   tenantId: string,
   batchSize: number = 100,
   afterMemberId?: string,
+  lastCreatedAt?: string,
 ): Promise<IMemberPartialAggregatesOpensearch[]> {
   try {
     const queryBody: IMemberQueryBody = {
@@ -222,6 +245,7 @@ export async function getMembers(
         'uuid_arr_noMergeIds',
         'keyword_displayName',
         'string_arr_emails',
+        'int_activityCount',
       ],
     }
 
@@ -230,6 +254,16 @@ export async function getMembers(
         range: {
           uuid_memberId: {
             gt: afterMemberId,
+          },
+        },
+      })
+    }
+
+    if (lastCreatedAt) {
+      queryBody.query.bool.filter.push({
+        range: {
+          date_createdAt: {
+            gt: new Date(lastCreatedAt).toISOString(),
           },
         },
       })

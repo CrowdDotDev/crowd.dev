@@ -1,7 +1,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberMergeSuggestion } from '@crowd/types'
-import { IMemberId, IMemberNoMerge } from 'types'
+import { IMemberId, IMemberNoMerge, IMemberMergeSuggestionsLatestCreatedAt } from 'types'
 import { chunkArray, removeDuplicateSuggestions } from 'utils'
 
 class MemberMergeSuggestionsRepository {
@@ -34,9 +34,25 @@ class MemberMergeSuggestionsRepository {
     }
   }
 
+  async findTenantsLatestSuggestionCreatedAt(tenantId: string): Promise<string> {
+    try {
+      const result: IMemberMergeSuggestionsLatestCreatedAt = await this.connection.oneOrNone(
+        `
+        select max(mtm."createdAt") as "latestCreatedAt"
+        from "memberToMerge" mtm
+        inner join members m on mtm."memberId" = m.id
+        where m."tenantId" = $(tenantId);`,
+        {
+          tenantId,
+        },
+      )
+      return result?.latestCreatedAt
+    } catch (err) {
+      throw new Error(err)
+    }
+  }
+
   async addToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
-    console.log('Adding to the merge suggestions:')
-    console.log(suggestions)
     // Remove possible duplicates
     suggestions = removeDuplicateSuggestions(suggestions)
 
@@ -66,17 +82,21 @@ class MemberMergeSuggestionsRepository {
       memberId: string,
       toMergeId: string,
       similarity: number | null,
+      activityEstimate: number | null,
       index: number,
     ) => {
       const idPlaceholder = (key: string) => `${key}${index}`
       return {
         query: `($(${idPlaceholder('memberId')}), $(${idPlaceholder(
           'toMergeId',
-        )}), $(${idPlaceholder('similarity')}), NOW(), NOW())`,
+        )}), $(${idPlaceholder('similarity')}), $(${idPlaceholder(
+          'activityEstimate',
+        )}), NOW(), NOW())`,
         replacements: {
           [idPlaceholder('memberId')]: memberId,
           [idPlaceholder('toMergeId')]: toMergeId,
           [idPlaceholder('similarity')]: similarity,
+          [idPlaceholder('activityEstimate')]: activityEstimate,
         },
       }
     }
@@ -90,6 +110,7 @@ class MemberMergeSuggestionsRepository {
           suggestion.members[0],
           suggestion.members[1],
           suggestion.similarity,
+          suggestion.activityEstimate,
           index,
         )
         placeholders.push(query)
@@ -97,7 +118,7 @@ class MemberMergeSuggestionsRepository {
       })
 
       const query = `
-        INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "createdAt", "updatedAt")
+        INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
         VALUES ${placeholders.join(', ')}
         on conflict do nothing;
       `
