@@ -460,8 +460,6 @@ async function onSubmit() {
       );
       Message.success(i18n('entities.organization.update.success'));
     } catch (error) {
-      Message.error(i18n('entities.organization.update.error'));
-
       Errors.handle(error);
     }
   } else {
