@@ -30,33 +30,42 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     this.insertOrganizationColumnSet = getInsertOrganizationColumnSet(this.dbInstance)
   }
 
+  private static findCacheQuery = `
+  select  oc.id,
+          oci.name,
+          oc.url,
+          oc.description,
+          oc.emails,
+          oc.logo,
+          oc.tags,
+          oc.github,
+          oc.twitter,
+          oc.linkedin,
+          oc.crunchbase,
+          oc.employees,
+          oc.location,
+          oci.website,
+          oc.type,
+          oc.size,
+          oc.headline,
+          oc.industry,
+          oc.founded
+    from "organizationCacheIdentities" oci 
+    inner join "organizationCaches" oc on oci.id = oc.id
+  `
+
+  public async findCacheByWebsite(website: string): Promise<IDbCacheOrganization | null> {
+    const result = await this.db().oneOrNone(
+      `${OrganizationRepository.findCacheQuery} where oci.website = $(website)`,
+      { website },
+    )
+
+    return result
+  }
+
   public async findCacheByName(name: string): Promise<IDbCacheOrganization | null> {
     const result = await this.db().oneOrNone(
-      `
-      select  oc.id,
-              oc.name,
-              oc.url,
-              oc.description,
-              oc.emails,
-              oc.logo,
-              oc.tags,
-              oc.github,
-              oc.twitter,
-              oc.linkedin,
-              oc.crunchbase,
-              oc.employees,
-              oc.location,
-              oc.website,
-              oc.type,
-              oc.size,
-              oc.headline,
-              oc.industry,
-              oc.founded
-      from 
-        "organizationCacheIdentities" oci 
-        inner join "organizationCaches" oc on
-          oci.id = oc.id
-      where oci.name = $(name);`,
+      `${OrganizationRepository.findCacheQuery} where oci.name = $(name)`,
       { name },
     )
 
@@ -78,6 +87,17 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     const query = this.dbInstance.helpers.insert(prepared, this.insertCacheOrganizationColumnSet)
     await this.db().none(query)
+
+    // insert org cache identity as well
+    await this.db().none(
+      `insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))`,
+      {
+        id,
+        name: data.name,
+        website: data.website,
+      },
+    )
+
     return id
   }
 
@@ -105,9 +125,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
     const condition = this.format('where id = $(id)', { id })
 
-    const result = await this.db().result(`${query} ${condition}`)
+    let result = await this.db().result(`${query} ${condition}`)
 
     this.checkUpdateRowCount(result.rowCount, 1)
+
+    if (data.website) {
+      result = await this.db().result(
+        `
+        update "organizationCacheIdentities" set website = $(website) where id = $(id)
+      `,
+        {
+          id,
+          website: data.website,
+        },
+      )
+
+      this.checkUpdateRowCount(result.rowCount, 1)
+    }
   }
 
   public async getIdentities(

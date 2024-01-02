@@ -9,6 +9,8 @@ import {
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG } from '../conf'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 interface IOrgCacheToMerge {
   website: string
   ids: string[]
@@ -115,7 +117,11 @@ async function updateOrganizationCacheData(dbInstance, db, id, data) {
 
 const log = getServiceLogger()
 
-async function processOrgCache(db: DbConnection, dbInstance: DbInstance, result: IOrgCacheToMerge): Promise<void> {
+async function processOrgCache(
+  db: DbConnection,
+  dbInstance: DbInstance,
+  result: IOrgCacheToMerge,
+): Promise<void> {
   const ids = result.ids
 
   const caches = await getOrganizationCaches(db, ids)
@@ -195,7 +201,7 @@ setImmediate(async () => {
   const dbInstance = getDbInstance()
 
   let results = await getOrganizationCachesToMigrate(db)
-  
+
   let count = 0
   while (results.length > 0) {
     for (const result of results) {

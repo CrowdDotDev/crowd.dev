@@ -57,6 +57,10 @@ export class OrganizationService extends LoggerBase {
         // find from cache by primary identity
         let cached = await txRepo.findCacheByName(primaryIdentity.name)
 
+        if (!cached && data.website) {
+          cached = await txRepo.findCacheByWebsite(data.website)
+        }
+
         if (cached) {
           this.log.trace({ cached }, `Organization exists in cache!`)
 
