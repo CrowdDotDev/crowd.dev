@@ -10,7 +10,7 @@ const config: Config = {
     enabled: true,
   },
   redis: {
-    enabled: false,
+    enabled: true,
   },
 }
 

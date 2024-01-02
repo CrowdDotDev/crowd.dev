@@ -28,7 +28,6 @@ import {
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
 import SearchSyncService from './searchSyncService'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
 
 export default class OrganizationService extends LoggerBase {
@@ -37,15 +36,6 @@ export default class OrganizationService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
-  }
-
-  async mergeAsync(originalId, toMergeId) {
-    const tenantId = this.options.currentTenant.id
-
-    await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
-
-    const emitter = await getNodejsWorkerEmitter()
-    await emitter.mergeOrg(tenantId, originalId, toMergeId)
   }
 
   async mergeSync(originalId, toMergeId) {
@@ -77,22 +67,14 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const mergeStatusChanged = await MergeActionsRepository.setState(
+      await MergeActionsRepository.add(
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.IN_PROGRESS,
         // not using transaction here on purpose,
         // so this change is visible until we finish
         this.options,
       )
-      if (!mergeStatusChanged) {
-        this.log.info('[Merge Organizations] - Merging already in progress!')
-        return {
-          status: 203,
-          mergedId: originalId,
-        }
-      }
 
       const repoOptions: IRepositoryOptions =
         await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
@@ -192,22 +174,6 @@ export default class OrganizationService extends LoggerBase {
 
       this.log.info(
         { originalId, toMergeId },
-        '[Merge Organizations] - Moving activities to original organisation! ',
-      )
-      // update activities that belong to source org to destination org
-      await OrganizationRepository.moveActivitiesBetweenOrganizations(
-        toMergeId,
-        originalId,
-        repoOptions,
-      )
-
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Moving activities to original organisation done! ',
-      )
-
-      this.log.info(
-        { originalId, toMergeId },
         '[Merge Organizations] - Including original organisation into secondary organisation segments! ',
       )
 
@@ -227,13 +193,6 @@ export default class OrganizationService extends LoggerBase {
         '[Merge Organizations] - Including original organisation into secondary organisation segments done! ',
       )
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Destroying secondary organisation! ',
-      )
-      // Delete toMerge organization
-      await OrganizationRepository.destroy(toMergeId, repoOptions, true, false)
-
       await SequelizeRepository.commitTransaction(tx)
 
       this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
@@ -242,9 +201,27 @@ export default class OrganizationService extends LoggerBase {
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.DONE,
+        MergeActionState.FINISHING,
         this.options,
       )
+
+      await this.options.temporal.workflow.start('finishOrganizationMerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishOrganizationMerging/${originalId}/${toMergeId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          originalId,
+          toMergeId,
+          original.displayName,
+          toMerge.displayName,
+          this.options.currentTenant.id,
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       this.log.info(
         { originalId, toMergeId },
@@ -277,8 +254,6 @@ export default class OrganizationService extends LoggerBase {
       return {
         status: 200,
         mergedId: originalId,
-        original: original.displayName,
-        toMerge: toMerge.displayName,
       }
     } catch (err) {
       this.options.log.error(err, 'Error while merging organizations!', {
