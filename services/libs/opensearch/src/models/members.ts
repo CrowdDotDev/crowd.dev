@@ -39,11 +39,8 @@ export class MembersOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.BOOL,
     },
     reach: {
-      type: OpensearchFieldType.INT,
-      customTranslation: {
-        toOpensearch: 'int_totalReach',
-        fromOpensearch: 'int_totalReach',
-      },
+      type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     numberOfOpenSourceContributions: {
       type: OpensearchFieldType.INT,
@@ -87,6 +84,20 @@ export class MembersOpensearch extends OpensearchModelBase {
       customTranslation: {
         toOpensearch: 'nested_tags.uuid_id',
         fromOpensearch: 'nested_tags',
+      },
+    },
+    contributions: {
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_contributions.uuid_id',
+        fromOpensearch: 'nested_contributions',
+      },
+    },
+    affiliations: {
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_affiliations.uuid_id',
+        fromOpensearch: 'nested_affiliations',
       },
     },
     organizations: {

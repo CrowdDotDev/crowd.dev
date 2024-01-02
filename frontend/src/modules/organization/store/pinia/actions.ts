@@ -20,11 +20,20 @@ export default {
         return Promise.reject(err);
       });
   },
+
   fetchOrganization(this: OrganizationState, id: string): Promise<Organization> {
     return OrganizationService.find(id)
       .then((organization: Organization) => {
         this.organization = organization;
         return Promise.resolve(organization);
       });
+  },
+
+  addMergedOrganizations(this: OrganizationState, primaryId: string, secondaryId: string) {
+    this.mergedOrganizations[primaryId] = secondaryId;
+  },
+
+  removeMergedOrganizations(this: OrganizationState, primaryId: string) {
+    delete this.mergedOrganizations[primaryId];
   },
 };

@@ -3,62 +3,67 @@
     <el-tooltip
       ref="tooltip"
       placement="top-start"
-      :disabled="member.reach.total === -1"
+      :disabled="reach.total === -1 || (!reach.github && !reach.twitter)"
     >
       <template #content>
         <div>
-          <div v-if="member.reach.github !== undefined">
+          <div v-if="!!reach.github">
             Github:
-            <span class="font-semibold">{{
-                                          formatNumberToCompact(member.reach.github)
-                                        }}
+            <span class="font-semibold">
               {{
-                member.reach.github === 1
-                  ? 'follower'
-                  : 'followers'
-              }}</span>
+                formatNumberToCompact(reach.github)
+              }}
+              {{
+                pluralize('follower', reach.github, false)
+              }}
+            </span>
           </div>
-          <div v-if="member.reach.twitter !== undefined">
+          <div v-if="!!reach.twitter">
             X/Twitter:
-            <span class="font-semibold">{{
-                                          formatNumberToCompact(member.reach.twitter)
-                                        }}
+            <span class="font-semibold">
               {{
-                member.reach.twitter === 1
-                  ? 'follower'
-                  : 'followers'
-              }}</span>
+                formatNumberToCompact(reach.twitter)
+              }}
+              {{
+                pluralize('follower', reach.twitter, false)
+              }}
+            </span>
           </div>
         </div>
       </template>
       <div>
-        <span v-if="typeof member.reach === 'number' && member.reach !== -1">{{
-          formatNumberToCompact(member.reach)
-        }}</span>
-        <span v-else-if="typeof member.reach.total === 'number' && member.reach.total !== -1">{{
-          formatNumberToCompact(member.reach.total)
-        }}</span>
-        <span v-else />
+        <span v-if="!!reach.total && reach.total !== -1">
+          {{
+            formatNumberToCompact(reach.total)
+          }}
+        </span>
+        <span v-else>-</span>
       </div>
     </el-tooltip>
   </div>
 </template>
 
-<script>
+<script setup>
 import { formatNumberToCompact } from '@/utils/number';
+import pluralize from 'pluralize';
+import { computed } from 'vue';
 
-export default {
-  name: 'AppMemberReach',
-  props: {
-    member: {
-      type: Object,
-      default: () => {},
-    },
+const props = defineProps({
+  member: {
+    type: Object,
+    default: () => {},
   },
-  methods: {
-    formatNumberToCompact,
-  },
-};
+});
+
+const reach = computed(() => {
+  if (typeof props.member.reach === 'number') {
+    return {
+      total: props.member.reach,
+    };
+  }
+
+  return props.member.reach;
+});
 </script>
 
 <style lang="scss">

@@ -346,32 +346,6 @@ class MemberRepository {
     }
   }
 
-  static async moveActivitiesBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const query = `
-      update activities set "memberId" = :toMemberId where "memberId" = :fromMemberId and "tenantId" = :tenantId;
-    `
-
-    await seq.query(query, {
-      replacements: {
-        fromMemberId,
-        toMemberId,
-        tenantId: tenant.id,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
-  }
-
   static async addToMerge(
     suggestions: IMemberMergeSuggestion[],
     options: IRepositoryOptions,
@@ -1215,7 +1189,45 @@ class MemberRepository {
       throw new Error404()
     }
 
-    return response.rows[0]
+    const result = response.rows[0]
+
+    // Get special attributes from memberAttributeSettings
+    const specialAttributes = memberAttributeSettings
+      .filter((setting) => setting.type === 'special')
+      .map((setting) => setting.name)
+
+    // Parse special attributes that are indexed as strings
+    if (result.attributes) {
+      specialAttributes.forEach((attr) => {
+        if (result.attributes[attr]) {
+          result.attributes[attr] = JSON.parse(result.attributes[attr])
+        }
+      })
+    }
+
+    // Sort the organizations based on dateStart
+    if (result.organizations) {
+      result.organizations.sort((a, b) => {
+        const dateStartA = a.memberOrganizations.dateStart
+        const dateStartB = b.memberOrganizations.dateStart
+
+        if (!dateStartA && !dateStartB) {
+          return 0
+        }
+
+        if (!dateStartA) {
+          return 1
+        }
+
+        if (!dateStartB) {
+          return -1
+        }
+
+        return new Date(dateStartB).getTime() - new Date(dateStartA).getTime()
+      })
+    }
+
+    return result
   }
 
   static async findAndCountActiveOpensearch(

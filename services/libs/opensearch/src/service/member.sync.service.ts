@@ -592,6 +592,8 @@ export class MemberSyncService {
     member.averageSentiment = null
     member.tags = []
     member.organizations = []
+    member.contributions = []
+    member.affiliations = []
     member.notes = []
     member.tasks = []
 
@@ -617,6 +619,8 @@ export class MemberSyncService {
       }
       member.tags.push(...m.tags)
       member.organizations.push(...m.organizations)
+      member.contributions.push(...m.contributions)
+      member.affiliations.push(...m.affiliations)
       member.notes.push(...m.notes)
       member.tasks.push(...m.tasks)
     }
@@ -635,6 +639,8 @@ export class MemberSyncService {
     member.activityTypes = distinct(member.activityTypes)
     member.tags = distinctBy(member.tags, (t) => t.id)
     member.organizations = distinctBy(member.organizations, (o) => o.id)
+    member.contributions = distinctBy(member.contributions, (c) => c.id)
+    member.affiliations = distinctBy(member.affiliations, (a) => a.id)
     member.notes = distinctBy(member.notes, (n) => n.id)
     member.tasks = distinctBy(member.tasks, (t) => t.id)
 
@@ -679,6 +685,10 @@ export class MemberSyncService {
       }
     }
 
+    // If the 'reach' data from the database is a number instead of an object,
+    // we convert it into an object with a 'total' property holding the original number.
+    p.obj_reach = typeof data.reach === 'object' ? data.reach : { total: data.reach }
+
     p.obj_attributes = p_attributes
     p.string_arr_emails = data.emails || []
     p.int_score = data.score
@@ -686,7 +696,6 @@ export class MemberSyncService {
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
     p.date_createdAt = new Date(data.createdAt).toISOString()
     p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
-    p.int_totalReach = data.totalReach
     p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
     p.string_arr_activeOn = data.activeOn
     p.int_activityCount = data.activityCount
@@ -703,6 +712,36 @@ export class MemberSyncService {
       })
     }
     p.nested_identities = p_identities
+
+    const p_contributions = []
+    if (data.contributions) {
+      for (const contribution of data.contributions) {
+        p_contributions.push({
+          uuid_id: contribution.id,
+          string_url: contribution.url,
+          string_summary: contribution.summary,
+          int_numberCommits: contribution.numberCommits,
+          date_lastCommitDate: new Date(contribution.lastCommitDate).toISOString(),
+          date_firstCommitDate: new Date(contribution.firstCommitDate).toISOString(),
+        })
+      }
+    }
+
+    const p_affiliations = []
+    for (const affiliation of data.affiliations) {
+      p_affiliations.push({
+        uuid_id: affiliation.id,
+        string_segmentId: affiliation.segmentId,
+        string_segmentSlug: affiliation.segmentSlug,
+        string_segmentName: affiliation.segmentName,
+        string_segmentParentName: affiliation.segmentParentName,
+        string_organizationId: affiliation.organizationId,
+        string_organizationName: affiliation.organizationName,
+        string_organizationLogo: affiliation.organizationLogo,
+        date_dateStart: new Date(affiliation.dateStart).toISOString(),
+        date_dateEnd: new Date(affiliation.dateEnd).toISOString(),
+      })
+    }
 
     const p_organizations = []
     for (const organization of data.organizations) {
@@ -747,6 +786,8 @@ export class MemberSyncService {
       })
     }
 
+    p.nested_contributions = p_contributions
+    p.nested_affiliations = p_affiliations
     p.nested_tags = p_tags
     p.nested_notes = p_notes
     p.nested_tasks = p_tasks

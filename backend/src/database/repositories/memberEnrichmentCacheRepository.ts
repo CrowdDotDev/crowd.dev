@@ -1,5 +1,5 @@
 import { QueryTypes } from 'sequelize'
-import { EnrichmentCache } from '../../services/premium/enrichment/types/memberEnrichmentTypes'
+import { EnrichmentCache } from '@crowd/types/premium'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 

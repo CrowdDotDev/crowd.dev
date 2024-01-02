@@ -88,7 +88,6 @@ const fetchFn = async (query, limit) => {
   if (options.length !== filteredOptions.length) {
     filteredOptions.push({});
   }
-  console.log(filteredOptions);
 
   return filteredOptions;
 };

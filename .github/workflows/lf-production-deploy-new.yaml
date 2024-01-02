@@ -31,6 +31,14 @@ on:
         description: Deploy profiles-worker service?
         required: true
         type: boolean
+      deploy_members_enrichment_worker:
+        description: Deploy members-enrichment-worker service?
+        required: true
+        type: boolean
+      deploy_entity_merging_worker:
+        description: Deploy entity-merging-worker service?
+        required: true
+        type: boolean
       deploy_script_executor:
         description: Deploy script-executor service?
         required: true
@@ -195,6 +203,48 @@ jobs:
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
+  build-and-push-members-enrichment-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_members_enrichment_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: members-enrichment-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
+  build-and-push-entity-merging-worker:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_entity_merging_worker }}
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: entity-merging-worker
+
+      - name: Set docker image output
+        id: image
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
+
   build-and-push-script-executor:
     runs-on: ubuntu-latest
     if: ${{ inputs.deploy_script_executor }}
@@ -344,6 +394,42 @@ jobs:
         with:
           service: profiles-worker
           image: ${{ needs.build-and-push-profiles-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-members-enrichment-worker:
+    needs: build-and-push-members-enrichment-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_members_enrichment_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: members-enrichment-worker
+          image: ${{ needs.build-and-push-members-enrichment-worker.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-entity-merging-worker:
+    needs: build-and-push-entity-merging-worker
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_entity_merging_worker }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: entity-merging-worker
+          image: ${{ needs.build-and-push-entity-merging-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-script-executor:

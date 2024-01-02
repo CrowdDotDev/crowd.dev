@@ -253,6 +253,28 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                               from activities a
                               where a."memberId" in ($(ids:csv))
                               group by a."memberId", a."segmentId"),
+          member_affiliations as (
+                                select msa."memberId",
+                                json_agg(
+                                        json_build_object(
+                                                'id', msa.id,
+                                                'segmentId', s.id,
+                                                'segmentSlug', s.slug,
+                                                'segmentName', s.name,
+                                                'segmentParentName', s."parentName",
+                                                'organizationId', o.id,
+                                                'organizationName', o."displayName",
+                                                'organizationLogo', o.logo,
+                                                'dateStart', msa."dateStart",
+                                                'dateEnd', msa."dateEnd"
+                                            )
+                                    )           as all_affiliations,
+                                jsonb_agg(msa.id) as all_ids
+                                from "memberSegmentAffiliations" msa
+                                  left join organizations o on o.id = msa."organizationId"
+                                  inner join segments s on s.id = msa."segmentId"
+                                where msa."memberId" = $(memberId)
+                                group by msa."memberId"),
           member_notes as (
                 select mn."memberId",
                 json_agg(
@@ -289,6 +311,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m."tenantId",
               ms."segmentId",
               m."displayName",
+              coalesce(m.contributions, '[]'::jsonb)              as contributions,
               m.attributes,
               m.emails,
               m.score,
@@ -296,7 +319,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m."joinedAt",
               m."manuallyCreated",
               m."createdAt",
-              (m.reach -> 'total')::integer                      as "totalReach",
+              m.reach,
               coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
 
               ad."activeOn",
@@ -309,6 +332,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               i.identities,
               coalesce(mo.all_organizations, json_build_array()) as organizations,
               coalesce(mt.all_tags, json_build_array())          as tags,
+              coalesce(ma.all_affiliations, json_build_array())  as affiliations,
               coalesce(mn.all_notes, json_build_array())          as notes,
               coalesce(mtk.all_tasks, json_build_array())          as tasks,
               coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
@@ -319,6 +343,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                 left join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
                 left join to_merge_data tmd on m.id = tmd."memberId"
                 left join no_merge_data nmd on m.id = nmd."memberId"
+                left join member_affiliations ma on m.id = ma."memberId"
                 left join member_tags mt on ms."memberId" = mt."memberId"
                 left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
                 left join member_notes mn on ms."memberId" = mn."memberId"
@@ -420,6 +445,28 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
             where a."memberId" = $(memberId)
             and a."segmentId" = $(segmentId)
             group by a."memberId"),
+      member_affiliations as (
+              select msa."memberId",
+              json_agg(
+                      json_build_object(
+                              'id', msa.id,
+                              'segmentId', s.id,
+                              'segmentSlug', s.slug,
+                              'segmentName', s.name,
+                              'segmentParentName', s."parentName",
+                              'organizationId', o.id,
+                              'organizationName', o."displayName",
+                              'organizationLogo', o.logo,
+                              'dateStart', msa."dateStart",
+                              'dateEnd', msa."dateEnd"
+                          )
+                  )           as all_affiliations,
+              jsonb_agg(msa.id) as all_ids
+              from "memberSegmentAffiliations" msa
+                left join organizations o on o.id = msa."organizationId"
+                inner join segments s on s.id = msa."segmentId"
+              where msa."memberId" = $(memberId)
+              group by msa."memberId"),
       member_notes as (
             select mn."memberId",
             json_agg(
@@ -458,13 +505,14 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         $(segmentId) as "segmentId",
         m."displayName",
         m.attributes,
+        coalesce(m.contributions, '[]'::jsonb)              as contributions,
         m.emails,
         m.score,
         m."lastEnriched",
         m."joinedAt",
         m."manuallyCreated",
         m."createdAt",
-        (m.reach -> 'total')::integer                      as "totalReach",
+        m.reach,
         coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
 
         ad."activeOn",
@@ -477,6 +525,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         i.identities,
         coalesce(mo.all_organizations, json_build_array()) as organizations,
         coalesce(mt.all_tags, json_build_array())          as tags,
+        coalesce(ma.all_affiliations, json_build_array())  as affiliations,
         coalesce(mn.all_notes, json_build_array())          as notes,
         coalesce(mtk.all_tasks, json_build_array())          as tasks,
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
@@ -487,6 +536,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         left join to_merge_data tmd on m.id = tmd."memberId"
         left join no_merge_data nmd on m.id = nmd."memberId"
         left join member_tags mt on m.id = mt."memberId"
+        left join member_affiliations ma on m.id = ma."memberId"
         left join member_notes mn on m.id = mn."memberId"
         left join member_tasks mtk on m.id = mtk."memberId"
         left join member_organizations mo on m.id = mo."memberId"

@@ -3,7 +3,6 @@ import integrationTicks from './integrationTicks'
 import memberScoreCoordinator from './memberScoreCoordinator'
 import refreshMaterializedViews from './refreshMaterializedViews'
 import refreshMaterializedViewsForCube from './refreshMaterializedViewsForCube'
-import downgradeExpiredPlans from './downgradeExpiredPlans'
 import integrationDataChecker from './integrationDataChecker'
 import mergeSuggestions from './mergeSuggestions'
 import refreshSampleData from './refreshSampleData'
@@ -16,7 +15,6 @@ const jobs: CrowdJob[] = [
   memberScoreCoordinator,
   refreshMaterializedViews,
   refreshMaterializedViewsForCube,
-  downgradeExpiredPlans,
   integrationDataChecker,
   mergeSuggestions,
   refreshSampleData,

@@ -13,7 +13,7 @@ export interface MemberStaticFieldsTranslation {
   score: string
   lastEnriched: string
   joinedAt: string
-  totalReach: string
+  reach: unknown
   numberOfOpenSourceContributions: string
   activeOn: string
   activityCount: string
