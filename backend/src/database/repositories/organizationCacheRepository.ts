@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import { Error404 } from '@crowd/common'
+import { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -7,11 +8,11 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 class OrganizationCacheRepository {
   static async create(data, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
     const record = await options.database.organizationCache.create(
       {
         ...lodash.pick(data, [
-          'name',
           'url',
           'description',
           'emails',
@@ -25,7 +26,6 @@ class OrganizationCacheRepository {
           'revenueRange',
           'importHash',
           'enriched',
-          'website',
           'github',
           'location',
           'employeeCountByCountry',
@@ -47,6 +47,19 @@ class OrganizationCacheRepository {
       },
     )
 
+    await seq.query(
+      `insert into "organizationCacheIdentities"(id, name, website) values(:id, :name, :website)`,
+      {
+        replacements: {
+          id: record.id,
+          name: data.name,
+          website: data.website,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      },
+    )
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -54,6 +67,7 @@ class OrganizationCacheRepository {
 
   static async update(id, data, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
     let record = await options.database.organizationCache.findOne({
       where: {
@@ -69,7 +83,6 @@ class OrganizationCacheRepository {
     record = await record.update(
       {
         ...lodash.pick(data, [
-          'name',
           'url',
           'description',
           'emails',
@@ -83,7 +96,6 @@ class OrganizationCacheRepository {
           'revenueRange',
           'importHash',
           'enriched',
-          'website',
           'github',
           'location',
           'geoLocation',
@@ -110,6 +122,20 @@ class OrganizationCacheRepository {
 
     if (!record) {
       throw new Error404()
+    }
+
+    if (data.website) {
+      await seq.query(
+        `update "organizationCacheIdentities" set website = :website where id = :id`,
+        {
+          replacements: {
+            id,
+            website: data.website,
+          },
+          type: QueryTypes.UPDATE,
+          transaction,
+        },
+      )
     }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
@@ -175,6 +201,7 @@ class OrganizationCacheRepository {
 
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
     const include = []
 
@@ -189,7 +216,19 @@ class OrganizationCacheRepository {
     if (!record) {
       throw new Error404()
     }
-    const output = record.get({ plain: true })
+
+    const identity = await seq.query(
+      `select name, website from "organizationCacheIdentities" where id = :id`,
+      {
+        replacements: {
+          id,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    const output = { ...record.get({ plain: true }), ...identity[0] }
     return output
   }
 
@@ -214,25 +253,50 @@ class OrganizationCacheRepository {
     return output
   }
 
-  static async findByName(name, options: IRepositoryOptions) {
+  static async findByWebsite(website: string, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = []
+    const seq = SequelizeRepository.getSequelize(options)
 
-    const record = await options.database.organizationCache.findOne({
-      where: {
-        name,
+    const result = await seq.query(
+      `select id from "organizationCacheIdentities" where website = :website`,
+      {
+        replacements: {
+          website,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
       },
-      include,
-      transaction,
-    })
+    )
 
-    if (!record) {
-      return undefined
+    if (result.length === 1) {
+      return this.findById((result[0] as any).id, options)
     }
 
-    const output = record.get({ plain: true })
-    return output
+    return undefined
+  }
+
+  static async findByName(name: string, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const result = await seq.query(
+      `select id from "organizationCacheIdentities" where name = :name`,
+      {
+        replacements: {
+          name,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (result.length === 1) {
+      return this.findById((result[0] as any).id, options)
+    }
+
+    return undefined
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

@@ -9,10 +9,6 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      name: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
       url: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -72,10 +68,6 @@ export default (sequelize) => {
         },
       },
       location: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      website: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
