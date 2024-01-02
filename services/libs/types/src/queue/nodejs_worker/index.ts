@@ -61,18 +61,6 @@ export class BulkEnrichQueueMessage implements IQueueMessage {
   ) {}
 }
 
-export class OrgMergeQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'org-merge'
-
-  constructor(
-    public readonly tenantId: string,
-    public readonly primaryOrgId: string,
-    public readonly secondaryOrgId: string,
-    public readonly notifyFrontend: boolean,
-  ) {}
-}
-
 export class ExportCSVQueueMessage implements IQueueMessage {
   public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
   public readonly service = 'csv-export'

@@ -15,7 +15,6 @@ import {
   MergeSuggestionsQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
-  OrgMergeQueueMessage,
   ProcessAutomationQueueMessage,
   QueuePriorityLevel,
   RefreshSampleDataQueueMessage,
@@ -93,19 +92,6 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       tenantId,
       generateUUIDv1(),
       new BulkEnrichQueueMessage(tenantId, memberIds, segmentIds, notifyFrontend, skipCredits),
-    )
-  }
-
-  public async mergeOrg(
-    tenantId: string,
-    primaryOrgId: string,
-    secondaryOrgId: string,
-    notifyFrontend = true,
-  ): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      generateUUIDv1(),
-      new OrgMergeQueueMessage(tenantId, primaryOrgId, secondaryOrgId, notifyFrontend),
     )
   }
 
