@@ -21,7 +21,7 @@ const { normalizeEnrichedMember, updateMergeSuggestions, updateOrganizations } =
 // Configure timeouts and retry policies to sync enriched data to OpenSearch.
 const { syncMembersToOpensearch, syncOrganizationsToOpensearch } = proxyActivities<
   typeof activities
->({ startToCloseTimeout: '15 seconds' })
+>({ startToCloseTimeout: '90 seconds' })
 
 /*
 enrichMember is a Temporal workflow that:
