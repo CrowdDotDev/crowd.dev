@@ -544,20 +544,6 @@ export class OrganizationSyncService {
     p.string_arr_tags = data.tags
     p.string_arr_manuallyChangedFields = data.manuallyChangedFields
 
-    // weak identities
-    const p_weakIdentities = []
-    for (const identity of data.weakIdentities) {
-      p_weakIdentities.push({
-        uuid_organizationId: identity.organizationId,
-        uuid_integrationId: identity.integrationId,
-        string_platform: identity.platform,
-        string_name: identity.name,
-        uuid_sourceId: identity.sourceId,
-        string_url: identity.url,
-      })
-    }
-    p.nested_weakIdentities = p_weakIdentities
-
     // identities
     const p_identities = []
     for (const identity of data.identities) {
