@@ -1131,6 +1131,10 @@ export default class MemberService extends LoggerBase {
     )
   }
 
+  async findByIdOpensearch(id: string, segmentId?: string) {
+    return MemberRepository.findByIdOpensearch(id, this.options, segmentId)
+  }
+
   async queryV2(data) {
     if (await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)) {
       if (data.segments.length !== 1) {

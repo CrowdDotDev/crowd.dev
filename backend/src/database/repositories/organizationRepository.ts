@@ -2132,6 +2132,46 @@ class OrganizationRepository {
     return results
   }
 
+  static async findByIdOpensearch(
+    id: string,
+    options: IRepositoryOptions,
+    segmentId?: string,
+  ): Promise<PageData<any>> {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
+
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
+              },
+            },
+          ],
+        },
+        isProfileQuery: true,
+        limit: 1,
+        offset: 0,
+        segments,
+      },
+      options,
+    )
+
+    if (response.count === 0) {
+      throw new Error404()
+    }
+
+    const result = response.rows[0]
+
+    // Parse attributes that are indexed as strings
+    if (result.attributes) {
+      result.attributes = JSON.parse(result.attributes)
+    }
+
+    return result
+  }
+
   static async findAndCountAllOpensearch(
     {
       filter = {} as any,
@@ -2141,6 +2181,7 @@ class OrganizationRepository {
       countOnly = false,
       segments = [] as string[],
       customSortFunction = undefined,
+      isProfileQuery = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -2156,7 +2197,7 @@ class OrganizationRepository {
 
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
 
-    if (filter.and) {
+    if (!isProfileQuery && filter.and) {
       filter.and.push({
         or: [
           {
