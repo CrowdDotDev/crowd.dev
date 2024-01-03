@@ -28,9 +28,9 @@ export default class PermissionChecker {
     this.language = language
     this.currentUser = currentUser
     this.currentSegments = currentSegments
-    this.adminSegments = currentUser.tenants.find(
-      (t) => t.tenantId === currentTenant.id,
-    )?.adminSegments
+    this.adminSegments = !currentUser
+      ? []
+      : currentUser.tenants.find((t) => t.tenantId === currentTenant.id)?.adminSegments
   }
 
   /**
