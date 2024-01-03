@@ -78,14 +78,14 @@ export default class Errors {
     if (selectErrorCode(error) === 542) {
       Message.error(
         'An error has occurred setting up the integration, please reach out to us via chat.',
-        { duration: 0 }
+        { duration: 0 },
       );
       return;
     }
 
     Message.error(
       'Please try again. If the problem remains, reach out to us.',
-      { title: 'Oops, something went wrong' }
+      { title: 'Oops, something went wrong' },
     );
   }
 
