@@ -268,7 +268,7 @@ class MemberRepository {
             AND ms."segmentId" IN (:segmentIds)
         ) AS "membersToMerge" 
       ORDER BY 
-        "membersToMerge"."activityEstimate", membersToMerge"."similarity" DESC 
+        "membersToMerge"."activityEstimate", "membersToMerge"."similarity" DESC 
       LIMIT :limit OFFSET :offset
     `,
       {
