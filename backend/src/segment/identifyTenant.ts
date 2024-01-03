@@ -12,7 +12,7 @@ export default async function identifyTenant(req) {
           userId: req.currentUser.id,
           groupId: req.currentTenant.id,
           traits: {
-            name: req.currentTenant.name,
+            name: req.currentTenant.name !== 'temporaryName' ? req.currentTenant.name : undefined,
           },
         })
       }
