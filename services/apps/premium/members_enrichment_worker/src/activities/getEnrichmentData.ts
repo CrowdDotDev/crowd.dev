@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 
 import { PlatformType } from '@crowd/types'
 import { EnrichmentAPIResponse, EnrichmentAPIMember } from '@crowd/types/premium'
@@ -14,29 +14,31 @@ export async function enrichMemberUsingGitHubHandle(
 ): Promise<EnrichmentAPIMember> {
   const url = `${process.env['CROWD_ENRICHMENT_URL']}/get_profile`
 
-  let response: EnrichmentAPIResponse = null
+  let response: AxiosResponse<EnrichmentAPIResponse> = null
   try {
-    response = (
-      await axios<EnrichmentAPIResponse>({
-        method: 'get',
-        url,
-        params: {
-          github_handle: input.member.username[PlatformType.GITHUB],
-          with_emails: true,
-          api_key: process.env['CROWD_ENRICHMENT_API_KEY'],
-        },
-        headers: {},
-      })
-    ).data
+    response = await axios({
+      method: 'get',
+      url,
+      params: {
+        github_handle: input.member.username[PlatformType.GITHUB],
+        with_emails: true,
+        api_key: process.env['CROWD_ENRICHMENT_API_KEY'],
+      },
+      headers: {},
+    })
   } catch (err) {
+    if (response.status === 500) {
+      return null
+    }
+
     throw new Error(err)
   }
 
-  if (!response.profile) {
+  if (!response.data.profile) {
     return null
   }
 
-  return response.profile
+  return response.data.profile
 }
 
 /*
@@ -48,27 +50,29 @@ export async function enrichMemberUsingEmailAddress(
 ): Promise<EnrichmentAPIMember> {
   const url = `${process.env['CROWD_ENRICHMENT_URL']}/get_profile`
 
-  let response: EnrichmentAPIResponse = null
+  let response: AxiosResponse<EnrichmentAPIResponse> = null
   try {
-    response = (
-      await axios<EnrichmentAPIResponse>({
-        method: 'get',
-        url,
-        params: {
-          email: input.member.emails[0],
-          with_emails: true,
-          api_key: process.env['CROWD_ENRICHMENT_API_KEY'],
-        },
-        headers: {},
-      })
-    ).data
+    response = await axios({
+      method: 'get',
+      url,
+      params: {
+        email: input.member.emails[0],
+        with_emails: true,
+        api_key: process.env['CROWD_ENRICHMENT_API_KEY'],
+      },
+      headers: {},
+    })
   } catch (err) {
+    if (response.status === 500) {
+      return null
+    }
+
     throw new Error(err)
   }
 
-  if (!response.profile) {
+  if (!response.data.profile) {
     return null
   }
 
-  return response.profile
+  return response.data.profile
 }
