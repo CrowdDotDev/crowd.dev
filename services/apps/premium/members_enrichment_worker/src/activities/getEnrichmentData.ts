@@ -27,7 +27,7 @@ export async function enrichMemberUsingGitHubHandle(
       headers: {},
     })
   } catch (err) {
-    if (response.status === 500) {
+    if (!response || response.status === 500) {
       return null
     }
 
@@ -63,7 +63,7 @@ export async function enrichMemberUsingEmailAddress(
       headers: {},
     })
   } catch (err) {
-    if (response.status === 500) {
+    if (!response || response.status === 500) {
       return null
     }
 
