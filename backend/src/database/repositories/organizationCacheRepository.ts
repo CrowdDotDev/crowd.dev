@@ -53,7 +53,7 @@ class OrganizationCacheRepository {
         replacements: {
           id: record.id,
           name: data.name,
-          website: data.website,
+          website: data.website || null,
         },
         type: QueryTypes.INSERT,
         transaction,
@@ -194,6 +194,7 @@ class OrganizationCacheRepository {
 
   static async destroy(id, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
     const record = await options.database.organizationCache.findOne({
       where: {
@@ -205,6 +206,14 @@ class OrganizationCacheRepository {
     if (!record) {
       throw new Error404()
     }
+
+    await seq.query('delete from "organizationCacheIdentities" where id = :id', {
+      replacements: {
+        id,
+        type: QueryTypes.DELETE,
+        transaction,
+      },
+    })
 
     await record.destroy({
       transaction,
@@ -271,14 +280,14 @@ class OrganizationCacheRepository {
       },
       include,
       transaction,
+      attributes: ['id'],
     })
 
     if (!record) {
       return undefined
     }
 
-    const output = record.get({ plain: true })
-    return output
+    return this.findById(record.id, options)
   }
 
   static async findByWebsite(website: string, options: IRepositoryOptions) {
