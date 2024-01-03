@@ -195,6 +195,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."segmentId",
         o."tenantId",
         o.address,
+        o.tags,
+        o.ticker,
         o.attributes,
         o."createdAt",
         o."manuallyCreated",
@@ -241,6 +243,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         o."grossDeparturesByMonth",
         o."ultimateParent",
         o."immediateParent",
+        o."weakIdentities",
+        o."manuallyChangedFields",
         nullif (o."employeeChurnRate" -> '12_month', 'null')::decimal AS "employeeChurnRate12Month",
         nullif (o."employeeGrowthRate" -> '12_month', 'null')::decimal AS "employeeGrowthRate12Month",
         o.tags,
@@ -252,8 +256,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."memberIds",
         coalesce(i.identities, '[]'::jsonb)            as "identities",
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
-        coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds",
-        o."weakIdentities"
+        coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
     FROM organizations o
     LEFT JOIN member_data md ON o.id = md."organizationId"
     LEFT JOIN identities i ON o.id = i."organizationId"

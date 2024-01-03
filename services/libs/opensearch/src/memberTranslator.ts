@@ -49,6 +49,25 @@ export default class MemberTranslator extends FieldTranslator {
     // tags
     this.translations.name = 'string_name'
 
+    // contributions
+    this.translations.url = 'string_url'
+    this.translations.topics = 'string_arr_topics'
+    this.translations.summary = 'string_summary'
+    this.translations.numberCommits = 'int_numberCommits'
+    this.translations.lastCommitDate = 'date_lastCommitDate'
+    this.translations.firstCommitDate = 'date_firstCommitDate'
+
+    // affiliations
+    this.translations.segmentId = 'uuid_segmentId'
+    this.translations.segmentSlug = 'string_segmentSlug'
+    this.translations.segmentName = 'string_segmentName'
+    this.translations.segmentParentName = 'string_segmentParentName'
+    this.translations.organizationId = 'uuid_organizationId'
+    this.translations.organizationName = 'string_organizationName'
+    this.translations.organizationLogo = 'string_organizationLogo'
+    this.translations.dateStart = 'date_dateStart'
+    this.translations.dateEnd = 'date_dateEnd'
+
     // organizations
     this.translations.logo = 'string_logo'
     this.translations.memberOrganizations = 'obj_memberOrganizations'
@@ -64,9 +83,6 @@ export default class MemberTranslator extends FieldTranslator {
 
     // fix for colliding translations of id -> uuid_memberId (members) and id -> uuid_id (organizations, tags)
     this.opensearchToCrowdMap.set('uuid_id', 'id')
-
-    // backwards compatibility for reach.total
-    this.crowdToOpensearchMap.set('reach.total', 'int_totalReach')
   }
 
   private attributeTypeToOpenSearchPrefix(type: MemberAttributeType): string {
