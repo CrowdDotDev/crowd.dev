@@ -230,7 +230,21 @@ const constaintConfiguration = {
   [FeatureFlag.TEMPORAL_MEMBERS_ENRICHMENT]: [
     [
       {
+        values: [Plans.values.scale, Plans.values.enterprise],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
+  [FeatureFlag.TEMPORAL_MEMBER_MERGE_SUGGESTIONS]: [
+    [
+      {
         values: [
+          Plans.values.essential,
+          Plans.values.growth,
           Plans.values.scale,
           Plans.values.enterprise,
         ],
