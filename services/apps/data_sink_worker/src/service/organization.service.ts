@@ -141,7 +141,7 @@ export class OrganizationService extends LoggerBase {
             enriched: false,
             ...insertData,
             attributes: {},
-            weakIdentities: data.weakIdentities,
+            names: [primaryIdentity.name],
           }
         }
 
@@ -222,7 +222,7 @@ export class OrganizationService extends LoggerBase {
           await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
 
           const payload = {
-            displayName: cached.name,
+            displayName: primaryIdentity.name,
             description: cached.description,
             emails: cached.emails,
             logo: cached.logo,
@@ -240,7 +240,7 @@ export class OrganizationService extends LoggerBase {
             industry: cached.industry,
             founded: cached.founded,
             attributes,
-            weakIdentities: cached.weakIdentities,
+            weakIdentities: data.weakIdentities,
           }
 
           this.log.trace({ payload }, `Creating new organization!`)
