@@ -2150,6 +2150,7 @@ class OrganizationRepository {
             },
           ],
         },
+        isProfileQuery: true,
         limit: 1,
         offset: 0,
         segments,
@@ -2180,6 +2181,7 @@ class OrganizationRepository {
       countOnly = false,
       segments = [] as string[],
       customSortFunction = undefined,
+      isProfileQuery = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -2195,7 +2197,7 @@ class OrganizationRepository {
 
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
 
-    if (filter.and) {
+    if (!isProfileQuery && filter.and) {
       filter.and.push({
         or: [
           {
