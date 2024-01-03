@@ -947,7 +947,7 @@ class MemberRepository {
     await options.temporal.workflow.start('memberUpdate', {
       taskQueue: 'profiles',
       workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
-      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
       retry: {
         maximumAttempts: 10,
       },
@@ -3561,7 +3561,7 @@ class MemberRepository {
       await options.temporal.workflow.start('memberUpdate', {
         taskQueue: 'profiles',
         workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
         retry: {
           maximumAttempts: 10,
         },
