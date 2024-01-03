@@ -60,16 +60,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     from "organizationCacheIdentities" oci 
     inner join "organizationCaches" oc on oci.id = oc.id
     inner join identities i on oci.id = i.id
-      __WHERE_CONDITION__
-    group by oc.id
   `
 
   public async findCacheByWebsite(website: string): Promise<IDbCacheOrganization | null> {
+    // limit 1 because multiple rows can have the same website in organizationCacheIdentities
     const result = await this.db().oneOrNone(
-      OrganizationRepository.findCacheQuery.replace(
-        '__WHERE_CONDITION__',
-        'where oci.website = $(website)',
-      ),
+      `${OrganizationRepository.findCacheQuery} where oci.website = $(website) limit 1`,
       { website },
     )
 
@@ -77,11 +73,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   }
 
   public async findCacheByName(name: string): Promise<IDbCacheOrganization | null> {
+    // limit is not needed since only 1 row can have the same name in organizationCacheIdentities
     const result = await this.db().oneOrNone(
-      OrganizationRepository.findCacheQuery.replace(
-        '__WHERE_CONDITION__',
-        'where oci.name = $(name)',
-      ),
+      `${OrganizationRepository.findCacheQuery} where oci.name = $(name)`,
       { name },
     )
 
