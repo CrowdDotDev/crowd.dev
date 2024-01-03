@@ -7,13 +7,13 @@ import {
 } from 'types'
 import { svc } from '../../main'
 import { IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
-import { calculateSimilarity, prefixLength } from 'utils'
+import { calculateSimilarity } from 'utils'
 import MemberMergeSuggestionsRepository from 'repo/memberMergeSuggestions.repo'
 
 /**
  * Finds similar members of given member in a tenant
  * Members are similar if:
- * - they have exactly same or similar looking identities (with max levenshtein distance = 2 OR same prefix)
+ * - they have exactly same or similar looking identities (with max levenshtein distance = 2)
  * - they have exactly same emails
  * - they have exactly same display name
  * @param tenantId
@@ -103,7 +103,7 @@ export async function getMergeSuggestions(
         })
 
         // some identities have https? in the beginning, resulting in false positive suggestions
-        // remove these when making fuzzy, wildcard and prefix searches
+        // remove these when making fuzzy and wildcard searches
         const cleanedIdentityName = identity.string_username.replace(/^https?:\/\//, '')
 
         if (Number.isNaN(Number(identity.string_username))) {
@@ -118,17 +118,6 @@ export async function getMergeSuggestions(
               },
             },
           })
-
-          // also check for prefix for identities that has more than 5 characters and no whitespace
-          if (identity.string_username.length > 5 && identity.string_username.indexOf(' ') === -1) {
-            identitiesPartialQuery.should[2].nested.query.bool.should.push({
-              prefix: {
-                [`nested_identities.keyword_username`]: {
-                  value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-                },
-              },
-            })
-          }
         }
       }
     }
