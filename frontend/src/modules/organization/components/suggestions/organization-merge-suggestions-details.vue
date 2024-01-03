@@ -229,64 +229,9 @@
         </article>
       </div>
       <div class="pt-5">
-        <template v-if="props.organization.identities && props.organization.identities.length > 0">
-          <a
-            v-for="(identity, ii) of props.organization.identities"
-            :key="ii"
-            class="py-2 flex items-center relative text-gray-900 transition-colors"
-            :class="getIdentityLink(identity) ? 'hover:text-brand-500 cursor-pointer' : ''"
-            :href="getIdentityLink(identity)"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div class="flex gap-3 items-center">
-              <app-platform :platform="identity.platform" />
-              <span class="text-xs">
-                {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
-                  ?? identity.name
-                  ?? getPlatformDetails(identity.platform)?.name
-                  ?? identity.platform }}</span>
-            </div>
-            <i
-              v-if="identity.url"
-              class="ri-external-link-line text-gray-300 pl-2"
-            />
-          </a>
-        </template>
-        <a
-          v-for="email of props.organization.emails"
-          :key="email"
-          class="py-2 flex items-center relative hover:text-brand-500 transition-colors cursor-pointer text-gray-900"
-          :href="`mailto:${email}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="email" />
-            <span class="text-xs">
-              {{ email }}</span>
-          </div>
-          <i
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-for="phone of props.organization.phoneNumbers"
-          :key="phone"
-          class="py-2 flex items-center relative hover:text-brand-500 transition-colors cursor-pointer text-gray-900"
-          :href="`tel:${phone}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="phone" />
-            <span class="text-xs">
-              {{ phone }}</span>
-          </div>
-          <i
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
+        <app-platform-vertical-list
+          :platform-handles-links="identities.getOrderedPlatformHandlesAndLinks()"
+        />
       </div>
     </div>
   </section>
@@ -303,8 +248,9 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
-import AppPlatform from '@/shared/platform/platform.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppPlatformVerticalList from '@/shared/platform/platform-vertical-list.vue';
+import useOrganizationIdentities from '@/utils/identities/useOrganizationIdentities';
+import organizationOrder from '@/shared/platform/config/order/organization';
 
 const props = defineProps({
   organization: {
@@ -337,6 +283,11 @@ const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
+const identities = computed(() => useOrganizationIdentities({
+  organization: props.organization,
+  order: organizationOrder.suggestionsOrder,
+}));
+
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
@@ -345,15 +296,6 @@ const isEditLockedForSampleData = computed(
 const bio = ref(null);
 const displayShowMore = ref(null);
 const more = ref(null);
-
-const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-
-const getIdentityLink = (identity) => {
-  if (identity.url) {
-    return withHttp(identity.url);
-  }
-  return null;
-};
 
 onMounted(() => {
   setTimeout(() => {

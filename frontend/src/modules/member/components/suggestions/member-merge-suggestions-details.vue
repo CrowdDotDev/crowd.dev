@@ -149,69 +149,9 @@
         </article>
       </div>
       <div class="pt-5">
-        <div
-          v-for="(usernameHandles, platform) in member.username"
-          :key="platform"
-        >
-          <a
-            v-for="handle in usernameHandles"
-            :key="handle"
-            :href="identityUrl(platform, handle, member.attributes)"
-            class="pb-2 pt-3 flex items-center text-gray-900 hover:text-gray-900"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              v-if="platformDetails(platform)"
-              :src="platformDetails(platform).image"
-              class="h-5 w-5 mr-4"
-              :alt="platform"
-            >
-            <el-tooltip v-else :content="platform" placement="top">
-              <i class="ri-user-3-fill text-gray-500 text-lg mr-4" />
-            </el-tooltip>
-            <div
-              v-if="
-                platform === 'linkedin'
-                  && handle.includes(
-                    'private-',
-                  )
-              "
-              class="text-gray-900 text-xs"
-            >
-              *********
-              <el-tooltip
-                placement="top"
-                content="Private profile"
-              >
-                <i
-                  class="ri-lock-line text-gray-400 ml-2"
-                />
-              </el-tooltip>
-            </div>
-            <span
-              v-else
-              class="text-xs leading-5"
-              :class="{ 'underline hover:text-brand-500': identityUrl(platform, handle, member.attributes) }"
-              v-html="$sanitize(handle)"
-            />
-          </a>
-        </div>
-        <a
-          v-for="email of member.emails?.filter((e) => e && e.length)"
-          :key="email"
-          :href="`mailto:${email}`"
-          class="pb-2 pt-3 flex items-center text-gray-900"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span
-            class="ri-mail-line text-lg text-gray-600 mr-4 h-5 flex items-center"
-          />
-          <span class="text-xs leading-5 underline hover:text-brand-500">{{
-            email
-          }}</span>
-        </a>
+        <app-platform-vertical-list
+          :platform-handles-links="identities.getOrderedPlatformHandlesAndLinks()"
+        />
       </div>
     </div>
   </section>
@@ -227,9 +167,11 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import useMemberIdentities from '@/utils/identities/useMemberIdentities';
+import memberOrder from '@/shared/platform/config/order/member';
+import AppPlatformVerticalList from '@/shared/platform/platform-vertical-list.vue';
 
 const props = defineProps({
   member: {
@@ -262,6 +204,11 @@ const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
+const identities = computed(() => useMemberIdentities({
+  member: props.member,
+  order: memberOrder.suggestionsOrder,
+}));
+
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
@@ -270,15 +217,6 @@ const isEditLockedForSampleData = computed(
 const bio = ref(null);
 const displayShowMore = ref(null);
 const more = ref(null);
-
-const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-const identityUrl = (platform, username, attributes) => {
-  if (platform === 'discord' || platform === 'slack') {
-    return null;
-  }
-
-  return CrowdIntegrations.getConfig(platform)?.url({ username, attributes });
-};
 
 onMounted(() => {
   setTimeout(() => {

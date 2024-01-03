@@ -216,14 +216,10 @@
                       class="block"
                     >
                       <div class="h-full flex items-center">
-                        <app-organization-identities
-                          v-if="scope.row.identities.length > 0"
+                        <app-platform-horizontal-list-organization
                           :organization="scope.row"
+                          :limit="4"
                         />
-                        <span
-                          v-else
-                          class="text-gray-900"
-                        >-</span>
                       </div>
                     </router-link>
                   </template>
@@ -798,7 +794,7 @@ import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
-import AppOrganizationIdentities from '../organization-identities.vue';
+import AppPlatformHorizontalListOrganization from '@/shared/platform/platform-horizontal-list-organization.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
