@@ -251,7 +251,8 @@ class MemberRepository {
         "membersToMerge".id, 
         "membersToMerge"."toMergeId",
         "membersToMerge"."total_count",
-        "membersToMerge"."similarity"
+        "membersToMerge"."similarity",
+        "membersToMerge"."activityEstimate"
       FROM 
       (
         SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) 
@@ -259,7 +260,8 @@ class MemberRepository {
             mtm."toMergeId", 
             mem."joinedAt", 
             COUNT(*) OVER() AS total_count,
-            mtm."similarity"
+            mtm."similarity",
+            mtm."activityEstimate"
           FROM members mem
           INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId"
           JOIN "memberSegments" ms ON ms."memberId" = mem.id
@@ -267,7 +269,7 @@ class MemberRepository {
             AND ms."segmentId" IN (:segmentIds)
         ) AS "membersToMerge" 
       ORDER BY 
-        "membersToMerge"."similarity" DESC 
+        "membersToMerge"."activityEstimate", "membersToMerge"."similarity" DESC 
       LIMIT :limit OFFSET :offset
     `,
       {
