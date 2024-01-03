@@ -31,8 +31,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   }
 
   private static findCacheQuery = `
+  with identities as (
+    select oci.id, 
+           array_agg(oci.name) as names,
+           max(oci.website) as website
+    from "organizationCacheIdentities" oci
+    group by oci.id
+  )
   select  oc.id,
-          oci.name,
           oc.url,
           oc.description,
           oc.emails,
@@ -44,14 +50,17 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           oc.crunchbase,
           oc.employees,
           oc.location,
-          oci.website,
           oc.type,
           oc.size,
           oc.headline,
           oc.industry,
-          oc.founded
+          oc.founded,
+          i.names,
+          i.website
     from "organizationCacheIdentities" oci 
     inner join "organizationCaches" oc on oci.id = oc.id
+    inner join identities i on oci.id = i.id
+    group by oc.id
   `
 
   public async findCacheByWebsite(website: string): Promise<IDbCacheOrganization | null> {
@@ -104,8 +113,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async updateCache(
     id: string,
     data: Partial<IDbUpdateOrganizationCacheData>,
+    nameToCreateIdentity?: string,
   ): Promise<void> {
-    const keys = Object.keys(data)
+    const keys = Object.keys(data).filter((k) => k !== 'website' && k !== 'name')
     keys.push('updatedAt')
     // construct custom column set
     const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
@@ -129,18 +139,27 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     this.checkUpdateRowCount(result.rowCount, 1)
 
+    if (nameToCreateIdentity) {
+      result = await this.db().result(
+        `insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))`,
+        {
+          id,
+          name: nameToCreateIdentity,
+          website: data.website,
+        },
+      )
+    }
+
     if (data.website) {
       result = await this.db().result(
         `
-        update "organizationCacheIdentities" set website = $(website) where id = $(id)
+        update "organizationCacheIdentities" set website = $(website) where id = $(id) and website is null
       `,
         {
           id,
           website: data.website,
         },
       )
-
-      this.checkUpdateRowCount(result.rowCount, 1)
     }
   }
 

@@ -17,3 +17,7 @@ alter table "organizationCaches"
 update "organizationCaches"
 set "oldName"    = name,
     "oldWebsite" = website;
+
+alter table "organizationCaches"
+    drop column name,
+    drop column website;

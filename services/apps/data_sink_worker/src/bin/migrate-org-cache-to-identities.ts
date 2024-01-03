@@ -19,11 +19,11 @@ interface IOrgCacheToMerge {
 async function getOrganizationCachesToMigrate(db: DbConnection): Promise<IOrgCacheToMerge[]> {
   const results = await db.any(
     `
-select oc.website, array_agg(oc.id) as ids
+select oc."oldWebsite", array_agg(oc.id) as ids
 from "organizationCaches" oc
-where oc.website is not null
-  and not exists (select 1 from "organizationCacheIdentities" oci where oci.website = oc.website)
-group by oc.website
+where oc."oldWebsite" is not null
+  and not exists (select 1 from "organizationCacheIdentities" oci where oci.website = oc."oldWebsite")
+group by oc."oldWebsite"
 limit 100;
 `,
   )
@@ -60,18 +60,12 @@ async function createOrgCacheIdentity(
   )
 }
 
-async function clearWebsiteColumn(db: DbTransaction, id: string): Promise<void> {
-  await db.none(`update "organizationCaches" set website = null where id = $(id);`, { id })
-}
-
 async function removeCaches(db: DbTransaction, ids: string[]): Promise<void> {
   await db.none(`delete from "organizationCaches" where id in ($(ids:csv))`, { ids })
 }
 
 const columnsToIgnore = [
   'id',
-  'website',
-  'name',
   'createdAt',
   'updatedAt',
   'deletedAt',
@@ -161,11 +155,10 @@ async function processOrgCache(
     }
     try {
       await db.tx(async (tx) => {
-        await createOrgCacheIdentity(tx, data.id, data.website, data.name)
+        await createOrgCacheIdentity(tx, data.id, data.oldWebsite, data.oldName)
         if (Object.keys(toUpdate).length > 0) {
           await updateOrganizationCacheData(dbInstance, tx, data.id, toUpdate)
         }
-        await clearWebsiteColumn(tx, data.id)
         await removeCaches(
           tx,
           caches.filter((c) => c.id !== caches[index].id).map((c) => c.id),
@@ -183,9 +176,7 @@ async function processOrgCache(
     const data = caches[0]
     try {
       await db.tx(async (tx) => {
-        await createOrgCacheIdentity(tx, data.id, data.website, data.name)
-        // clear website from organizationCaches.website column - we will still have it in the old_website column
-        await clearWebsiteColumn(tx, data.id)
+        await createOrgCacheIdentity(tx, data.id, data.oldWebsite, data.oldName)
       })
     } catch (err) {
       log.error(err, { id: data.id }, 'Error while processing organization cache!')

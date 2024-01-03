@@ -65,7 +65,7 @@ class OrganizationCacheRepository {
     return this.findById(record.id, options)
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id, data, options: IRepositoryOptions, nameToCreateIdentity?: string) {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -124,9 +124,24 @@ class OrganizationCacheRepository {
       throw new Error404()
     }
 
+    if (nameToCreateIdentity) {
+      await seq.query(
+        `insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))`,
+        {
+          replacements: {
+            id,
+            name: nameToCreateIdentity,
+            website: data.website,
+          },
+          type: QueryTypes.INSERT,
+          transaction,
+        },
+      )
+    }
+
     if (data.website) {
       await seq.query(
-        `update "organizationCacheIdentities" set website = :website where id = :id`,
+        `update "organizationCacheIdentities" set website = :website where id = :id and website is null`,
         {
           replacements: {
             id,
@@ -217,7 +232,7 @@ class OrganizationCacheRepository {
       throw new Error404()
     }
 
-    const identity = await seq.query(
+    const identityRows = await seq.query(
       `select name, website from "organizationCacheIdentities" where id = :id`,
       {
         replacements: {
@@ -228,7 +243,20 @@ class OrganizationCacheRepository {
       },
     )
 
-    const output = { ...record.get({ plain: true }), ...identity[0] }
+    const names = (identityRows as any[]).map((r) => r.name)
+    // we just need one website since every identity should have the same website for the same organization cache
+    const website = (identityRows as any[])
+      .filter((r) => r.website !== null)
+      .map((r) => r.website)
+      .reduce((prev, curr) => {
+        if (prev === null) {
+          return curr
+        }
+
+        return prev
+      }, null)
+
+    const output = { ...record.get({ plain: true }), names, website }
     return output
   }
 

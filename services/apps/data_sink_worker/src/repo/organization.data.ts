@@ -49,7 +49,6 @@ export interface IDbInsertOrganizationData {
 
 export interface IDbInsertOrganizationCacheData {
   name: string
-  displayName?: string
   url: string | null
   description: string | null
   emails: string[] | null
@@ -188,9 +187,28 @@ export function getUpdateOrganizationColumnSet(instance: DbInstance): DbColumnSe
   return updateOrganizationColumnSet
 }
 
-export interface IDbCacheOrganization extends IDbOrganization {
+export interface IDbCacheOrganization {
+  id: string
+  names: string[]
+  url: string | null
+  description: string | null
+  emails: string[] | null
+  logo: string | null
+  tags: string[] | null
+  github: IOrganizationSocial | null
+  twitter: IOrganizationSocial | null
+  linkedin: IOrganizationSocial | null
+  crunchbase: IOrganizationSocial | null
+  employees: number | null
+  location: string | null
+  website: string | null
+  type: string | null
+  size: string | null
+  headline: string | null
+  industry: string | null
+  founded: string | null
+  attributes: IAttributes | null
   enriched: boolean
-  name: string
 }
 
 let insertCacheOrganizationColumnSet: DbColumnSet
@@ -237,7 +255,6 @@ export function getUpdateCacheOrganizationColumnSet(instance: DbInstance): DbCol
 
   updateCacheOrganizationColumnSet = new instance.helpers.ColumnSet(
     [
-      'name',
       'url',
       'description',
       'emails',
@@ -249,7 +266,6 @@ export function getUpdateCacheOrganizationColumnSet(instance: DbInstance): DbCol
       'crunchbase',
       'employees',
       'location',
-      'website',
       'type',
       'size',
       'headline',
