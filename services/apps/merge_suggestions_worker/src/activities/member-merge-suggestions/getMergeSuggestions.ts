@@ -131,7 +131,7 @@ export async function getMergeSuggestions(
   if (member.string_arr_emails && member.string_arr_emails.length > 0) {
     identitiesPartialQuery.should.push({
       terms: {
-        keyword_emails: member.string_arr_emails,
+        keyword_emails: member.string_arr_emails.filter((email: string) => email && email !== null),
       },
     })
   }
