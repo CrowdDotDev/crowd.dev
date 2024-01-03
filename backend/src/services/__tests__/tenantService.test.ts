@@ -4,7 +4,7 @@ import TenantService from '../tenantService'
 import MemberService from '../memberService'
 import { IServiceOptions } from '../IServiceOptions'
 import MicroserviceService from '../microserviceService'
-import { MemberAttributeName, PlatformType } from '@crowd/types'
+import { MemberAttributeName, PlatformType, TenantPlans } from '@crowd/types'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import TaskService from '../taskService'
 import Plans from '../../security/plans'
@@ -171,7 +171,7 @@ describe('TenantService tests', () => {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: Plans.values.essential,
+        plan: TenantPlans.Essential,
         isTrialPlan: false,
         trialEndsAt: null,
         onboardedAt: null,

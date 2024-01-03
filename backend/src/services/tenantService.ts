@@ -1,5 +1,5 @@
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
-import { SegmentData, SegmentStatus } from '@crowd/types'
+import { SegmentData, SegmentStatus, TenantPlans } from '@crowd/types'
 import { Error400, Error404 } from '@crowd/common'
 import { TENANT_MODE } from '../conf/index'
 import TenantRepository from '../database/repositories/tenantRepository'
@@ -388,7 +388,7 @@ export default class TenantService {
   }
 
   async updatePlanToFree(planStripeCustomerId) {
-    return this.updatePlanStatus(planStripeCustomerId, Plans.values.essential, 'active')
+    return this.updatePlanStatus(planStripeCustomerId, TenantPlans.Essential, 'active')
   }
 
   async updatePlanStatus(planStripeCustomerId, plan, planStatus) {

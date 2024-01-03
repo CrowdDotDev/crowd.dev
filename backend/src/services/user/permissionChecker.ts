@@ -1,10 +1,8 @@
 import assert from 'assert'
 import { Error400, Error403 } from '@crowd/common'
-import Plans from '../../security/plans'
+import { TenantPlans } from '@crowd/types'
 import Permissions from '../../security/permissions'
 import EmailSender from '../emailSender'
-
-const plans = Plans.values
 
 /**
  * Checks the Permission of the User on a Tenant.
@@ -164,7 +162,7 @@ export default class PermissionChecker {
    */
   get currentTenantPlan() {
     if (!this.currentTenant || !this.currentTenant.plan) {
-      return plans.essential
+      return TenantPlans.Essential
     }
 
     return this.currentTenant.plan
