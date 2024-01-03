@@ -82,6 +82,7 @@ export interface IDbMemberSyncData {
   contributions: IDbMemberContributionData[]
   affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
+  weakIdentities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
   toMergeIds: string[]
