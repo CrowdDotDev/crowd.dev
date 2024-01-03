@@ -2,6 +2,6 @@ import { BooleanFilterValue } from '@/shared/modules/filters/types/filterTypes/B
 
 export const booleanApiFilterRenderer = (property: string, { value }: BooleanFilterValue): any[] => [
   {
-    [property]: { eq: value },
+    [property]: value ? { eq: true } : { not: true },
   },
 ];
