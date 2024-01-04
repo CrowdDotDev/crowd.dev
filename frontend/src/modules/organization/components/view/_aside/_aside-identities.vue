@@ -17,7 +17,7 @@
       </div>
     </div>
     <div class="-mx-6 mt-6">
-      <app-platform-vertical-list
+      <app-identities-vertical-list
         :platform-handles-links="identities.getIdentities()"
         :x-padding="6"
         :display-show-more="true"
@@ -110,9 +110,9 @@
 import {
   computed, defineProps, ref,
 } from 'vue';
-import AppPlatformVerticalList from '@/shared/platform/platform-vertical-list.vue';
-import useOrganizationIdentities from '@/utils/identities/useOrganizationIdentities';
-import organizationOrder from '@/shared/platform/config/order/organization';
+import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
+import useOrganizationIdentities from '@/shared/modules/identities/config/useOrganizationIdentities';
+import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 
 const props = defineProps({
   organization: {
@@ -138,7 +138,7 @@ const noIdentities = computed(() => (
 
 const identities = computed(() => useOrganizationIdentities({
   organization: props.organization,
-  order: organizationOrder.profileOrder,
+  order: organizationOrder.profile,
 }));
 
 const emails = computed(() => {

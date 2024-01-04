@@ -229,7 +229,7 @@
         </article>
       </div>
       <div class="pt-5">
-        <app-platform-vertical-list
+        <app-identities-vertical-list
           :platform-handles-links="{
             ...identities.getIdentities(),
             emails: identities.getEmails(),
@@ -252,9 +252,9 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
-import AppPlatformVerticalList from '@/shared/platform/platform-vertical-list.vue';
-import useOrganizationIdentities from '@/utils/identities/useOrganizationIdentities';
-import organizationOrder from '@/shared/platform/config/order/organization';
+import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
+import useOrganizationIdentities from '@/shared/modules/identities/config/useOrganizationIdentities';
+import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 
 const props = defineProps({
   organization: {
@@ -289,7 +289,7 @@ const { currentTenant, currentUser } = mapGetters('auth');
 
 const identities = computed(() => useOrganizationIdentities({
   organization: props.organization,
-  order: organizationOrder.suggestionsOrder,
+  order: organizationOrder.suggestions,
 }));
 
 const isEditLockedForSampleData = computed(

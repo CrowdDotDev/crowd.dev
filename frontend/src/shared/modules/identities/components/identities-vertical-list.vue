@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import AppPlatform from '@/shared/platform/platform-icon/platform.vue';
+import AppPlatform from '@/shared/modules/platform/components/platform.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed, ref } from 'vue';
 
@@ -105,6 +105,6 @@ const isCustomPlatform = (platform: string) => platform !== 'emails' && platform
 
 <script lang="ts">
 export default {
-  name: 'AppPlatformVerticalListMember',
+  name: 'AppIdentitiesVerticalListMember',
 };
 </script>

@@ -107,7 +107,7 @@ import {
   computed, defineEmits, defineProps, reactive,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppPlatformIcon from '@/shared/platform/platform-icon/platform-icon.vue';
+import AppPlatformIcon from '@/shared/modules/platform/components/platform-icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

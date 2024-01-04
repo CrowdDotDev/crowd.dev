@@ -34,7 +34,7 @@
       <div class="text-xs text-gray-400 font-semibold mb-3 px-5">
         Identities
       </div>
-      <app-platform-vertical-list
+      <app-identities-vertical-list
         :platform-handles-links="identities.getIdentities()"
         :x-padding="5"
       />
@@ -47,14 +47,14 @@
 
 <script setup lang="ts">
 import { defineProps, computed } from 'vue';
-import AppPlatform from '@/shared/platform/platform-icon/platform.vue';
-import useOrganizationIdentities from '@/utils/identities/useOrganizationIdentities';
-import useMemberIdentities from '@/utils/identities/useMemberIdentities';
-import organizationOrder from '@/shared/platform/config/order/organization';
-import memberOrder from '@/shared/platform/config/order/member';
+import AppPlatform from '@/shared/modules/platform/components/platform.vue';
+import useOrganizationIdentities from '@/shared/modules/identities/config/useOrganizationIdentities';
+import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
+import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
+import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Organization } from '@/modules/organization/types/Organization';
 import { Member } from '@/modules/member/types/Member';
-import AppPlatformVerticalList from '@/shared/platform/platform-vertical-list.vue';
+import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
 import pluralize from 'pluralize';
 
 const props = defineProps<{
@@ -68,14 +68,14 @@ const identities = computed(() => {
   if (props.organization) {
     return useOrganizationIdentities({
       organization: props.organization,
-      order: organizationOrder.listOrder,
+      order: organizationOrder.list,
     });
   }
 
   if (props.member) {
     return useMemberIdentities({
       member: props.member,
-      order: memberOrder.listOrder,
+      order: memberOrder.list,
     });
   }
 
@@ -122,6 +122,6 @@ const hasIdentities = computed(() => Object.keys(identities.value.getIdentities(
 
 <script lang="ts">
 export default {
-  name: 'AppPlatformHorizontalList',
+  name: 'AppIdentitiesHorizontalList',
 };
 </script>

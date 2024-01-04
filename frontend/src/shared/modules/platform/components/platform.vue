@@ -39,9 +39,9 @@
 import { defineProps, computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { toSentenceCase } from '@/utils/string';
-import AppPlatformIcon from '@/shared/platform/platform-icon/platform-icon.vue';
-import AppPlatformSvg from '@/shared/platform/platform-icon/platform-svg.vue';
-import AppPlatformImg from '@/shared/platform/platform-icon/platform-img.vue';
+import AppPlatformIcon from '@/shared/modules/platform/components/platform-icon.vue';
+import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
+import AppPlatformImg from '@/shared/modules/platform/components/platform-img.vue';
 
 const props = withDefaults(defineProps<{
     platform: string;

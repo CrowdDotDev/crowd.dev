@@ -24,7 +24,7 @@
       </el-button>
     </div>
     <div class="-mx-6 mt-6">
-      <app-platform-vertical-list
+      <app-identities-vertical-list
         :platform-handles-links="identities.getIdentities()"
         :x-padding="6"
         :display-show-more="true"
@@ -84,8 +84,8 @@ import {
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import AppPlatformVerticalList from '@/shared/platform/platform-vertical-list.vue';
-import useMemberIdentities from '@/utils/identities/useMemberIdentities';
+import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
+import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
 import platformOrders from '@/shared/platform/config/order/member';
 import AppMemberManageIdentitiesDrawer from '../../member-manage-identities-drawer.vue';
 

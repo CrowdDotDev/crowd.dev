@@ -52,7 +52,7 @@
             />
           </div>
           <div class="col-span-3 flex items-center justify-end">
-            <app-platform-horizontal-list
+            <app-identities-horizontal-list
               :member="member"
               :limit="5"
             />
@@ -96,7 +96,7 @@ import debounce from 'lodash/debounce';
 import authAxios from '@/shared/axios/auth-axios';
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
-import AppPlatformHorizontalList from '@/shared/platform/platform-horizontal-list.vue';
+import AppIdentitiesHorizontalList from '@/shared/modules/identities/components/identities-horizontal-list.vue';
 
 const SearchIcon = h(
   'i', // type
