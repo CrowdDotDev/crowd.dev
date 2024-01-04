@@ -77,7 +77,7 @@ const isEditLockedForSampleData = computed(
 
 const fetchMembersToMergeCount = () => {
   MemberService.fetchMergeSuggestions(1, 0, {
-    member: props.member.id,
+    memberId: props.member.id,
   })
     .then(({ count }) => {
       mergeSuggestionsCount.value = count;
@@ -102,7 +102,7 @@ const mergeSuggestions = () => {
   router.push({
     name: 'memberMergeSuggestions',
     query: {
-      member: props.member.id,
+      memberId: props.member.id,
     },
   });
 };
