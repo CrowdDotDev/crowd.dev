@@ -1,0 +1,19 @@
+import { proxyActivities } from '@temporalio/workflow'
+import * as activities from '../activities/organizationEnrichment'
+
+const { tryEnrichOrganization, decrementTenantCredits } = proxyActivities<typeof activities>({
+  startToCloseTimeout: '75 seconds',
+})
+
+export interface IEnrichOrganizationInput {
+  organizationId: string
+  tenantId: string
+}
+
+export async function enrichOrganization(input: IEnrichOrganizationInput): Promise<void> {
+  const wasEnriched = await tryEnrichOrganization(input.tenantId, input.organizationId)
+
+  if (wasEnriched) {
+    await decrementTenantCredits(input.tenantId)
+  }
+}

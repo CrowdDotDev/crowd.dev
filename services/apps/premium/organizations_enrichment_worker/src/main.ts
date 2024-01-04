@@ -3,6 +3,7 @@ import { ServiceWorker, Options } from '@crowd/archetype-worker'
 import { scheduleOrganizationsEnrichment } from './schedules'
 
 const config: Config = {
+  envvars: ['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
   producer: {
     enabled: false,
   },

@@ -5,7 +5,7 @@ export enum TenantPlans {
   Growth = 'Growth',
   EagleEye = 'Eagle Eye',
   Scale = 'Scale',
-  Enterprise = 'enterprise',
+  Enterprise = 'Enterprise',
 }
 
 export const PLAN_LIMITS = {

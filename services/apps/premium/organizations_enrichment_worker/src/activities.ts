@@ -1,4 +1,15 @@
 import { getApplicableTenants } from './activities/getApplicableTenants'
-import { getTenantCredits } from './activities/organizationEnrichment'
+import {
+  getTenantCredits,
+  decrementTenantCredits,
+  getTenantOrganizationsForEnrichment,
+  tryEnrichOrganization,
+} from './activities/organizationEnrichment'
 
-export { getApplicableTenants, getTenantCredits }
+export {
+  getApplicableTenants,
+  getTenantCredits,
+  decrementTenantCredits,
+  getTenantOrganizationsForEnrichment,
+  tryEnrichOrganization,
+}
