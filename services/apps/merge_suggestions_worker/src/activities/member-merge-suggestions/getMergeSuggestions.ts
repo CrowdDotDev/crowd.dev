@@ -86,7 +86,8 @@ export async function getMergeSuggestions(
 
     let hasFuzzySearch = false
 
-    for (const identity of member.nested_identities) {
+    // prevent processing more than 1000 identities because of opensearch limits
+    for (const identity of member.nested_identities.slice(0, 1000)) {
       if (identity.string_username.length > 0) {
         // weak identity search
         identitiesPartialQuery.should[1].nested.query.bool.should.push({
