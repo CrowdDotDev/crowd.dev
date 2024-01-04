@@ -9,21 +9,12 @@
     {{ selectedProjectGroup.name }}
   </div>
 
-  <div class="py-3 border-b border-gray-200">
+  <div class="py-3">
     <div class="text-2xs text-gray-400 mb-0.5">
       Projects
     </div>
     <div class="text-xs text-gray-900">
       {{ selectedProjectGroup.projects.length }}
-    </div>
-  </div>
-
-  <div class="py-3">
-    <div class="text-2xs text-gray-400 mb-0.5">
-      Contributors
-    </div>
-    <div class="text-xs text-gray-900">
-      {{ selectedProjectGroup.members }}
     </div>
   </div>
 
