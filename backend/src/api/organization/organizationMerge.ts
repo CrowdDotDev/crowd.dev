@@ -14,7 +14,7 @@ export default async (req, res) => {
     secondary: secondaryOrgId,
   }
 
-  await new OrganizationService(req).mergeAsync(primaryOrgId, secondaryOrgId)
+  await new OrganizationService(req).mergeSync(primaryOrgId, secondaryOrgId)
 
   track('Merge organizations', requestPayload, { ...req })
 

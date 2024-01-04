@@ -2,7 +2,7 @@ import lodash, { chunk } from 'lodash'
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { Error404, PageData } from '@crowd/common'
+import { Error404, Error409, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -595,6 +595,22 @@ class OrganizationRepository {
       throw new Error404()
     }
 
+    // check if website already exists in another organization in the same tenant
+    if (data.website) {
+      const existingOrg = await options.database.organization.findOne({
+        where: {
+          website: data.website,
+          tenantId: currentTenant.id,
+        },
+        transaction,
+      })
+
+      // ensure that it's not the same organization
+      if (existingOrg.id !== record.id) {
+        throw new Error409(options.language, 'organization.errors.websiteAlreadyExists')
+      }
+    }
+
     // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
     if (data.attributes?.syncRemote) {
       delete data.attributes.syncRemote
@@ -1116,50 +1132,6 @@ class OrganizationRepository {
         throw error
       }
     }
-  }
-
-  static async moveActivitiesBetweenOrganizations(
-    fromOrganizationId: string,
-    toOrganizationId: string,
-    options: IRepositoryOptions,
-    batchSize = 10000,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    let updatedRowsCount = 0
-
-    do {
-      options.log.info(
-        `[Move Activities] - Moving maximum of ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
-      )
-
-      const query = `
-        UPDATE "activities" 
-        SET "organizationId" = :newOrganizationId
-        WHERE id IN (
-          SELECT id 
-          FROM "activities" 
-          WHERE "tenantId" = :tenantId 
-            AND "organizationId" = :oldOrganizationId
-          LIMIT :limit
-        )
-      `
-
-      const [, rowCount] = await seq.query(query, {
-        replacements: {
-          tenantId: tenant.id,
-          oldOrganizationId: fromOrganizationId,
-          newOrganizationId: toOrganizationId,
-          limit: batchSize,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
-      })
-
-      updatedRowsCount = rowCount ?? 0
-    } while (updatedRowsCount === batchSize)
   }
 
   static async *getMergeSuggestions(
@@ -2162,6 +2134,7 @@ class OrganizationRepository {
             },
           ],
         },
+        isProfileQuery: true,
         limit: 1,
         offset: 0,
         segments,
@@ -2192,6 +2165,7 @@ class OrganizationRepository {
       countOnly = false,
       segments = [] as string[],
       customSortFunction = undefined,
+      isProfileQuery = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -2207,7 +2181,7 @@ class OrganizationRepository {
 
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
 
-    if (filter.and) {
+    if (!isProfileQuery && filter.and) {
       filter.and.push({
         or: [
           {

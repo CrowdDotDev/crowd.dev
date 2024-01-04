@@ -115,7 +115,7 @@ const loadingSubmitAction = ref(false);
 const allowRedirect = ref(false);
 const currentStep = ref(1);
 const form = reactive({
-  tenantName: currentTenant.value?.name,
+  tenantName: currentTenant.value?.name !== 'temporaryName' ? currentTenant.value?.name : '',
   activeIntegrations: 0,
   invitedUsers: [{
     emails: [],
@@ -157,7 +157,7 @@ watch(currentTenant, (tenant, oldTenant) => {
     return;
   }
 
-  if (tenant) {
+  if (tenant && tenant.name !== 'temporaryName') {
     form.tenantName = tenant.name;
     store.dispatch('integration/doFetch');
 

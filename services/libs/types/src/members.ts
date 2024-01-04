@@ -83,3 +83,9 @@ export interface IMemberSyncRemoteData {
   metaData: string
   lastSyncedAt?: string
 }
+
+export interface IMemberMergeSuggestion {
+  similarity: number
+  activityEstimate: number
+  members: [string, string]
+}

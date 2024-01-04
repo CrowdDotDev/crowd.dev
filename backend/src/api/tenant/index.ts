@@ -28,4 +28,8 @@ export default (app) => {
     safeWrap(require('./tenantViewOrganizations').default),
   )
   app.post(`/tenant/:tenantId/viewContacts`, safeWrap(require('./tenantViewContacts').default))
+  app.post(
+    `/tenant/:tenantId/payment/confirm`,
+    safeWrap(require('./tenantPaymentConfirmation').default),
+  )
 }
