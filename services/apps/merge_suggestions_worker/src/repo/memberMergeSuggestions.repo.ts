@@ -127,8 +127,8 @@ class MemberMergeSuggestionsRepository {
         where not exists (
           select 1
           from "memberToMerge"
-          where ("memberId" = new_vals."memberId" AND "toMergeId" = new_vals."toMergeId") 
-          or ("memberId" = new_vals."toMergeId" AND "toMergeId" = new_vals."memberId")
+          where ("memberId" = new_vals."memberId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid) 
+          or ("memberId" = new_vals."toMergeId"::uuid AND "toMergeId" = new_vals."memberId"::uuid)
         );
       `
       try {
