@@ -245,8 +245,8 @@ class MemberRepository {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const order = (await isFeatureEnabled(FeatureFlag.SEGMENTS, options))
-      ? 'mtm."activityEstimate" desc, mtm.similarity desc'
-      : 'mtm.similarity desc, mtm."activityEstimate" desc'
+      ? 'mtm."activityEstimate" desc, mtm.similarity desc, mtm."memberId", mtm."toMergeId"'
+      : 'mtm.similarity desc, mtm."activityEstimate" desc, mtm."memberId", mtm."toMergeId"'
 
     const memberFilter = memberId
       ? ` and (mtm."memberId" = :memberId OR mtm."toMergeId" = :memberId)`
