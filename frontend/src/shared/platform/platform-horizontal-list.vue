@@ -7,7 +7,7 @@
     popper-class="!px-0 !py-4 !shadow !rounded-lg"
   >
     <template #reference>
-      <div class="flex gap-3 items-center border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto">
+      <div class="flex gap-3 items-center border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group">
         <div class="text-xs text-gray-500 font-medium">
           {{ pluralize('identity', parsedIdentities.identitiesLength, true) }}
         </div>
@@ -25,8 +25,7 @@
         </div>
         <div
           v-if="parsedIdentities.platformsLength >= (limit || parsedIdentities.platformsLength)"
-          class="absolute right-2.5 w-10 h-5"
-          :style="{ background: 'linear-gradient(270deg, #FFF 0%, rgba(255, 255, 255, 0.00) 100%)' }"
+          class="absolute right-2.5 w-10 h-5 bg-gradient-to-r from-transparent to-white group-hover:to-gray-50"
         />
       </div>
     </template>
