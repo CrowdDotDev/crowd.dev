@@ -1,11 +1,11 @@
 <template>
-  <div class="member-view-aside panel">
+  <div class="member-view-aside panel !px-0">
     <div>
       <app-organization-aside-identities
         :organization="organization"
       />
 
-      <div v-if="shouldShowAttributes">
+      <div v-if="shouldShowAttributes" class="px-6">
         <div class="mt-10">
           <div class="font-medium text-black">
             Attributes

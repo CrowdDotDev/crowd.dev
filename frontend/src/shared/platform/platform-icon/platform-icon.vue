@@ -24,10 +24,10 @@ const icons: { [key: string]: string } = {
 
 const iconClass = computed(() => {
   if (props.size === 'large') {
-    return 'text-lg';
+    return 'text-lg leading-5';
   }
 
-  return 'text-base';
+  return 'text-base leading-4';
 });
 </script>
 

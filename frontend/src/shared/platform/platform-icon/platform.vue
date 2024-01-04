@@ -1,44 +1,39 @@
 <template>
-  <app-platform-list-popover
-    :platform-handles-links="platformHandlesLinks"
-    :platform="platform"
-  >
-    <template #platform>
-      <div class="relative flex items-center justify-center">
-        <component
-          :is="asLink ? 'a' : 'span'"
-          :href="asLink ? platformHandlesLinks[0].link ?? null : null"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn flex items-center justify-center"
-          :class="{
-            'hover:cursor-auto': !asLink,
-            'hover:cursor-pointer': asLink,
-            'min-h-4 min-w-[16px] h-4 w-4': size === 'small',
-            'min-h-5 min-w-[20px] h-5 w-5': size !== 'small',
-          }"
-          @click.stop="trackClick"
-        >
-          <app-platform-svg
-            v-if="asSvg"
-            :platform="platform"
-            :size="size"
-            :as-link="asLink"
-          />
-          <app-platform-img
-            v-else-if="defaultPlatformConfig"
-            :platform="platform"
-            :size="size"
-          />
-          <app-platform-icon
-            v-else
-            :platform="platform"
-            :size="size"
-          />
-        </component>
-      </div>
-    </template>
-  </app-platform-list-popover>
+  <div class="relative flex items-center justify-center">
+    <el-tooltip :content="platformName" placement="top" :disabled="!platformName || !showPlatformTooltip">
+      <component
+        :is="asLink ? 'a' : 'span'"
+        :href="asLink ? platformHandlesLinks[0].link ?? null : null"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn flex items-center justify-center"
+        :class="{
+          'hover:cursor-auto': !asLink,
+          'hover:cursor-pointer': asLink,
+          'min-h-4 min-w-[16px] h-4 w-4': size === 'small',
+          'min-h-5 min-w-[20px] h-5 w-5': size !== 'small',
+        }"
+        @click.stop="trackClick"
+      >
+        <app-platform-svg
+          v-if="asSvg"
+          :platform="platform"
+          :size="size"
+          :as-link="asLink"
+        />
+        <app-platform-img
+          v-else-if="defaultPlatformConfig"
+          :platform="platform"
+          :size="size"
+        />
+        <app-platform-icon
+          v-else
+          :platform="platform"
+          :size="size"
+        />
+      </component>
+    </el-tooltip>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -46,7 +41,6 @@ import { defineProps, computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { toSentenceCase } from '@/utils/string';
 import AppPlatformIcon from '@/shared/platform/platform-icon/platform-icon.vue';
-import AppPlatformListPopover from '@/shared/platform/platform-list-popover.vue';
 import AppPlatformSvg from '@/shared/platform/platform-icon/platform-svg.vue';
 import AppPlatformImg from '@/shared/platform/platform-icon/platform-img.vue';
 
@@ -60,12 +54,14 @@ const props = withDefaults(defineProps<{
     appModule?: string;
     asLink?: boolean;
     asSvg?: boolean;
+    showPlatformTooltip?: boolean
 }>(), {
   platformHandlesLinks: () => [],
   appModule: 'member',
   asSvg: false,
   size: 'small',
   asLink: true,
+  showPlatformTooltip: false,
 });
 
 const defaultPlatformConfig = computed(() => CrowdIntegrations.getConfig(props.platform));
@@ -86,6 +82,9 @@ const trackClick = () => {
     channel,
   });
 };
+
+const platformConfig = computed(() => CrowdIntegrations.getConfig(props.platform) || {});
+const platformName = computed(() => platformConfig.value.name || 'Custom');
 </script>
 
 <script lang="ts">

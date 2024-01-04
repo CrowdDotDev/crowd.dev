@@ -1,74 +1,76 @@
 <template>
-  <div
-    v-for="([platform, value], ii) of Object.entries(platformHandlesLinks)"
-    :key="platform"
-  >
-    <el-divider v-if="showDivider(platform, ii)" class="border-t-gray-200 !my-2" />
-
-    <template
-      v-for="({ handle, link }, vi) of value"
-      :key="handle"
+  <div class="flex flex-col gap-5">
+    <div
+      v-for="([platform, value]) of Object.entries(identities)"
+      :key="platform"
     >
-      <component
-        :is="link ? 'a' : 'span'"
-        class="h-10 flex justify-between items-center relative group"
-        :class="{
-          'hover:bg-gray-50 transition-colors cursor-pointer': link,
-          [`px-${xPadding}`]: !!xPadding,
-        }"
-        :href="link"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <el-tooltip
-          placement="top"
-          :content="handle"
-          :visible="showTooltip[`${ii}${vi}`]"
-          :disabled="!showTooltip[`${ii}${vi}`]"
+      <div>
+        <div
+          class="flex gap-3 items-start relative min-h-5"
+          :class="{
+            [`px-${xPadding}`]: !!xPadding,
+          }"
         >
-          <div
-            class="flex gap-3 items-center overflow-hidden mr-2"
-          >
-            <app-platform
-              :platform="platform"
-              :as-link="false"
-              size="large"
-              app-module="member"
-            />
+          <app-platform
+            :platform="platform"
+            :as-link="false"
+            size="large"
+            :show-platform-tooltip="true"
+          />
 
-            <div
-              v-if="platform === 'linkedin' && handle.includes('private-')"
-              class="text-gray-900 text-xs"
-            >
-              <span>*********</span>
-              <el-tooltip placement="top" content="Private profile">
-                <i class="ri-lock-line text-gray-400 ml-2" />
-              </el-tooltip>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center">
+              <template
+                v-for="({ handle, link }, vi) of value"
+                :key="handle"
+              >
+                <div
+                  v-if="platform === 'linkedin' && handle.includes('private-')"
+                  class="text-gray-900 text-xs"
+                >
+                  <span>*********</span>
+                  <el-tooltip placement="top" content="Private profile">
+                    <i class="ri-lock-line text-gray-400" />
+                  </el-tooltip>
+                </div>
+
+                <span v-else class="flex items-center break-words">
+                  <span
+                    class="text-gray-900 text-xs font-medium leading-5 h-5"
+                    :class="{
+                      'underline decoration-dashed decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer': link,
+                    }"
+                  >
+                    {{ handle }}
+                  </span>
+                </span>
+
+                <span v-if="vi !== value.length - 1" class="font-medium">・</span>
+              </template>
             </div>
-
-            <span
-              v-else
-              :ref="(el) => setHandleRefs(el, `${ii}${vi}`)"
-              class="text-gray-900 text-xs truncate leading-6 h-fit"
-              @mouseover="(el) => handleOnMouseOver(`${ii}${vi}`)"
-              @mouseleave="handleOnMouseLeave(`${ii}${vi}`)"
-            >
-              {{ handle }}
-            </span>
+            <span v-if="isCustomPlatform(platform)" class="text-xs text-gray-400">{{ platform }}</span>
           </div>
-        </el-tooltip>
-        <i
-          v-if="link"
-          class="ri-external-link-line text-gray-300"
-        />
-      </component>
-    </template>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="displayShowMore && Object.keys(platformHandlesLinks).length > 5"
+      class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4"
+      :class="{
+        [`px-${xPadding}`]: !!xPadding,
+      }"
+      @click="displayMore = !displayMore"
+    >
+      Show {{ displayMore ? 'less' : 'more' }}
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import AppPlatform from '@/shared/platform/platform-icon/platform.vue';
-import { reactive } from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     platformHandlesLinks: {
@@ -78,40 +80,22 @@ const props = defineProps<{
       }[]
     };
     xPadding?: number;
-    showIdentitiesDivider?: boolean;
+    displayShowMore?: boolean;
 }>();
-const handleRef = reactive<Record<string, any>>({});
-const showTooltip = reactive<Record<string, boolean>>({});
 
-const setHandleRefs = (el: any, id: string) => {
-  if (el) {
-    handleRef[id] = el;
-  }
-};
+const displayMore = ref(false);
 
-const handleOnMouseOver = (index: string) => {
-  if (!handleRef[index]) {
-    showTooltip[index] = false;
+const identities = computed(() => {
+  if (!displayMore.value && props.displayShowMore) {
+    return Object.fromEntries(
+      Object.entries(props.platformHandlesLinks).slice(0, 5),
+    );
   }
 
-  showTooltip[index] = handleRef[index].scrollWidth > handleRef[index].clientWidth;
-};
+  return props.platformHandlesLinks;
+});
 
-const handleOnMouseLeave = (index: string) => {
-  showTooltip[index] = false;
-};
-
-const showDivider = (platform: string, index: number) => {
-  if (props.showIdentitiesDivider && ((platform === 'emails' && index !== 0)
-    || (platform === 'phoneNumbers'
-      && index !== 0
-        && Object.keys(props.platformHandlesLinks)[index - 1] !== 'emails'
-    ))) {
-    return true;
-  }
-
-  return false;
-};
+const isCustomPlatform = (platform: string) => platform !== 'emails' && platform !== 'phoneNumbers' && !CrowdIntegrations.getConfig(platform)?.name;
 </script>
 
 <script lang="ts">

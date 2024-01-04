@@ -1,1 +1,1 @@
-export default ['github', 'linkedin', 'twitter', 'crunchbase', 'hubspot', 'custom', 'emails', 'phoneNumbers'];
+export default ['github', 'linkedin', 'twitter', 'crunchbase', 'hubspot', 'custom'];

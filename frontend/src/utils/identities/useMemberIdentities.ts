@@ -5,26 +5,6 @@ export default ({ member, order }: { member: Partial<Member>, order?: string[] }
   const { username = {}, attributes = {}, emails = [] } = (member || {});
 
   const getPlatformHandles = (platform: string) => {
-    if (platform === 'emails') {
-      const rootEmails = (emails || []).map((e) => ({
-        platform: 'emails',
-        url: `mailto:${e}`,
-        name: e,
-      }));
-      const usernameEmail = username.email ? username.email.map((u) => ({
-        platform: 'email',
-        url: null,
-        name: u,
-      })) : [];
-      const usernameEmails = username.emails ? username.emails.map((u) => ({
-        platform: 'emails',
-        url: null,
-        name: u,
-      })) : [];
-
-      return [...rootEmails, ...usernameEmail, ...usernameEmails];
-    }
-
     if (platform === 'custom') {
       const customPlatforms = Object.keys(username).filter((p) => (!order.includes(p) || p === 'custom') && p !== 'email' && p !== 'emails');
 
@@ -42,7 +22,7 @@ export default ({ member, order }: { member: Partial<Member>, order?: string[] }
     })) : [];
   };
 
-  const getOrderedPlatformHandlesAndLinks = (): {
+  const getIdentities = (): {
     [key: string]: {
       handle: string;
       link: string;
@@ -97,7 +77,28 @@ export default ({ member, order }: { member: Partial<Member>, order?: string[] }
     return acc;
   }, {});
 
+  const getEmails = ():{
+    handle: string;
+    link: string;
+  }[] => {
+    const rootEmails = (emails || []).map((e) => ({
+      link: `mailto:${e}`,
+      handle: e,
+    }));
+    const usernameEmail = username.email ? username.email.map((u) => ({
+      link: null,
+      handle: u,
+    })) : [];
+    const usernameEmails = username.emails ? username.emails.map((u) => ({
+      link: `mailto:${e}`,
+      handle: u,
+    })) : [];
+
+    return [...rootEmails, ...usernameEmail, ...usernameEmails];
+  };
+
   return {
-    getOrderedPlatformHandlesAndLinks,
+    getIdentities,
+    getEmails,
   };
 };

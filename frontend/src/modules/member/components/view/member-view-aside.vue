@@ -6,19 +6,22 @@
       :member="member"
     />
 
-    <div class="member-view-aside panel">
+    <div class="member-view-aside panel !px-0">
       <app-member-aside-identities :member="member" />
-      <app-lf-member-aside-organizations
-        class="mt-10"
-        :member="member"
-      />
-      <app-member-aside-custom-attributes
-        :member="member"
-        class="mt-10"
-      />
-      <app-member-aside-enriched
-        :member="member"
-      />
+
+      <div class="px-6">
+        <app-lf-member-aside-organizations
+          class="mt-10"
+          :member="member"
+        />
+        <app-member-aside-custom-attributes
+          :member="member"
+          class="mt-10"
+        />
+        <app-member-aside-enriched
+          :member="member"
+        />
+      </div>
     </div>
   </div>
 </template>

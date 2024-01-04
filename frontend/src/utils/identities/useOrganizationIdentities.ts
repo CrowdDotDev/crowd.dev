@@ -10,26 +10,6 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
   const getPlatformIdentities = (platform: string) => {
     const parsedIdentities = identities?.length ? identities : [];
 
-    if (platform === 'emails') {
-      const rootEmails = (emails || []).map((e) => ({
-        platform: 'emails',
-        url: `mailto:${e}`,
-        name: e,
-      }));
-      const identitiesEmails = parsedIdentities.filter((i) => i.platform === 'emails');
-      const identitiesEmail = parsedIdentities.filter((i) => i.platform === 'email');
-
-      return [...rootEmails, ...identitiesEmails, ...identitiesEmail];
-    }
-
-    if (platform === 'phoneNumbers') {
-      return (phoneNumbers || []).map((p) => ({
-        platform: 'phoneNumbers',
-        url: `tel:${p}`,
-        name: p,
-      }));
-    }
-
     if (platform === 'custom') {
       const customPlatforms = parsedIdentities
         .filter((i) => (!order.includes(i.platform) || i.platform === 'custom') && i.platform !== 'email' && i.platform !== 'emails');
@@ -40,7 +20,7 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
     return parsedIdentities.filter((i) => i.platform === platform) || [];
   };
 
-  const getOrderedPlatformHandlesAndLinks = (): {
+  const getIdentities = (): {
     [key: string]: {
       handle: string;
       link: string;
@@ -89,7 +69,35 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
     return acc;
   }, {});
 
+  const getEmails = ():{
+    handle: string;
+    link: string;
+  }[] => {
+    const parsedIdentities = identities?.length ? identities : [];
+
+    const rootEmails = (emails || []).map((e) => ({
+      platform: 'emails',
+      url: `mailto:${e}`,
+      name: e,
+    }));
+    const identitiesEmails = parsedIdentities.filter((i) => i.platform === 'emails');
+    const identitiesEmail = parsedIdentities.filter((i) => i.platform === 'email');
+
+    return [...rootEmails, ...identitiesEmails, ...identitiesEmail];
+  };
+
+  const getPhoneNumbers = ():{
+    handle: string;
+    link: string;
+  }[] => (phoneNumbers || []).map((p) => ({
+    platform: 'phoneNumbers',
+    url: `tel:${p}`,
+    name: p,
+  }));
+
   return {
-    getOrderedPlatformHandlesAndLinks,
+    getIdentities,
+    getEmails,
+    getPhoneNumbers,
   };
 };

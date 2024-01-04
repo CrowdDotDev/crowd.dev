@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="px-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-1">
         <div class="font-medium text-black">
@@ -25,18 +25,57 @@
     </div>
     <div class="-mx-6 mt-6">
       <app-platform-vertical-list
-        :platform-handles-links="identities.getOrderedPlatformHandlesAndLinks()"
+        :platform-handles-links="identities.getIdentities()"
         :x-padding="6"
-        :show-identities-divider="true"
+        :display-show-more="true"
       />
     </div>
-
-    <app-member-manage-identities-drawer
-      v-if="identitiesDrawer"
-      v-model="identitiesDrawer"
-      :member="member"
-    />
   </div>
+
+  <el-divider class="!my-8" />
+
+  <div class="flex flex-col px-6">
+    <div class="flex items-center justify-between">
+      <div class="font-medium text-black">
+        Email(s)
+      </div>
+      <el-button
+        class="btn btn-link btn-link--primary"
+        :disabled="isEditLockedForSampleData"
+        @click="identitiesDrawer = true"
+      >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
+    </div>
+
+    <div class="flex flex-col gap-2 mt-6">
+      <div
+        v-for="emailIdentity in emails"
+        :key="emailIdentity.handle"
+      >
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2"
+          :href="emailIdentity.link"
+        >{{ emailIdentity.handle }}</a>
+      </div>
+
+      <div
+        v-if="Object.keys(identities.getEmails()).length > 5"
+        class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
+        @click="displayMore = !displayMore"
+      >
+        Show {{ displayMore ? 'less' : 'more' }}
+      </div>
+    </div>
+  </div>
+
+  <app-member-manage-identities-drawer
+    v-if="identitiesDrawer"
+    v-model="identitiesDrawer"
+    :member="member"
+  />
 </template>
 
 <script setup>
@@ -60,11 +99,22 @@ const props = defineProps({
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const identitiesDrawer = ref(false);
+const displayMore = ref(false);
 
 const identities = computed(() => useMemberIdentities({
   member: props.member,
   order: platformOrders.profileOrder,
 }));
+
+const emails = computed(() => {
+  if (!displayMore.value) {
+    return Object.fromEntries(
+      Object.entries(identities.value.getEmails()).slice(0, 5),
+    );
+  }
+
+  return identities.value.getEmails();
+});
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,

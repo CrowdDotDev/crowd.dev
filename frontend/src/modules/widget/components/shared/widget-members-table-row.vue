@@ -34,7 +34,7 @@
 
   <div class="flex gap-3 items-center">
     <div
-      v-for="[platform, value] of Object.entries(identities.getOrderedPlatformHandlesAndLinks())"
+      v-for="[platform, value] of Object.entries(identities.getIdentities())"
       :key="platform"
     >
       <app-platform
@@ -43,6 +43,7 @@
         :attributes="member.attributes"
         :as-svg="true"
         app-module="member"
+        :show-platform-tooltip="true"
       />
     </div>
   </div>
@@ -56,7 +57,7 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, computed } from 'vue';
 import pluralize from 'pluralize';
 import AppPlatform from '@/shared/platform/platform-icon/platform.vue';
 import useMemberIdentities from '@/utils/identities/useMemberIdentities';
