@@ -94,7 +94,6 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import AppIntegrationList from './integration-list.vue';
 
-
 export default {
   name: 'AppIntegrationListPage',
 
