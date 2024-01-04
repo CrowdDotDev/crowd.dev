@@ -21,6 +21,7 @@ export enum PlatformType {
   HUBSPOT = 'hubspot',
   GROUPSIO = 'groupsio',
   CONFLUENCE = 'confluence',
+  GERRIT = 'gerrit',
   OTHER = 'other',
 }
 

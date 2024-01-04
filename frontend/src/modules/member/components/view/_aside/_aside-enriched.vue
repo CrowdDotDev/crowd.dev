@@ -37,9 +37,8 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Certifications -->
-    <div class="flex items-center mb-4 mt-10">
+    <div v-if="member.attributes.certifications" class="flex items-center mb-4 mt-10">
       <div
-        v-if="member.attributes.certifications"
         class="font-medium text-black mr-2"
       >
         Certifications
@@ -74,35 +73,38 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Awards -->
-    <div class="flex items-center mb-4 mt-10">
+    <div v-if="member.attributes.awards">
       <div
-        v-if="member.attributes.awards"
-        class="font-medium text-black mr-2"
+        class="flex items-center mb-4 mt-10"
       >
-        Awards
-      </div>
-      <el-tooltip
-        v-if="getAttributeSourceName(member.attributes.awards)"
-        :content="`Source: ${getAttributeSourceName(member.attributes.awards)}`"
-        placement="top"
-        trigger="hover"
-      >
-        <app-svg name="source" class="h-3 w-3" />
-      </el-tooltip>
-    </div>
-    <app-member-custom-attributes-array-renderer
-      title="Awards"
-      :attribute="member.attributes.awards"
-      more-label="items"
-    >
-      <template #itemSlot="{ item }">
         <div
-          class="text-xs text-gray-900 break-keep text-left py-3"
+          class="font-medium text-black mr-2"
         >
-          {{ item }}
+          Awards
         </div>
-      </template>
-    </app-member-custom-attributes-array-renderer>
+        <el-tooltip
+          v-if="getAttributeSourceName(member.attributes.awards)"
+          :content="`Source: ${getAttributeSourceName(member.attributes.awards)}`"
+          placement="top"
+          trigger="hover"
+        >
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
+      </div>
+      <app-member-custom-attributes-array-renderer
+        title="Awards"
+        :attribute="member.attributes.awards"
+        more-label="items"
+      >
+        <template #itemSlot="{ item }">
+          <div
+            class="text-xs text-gray-900 break-keep text-left py-3"
+          >
+            {{ item }}
+          </div>
+        </template>
+      </app-member-custom-attributes-array-renderer>
+    </div>
   </div>
 </template>
 

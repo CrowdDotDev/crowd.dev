@@ -48,6 +48,7 @@ import {
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import MemberAffiliationRepository from './memberAffiliationRepository'
+import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
 
@@ -342,32 +343,6 @@ class MemberRepository {
         throw new Error('One row should be updated!')
       }
     }
-  }
-
-  static async moveActivitiesBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const query = `
-      update activities set "memberId" = :toMemberId where "memberId" = :fromMemberId and "tenantId" = :tenantId;
-    `
-
-    await seq.query(query, {
-      replacements: {
-        fromMemberId,
-        toMemberId,
-        tenantId: tenant.id,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
   }
 
   static async addToMerge(
@@ -1158,6 +1133,77 @@ class MemberRepository {
       },
       transaction,
     })
+  }
+
+  static async findByIdOpensearch(id, options: IRepositoryOptions, segmentId?: string) {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
+
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, options)
+    ).rows
+
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
+              },
+            },
+          ],
+        },
+        limit: 1,
+        offset: 0,
+        attributesSettings: memberAttributeSettings,
+        segments,
+      },
+      options,
+    )
+
+    if (response.count === 0) {
+      throw new Error404()
+    }
+
+    const result = response.rows[0]
+
+    // Get special attributes from memberAttributeSettings
+    const specialAttributes = memberAttributeSettings
+      .filter((setting) => setting.type === 'special')
+      .map((setting) => setting.name)
+
+    // Parse special attributes that are indexed as strings
+    if (result.attributes) {
+      specialAttributes.forEach((attr) => {
+        if (result.attributes[attr]) {
+          result.attributes[attr] = JSON.parse(result.attributes[attr])
+        }
+      })
+    }
+
+    // Sort the organizations based on dateStart
+    if (result.organizations) {
+      result.organizations.sort((a, b) => {
+        const dateStartA = a.memberOrganizations.dateStart
+        const dateStartB = b.memberOrganizations.dateStart
+
+        if (!dateStartA && !dateStartB) {
+          return 0
+        }
+
+        if (!dateStartA) {
+          return 1
+        }
+
+        if (!dateStartB) {
+          return -1
+        }
+
+        return new Date(dateStartB).getTime() - new Date(dateStartA).getTime()
+      })
+    }
+
+    return result
   }
 
   static async findAndCountActiveOpensearch(

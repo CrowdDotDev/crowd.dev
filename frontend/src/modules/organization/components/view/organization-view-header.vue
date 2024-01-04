@@ -113,25 +113,34 @@
           }}
         </p>
       </div>
-      <div>
-        <div class="flex items-center">
-          <p class="text-gray-400 font-medium text-2xs mr-2">
-            Headcount
-          </p>
-          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
+      <cr-enrichment-sneak-peak type="contact">
+        <template #default="{ enabled }">
+          <div>
+            <div class="flex items-center">
+              <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
+                Headcount
+              </p>
+              <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                <app-svg name="source" class="h-3 w-3" />
+              </el-tooltip>
+            </div>
 
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.size,
-              'string',
-            )
-          }}
-        </p>
-      </div>
+            <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+              {{
+                formattedInformation(
+                  organization.size,
+                  'string',
+                )
+              }}
+            </p>
+            <div v-else class="w-full mt-2">
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                11-50
+              </div>
+            </div>
+          </div>
+        </template>
+      </cr-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Joined date
@@ -145,23 +154,32 @@
           }}
         </p>
       </div>
-      <div>
-        <div class="flex items-center">
-          <p class="text-gray-400 font-medium text-2xs mr-2">
-            Annual Revenue
-          </p>
-          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            revenueRange.displayValue(
-              organization.revenueRange,
-            )
-          }}
-        </p>
-      </div>
+      <cr-enrichment-sneak-peak type="contact">
+        <template #default="{ enabled }">
+          <div>
+            <div class="flex items-center">
+              <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
+                Annual Revenue
+              </p>
+              <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                <app-svg name="source" class="h-3 w-3" />
+              </el-tooltip>
+            </div>
+            <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+              {{
+                revenueRange.displayValue(
+                  organization.revenueRange,
+                )
+              }}
+            </p>
+            <div v-else class="w-full mt-2">
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                $1M-$10M
+              </div>
+            </div>
+          </div>
+        </template>
+      </cr-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Last active
@@ -198,6 +216,7 @@ import AppOrganizationDropdown from '@/modules/organization/components/organizat
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({

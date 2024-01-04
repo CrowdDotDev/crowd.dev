@@ -8,6 +8,8 @@ const size: OrganizationEnrichmentConfig = {
   type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: false,
+  enrichmentSneakPeak: true,
+  enrichmentSneakPeakValue: '11-50',
   displayValue: (value) => toSentenceCase(value),
 };
 

@@ -17,6 +17,10 @@ export default class OrganizationTranslator extends FieldTranslator {
       return acc
     }, {})
 
+    // weakIdentities
+    this.translations.integrationId = 'uuid_integrationId'
+    this.translations.sourceId = 'uuid_sourceId'
+
     // identities
     this.translations.platform = 'string_platform'
     this.translations.name = 'string_name'

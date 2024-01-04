@@ -5,7 +5,6 @@ import {
   BulkEnrichMessage,
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
-  OrganizationMergeMessage,
 } from './messageTypes'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
@@ -14,7 +13,6 @@ import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
-import { orgMergeWorker } from './org-merge/orgMergeWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 
 /**
@@ -69,14 +67,6 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         bulkEnrichMessage.maxEnrichLimit,
       )
     }
-    case 'org-merge':
-      const orgMergeMessage = event as OrganizationMergeMessage
-      return orgMergeWorker(
-        orgMergeMessage.tenantId,
-        orgMergeMessage.primaryOrgId,
-        orgMergeMessage.secondaryOrgId,
-        orgMergeMessage.notifyFrontend,
-      )
 
     default:
       throw new Error(`Invalid microservice ${service}`)
