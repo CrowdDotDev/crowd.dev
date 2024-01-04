@@ -141,6 +141,7 @@ import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
+import { useRoute } from 'vue-router';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -150,6 +151,8 @@ const organizationStore = useOrganizationStore();
 const {
   mergedOrganizations,
 } = storeToRefs(organizationStore);
+
+const route = useRoute();
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -202,7 +205,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  OrganizationService.fetchMergeSuggestions(1, offset.value)
+  OrganizationService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;
