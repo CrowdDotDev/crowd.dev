@@ -239,13 +239,14 @@ class MemberRepository {
   }
 
   static async findMembersWithMergeSuggestions(
-    { limit = 20, offset = 0 },
+    { limit = 20, offset = 0, memberId = undefined },
     options: IRepositoryOptions,
   ) {
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const order = await isFeatureEnabled(FeatureFlag.SEGMENTS, options) ? 'ms."activityEstimate" desc, ms.similarity desc' : 'ms.similarity desc, ms."activityEstimate" desc' 
+
+    const memberFilter = memberId ? ` and (mtm."memberId" = :memberId OR mtm."toMergeId" = :memberId)` : ''
 
     const mems = await options.database.sequelize.query(
       `
@@ -253,6 +254,7 @@ class MemberRepository {
         select distinct mtm."memberId" from "memberToMerge" mtm
         inner join "memberSegments" ms on mtm."memberId" = ms."memberId"
         where ms."segmentId" in (:segmentIds)
+        ${memberFilter}
     )
     select
         mtm."memberId" as id,
@@ -266,10 +268,10 @@ class MemberRepository {
     `,
       {
         replacements: {
-          tenantId: currentTenant.id,
           segmentIds,
           limit,
           offset,
+          memberId,
         },
         type: QueryTypes.SELECT,
       },
