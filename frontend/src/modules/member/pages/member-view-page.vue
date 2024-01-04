@@ -23,8 +23,11 @@
         <div class="row-span-4">
           <app-member-view-aside :member="member" />
         </div>
+        <app-member-view-contributions-cta
+          v-if="!isEnrichmentEnabled"
+        />
         <app-member-view-contributions
-          v-if="member.contributions"
+          v-else-if="member.contributions"
           :contributions="member.contributions"
           class="col-span-2"
         />
@@ -66,6 +69,9 @@ import AppMemberViewContributions from '@/modules/member/components/view/member-
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppMemberViewContributionsCta from '@/modules/member/components/view/member-view-contributions-cta.vue';
+import Plans from '@/security/plans';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const store = useStore();
 const props = defineProps({
@@ -82,7 +88,10 @@ const { getMemberCustomAttributes } = memberStore;
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
+const { currentTenant } = mapGetters('auth');
+
 const member = computed(() => store.getters['member/find'](props.id) || {});
+const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
 
 const loading = ref(true);
 const tab = ref('activities');

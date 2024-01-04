@@ -10,6 +10,8 @@ const employeeGrowthRate: OrganizationEnrichmentConfig = {
   type: AttributeType.JSON,
   showInForm: true,
   showInAttributes: true,
+  enrichmentSneakPeak: true,
+  enrichmentSneakPeakValue: '10.25%',
   component: OrganizationAttributesJSONRenderer,
   valueParser: formatFloatToPercentage,
   keyParser: (key) => `${snakeToSentenceCase(key)}s`,

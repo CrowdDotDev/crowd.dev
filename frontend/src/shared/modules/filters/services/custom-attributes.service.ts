@@ -112,7 +112,7 @@ export const customAttributesService = () => {
         }
         // Multiselect type
         if (attribute.type === FilterCustomAttributeType.MULTISELECT
-          || (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options.length > 0)) {
+          || (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options?.length > 0)) {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
@@ -122,10 +122,10 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
               options: [
                 {
-                  options: attribute.options.map((option) => ({
+                  options: attribute.options?.map((option) => ({
                     value: option,
                     label: option,
-                  })),
+                  })) || [],
                 },
               ],
             },

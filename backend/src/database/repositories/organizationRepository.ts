@@ -1118,50 +1118,6 @@ class OrganizationRepository {
     }
   }
 
-  static async moveActivitiesBetweenOrganizations(
-    fromOrganizationId: string,
-    toOrganizationId: string,
-    options: IRepositoryOptions,
-    batchSize = 1000,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    let updatedRowsCount = 0
-
-    do {
-      options.log.info(
-        `[Move Activities] - Moving maximum of ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
-      )
-
-      const query = `
-        UPDATE "activities" 
-        SET "organizationId" = :newOrganizationId
-        WHERE id IN (
-          SELECT id 
-          FROM "activities" 
-          WHERE "tenantId" = :tenantId 
-            AND "organizationId" = :oldOrganizationId
-          LIMIT :limit
-        )
-      `
-
-      const [, rowCount] = await seq.query(query, {
-        replacements: {
-          tenantId: tenant.id,
-          oldOrganizationId: fromOrganizationId,
-          newOrganizationId: toOrganizationId,
-          limit: batchSize,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
-      })
-
-      updatedRowsCount = rowCount ?? 0
-    } while (updatedRowsCount === batchSize)
-  }
-
   static async *getMergeSuggestions(
     options: IRepositoryOptions,
   ): AsyncGenerator<IOrganizationMergeSuggestion[], void, undefined> {
@@ -2132,6 +2088,46 @@ class OrganizationRepository {
     return results
   }
 
+  static async findByIdOpensearch(
+    id: string,
+    options: IRepositoryOptions,
+    segmentId?: string,
+  ): Promise<PageData<any>> {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
+
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
+              },
+            },
+          ],
+        },
+        isProfileQuery: true,
+        limit: 1,
+        offset: 0,
+        segments,
+      },
+      options,
+    )
+
+    if (response.count === 0) {
+      throw new Error404()
+    }
+
+    const result = response.rows[0]
+
+    // Parse attributes that are indexed as strings
+    if (result.attributes) {
+      result.attributes = JSON.parse(result.attributes)
+    }
+
+    return result
+  }
+
   static async findAndCountAllOpensearch(
     {
       filter = {} as any,
@@ -2141,6 +2137,7 @@ class OrganizationRepository {
       countOnly = false,
       segments = [] as string[],
       customSortFunction = undefined,
+      isProfileQuery = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -2156,7 +2153,7 @@ class OrganizationRepository {
 
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
 
-    if (filter.and) {
+    if (!isProfileQuery && filter.and) {
       filter.and.push({
         or: [
           {

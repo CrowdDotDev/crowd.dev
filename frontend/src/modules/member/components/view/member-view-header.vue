@@ -68,28 +68,39 @@
         </p>
       </div>
       <div>
-        <div class="flex items-center gap-1">
-          <p class="text-gray-400 font-medium text-2xs">
-            Reach
-          </p>
-          <el-tooltip placement="top">
-            <template #content>
-              Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
-            </template>
-            <i class="ri-information-line text-gray-500 text-xs mr-1" />
-          </el-tooltip>
-          <el-tooltip
-            content="Source: GitHub"
-            placement="top"
-            trigger="hover"
-          >
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
-
-        <p class="mt-1 text-gray-900 text-xs">
-          <app-member-reach :member="member" />
-        </p>
+        <cr-enrichment-sneak-peak type="contact">
+          <template #default="{ enabled }">
+            <div>
+              <div class="flex items-center gap-1">
+                <p class="font-medium text-2xs" :class="enabled ? 'text-gray-400' : 'text-purple-400'">
+                  Reach
+                </p>
+                <el-tooltip placement="top">
+                  <template #content>
+                    Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                  </template>
+                  <i class="ri-information-line text-gray-500 text-xs mr-1" />
+                </el-tooltip>
+                <el-tooltip
+                  content="Source: GitHub"
+                  placement="top"
+                  trigger="hover"
+                  :disabled="!enabled"
+                >
+                  <app-svg name="source" class="h-3 w-3" />
+                </el-tooltip>
+              </div>
+              <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+                <app-member-reach :member="member" />
+              </p>
+              <div v-else class="w-full mt-1">
+                <div class="blur-[6px] text-gray-900 text-xs select-none">
+                  150
+                </div>
+              </div>
+            </div>
+          </template>
+        </cr-enrichment-sneak-peak>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
@@ -133,6 +144,7 @@ import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialo
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 
 defineProps({
   member: {
@@ -151,6 +163,7 @@ const formattedInformation = (value, type) => {
     value === undefined
     || value === null
     || value === -1
+    || value === ''
     // If the timestamp is 1970, we show "-"
     || (type === 'date' && moment(value).isBefore(moment().subtract(40, 'years')))
   ) {

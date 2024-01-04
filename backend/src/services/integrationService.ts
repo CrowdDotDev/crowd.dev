@@ -1201,12 +1201,18 @@ export default class IntegrationService {
   async gitConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
+    const stripGit = (url: string) => {
+      if (url.endsWith('.git')) {
+        return url.slice(0, -4)
+      }
+      return url
+    }
     try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GIT,
           settings: {
-            remotes: integrationData.remotes,
+            remotes: integrationData.remotes.map((remote) => stripGit(remote)),
           },
           status: 'done',
         },
@@ -1235,6 +1241,34 @@ export default class IntegrationService {
           platform: PlatformType.CONFLUENCE,
           settings: {
             remotes: integrationData.remotes,
+          },
+          status: 'done',
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+    return integration
+  }
+
+  /**
+   * Adds/updates Gerrit integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async gerritConnectOrUpdate(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.GERRIT,
+          settings: {
+            remote: integrationData.remote,
           },
           status: 'done',
         },

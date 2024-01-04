@@ -677,7 +677,10 @@ class ActivityRepository {
       offset,
     })
 
-    let rows = await options.database.activity.findAll({
+    let {
+      rows,
+      count, // eslint-disable-line prefer-const
+    } = await options.database.activity.findAndCountAll({
       include,
       attributes: [
         ...SequelizeFilterUtils.getLiteralProjectionsOfModel('activity', options.database),
@@ -692,21 +695,7 @@ class ActivityRepository {
 
     rows = await this._populateRelationsForRows(rows, options)
 
-    const [countRow] = await options.database.sequelize.query(
-      `
-        SELECT n_live_tup AS count
-        FROM pg_stat_all_tables
-        WHERE schemaname = 'public'
-          AND relname = 'activities'
-      `,
-      {
-        type: Sequelize.QueryTypes.SELECT,
-        transaction: SequelizeRepository.getTransaction(options),
-      },
-    )
-    const { count } = countRow
-
-    return { rows, count: parseInt(count, 10), limit: parsed.limit, offset: parsed.offset }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

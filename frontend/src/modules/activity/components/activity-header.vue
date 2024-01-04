@@ -77,7 +77,7 @@ const segmentId = computed(() => {
     return selectedProjectGroup.value.id;
   }
 
-  return filters.value.projects.values[0];
+  return filters.value.projects.value[0];
 });
 const timeAgo = computed(() => formatDateToTimeAgo(props.activity.timestamp));
 const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);

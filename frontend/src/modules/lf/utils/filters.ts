@@ -16,7 +16,7 @@ export const filterLabel = (value: string[], parentValues: string[], options: Pr
           (sp) => value.includes(sp.id),
         ).map((sp) => sp.name);
 
-        if (project.subprojects.length === selectedSubprojects.length && parentValues.includes(project.id)) {
+        if (project.subprojects.length === selectedSubprojects.length && parentValues?.includes(project.id)) {
           text.push(`${project.name} (all sub-projects)`);
         } else if (selectedSubprojects.length) {
           text.push(`${selectedSubprojects.join(', ')} (${project.name})`);

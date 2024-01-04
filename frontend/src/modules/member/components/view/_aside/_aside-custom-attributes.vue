@@ -6,7 +6,7 @@
           Attributes
         </div>
         <el-tooltip
-          v-if="attributesSameSource"
+          v-if="isEnrichmentEnabled && attributesSameSource"
           :content="`Source: ${attributesSameSource}`"
           placement="top"
           trigger="hover"
@@ -50,54 +50,81 @@
         :key="attribute.id"
         class="attribute"
       >
-        <div class="flex items-center">
-          <p class="title pr-2">
-            {{ attribute.label }}
+        <!-- Enrichment sneak peak attributes -->
+        <cr-enrichment-sneak-peak v-if="!isEnrichmentEnabled && hiddenAttributeNames.includes(attribute.name)" type="contact">
+          <template #default>
+            <div>
+              <div class="flex items-center">
+                <p class="title pr-2 !text-purple-400">
+                  {{ attribute.label }}
+                </p>
+                <app-svg name="source" class="h-3 w-3" />
+              </div>
+              <div class="w-full mt-2">
+                <div class="blur-[6px] text-gray-900 text-xs select-none">
+                  {{ hiddenAttributes.find((a) => a.name === attribute.name).value }}
+                </div>
+              </div>
+            </div>
+          </template>
+        </cr-enrichment-sneak-peak>
+
+        <!-- Remaining attributes that are not hidden -->
+        <div v-else>
+          <div class="flex items-center">
+            <p class="title pr-2">
+              {{ attribute.label }}
+              <el-tooltip
+                content="Skills are sorted by relevance"
+                placement="top"
+              >
+                <i
+                  v-if="attribute.name === 'skills'"
+                  class="ri-information-line"
+                />
+              </el-tooltip>
+            </p>
             <el-tooltip
-              content="Skills are sorted by relevance"
+              v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
+              :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
               placement="top"
+              trigger="hover"
             >
-              <i
-                v-if="attribute.name === 'skills'"
-                class="ri-information-line"
-              />
+              <app-svg name="source" class="h-3 w-3" />
             </el-tooltip>
+          </div>
+          <div
+            v-if="attribute.type === 'multiSelect'"
+            class="multiSelect -mt-1"
+          >
+            <app-member-custom-attributes-array-renderer
+              :title="attribute.label"
+              :attribute="member.attributes[attribute.name]"
+              more-label=""
+              :slice-size="5"
+              :with-separators="false"
+              wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
+              item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
+            >
+              <template #itemSlot="{ item }">
+                {{ item }}
+              </template>
+            </app-member-custom-attributes-array-renderer>
+          </div>
+          <p v-else class="value break-words">
+            {{
+              formattedComputedAttributeValue(
+                member.attributes[attribute.name].default,
+              )
+            }}
           </p>
-          <el-tooltip
-            v-if="!attributesSameSource && getAttributeSourceName(props.member.attributes[attribute.name])"
-            :content="`Source: ${getAttributeSourceName(props.member.attributes[attribute.name])}`"
-            placement="top"
-            trigger="hover"
-          >
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
         </div>
-        <div
-          v-if="attribute.type === 'multiSelect'"
-          class="multiSelect -mt-1"
-        >
-          <app-member-custom-attributes-array-renderer
-            :title="attribute.label"
-            :attribute="member.attributes[attribute.name]"
-            more-label=""
-            :slice-size="5"
-            :with-separators="false"
-            wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
-            item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
-          >
-            <template #itemSlot="{ item }">
-              {{ item }}
-            </template>
-          </app-member-custom-attributes-array-renderer>
-        </div>
-        <p v-else class="value break-words">
-          {{
-            formattedComputedAttributeValue(
-              member.attributes[attribute.name].default,
-            )
-          }}
-        </p>
       </div>
+    </div>
+
+    <!-- CTA widget -->
+    <div class="-mx-2 pt-2">
+      <cr-enrichment-sneak-peak-content type="contact" :dark="true" />
     </div>
 
     <app-member-manage-attributes-drawer
@@ -119,6 +146,10 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import Plans from '@/security/plans';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
@@ -136,35 +167,77 @@ const { customAttributes } = storeToRefs(memberStore);
 
 const attributesDrawer = ref(false);
 
+const { currentTenant } = mapGetters('auth');
+const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
+
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   store.getters['auth/currentTenant'],
   store.getters['auth/currentUser'],
 ).editLockedForSampleData);
 
-const computedCustomAttributes = computed(() => Object.values(customAttributes.value)
-  .filter((attribute) => (
-    attribute.show
-        && ![
-          'bio',
-          'url',
-          'location',
-          'emails',
-          'jobTitle',
-          'workExperiences', // we render them in _aside-work-experience
-          'certifications', // we render them in _aside-work-certifications
-          'education', // we render them in _aside-work-education
-          'awards', // we render them in _aside-work-awards
-        ].includes(attribute.name)
-        && props.member.attributes[attribute.name]
-  ))
-  .sort((a, b) => {
-    if (props.member.attributes[a.name].enrich) {
-      return props.member.attributes[b.name].enrich
-        ? 0
-        : -1;
-    }
-    return 1;
-  }));
+const hiddenAttributes = ref([
+  {
+    name: 'seniorityLevel',
+    label: 'Seniority level',
+    value: 'Senior',
+    show: true,
+  },
+  {
+    name: 'programmingLanguages',
+    label: 'Programming languages',
+    value: 'Javascript, Java',
+    show: true,
+  },
+  {
+    name: 'skills',
+    label: 'Skills',
+    show: true,
+    value: 'Web development',
+  },
+  {
+    name: 'reach',
+    label: 'Reach',
+    show: false,
+    value: 150,
+  },
+]);
+
+const hiddenAttributeNames = computed(() => hiddenAttributes.value.map((att) => att.name));
+
+const computedCustomAttributes = computed(() => {
+  const attributes = Object.values(customAttributes.value)
+    .filter((attribute) => (
+      attribute.show
+          && ![
+            'bio',
+            'url',
+            'location',
+            'emails',
+            'jobTitle',
+            'workExperiences', // we render them in _aside-work-experience
+            'certifications', // we render them in _aside-work-certifications
+            'education', // we render them in _aside-work-education
+            'awards', // we render them in _aside-work-awards
+          ].includes(attribute.name)
+          && props.member.attributes[attribute.name]
+    ))
+    .sort((a, b) => {
+      if (props.member.attributes[a.name].enrich) {
+        return props.member.attributes[b.name].enrich
+          ? 0
+          : -1;
+      }
+      return 1;
+    });
+  const attributeNames = attributes.map((att) => att.name);
+  const staticAttributes = isEnrichmentEnabled.value
+    ? []
+    : hiddenAttributes.value.filter((att) => att.show && !attributeNames.includes(att.name));
+  return [
+    ...staticAttributes,
+    ...attributes,
+  ];
+});
 
 const attributesSameSource = computed(() => {
   const sources = computedCustomAttributes.value.map((attribute) => getAttributeSourceName(props.member.attributes[attribute.name]));
