@@ -60,6 +60,59 @@ async function createOrgCacheIdentity(
   )
 }
 
+async function moveLinksToNewCacheId(
+  db: DbTransaction,
+  fromIds: string[],
+  toId: string,
+): Promise<void> {
+  const existingLinks = await db.any(
+    `
+    select "organizationId", "organizationCacheId" from "organizationCacheLinks"
+    where "organizationCacheId" in ($(ids:csv))
+    `,
+    {
+      ids: fromIds.concat([toId]),
+    },
+  )
+
+  const toLinks = existingLinks.filter((l) => l.organizationCacheId === toId)
+  const toRemove: any[] = []
+  const toMove: any[] = []
+  for (const fromId of fromIds) {
+    const fromIdLinks = existingLinks.filter((l) => l.organizationCacheId === fromId)
+    for (const fromIdLink of fromIdLinks) {
+      // if we already have a link to the same organization we can just remove the old link
+      // otherwise we need to move the link to the new cache id
+      if (toLinks.find((l) => l.organizationId === fromIdLink.organizationId)) {
+        toRemove.push(fromIdLink)
+      } else {
+        toMove.push(fromIdLink)
+      }
+    }
+  }
+
+  for (const link of toRemove) {
+    await db.none(
+      `delete from "organizationCacheLinks" where "organizationId" = $(organizationId) and "organizationCacheId" = $(organizationCacheId)`,
+      {
+        organizationId: link.organizationId,
+        organizationCacheId: link.organizationCacheId,
+      },
+    )
+  }
+
+  for (const link of toMove) {
+    await db.none(
+      `update "organizationCacheLinks" set "organizationCacheId" = $(toId) where "organizationId" = $(organizationId) and "organizationCacheId" = $(organizationCacheId)`,
+      {
+        organizationId: link.organizationId,
+        organizationCacheId: link.organizationCacheId,
+        toId,
+      },
+    )
+  }
+}
+
 async function removeCaches(db: DbTransaction, ids: string[]): Promise<void> {
   await db.none(`delete from "organizationCaches" where id in ($(ids:csv))`, { ids })
 }
@@ -159,10 +212,9 @@ async function processOrgCache(
         if (Object.keys(toUpdate).length > 0) {
           await updateOrganizationCacheData(dbInstance, tx, data.id, toUpdate)
         }
-        await removeCaches(
-          tx,
-          caches.filter((c) => c.id !== caches[index].id).map((c) => c.id),
-        )
+        const cacheIdsToRemove = caches.filter((c) => c.id !== caches[index].id).map((c) => c.id)
+        await moveLinksToNewCacheId(tx, cacheIdsToRemove, data.id)
+        await removeCaches(tx, cacheIdsToRemove)
       })
     } catch (err) {
       log.error(err, { id: data.id }, 'Error while processing organization caches!')

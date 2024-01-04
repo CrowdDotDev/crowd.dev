@@ -82,6 +82,20 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return result
   }
 
+  public async linkCacheAndOrganization(cacheId: string, organizationId: string): Promise<void> {
+    await this.db().none(
+      `
+      insert into "organizationCacheLinks"("organizationCacheId", "organizationId")
+      values ($(cacheId), $(organizationId))
+      on conflict do nothing;
+      `,
+      {
+        cacheId,
+        organizationId,
+      },
+    )
+  }
+
   public async insertCache(data: IDbInsertOrganizationCacheData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
