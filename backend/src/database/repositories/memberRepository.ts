@@ -247,39 +247,20 @@ class MemberRepository {
 
     const mems = await options.database.sequelize.query(
       `
-  SELECT 
-      "membersToMerge".id, 
-      "membersToMerge"."toMergeId",
-      "membersToMerge"."total_count",
-      "membersToMerge"."similarity",
-      "membersToMerge"."activityEstimate"
-  FROM 
-      (
-      SELECT 
-          mem.id, 
-          mtm."toMergeId",
-          COUNT(*) OVER() as total_count,
-          mtm."similarity",
-          mtm."activityEstimate",
-          ROW_NUMBER() OVER (PARTITION BY Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id))) ORDER BY mem.id, mtm."toMergeId") as rn
-      FROM 
-          members mem
-      INNER JOIN 
-          "memberToMerge" mtm ON mem.id = mtm."memberId"
-      JOIN 
-          "memberSegments" ms ON ms."memberId" = mem.id
-      WHERE 
-          mem."tenantId" = :tenantId
-          AND ms."segmentId" IN (:segmentIds)
-      ) as "membersToMerge"
-  WHERE 
-      "membersToMerge".rn = 1
-  ORDER BY 
-      "membersToMerge"."activityEstimate", 
-      "membersToMerge"."similarity" DESC,
-      "membersToMerge".id, 
-      "membersToMerge"."toMergeId"
-  LIMIT :limit OFFSET :offset;
+      with members_in_segments as (
+        select distinct mtm."memberId" from "memberToMerge" mtm
+        inner join "memberSegments" ms on mtm."memberId" = ms."memberId"
+        where ms."segmentId" in (:segmentIds)
+    )
+    select
+        mtm."memberId" as id,
+        mtm."toMergeId",
+        COUNT(*) OVER() as total_count,
+        mtm.similarity
+    from members_in_segments mis
+    inner join "memberToMerge" mtm on mtm."memberId" = mis."memberId"
+    order by mtm."activityEstimate" desc, mtm.similarity desc
+    LIMIT :limit OFFSET :offset;
     `,
       {
         replacements: {

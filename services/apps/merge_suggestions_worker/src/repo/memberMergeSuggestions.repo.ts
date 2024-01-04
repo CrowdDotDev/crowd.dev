@@ -118,9 +118,18 @@ class MemberMergeSuggestionsRepository {
       })
 
       const query = `
-        INSERT INTO "memberToMerge" ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
-        VALUES ${placeholders.join(', ')}
-        on conflict do nothing;
+        insert into "memberToMerge" ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
+        select new_vals.*
+        from (
+          values
+            ${placeholders.join(', ')}
+        ) AS new_vals ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
+        where not exists (
+          select 1
+          from "memberToMerge"
+          where ("memberId" = new_vals."memberId" AND "toMergeId" = new_vals."toMergeId") 
+          or ("memberId" = new_vals."toMergeId" AND "toMergeId" = new_vals."memberId")
+        );
       `
       try {
         await this.connection.any(query, replacements)
