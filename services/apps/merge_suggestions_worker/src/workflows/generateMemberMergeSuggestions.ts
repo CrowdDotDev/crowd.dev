@@ -16,11 +16,11 @@ export async function generateMemberMergeSuggestions(
   let result: IMemberPartialAggregatesOpensearch[]
   let lastUuid: string
 
-  // get the latest createdAt of tenant's member suggestions, we'll only get members created after that for new suggestions
-  const lastCreatedAt = await activity.findTenantsLatestSuggestionCreatedAt(args.tenantId)
+  // get the latest generation time of tenant's member suggestions, we'll only get members created after that for new suggestions
+  const lastGeneratedAt = await activity.findTenantsLatestMemberSuggestionGeneratedAt(args.tenantId)
 
   do {
-    result = await activity.getMembers(args.tenantId, PAGE_SIZE, lastUuid, lastCreatedAt)
+    result = await activity.getMembers(args.tenantId, PAGE_SIZE, lastUuid, lastGeneratedAt)
 
     lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
 
@@ -46,4 +46,6 @@ export async function generateMemberMergeSuggestions(
       await activity.addToMerge(allMergeSuggestions)
     }
   } while (result.length > 0)
+
+  await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.tenantId)
 }

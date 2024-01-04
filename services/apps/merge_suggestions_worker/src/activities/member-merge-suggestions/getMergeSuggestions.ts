@@ -193,19 +193,29 @@ export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise
   await memberMergeSuggestionsRepo.addToMerge(suggestions)
 }
 
-export async function findTenantsLatestSuggestionCreatedAt(tenantId: string): Promise<string> {
+export async function findTenantsLatestMemberSuggestionGeneratedAt(
+  tenantId: string,
+): Promise<string> {
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,
   )
-  return memberMergeSuggestionsRepo.findTenantsLatestSuggestionCreatedAt(tenantId)
+  return memberMergeSuggestionsRepo.findTenantsLatestMemberSuggestionGeneratedAt(tenantId)
+}
+
+export async function updateMemberMergeSuggestionsLastGeneratedAt(tenantId: string): Promise<void> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  await memberMergeSuggestionsRepo.updateMemberMergeSuggestionsLastGeneratedAt(tenantId)
 }
 
 export async function getMembers(
   tenantId: string,
   batchSize: number = 100,
   afterMemberId?: string,
-  lastCreatedAt?: string,
+  lastGeneratedAt?: string,
 ): Promise<IMemberPartialAggregatesOpensearch[]> {
   try {
     const queryBody: IMemberQueryBody = {
@@ -248,11 +258,11 @@ export async function getMembers(
       })
     }
 
-    if (lastCreatedAt) {
+    if (lastGeneratedAt) {
       queryBody.query.bool.filter.push({
         range: {
           date_createdAt: {
-            gt: new Date(lastCreatedAt).toISOString(),
+            gt: new Date(lastGeneratedAt).toISOString(),
           },
         },
       })

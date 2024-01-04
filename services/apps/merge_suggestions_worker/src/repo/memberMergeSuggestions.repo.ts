@@ -1,7 +1,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberMergeSuggestion } from '@crowd/types'
-import { IMemberId, IMemberNoMerge, IMemberMergeSuggestionsLatestCreatedAt } from 'types'
+import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from 'types'
 import { chunkArray, removeDuplicateSuggestions } from 'utils'
 
 class MemberMergeSuggestionsRepository {
@@ -34,19 +34,34 @@ class MemberMergeSuggestionsRepository {
     }
   }
 
-  async findTenantsLatestSuggestionCreatedAt(tenantId: string): Promise<string> {
+  async findTenantsLatestMemberSuggestionGeneratedAt(tenantId: string): Promise<string> {
     try {
-      const result: IMemberMergeSuggestionsLatestCreatedAt = await this.connection.oneOrNone(
+      const result: IMemberMergeSuggestionsLatestGeneratedAt = await this.connection.oneOrNone(
         `
-        select max(mtm."createdAt") as "latestCreatedAt"
-        from "memberToMerge" mtm
-        inner join members m on mtm."memberId" = m.id
-        where m."tenantId" = $(tenantId);`,
+        select "memberMergeSuggestionsLastGeneratedAt"
+        from tenants
+        where "id" = $(tenantId);`,
         {
           tenantId,
         },
       )
-      return result?.latestCreatedAt
+      return result?.memberMergeSuggestionsLastGeneratedAt
+    } catch (err) {
+      throw new Error(err)
+    }
+  }
+
+  async updateMemberMergeSuggestionsLastGeneratedAt(tenantId: string): Promise<void> {
+    try {
+      await this.connection.any(
+        `
+          update tenants set "memberMergeSuggestionsLastGeneratedAt" = now()
+          where "id" = $(tenantId);
+        `,
+        {
+          tenantId,
+        },
+      )
     } catch (err) {
       throw new Error(err)
     }
