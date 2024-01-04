@@ -239,47 +239,50 @@ class MemberRepository {
   }
 
   static async findMembersWithMergeSuggestions(
-    { limit = 20, offset = 0 },
+    { limit = 20, offset = 0, memberId = undefined },
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
+    const memberFilter = memberId ? `and (mem.id = :memberId OR mtm."toMergeId" = :memberId)` : ''
+
     const mems = await options.database.sequelize.query(
       `
-  SELECT 
-      "membersToMerge".id, 
-      "membersToMerge"."toMergeId",
-      "membersToMerge"."total_count",
-      "membersToMerge"."similarity",
-      "membersToMerge"."activityEstimate"
-  FROM 
-      (
-      SELECT 
-          mem.id, 
-          mtm."toMergeId",
-          COUNT(*) OVER() as total_count,
-          mtm."similarity",
-          mtm."activityEstimate",
-          ROW_NUMBER() OVER (PARTITION BY Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id))) ORDER BY mem.id, mtm."toMergeId") as rn
-      FROM 
-          members mem
-      INNER JOIN 
-          "memberToMerge" mtm ON mem.id = mtm."memberId"
-      JOIN 
-          "memberSegments" ms ON ms."memberId" = mem.id
-      WHERE 
-          mem."tenantId" = :tenantId
-          AND ms."segmentId" IN (:segmentIds)
-      ) as "membersToMerge"
-  WHERE 
-      "membersToMerge".rn = 1
-  ORDER BY 
-      "membersToMerge"."activityEstimate", 
-      "membersToMerge"."similarity" DESC,
-      "membersToMerge".id, 
-      "membersToMerge"."toMergeId"
-  LIMIT :limit OFFSET :offset;
+      select
+          "membersToMerge".id,
+          "membersToMerge"."toMergeId",
+          "membersToMerge"."total_count",
+          "membersToMerge"."similarity",
+          "membersToMerge"."activityEstimate"
+      from
+          (
+          select
+              mem.id,
+              mtm."toMergeId",
+              COUNT(*) over() as total_count,
+              mtm."similarity",
+              mtm."activityEstimate",
+              row_number() over (partition by greatest(mem.id, mtm."toMergeId"), least(mem.id, mtm."toMergeId") order by mem.id, mtm."toMergeId") as rn
+          from
+              members mem
+          inner join
+              "memberToMerge" mtm ON mem.id = mtm."memberId"
+          inner join
+              "memberSegments" ms ON ms."memberId" = mem.id
+          where
+              mem."tenantId" = :tenantId
+              and ms."segmentId" in (:segmentIds)
+              ${memberFilter}
+          ) as "membersToMerge"
+      where
+          "membersToMerge".rn = 1
+      order by
+          "membersToMerge"."activityEstimate",
+          "membersToMerge"."similarity" desc,
+          "membersToMerge".id,
+          "membersToMerge"."toMergeId"
+      limit :limit offset :offset;
     `,
       {
         replacements: {
@@ -287,6 +290,7 @@ class MemberRepository {
           segmentIds,
           limit,
           offset,
+          memberId,
         },
         type: QueryTypes.SELECT,
       },
