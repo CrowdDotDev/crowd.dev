@@ -106,7 +106,7 @@ class MemberMergeSuggestionsRepository {
           'toMergeId',
         )})::uuid, $(${idPlaceholder('similarity')}), $(${idPlaceholder(
           'activityEstimate',
-        )}), NOW(), NOW())`,
+        )})::integer, NOW(), NOW())`,
         replacements: {
           [idPlaceholder('memberId')]: memberId,
           [idPlaceholder('toMergeId')]: toMergeId,

@@ -165,13 +165,23 @@ export async function getMergeSuggestions(
     ],
   }
 
-  const membersToMerge: ISimilarMemberOpensearch[] =
-    (
-      await svc.opensearch.client.search({
-        index: OpenSearchIndex.MEMBERS,
-        body: similarMembersQueryBody,
-      })
-    ).body?.hits?.hits || []
+  let membersToMerge: ISimilarMemberOpensearch[]
+
+  try {
+    membersToMerge =
+      (
+        await svc.opensearch.client.search({
+          index: OpenSearchIndex.MEMBERS,
+          body: similarMembersQueryBody,
+        })
+      ).body?.hits?.hits || []
+  } catch (e) {
+    svc.log.info(
+      { error: e, query: identitiesPartialQuery },
+      'Error while searching for similar members!',
+    )
+    throw e
+  }
 
   for (const memberToMerge of membersToMerge) {
     mergeSuggestions.push({
