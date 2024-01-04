@@ -87,9 +87,9 @@ class MemberMergeSuggestionsRepository {
     ) => {
       const idPlaceholder = (key: string) => `${key}${index}`
       return {
-        query: `($(${idPlaceholder('memberId')}::uuid), $(${idPlaceholder(
+        query: `($(${idPlaceholder('memberId')})::uuid, $(${idPlaceholder(
           'toMergeId',
-        )}::uuid), $(${idPlaceholder('similarity')}), $(${idPlaceholder(
+        )})::uuid, $(${idPlaceholder('similarity')}), $(${idPlaceholder(
           'activityEstimate',
         )}), NOW(), NOW())`,
         replacements: {
