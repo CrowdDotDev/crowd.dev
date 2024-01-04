@@ -52,6 +52,18 @@
             >Read more</a>
           </template>
         </app-alert>
+        <app-alert v-if="integrationsWithErrors.length > 0">
+          <template #body>
+            Please disconnect and connect again all the
+            integrations with connectivity issues. If this
+            problem persists, contact us via
+            <a
+              href="https://app.slack.com/client/T02H1G4T9/C0DMD0214"
+              class="font-semibold"
+            >
+              Slack</a>.
+          </template>
+        </app-alert>
         <app-alert v-if="integrationsWithNoData.length > 0">
           <template #body>
             Please check the
@@ -63,10 +75,12 @@
             >documentation</a>
             for integrations with no activities to make sure
             they are set up correctly. If the setup is
-            correct, <a
-              href="https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54"
-              class="hover:underline"
-            >Open an issue</a>.
+            correct, contact us via
+            <a
+              href="https://app.slack.com/client/T02H1G4T9/C0DMD0214"
+              class="font-semibold"
+            >
+              Slack</a>.
           </template>
         </app-alert>
       </div>
