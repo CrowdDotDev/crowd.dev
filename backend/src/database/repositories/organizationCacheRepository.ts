@@ -1,11 +1,36 @@
-import lodash from 'lodash'
 import { Error404 } from '@crowd/common'
+import lodash from 'lodash'
 import { QueryTypes } from 'sequelize'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 class OrganizationCacheRepository {
+  static async linkCacheAndOrganization(
+    cacheId: string,
+    organizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    await seq.query(
+      `
+      insert into "organizationCacheLinks"("organizationCacheId", "organizationId")
+      values (:cacheId, :organizationId)
+      on conflict do nothing;
+      `,
+      {
+        replacements: {
+          cacheId,
+          organizationId,
+        },
+        transaction,
+        type: QueryTypes.INSERT,
+      },
+    )
+  }
+
   static async create(data, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)

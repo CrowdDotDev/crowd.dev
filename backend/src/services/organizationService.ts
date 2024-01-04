@@ -1,4 +1,3 @@
-import { isEqual } from 'lodash'
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import {
@@ -8,8 +7,10 @@ import {
   OrganizationMergeSuggestionType,
   SyncMode,
 } from '@crowd/types'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import { isEqual } from 'lodash'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import {
   MergeActionState,
@@ -27,9 +28,8 @@ import {
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
-import SearchSyncService from './searchSyncService'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
+import SearchSyncService from './searchSyncService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -615,6 +615,11 @@ export default class OrganizationService extends LoggerBase {
           }
         }
       }
+
+      await organizationCacheRepository.linkCacheAndOrganization(cache.id, record.id, {
+        ...this.options,
+        transaction,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 

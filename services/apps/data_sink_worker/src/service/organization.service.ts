@@ -271,6 +271,8 @@ export class OrganizationService extends LoggerBase {
           }
         }
 
+        await txRepo.linkCacheAndOrganization(cached.id, id)
+
         return id
       })
 
