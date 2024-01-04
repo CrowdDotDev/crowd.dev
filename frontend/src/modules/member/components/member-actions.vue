@@ -48,7 +48,9 @@
 
 <script setup>
 import AppMemberDropdown from '@/modules/member/components/member-dropdown.vue';
-import { computed, onMounted, ref } from 'vue';
+import {
+  computed, onMounted, ref, watch,
+} from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRouter } from 'vue-router';
@@ -113,6 +115,10 @@ const merge = () => {
   }
   isMergeDialogOpen.value = props.member;
 };
+
+watch(() => props.member, () => {
+  fetchMembersToMergeCount();
+});
 
 onMounted(() => {
   fetchMembersToMergeCount();

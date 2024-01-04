@@ -39,7 +39,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import {
+  computed, onMounted, ref, watch,
+} from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRouter } from 'vue-router';
 import { OrganizationPermissions } from '@/modules/organization/organization-permissions';
@@ -91,7 +93,7 @@ const mergeSuggestions = () => {
     return;
   }
   router.push({
-    name: 'memberMergeSuggestions',
+    name: 'organizationMergeSuggestions',
     query: {
       organizationId: props.organization.id,
     },
@@ -104,6 +106,10 @@ const merge = () => {
   }
   isMergeDialogOpen.value = props.organization;
 };
+
+watch(() => props.organization, () => {
+  fetchOrganizationsToMergeCount();
+});
 
 onMounted(() => {
   fetchOrganizationsToMergeCount();
