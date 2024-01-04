@@ -21,7 +21,7 @@ const { normalizeEnrichedMember, updateMergeSuggestions, updateOrganizations } =
 // Configure timeouts and retry policies to sync enriched data to OpenSearch.
 const { syncMembersToOpensearch, syncOrganizationsToOpensearch } = proxyActivities<
   typeof activities
->({ startToCloseTimeout: '15 seconds' })
+>({ startToCloseTimeout: '120 seconds' })
 
 /*
 enrichMember is a Temporal workflow that:
@@ -37,7 +37,7 @@ enrichMember is a Temporal workflow that:
 export async function enrichMember(input: IMember): Promise<EnrichingMember> {
   let enriched: EnrichmentAPIMember = null
 
-  // Enrich using GitHub if possible, otherwise try with email address.
+  // Enrich using GitHub if possible.
   if (input.username['github']) {
     try {
       enriched = await enrichMemberUsingGitHubHandle({
@@ -46,7 +46,10 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
     } catch (err) {
       throw new Error(err)
     }
-  } else if (input.emails.length) {
+  }
+
+  // Otherwise try with email address.
+  if (!enriched && input.emails.length) {
     try {
       enriched = await enrichMemberUsingEmailAddress({
         member: input,

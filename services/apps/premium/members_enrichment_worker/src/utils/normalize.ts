@@ -169,18 +169,21 @@ const fillPlatformData = async (
   member: IMember,
   enriched: EnrichmentAPIMember,
 ): Promise<IMember> => {
-  if (enriched.emails && Array.isArray(enriched.emails)) {
-    if (enriched.emails.length > 0) {
-      const emailSet = new Set<string>(
-        enriched.emails.filter((email) => !email.includes('noreply.github')),
-      )
+  // NOTE: Enrichment API returns a list of email address not associated to the
+  // actual member. We simply ignore these for now.
+  // if (enriched.emails && Array.isArray(enriched.emails)) {
+  //   if (enriched.emails.length > 0) {
+  //     const emailSet = new Set<string>(
+  //       enriched.emails.filter((email) => !email.includes('noreply.github')),
+  //     )
 
-      if (!member.emails) {
-        member.emails = []
-      }
-      member.emails.forEach((email) => emailSet.add(email))
-      member.emails = Array.from(emailSet)
-    }
+  //     member.emails.forEach((email) => emailSet.add(email))
+  //     member.emails = Array.from(emailSet)
+  //   }
+  // }
+
+  if (!member.emails) {
+    member.emails = []
   }
 
   member.contributions = enriched.oss_contributions?.map(

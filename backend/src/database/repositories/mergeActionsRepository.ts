@@ -11,6 +11,7 @@ enum MergeActionState {
   PENDING = 'pending',
   IN_PROGRESS = 'in-progress',
   DONE = 'done',
+  FINISHING = 'finishing',
   ERROR = 'error',
 }
 
