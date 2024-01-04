@@ -7,7 +7,7 @@
     popper-class="!px-0 !py-4 !shadow !rounded-lg"
   >
     <template #reference>
-      <div class="flex gap-3 items-center border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group">
+      <div class="flex gap-3 items-center bg-white border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group">
         <div class="text-xs text-gray-500 font-medium">
           {{ pluralize('identity', parsedIdentities.identitiesLength, true) }}
         </div>
