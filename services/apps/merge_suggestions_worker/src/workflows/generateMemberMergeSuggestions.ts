@@ -1,4 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow'
+import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 import * as activities from '../activities/member-merge-suggestions/getMergeSuggestions'
 
 import { IMemberMergeSuggestion, IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
@@ -10,42 +10,49 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 export async function generateMemberMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
-  const PAGE_SIZE = 200
-  const PARALLEL_SUGGESTION_PROCESSING = 1000
+  const PAGE_SIZE = 1000
+  const PARALLEL_SUGGESTION_PROCESSING = 200
 
-  let result: IMemberPartialAggregatesOpensearch[]
-  let lastUuid: string
+  let lastUuid: string = args.lastUuid || null
 
   // get the latest generation time of tenant's member suggestions, we'll only get members created after that for new suggestions
   const lastGeneratedAt = await activity.findTenantsLatestMemberSuggestionGeneratedAt(args.tenantId)
 
-  do {
-    result = await activity.getMembers(args.tenantId, PAGE_SIZE, lastUuid, lastGeneratedAt)
+  const result: IMemberPartialAggregatesOpensearch[] = await activity.getMembers(
+    args.tenantId,
+    PAGE_SIZE,
+    lastUuid,
+    lastGeneratedAt,
+  )
 
-    lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
+  if (result.length === 0) {
+    await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.tenantId)
+    return
+  }
 
-    // Gather all promises for merge suggestions
-    const mergeSuggestionsPromises: Promise<IMemberMergeSuggestion[]>[] = result.map((member) =>
-      activity.getMergeSuggestions(args.tenantId, member),
-    )
+  lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
 
-    const promiseChunks = chunkArray<Promise<IMemberMergeSuggestion[]>>(
-      mergeSuggestionsPromises,
-      PARALLEL_SUGGESTION_PROCESSING,
-    )
+  // Gather all promises for merge suggestions
+  const mergeSuggestionsPromises: Promise<IMemberMergeSuggestion[]>[] = result.map((member) =>
+    activity.getMergeSuggestions(args.tenantId, member),
+  )
 
-    const allMergeSuggestions: IMemberMergeSuggestion[] = []
+  const promiseChunks = chunkArray<Promise<IMemberMergeSuggestion[]>>(
+    mergeSuggestionsPromises,
+    PARALLEL_SUGGESTION_PROCESSING,
+  )
 
-    for (const promiseChunk of promiseChunks) {
-      const mergeSuggestionsResults: IMemberMergeSuggestion[][] = await Promise.all(promiseChunk)
-      allMergeSuggestions.push(...mergeSuggestionsResults.flat())
-    }
+  const allMergeSuggestions: IMemberMergeSuggestion[] = []
 
-    // Add all merge suggestions to add to merge
-    if (allMergeSuggestions.length > 0) {
-      await activity.addToMerge(allMergeSuggestions)
-    }
-  } while (result.length > 0)
+  for (const promiseChunk of promiseChunks) {
+    const mergeSuggestionsResults: IMemberMergeSuggestion[][] = await Promise.all(promiseChunk)
+    allMergeSuggestions.push(...mergeSuggestionsResults.flat())
+  }
 
-  await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.tenantId)
+  // Add all merge suggestions to add to merge
+  if (allMergeSuggestions.length > 0) {
+    await activity.addToMerge(allMergeSuggestions)
+  }
+
+  await continueAsNew<typeof generateMemberMergeSuggestions>({ tenantId: args.tenantId, lastUuid })
 }
