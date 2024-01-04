@@ -60,8 +60,7 @@
             <a
               href="https://app.slack.com/client/T02H1G4T9/C0DMD0214"
               class="font-semibold"
-            >
-              Slack</a>.
+            >Slack</a>.
           </template>
         </app-alert>
         <app-alert v-if="integrationsWithNoData.length > 0">
@@ -79,8 +78,7 @@
             <a
               href="https://app.slack.com/client/T02H1G4T9/C0DMD0214"
               class="font-semibold"
-            >
-              Slack</a>.
+            >Slack</a>.
           </template>
         </app-alert>
       </div>
