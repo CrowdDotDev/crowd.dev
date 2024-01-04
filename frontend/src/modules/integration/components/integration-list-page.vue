@@ -63,17 +63,10 @@
             >documentation</a>
             for integrations with no activities to make sure
             they are set up correctly. If the setup is
-            correct, contact us via
-            <a
-              href="mailto:help@crowd.dev"
-              class="font-semibold"
-            >email</a>
-            or engage within our
-            <a
-              href="https://crowd.dev/discord"
-              class="font-semibold hover:underline"
-            >
-              Discord community</a>.
+            correct, <a
+              href="https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54"
+              class="hover:underline"
+            >Open an issue</a>.
           </template>
         </app-alert>
       </div>
