@@ -149,11 +149,10 @@
         </article>
       </div>
       <div class="pt-5">
-        <app-identities-vertical-list
-          :platform-handles-links="{
-            ...identities.getIdentities(),
-            emails: identities.getEmails(),
-          }"
+        <app-identities-vertical-list-members
+          :member="member"
+          :order="memberOrder.suggestions"
+          :include-emails="true"
         />
       </div>
     </div>
@@ -172,9 +171,8 @@ import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
-import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
+import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 
 const props = defineProps({
   member: {
@@ -206,11 +204,6 @@ const props = defineProps({
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
-
-const identities = computed(() => useMemberIdentities({
-  member: props.member,
-  order: memberOrder.suggestions,
-}));
 
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)

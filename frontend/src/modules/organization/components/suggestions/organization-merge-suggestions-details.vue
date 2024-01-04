@@ -229,12 +229,11 @@
         </article>
       </div>
       <div class="pt-5">
-        <app-identities-vertical-list
-          :platform-handles-links="{
-            ...identities.getIdentities(),
-            emails: identities.getEmails(),
-            phoneNumbers: identities.getPhoneNumbers(),
-          }"
+        <app-identities-vertical-list-organizations
+          :organization="organization"
+          :include-emails="true"
+          :include-phone-numbers="true"
+          :order="organizationOrder.suggestions"
         />
       </div>
     </div>
@@ -252,8 +251,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
-import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
-import useOrganizationIdentities from '@/shared/modules/identities/config/useOrganizationIdentities';
+import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/components/identities-vertical-list-organizations.vue';
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 
 const props = defineProps({
@@ -286,11 +284,6 @@ const props = defineProps({
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
-
-const identities = computed(() => useOrganizationIdentities({
-  organization: props.organization,
-  order: organizationOrder.suggestions,
-}));
 
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)

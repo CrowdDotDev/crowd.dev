@@ -7,9 +7,11 @@
     popper-class="!px-0 !py-4 !shadow !rounded-lg"
   >
     <template #reference>
-      <div class="flex gap-3 items-center bg-white border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group">
+      <div
+        class="flex gap-3 items-center bg-white border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group"
+      >
         <div class="text-xs text-gray-500 font-medium">
-          {{ pluralize('identity', parsedIdentities.identitiesLength, true) }}
+          {{ pluralize("identity", parsedIdentities.identitiesLength, true) }}
         </div>
         <div
           v-for="[platform, value] of Object.entries(parsedIdentities.visible)"
@@ -18,13 +20,15 @@
           <app-platform
             v-if="value.length"
             :platform="platform"
-            :platform-handles-links="value"
+            :identities="value"
             :as-svg="asSvg"
-            app-module="organization"
           />
         </div>
         <div
-          v-if="parsedIdentities.platformsLength >= (limit || parsedIdentities.platformsLength)"
+          v-if="
+            parsedIdentities.platformsLength
+              >= (limit || parsedIdentities.platformsLength)
+          "
           class="absolute right-2.5 w-10 h-5 bg-gradient-to-r from-transparent to-white group-hover:to-gray-50"
         />
       </div>
@@ -35,7 +39,7 @@
         Identities
       </div>
       <app-identities-vertical-list
-        :platform-handles-links="identities.getIdentities()"
+        :identities="identities"
         :x-padding="5"
       />
     </div>
@@ -48,44 +52,23 @@
 <script setup lang="ts">
 import { defineProps, computed } from 'vue';
 import AppPlatform from '@/shared/modules/platform/components/platform.vue';
-import useOrganizationIdentities from '@/shared/modules/identities/config/useOrganizationIdentities';
-import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
-import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
-import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
-import { Organization } from '@/modules/organization/types/Organization';
-import { Member } from '@/modules/member/types/Member';
 import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
 import pluralize from 'pluralize';
 
 const props = defineProps<{
-  organization?: Organization;
-  member?: Member;
+  identities: {
+    [key: string]: {
+      handle: string;
+      link: string;
+    }[];
+  };
   limit?: number;
   asSvg?: boolean;
 }>();
 
-const identities = computed(() => {
-  if (props.organization) {
-    return useOrganizationIdentities({
-      organization: props.organization,
-      order: organizationOrder.list,
-    });
-  }
-
-  if (props.member) {
-    return useMemberIdentities({
-      member: props.member,
-      order: memberOrder.list,
-    });
-  }
-
-  return {};
-});
-
 const parsedIdentities = computed(() => {
-  const identitiesCopy = { ...identities.value.getIdentities() };
-  const platformKeys = Object.keys(identitiesCopy);
-  const visibleKeys = Object.keys(identitiesCopy).slice(
+  const platformKeys = Object.keys(props.identities);
+  const visibleKeys = Object.keys(props.identities).slice(
     0,
     props.limit ?? platformKeys.length,
   );
@@ -93,14 +76,14 @@ const parsedIdentities = computed(() => {
   const visible = visibleKeys.reduce(
     (
       acc: {
-          [key: string]: {
-            handle: string;
-            link: string;
-          }[];
-        },
+        [key: string]: {
+          handle: string;
+          link: string;
+        }[];
+      },
       k,
     ) => {
-      acc[k] = identitiesCopy[k];
+      acc[k] = props.identities[k];
 
       return acc;
     },
@@ -111,13 +94,15 @@ const parsedIdentities = computed(() => {
     visible,
     platformsLength: platformKeys.length,
     identitiesLength: platformKeys.reduce(
-      (acc, p) => acc + identitiesCopy[p].length,
+      (acc, p) => acc + props.identities[p].length,
       0,
     ),
   };
 });
 
-const hasIdentities = computed(() => Object.keys(identities.value.getIdentities()).length);
+const hasIdentities = computed(
+  () => Object.keys(props.identities).length,
+);
 </script>
 
 <script lang="ts">

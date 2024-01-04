@@ -216,7 +216,7 @@
                       class="block"
                     >
                       <div class="h-full flex items-center">
-                        <app-identities-horizontal-list
+                        <app-identities-horizontal-list-organizations
                           :organization="scope.row"
                           :limit="4"
                         />
@@ -794,7 +794,7 @@ import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
-import AppIdentitiesHorizontalList from '@/shared/modules/identities/components/identities-horizontal-list.vue';
+import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';

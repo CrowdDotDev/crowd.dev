@@ -180,7 +180,7 @@
                     }"
                     class="block"
                   >
-                    <app-identities-horizontal-list
+                    <app-identities-horizontal-list-members
                       :member="scope.row"
                       :limit="4"
                     />
@@ -758,7 +758,7 @@ import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
-import AppIdentitiesHorizontalList from '@/shared/modules/identities/components/identities-horizontal-list.vue';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';

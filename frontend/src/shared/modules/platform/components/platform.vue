@@ -1,9 +1,13 @@
 <template>
   <div class="relative flex items-center justify-center">
-    <el-tooltip :content="platformName" placement="top" :disabled="!platformName || !showPlatformTooltip">
+    <el-tooltip
+      :content="platformName"
+      placement="top"
+      :disabled="!platformName || !showPlatformTooltip"
+    >
       <component
         :is="asLink ? 'a' : 'span'"
-        :href="asLink ? platformHandlesLinks[0].link ?? null : null"
+        :href="asLink ? identities[0].link ?? null : null"
         target="_blank"
         rel="noopener noreferrer"
         class="btn flex items-center justify-center"
@@ -13,23 +17,15 @@
           'min-h-4 min-w-[16px] h-4 w-4': size === 'small',
           'min-h-5 min-w-[20px] h-5 w-5': size !== 'small',
         }"
-        @click.stop="trackClick"
+        @click.stop
       >
-        <app-platform-svg
-          v-if="asSvg"
-          :platform="platform"
-          :size="size"
-        />
+        <app-platform-svg v-if="asSvg" :platform="platform" :size="size" />
         <app-platform-img
           v-else-if="defaultPlatformConfig"
           :platform="platform"
           :size="size"
         />
-        <app-platform-icon
-          v-else
-          :platform="platform"
-          :size="size"
-        />
+        <app-platform-icon v-else :platform="platform" :size="size" />
       </component>
     </el-tooltip>
   </div>
@@ -38,51 +34,36 @@
 <script setup lang="ts">
 import { defineProps, computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { toSentenceCase } from '@/utils/string';
 import AppPlatformIcon from '@/shared/modules/platform/components/platform-icon.vue';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
 import AppPlatformImg from '@/shared/modules/platform/components/platform-img.vue';
 
-const props = withDefaults(defineProps<{
+const props = withDefaults(
+  defineProps<{
     platform: string;
     size: string;
-    platformHandlesLinks?: {
+    identities?: {
       handle: string;
       link: string;
     }[];
-    appModule?: string;
     asLink?: boolean;
     asSvg?: boolean;
-    showPlatformTooltip?: boolean
-}>(), {
-  platformHandlesLinks: () => [],
-  appModule: 'member',
-  asSvg: false,
-  size: 'small',
-  asLink: true,
-  showPlatformTooltip: false,
-});
+    showPlatformTooltip?: boolean;
+  }>(),
+  {
+    identities: () => [],
+    asSvg: false,
+    size: 'small',
+    asLink: true,
+    showPlatformTooltip: false,
+  },
+);
 
 const defaultPlatformConfig = computed(() => CrowdIntegrations.getConfig(props.platform));
 
-const trackingContent = () => ({
-  name: `Click ${props.appModule === 'member' ? 'Contact\'s' : 'Organization\'s'} Contact`,
-  channel: defaultPlatformConfig.value?.name || toSentenceCase(props.platform),
-});
-
-const trackClick = () => {
-  if (!props.asLink) {
-    return;
-  }
-
-  const { name, channel } = trackingContent();
-
-  (window as any).analytics.track(name, {
-    channel,
-  });
-};
-
-const platformConfig = computed(() => CrowdIntegrations.getConfig(props.platform) || {});
+const platformConfig = computed(
+  () => CrowdIntegrations.getConfig(props.platform) || {},
+);
 const platformName = computed(() => platformConfig.value.name || 'Custom');
 </script>
 

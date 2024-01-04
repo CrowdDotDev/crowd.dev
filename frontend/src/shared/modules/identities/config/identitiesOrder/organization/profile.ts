@@ -1,1 +1,10 @@
-export default ['github', 'linkedin', 'twitter', 'crunchbase', 'hubspot', 'custom'];
+import { Platform } from '@/shared/modules/platform/types/Platform';
+
+export default [
+  Platform.GITHUB,
+  Platform.LINKEDIN,
+  Platform.TWITTER,
+  Platform.CRUNCHBASE,
+  Platform.HUBSPOT,
+  Platform.CUSTOM,
+];

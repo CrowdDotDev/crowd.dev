@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-5">
     <div
-      v-for="([platform, value]) of Object.entries(identities)"
+      v-for="[platform, value] of Object.entries(slicedIdentities)"
       :key="platform"
     >
       <div>
@@ -20,10 +20,7 @@
 
           <div class="flex flex-wrap items-center gap-2">
             <div class="flex flex-wrap items-center">
-              <template
-                v-for="({ handle, link }, vi) of value"
-                :key="handle"
-              >
+              <template v-for="({ handle, link }, vi) of value" :key="handle">
                 <div
                   v-if="platform === 'linkedin' && handle.includes('private-')"
                   class="text-gray-900 text-xs"
@@ -40,8 +37,10 @@
                     :href="link"
                     class="text-gray-900 text-xs font-medium leading-5 h-5"
                     :class="{
-                      'underline decoration-dashed decoration-gray-400 underline-offset-4 ': link,
-                      'hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900': link,
+                      'underline decoration-dashed decoration-gray-400 underline-offset-4 ':
+                        link,
+                      'hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900':
+                        link,
                     }"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -50,24 +49,30 @@
                   </component>
                 </span>
 
-                <span v-if="vi !== value.length - 1" class="font-medium">・</span>
+                <span
+                  v-if="vi !== value.length - 1"
+                  class="font-medium"
+                >・</span>
               </template>
             </div>
-            <span v-if="isCustomPlatform(platform)" class="text-xs text-gray-400">{{ platform }}</span>
+            <span
+              v-if="isCustomPlatform(platform)"
+              class="text-xs text-gray-400"
+            >{{ platform }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <div
-      v-if="displayShowMore && Object.keys(platformHandlesLinks).length > 5"
+      v-if="displayShowMore && Object.keys(identities).length > 5"
       class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4"
       :class="{
         [`px-${xPadding}`]: !!xPadding,
       }"
       @click="displayMore = !displayMore"
     >
-      Show {{ displayMore ? 'less' : 'more' }}
+      Show {{ displayMore ? "less" : "more" }}
     </div>
   </div>
 </template>
@@ -76,35 +81,36 @@
 import AppPlatform from '@/shared/modules/platform/components/platform.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed, ref } from 'vue';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const props = defineProps<{
-    platformHandlesLinks: {
-      [key: string]: {
-        handle: string;
-        link: string;
-      }[]
-    };
-    xPadding?: number;
-    displayShowMore?: boolean;
+  identities: {
+    [key: string]: {
+      handle: string;
+      link: string;
+    }[];
+  };
+  xPadding?: number;
+  displayShowMore?: boolean;
 }>();
 
 const displayMore = ref(false);
 
-const identities = computed(() => {
+const slicedIdentities = computed(() => {
   if (!displayMore.value && props.displayShowMore) {
-    return Object.fromEntries(
-      Object.entries(props.platformHandlesLinks).slice(0, 5),
-    );
+    return Object.fromEntries(Object.entries(props.identities).slice(0, 5));
   }
 
-  return props.platformHandlesLinks;
+  return props.identities;
 });
 
-const isCustomPlatform = (platform: string) => platform !== 'emails' && platform !== 'phoneNumbers' && !CrowdIntegrations.getConfig(platform)?.name;
+const isCustomPlatform = (platform: string) => platform !== Platform.EMAILS
+  && platform !== Platform.PHONE_NUMBERS
+  && !CrowdIntegrations.getConfig(platform)?.name;
 </script>
 
 <script lang="ts">
 export default {
-  name: 'AppIdentitiesVerticalListMember',
+  name: 'AppIdentitiesVerticalList',
 };
 </script>

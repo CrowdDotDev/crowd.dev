@@ -1,12 +1,23 @@
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { Member } from '@/modules/member/types/Member';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
-export default ({ member, order }: { member: Partial<Member>, order?: string[] }) => {
-  const { username = {}, attributes = {}, emails = [] } = (member || {});
+export default ({
+  member,
+  order,
+}: {
+  member: Partial<Member>;
+  order: Platform[];
+}) => {
+  const { username = {}, attributes = {}, emails = [] } = member || {};
 
-  const getPlatformHandles = (platform: string) => {
-    if (platform === 'custom') {
-      const customPlatforms = Object.keys(username).filter((p) => (!order.includes(p) || p === 'custom') && p !== 'email' && p !== 'emails');
+  const getIdentityHandles = (platform: string) => {
+    if (platform === Platform.CUSTOM) {
+      const customPlatforms = Object.keys(username).filter(
+        (p) => (!order.includes(p) || p === Platform.CUSTOM)
+          && p !== Platform.EMAIL
+          && p !== Platform.EMAILS,
+      );
 
       return customPlatforms.flatMap((p) => username[p].map((u) => ({
         platform: p,
@@ -15,69 +26,84 @@ export default ({ member, order }: { member: Partial<Member>, order?: string[] }
       })));
     }
 
-    return username[platform] ? username[platform].map((u) => ({
-      platform,
-      url: null,
-      name: u,
-    })) : [];
+    return username[platform]
+      ? username[platform].map((u) => ({
+        platform,
+        url: null,
+        name: u,
+      }))
+      : [];
+  };
+
+  const getIdentityLink = (identity: {
+    platform: string;
+    url: string;
+    name: string;
+  }, platform: string) => {
+    if (!CrowdIntegrations.getConfig(platform)?.showProfileLink) {
+      return null;
+    }
+
+    return (
+      identity.url
+      ?? CrowdIntegrations.getConfig(platform)?.url({
+        username: identity.name,
+        attributes,
+      })
+      ?? attributes?.url?.[platform]
+    );
   };
 
   const getIdentities = (): {
     [key: string]: {
       handle: string;
       link: string;
-    }[]
-  } => order.reduce((acc, p) => {
-    const platformIdentities = getPlatformHandles(p);
+    }[];
+  } => order.reduce((acc, platform) => {
+    const handles = getIdentityHandles(platform);
 
-    if (p === 'custom' && platformIdentities.length) {
-      const sortedCustomIdentities = platformIdentities.sort((a, b) => {
+    if (platform === Platform.CUSTOM && handles.length) {
+      const sortedCustomIdentities = handles.sort((a, b) => {
         const platformComparison = a.platform.localeCompare(b.platform);
 
-        if (platformComparison === 0) { // If platforms are equal, sort by name
+        if (platformComparison === 0) {
+          // If platforms are equal, sort by name
           return a.name.localeCompare(b.name);
         }
 
         return platformComparison; // Otherwise, sort by platform
       });
 
-      sortedCustomIdentities.forEach((i) => {
-        if (acc[i.platform]?.length) {
-          acc[i.platform].push({
-            handle: i.name,
-            link: i.url ? i.url : ((CrowdIntegrations.getConfig(p)?.showProfileLink && CrowdIntegrations.getConfig(p)?.url({
-              username: i.name,
-              attributes,
-            })) ?? attributes?.url?.[p]),
+      sortedCustomIdentities.forEach((identity) => {
+        if (acc[identity.platform]?.length) {
+          acc[identity.platform].push({
+            handle: identity.name,
+            link: getIdentityLink(identity, platform),
           });
         } else {
-          acc[i.platform] = [{
-            handle: i.name,
-            link: i.url ? i.url : (CrowdIntegrations.getConfig(p)?.showProfileLink && CrowdIntegrations.getConfig(p)?.url({
-              username: i.name,
-              attributes,
-            })) ?? attributes?.url?.[p],
-          }];
+          acc[identity.platform] = [
+            {
+              handle: identity.name,
+              link: getIdentityLink(identity, platform),
+            },
+          ];
         }
       });
     } else {
-      const platformHandlesValues = platformIdentities.map((i) => ({
-        handle: i.name,
-        link: i.url ? i.url : (CrowdIntegrations.getConfig(p)?.showProfileLink && CrowdIntegrations.getConfig(p)?.url({
-          username: i.name,
-          attributes,
-        })) ?? attributes?.url?.[p],
+      const platformHandlesValues = handles.map((identity) => ({
+        handle: identity.name,
+        link: getIdentityLink(identity, platform),
       }));
 
       if (platformHandlesValues.length) {
-        acc[p] = platformHandlesValues;
+        acc[platform] = platformHandlesValues;
       }
     }
 
     return acc;
   }, {});
 
-  const getEmails = ():{
+  const getEmails = (): {
     handle: string;
     link: string;
   }[] => {
@@ -85,14 +111,20 @@ export default ({ member, order }: { member: Partial<Member>, order?: string[] }
       link: `mailto:${e}`,
       handle: e,
     }));
-    const usernameEmail = username.email ? username.email.map((u) => ({
-      link: null,
-      handle: u,
-    })) : [];
-    const usernameEmails = username.emails ? username.emails.map((u) => ({
-      link: `mailto:${e}`,
-      handle: u,
-    })) : [];
+
+    const usernameEmail = username.email
+      ? username.email.map((u) => ({
+        link: null,
+        handle: u,
+      }))
+      : [];
+
+    const usernameEmails = username.emails
+      ? username.emails.map((u) => ({
+        link: `mailto:${e}`,
+        handle: u,
+      }))
+      : [];
 
     return [...rootEmails, ...usernameEmail, ...usernameEmails];
   };

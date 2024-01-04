@@ -1,18 +1,30 @@
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { withHttp } from '@/utils/string';
 import { Organization } from '@/modules/organization/types/Organization';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
-export default ({ organization, order }: { organization: Partial<Organization>, order?: string[] }) => {
+export default ({
+  organization,
+  order,
+}: {
+  organization: Partial<Organization>;
+  order: Platform[];
+}) => {
   const {
-    identities = [], emails = [], phoneNumbers = [],
-  } = (organization || {});
+    identities = [],
+    emails = [],
+    phoneNumbers = [],
+  } = organization || {};
 
-  const getPlatformIdentities = (platform: string) => {
+  const getIdentityHandles = (platform: string) => {
     const parsedIdentities = identities?.length ? identities : [];
 
-    if (platform === 'custom') {
-      const customPlatforms = parsedIdentities
-        .filter((i) => (!order.includes(i.platform) || i.platform === 'custom') && i.platform !== 'email' && i.platform !== 'emails');
+    if (platform === Platform.CUSTOM) {
+      const customPlatforms = parsedIdentities.filter(
+        (i) => (!order.includes(i.platform) || i.platform === Platform.CUSTOM)
+          && i.platform !== Platform.EMAIL
+          && i.platform !== Platform.EMAILS,
+      );
 
       return customPlatforms;
     }
@@ -24,15 +36,19 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
     [key: string]: {
       handle: string;
       link: string;
-    }[]
+    }[];
   } => order.reduce((acc, p) => {
-    const platformIdentities = getPlatformIdentities(p);
+    const handles = getIdentityHandles(p);
 
-    if ((p === 'custom' || p === 'phoneNumbers') && platformIdentities.length) {
-      const sortedCustomIdentities = platformIdentities.sort((a, b) => {
+    if (
+      (p === Platform.CUSTOM || p === Platform.PHONE_NUMBERS)
+        && handles.length
+    ) {
+      const sortedCustomIdentities = handles.sort((a, b) => {
         const platformComparison = a.platform.localeCompare(b.platform);
 
-        if (platformComparison === 0) { // If platforms are equal, sort by name
+        if (platformComparison === 0) {
+          // If platforms are equal, sort by name
           return a.name.localeCompare(b.name);
         }
 
@@ -46,30 +62,33 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
             link: i.url ? withHttp(i.url) : null,
           });
         } else {
-          acc[i.platform] = [{
-            handle: i.name,
-            link: i.url ? withHttp(i.url) : null,
-          }];
+          acc[i.platform] = [
+            {
+              handle: i.name,
+              link: i.url ? withHttp(i.url) : null,
+            },
+          ];
         }
       });
     } else {
-      const platformIdentitiesValues = platformIdentities.map((i) => ({
-        handle: CrowdIntegrations.getConfig(i.platform)?.organization?.handle(i)
-              ?? i.name
-              ?? CrowdIntegrations.getConfig(i.platform)?.name
-              ?? i.platform,
+      const handlesValues = handles.map((i) => ({
+        handle:
+            CrowdIntegrations.getConfig(i.platform)?.organization?.handle(i)
+            ?? i.name
+            ?? CrowdIntegrations.getConfig(i.platform)?.name
+            ?? i.platform,
         link: i.url ? withHttp(i.url) : null,
       }));
 
-      if (platformIdentitiesValues.length) {
-        acc[p] = platformIdentitiesValues;
+      if (handlesValues.length) {
+        acc[p] = handlesValues;
       }
     }
 
     return acc;
   }, {});
 
-  const getEmails = ():{
+  const getEmails = (): {
     handle: string;
     link: string;
   }[] => {
@@ -79,19 +98,25 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
       link: `mailto:${e}`,
       handle: e,
     }));
-    const identitiesEmails = parsedIdentities.filter((i) => i.platform === 'emails').map((i) => ({
-      link: i.url ? `mailto:${i.url}` : null,
-      handle: i.name,
-    }));
-    const identitiesEmail = parsedIdentities.filter((i) => i.platform === 'email').map((i) => ({
-      link: i.url ? `mailto:${i.url}` : null,
-      handle: i.name,
-    }));
+
+    const identitiesEmails = parsedIdentities
+      .filter((i) => i.platform === 'emails')
+      .map((i) => ({
+        link: i.url ? `mailto:${i.url}` : null,
+        handle: i.name,
+      }));
+
+    const identitiesEmail = parsedIdentities
+      .filter((i) => i.platform === 'email')
+      .map((i) => ({
+        link: i.url ? `mailto:${i.url}` : null,
+        handle: i.name,
+      }));
 
     return [...rootEmails, ...identitiesEmails, ...identitiesEmail];
   };
 
-  const getPhoneNumbers = ():{
+  const getPhoneNumbers = (): {
     handle: string;
     link: string;
   }[] => (phoneNumbers || []).map((p) => ({

@@ -35,7 +35,7 @@
       'col-span-3': isDetailedView,
     }"
   >
-    <app-identities-horizontal-list
+    <app-identities-horizontal-list-members
       :member="member"
       :limit="4"
       :as-svg="true"
@@ -53,7 +53,7 @@
 <script setup>
 import { defineProps } from 'vue';
 import pluralize from 'pluralize';
-import AppIdentitiesHorizontalList from '@/shared/modules/identities/components/identities-horizontal-list.vue';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 
 defineProps({
   member: {
