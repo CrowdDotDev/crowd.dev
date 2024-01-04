@@ -35,14 +35,19 @@
                 </div>
 
                 <span v-else class="flex items-center break-words">
-                  <span
+                  <component
+                    :is="link ? 'a' : 'span'"
+                    :href="link"
                     class="text-gray-900 text-xs font-medium leading-5 h-5"
                     :class="{
-                      'underline decoration-dashed decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer': link,
+                      'underline decoration-dashed decoration-gray-400 underline-offset-4 ': link,
+                      'hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900': link,
                     }"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     {{ handle }}
-                  </span>
+                  </component>
                 </span>
 
                 <span v-if="vi !== value.length - 1" class="font-medium">・</span>
