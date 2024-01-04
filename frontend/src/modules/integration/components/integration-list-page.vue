@@ -52,23 +52,6 @@
             >Read more</a>
           </template>
         </app-alert>
-        <app-alert v-if="integrationsWithErrors.length > 0">
-          <template #body>
-            Please disconnect and connect again all the
-            integrations with connectivity issues. If this
-            problem persists, contact us via
-            <a
-              href="mailto:help@crowd.dev"
-              class="font-semibold"
-            >email</a>
-            or engage within our
-            <a
-              href="https://crowd.dev/discord"
-              class="font-semibold"
-            >
-              Discord community</a>.
-          </template>
-        </app-alert>
         <app-alert v-if="integrationsWithNoData.length > 0">
           <template #body>
             Please check the
