@@ -11,9 +11,12 @@ export default async function identifyTenant(req) {
         analytics.group({
           userId: req.currentUser.id,
           groupId: req.currentTenant.id,
-          traits: {
-            name: req.currentTenant.name,
-          },
+          traits:
+            req.currentTenant.name !== 'temporaryName'
+              ? {
+                  name: req.currentTenant.name,
+                }
+              : undefined,
         })
       }
     } else if (API_CONFIG.edition === Edition.COMMUNITY) {
