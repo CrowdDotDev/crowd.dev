@@ -156,4 +156,13 @@ export class AuthService {
 
     return Boolean(urlParams.get('social'));
   }
+
+  static confirmPayment(sessionId) {
+    const tenantId = AuthCurrentTenant.get();
+    return authAxios
+      .post(`/tenant/${tenantId}/payment/confirm`, {
+        sessionId,
+      })
+      .then((response) => response.data);
+  }
 }

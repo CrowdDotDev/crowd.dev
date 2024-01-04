@@ -1,16 +1,14 @@
-import moment from 'moment'
-import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import TenantService from '../tenantService'
-import MemberService from '../memberService'
-import { IServiceOptions } from '../IServiceOptions'
-import MicroserviceService from '../microserviceService'
-import { MemberAttributeName, PlatformType, TenantPlans } from '@crowd/types'
-import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import TaskService from '../taskService'
-import Plans from '../../security/plans'
 import { generateUUIDv1 } from '@crowd/common'
 import { getRedisClient } from '@crowd/redis'
+import { MemberAttributeName, PlatformType } from '@crowd/types'
 import { REDIS_CONFIG } from '../../conf'
+import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
+import { IServiceOptions } from '../IServiceOptions'
+import MemberAttributeSettingsService from '../memberAttributeSettingsService'
+import MemberService from '../memberService'
+import MicroserviceService from '../microserviceService'
+import TaskService from '../taskService'
+import TenantService from '../tenantService'
 
 const db = null
 
@@ -171,7 +169,7 @@ describe('TenantService tests', () => {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: TenantPlans.Essential,
+        plan: null,
         isTrialPlan: false,
         trialEndsAt: null,
         onboardedAt: null,

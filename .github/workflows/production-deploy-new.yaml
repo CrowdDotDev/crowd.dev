@@ -31,8 +31,8 @@ on:
         description: Deploy members-enrichment-worker service?
         required: true
         type: boolean
-      deploy_organizations_enrichment_worker:
-        description: Deploy organizations-enrichment-worker service?
+      deploy_merge_suggestions_worker:
+        description: Deploy merge-suggestions-worker service?
         required: true
         type: boolean
       deploy_entity_merging_worker:
@@ -203,9 +203,9 @@ jobs:
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
-  build-and-push-organizations-enrichment-worker:
+  build-and-push-merge-suggestions-worker:
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_organizations_enrichment_worker }}
+    if: ${{ inputs.deploy_merge_suggestions_worker }}
     outputs:
       image: ${{ steps.image.outputs.IMAGE }}
     defaults:
@@ -218,7 +218,7 @@ jobs:
       - uses: ./.github/actions/build-docker-image
         id: image-builder
         with:
-          image: organizations-enrichment-worker
+          image: merge-suggestions-worker
 
       - name: Set docker image output
         id: image
@@ -396,10 +396,10 @@ jobs:
           image: ${{ needs.build-and-push-members-enrichment-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
-  deploy-organizations-enrichment-worker:
-    needs: build-and-push-organizations-enrichment-worker
+  deploy-merge-suggestions-worker:
+    needs: build-and-push-merge-suggestions-worker
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_organizations_enrichment_worker }}
+    if: ${{ inputs.deploy_merge_suggestions_worker }}
     defaults:
       run:
         shell: bash
@@ -410,8 +410,8 @@ jobs:
 
       - uses: ./.github/actions/deploy-service
         with:
-          service: organizations-enrichment-worker
-          image: ${{ needs.build-and-push-organizations-enrichment-worker.outputs.image }}
+          service: merge-suggestions-worker
+          image: ${{ needs.build-and-push-merge-suggestions-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-entity-merging-worker:

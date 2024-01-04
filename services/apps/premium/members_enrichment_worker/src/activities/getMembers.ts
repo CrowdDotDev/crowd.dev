@@ -6,8 +6,8 @@ import { svc } from '../main'
 getMembers is a Temporal activity that retrieves all members available for
 enrichment. Member must have one of GitHub username or email address, must not
 have been enriched in the past 90 days, and must be part of tenant with a plan
-allowing this feature. We limit to 50 members per workflow to not overload
-external APIs.
+allowing this feature. We limit to 20 members per workflow to not overload
+OpenSearch and external APIs.
 */
 export async function getMembers(): Promise<IMember[]> {
   let rows: IMember[] = []
@@ -42,7 +42,7 @@ export async function getMembers(): Promise<IMember[]> {
       AND members."deletedAt" IS NULL
       GROUP BY members.id
       ORDER BY activity_count DESC
-      LIMIT 50;`,
+      LIMIT 20;`,
     )
   } catch (err) {
     throw new Error(err)

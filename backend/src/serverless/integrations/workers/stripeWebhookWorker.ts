@@ -1,4 +1,4 @@
-import { timeout } from '@crowd/common'
+import { Error404, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
 import { ApiWebsocketMessage, TenantPlans } from '@crowd/types'
@@ -7,6 +7,7 @@ import { Stripe } from 'stripe'
 import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { PLANS_CONFIG, REDIS_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
+import StripeService from '@/services/stripeService'
 
 const log = getServiceChildLogger('stripeWebhookWorker')
 
@@ -53,6 +54,62 @@ export const processStripeWebhook = async (message: any) => {
   const stripeWebhookMessage = message.event
 
   switch (stripeWebhookMessage.type) {
+    case 'customer.subscription.updated': {
+      const tenant = await options.database.tenant.findOne({
+        where: { stripeSubscriptionId: stripeWebhookMessage.data.object.id },
+      })
+
+      if (!tenant) {
+        throw new Error404()
+      }
+
+      const subscription = await StripeService.retreiveSubscription(
+        stripeWebhookMessage.data.object.id,
+      )
+
+      const productId = (subscription as any).plan.product
+
+      const trialEnd = subscription.trial_end
+
+      const subscriptionEndsAt = subscription.current_period_end
+
+      const productPlan = StripeService.getPlanFromProductId(productId)
+
+      if (!productPlan) {
+        throw new Error404()
+      }
+
+      const trialPeriod = moment(trialEnd, 'X').isAfter(moment())
+
+      await tenant.update({
+        plan: ['active', 'trialing'].includes(subscription.status) ? productPlan : null,
+        isTrialPlan: !!trialEnd && trialPeriod,
+        trialEndsAt: trialEnd && trialPeriod ? moment(trialEnd, 'X').toISOString() : null,
+        stripeSubscriptionId: subscription.id,
+        planSubscriptionEndsAt: moment(subscriptionEndsAt, 'X').toISOString(),
+      })
+
+      break
+    }
+    case 'customer.subscription.deleted': {
+      const tenant = await options.database.tenant.findOne({
+        where: { stripeSubscriptionId: stripeWebhookMessage.data.object.id },
+      })
+
+      if (!tenant) {
+        throw new Error404()
+      }
+
+      await tenant.update({
+        plan: null,
+        isTrialPlan: false,
+        trialEndsAt: null,
+        stripeSubscriptionId: stripeWebhookMessage.data.object.id,
+        planSubscriptionEndsAt: moment().toISOString(),
+      })
+
+      break
+    }
     case 'checkout.session.completed': {
       log.info(
         { tenant: stripeWebhookMessage.data.object.client_reference_id },
@@ -60,7 +117,7 @@ export const processStripeWebhook = async (message: any) => {
       )
 
       // get subscription information from checkout event
-      const subscription = await stripe.subscriptions.retrieve(
+      const subscription = await StripeService.retreiveSubscription(
         stripeWebhookMessage.data.object.subscription,
       )
 
@@ -68,14 +125,10 @@ export const processStripeWebhook = async (message: any) => {
       const tenantId = stripeWebhookMessage.data.object.client_reference_id
 
       const tenant = await options.database.tenant.findByPk(tenantId)
+      const productId = (subscription as any).plan.product
+      const productPlan = StripeService.getPlanFromProductId(productId)
 
-      let productPlan
-
-      if ((subscription as any).plan.product === PLANS_CONFIG.stripeEagleEyePlanProductId) {
-        productPlan = TenantPlans.EagleEye
-      } else if ((subscription as any).plan.product === PLANS_CONFIG.stripeGrowthPlanProductId) {
-        productPlan = TenantPlans.Growth
-      } else {
+      if (!productPlan) {
         log.error({ subscription }, `Unknown product in subscription`)
         process.exit(1)
       }
