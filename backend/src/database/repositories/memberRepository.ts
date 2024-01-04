@@ -245,6 +245,8 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
+    const order = await isFeatureEnabled(FeatureFlag.SEGMENTS, options) ? 'ms."activityEstimate" desc, ms.similarity desc' : 'ms.similarity desc, ms."activityEstimate" desc' 
+
     const mems = await options.database.sequelize.query(
       `
       with members_in_segments as (
@@ -259,7 +261,7 @@ class MemberRepository {
         mtm.similarity
     from members_in_segments mis
     inner join "memberToMerge" mtm on mtm."memberId" = mis."memberId"
-    order by mtm."activityEstimate" desc, mtm.similarity desc
+    order by ${order}
     LIMIT :limit OFFSET :offset;
     `,
       {
