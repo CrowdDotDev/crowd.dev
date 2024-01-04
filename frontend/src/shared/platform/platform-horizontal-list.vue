@@ -7,7 +7,7 @@
     popper-class="!px-0 !py-4 !shadow !rounded-lg"
   >
     <template #reference>
-      <div class="flex gap-3 items-center border rounded-full h-8 px-3 relative">
+      <div class="flex gap-3 items-center border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto">
         <div class="text-xs text-gray-500 font-medium">
           {{ pluralize('identity', parsedIdentities.identitiesLength, true) }}
         </div>
@@ -19,6 +19,7 @@
             v-if="value.length"
             :platform="platform"
             :platform-handles-links="value"
+            :as-svg="asSvg"
             app-module="organization"
           />
         </div>
@@ -61,6 +62,7 @@ const props = defineProps<{
   organization?: Organization;
   member?: Member;
   limit?: number;
+  asSvg?: boolean;
 }>();
 
 const identities = computed(() => {

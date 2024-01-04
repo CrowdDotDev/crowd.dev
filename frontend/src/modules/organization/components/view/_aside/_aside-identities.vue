@@ -25,7 +25,7 @@
 
       <div
         v-if="noIdentities"
-        class="text-sm text-gray-600 px-6 pt-2"
+        class="text-sm text-gray-600 px-6 pt-6"
       >
         <router-link
           :to="{
@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <el-divider v-if="emails.length" class="!my-8" />
+  <el-divider v-if="emails.length" class="!my-8 border-gray-200" />
 
   <div v-if="emails.length" class="flex flex-col px-6">
     <div class="font-medium text-black">
@@ -54,7 +54,10 @@
         <a
           target="_blank"
           rel="noopener noreferrer"
-          class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2"
+          class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2"
+          :class="{
+            'hover:text-brand-500 cursor:pointer': emailIdentity.link,
+          }"
           :href="emailIdentity.link"
         >{{ emailIdentity.handle }}</a>
       </div>
@@ -84,7 +87,10 @@
         <a
           target="_blank"
           rel="noopener noreferrer"
-          class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2"
+          class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2"
+          :class="{
+            'hover:text-brand-500 cursor:pointer': phoneNumberIdentity.link,
+          }"
           :href="phoneNumberIdentity.link"
         >{{ phoneNumberIdentity.handle }}</a>
       </div>
@@ -137,9 +143,7 @@ const identities = computed(() => useOrganizationIdentities({
 
 const emails = computed(() => {
   if (!displayEmailsMore.value) {
-    return Object.fromEntries(
-      Object.entries(identities.value.getEmails()).slice(0, 5),
-    );
+    return identities.value.getEmails().slice(0, 5);
   }
 
   return identities.value.getEmails();
@@ -147,11 +151,9 @@ const emails = computed(() => {
 
 const phoneNumbers = computed(() => {
   if (!displayPhoneNumbersMore.value) {
-    return Object.fromEntries(
-      Object.entries(identities.value.getPhoneNumbers()).slice(0, 5),
-    );
+    return identities.value.getPhoneNumbers().slice(0, 5);
   }
 
-  return identities.value.getEmails();
+  return identities.value.getPhoneNumbers();
 });
 </script>

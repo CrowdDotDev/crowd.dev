@@ -76,12 +76,17 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
     const parsedIdentities = identities?.length ? identities : [];
 
     const rootEmails = (emails || []).map((e) => ({
-      platform: 'emails',
-      url: `mailto:${e}`,
-      name: e,
+      link: `mailto:${e}`,
+      handle: e,
     }));
-    const identitiesEmails = parsedIdentities.filter((i) => i.platform === 'emails');
-    const identitiesEmail = parsedIdentities.filter((i) => i.platform === 'email');
+    const identitiesEmails = parsedIdentities.filter((i) => i.platform === 'emails').map((i) => ({
+      link: i.url ? `mailto:${i.url}` : null,
+      handle: i.name,
+    }));
+    const identitiesEmail = parsedIdentities.filter((i) => i.platform === 'email').map((i) => ({
+      link: i.url ? `mailto:${i.url}` : null,
+      handle: i.name,
+    }));
 
     return [...rootEmails, ...identitiesEmails, ...identitiesEmail];
   };
@@ -90,9 +95,8 @@ export default ({ organization, order }: { organization: Partial<Organization>, 
     handle: string;
     link: string;
   }[] => (phoneNumbers || []).map((p) => ({
-    platform: 'phoneNumbers',
-    url: `tel:${p}`,
-    name: p,
+    link: `tel:${p}`,
+    handle: p,
   }));
 
   return {

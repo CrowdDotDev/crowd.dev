@@ -150,7 +150,10 @@
       </div>
       <div class="pt-5">
         <app-platform-vertical-list
-          :platform-handles-links="identities.getIdentities()"
+          :platform-handles-links="{
+            ...identities.getIdentities(),
+            emails: identities.getEmails(),
+          }"
         />
       </div>
     </div>

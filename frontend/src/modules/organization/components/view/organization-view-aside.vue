@@ -5,8 +5,10 @@
         :organization="organization"
       />
 
-      <div v-if="shouldShowAttributes" class="px-6">
-        <div class="mt-10">
+      <div v-if="shouldShowAttributes">
+        <el-divider class="!my-8" />
+
+        <div class="mt-10 px-6">
           <div class="font-medium text-black">
             Attributes
           </div>

@@ -32,7 +32,7 @@
     </div>
   </div>
 
-  <el-divider class="!my-8" />
+  <el-divider class="!my-8 border-gray-200" />
 
   <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">

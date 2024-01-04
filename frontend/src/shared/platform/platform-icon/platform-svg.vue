@@ -3,7 +3,6 @@
     :class="svgClass"
     color="#D1D5DB"
     :name="platform"
-    :hover-color="asLink ? '#4B5563' : ''"
   />
 </template>
 
@@ -14,7 +13,6 @@ import { computed } from 'vue';
 const props = defineProps<{
     platform: string;
     size: string;
-    asLink: boolean;
 }>();
 
 const svgClass = computed(() => {

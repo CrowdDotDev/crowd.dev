@@ -45,28 +45,28 @@ export default ({ member, order }: { member: Partial<Member>, order?: string[] }
         if (acc[i.platform]?.length) {
           acc[i.platform].push({
             handle: i.name,
-            link: i.url ? i.url : CrowdIntegrations.getConfig(p)?.url({
+            link: i.url ? i.url : ((CrowdIntegrations.getConfig(p)?.showProfileLink && CrowdIntegrations.getConfig(p)?.url({
               username: i.name,
               attributes,
-            }) ?? attributes?.url?.[p],
+            })) ?? attributes?.url?.[p]),
           });
         } else {
           acc[i.platform] = [{
             handle: i.name,
-            link: i.url ? i.url : CrowdIntegrations.getConfig(p)?.url({
+            link: i.url ? i.url : (CrowdIntegrations.getConfig(p)?.showProfileLink && CrowdIntegrations.getConfig(p)?.url({
               username: i.name,
               attributes,
-            }) ?? attributes?.url?.[p],
+            })) ?? attributes?.url?.[p],
           }];
         }
       });
     } else {
       const platformHandlesValues = platformIdentities.map((i) => ({
         handle: i.name,
-        link: i.url ? i.url : CrowdIntegrations.getConfig(p)?.url({
+        link: i.url ? i.url : (CrowdIntegrations.getConfig(p)?.showProfileLink && CrowdIntegrations.getConfig(p)?.url({
           username: i.name,
           attributes,
-        }) ?? attributes?.url?.[p],
+        })) ?? attributes?.url?.[p],
       }));
 
       if (platformHandlesValues.length) {

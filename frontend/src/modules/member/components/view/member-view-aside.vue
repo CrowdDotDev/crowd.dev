@@ -9,15 +9,24 @@
     <div class="member-view-aside panel !px-0">
       <app-member-aside-identities :member="member" />
 
+      <el-divider class="!my-8 border-gray-200" />
+
       <div class="px-6">
         <app-lf-member-aside-organizations
           class="mt-10"
           :member="member"
         />
+      </div>
+
+      <el-divider class="!my-8 border-gray-200" />
+
+      <div class="px-6">
         <app-member-aside-custom-attributes
           :member="member"
-          class="mt-10"
         />
+      </div>
+
+      <div class="px-6">
         <app-member-aside-enriched
           :member="member"
         />

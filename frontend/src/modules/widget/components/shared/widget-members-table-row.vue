@@ -1,9 +1,6 @@
 <template>
   <div
     class="flex gap-3 items-center col-span-3"
-    :class="{
-      'col-span-4': isDetailedView,
-    }"
   >
     <app-avatar :entity="member" size="sm" />
     <div class="flex flex-col">
@@ -32,20 +29,17 @@
     {{ member.activeDaysCount }} days active
   </div>
 
-  <div class="flex gap-3 items-center">
-    <div
-      v-for="[platform, value] of Object.entries(identities.getIdentities())"
-      :key="platform"
-    >
-      <app-platform
-        :platform="platform"
-        :platform-handles-links="value"
-        :attributes="member.attributes"
-        :as-svg="true"
-        app-module="member"
-        :show-platform-tooltip="true"
-      />
-    </div>
+  <div
+    class="flex gap-3 items-center col-span-2"
+    :class="{
+      'col-span-3': isDetailedView,
+    }"
+  >
+    <app-platform-horizontal-list
+      :member="member"
+      :limit="4"
+      :as-svg="true"
+    />
   </div>
 
   <div
@@ -57,13 +51,11 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue';
+import { defineProps } from 'vue';
 import pluralize from 'pluralize';
-import AppPlatform from '@/shared/platform/platform-icon/platform.vue';
-import useMemberIdentities from '@/utils/identities/useMemberIdentities';
-import platformOrders from '@/shared/platform/config/order/member';
+import AppPlatformHorizontalList from '@/shared/platform/platform-horizontal-list.vue';
 
-const props = defineProps({
+defineProps({
   member: {
     type: Object,
     default: () => {},
@@ -78,11 +70,6 @@ const props = defineProps({
     default: false,
   },
 });
-
-const identities = computed(() => useMemberIdentities({
-  member: props.member,
-  order: platformOrders.listOrder,
-}));
 </script>
 
 <script>

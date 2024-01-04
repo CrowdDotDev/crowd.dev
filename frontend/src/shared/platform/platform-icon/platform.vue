@@ -19,7 +19,6 @@
           v-if="asSvg"
           :platform="platform"
           :size="size"
-          :as-link="asLink"
         />
         <app-platform-img
           v-else-if="defaultPlatformConfig"
