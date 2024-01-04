@@ -1,5 +1,6 @@
-export interface ITenantId {
+export interface ITenant {
   tenantId: string
+  plan: string
 }
 
 interface ITermFilter {
