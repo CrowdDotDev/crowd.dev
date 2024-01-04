@@ -90,7 +90,7 @@
       <div class="flex items-start justify-between mt-24">
         <div class="flex items-center flex-1">
           <app-platform-icon
-            platform="email"
+            platform="emails"
             size="small"
           />
           <div class="font-medium text-sm ml-3">

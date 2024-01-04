@@ -85,7 +85,7 @@
       <div class="flex items-start justify-between mt-16">
         <div class="flex items-center">
           <app-platform-icon
-            platform="phoneNumber"
+            platform="phoneNumbers"
             size="small"
           />
           <div class="font-medium text-sm ml-3">
