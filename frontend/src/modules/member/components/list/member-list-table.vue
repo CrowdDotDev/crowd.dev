@@ -199,11 +199,11 @@
                     class="block"
                   >
                     <div
-                      v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
+                      v-if="scope.row.emails.filter((e) => !!e)?.length && scope.row.emails.filter((e) => !!e)?.some((e) => !!e)"
                       class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
                       <el-tooltip
-                        v-for="email of scope.row.emails.slice(0, 3)"
+                        v-for="email of scope.row.emails.filter((e) => !!e).slice(0, 3)"
                         :key="email"
                         :disabled="!email"
                         popper-class="custom-identity-tooltip"
@@ -227,7 +227,7 @@
                         </div>
                       </el-tooltip>
                       <el-popover
-                        v-if="scope.row.emails?.length > 3"
+                        v-if="scope.row.emails.filter((e) => !!e)?.length > 3"
                         placement="top"
                         :width="400"
                         trigger="hover"
@@ -236,11 +236,11 @@
                         <template #reference>
                           <span
                             class="badge--interactive hover:text-gray-900"
-                          >+{{ scope.row.emails.length - 3 }}</span>
+                          >+{{ scope.row.emails.filter((e) => !!e).length - 3 }}</span>
                         </template>
                         <div class="flex flex-wrap gap-3 my-1">
                           <el-tooltip
-                            v-for="email of scope.row.emails.slice(3)"
+                            v-for="email of scope.row.emails.filter((e) => !!e).slice(3)"
                             :key="email"
                             :disabled="!email"
                             popper-class="custom-identity-tooltip flex "
