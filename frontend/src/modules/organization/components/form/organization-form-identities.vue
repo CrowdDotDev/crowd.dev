@@ -11,7 +11,7 @@
       >
         <div v-if="findPlatform(key)">
           <el-form-item class="h-14 !flex items-center w-full mb-0">
-            <div :class="value.imgContainerClass">
+            <div class="h-8 w-8 flex items-center justify-center text-base">
               <img
                 :src="findPlatform(key).image"
                 :alt="findPlatform(key).name"
@@ -68,7 +68,10 @@
       </div>
       <div class="flex items-start justify-between mt-16">
         <div class="flex items-center">
-          <app-platform platform="email" />
+          <app-platform-icon
+            platform="emails"
+            size="small"
+          />
           <div class="font-medium text-sm ml-3">
             Email address
           </div>
@@ -81,7 +84,10 @@
       </div>
       <div class="flex items-start justify-between mt-16">
         <div class="flex items-center">
-          <app-platform platform="phone" />
+          <app-platform-icon
+            platform="phoneNumbers"
+            size="small"
+          />
           <div class="font-medium text-sm ml-3">
             Phone number
           </div>
@@ -101,6 +107,7 @@ import {
   computed, defineEmits, defineProps, reactive,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppPlatformIcon from '@/shared/modules/platform/components/platform-icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -133,8 +140,6 @@ const identitiesForm = reactive({
       props.modelValue.identities?.some((el) => el.platform === 'github')
       || false,
     urlPrefix: 'github.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
   },
   linkedin: {
     label: 'LinkedIn',
@@ -142,8 +147,6 @@ const identitiesForm = reactive({
       props.modelValue.identities?.some((el) => el.platform === 'linkedin')
       || false,
     urlPrefix: 'linkedin.com/company/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
   },
   twitter: {
     label: 'X/Twitter',
@@ -151,8 +154,6 @@ const identitiesForm = reactive({
       props.modelValue.identities?.some((el) => el.platform === 'twitter')
       || false,
     urlPrefix: 'twitter.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter',
   },
   crunchbase: {
     label: 'Crunchbase',
@@ -160,8 +161,6 @@ const identitiesForm = reactive({
       props.modelValue.identities?.some((el) => el.platform === 'crunchbase')
       || false,
     urlPrefix: 'crunchbase.com/organization/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase',
   },
 });
 
@@ -215,28 +214,6 @@ const removeUsername = (index) => {
 .organization-identities-form {
   .platform {
     @apply flex items-center justify-between w-full mb-3 text-sm flex-wrap gap-2;
-    &-logo {
-      @apply h-8 w-8 rounded flex items-center justify-center text-base;
-      &--github {
-        @apply bg-gray-100 border border-gray-200;
-      }
-
-      &--twitter {
-        background: rgba(29, 155, 240, 0.15);
-      }
-
-      &--crunchbase {
-        background: rgba(20, 106, 255, 0.15);
-      }
-
-      &--linkedin {
-        @apply bg-white border border-gray-200;
-      }
-
-      &--email {
-        @apply leading-none cursor-pointer bg-white text-gray-600 border border-gray-200;
-      }
-    }
   }
 }
 </style>
