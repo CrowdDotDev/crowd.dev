@@ -233,8 +233,15 @@ const ignoreSuggestion = () => {
       Message.success('Merging suggestion ignored successfuly');
       fetch();
     })
-    .catch(() => {
-      Message.error('There was an error ignoring the merging suggestion');
+    .catch((error) => {
+      if (error.response.status === 404) {
+        Message.error('Suggestion already merged or ignored', {
+          message: `Sorry, the suggestion you are trying to merge might have already been merged or ignored.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error ignoring the merging suggestion');
+      }
     })
     .finally(() => {
       sendingIgnore.value = false;
@@ -255,8 +262,15 @@ const mergeSuggestion = () => {
       Message.success('Contacts merged successfuly');
       fetch();
     })
-    .catch(() => {
-      Message.error('There was an error merging contacts');
+    .catch((error) => {
+      if (error.response.status === 404) {
+        Message.error('Contacts already merged or deleted', {
+          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error merging contacts');
+      }
     })
     .finally(() => {
       sendingMerge.value = false;
