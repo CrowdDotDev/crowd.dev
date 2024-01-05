@@ -2216,7 +2216,7 @@ class MemberRepository {
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
       const seq = SequelizeRepository.getSequelize(options)
-      const segmentIds = SequelizeRepository.getSegmentIds(options)
+      const leafSegmentIds = await SegmentRepository.getLeafSegmentIds(options)
 
       const lastActivities = await seq.query(
         `
@@ -2226,7 +2226,7 @@ class MemberRepository {
                     FROM activities
                     WHERE "tenantId" = :tenantId
                       AND "memberId" IN (:memberIds)
-                      AND "segmentId" IN (:segmentIds)
+                      AND "segmentId" IN (:leafSegmentIds)
                 )
             SELECT *
             FROM raw_data
@@ -2235,7 +2235,7 @@ class MemberRepository {
         {
           replacements: {
             tenantId: tenant.id,
-            segmentIds,
+            leafSegmentIds,
             memberIds,
           },
           type: QueryTypes.SELECT,

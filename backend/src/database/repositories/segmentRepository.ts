@@ -867,6 +867,28 @@ class SegmentRepository extends RepositoryBase<
 
     return segments.map((i: any) => i.id)
   }
+
+  static async getLeafSegmentIds(options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const segments = await options.database.sequelize.query(
+      `
+        SELECT
+          id
+        FROM segments
+        WHERE "tenantId" = :tenantId
+          AND "parentSlug" IS NOT NULL
+          AND "grandparentSlug" IS NOT NULL
+      `,
+      {
+        replacements: { tenantId: options.currentTenant.id },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return segments.map((i: any) => i.id)
+  }
 }
 
 export default SegmentRepository
