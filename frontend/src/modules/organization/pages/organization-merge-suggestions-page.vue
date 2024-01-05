@@ -14,27 +14,40 @@
       Here you can check all the merging suggestions.
     </div>
 
-    <div v-if="loading || count > 0" class="panel">
+    <div v-if="loading || count > 0" class="panel !p-0">
       <!-- Header -->
-      <header class="flex items-center justify-between pb-4">
-        <button
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset <= 0"
-          @click="fetch(offset - 1)"
-        >
-          <span class="ri-arrow-left-s-line text-lg mr-2" />
-          <span>Previous</span>
-        </button>
-        <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
-        <div
-          v-else
-          class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center"
-        >
-          <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
+      <header class="flex items-center justify-between px-6 py-5 border-b">
+        <div class="flex items-center">
+          <button
+            type="button"
+            class="btn btn--transparent btn--md"
+            :disabled="loading || offset <= 0"
+            @click="fetch(offset - 1)"
+          >
+            <span class="ri-arrow-left-s-line text-lg mr-2" />
+            <span>Previous</span>
+          </button>
+          <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
           <div
-            v-if="organizationsToMerge.similarity"
-            class="w-full flex items-center justify-center pt-2"
+            v-else
+            class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
+          >
+            <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
+          </div>
+          <button
+            type="button"
+            class="btn btn--transparent btn--md"
+            :disabled="loading || offset >= count - 1"
+            @click="fetch(offset + 1)"
+          >
+            <span>Next</span>
+            <span class="ri-arrow-right-s-line text-lg ml-2" />
+          </button>
+        </div>
+        <div class="flex items-center">
+          <div
+            v-if="!loading && organizationsToMerge.similarity"
+            class="w-full flex items-center justify-center pr-2"
           >
             <div
               class="flex text-sm"
@@ -46,40 +59,47 @@
               {{ Math.round(organizationsToMerge.similarity * 100) }}% confidence
             </div>
           </div>
+          <el-button
+            :disabled="loading || isEditLockedForSampleData"
+            class="btn btn--bordered btn--md"
+            :loading="sendingIgnore"
+            @click="ignoreSuggestion()"
+          >
+            Ignore suggestion
+          </el-button>
+          <el-button
+            :disabled="loading || isEditLockedForSampleData"
+            class="btn btn--primary btn--md !ml-4"
+            :loading="sendingMerge"
+            @click="mergeSuggestion()"
+          >
+            Merge organizations
+          </el-button>
         </div>
-        <button
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset >= count - 1"
-          @click="fetch(offset + 1)"
-        >
-          <span>Next</span>
-          <span class="ri-arrow-right-s-line text-lg ml-2" />
-        </button>
       </header>
 
       <!-- Comparison -->
       <!-- Loading -->
-      <div v-if="loading" class="flex -mx-3">
-        <div class="w-1/2 px-3">
+      <div v-if="loading" class="flex p-5">
+        <div class="w-1/2 border rounded-l-lg">
           <app-organization-merge-suggestions-details
             :organization="null"
             :loading="true"
             :is-primary="true"
           />
         </div>
-        <div class="w-1/2 px-3">
+        <div class="w-1/2 -ml-px border rounded-r-lg">
           <app-organization-merge-suggestions-details
             :organization="null"
             :loading="true"
           />
         </div>
       </div>
-      <div v-else class="flex -mx-3">
+      <div v-else class="flex p-5">
         <div
           v-for="(organization, mi) of organizationsToMerge.organizations"
           :key="organization.id"
-          class="w-1/2 px-3"
+          class="w-1/2"
         >
           <app-organization-merge-suggestions-details
             :organization="organization"
@@ -88,6 +108,8 @@
             "
             :is-primary="mi === primary"
             :extend-bio="bioHeight"
+            class="border"
+            :class="mi > 0 ? 'rounded-r-lg -ml-px' : 'rounded-l-lg'"
             @make-primary="primary = mi"
             @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
           />
@@ -95,28 +117,6 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex -mx-3 pt-8">
-        <div class="w-1/2 px-3">
-          <el-button
-            :disabled="loading || isEditLockedForSampleData"
-            class="btn btn--bordered btn--lg w-full"
-            :loading="sendingIgnore"
-            @click="ignoreSuggestion()"
-          >
-            Ignore suggestion
-          </el-button>
-        </div>
-        <div class="w-1/2 px-3">
-          <el-button
-            :disabled="loading || isEditLockedForSampleData"
-            class="btn btn--primary btn--lg w-full"
-            :loading="sendingMerge"
-            @click="mergeSuggestion()"
-          >
-            Merge organizations
-          </el-button>
-        </div>
-      </div>
     </div>
     <!-- Empty state -->
     <div v-else class="pt-20 flex flex-col items-center">
@@ -141,6 +141,7 @@ import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
+import { useRoute } from 'vue-router';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -150,6 +151,8 @@ const organizationStore = useOrganizationStore();
 const {
   mergedOrganizations,
 } = storeToRefs(organizationStore);
+
+const route = useRoute();
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -202,7 +205,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  OrganizationService.fetchMergeSuggestions(1, offset.value)
+  OrganizationService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;

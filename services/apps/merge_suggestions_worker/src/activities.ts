@@ -3,7 +3,8 @@ import {
   getMergeSuggestions,
   addToMerge,
   getMembers,
-  findTenantsLatestSuggestionCreatedAt,
+  findTenantsLatestMemberSuggestionGeneratedAt,
+  updateMemberMergeSuggestionsLastGeneratedAt,
 } from './activities/member-merge-suggestions/getMergeSuggestions'
 
 export {
@@ -11,5 +12,6 @@ export {
   getMergeSuggestions,
   getMembers,
   addToMerge,
-  findTenantsLatestSuggestionCreatedAt,
+  findTenantsLatestMemberSuggestionGeneratedAt,
+  updateMemberMergeSuggestionsLastGeneratedAt,
 }
