@@ -242,51 +242,37 @@ class MemberRepository {
     { limit = 20, offset = 0, memberId = undefined },
     options: IRepositoryOptions,
   ) {
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    const memberFilter = memberId ? `and (mem.id = :memberId OR mtm."toMergeId" = :memberId)` : ''
+    const order = (await isFeatureEnabled(FeatureFlag.SEGMENTS, options))
+      ? 'mtm."activityEstimate" desc, mtm.similarity desc, mtm."memberId", mtm."toMergeId"'
+      : 'mtm.similarity desc, mtm."activityEstimate" desc, mtm."memberId", mtm."toMergeId"'
+
+    const memberFilter = memberId
+      ? ` and (mtm."memberId" = :memberId OR mtm."toMergeId" = :memberId)`
+      : ''
 
     const mems = await options.database.sequelize.query(
       `
       select
-          "membersToMerge".id,
-          "membersToMerge"."toMergeId",
-          "membersToMerge"."total_count",
-          "membersToMerge"."similarity",
-          "membersToMerge"."activityEstimate"
+          mtm."memberId" AS id,
+          mtm."toMergeId",
+          count(*) over() AS total_count,
+          mtm.similarity
       from
-          (
-          select
-              mem.id,
-              mtm."toMergeId",
-              COUNT(*) over() as total_count,
-              mtm."similarity",
-              mtm."activityEstimate",
-              row_number() over (partition by greatest(mem.id, mtm."toMergeId"), least(mem.id, mtm."toMergeId") order by mem.id, mtm."toMergeId") as rn
-          from
-              members mem
-          inner join
-              "memberToMerge" mtm ON mem.id = mtm."memberId"
-          inner join
-              "memberSegments" ms ON ms."memberId" = mem.id
-          where
-              mem."tenantId" = :tenantId
-              and ms."segmentId" in (:segmentIds)
-              ${memberFilter}
-          ) as "membersToMerge"
-      where
-          "membersToMerge".rn = 1
-      order by
-          "membersToMerge"."activityEstimate",
-          "membersToMerge"."similarity" desc,
-          "membersToMerge".id,
-          "membersToMerge"."toMergeId"
-      limit :limit offset :offset;
+          "memberToMerge" mtm
+      where exists (
+          select 1
+          from "memberSegments" ms
+          where ms."segmentId" in (:segmentIds) and ms."memberId" = mtm."memberId"
+          ${memberFilter}
+      )
+      order by ${order}
+      limit :limit
+      offset :offset;
     `,
       {
         replacements: {
-          tenantId: currentTenant.id,
           segmentIds,
           limit,
           offset,
