@@ -94,10 +94,12 @@ export default ({
   }[] => {
     const parsedIdentities = identities?.length ? identities : [];
 
-    const rootEmails = (emails || []).map((e) => ({
-      link: `mailto:${e}`,
-      handle: e,
-    }));
+    const rootEmails = (emails || [])
+      .filter((e) => !!e)
+      .map((e) => ({
+        link: `mailto:${e}`,
+        handle: e,
+      }));
 
     const identitiesEmails = parsedIdentities
       .filter((i) => i.platform === 'emails')

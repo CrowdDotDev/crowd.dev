@@ -4,7 +4,7 @@
       v-for="[platform, value] of Object.entries(slicedIdentities)"
       :key="platform"
     >
-      <div>
+      <div v-if="value.length">
         <div
           class="flex gap-3 items-start relative min-h-5"
           :class="{

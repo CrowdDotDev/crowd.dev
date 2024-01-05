@@ -107,23 +107,29 @@ export default ({
     handle: string;
     link: string;
   }[] => {
-    const rootEmails = (emails || []).map((e) => ({
-      link: `mailto:${e}`,
-      handle: e,
-    }));
+    const rootEmails = (emails || [])
+      .filter((e) => !!e)
+      .map((e) => ({
+        link: `mailto:${e}`,
+        handle: e,
+      }));
 
     const usernameEmail = username.email
-      ? username.email.map((u) => ({
-        link: null,
-        handle: u,
-      }))
+      ? username.email
+        .filter((e) => !!e)
+        .map((e) => ({
+          link: null,
+          handle: e,
+        }))
       : [];
 
     const usernameEmails = username.emails
-      ? username.emails.map((u) => ({
-        link: `mailto:${e}`,
-        handle: u,
-      }))
+      ? username.emails
+        .filter((e) => !!e)
+        .map((e) => ({
+          link: `mailto:${e}`,
+          handle: e,
+        }))
       : [];
 
     return [...rootEmails, ...usernameEmail, ...usernameEmails];
