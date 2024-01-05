@@ -5,6 +5,11 @@ import path from 'path'
 import { QueryTypes } from 'sequelize'
 import { databaseInit } from '@/database/databaseConnection'
 import { randomUUID } from 'crypto'
+import SearchSyncService from '@/services/searchSyncService'
+import { SyncMode } from '@crowd/types'
+import { getServiceLogger } from '@crowd/logging'
+
+const log = getServiceLogger('soft-unmerge-members')
 
 /* eslint-disable no-console */
 
@@ -109,10 +114,7 @@ if (parameters.help || !parameters.memberId || !parameters.platform || !paramete
       await prodDb.sequelize.query(
         `insert into members (
                 "id", 
-                "usernameOld", 
-                "attributes", 
                 "displayName", 
-                "emails", 
                 "score", 
                 "joinedAt", 
                 "importHash", 
@@ -124,17 +126,11 @@ if (parameters.help || !parameters.memberId || !parameters.platform || !paramete
                 "createdById", 
                 "updatedById", 
                 "lastEnriched", 
-                "contributions", 
-                "enrichedBy", 
-                "weakIdentities", 
                 "searchSyncedAt", 
                 "manuallyCreated")
                 VALUES (
                   :id, 
-                  :usernameOld, 
-                  :attributes,
                   :displayName,
-                  :emails,
                   :score,
                   :joinedAt,
                   :importHash,
@@ -146,22 +142,16 @@ if (parameters.help || !parameters.memberId || !parameters.platform || !paramete
                   :createdById,
                   :updatedById,
                   :lastEnriched,
-                  :contributions,
-                  :enrichedBy,
-                  :weakIdentities,
                   :searchSyncedAt,
                   :manuallyCreated)`,
         {
           replacements: {
             id,
-            usernameOld: identityToProcess.username,
-            attributes: '{}', // TODO: think about this
             displayName: identityToProcess.username,
-            emails: '{}', // TODO: think about this
             score: 0,
-            joinedAt: new Date().toISOString(), // TODO: we need to set the first activity date here,
+            joinedAt: new Date().toISOString(),
             importHash: null,
-            reach: '{}',
+            reach: JSON.stringify({}),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             deletedAt: null,
@@ -169,9 +159,6 @@ if (parameters.help || !parameters.memberId || !parameters.platform || !paramete
             createdById: null,
             updatedById: null,
             lastEnriched: null,
-            contributions: '{}',
-            enrichedBy: '{}',
-            weakIdentities: '{}',
             searchSyncedAt: null,
             manuallyCreated: false,
           },
@@ -207,7 +194,7 @@ if (parameters.help || !parameters.memberId || !parameters.platform || !paramete
 
       console.log(`Identities unmerged from ${parameters.memberId} to ${id}!`)
 
-       // we can't really update the member organizations because we don't have the data for it, so we're skipping it
+      // we can't really update the member organizations because we don't have the data for it, so we're skipping it
 
       // update activities that belonged to the deleted member
       await prodDb.sequelize.query(
@@ -230,16 +217,16 @@ if (parameters.help || !parameters.memberId || !parameters.platform || !paramete
         },
       )
 
-
       // TODO:: find the first activity date, and set members.joinedAt to that date
       const result = await prodDb.sequelize.query(
         `
               select min(timestamp) as "joinedAt" from "activities" where "memberId" = :deletedMemberId
               and "tenantId" = :tenantId
-              and timestamp > '1970-01-01`,
+              and timestamp > '1970-01-01'`,
         {
           replacements: {
             deletedMemberId: id,
+            tenantId: member.tenantId,
           },
           type: QueryTypes.SELECT,
         },
@@ -265,10 +252,26 @@ if (parameters.help || !parameters.memberId || !parameters.platform || !paramete
       }
 
       // TODO:: Think about attributes
+      const searchSyncService = new SearchSyncService(
+        {
+          log,
+          currentSegments: null,
+          currentTenant: null,
+          currentUser: null,
+          language: null,
+          database: null,
+          temporal: null,
+          redis: null,
+        },
+        SyncMode.SYNCHRONOUS,
+      )
+      await tx.commit()
+
+      await searchSyncService.triggerMemberSync(member.tenantId, id)
+      await searchSyncService.triggerMemberSync(member.tenantId, parameters.memberId)
 
       // TODO:: sync both members to opensearch
 
-      await tx.commit()
       console.log(`Member ${id} unmerged from member ${parameters.memberId}`)
     } catch (e) {
       console.log(e)
