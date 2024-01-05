@@ -19,7 +19,7 @@
           />
 
           <div class="flex flex-wrap items-center gap-2">
-            <div class="flex flex-wrap items-center">
+            <div class="inline-block overflow-wrap items-center">
               <template v-for="({ handle, link }, vi) of value" :key="handle">
                 <div
                   v-if="platform === 'linkedin' && handle.includes('private-')"
@@ -31,23 +31,22 @@
                   </el-tooltip>
                 </div>
 
-                <span v-else class="flex items-center break-words">
-                  <component
-                    :is="link ? 'a' : 'span'"
-                    :href="link"
-                    class="text-gray-900 text-xs font-medium leading-5 h-5"
-                    :class="{
-                      'underline decoration-dashed decoration-gray-400 underline-offset-4 ':
-                        link,
-                      'hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900':
-                        link,
-                    }"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {{ handle }}
-                  </component>
-                </span>
+                <component
+                  :is="link ? 'a' : 'span'"
+                  v-else
+                  :href="link"
+                  class="text-gray-900 text-xs font-medium leading-5 items-center w-auto break-words"
+                  :class="{
+                    'underline decoration-dashed decoration-gray-400 underline-offset-4 ':
+                      link,
+                    'hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900':
+                      link,
+                  }"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ handle }}
+                </component>
 
                 <span
                   v-if="vi !== value.length - 1"
