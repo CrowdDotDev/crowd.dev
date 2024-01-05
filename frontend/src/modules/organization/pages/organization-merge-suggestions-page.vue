@@ -30,7 +30,7 @@
           <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
           <div
             v-else
-            class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center"
+            class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
           >
             <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
           </div>
