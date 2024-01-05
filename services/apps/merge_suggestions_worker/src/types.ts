@@ -1,5 +1,6 @@
-export interface ITenantId {
+export interface ITenant {
   tenantId: string
+  plan: string
 }
 
 interface ITermFilter {
@@ -79,8 +80,8 @@ export interface IMemberNoMerge {
   noMergeId: string
 }
 
-export interface IMemberMergeSuggestionsLatestCreatedAt {
-  latestCreatedAt: string
+export interface IMemberMergeSuggestionsLatestGeneratedAt {
+  memberMergeSuggestionsLastGeneratedAt: string
 }
 
 export interface IMemberId {

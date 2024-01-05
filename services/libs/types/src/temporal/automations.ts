@@ -20,4 +20,5 @@ export interface ITriggerMemberAutomationArgs {
 
 export interface IProcessGenerateMemberMergeSuggestionsArgs {
   tenantId: string
+  lastUuid?: string
 }
