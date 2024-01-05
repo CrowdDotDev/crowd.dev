@@ -1240,9 +1240,6 @@ importers:
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
-      lodash.pick:
-        specifier: ^4.4.0
-        version: 4.4.0
       peopledatalabs:
         specifier: ~6.1.5
         version: 6.1.5

@@ -62,6 +62,7 @@ export async function enrichTenantOrganizations(tenant: IPremiumTenantInfo): Pro
             {
               organizationId,
               tenantId: tenant.id,
+              plan: tenant.plan,
             },
           ],
           searchAttributes: {

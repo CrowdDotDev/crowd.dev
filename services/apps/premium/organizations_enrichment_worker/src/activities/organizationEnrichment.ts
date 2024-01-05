@@ -1,5 +1,5 @@
 import { distinct, getSecondsTillEndOfMonth, renameKeys } from '@crowd/common'
-import { getChildLogger } from '@crowd/logging'
+import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache } from '@crowd/redis'
 import {
   FeatureFlag,
@@ -10,9 +10,8 @@ import {
   TenantPlans,
 } from '@crowd/types'
 import { EnrichmentParams, IEnrichmentResponse } from '@crowd/types/premium'
-import { pick } from 'lodash.pick'
 import { svc } from '../main'
-import { OrganizationRepository } from '../repos/organization.repo'
+import { IOrganizationIdentity, OrganizationRepository } from '../repos/organization.repo'
 import { IPremiumTenantInfo } from '../repos/tenant.repo'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -47,13 +46,15 @@ export async function getTenantCredits(tenant: IPremiumTenantInfo): Promise<numb
  * Decrement tenant organization enrichment credits by 1
  * @param tenantId
  */
-export async function decrementTenantCredits(tenantId: string): Promise<void> {
+export async function decrementTenantCredits(tenantId: string, plan: TenantPlans): Promise<void> {
   const log = getChildLogger('decrementTenantCredits', svc.log, { tenantId })
 
-  log.debug({ tenantId }, `Decrementing tenant credits.`)
-  const cache = new RedisCache(FeatureFlagRedisKey.ORGANIZATION_ENRICHMENT_COUNT, svc.redis, log)
+  if (plan === TenantPlans.Growth) {
+    log.debug({ tenantId }, `Decrementing tenant credits.`)
+    const cache = new RedisCache(FeatureFlagRedisKey.ORGANIZATION_ENRICHMENT_COUNT, svc.redis, log)
 
-  await cache.decrement(tenantId, 1, getSecondsTillEndOfMonth())
+    await cache.decrement(tenantId, 1, getSecondsTillEndOfMonth())
+  }
 }
 
 /**
@@ -120,14 +121,33 @@ export async function tryEnrichOrganization(
       )
 
       // we use website and identityForEnrichment?.name to enrich the organization
-      const enrichmentData = await getEnrichment({
-        website: orgData.website,
-        name: identityForEnrichment?.name,
-      })
+      const enrichmentData = await getEnrichment(
+        {
+          website: orgData.website,
+          name: identityForEnrichment?.name,
+        },
+        log,
+      )
 
       if (enrichmentData) {
-        const finalData = convertEnrichedDataToOrg(enrichmentData, orgData)
+        const finalData = convertEnrichedDataToOrg(enrichmentData, orgData.identities)
         // TODO save final data to the database by updating the organizations row
+        await repo.transactionally(async (t) => {
+          await t.updateIdentities(
+            orgData.id,
+            orgData.tenantId,
+            orgData.identities,
+            finalData.identities,
+          )
+          await t.updateOrganizationWithEnrichedData(
+            orgData.id,
+            orgData.manuallyChangedFields,
+            finalData,
+          )
+          if (orgData.website) {
+            await t.generateMergeSuggestions(orgData.id, orgData.website)
+          }
+        })
       } else {
         log.debug('No enrichment data found!')
         await repo.markEnriched(organizationId)
@@ -151,9 +171,14 @@ export async function tryEnrichOrganization(
  * @param enrichmentInput - The object that contains organization enrichment attributes
  * @returns the PDL company response
  */
-async function getEnrichment({ name, website, locality }: EnrichmentParams): Promise<any> {
+async function getEnrichment(
+  { name, website, locality }: EnrichmentParams,
+  log: Logger,
+): Promise<any> {
   const PDLJSModule = await import('peopledatalabs')
-  const PDLClient = new PDLJSModule.default({ apiKey: this.apiKey })
+  const PDLClient = new PDLJSModule.default({
+    apiKey: process.env['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
+  })
   let data: null | IEnrichmentResponse
   try {
     const payload: Partial<EnrichmentParams> = {}
@@ -174,7 +199,7 @@ async function getEnrichment({ name, website, locality }: EnrichmentParams): Pro
 
     data.name = name
   } catch (error) {
-    this.options.log.error({ name, website, locality }, 'PDL Data Unavalable', error)
+    log.error({ name, website, locality }, 'PDL Data Unavalable', error)
     return null
   }
   return data
@@ -182,7 +207,7 @@ async function getEnrichment({ name, website, locality }: EnrichmentParams): Pro
 
 function convertEnrichedDataToOrg(
   pdlData: Awaited<IEnrichmentResponse>,
-  instance: IEnrichableOrganization,
+  existingIdentities: IOrganizationIdentity[],
 ): any {
   let data = <IEnrichableOrganization>renameKeys(pdlData, {
     summary: 'description',
@@ -217,7 +242,7 @@ function convertEnrichedDataToOrg(
     linkedin_id: pdlData.linkedin_id,
   })
 
-  data.identities = instance.identities
+  data.identities = existingIdentities
 
   if (data.github && data.github.handle) {
     const identityExists = data.identities.find(
@@ -264,10 +289,7 @@ function convertEnrichedDataToOrg(
     data.displayName = identity ? identity.name : data.website
   }
 
-  return pick(
-    data,
-    Object.keys(instance).forEach((field) => this.fields.add(field)),
-  )
+  return data
 }
 
 function sanitize(data: any): any {

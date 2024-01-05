@@ -1,3 +1,4 @@
+import { singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
@@ -70,6 +71,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       select  o.id,
               o."tenantId",
               o.website,
+              o."manuallyChangedFields"
               i.identities,
               coalesce(a."activityCount", 0) as "orgActivityCount"
       from organizations o
@@ -95,6 +97,79 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       },
     )
   }
+
+  public async updateIdentities(
+    organizationId: string,
+    tenantId: string,
+    existingIdentities: IOrganizationIdentity[],
+    newIdentities: IOrganizationIdentity[],
+  ): Promise<void> {
+    // check which identities are new or updated
+    // according to the unique key one tenant can have only one identity per platform
+    const toCreate: IOrganizationIdentity[] = []
+    const toUpdate: IOrganizationIdentity[] = []
+
+    for (const newIdentity of newIdentities) {
+      const existingIdentity = singleOrDefault(
+        existingIdentities,
+        (i) => i.platform === newIdentity.platform,
+      )
+
+      if (existingIdentity) {
+        if (existingIdentity.name !== newIdentity.name) {
+          toUpdate.push(newIdentity)
+        }
+      } else {
+        toCreate.push(newIdentity)
+      }
+    }
+
+    if (toUpdate.length > 0) {
+      // generate bulk update query
+      const entries = toUpdate.map((i) => {
+        return {
+          name: i.name,
+          platform: i.platform,
+          organizationId,
+          tenantId,
+        }
+      })
+
+      const query =
+        this.dbInstance.helpers.update(
+          entries,
+          ['?organizationId', '?tenantId', '?platform', 'name'],
+          'organizationIdentities',
+        ) +
+        ' where t."organizationId" = v."organizationId" and t.platform = v.platform and t."tenantId" = v."tenantId"'
+
+      await this.db().none(query)
+    }
+
+    if (toCreate.length > 0) {
+      const entries = toCreate.map((i) => {
+        return {
+          name: i.name,
+          platform: i.platform,
+          organizationId,
+          tenantId,
+        }
+      })
+
+      const query = this.dbInstance.helpers.insert(
+        entries,
+        ['organizationId', 'tenantId', 'platform', 'name'],
+        'organizationIdentities',
+      )
+      await this.db().none(query)
+    }
+  }
+
+  public async generateMergeSuggestions(
+    organizationId: string,
+    tenantId: string,
+    website: string,
+  ): Promise<void> {}
 }
 
 export interface IOrganizationIdentity {
@@ -108,5 +183,6 @@ export interface IOrganizationData {
   tenantId: string
   orgActivityCount: number
   website: string | null
+  manuallyChangedFields: string[]
   identities: IOrganizationIdentity[]
 }
