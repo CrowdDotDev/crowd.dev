@@ -17,15 +17,30 @@
 
     <div class="flex flex-col gap-2 mt-6">
       <div
-        v-for="emailIdentity in emails"
+        v-for="(emailIdentity, index) in emails"
         :key="emailIdentity.handle"
       >
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2"
-          :href="emailIdentity.link"
-        >{{ emailIdentity.handle }}</a>
+        <el-tooltip
+          placement="top"
+          :content="emailIdentity.handle"
+          :disabled="!showTooltip[index]"
+        >
+          <div
+            class="flex overflow-hidden"
+            @mouseover="handleOnMouseOver(index)"
+            @mouseleave="handleOnMouseLeave(index)"
+          >
+            <a
+              ref="emailRef"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2 truncate"
+              :href="emailIdentity.link"
+            >
+              {{ emailIdentity.handle }}
+            </a>
+          </div>
+        </el-tooltip>
       </div>
 
       <div
@@ -57,12 +72,22 @@ const props = defineProps<{
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const displayMore = ref(false);
+const emailRef = ref<Element[]>([]);
+const showTooltip = ref<boolean[]>([]);
+
+const handleOnMouseOver = (index: number) => {
+  if (!emailRef.value[index]) {
+    showTooltip.value[index] = false;
+  }
+  showTooltip.value[index] = emailRef.value[index].scrollWidth > emailRef.value[index].clientWidth;
+};
+const handleOnMouseLeave = (index: number) => {
+  showTooltip.value[index] = false;
+};
 
 const emails = computed(() => {
   if (!displayMore.value) {
-    return Object.fromEntries(
-      Object.entries(props.emails).slice(0, 5),
-    );
+    return props.emails.slice(0, 5);
   }
 
   return props.emails;

@@ -8,18 +8,31 @@
 
     <div class="flex flex-col gap-2 mt-6">
       <div
-        v-for="emailIdentity in emails"
+        v-for="(emailIdentity, index) in emails"
         :key="emailIdentity.handle"
       >
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2"
-          :class="{
-            'hover:text-brand-500 cursor:pointer': emailIdentity.link,
-          }"
-          :href="emailIdentity.link"
-        >{{ emailIdentity.handle }}</a>
+        <el-tooltip
+          placement="top"
+          :content="emailIdentity.handle"
+          :disabled="!showEmailTooltip[index]"
+        >
+          <div
+            class="flex overflow-hidden"
+            @mouseover="handleEmailOnMouseOver(index)"
+            @mouseleave="handleEmailOnMouseLeave(index)"
+          >
+            <a
+              ref="emailRef"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2 truncate"
+              :class="{
+                'hover:text-brand-500 cursor:pointer': emailIdentity.link,
+              }"
+              :href="emailIdentity.link"
+            >{{ emailIdentity.handle }}</a>
+          </div>
+        </el-tooltip>
       </div>
 
       <div
@@ -41,18 +54,31 @@
 
     <div class="flex flex-col gap-2 mt-6">
       <div
-        v-for="phoneNumberIdentity in phoneNumbers"
+        v-for="(phoneNumberIdentity, index) in phoneNumbers"
         :key="phoneNumberIdentity.handle"
       >
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2"
-          :class="{
-            'hover:text-brand-500 cursor:pointer': phoneNumberIdentity.link,
-          }"
-          :href="phoneNumberIdentity.link"
-        >{{ phoneNumberIdentity.handle }}</a>
+        <el-tooltip
+          placement="top"
+          :content="phoneNumberIdentity.handle"
+          :disabled="!showPhoneNumberTooltip[index]"
+        >
+          <div
+            class="flex overflow-hidden"
+            @mouseover="handlePhoneNumberOnMouseOver(index)"
+            @mouseleave="handlePhoneNumberOnMouseLeave(index)"
+          >
+            <a
+              ref="phoneNumberRef"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2 truncate"
+              :class="{
+                'hover:text-brand-500 cursor:pointer': phoneNumberIdentity.link,
+              }"
+              :href="phoneNumberIdentity.link"
+            >{{ phoneNumberIdentity.handle }}</a>
+          </div>
+        </el-tooltip>
       </div>
 
       <div
@@ -84,6 +110,32 @@ const props = defineProps<{
 
 const displayEmailsMore = ref(false);
 const displayPhoneNumbersMore = ref(false);
+
+const emailRef = ref<Element[]>([]);
+const phoneNumberRef = ref<Element[]>([]);
+
+const showEmailTooltip = ref<boolean[]>([]);
+const showPhoneNumberTooltip = ref<boolean[]>([]);
+
+const handleEmailOnMouseOver = (index: number) => {
+  if (!emailRef.value[index]) {
+    showEmailTooltip.value[index] = false;
+  }
+  showEmailTooltip.value[index] = emailRef.value[index].scrollWidth > emailRef.value[index].clientWidth;
+};
+const handleEmailOnMouseLeave = (index: number) => {
+  showEmailTooltip.value[index] = false;
+};
+
+const handlePhoneNumberOnMouseOver = (index: number) => {
+  if (!phoneNumberRef.value[index]) {
+    showPhoneNumberTooltip.value[index] = false;
+  }
+  showPhoneNumberTooltip.value[index] = phoneNumberRef.value[index].scrollWidth > phoneNumberRef.value[index].clientWidth;
+};
+const handlePhoneNumberOnMouseLeave = (index: number) => {
+  showPhoneNumberTooltip.value[index] = false;
+};
 
 const emails = computed(() => {
   if (!displayEmailsMore.value) {
