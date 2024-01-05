@@ -14,6 +14,7 @@ import {
   OrganizationSource,
   SyncMode,
   IOrganizationIdentity,
+  TemporalWorkflowId,
 } from '@crowd/types'
 import {
   EnrichmentAPICertification,
@@ -24,6 +25,7 @@ import {
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
 } from '@crowd/types/premium'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
@@ -389,6 +391,27 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+      if (enrichmentData.work_experiences) {
+        await this.options.temporal.workflow.start('memberUpdate', {
+          taskQueue: 'profiles',
+          workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${result.id}`,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+          retry: {
+            maximumAttempts: 10,
+          },
+          args: [
+            {
+              member: {
+                id: result.id,
+              },
+            },
+          ],
+          searchAttributes: {
+            TenantId: [this.options.currentTenant.id],
+          },
+        })
+      }
+
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
       result = await MemberRepository.findByIdOpensearch(result.id, this.options)

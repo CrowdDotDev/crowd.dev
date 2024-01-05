@@ -11,7 +11,6 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
-  TemporalWorkflowId,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
@@ -20,7 +19,6 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404 } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -946,24 +944,6 @@ class MemberRepository {
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
     await affiliationRepository.setForMember(memberId, data)
-    await options.temporal.workflow.start('memberUpdate', {
-      taskQueue: 'profiles',
-      workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
-      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-      retry: {
-        maximumAttempts: 10,
-      },
-      args: [
-        {
-          member: {
-            id: memberId,
-          },
-        },
-      ],
-      searchAttributes: {
-        TenantId: [options.currentTenant.id],
-      },
-    })
   }
 
   static async getAffiliations(
@@ -3474,7 +3454,6 @@ class MemberRepository {
       title = null,
       dateStart = null,
       dateEnd = null,
-      updateAffiliation = true,
     },
     options: IRepositoryOptions,
   ) {
@@ -3558,27 +3537,6 @@ class MemberRepository {
         transaction,
       },
     )
-
-    if (updateAffiliation) {
-      await options.temporal.workflow.start('memberUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            member: {
-              id: memberId,
-            },
-          },
-        ],
-        searchAttributes: {
-          TenantId: [options.currentTenant.id],
-        },
-      })
-    }
   }
 
   static async deleteWorkExperience(id, options: IRepositoryOptions) {
