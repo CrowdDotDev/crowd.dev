@@ -154,7 +154,6 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
               ON CONFLICT (website, "tenantId")
                 WHERE website IS NOT NULL
                 DO UPDATE SET
-                  "displayName" = EXCLUDED."displayName",
                   linkedin = EXCLUDED.linkedin,
                   location = EXCLUDED.location,
                   "updatedAt" = NOW()
