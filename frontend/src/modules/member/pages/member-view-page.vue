@@ -6,12 +6,15 @@
       class="app-page-spinner"
     />
     <div v-else>
-      <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{ path: '/contacts' }"
-      >
-        <i class="ri-arrow-left-s-line mr-2" />Contacts
-      </router-link>
+      <div class="flex justify-between">
+        <router-link
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+          :to="{ path: '/contacts' }"
+        >
+          <i class="ri-arrow-left-s-line mr-2" />Contacts
+        </router-link>
+        <app-member-actions :member="member" />
+      </div>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header
           :member="member"
@@ -83,6 +86,7 @@ import AppMemberViewTasks from '@/modules/member/components/view/member-view-tas
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import Plans from '@/security/plans';
+import AppMemberActions from '@/modules/member/components/member-actions.vue';
 
 const store = useStore();
 const props = defineProps({

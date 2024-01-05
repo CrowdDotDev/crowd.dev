@@ -1,6 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { ITenantId } from 'types'
+import { ITenant } from 'types'
 
 class TenantRepository {
   constructor(
@@ -8,11 +8,11 @@ class TenantRepository {
     private readonly log: Logger,
   ) {}
 
-  async getAllTenants(): Promise<ITenantId[]> {
-    let rows: ITenantId[] = []
+  async getAllTenants(): Promise<ITenant[]> {
+    let rows: ITenant[] = []
     try {
       rows = await this.connection.query(`
-        SELECT id as "tenantId"
+        SELECT id as "tenantId", plan
         FROM tenants WHERE "deletedAt" IS NULL;
       `)
     } catch (err) {

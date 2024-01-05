@@ -133,13 +133,14 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async fetchMergeSuggestions(limit, offset) {
+  static async fetchMergeSuggestions(limit, offset, query) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const params = {
       limit,
       offset,
+      ...query,
     };
 
     return authAxios.get(

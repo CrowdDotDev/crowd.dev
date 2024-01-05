@@ -1,10 +1,10 @@
-import { ITenantId } from 'types'
+import { ITenant } from 'types'
 import { svc } from '../main'
 import TenantRepository from 'repo/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { FeatureFlag } from '@crowd/types'
 
-export async function getAllTenants(): Promise<ITenantId[]> {
+export async function getAllTenants(): Promise<ITenant[]> {
   const tenantRepository = new TenantRepository(svc.postgres.writer.connection(), svc.log)
   const tenants = await tenantRepository.getAllTenants()
 
@@ -15,6 +15,7 @@ export async function getAllTenants(): Promise<ITenantId[]> {
       async () => {
         return {
           tenantId: tenant.tenantId,
+          plan: tenant.plan,
         }
       },
       svc.unleash,
