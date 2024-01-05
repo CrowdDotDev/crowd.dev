@@ -6,15 +6,19 @@
       class="app-page-spinner"
     />
     <div v-else-if="organization">
-      <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{
+      <div class="flex items-center justify-between">
+        <router-link
+            class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+            :to="{
           path: '/organizations',
           query: { projectGroup: selectedProjectGroup?.id },
         }"
-      >
-        <i class="ri-arrow-left-s-line mr-2" />Organizations
-      </router-link>
+        >
+          <i class="ri-arrow-left-s-line mr-2" />Organizations
+        </router-link>
+        <app-organization-actions :organization="organization" />
+      </div>
+
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-organization-view-header
           :organization="organization"
@@ -80,6 +84,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { useRoute } from 'vue-router';
+import AppOrganizationActions from '@/modules/organization/components/organization-actions.vue';
 
 const props = defineProps({
   id: {

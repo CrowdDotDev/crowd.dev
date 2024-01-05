@@ -142,6 +142,7 @@ import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
+import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { MemberService } from '../member-service';
@@ -151,6 +152,8 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { currentTenant, currentUser } = mapGetters('auth');
+
+const route = useRoute();
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -203,7 +206,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  MemberService.fetchMergeSuggestions(1, offset.value)
+  MemberService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;

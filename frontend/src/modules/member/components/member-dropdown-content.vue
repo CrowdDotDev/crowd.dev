@@ -1,5 +1,6 @@
 <template>
   <router-link
+    v-if="!props.hideEdit"
     :to="{
       name: 'memberEdit',
       params: {
@@ -36,6 +37,7 @@
     <span class="ml-2 text-xs"> Find GitHub </span>
   </button>
   <button
+    v-if="!props.hideMerge"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"
@@ -208,6 +210,8 @@ enum Actions {
 const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void, (e: 'findGithub'): void }>();
 const props = defineProps<{
   member: Member;
+  hideMerge: boolean;
+  hideEdit: boolean;
 }>();
 
 const store = useStore();

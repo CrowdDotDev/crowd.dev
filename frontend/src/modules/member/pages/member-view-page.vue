@@ -6,15 +6,11 @@
       class="app-page-spinner"
     />
     <div v-else>
-      <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{
-          path: '/contributors',
-          query: { projectGroup: selectedProjectGroup?.id },
-        }"
-      >
-        <i class="ri-arrow-left-s-line mr-2" />Contributors
-      </router-link>
+      <div class="flex justify-between">
+        static async fetchMergeSuggestions(limit, offset, ) {
+
+        <app-member-actions :member="member" />
+      </div>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header
           :member="member"
@@ -72,6 +68,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppMemberViewContributionsCta from '@/modules/member/components/view/member-view-contributions-cta.vue';
 import Plans from '@/security/plans';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppMemberActions from '@/modules/member/components/member-actions.vue';
 
 const store = useStore();
 const props = defineProps({
