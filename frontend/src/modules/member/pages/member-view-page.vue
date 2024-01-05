@@ -7,7 +7,15 @@
     />
     <div v-else>
       <div class="flex justify-between">
-        static async fetchMergeSuggestions(limit, offset, ) {
+        <router-link
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+          :to="{
+            path: '/contributors',
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+        >
+          <i class="ri-arrow-left-s-line mr-2" />Contributors
+        </router-link>
 
         <app-member-actions :member="member" />
       </div>
@@ -61,6 +69,7 @@ import AppActivityTimeline from '@/modules/activity/components/activity-timeline
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header.vue';
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
+import AppMemberActions from '@/modules/member/components/member-actions.vue';
 import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
@@ -68,7 +77,6 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppMemberViewContributionsCta from '@/modules/member/components/view/member-view-contributions-cta.vue';
 import Plans from '@/security/plans';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import AppMemberActions from '@/modules/member/components/member-actions.vue';
 
 const store = useStore();
 const props = defineProps({

@@ -7,7 +7,7 @@
       </el-button>
       <el-button
         v-if="mergeSuggestionsCount > 0"
-        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5"
+        class="btn btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25"
         :disabled="isEditLockedForSampleData"
         @click="mergeSuggestions()"
       >

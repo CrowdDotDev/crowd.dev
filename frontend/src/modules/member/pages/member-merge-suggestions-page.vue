@@ -205,7 +205,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  MemberService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
+  MemberService.fetchMergeSuggestions(1, offset.value, route.query ?? {}, [selectedProjectGroup?.id])
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;

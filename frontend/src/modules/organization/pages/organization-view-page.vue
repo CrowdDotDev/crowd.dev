@@ -8,11 +8,11 @@
     <div v-else-if="organization">
       <div class="flex items-center justify-between">
         <router-link
-            class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-            :to="{
-          path: '/organizations',
-          query: { projectGroup: selectedProjectGroup?.id },
-        }"
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+          :to="{
+            path: '/organizations',
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
         >
           <i class="ri-arrow-left-s-line mr-2" />Organizations
         </router-link>
