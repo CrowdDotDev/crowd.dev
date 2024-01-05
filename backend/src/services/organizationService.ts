@@ -9,7 +9,6 @@ import {
 } from '@crowd/types'
 import { isEqual } from 'lodash'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import {
