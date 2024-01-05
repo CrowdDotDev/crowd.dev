@@ -1,4 +1,4 @@
-import { distinct, getSecondsTillEndOfMonth, renameKeys } from '@crowd/common'
+import { distinct, distinctBy, getSecondsTillEndOfMonth, renameKeys } from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache } from '@crowd/redis'
 import {
@@ -11,7 +11,11 @@ import {
 } from '@crowd/types'
 import { EnrichmentParams, IEnrichmentResponse } from '@crowd/types/premium'
 import { svc } from '../main'
-import { IOrganizationIdentity, OrganizationRepository } from '../repos/organization.repo'
+import {
+  IOrganizationData,
+  IOrganizationIdentity,
+  OrganizationRepository,
+} from '../repos/organization.repo'
 import { IPremiumTenantInfo } from '../repos/tenant.repo'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -131,6 +135,9 @@ export async function tryEnrichOrganization(
 
       if (enrichmentData) {
         const finalData = convertEnrichedDataToOrg(enrichmentData, orgData.identities)
+        finalData.weakIdentities = orgData.weakIdentities
+        await prepareIdentities(orgData.tenantId, orgData.id, finalData, repo)
+
         // TODO save final data to the database by updating the organizations row
         await repo.transactionally(async (t) => {
           await t.updateIdentities(
@@ -145,7 +152,7 @@ export async function tryEnrichOrganization(
             finalData,
           )
           if (orgData.website) {
-            await t.generateMergeSuggestions(orgData.id, orgData.website)
+            await t.generateMergeSuggestions(orgData.id, orgData.tenantId, orgData.website)
           }
         })
       } else {
@@ -164,6 +171,38 @@ export async function tryEnrichOrganization(
   }
 
   // return false
+}
+
+async function prepareIdentities(
+  tenantId: string,
+  organizationId: string,
+  orgData: IOrganizationData,
+  repo: OrganizationRepository,
+): Promise<void> {
+  // find identities belonging to other orgs that match the ones in the orgData identities and weakIdentities
+  const allIdentities = orgData.identities.concat(orgData.weakIdentities)
+  let existingIdentities = await repo.findIdentities(tenantId, organizationId, allIdentities)
+  existingIdentities = distinctBy(existingIdentities, (i) => `${i.platform}:${i.name}`)
+
+  const weakIdentities: IOrganizationIdentity[] = []
+  const identities: IOrganizationIdentity[] = []
+
+  for (const identity of allIdentities) {
+    // check if any other org has this identity
+    if (
+      existingIdentities.find((i) => i.platform === identity.platform && i.name === identity.name)
+    ) {
+      // this identity should be a weak one because some other org has this identity as well
+      weakIdentities.push(identity)
+    } else {
+      // this identity should be a strong one because no other org has this identity
+      identities.push(identity)
+    }
+  }
+
+  // set it
+  orgData.identities = identities
+  orgData.weakIdentities = weakIdentities
 }
 
 /**

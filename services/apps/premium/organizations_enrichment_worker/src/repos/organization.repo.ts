@@ -73,6 +73,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               o.website,
               o."manuallyChangedFields"
               i.identities,
+              o."weakIdentities",
               coalesce(a."activityCount", 0) as "orgActivityCount"
       from organizations o
               inner join identities i on o.id = i."organizationId"
@@ -110,19 +111,22 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     const toUpdate: IOrganizationIdentity[] = []
 
     for (const newIdentity of newIdentities) {
+      // TODO Fix this - we can have multiple identities per platform
       const existingIdentity = singleOrDefault(
         existingIdentities,
-        (i) => i.platform === newIdentity.platform,
+        (i) => i.platform === newIdentity.platform && i.name === newIdentity.name,
       )
 
       if (existingIdentity) {
-        if (existingIdentity.name !== newIdentity.name) {
+        if (existingIdentity.url !== newIdentity.url) {
           toUpdate.push(newIdentity)
         }
       } else {
         toCreate.push(newIdentity)
       }
     }
+
+    const queries: string[] = []
 
     if (toUpdate.length > 0) {
       // generate bulk update query
@@ -138,12 +142,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       const query =
         this.dbInstance.helpers.update(
           entries,
-          ['?organizationId', '?tenantId', '?platform', 'name'],
+          ['?organizationId', '?tenantId', '?platform', '?name', 'url'],
           'organizationIdentities',
         ) +
-        ' where t."organizationId" = v."organizationId" and t.platform = v.platform and t."tenantId" = v."tenantId"'
+        ' where t."organizationId" = v."organizationId" and t.platform = v.platform and t.name = v.name and t."tenantId" = v."tenantId"'
 
-      await this.db().none(query)
+      queries.push(query)
     }
 
     if (toCreate.length > 0) {
@@ -156,13 +160,50 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         }
       })
 
-      const query = this.dbInstance.helpers.insert(
-        entries,
-        ['organizationId', 'tenantId', 'platform', 'name'],
-        'organizationIdentities',
-      )
-      await this.db().none(query)
+      const query =
+        this.dbInstance.helpers.insert(
+          entries,
+          ['organizationId', 'tenantId', 'platform', 'name'],
+          'organizationIdentities',
+        ) + ` on conflict do nothing`
+
+      queries.push(query)
     }
+
+    if (queries.length > 0) {
+      await Promise.all(queries.map((q) => this.db().none(q)))
+    }
+  }
+
+  public async findIdentities(
+    tenantId: string,
+    organizationId: string,
+    identities: IOrganizationIdentity[],
+  ): Promise<IOrganizationIdentity[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const params: any = {
+      tenantId,
+      organizationId,
+    }
+
+    const identityParams = identities
+      .map((identity) => `('${identity.platform}', '${identity.name}')`)
+      .join(', ')
+
+    const results = await this.db().any(
+      `
+  with input_identities (platform, name) as (
+    values ${identityParams}
+  )
+  select oi.url, i.platform, i.username
+  from "organizationIdentities" oi
+    inner join input_identities i on oi.platform = i.platform and oi.name = i.name
+  where mi."tenantId" = $(tenantId) and oi."organizationId" <> $(organizationId)
+`,
+      params,
+    )
+
+    return results
   }
 
   public async generateMergeSuggestions(
@@ -185,4 +226,5 @@ export interface IOrganizationData {
   website: string | null
   manuallyChangedFields: string[]
   identities: IOrganizationIdentity[]
+  weakIdentities: IOrganizationIdentity[]
 }
