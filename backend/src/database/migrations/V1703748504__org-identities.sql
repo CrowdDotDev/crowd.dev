@@ -11,16 +11,20 @@ create index "ix_organizationCacheIdentities_name" on "organizationCacheIdentiti
 create index "ix_organizationCacheIdentities_website" on "organizationCacheIdentities" (website);
 
 alter table "organizationCaches"
-    add column "oldName"    text,
-    add column "oldWebsite" text;
-
-update "organizationCaches"
-set "oldName"    = name,
-    "oldWebsite" = website;
+    rename column name to "oldName";
 
 alter table "organizationCaches"
-    drop column name,
-    drop column website;
+    rename column website to "oldWebsite";
+
+alter table "organizationCaches"
+    alter column "oldName" drop not null,
+    alter column "oldWebsite" drop not null;
+
+-- fill organizationCacheIdentities table with existing data (for caches without website because for those we need a better logic)
+insert into "organizationCacheIdentities"(id, name)
+select id, "oldName"
+from "organizationCaches"
+where "oldWebsite" is null;
 
 create table "organizationCacheLinks" (
     "organizationCacheId" uuid not null,
@@ -61,15 +65,25 @@ $$
                      and o."displayName" is not null
                      and length(trim(o."displayName")) > 0
             loop
-                -- generate id
-                cache_id := (select uuid_generate_v1());
-                -- insert organizationsCaches row
-                insert into "organizationCaches" (id, description, emails, "phoneNumbers", logo, tags, twitter, linkedin, crunchbase, employees, "revenueRange", "importHash", "createdAt", "updatedAt", location, github, "employeeCountByCountry", type, "geoLocation", size, ticker, headline, profiles, naics, address, industry, founded, "manuallyCreated")
-                values (cache_id, org.description, org.emails, org."phoneNumbers", org.logo, org.tags, org.twitter, org.linkedin, org.crunchbase, org.employees, org."revenueRange", org."importHash", org."createdAt", org."createdAt", org.location, org.github, org."employeeCountByCountry", org.type, org."geoLocation", org.size, org.ticker, org.headline, org.profiles, org.naics, org.address, org.industry, org.founded, org."manuallyCreated");
+                -- check if we already created a cache
+                if org.website is not null then
+                    cache_id := (select id from "organizationCaches" where "oldWebsite" = org.website limit 1);
+                end if;
 
-                -- insert organizationCacheIdentities row
-                insert into "organizationCacheIdentities"(id, name, website)
-                values (cache_id, org."displayName", org.website);
+                if cache_id is null then
+                    cache_id := (select id from "organizationCaches" where "oldName" = org."displayName" limit 1);
+                end if;
+
+                if cache_id is null then
+                    -- generate id
+                    cache_id := (select uuid_generate_v1());
+                    -- insert organizationsCaches row
+                    insert into "organizationCaches" (id, description, emails, "phoneNumbers", logo, tags, twitter, linkedin, crunchbase, employees, "revenueRange", "importHash", "createdAt", "updatedAt", location, github, "employeeCountByCountry", type, "geoLocation", size, ticker, headline, profiles, naics, address, industry, founded, "manuallyCreated", "oldName", "oldWebsite")
+                    values (cache_id, org.description, org.emails, org."phoneNumbers", org.logo, org.tags, org.twitter, org.linkedin, org.crunchbase, org.employees, org."revenueRange", org."importHash", org."createdAt", org."createdAt", org.location, org.github, org."employeeCountByCountry", org.type, org."geoLocation", org.size, org.ticker, org.headline, org.profiles, org.naics, org.address, org.industry, org.founded, org."manuallyCreated", org."displayName", org.website);
+                    -- insert organizationCacheIdentities row
+                    insert into "organizationCacheIdentities"(id, name, website)
+                    values (cache_id, org."displayName", org.website);
+                end if;
 
                 -- update create link between organizations and organizationCaches tables
                 insert into "organizationCacheLinks"("organizationCacheId", "organizationId") values (cache_id, org.id);

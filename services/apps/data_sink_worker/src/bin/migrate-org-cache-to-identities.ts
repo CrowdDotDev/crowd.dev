@@ -8,6 +8,7 @@ import {
 } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG } from '../conf'
+import { distinctBy } from '@crowd/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -46,18 +47,20 @@ where id in ($(ids:csv))
 
 async function createOrgCacheIdentity(
   db: DbTransaction,
+  dbInstance: DbInstance,
   id: string,
-  website: string | null,
-  name: string,
+  identities: { name: string; website: string }[],
 ): Promise<void> {
-  await db.none(
-    `insert into "organizationCacheIdentities"(id, name, website) values($(id), $(name), $(website));`,
-    {
-      id,
-      name,
-      website,
-    },
+  const prepared = identities.map((i) => {
+    return { ...i, id }
+  })
+
+  const query = dbInstance.helpers.insert(
+    prepared,
+    ['id', 'name', 'website'],
+    'organizationCacheIdentities',
   )
+  await db.none(query)
 }
 
 async function moveLinksToNewCacheId(
@@ -206,13 +209,23 @@ async function processOrgCache(
         }
       }
     }
+
+    let identities = caches.map((c) => {
+      return {
+        name: c.oldName,
+        website: c.oldWebsite,
+      }
+    })
+
+    identities = distinctBy(identities, (i) => `${i.name}:${i.website}`)
+
     try {
       await db.tx(async (tx) => {
-        await createOrgCacheIdentity(tx, data.id, data.oldWebsite, data.oldName)
+        await createOrgCacheIdentity(tx, dbInstance, data.id, identities)
         if (Object.keys(toUpdate).length > 0) {
           await updateOrganizationCacheData(dbInstance, tx, data.id, toUpdate)
         }
-        const cacheIdsToRemove = caches.filter((c) => c.id !== caches[index].id).map((c) => c.id)
+        const cacheIdsToRemove = caches.filter((c) => c.id !== data.id).map((c) => c.id)
         await moveLinksToNewCacheId(tx, cacheIdsToRemove, data.id)
         await removeCaches(tx, cacheIdsToRemove)
       })
@@ -228,7 +241,9 @@ async function processOrgCache(
     const data = caches[0]
     try {
       await db.tx(async (tx) => {
-        await createOrgCacheIdentity(tx, data.id, data.oldWebsite, data.oldName)
+        await createOrgCacheIdentity(tx, dbInstance, data.id, [
+          { name: data.oldName, website: data.oldWebsite },
+        ])
       })
     } catch (err) {
       log.error(err, { id: data.id }, 'Error while processing organization cache!')
