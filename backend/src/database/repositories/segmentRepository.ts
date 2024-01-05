@@ -868,7 +868,10 @@ class SegmentRepository extends RepositoryBase<
     return segments.map((i: any) => i.id)
   }
 
-  static async getLeafSegmentIds(segmentId: string, options: IRepositoryOptions): Promise<string[]> {
+  static async getLeafSegmentIds(
+    segmentId: string,
+    options: IRepositoryOptions,
+  ): Promise<string[]> {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -876,6 +879,7 @@ class SegmentRepository extends RepositoryBase<
       `
         SELECT
           id,
+          slug,
           "parentSlug",
           "grandparentSlug"
         FROM segments
@@ -897,18 +901,28 @@ class SegmentRepository extends RepositoryBase<
 
     const leafSegments = await seq.query(
       `
-        SELECT
-          id
-        FROM segments
-        WHERE "tenantId" = :tenantId
-          AND "parentSlug" = :parentSlug
-          AND "grandparentSlug" = :grandparentSlug
+        WITH segment_level AS (
+          SELECT
+            CASE
+              WHEN "parentSlug" IS NOT NULL AND "grandparentSlug" IS NOT NULL THEN 'child'
+              WHEN "parentSlug" IS NOT NULL AND "grandparentSlug" IS NULL THEN 'parent'
+              WHEN "parentSlug" IS NULL AND "grandparentSlug" IS NULL THEN 'grandparent'
+            END AS level,
+            :id AS id,
+            :slug AS slug,
+            :parentSlug AS "parentSlug",
+            :grandparentSlug AS "grandparentSlug"
+        )
+        SELECT s.*
+        FROM segments s
+        JOIN segment_level sl ON (sl.level = 'child' AND s.id = sl.id)
+          OR (sl.level = 'parent' AND s."parentSlug" = sl.slug AND s."grandparentSlug" IS NOT NULL)
+          OR (sl.level = 'grandparent' AND s."grandparentSlug" = sl.slug)
       `,
       {
         replacements: {
           tenantId: options.currentTenant.id,
-          parentSlug: record.parentSlug,
-          grandparentSlug: record.grandparentSlug,
+          segmentId,
         },
         type: QueryTypes.SELECT,
         transaction,
