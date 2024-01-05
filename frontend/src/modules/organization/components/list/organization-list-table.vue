@@ -195,7 +195,7 @@
                 <!-- Identities -->
                 <el-table-column
                   label="Identities"
-                  width="240"
+                  width="280"
                 >
                   <template #header>
                     <span>Identities</span>
@@ -218,7 +218,7 @@
                       <div class="h-full flex items-center">
                         <app-identities-horizontal-list-organizations
                           :organization="scope.row"
-                          :limit="4"
+                          :limit="5"
                         />
                       </div>
                     </router-link>

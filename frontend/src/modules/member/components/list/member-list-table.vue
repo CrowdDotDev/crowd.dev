@@ -161,7 +161,7 @@
               </el-table-column>
 
               <!-- Identities -->
-              <el-table-column label="Identities" width="260">
+              <el-table-column label="Identities" width="280">
                 <template #header>
                   <span>Identities</span>
                   <el-tooltip placement="top">
@@ -182,7 +182,7 @@
                   >
                     <app-identities-horizontal-list-members
                       :member="scope.row"
-                      :limit="4"
+                      :limit="5"
                     />
                   </router-link>
                 </template>
