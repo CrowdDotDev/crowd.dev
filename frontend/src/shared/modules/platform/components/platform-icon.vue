@@ -18,7 +18,7 @@ const props = defineProps<{
 }>();
 
 const icons: { [key: string]: string } = {
-  emails: 'ri-at-line',
+  emails: 'ri-mail-line',
   phoneNumbers: 'ri-phone-fill',
 };
 
