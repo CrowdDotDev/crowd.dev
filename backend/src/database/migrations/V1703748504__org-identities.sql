@@ -26,6 +26,17 @@ select id, "oldName"
 from "organizationCaches"
 where "oldWebsite" is null;
 
+-- fill organizationCacheIdentities table with caches that are the only one in the group by website
+insert into "organizationCacheIdentities"(id, name, website)
+with data as (select count(id) as ids, "oldWebsite"
+              from "organizationCaches"
+              where "oldWebsite" is not null
+              group by "oldWebsite"
+              having count(id) = 1)
+select oc.id, oc."oldName", oc."oldWebsite"
+from "organizationCaches" oc
+         inner join data d on oc."oldWebsite" = d."oldWebsite";
+
 create table "organizationCacheLinks" (
     "organizationCacheId" uuid not null,
     "organizationId"      uuid not null,
