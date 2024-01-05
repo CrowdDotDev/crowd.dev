@@ -3452,14 +3452,7 @@ class MemberRepository {
   }
 
   static async createOrUpdateWorkExperience(
-    {
-      memberId,
-      organizationId,
-      source,
-      title = null,
-      dateStart = null,
-      dateEnd = null,
-    },
+    { memberId, organizationId, source, title = null, dateStart = null, dateEnd = null },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)

@@ -395,7 +395,8 @@ export default class MemberEnrichmentService extends LoggerBase {
         await this.options.temporal.workflow.start('memberUpdate', {
           taskQueue: 'profiles',
           workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${result.id}`,
-          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+          workflowIdReusePolicy:
+            WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
           retry: {
             maximumAttempts: 10,
           },
