@@ -54,7 +54,7 @@
                 {{ projectGroup.name }}
               </div>
               <div class="h-5 leading-5 text-3xs text-gray-400">
-                {{ pluralize('contributor', projectGroup.members, true) }} ・ {{ pluralize('project', projectGroup.projects.length, true) }}
+                {{ pluralize('project', projectGroup.projects.length, true) }}
               </div>
             </div>
           </div>
