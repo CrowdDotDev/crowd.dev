@@ -868,26 +868,54 @@ class SegmentRepository extends RepositoryBase<
     return segments.map((i: any) => i.id)
   }
 
-  static async getLeafSegmentIds(options: IRepositoryOptions) {
+  static async getLeafSegmentIds(segmentId: string, options: IRepositoryOptions): Promise<string[]> {
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
-    const segments = await options.database.sequelize.query(
+    const rows = await seq.query(
       `
         SELECT
-          id
+          id,
+          "parentSlug",
+          "grandparentSlug"
         FROM segments
         WHERE "tenantId" = :tenantId
-          AND "parentSlug" IS NOT NULL
-          AND "grandparentSlug" IS NOT NULL
+          AND id = :segmentId
       `,
       {
-        replacements: { tenantId: options.currentTenant.id },
+        replacements: { segmentId, tenantId: options.currentTenant.id },
         type: QueryTypes.SELECT,
         transaction,
       },
     )
 
-    return segments.map((i: any) => i.id)
+    const record = rows[0] as any
+
+    if (record.parentSlug && record.grandparentSlug) {
+      return [record.id]
+    }
+
+    const leafSegments = await seq.query(
+      `
+        SELECT
+          id
+        FROM segments
+        WHERE "tenantId" = :tenantId
+          AND "parentSlug" = :parentSlug
+          AND "grandparentSlug" = :grandparentSlug
+      `,
+      {
+        replacements: {
+          tenantId: options.currentTenant.id,
+          parentSlug: record.parentSlug,
+          grandparentSlug: record.grandparentSlug,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return leafSegments.map((i: any) => i.id)
   }
 }
 

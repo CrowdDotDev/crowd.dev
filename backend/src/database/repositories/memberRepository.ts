@@ -2216,7 +2216,7 @@ class MemberRepository {
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
       const seq = SequelizeRepository.getSequelize(options)
-      const leafSegmentIds = await SegmentRepository.getLeafSegmentIds(options)
+      const leafSegmentIds = await SegmentRepository.getLeafSegmentIds(segment, options)
 
       const lastActivities = await seq.query(
         `
