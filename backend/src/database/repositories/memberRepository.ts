@@ -244,9 +244,13 @@ class MemberRepository {
   ) {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    const order = (await isFeatureEnabled(FeatureFlag.SEGMENTS, options))
+    const isSegmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+
+    const order = isSegmentsEnabled
       ? 'mtm."activityEstimate" desc, mtm.similarity desc, mtm."memberId", mtm."toMergeId"'
       : 'mtm.similarity desc, mtm."activityEstimate" desc, mtm."memberId", mtm."toMergeId"'
+
+    const similarityFilter = isSegmentsEnabled ? ' and mtm.similarity > 0.95 ' : ''
 
     const memberFilter = memberId
       ? ` and (mtm."memberId" = :memberId OR mtm."toMergeId" = :memberId)`
@@ -267,6 +271,7 @@ class MemberRepository {
           where ms."segmentId" in (:segmentIds) and ms."memberId" = mtm."memberId"
           ${memberFilter}
       )
+      ${similarityFilter}
       order by ${order}
       limit :limit
       offset :offset;
