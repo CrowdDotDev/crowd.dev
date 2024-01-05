@@ -14,7 +14,7 @@
       Here you can check all the merging suggestions.
     </div>
 
-    <div v-if="loading || count >= 0" class="panel !p-0">
+    <div v-if="loading || count > 0" class="panel !p-0">
       <!-- Header -->
       <header class="flex items-center justify-between px-6 py-5 border-b">
         <div class="flex items-center">
