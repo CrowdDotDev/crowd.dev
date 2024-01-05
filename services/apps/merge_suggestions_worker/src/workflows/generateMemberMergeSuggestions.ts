@@ -11,7 +11,7 @@ export async function generateMemberMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
   const PAGE_SIZE = 1000
-  const PARALLEL_SUGGESTION_PROCESSING = 200
+  const PARALLEL_SUGGESTION_PROCESSING = 250
 
   let lastUuid: string = args.lastUuid || null
 
@@ -32,20 +32,17 @@ export async function generateMemberMergeSuggestions(
 
   lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
 
-  // Gather all promises for merge suggestions
-  const mergeSuggestionsPromises: Promise<IMemberMergeSuggestion[]>[] = result.map((member) =>
-    activity.getMergeSuggestions(args.tenantId, member),
-  )
-
-  const promiseChunks = chunkArray<Promise<IMemberMergeSuggestion[]>>(
-    mergeSuggestionsPromises,
-    PARALLEL_SUGGESTION_PROCESSING,
-  )
-
   const allMergeSuggestions: IMemberMergeSuggestion[] = []
 
-  for (const promiseChunk of promiseChunks) {
-    const mergeSuggestionsResults: IMemberMergeSuggestion[][] = await Promise.all(promiseChunk)
+  const promiseChunks = chunkArray(result, PARALLEL_SUGGESTION_PROCESSING)
+
+  for (const chunk of promiseChunks) {
+    const mergeSuggestionsPromises: Promise<IMemberMergeSuggestion[]>[] = chunk.map((member) =>
+      activity.getMergeSuggestions(args.tenantId, member),
+    )
+
+    const mergeSuggestionsResults: IMemberMergeSuggestion[][] =
+      await Promise.all(mergeSuggestionsPromises)
     allMergeSuggestions.push(...mergeSuggestionsResults.flat())
   }
 
