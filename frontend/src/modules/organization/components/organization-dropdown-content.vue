@@ -1,6 +1,7 @@
 <template>
   <!-- Edit -->
   <router-link
+    v-if="!hideEdit"
     :to="{
       name: 'organizationEdit',
       params: {
@@ -22,6 +23,7 @@
 
   <!-- Merge organization -->
   <button
+    v-if="!hideMerge"
     class="h-10 el-dropdown-menu__item w-full"
     type="button"
     :disabled="isEditLockedForSampleData"
@@ -182,6 +184,8 @@ const router = useRouter();
 const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void }>();
 defineProps<{
   organization: Organization;
+  hideMerge: boolean;
+  hideEdit: boolean;
 }>();
 
 const store = useStore();

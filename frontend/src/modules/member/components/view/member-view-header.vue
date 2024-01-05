@@ -11,12 +11,6 @@
           <div class="flex items-center gap-4">
             <app-member-sentiment :member="member" />
             <app-member-engagement-level :member="member" />
-            <app-member-dropdown
-              :member="member"
-              :show-view-member="false"
-              @merge="isMergeDialogOpen = member"
-              @find-github="isFindGithubDrawerOpen = member"
-            />
           </div>
         </div>
         <app-member-organizations
@@ -118,11 +112,6 @@
         <app-tag-popover v-model="isEditTagsDialogOpen" :member="member" />
       </div>
     </div>
-    <app-member-find-github-drawer
-      v-if="isFindGithubDrawerOpen"
-      v-model="isFindGithubDrawerOpen"
-    />
-    <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -135,13 +124,10 @@ import { formatDateToTimeAgo, formatDate } from '@/utils/date';
 import AppMemberReach from '@/modules/member/components/member-reach.vue';
 import AppMemberSentiment from '@/modules/member/components/member-sentiment.vue';
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
-import AppMemberDropdown from '@/modules/member/components/member-dropdown.vue';
 import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
-import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
-import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
@@ -154,8 +140,6 @@ defineProps({
 });
 
 const isEditTagsDialogOpen = ref(false);
-const isMergeDialogOpen = ref(null);
-const isFindGithubDrawerOpen = ref(null);
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information

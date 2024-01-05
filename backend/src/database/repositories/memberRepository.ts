@@ -238,44 +238,49 @@ class MemberRepository {
   }
 
   static async findMembersWithMergeSuggestions(
-    { limit = 20, offset = 0 },
+    { limit = 20, offset = 0, memberId = undefined },
     options: IRepositoryOptions,
   ) {
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
+    const isSegmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+
+    const order = isSegmentsEnabled
+      ? 'mtm."activityEstimate" desc, mtm.similarity desc, mtm."memberId", mtm."toMergeId"'
+      : 'mtm.similarity desc, mtm."activityEstimate" desc, mtm."memberId", mtm."toMergeId"'
+
+    const similarityFilter = isSegmentsEnabled ? ' and mtm.similarity > 0.95 ' : ''
+
+    const memberFilter = memberId
+      ? ` and (mtm."memberId" = :memberId OR mtm."toMergeId" = :memberId)`
+      : ''
+
     const mems = await options.database.sequelize.query(
-      `SELECT 
-        "membersToMerge".id, 
-        "membersToMerge"."toMergeId",
-        "membersToMerge"."total_count",
-        "membersToMerge"."similarity",
-        "membersToMerge"."activityEstimate"
-      FROM 
-      (
-        SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) 
-            mem.id, 
-            mtm."toMergeId", 
-            mem."joinedAt", 
-            COUNT(*) OVER() AS total_count,
-            mtm."similarity",
-            mtm."activityEstimate"
-          FROM members mem
-          INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId"
-          JOIN "memberSegments" ms ON ms."memberId" = mem.id
-          WHERE mem."tenantId" = :tenantId
-            AND ms."segmentId" IN (:segmentIds)
-        ) AS "membersToMerge" 
-      ORDER BY 
-        "membersToMerge"."activityEstimate", "membersToMerge"."similarity" DESC 
-      LIMIT :limit OFFSET :offset
+      `
+      select
+          mtm."memberId" AS id,
+          mtm."toMergeId",
+          count(*) over() AS total_count,
+          mtm.similarity
+      from
+          "memberToMerge" mtm
+      where exists (
+          select 1
+          from "memberSegments" ms
+          where ms."segmentId" in (:segmentIds) and ms."memberId" = mtm."memberId"
+          ${memberFilter}
+      )
+      ${similarityFilter}
+      order by ${order}
+      limit :limit
+      offset :offset;
     `,
       {
         replacements: {
-          tenantId: currentTenant.id,
           segmentIds,
           limit,
           offset,
+          memberId,
         },
         type: QueryTypes.SELECT,
       },
@@ -297,7 +302,7 @@ class MemberRepository {
         members: [i, memberToMergeResults[idx]],
         similarity: mems[idx].similarity,
       }))
-      return { rows: result, count: mems[0].total_count / 2, limit, offset }
+      return { rows: result, count: mems[0].total_count, limit, offset }
     }
 
     return { rows: [{ members: [], similarity: 0 }], count: 0, limit, offset }

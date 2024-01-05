@@ -86,7 +86,8 @@ export async function getMergeSuggestions(
 
     let hasFuzzySearch = false
 
-    for (const identity of member.nested_identities) {
+    // prevent processing more than 200 identities because of opensearch limits
+    for (const identity of member.nested_identities.slice(0, 200)) {
       if (identity.string_username.length > 0) {
         // weak identity search
         identitiesPartialQuery.should[1].nested.query.bool.should.push({
@@ -131,7 +132,7 @@ export async function getMergeSuggestions(
   if (member.string_arr_emails && member.string_arr_emails.length > 0) {
     identitiesPartialQuery.should.push({
       terms: {
-        keyword_emails: member.string_arr_emails,
+        keyword_emails: member.string_arr_emails.filter((email: string) => email && email !== null),
       },
     })
   }
@@ -165,13 +166,23 @@ export async function getMergeSuggestions(
     ],
   }
 
-  const membersToMerge: ISimilarMemberOpensearch[] =
-    (
-      await svc.opensearch.client.search({
-        index: OpenSearchIndex.MEMBERS,
-        body: similarMembersQueryBody,
-      })
-    ).body?.hits?.hits || []
+  let membersToMerge: ISimilarMemberOpensearch[]
+
+  try {
+    membersToMerge =
+      (
+        await svc.opensearch.client.search({
+          index: OpenSearchIndex.MEMBERS,
+          body: similarMembersQueryBody,
+        })
+      ).body?.hits?.hits || []
+  } catch (e) {
+    svc.log.info(
+      { error: e, query: identitiesPartialQuery },
+      'Error while searching for similar members!',
+    )
+    throw e
+  }
 
   for (const memberToMerge of membersToMerge) {
     mergeSuggestions.push({
@@ -193,19 +204,29 @@ export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise
   await memberMergeSuggestionsRepo.addToMerge(suggestions)
 }
 
-export async function findTenantsLatestSuggestionCreatedAt(tenantId: string): Promise<string> {
+export async function findTenantsLatestMemberSuggestionGeneratedAt(
+  tenantId: string,
+): Promise<string> {
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,
   )
-  return memberMergeSuggestionsRepo.findTenantsLatestSuggestionCreatedAt(tenantId)
+  return memberMergeSuggestionsRepo.findTenantsLatestMemberSuggestionGeneratedAt(tenantId)
+}
+
+export async function updateMemberMergeSuggestionsLastGeneratedAt(tenantId: string): Promise<void> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  await memberMergeSuggestionsRepo.updateMemberMergeSuggestionsLastGeneratedAt(tenantId)
 }
 
 export async function getMembers(
   tenantId: string,
   batchSize: number = 100,
   afterMemberId?: string,
-  lastCreatedAt?: string,
+  lastGeneratedAt?: string,
 ): Promise<IMemberPartialAggregatesOpensearch[]> {
   try {
     const queryBody: IMemberQueryBody = {
@@ -248,11 +269,11 @@ export async function getMembers(
       })
     }
 
-    if (lastCreatedAt) {
+    if (lastGeneratedAt) {
       queryBody.query.bool.filter.push({
         range: {
           date_createdAt: {
-            gt: new Date(lastCreatedAt).toISOString(),
+            gt: new Date(lastGeneratedAt).toISOString(),
           },
         },
       })
