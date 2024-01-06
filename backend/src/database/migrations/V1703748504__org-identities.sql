@@ -101,3 +101,31 @@ $$
             end loop;
     end;
 $$;
+
+-- naics column in organizationCaches and organizations is of type jsonb[]
+-- which is not really useful for us since we are not using array operators on it to query it anyway
+-- it's also much harder to safely update/insert this using a raw query
+-- so we are going to change both columns to just a regular jsonb that will contain an array of objects
+alter table "organizationCaches"
+    add column new_naics jsonb;
+
+update "organizationCaches"
+set new_naics = to_jsonb(naics);
+
+alter table "organizationCaches"
+    drop column naics;
+
+alter table "organizationCaches"
+    rename column new_naics to naics;
+
+alter table organizations
+    add column new_naics jsonb;
+
+update organizations
+set new_naics = to_jsonb(naics);
+
+alter table organizations
+    drop column naics;
+
+alter table organizations
+    rename column new_naics to naics;

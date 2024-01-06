@@ -133,12 +133,16 @@ const columnsToIgnore = [
 ]
 
 async function updateOrganizationCacheData(dbInstance, db, id, data) {
-  const keys = Object.keys(data).filter((k) => !columnsToIgnore.includes(k) && k != 'naics')
+  const keys = Object.keys(data).filter((k) => !columnsToIgnore.includes(k))
 
   if (keys.length !== 0) {
     const dynamicColumnSet = new dbInstance.helpers.ColumnSet(keys, {
       table: 'organizationCaches',
     })
+
+    if (data.naics) {
+      data.naics = JSON.stringify(data.naics)
+    }
 
     const prepared = RepositoryBase.prepare(data, dynamicColumnSet)
     const query = dbInstance.helpers.update(prepared, dynamicColumnSet)
@@ -146,19 +150,6 @@ async function updateOrganizationCacheData(dbInstance, db, id, data) {
     const condition = dbInstance.as.format('where id = $(id)', { id })
     const result = await db.result(`${query} ${condition}`)
 
-    if (result.rowCount !== 1) {
-      throw new Error('Updated row count not equal to 1!')
-    }
-  }
-
-  if ('naics' in data) {
-    const formattedNaicsData = data.naics.map((item) => JSON.stringify(item))
-    const query = `UPDATE "organizationCaches" 
-               SET "naics" = ARRAY[${formattedNaicsData
-                 .map((item) => `'${item}'::jsonb`)
-                 .join(', ')}] 
-               WHERE id = '${id}'`
-    const result = await db.result(query)
     if (result.rowCount !== 1) {
       throw new Error('Updated row count not equal to 1!')
     }

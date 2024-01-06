@@ -240,7 +240,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       with input_identities (platform, name) as (
         values ${identityParams}
       )
-      select oi.url, i.platform, i.username
+      select oi.url, i.platform, i.name
       from "organizationIdentities" oi
         inner join input_identities i on oi.platform = i.platform and oi.name = i.name
       where oi."tenantId" = $(tenantId) and oi."organizationId" <> $(organizationId)
@@ -349,6 +349,15 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         { organizationId: originalData.id },
         `Updating organization with enriched data! With ${keysToUpdate.length} fields`,
       )
+
+      if (toUpdate.naics) {
+        toUpdate.naics = JSON.stringify(toUpdate.naics)
+      }
+
+      // set lastEnrichedAt to now
+      keysToUpdate.push('lastEnrichedAt')
+      toUpdate.lastEnrichedAt = new Date()
+
       const query = this.dbInstance.helpers.update(toUpdate, keysToUpdate, 'organizations')
 
       const result = await this.db().result(`${query} where id = $(id)`, {
@@ -357,7 +366,33 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       })
 
       this.checkUpdateRowCount(result.rowCount, 1)
+    } else {
+      await this.markEnriched(originalData.id)
     }
+  }
+
+  public async anyOtherOrganizationWithTheSameWebsite(
+    organizationId: string,
+    tenantId: string,
+    website: string,
+  ): Promise<boolean> {
+    const res = await this.db().oneOrNone(
+      `select 1 from organizations where 
+          "tenantId" = $(tenantId)
+          and id <> $(organizationId) 
+          and website = $(website)`,
+      {
+        tenantId,
+        organizationId,
+        website,
+      },
+    )
+
+    if (res) {
+      return true
+    }
+
+    return false
   }
 
   public async generateMergeSuggestions(

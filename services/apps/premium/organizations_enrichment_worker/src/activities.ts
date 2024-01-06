@@ -4,6 +4,7 @@ import {
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
   getApplicableTenants,
+  hasTenantOrganizationEnrichmentEnabled,
 } from './activities/organizationEnrichment'
 
 export {
@@ -12,4 +13,5 @@ export {
   decrementTenantCredits,
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
+  hasTenantOrganizationEnrichmentEnabled,
 }

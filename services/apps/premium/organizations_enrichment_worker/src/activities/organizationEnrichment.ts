@@ -34,7 +34,7 @@ export async function getApplicableTenants(
 }
 
 export async function hasTenantOrganizationEnrichmentEnabled(tenantId: string): Promise<boolean> {
-  return isFeatureEnabled(
+  const result = await isFeatureEnabled(
     FeatureFlag.TEMPORAL_ORGANIZATION_ENRICHMENT,
     async () => {
       return {
@@ -46,6 +46,8 @@ export async function hasTenantOrganizationEnrichmentEnabled(tenantId: string): 
     5 * 60,
     tenantId,
   )
+
+  svc.log.debug({ tenantId, enabled: result }, 'Tenant organization enrichment enabled?')
 }
 
 /**
@@ -58,7 +60,11 @@ export async function getTenantCredits(tenant: IPremiumTenantInfo): Promise<numb
   if (tenant.plan === TenantPlans.Growth) {
     // need to check how many credits the tenant has left
     const cache = new RedisCache(FeatureFlagRedisKey.ORGANIZATION_ENRICHMENT_COUNT, svc.redis, log)
-    const usedCredits = parseInt((await cache.get(tenant.id)) ?? '0', 10)
+    const cached = await cache.get(tenant.id)
+    if (!cached) {
+      await cache.set(tenant.id, '0', getSecondsTillEndOfMonth())
+    }
+    const usedCredits = parseInt(cached ?? '0', 10)
     const remainingCredits =
       PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.ORGANIZATION_ENRICHMENT] - usedCredits
 
@@ -104,6 +110,7 @@ export async function getTenantOrganizationsForEnrichment(
 ): Promise<string[]> {
   const repo = new OrganizationRepository(svc.postgres.reader, svc.log)
   const organizationIds = await repo.getTenantOrganizationsToEnrich(tenantId, perPage, lastId)
+  svc.log.debug({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
   return organizationIds
 }
 
@@ -162,9 +169,33 @@ export async function tryEnrichOrganization(
       )
 
       if (enrichmentData) {
+        log.debug('Enrichment data found!')
         const finalData = convertEnrichedDataToOrg(enrichmentData, orgData.identities)
         finalData.weakIdentities = orgData.weakIdentities
         await prepareIdentities(orgData.tenantId, orgData.id, finalData, repo)
+
+        let website: string | undefined
+        let checkIfWebsiteIsTaken = false
+        if (orgData.website && finalData.website && orgData.website !== finalData.website) {
+          log.debug('Website changed!')
+          website = finalData.website
+          checkIfWebsiteIsTaken = true
+        } else if (orgData.website) {
+          website = orgData.website
+        } else if (finalData.website) {
+          log.debug('Website found!')
+          website = finalData.website
+          checkIfWebsiteIsTaken = true
+        }
+
+        if (
+          checkIfWebsiteIsTaken &&
+          repo.anyOtherOrganizationWithTheSameWebsite(orgData.id, orgData.tenantId, orgData.website)
+        ) {
+          log.debug('Website is already taken!')
+          // we can't set this website in the database due to unique constraint but we can generate merge suggestions based on it
+          finalData.website = undefined
+        }
 
         await repo.transactionally(async (t) => {
           await t.updateIdentities(
@@ -174,10 +205,14 @@ export async function tryEnrichOrganization(
             finalData.identities,
           )
           await t.updateOrganizationWithEnrichedData(orgData, finalData)
-          if (orgData.website) {
-            await t.generateMergeSuggestions(orgData.id, orgData.tenantId, orgData.website)
+
+          if (website) {
+            log.debug({ website }, 'Generating merge suggestions!')
+            await t.generateMergeSuggestions(orgData.id, orgData.tenantId, website)
           }
         })
+
+        log.debug('Enrichment done!')
       } else {
         log.debug('No enrichment data found!')
         await repo.markEnriched(organizationId)
@@ -186,14 +221,12 @@ export async function tryEnrichOrganization(
       return true
     } else {
       log.warn('Organization does not have a website and no identities with enrichment platforms!')
-      return false
     }
   } else {
     log.warn('Organization has no activities or identities and therefore it will not be enriched!')
-    return false
   }
 
-  // return false
+  return false
 }
 
 async function prepareIdentities(
@@ -233,10 +266,17 @@ async function prepareIdentities(
  * @param enrichmentInput - The object that contains organization enrichment attributes
  * @returns the PDL company response
  */
+let count = 0
 async function getEnrichment(
   { name, website, locality }: EnrichmentParams,
   log: Logger,
 ): Promise<any> {
+  // TODO uros - remove this - just for testing so I don't waste credits
+  if (count > 10 && !(name === 'Dreams API' || website === 'dreamsapi.com')) {
+    svc.log.warn({ name, website }, 'Ignoring enrichment for testing purposes!')
+    return null
+  }
+
   const PDLJSModule = await import('peopledatalabs')
   const PDLClient = new PDLJSModule.default({
     apiKey: process.env['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
@@ -261,9 +301,15 @@ async function getEnrichment(
 
     data.name = name
   } catch (error) {
-    log.error({ name, website, locality }, 'PDL Data Unavalable', error)
+    if (error.status === 404) {
+      log.debug({ name, website, locality }, 'PDL data not available!')
+    } else {
+      log.error(error, { name, website, locality }, 'Error while fetching PDL data!')
+    }
+
     return null
   }
+  count++
   return data
 }
 

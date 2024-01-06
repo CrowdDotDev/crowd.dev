@@ -108,7 +108,7 @@ export default (sequelize) => {
         comment: 'A range representing the size of the company.',
       },
       naics: {
-        type: DataTypes.ARRAY(DataTypes.JSONB),
+        type: DataTypes.JSONB,
         allowNull: true,
         comment: 'industry classifications for a company according to NAICS',
       },
