@@ -35,6 +35,7 @@ export const mergeIgnoreUndefined = <T extends Record<string, unknown>>(first: T
   return result
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RemapT = { [index: string]: any }
 
 export const renameKeys = <T extends RemapT>(obj: RemapT, fieldMap: RemapT): T =>

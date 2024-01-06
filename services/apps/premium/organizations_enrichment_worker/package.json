@@ -20,6 +20,8 @@
     "@crowd/database": "file:../../../libs/database",
     "@crowd/logging": "file:../../../libs/logging",
     "@crowd/redis": "file:../../../libs/redis",
+    "@crowd/feature-flags": "file:../../../libs/feature-flags",
+    "@crowd/common_services": "file:../../../libs/common_services",
     "@crowd/types": "file:../../../libs/types",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",

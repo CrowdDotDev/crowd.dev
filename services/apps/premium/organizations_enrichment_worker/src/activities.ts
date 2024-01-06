@@ -1,9 +1,9 @@
-import { getApplicableTenants } from './activities/getApplicableTenants'
 import {
   getTenantCredits,
   decrementTenantCredits,
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
+  getApplicableTenants,
 } from './activities/organizationEnrichment'
 
 export {

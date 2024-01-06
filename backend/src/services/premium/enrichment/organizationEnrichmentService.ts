@@ -304,6 +304,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
   ): IOrganization {
     let data = <IEnrichableOrganization>renameKeys(pdlData, {
       summary: 'description',
+      display_name: 'displayName',
       employee_count_by_country: 'employeeCountByCountry',
       employee_count: 'employees',
       location: 'address',

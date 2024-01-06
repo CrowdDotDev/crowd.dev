@@ -9,6 +9,7 @@ export const scheduleOrganizationsEnrichment = async () => {
       spec: {
         // every hour (at minute 0)
         // cronExpressions: ['0 * * * *'],
+        // TODO uros change back
         cronExpressions: ['*/3 * * * *'],
       },
       policies: {

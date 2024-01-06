@@ -1222,9 +1222,15 @@ importers:
       '@crowd/common':
         specifier: file:../../../libs/common
         version: file:services/libs/common
+      '@crowd/common_services':
+        specifier: file:../../../libs/common_services
+        version: file:services/libs/common_services
       '@crowd/database':
         specifier: file:../../../libs/database
         version: file:services/libs/database
+      '@crowd/feature-flags':
+        specifier: file:../../../libs/feature-flags
+        version: file:services/libs/feature-flags
       '@crowd/logging':
         specifier: file:../../../libs/logging
         version: file:services/libs/logging

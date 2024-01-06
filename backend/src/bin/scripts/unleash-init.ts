@@ -228,7 +228,7 @@ const constaintConfiguration = {
   [FeatureFlag.TEMPORAL_MEMBERS_ENRICHMENT]: [
     [
       {
-        values: [Plans.values.scale, Plans.values.enterprise],
+        values: [TenantPlans.Scale, TenantPlans.Enterprise],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
@@ -241,10 +241,10 @@ const constaintConfiguration = {
     [
       {
         values: [
-          Plans.values.essential,
-          Plans.values.growth,
-          Plans.values.scale,
-          Plans.values.enterprise,
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+          TenantPlans.Scale,
+          TenantPlans.Enterprise,
         ],
         inverted: false,
         operator: 'IN',
@@ -273,6 +273,23 @@ const constaintConfiguration = {
   ],
 
   [FeatureFlag.SERVE_PROFILES_OPENSEARCH]: [
+    [
+      {
+        values: [
+          TenantPlans.Scale,
+          TenantPlans.EagleEye,
+          TenantPlans.Enterprise,
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+  [FeatureFlag.TEMPORAL_ORGANIZATION_ENRICHMENT]: [
     [
       {
         values: [

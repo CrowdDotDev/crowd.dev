@@ -16,9 +16,37 @@ import {
   IOrganizationIdentity,
   OrganizationRepository,
 } from '../repos/organization.repo'
-import { IPremiumTenantInfo } from '../repos/tenant.repo'
+import { IPremiumTenantInfo, TenantRepository } from '../repos/tenant.repo'
+import { isFeatureEnabled } from '@crowd/feature-flags'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+export async function getApplicableTenants(
+  page: number,
+  lastId?: string,
+): Promise<IPremiumTenantInfo[]> {
+  svc.log.debug('Getting applicable tenants!')
+  const repo = new TenantRepository(svc.postgres.reader, svc.log)
+  const tenants = await repo.getPremiumTenants(page, lastId)
+
+  svc.log.debug(`Got ${tenants.length} applicable tenants!`)
+  return tenants
+}
+
+export async function hasTenantOrganizationEnrichmentEnabled(tenantId: string): Promise<boolean> {
+  return isFeatureEnabled(
+    FeatureFlag.TEMPORAL_ORGANIZATION_ENRICHMENT,
+    async () => {
+      return {
+        tenantId,
+      }
+    },
+    svc.unleash,
+    svc.redis,
+    5 * 60,
+    tenantId,
+  )
+}
 
 /**
  * Calculate how many credits the tenant has left for organization enrichment
@@ -113,7 +141,7 @@ export async function tryEnrichOrganization(
 
   const identityPlatforms = distinct(orgData.identities.map((i) => i.platform))
 
-  if (orgData.orgActivityCount > 0 && identityPlatforms.length > 0) {
+  if (identityPlatforms.length > 0) {
     const platformsForEnrichment = ENRICHMENT_PLATFORM_PRIORITY.filter((p) =>
       identityPlatforms.includes(p),
     )
@@ -138,7 +166,6 @@ export async function tryEnrichOrganization(
         finalData.weakIdentities = orgData.weakIdentities
         await prepareIdentities(orgData.tenantId, orgData.id, finalData, repo)
 
-        // TODO save final data to the database by updating the organizations row
         await repo.transactionally(async (t) => {
           await t.updateIdentities(
             orgData.id,
@@ -146,11 +173,7 @@ export async function tryEnrichOrganization(
             orgData.identities,
             finalData.identities,
           )
-          await t.updateOrganizationWithEnrichedData(
-            orgData.id,
-            orgData.manuallyChangedFields,
-            finalData,
-          )
+          await t.updateOrganizationWithEnrichedData(orgData, finalData)
           if (orgData.website) {
             await t.generateMergeSuggestions(orgData.id, orgData.tenantId, orgData.website)
           }
