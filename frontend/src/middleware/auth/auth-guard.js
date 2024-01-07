@@ -58,8 +58,7 @@ export default async function ({
 
   if (store.getters['auth/currentTenant'] && isTrialExpired(store.getters['auth/currentTenant'])) {
     if (!window.location.href.includes('/onboard/plans')
-      && !window.location.href.includes('/onboard/payment')
-      && !window.location.href.includes('/auth/verify-email')) {
+      && !window.location.href.includes('/onboard/payment')) {
       window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
     }
     return;
