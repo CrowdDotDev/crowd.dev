@@ -228,7 +228,7 @@ export default {
       })
       .then(() => {
         commit('EMAIL_VERIFY_SUCCESS');
-        router.push('/');
+        router.push('/onboard/plans');
       })
       .catch((error) => {
         Errors.handle(error);
