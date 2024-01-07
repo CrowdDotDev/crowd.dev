@@ -48,6 +48,8 @@ class ActivityRepository {
       data.platform = data.platform.toLowerCase()
     }
 
+    const member = await options.database.member.findByPk(data.member)
+
     const record = await options.database.activity.create(
       {
         ...lodash.pick(data, [
@@ -77,6 +79,7 @@ class ActivityRepository {
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
+        isBotActivity: member.attributes?.isBot?.default || false,
       },
       {
         transaction,
