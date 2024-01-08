@@ -50,12 +50,12 @@
             params: { id: member.id },
             query: { projectGroup: selectedProjectGroup?.id },
           }"
+          target="_blank"
         >
           <div class="relative">
             <app-avatar
               :entity="member"
               class="mb-3"
-              @click="emit('closeDialog')"
             />
             <el-tooltip
               v-if="member.attributes?.avatarUrl?.default && getAttributeSourceName(member.attributes.avatarUrl)"
@@ -75,19 +75,6 @@
             </el-tooltip>
           </div>
         </router-link>
-        <router-link
-          :to="{
-            name: 'memberEdit',
-            params: { id: member.id },
-            query: { projectGroup: selectedProjectGroup?.id },
-          }"
-        >
-          <el-button
-            class="btn btn-link btn-link--primary"
-          >
-            <i class="ri-pencil-line" /><span>Edit</span>
-          </el-button>
-        </router-link>
       </div>
       <div class="pb-4">
         <router-link
@@ -96,10 +83,10 @@
             params: { id: member.id },
             query: { projectGroup: selectedProjectGroup?.id },
           }"
+          target="_blank"
         >
           <h6
             class="text-base text-black font-semibold hover:text-brand-500"
-            @click="emit('closeDialog')"
             v-html="$sanitize(member.displayName)"
           />
         </router-link>
@@ -291,7 +278,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['makePrimary', 'bioHeight', 'closeDialog']);
+const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 

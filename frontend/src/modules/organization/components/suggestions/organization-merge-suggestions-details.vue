@@ -51,6 +51,7 @@
               params: { id: organization.id },
               query: { projectGroup: selectedProjectGroup?.id },
             }"
+            target="_blank"
           >
             <app-avatar
               :entity="{
@@ -58,21 +59,7 @@
                 displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
               }"
               class="mr-4 mb-4"
-              @click="emit('closeDialog')"
             />
-          </router-link>
-          <router-link
-            :to="{
-              name: 'organizationEdit',
-              params: { id: organization.id },
-              query: { projectGroup: selectedProjectGroup?.id },
-            }"
-          >
-            <el-button
-              class="btn btn-link btn-link--primary"
-            >
-              <i class="ri-pencil-line" /><span>Edit</span>
-            </el-button>
           </router-link>
         </div>
         <div>
@@ -82,10 +69,10 @@
               params: { id: organization.id },
               query: { projectGroup: selectedProjectGroup?.id },
             }"
+            target="_blank"
           >
             <h6
               class="text-base text-black font-semibold hover:text-brand-500"
-              @click="emit('closeDialog')"
               v-html="$sanitize(props.organization.displayName || props.organization.name)"
             />
           </router-link>
@@ -316,7 +303,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['makePrimary', 'bioHeight', 'closeDialog']);
+const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 

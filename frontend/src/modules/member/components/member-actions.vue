@@ -7,7 +7,7 @@
       </el-button>
       <el-button
         v-if="mergeSuggestionsCount > 0"
-        class="btn btn--bordered btn--sm !h-8 !bg-brand-25"
+        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25"
         :disabled="isEditLockedForSampleData"
         @click="mergeSuggestions()"
       >
@@ -16,22 +16,11 @@
 
       <el-button
         v-else
-        class="btn btn--bordered btn--sm !h-8"
+        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5"
         :disabled="isEditLockedForSampleData"
         @click="merge()"
       >
         <span class="ri-shuffle-line text-base mr-2" />Merge
-      </el-button>
-
-      <el-button class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5">
-        <a
-          class="text-gray-500 hover:text-brand-500"
-          href="https://app.formbricks.com/s/clr4u0mp29k228up0nh9yurm5"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span class="ri-split-cells-horizontal text-base mr-2" />Request un-merge
-        </a>
       </el-button>
 
       <app-member-dropdown

@@ -15,7 +15,6 @@
               :compare-member="memberToMerge"
               :is-primary="originalMemberPrimary"
               @make-primary="originalMemberPrimary = true"
-              @close-dialog="isModalOpen = false"
             />
           </div>
           <div class="w-1/2 px-3">
@@ -31,7 +30,6 @@
               :compare-member="props.modelValue"
               :is-primary="!originalMemberPrimary"
               @make-primary="originalMemberPrimary = false"
-              @close-dialog="isModalOpen = false"
             >
               <template #action>
                 <button
