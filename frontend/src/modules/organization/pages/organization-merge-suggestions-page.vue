@@ -276,8 +276,15 @@ const ignoreSuggestion = () => {
       Message.success('Merging suggestion ignored successfuly');
       fetch();
     })
-    .catch(() => {
-      Message.error('There was an error ignoring the merging suggestion');
+    .catch((error) => {
+      if (error.response.status === 404) {
+        Message.error('Suggestion already merged or ignored', {
+          message: `Sorry, the suggestion you are trying to merge might have already been merged or ignored.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error ignoring the merging suggestion');
+      }
     })
     .finally(() => {
       sendingIgnore.value = false;
@@ -313,9 +320,17 @@ const mergeSuggestion = () => {
 
       fetch();
     })
-    .catch((e) => {
+    .catch((error) => {
       Message.closeAll();
-      Message.error('There was an error merging organizations');
+
+      if (error.response.status === 404) {
+        Message.error('Organizations already merged or deleted', {
+          message: `Sorry, the organizations you are trying to merge might have already been merged or deleted.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error merging organizations');
+      }
     })
     .finally(() => {
       sendingMerge.value = false;
