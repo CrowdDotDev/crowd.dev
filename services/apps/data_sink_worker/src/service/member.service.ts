@@ -19,6 +19,7 @@ import {
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
+import moment from 'moment-timezone'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import IntegrationRepository from '../repo/integration.repo'
@@ -546,6 +547,15 @@ export default class MemberService extends LoggerBase {
     if (member.joinedAt) {
       const newDate = member.joinedAt
       const oldDate = new Date(dbMember.joinedAt)
+      // If either the new or the old date are earlier than 1970
+      // it means they come from an activity without timestamp
+      // and we want to keep the other one
+      if (moment(oldDate).subtract(5, 'days').unix() < 0) {
+        joinedAt = newDate.toISOString()
+      }
+      if (moment(newDate).unix() < 0) {
+        joinedAt = undefined
+      }
 
       if (oldDate <= newDate) {
         // we already have the oldest date in the db, so we don't need to update it
