@@ -22,7 +22,7 @@
       >
         <div v-if="findPlatform(key)">
           <el-form-item class="h-14 !flex items-center">
-            <div :class="value.imgContainerClass">
+            <div class="h-8 w-8 flex items-center justify-center text-base">
               <img
                 :src="findPlatform(key).image"
                 :alt="findPlatform(key).name"
@@ -89,7 +89,10 @@
       </div>
       <div class="flex items-start justify-between mt-24">
         <div class="flex items-center flex-1">
-          <app-platform platform="email" />
+          <app-platform-icon
+            platform="emails"
+            size="small"
+          />
           <div class="font-medium text-sm ml-3">
             Email address
           </div>
@@ -114,6 +117,7 @@ import {
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import cloneDeep from 'lodash/cloneDeep';
+import AppPlatformIcon from '@/shared/modules/platform/components/platform-icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -176,64 +180,48 @@ const identitiesForm = reactive({
       props.modelValue.username?.devto !== undefined
       || false,
     urlPrefix: 'dev.to/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
   },
   discord: {
     enabled:
       props.modelValue.username?.discord !== undefined
       || false,
     urlPrefix: 'discord.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto',
   },
   github: {
     enabled:
       props.modelValue.username?.github !== undefined
       || false,
     urlPrefix: 'github.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
   },
   slack: {
     enabled:
       props.modelValue.username?.slack !== undefined
       || false,
     urlPrefix: 'slack.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200',
   },
   twitter: {
     enabled:
       props.modelValue.username?.twitter !== undefined
       || false,
     urlPrefix: 'twitter.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter',
   },
   linkedin: {
     enabled:
       props.modelValue.username?.linkedin !== undefined
       || false,
     urlPrefix: 'linkedin.com/in/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
   },
   reddit: {
     enabled:
       props.modelValue.username?.reddit !== undefined
       || false,
     urlPrefix: 'reddit.com/user/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--reddit',
   },
   hackernews: {
     enabled:
       props.modelValue.username?.hackernews !== undefined
       || false,
     urlPrefix: 'news.ycombinator.com/user?id=',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--hackernews',
   },
   git: {
     enabled:
@@ -248,8 +236,6 @@ const identitiesForm = reactive({
       props.modelValue.username?.stackoverflow
         !== undefined || false,
     urlPrefix: 'stackoverflow.com/users/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--stackoverflow',
   },
 });
 

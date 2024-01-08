@@ -28,9 +28,9 @@
     "@octokit/core": "^3.6.0",
     "@tiptap/extension-link": "^2.1.12",
     "@tiptap/extension-placeholder": "^2.1.12",
+    "@tiptap/pm": "^2.1.12",
     "@tiptap/starter-kit": "^2.1.12",
     "@tiptap/vue-3": "^2.1.12",
-    "@tiptap/pm": "^2.1.12",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/eslint-config-airbnb": "^7.0.0",
     "@vuelidate/core": "^2.0.1",
@@ -78,6 +78,7 @@
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.2",
     "@types/auth0-js": "^9.21.0",
+    "@types/pluralize": "^0.0.33",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/compiler-sfc": "^3.2.29",
