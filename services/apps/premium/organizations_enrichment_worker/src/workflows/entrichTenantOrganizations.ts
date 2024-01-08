@@ -14,7 +14,7 @@ const { getTenantCredits, getTenantOrganizationsForEnrichment } = proxyActivitie
   startToCloseTimeout: '75 seconds',
 })
 
-const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION = 500
+const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION = 100
 const BATCH_SIZE = 10
 
 export async function enrichTenantOrganizations(tenant: IPremiumTenantInfo): Promise<void> {

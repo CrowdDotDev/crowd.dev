@@ -266,17 +266,10 @@ async function prepareIdentities(
  * @param enrichmentInput - The object that contains organization enrichment attributes
  * @returns the PDL company response
  */
-let count = 0
 async function getEnrichment(
   { name, website, locality }: EnrichmentParams,
   log: Logger,
 ): Promise<any> {
-  // TODO uros - remove this - just for testing so I don't waste credits
-  if (count > 10 && !(name === 'Dreams API' || website === 'dreamsapi.com')) {
-    svc.log.warn({ name, website }, 'Ignoring enrichment for testing purposes!')
-    return null
-  }
-
   const PDLJSModule = await import('peopledatalabs')
   const PDLClient = new PDLJSModule.default({
     apiKey: process.env['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
@@ -309,7 +302,6 @@ async function getEnrichment(
 
     return null
   }
-  count++
   return data
 }
 

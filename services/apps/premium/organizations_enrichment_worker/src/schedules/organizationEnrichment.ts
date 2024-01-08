@@ -8,9 +8,7 @@ export const scheduleOrganizationsEnrichment = async () => {
       scheduleId: 'organizations-enrichment',
       spec: {
         // every hour (at minute 0)
-        // cronExpressions: ['0 * * * *'],
-        // TODO uros change back
-        cronExpressions: ['*/3 * * * *'],
+        cronExpressions: ['0 * * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
