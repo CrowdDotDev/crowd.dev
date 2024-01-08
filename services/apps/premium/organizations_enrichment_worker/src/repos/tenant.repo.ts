@@ -13,35 +13,19 @@ export class TenantRepository extends RepositoryBase<TenantRepository> {
   }
 
   async getPremiumTenants(perPage: number, lastId?: string): Promise<IPremiumTenantInfo[]> {
-    if (lastId) {
-      return await this.db().any(
-        `
-        select  id,
-                plan
-        from tenants
-        where plan in ($(plans:csv)) and id > $(lastId)
-        order by id
-        limit ${perPage};
-        `,
-        {
-          plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
-          lastId,
-        },
-      )
-    } else {
-      return await this.db().any(
-        `
-        select  id,
-                plan
-        from tenants
-        where plan in ($(plans:csv))
-        order by id
-        limit ${perPage};
-        `,
-        {
-          plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
-        },
-      )
-    }
+    return await this.db().any(
+      `
+      select  id,
+              plan
+      from tenants
+      where plan in ($(plans:csv)) ${lastId ? 'and id > $(lastId)' : ''}
+      order by id
+      limit ${perPage};
+      `,
+      {
+        plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
+        lastId,
+      },
+    )
   }
 }
