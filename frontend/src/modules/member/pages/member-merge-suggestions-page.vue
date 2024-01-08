@@ -99,7 +99,7 @@
         <div
           v-for="(member, mi) of membersToMerge.members"
           :key="member.id"
-          class="w-1/2"
+          class="w-1/3"
         >
           <app-member-merge-suggestions-details
             :member="member"
@@ -112,6 +112,13 @@
             :class="mi > 0 ? 'rounded-r-lg -ml-px' : 'rounded-l-lg'"
             @make-primary="primary = mi"
             @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
+          />
+        </div>
+        <div class="w-1/3 ml-8">
+          <app-member-merge-suggestions-details
+            :member="preview"
+            :is-preview="true"
+            class="border rounded-lg bg-brand-25"
           />
         </div>
       </div>
@@ -139,6 +146,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import { useRoute } from 'vue-router';
+import { merge } from 'lodash';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -161,6 +169,30 @@ const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
+
+const clearMember = (member) => {
+  const cleanedMember = { ...member };
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in cleanedMember.attributes) {
+    if (!cleanedMember.attributes[key].default) {
+      delete cleanedMember.attributes[key];
+    }
+  }
+  return cleanedMember;
+};
+
+const preview = computed(() => {
+  const primaryMember = membersToMerge.value.members[primary.value];
+  const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
+  const mergedMembers = merge({}, clearMember(secondaryMember), clearMember(primaryMember));
+  Object.keys(mergedMembers?.username || {}).forEach((key) => {
+    if (!primaryMember.username[key] || !secondaryMember.username[key]) {
+      return;
+    }
+    mergedMembers.username[key] = [...Object.values(primaryMember.username[key]), ...Object.values(secondaryMember.username[key])];
+  });
+  return mergedMembers;
+});
 
 const confidence = computed(() => {
   if (membersToMerge.value.similarity >= 0.8) {
