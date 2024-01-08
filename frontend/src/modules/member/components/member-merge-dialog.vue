@@ -138,8 +138,15 @@ const mergeSuggestion = () => {
         fetchMembers({ reload: true });
       }
     })
-    .catch(() => {
-      Message.error('There was an error merging contributors');
+    .catch((error) => {
+      if (error.response.status === 404) {
+        Message.error('Contacts already merged or deleted', {
+          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error merging contacts');
+      }
     })
     .finally(() => {
       sendingMerge.value = false;
