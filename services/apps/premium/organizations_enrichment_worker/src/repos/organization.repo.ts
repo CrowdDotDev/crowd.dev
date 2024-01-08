@@ -234,9 +234,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     const identityParams = identities
       .map(
         (identity) =>
-          `('${this.dbInstance.as.text(identity.platform)}', '${this.dbInstance.as.text(
+          `(${this.dbInstance.as.text(identity.platform)}, ${this.dbInstance.as.text(
             identity.name,
-          )}')`,
+          )})`,
       )
       .join(', ')
 
