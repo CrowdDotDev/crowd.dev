@@ -64,7 +64,17 @@ const defaultPlatformConfig = computed(() => CrowdIntegrations.getConfig(props.p
 const platformConfig = computed(
   () => CrowdIntegrations.getConfig(props.platform) || {},
 );
-const platformName = computed(() => platformConfig.value.name || 'Custom');
+const platformName = computed(() => {
+  if (props.platform === 'emails') {
+    return 'Email';
+  }
+
+  if (props.platform === 'phoneNumbers') {
+    return 'Phone number';
+  }
+
+  return platformConfig.value.name || 'Custom';
+});
 </script>
 
 <script lang="ts">
