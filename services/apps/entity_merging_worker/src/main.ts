@@ -14,6 +14,8 @@ const config: Config = {
   },
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 const options: Options = {
   postgres: {
     enabled: true,
