@@ -232,7 +232,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     }
 
     const identityParams = identities
-      .map((identity) => `('${identity.platform}', '${identity.name}')`)
+      .map(
+        (identity) =>
+          `('${this.dbInstance.as.text(identity.platform)}', '${this.dbInstance.as.text(
+            identity.name,
+          )}')`,
+      )
       .join(', ')
 
     const results = await this.db().any(
