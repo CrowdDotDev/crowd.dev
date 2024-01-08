@@ -18,7 +18,7 @@ describe('PermissionChecker tests', () => {
 
   describe('Integration protected fields', () => {
     it('Should throw an error when limitCount is passed', async () => {
-      for (const plan of Object.keys(TenantPlans)) {
+      for (const plan of Object.values(TenantPlans)) {
         const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
           db,
           plan as TenantPlans,
@@ -36,7 +36,7 @@ describe('PermissionChecker tests', () => {
     })
 
     it('Should throw an error when limitCount is passed as 0', async () => {
-      for (const plan of Object.keys(TenantPlans)) {
+      for (const plan of Object.values(TenantPlans)) {
         const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
           db,
           plan as TenantPlans,
