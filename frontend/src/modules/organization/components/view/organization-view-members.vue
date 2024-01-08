@@ -27,9 +27,9 @@
         <div
           v-for="member in members"
           :key="member.id"
-          class="flex flex-wrap items-center justify-between py-5 border-b border-gray-200 last:border-none gap-2"
+          class="py-5 border-b border-gray-200 last:border-none grid grid-cols-7 gap-4"
         >
-          <div class="basis-2/6">
+          <div class="col-span-3">
             <router-link
               class="flex items-center gap-2"
               :to="{
@@ -46,16 +46,16 @@
             </router-link>
           </div>
           <div
-            class="flex items-center justify-between gap-6 basis-3/6 mr-2"
+            class="col-span-1 flex items-center"
           >
-            <div>
-              <app-member-engagement-level
-                :member="member"
-              />
-            </div>
-            <app-member-identities
-              :username="member.username"
+            <app-member-engagement-level
               :member="member"
+            />
+          </div>
+          <div class="col-span-3 flex items-center justify-end">
+            <app-identities-horizontal-list-members
+              :member="member"
+              :limit="5"
             />
           </div>
         </div>
@@ -96,10 +96,10 @@ import debounce from 'lodash/debounce';
 import authAxios from '@/shared/axios/auth-axios';
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
-import AppMemberIdentities from '@/modules/member/components/member-identities.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute, useRouter } from 'vue-router';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 
 const SearchIcon = h(
   'i', // type
