@@ -193,7 +193,14 @@ const preview = computed(() => {
   const primaryOrganization = organizationsToMerge.value.organizations[primary.value];
   const secondaryOrganization = organizationsToMerge.value.organizations[(primary.value + 1) % 2];
   const mergedOrganizations = merge({}, clearOrganization(secondaryOrganization), clearOrganization(primaryOrganization));
-  mergedOrganizations.identities = [...primaryOrganization.identities, ...secondaryOrganization.identities];
+  if (!Array.isArray(primaryOrganization.identities)) {
+    primaryOrganization.identities = [];
+  }
+  if (!Array.isArray(secondaryOrganization.identities)) {
+    secondaryOrganization.identities = [];
+  }
+
+  mergedOrganizations.identities = [...(primaryOrganization.identities || []), ...(secondaryOrganization.identities || [])];
   return mergedOrganizations;
 });
 
