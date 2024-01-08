@@ -26,7 +26,13 @@
       <!-- primary member -->
       <div class="h-13 flex justify-between items-start">
         <div
-          v-if="props.isPrimary"
+          v-if="props.isPreview"
+          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+        >
+          Preview
+        </div>
+        <div
+          v-else-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
           Primary organization
@@ -96,7 +102,7 @@
             :href="withHttp(props.organization.website)"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-gray-900 text-right"
+            class="text-xs text-gray-900 text-right whitespace-normal"
           >{{ props.organization.website || '-' }}</a>
         </article>
         <article
@@ -109,7 +115,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.location || '-' }}
           </p>
         </article>
@@ -123,7 +129,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Number of employees
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.employees || '-' }}
           </p>
         </article>
@@ -137,7 +143,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Annual Revenue
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ revenueRange.displayValue(
               props.organization.revenueRange,
             ) || '-' }}
@@ -153,7 +159,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Industry
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+          <p class="text-xs text-gray-900 text-right first-letter:uppercase whitespace-normal">
             {{ props.organization.industry || '-' }}
           </p>
         </article>
@@ -167,7 +173,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Type
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+          <p class="text-xs text-gray-900 text-right first-letter:uppercase whitespace-normal">
             {{ props.organization.type || '-' }}
           </p>
         </article>
@@ -181,7 +187,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Founded
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.founded || '-' }}
           </p>
         </article>
@@ -195,7 +201,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Joined date
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ formatDateToTimeAgo(props.organization.joinedAt) || '-' }}
           </p>
         </article>
@@ -209,7 +215,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             # of contributors
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.memberCount || '-' }}
           </p>
         </article>
@@ -223,7 +229,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             # of Activities
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.activityCount || '-' }}
           </p>
         </article>
@@ -265,6 +271,11 @@ const props = defineProps({
     default: () => null,
   },
   isPrimary: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isPreview: {
     type: Boolean,
     required: false,
     default: false,

@@ -26,7 +26,13 @@
       <!-- primary member -->
       <div class="h-13 flex justify-between items-start">
         <div
-          v-if="props.isPrimary"
+          v-if="props.isPreview"
+          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+        >
+          Preview
+        </div>
+        <div
+          v-else-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
           Primary contributor
@@ -92,7 +98,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ member.attributes.location?.default || '-' }}
           </p>
         </article>
@@ -117,7 +123,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Title
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ member.attributes.jobTitle?.default || '-' }}
           </p>
         </article>
@@ -128,7 +134,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Contributor since
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
           </p>
         </article>
@@ -185,6 +191,11 @@ const props = defineProps({
     default: () => null,
   },
   isPrimary: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isPreview: {
     type: Boolean,
     required: false,
     default: false,
