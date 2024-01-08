@@ -1,4 +1,3 @@
-export * from './cube'
 export * from './types'
 export * from './enums'
 export * from './repository'
