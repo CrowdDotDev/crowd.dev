@@ -27,13 +27,13 @@
       <div class="h-13 flex justify-between items-start">
         <div
           v-if="props.isPreview"
-          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
           Preview
         </div>
         <div
           v-else-if="props.isPrimary"
-          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
         >
           Primary contributor
         </div>
