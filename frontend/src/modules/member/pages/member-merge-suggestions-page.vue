@@ -191,6 +191,7 @@ const preview = computed(() => {
     }
     mergedMembers.username[key] = [...Object.values(primaryMember.username[key]), ...Object.values(secondaryMember.username[key])];
   });
+  mergedMembers.score = Math.max(primaryMember.score, secondaryMember.score);
   return mergedMembers;
 });
 

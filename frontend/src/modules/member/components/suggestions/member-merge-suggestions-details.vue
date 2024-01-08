@@ -98,7 +98,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ member.attributes.location?.default || '-' }}
           </p>
         </article>
@@ -123,7 +123,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Title
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ member.attributes.jobTitle?.default || '-' }}
           </p>
         </article>
@@ -134,7 +134,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Contact since
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
           </p>
         </article>
