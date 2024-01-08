@@ -2222,26 +2222,29 @@ class MemberRepository {
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
       const seq = SequelizeRepository.getSequelize(options)
-      const segmentIds = segments
 
       const lastActivities = await seq.query(
         `
-            WITH
-                raw_data AS (
-                    SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
-                    FROM activities
-                    WHERE "tenantId" = :tenantId
-                      AND "memberId" IN (:memberIds)
-                      AND "segmentId" IN (:segmentIds)
-                )
-            SELECT *
-            FROM raw_data
-            WHERE rn = 1;
+          WITH
+            leaf_segment_ids AS (
+              select id
+              from segments
+              where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+            ),
+            raw_data AS (
+                SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
+                FROM activities
+                INNER JOIN leaf_segment_ids ON activities."segmentId" = leaf_segment_ids.id
+                WHERE "tenantId" = :tenantId
+                  AND "memberId" IN (:memberIds)
+            )
+          SELECT *
+          FROM raw_data
+          WHERE rn = 1;
         `,
         {
           replacements: {
             tenantId: tenant.id,
-            segmentIds,
             memberIds,
           },
           type: QueryTypes.SELECT,
