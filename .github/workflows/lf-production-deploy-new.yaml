@@ -413,6 +413,7 @@ jobs:
           service: merge-suggestions-worker
           image: ${{ needs.build-and-push-merge-suggestions-worker.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+          
   deploy-entity-merging-worker:
     needs: build-and-push-entity-merging-worker
     runs-on: ubuntu-latest
