@@ -14,27 +14,40 @@
       Here you can check all the merging suggestions.
     </div>
 
-    <div v-if="loading || count > 0" class="panel">
+    <div v-if="loading || count > 0" class="panel !p-0">
       <!-- Header -->
-      <header class="flex items-center justify-between pb-4">
-        <button
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset <= 0"
-          @click="fetch(offset - 1)"
-        >
-          <span class="ri-arrow-left-s-line text-lg mr-2" />
-          <span>Previous</span>
-        </button>
-        <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
-        <div
-          v-else
-          class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center"
-        >
-          <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
+      <header class="flex items-center justify-between px-6 py-5 border-b">
+        <div class="flex items-center">
+          <button
+            type="button"
+            class="btn btn--transparent btn--md"
+            :disabled="loading || offset <= 0"
+            @click="fetch(offset - 1)"
+          >
+            <span class="ri-arrow-left-s-line text-lg mr-2" />
+            <span>Previous</span>
+          </button>
+          <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
           <div
-            v-if="membersToMerge.similarity"
-            class="w-full flex items-center justify-center pt-2"
+            v-else
+            class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
+          >
+            <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
+          </div>
+          <button
+            type="button"
+            class="btn btn--transparent btn--md"
+            :disabled="loading || offset >= count - 1"
+            @click="fetch(offset + 1)"
+          >
+            <span>Next</span>
+            <span class="ri-arrow-right-s-line text-lg ml-2" />
+          </button>
+        </div>
+        <div class="flex items-center">
+          <div
+            v-if="!loading && membersToMerge.similarity"
+            class="w-full flex items-center justify-center pr-2"
           >
             <div
               class="flex text-sm"
@@ -46,40 +59,47 @@
               {{ Math.round(membersToMerge.similarity * 100) }}% confidence
             </div>
           </div>
+          <el-button
+            :disabled="loading || isEditLockedForSampleData"
+            class="btn btn--bordered btn--md"
+            :loading="sendingIgnore"
+            @click="ignoreSuggestion()"
+          >
+            Ignore suggestion
+          </el-button>
+          <el-button
+            :disabled="loading || isEditLockedForSampleData"
+            class="btn btn--primary btn--md !ml-4"
+            :loading="sendingMerge"
+            @click="mergeSuggestion()"
+          >
+            Merge contacts
+          </el-button>
         </div>
-        <button
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset >= count - 1"
-          @click="fetch(offset + 1)"
-        >
-          <span>Next</span>
-          <span class="ri-arrow-right-s-line text-lg ml-2" />
-        </button>
       </header>
 
       <!-- Comparison -->
       <!-- Loading -->
-      <div v-if="loading" class="flex -mx-3">
-        <div class="w-1/2 px-3">
+      <div v-if="loading" class="flex p-5">
+        <div class="w-1/2 border rounded-l-lg">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
             :is-primary="true"
           />
         </div>
-        <div class="w-1/2 px-3">
+        <div class="w-1/2 -ml-px border rounded-r-lg">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
           />
         </div>
       </div>
-      <div v-else class="flex -mx-3">
+      <div v-else class="flex p-5">
         <div
           v-for="(member, mi) of membersToMerge.members"
           :key="member.id"
-          class="w-1/2 px-3"
+          class="w-1/3"
         >
           <app-member-merge-suggestions-details
             :member="member"
@@ -88,35 +108,21 @@
             "
             :is-primary="mi === primary"
             :extend-bio="bioHeight"
+            class="border"
+            :class="mi > 0 ? 'rounded-r-lg -ml-px' : 'rounded-l-lg'"
             @make-primary="primary = mi"
             @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
           />
         </div>
+        <div class="w-1/3 ml-8">
+          <app-member-merge-suggestions-details
+            :member="preview"
+            :is-preview="true"
+            class="border rounded-lg bg-brand-25"
+          />
+        </div>
       </div>
-
       <!-- Actions -->
-      <div class="flex -mx-3 pt-8">
-        <div class="w-1/2 px-3">
-          <el-button
-            :disabled="loading || isEditLockedForSampleData"
-            class="btn btn--bordered btn--lg w-full"
-            :loading="sendingIgnore"
-            @click="ignoreSuggestion()"
-          >
-            Ignore suggestion
-          </el-button>
-        </div>
-        <div class="w-1/2 px-3">
-          <el-button
-            :disabled="loading || isEditLockedForSampleData"
-            class="btn btn--primary btn--lg w-full"
-            :loading="sendingMerge"
-            @click="mergeSuggestion()"
-          >
-            Merge contacts
-          </el-button>
-        </div>
-      </div>
     </div>
     <!-- Empty state -->
     <div v-else class="pt-20 flex flex-col items-center">
@@ -139,10 +145,14 @@ import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
+import { useRoute } from 'vue-router';
+import { merge } from 'lodash';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
 const { currentTenant, currentUser } = mapGetters('auth');
+
+const route = useRoute();
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -159,6 +169,31 @@ const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
+
+const clearMember = (member) => {
+  const cleanedMember = { ...member };
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in cleanedMember.attributes) {
+    if (!cleanedMember.attributes[key].default) {
+      delete cleanedMember.attributes[key];
+    }
+  }
+  return cleanedMember;
+};
+
+const preview = computed(() => {
+  const primaryMember = membersToMerge.value.members[primary.value];
+  const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
+  const mergedMembers = merge({}, clearMember(secondaryMember), clearMember(primaryMember));
+  Object.keys(mergedMembers?.username || {}).forEach((key) => {
+    if (!primaryMember.username[key] || !secondaryMember.username[key]) {
+      return;
+    }
+    mergedMembers.username[key] = [...Object.values(primaryMember.username[key]), ...Object.values(secondaryMember.username[key])];
+  });
+  mergedMembers.score = Math.max(primaryMember.score, secondaryMember.score);
+  return mergedMembers;
+});
 
 const confidence = computed(() => {
   if (membersToMerge.value.similarity >= 0.8) {
@@ -195,7 +230,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  MemberService.fetchMergeSuggestions(1, offset.value)
+  MemberService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;

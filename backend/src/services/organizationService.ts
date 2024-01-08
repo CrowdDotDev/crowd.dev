@@ -20,7 +20,6 @@ import organizationCacheRepository from '../database/repositories/organizationCa
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
-import { sendOrgMergeMessage } from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import {
@@ -37,14 +36,6 @@ export default class OrganizationService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
-  }
-
-  async mergeAsync(originalId, toMergeId) {
-    const tenantId = this.options.currentTenant.id
-
-    await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
-
-    await sendOrgMergeMessage(tenantId, originalId, toMergeId)
   }
 
   async mergeSync(originalId, toMergeId) {
@@ -73,22 +64,14 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const mergeStatusChanged = await MergeActionsRepository.setState(
+      await MergeActionsRepository.add(
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.IN_PROGRESS,
         // not using transaction here on purpose,
         // so this change is visible until we finish
         this.options,
       )
-      if (!mergeStatusChanged) {
-        this.log.info('[Merge Organizations] - Merging already in progress!')
-        return {
-          status: 203,
-          mergedId: originalId,
-        }
-      }
 
       const repoOptions: IRepositoryOptions =
         await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
@@ -155,13 +138,6 @@ export default class OrganizationService extends LoggerBase {
       const memberOrganizationService = new MemberOrganizationService(repoOptions)
       await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
 
-      // update activities that belong to source org to destination org
-      await OrganizationRepository.moveActivitiesBetweenOrganizations(
-        toMergeId,
-        originalId,
-        repoOptions,
-      )
-
       const secondMemberSegments = await OrganizationRepository.getOrganizationSegments(
         toMergeId,
         repoOptions,
@@ -174,18 +150,33 @@ export default class OrganizationService extends LoggerBase {
         })
       }
 
-      // Delete toMerge organization
-      await OrganizationRepository.destroy(toMergeId, repoOptions, true, false)
-
       await SequelizeRepository.commitTransaction(tx)
 
       await MergeActionsRepository.setState(
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.DONE,
+        MergeActionState.FINISHING,
         this.options,
       )
+
+      await this.options.temporal.workflow.start('finishOrganizationMerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishOrganizationMerging/${originalId}/${toMergeId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          originalId,
+          toMergeId,
+          original.displayName,
+          toMerge.displayName,
+          this.options.currentTenant.id,
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       const searchSyncService = new SearchSyncService(this.options)
 
@@ -193,13 +184,22 @@ export default class OrganizationService extends LoggerBase {
       await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
 
       // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(originalId)
+      await searchSyncService.triggerOrganizationMembersSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(originalId)
+      await searchSyncService.triggerOrganizationActivitiesSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
-      return { status: 200, mergedId: originalId }
+      return {
+        status: 200,
+        mergedId: originalId,
+      }
     } catch (err) {
       this.options.log.error(err, 'Error while merging organizations!', {
         originalId,
@@ -491,7 +491,7 @@ export default class OrganizationService extends LoggerBase {
       }
 
       if (!existing) {
-        existing = await OrganizationRepository.findByIdentity(primaryIdentity, this.options)
+        existing = await OrganizationRepository.findByIdentities(data.identities, this.options)
       }
 
       if (existing) {
@@ -604,7 +604,13 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findOrganizationsWithMergeSuggestions(args, this.options)
   }
 
-  async update(id, data, overrideIdentities = false, syncToOpensearch = true) {
+  async update(
+    id,
+    data,
+    overrideIdentities = false,
+    syncToOpensearch = true,
+    manualChange = false,
+  ) {
     let tx
 
     try {
@@ -646,7 +652,13 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const record = await OrganizationRepository.update(id, data, repoOptions, overrideIdentities)
+      const record = await OrganizationRepository.update(
+        id,
+        data,
+        repoOptions,
+        overrideIdentities,
+        manualChange,
+      )
 
       await SequelizeRepository.commitTransaction(tx)
 
@@ -722,6 +734,10 @@ export default class OrganizationService extends LoggerBase {
 
   async findOrCreateByDomain(domain) {
     return OrganizationRepository.findOrCreateByDomain(domain, this.options)
+  }
+
+  async findByIdOpensearch(id: string, segmentId?: string) {
+    return OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
   }
 
   async query(data) {

@@ -2,7 +2,7 @@ import lodash, { chunk } from 'lodash'
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { Error404, PageData } from '@crowd/common'
+import { Error404, Error409, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -40,6 +40,7 @@ interface IOrganizationPartialAggregatesOpensearch {
       string_name: string
     }[]
     uuid_arr_noMergeIds: string[]
+    keyword_displayName: string
   }
 }
 
@@ -49,6 +50,7 @@ interface ISimilarOrganization {
     uuid_organizationId: string
     nested_identities: IOrganizationIdentityOpensearch[]
     nested_weakIdentities: IOrganizationIdentityOpensearch[]
+    keyword_displayName: string
   }
 }
 
@@ -517,7 +519,64 @@ class OrganizationRepository {
     })
   }
 
-  static async update(id, data, options: IRepositoryOptions, overrideIdentities = false) {
+  static ORGANIZATION_UPDATE_COLUMNS = [
+    'displayName',
+    'description',
+    'emails',
+    'phoneNumbers',
+    'logo',
+    'tags',
+    'website',
+    'location',
+    'github',
+    'twitter',
+    'linkedin',
+    'crunchbase',
+    'employees',
+    'revenueRange',
+    'importHash',
+    'isTeamOrganization',
+    'employeeCountByCountry',
+    'type',
+    'ticker',
+    'headline',
+    'profiles',
+    'naics',
+    'industry',
+    'founded',
+    'size',
+    'employees',
+    'twitter',
+    'lastEnrichedAt',
+    'affiliatedProfiles',
+    'allSubsidiaries',
+    'alternativeDomains',
+    'alternativeNames',
+    'averageEmployeeTenure',
+    'averageTenureByLevel',
+    'averageTenureByRole',
+    'directSubsidiaries',
+    'employeeChurnRate',
+    'employeeCountByMonth',
+    'employeeGrowthRate',
+    'employeeCountByMonthByLevel',
+    'employeeCountByMonthByRole',
+    'gicsSector',
+    'grossAdditionsByMonth',
+    'grossDeparturesByMonth',
+    'ultimateParent',
+    'immediateParent',
+    'attributes',
+    'weakIdentities',
+  ]
+
+  static async update(
+    id,
+    data,
+    options: IRepositoryOptions,
+    overrideIdentities = false,
+    manualChange = false,
+  ) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -536,64 +595,77 @@ class OrganizationRepository {
       throw new Error404()
     }
 
+    // check if website already exists in another organization in the same tenant
+    if (data.website) {
+      const existingOrg = await options.database.organization.findOne({
+        where: {
+          website: data.website,
+          tenantId: currentTenant.id,
+        },
+        transaction,
+      })
+
+      // ensure that it's not the same organization
+      if (existingOrg.id !== record.id) {
+        throw new Error409(options.language, 'organization.errors.websiteAlreadyExists')
+      }
+    }
+
     // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
     if (data.attributes?.syncRemote) {
       delete data.attributes.syncRemote
     }
 
+    if (manualChange) {
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+
+      for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
+        let changed = false
+
+        // only check fields that are in the data object that will be updated
+        if (column in data) {
+          if (
+            record[column] !== null &&
+            column in data &&
+            (data[column] === null || data[column] === undefined)
+          ) {
+            // column was removed in the update -> will be set to null by sequelize
+            changed = true
+          } else if (
+            record[column] === null &&
+            data[column] !== null &&
+            data[column] !== undefined
+          ) {
+            // column was null before now it's not anymore
+            changed = true
+          } else if (record[column] !== data[column]) {
+            // column value has changed
+            changed = true
+          }
+        }
+
+        if (changed && !manuallyChangedFields.includes(column)) {
+          manuallyChangedFields.push(column)
+        }
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    } else {
+      // ignore columns that were manually changed
+      // by rewriting them with db data
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+      for (const manuallyChangedColumn of manuallyChangedFields) {
+        data[manuallyChangedColumn] = record[manuallyChangedColumn]
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    }
+
     record = await record.update(
       {
-        ...lodash.pick(data, [
-          'displayName',
-          'description',
-          'emails',
-          'phoneNumbers',
-          'logo',
-          'tags',
-          'website',
-          'location',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'revenueRange',
-          'importHash',
-          'isTeamOrganization',
-          'employeeCountByCountry',
-          'type',
-          'ticker',
-          'headline',
-          'profiles',
-          'naics',
-          'industry',
-          'founded',
-          'size',
-          'employees',
-          'twitter',
-          'lastEnrichedAt',
-          'affiliatedProfiles',
-          'allSubsidiaries',
-          'alternativeDomains',
-          'alternativeNames',
-          'averageEmployeeTenure',
-          'averageTenureByLevel',
-          'averageTenureByRole',
-          'directSubsidiaries',
-          'employeeChurnRate',
-          'employeeCountByMonth',
-          'employeeGrowthRate',
-          'employeeCountByMonthByLevel',
-          'employeeCountByMonthByRole',
-          'gicsSector',
-          'grossAdditionsByMonth',
-          'grossDeparturesByMonth',
-          'ultimateParent',
-          'immediateParent',
-          'attributes',
-          'weakIdentities',
-        ]),
+        ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
         updatedById: currentUser.id,
+        manuallyChangedFields: data.manuallyChangedFields,
       },
       {
         transaction,
@@ -1062,50 +1134,6 @@ class OrganizationRepository {
     }
   }
 
-  static async moveActivitiesBetweenOrganizations(
-    fromOrganizationId: string,
-    toOrganizationId: string,
-    options: IRepositoryOptions,
-    batchSize = 10000,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    let updatedRowsCount = 0
-
-    do {
-      options.log.info(
-        `[Move Activities] - Moving maximum of ${batchSize} activities from ${fromOrganizationId} to ${toOrganizationId}.`,
-      )
-
-      const query = `
-        UPDATE "activities" 
-        SET "organizationId" = :newOrganizationId
-        WHERE id IN (
-          SELECT id 
-          FROM "activities" 
-          WHERE "tenantId" = :tenantId 
-            AND "organizationId" = :oldOrganizationId
-          LIMIT :limit
-        )
-      `
-
-      const [, rowCount] = await seq.query(query, {
-        replacements: {
-          tenantId: tenant.id,
-          oldOrganizationId: fromOrganizationId,
-          newOrganizationId: toOrganizationId,
-          limit: batchSize,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
-      })
-
-      updatedRowsCount = rowCount ?? 0
-    } while (updatedRowsCount === batchSize)
-  }
-
   static async *getMergeSuggestions(
     options: IRepositoryOptions,
   ): AsyncGenerator<IOrganizationMergeSuggestion[], void, undefined> {
@@ -1135,6 +1163,7 @@ class OrganizationRepository {
       for (const primaryIdentity of primaryOrganization._source.nested_identities) {
         // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
         if (
+          similarOrganization._source.nested_weakIdentities &&
           similarOrganization._source.nested_weakIdentities.length > 0 &&
           similarOrganization._source.nested_weakIdentities.some(
             (weakIdentity) =>
@@ -1144,6 +1173,15 @@ class OrganizationRepository {
         ) {
           return 0.95
         }
+
+        // check displayName match
+        if (
+          similarOrganization._source.keyword_displayName ===
+          primaryOrganization._source.keyword_displayName
+        ) {
+          return 0.98
+        }
+
         for (const secondaryIdentity of similarOrganization._source.nested_identities) {
           const currentLevenstheinDistance = getLevenshteinDistance(
             primaryIdentity.string_name,
@@ -1179,7 +1217,12 @@ class OrganizationRepository {
       collapse: {
         field: 'uuid_organizationId',
       },
-      _source: ['uuid_organizationId', 'nested_identities', 'uuid_arr_noMergeIds'],
+      _source: [
+        'uuid_organizationId',
+        'nested_identities',
+        'uuid_arr_noMergeIds',
+        'keyword_displayName',
+      ],
     }
 
     let organizations: IOrganizationPartialAggregatesOpensearch[] = []
@@ -1190,25 +1233,6 @@ class OrganizationRepository {
         queryBody.query = {
           bool: {
             filter: [
-              {
-                bool: {
-                  should: [
-                    {
-                      range: {
-                        int_activityCount: {
-                          gt: 0,
-                        },
-                      },
-                    },
-                    {
-                      term: {
-                        bool_manuallyCreated: true,
-                      },
-                    },
-                  ],
-                  minimum_should_match: 1,
-                },
-              },
               {
                 term: {
                   uuid_tenantId: tenant.id,
@@ -1228,25 +1252,6 @@ class OrganizationRepository {
         queryBody.query = {
           bool: {
             filter: [
-              {
-                bool: {
-                  should: [
-                    {
-                      range: {
-                        int_activityCount: {
-                          gt: 0,
-                        },
-                      },
-                    },
-                    {
-                      term: {
-                        bool_manuallyCreated: true,
-                      },
-                    },
-                  ],
-                  minimum_should_match: 1,
-                },
-              },
               {
                 term: {
                   uuid_tenantId: tenant.id,
@@ -1276,6 +1281,11 @@ class OrganizationRepository {
         ) {
           const identitiesPartialQuery = {
             should: [
+              {
+                term: {
+                  [`keyword_displayName`]: organization._source.keyword_displayName,
+                },
+              },
               {
                 nested: {
                   path: 'nested_weakIdentities',
@@ -1315,25 +1325,6 @@ class OrganizationRepository {
                   uuid_tenantId: tenant.id,
                 },
               },
-              {
-                bool: {
-                  should: [
-                    {
-                      range: {
-                        int_activityCount: {
-                          gt: 0,
-                        },
-                      },
-                    },
-                    {
-                      term: {
-                        bool_manuallyCreated: true,
-                      },
-                    },
-                  ],
-                  minimum_should_match: 1,
-                },
-              },
             ],
           }
 
@@ -1342,7 +1333,7 @@ class OrganizationRepository {
           for (const identity of organization._source.nested_identities) {
             if (identity.string_name.length > 0) {
               // weak identity search
-              identitiesPartialQuery.should[0].nested.query.bool.should.push({
+              identitiesPartialQuery.should[1].nested.query.bool.should.push({
                 bool: {
                   must: [
                     { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
@@ -1363,7 +1354,7 @@ class OrganizationRepository {
               if (Number.isNaN(Number(identity.string_name))) {
                 hasFuzzySearch = true
                 // fuzzy search for identities
-                identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                identitiesPartialQuery.should[2].nested.query.bool.should.push({
                   match: {
                     [`nested_identities.keyword_name`]: {
                       query: cleanedIdentityName,
@@ -1375,7 +1366,7 @@ class OrganizationRepository {
 
                 // also check for prefix for identities that has more than 5 characters and no whitespace
                 if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
-                  identitiesPartialQuery.should[1].nested.query.bool.should.push({
+                  identitiesPartialQuery.should[2].nested.query.bool.should.push({
                     prefix: {
                       [`nested_identities.keyword_name`]: {
                         value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
@@ -1414,7 +1405,12 @@ class OrganizationRepository {
             collapse: {
               field: 'uuid_organizationId',
             },
-            _source: ['uuid_organizationId', 'nested_identities', 'nested_weakIdentities'],
+            _source: [
+              'uuid_organizationId',
+              'nested_identities',
+              'nested_weakIdentities',
+              'keyword_displayName',
+            ],
           }
 
           const organizationsToMerge: ISimilarOrganization[] =
@@ -1449,11 +1445,15 @@ class OrganizationRepository {
   }
 
   static async findOrganizationsWithMergeSuggestions(
-    { limit = 20, offset = 0 },
+    { limit = 20, offset = 0, organizationId = undefined },
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
+
+    const organizationFilter = organizationId
+      ? ` AND ("otm"."organizationId" = :organizationId OR "otm"."toMergeId" = :organizationId)`
+      : ''
 
     const orgs = await options.database.sequelize.query(
       `WITH
@@ -1477,6 +1477,7 @@ class OrganizationRepository {
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
+          ${organizationFilter}
       ),
       
       count_cte AS (
@@ -1514,6 +1515,7 @@ class OrganizationRepository {
           offset,
           mergeActionType: MergeActionType.ORG,
           mergeActionStatus: MergeActionState.ERROR,
+          organizationId,
         },
         type: QueryTypes.SELECT,
       },
@@ -1568,6 +1570,87 @@ class OrganizationRepository {
     const segments = await segmentRepository.findInIds(segmentIds)
 
     return segments
+  }
+
+  static async findByIdentities(
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<IOrganization> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const identityConditions = identities
+      .map(
+        (identity, index) => `
+            (oi.platform = :platform${index} and oi.name = :name${index})
+        `,
+      )
+      .join(' or ')
+
+    const results = await sequelize.query(
+      `
+      with
+          "organizationsWithIdentity" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where ${identityConditions} 
+          ),
+          "organizationsWithCounts" as (
+            select o.id, count(oi."organizationId") as total_counts
+            from organizations o
+            join "organizationIdentities" oi on o.id = oi."organizationId"
+            where o.id in (select "organizationId" from "organizationsWithIdentity")
+            group by o.id
+          )
+          select o.id,
+                  o.description,
+                  o.emails,
+                  o.logo,
+                  o.tags,
+                  o.github,
+                  o.twitter,
+                  o.linkedin,
+                  o.crunchbase,
+                  o.employees,
+                  o.location,
+                  o.website,
+                  o.type,
+                  o.size,
+                  o.headline,
+                  o.industry,
+                  o.founded,
+                  o.attributes
+          from organizations o
+          inner join "organizationsWithCounts" oc on o.id = oc.id
+          where o."tenantId" = :tenantId
+          order by oc.total_counts desc
+          limit 1;
+      `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          ...identities.reduce(
+            (acc, identity, index) => ({
+              ...acc,
+              [`platform${index}`]: identity.platform,
+              [`name${index}`]: identity.name,
+            }),
+            {},
+          ),
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const result = results[0] as IOrganization
+
+    return result
   }
 
   static async findByIdentity(
@@ -2039,6 +2122,46 @@ class OrganizationRepository {
     return results
   }
 
+  static async findByIdOpensearch(
+    id: string,
+    options: IRepositoryOptions,
+    segmentId?: string,
+  ): Promise<PageData<any>> {
+    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
+
+    const response = await this.findAndCountAllOpensearch(
+      {
+        filter: {
+          and: [
+            {
+              id: {
+                eq: id,
+              },
+            },
+          ],
+        },
+        isProfileQuery: true,
+        limit: 1,
+        offset: 0,
+        segments,
+      },
+      options,
+    )
+
+    if (response.count === 0) {
+      throw new Error404()
+    }
+
+    const result = response.rows[0]
+
+    // Parse attributes that are indexed as strings
+    if (result.attributes) {
+      result.attributes = JSON.parse(result.attributes)
+    }
+
+    return result
+  }
+
   static async findAndCountAllOpensearch(
     {
       filter = {} as any,
@@ -2048,6 +2171,7 @@ class OrganizationRepository {
       countOnly = false,
       segments = [] as string[],
       customSortFunction = undefined,
+      isProfileQuery = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -2063,7 +2187,7 @@ class OrganizationRepository {
 
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
 
-    if (filter.and) {
+    if (!isProfileQuery && filter.and) {
       filter.and.push({
         or: [
           {

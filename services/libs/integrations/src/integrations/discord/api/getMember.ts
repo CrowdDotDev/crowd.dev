@@ -11,6 +11,17 @@ export const getMember = async (
   ctx: IProcessStreamContext,
 ): Promise<DiscordApiMember> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof guildId !== 'string' || guildId.trim() === '') {
+    throw new Error('Invalid guildId')
+  }
+  if (typeof userId !== 'string' || userId.trim() === '') {
+    throw new Error('Invalid userId')
+  }
+  if (typeof token !== 'string' || token.trim() === '') {
+    throw new Error('Invalid token')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `https://discord.com/api/v10/guilds/${guildId}/members/${userId}`,

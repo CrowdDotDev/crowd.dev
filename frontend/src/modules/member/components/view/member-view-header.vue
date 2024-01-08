@@ -11,12 +11,6 @@
           <div class="flex items-center gap-4">
             <app-member-sentiment :member="member" />
             <app-member-engagement-level :member="member" />
-            <app-member-dropdown
-              :member="member"
-              :show-view-member="false"
-              @merge="isMergeDialogOpen = member"
-              @find-github="isFindGithubDrawerOpen = member"
-            />
           </div>
         </div>
         <app-member-organizations
@@ -68,28 +62,39 @@
         </p>
       </div>
       <div>
-        <div class="flex items-center gap-1">
-          <p class="text-gray-400 font-medium text-2xs">
-            Reach
-          </p>
-          <el-tooltip placement="top">
-            <template #content>
-              Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
-            </template>
-            <i class="ri-information-line text-gray-500 text-xs mr-1" />
-          </el-tooltip>
-          <el-tooltip
-            content="Source: GitHub"
-            placement="top"
-            trigger="hover"
-          >
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
-
-        <p class="mt-1 text-gray-900 text-xs">
-          <app-member-reach :member="member" />
-        </p>
+        <cr-enrichment-sneak-peak type="contact">
+          <template #default="{ enabled }">
+            <div>
+              <div class="flex items-center gap-1">
+                <p class="font-medium text-2xs" :class="enabled ? 'text-gray-400' : 'text-purple-400'">
+                  Reach
+                </p>
+                <el-tooltip placement="top">
+                  <template #content>
+                    Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                  </template>
+                  <i class="ri-information-line text-gray-500 text-xs mr-1" />
+                </el-tooltip>
+                <el-tooltip
+                  content="Source: GitHub"
+                  placement="top"
+                  trigger="hover"
+                  :disabled="!enabled"
+                >
+                  <app-svg name="source" class="h-3 w-3" />
+                </el-tooltip>
+              </div>
+              <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+                <app-member-reach :member="member" />
+              </p>
+              <div v-else class="w-full mt-1">
+                <div class="blur-[6px] text-gray-900 text-xs select-none">
+                  150
+                </div>
+              </div>
+            </div>
+          </template>
+        </cr-enrichment-sneak-peak>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
@@ -107,11 +112,6 @@
         <app-tag-popover v-model="isEditTagsDialogOpen" :member="member" />
       </div>
     </div>
-    <app-member-find-github-drawer
-      v-if="isFindGithubDrawerOpen"
-      v-model="isFindGithubDrawerOpen"
-    />
-    <app-member-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -124,15 +124,13 @@ import { formatDateToTimeAgo, formatDate } from '@/utils/date';
 import AppMemberReach from '@/modules/member/components/member-reach.vue';
 import AppMemberSentiment from '@/modules/member/components/member-sentiment.vue';
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
-import AppMemberDropdown from '@/modules/member/components/member-dropdown.vue';
 import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
-import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
-import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 
 defineProps({
   member: {
@@ -142,8 +140,6 @@ defineProps({
 });
 
 const isEditTagsDialogOpen = ref(false);
-const isMergeDialogOpen = ref(null);
-const isFindGithubDrawerOpen = ref(null);
 
 const formattedInformation = (value, type) => {
   // Show dash for empty information
@@ -151,6 +147,7 @@ const formattedInformation = (value, type) => {
     value === undefined
     || value === null
     || value === -1
+    || value === ''
     // If the timestamp is 1970, we show "-"
     || (type === 'date' && moment(value).isBefore(moment().subtract(40, 'years')))
   ) {

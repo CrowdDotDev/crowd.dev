@@ -26,7 +26,13 @@
       <!-- primary member -->
       <div class="h-13 flex justify-between items-start">
         <div
-          v-if="props.isPrimary"
+          v-if="props.isPreview"
+          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+        >
+          Preview
+        </div>
+        <div
+          v-else-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
           Primary organization
@@ -96,7 +102,7 @@
             :href="withHttp(props.organization.website)"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-gray-900 text-right"
+            class="text-xs text-gray-900 text-right whitespace-normal"
           >{{ props.organization.website || '-' }}</a>
         </article>
         <article
@@ -109,7 +115,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.location || '-' }}
           </p>
         </article>
@@ -123,7 +129,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Number of employees
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.employees || '-' }}
           </p>
         </article>
@@ -137,7 +143,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Annual Revenue
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ revenueRange.displayValue(
               props.organization.revenueRange,
             ) || '-' }}
@@ -153,7 +159,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Industry
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+          <p class="text-xs text-gray-900 text-right first-letter:uppercase whitespace-normal">
             {{ props.organization.industry || '-' }}
           </p>
         </article>
@@ -167,7 +173,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Type
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+          <p class="text-xs text-gray-900 text-right first-letter:uppercase whitespace-normal">
             {{ props.organization.type || '-' }}
           </p>
         </article>
@@ -181,7 +187,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Founded
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.founded || '-' }}
           </p>
         </article>
@@ -195,7 +201,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Joined date
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ formatDateToTimeAgo(props.organization.joinedAt) || '-' }}
           </p>
         </article>
@@ -209,7 +215,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             # of contacts
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.memberCount || '-' }}
           </p>
         </article>
@@ -223,69 +229,18 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             # of Activities
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ props.organization.activityCount || '-' }}
           </p>
         </article>
       </div>
       <div class="pt-5">
-        <template v-if="props.organization.identities && props.organization.identities.length > 0">
-          <a
-            v-for="(identity, ii) of props.organization.identities"
-            :key="ii"
-            class="py-2 flex items-center relative text-gray-900 transition-colors"
-            :class="getIdentityLink(identity) ? 'hover:text-brand-500 cursor-pointer' : ''"
-            :href="getIdentityLink(identity)"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div class="flex gap-3 items-center">
-              <app-platform :platform="identity.platform" />
-              <span class="text-xs">
-                {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
-                  ?? getPlatformDetails(identity.platform)?.name
-                  ?? identity.platform }}</span>
-            </div>
-            <i
-              v-if="identity.url"
-              class="ri-external-link-line text-gray-300 pl-2"
-            />
-          </a>
-        </template>
-        <a
-          v-for="email of props.organization.emails"
-          :key="email"
-          class="py-2 flex items-center relative hover:text-brand-500 transition-colors cursor-pointer text-gray-900"
-          :href="`mailto:${email}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="email" />
-            <span class="text-xs">
-              {{ email }}</span>
-          </div>
-          <i
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-for="phone of props.organization.phoneNumbers"
-          :key="phone"
-          class="py-2 flex items-center relative hover:text-brand-500 transition-colors cursor-pointer text-gray-900"
-          :href="`tel:${phone}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="phone" />
-            <span class="text-xs">
-              {{ phone }}</span>
-          </div>
-          <i
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
+        <app-identities-vertical-list-organizations
+          :organization="organization"
+          :include-emails="true"
+          :include-phone-numbers="true"
+          :order="organizationOrder.suggestions"
+        />
       </div>
     </div>
   </section>
@@ -302,8 +257,8 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
-import AppPlatform from '@/shared/platform/platform.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/components/identities-vertical-list-organizations.vue';
+import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 
 const props = defineProps({
   organization: {
@@ -316,6 +271,11 @@ const props = defineProps({
     default: () => null,
   },
   isPrimary: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isPreview: {
     type: Boolean,
     required: false,
     default: false,
@@ -344,15 +304,6 @@ const isEditLockedForSampleData = computed(
 const bio = ref(null);
 const displayShowMore = ref(null);
 const more = ref(null);
-
-const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-
-const getIdentityLink = (identity) => {
-  if (identity.url) {
-    return withHttp(identity.url);
-  }
-  return null;
-};
 
 onMounted(() => {
   setTimeout(() => {

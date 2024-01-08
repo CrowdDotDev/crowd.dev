@@ -195,6 +195,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."segmentId",
         o."tenantId",
         o.address,
+        o.tags,
+        o.ticker,
         o.attributes,
         o."createdAt",
         o."manuallyCreated",
@@ -241,6 +243,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         o."grossDeparturesByMonth",
         o."ultimateParent",
         o."immediateParent",
+        o."weakIdentities",
+        o."manuallyChangedFields",
         nullif (o."employeeChurnRate" -> '12_month', 'null')::decimal AS "employeeChurnRate12Month",
         nullif (o."employeeGrowthRate" -> '12_month', 'null')::decimal AS "employeeGrowthRate12Month",
         o.tags,
@@ -250,19 +254,16 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."activityCount"::integer,
         md."memberCount"::integer,
         md."memberIds",
-        i.identities,
+        coalesce(i.identities, '[]'::jsonb)            as "identities",
         coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
-        coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds",
-        o."weakIdentities"
+        coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
     FROM organizations o
     LEFT JOIN member_data md ON o.id = md."organizationId"
     LEFT JOIN identities i ON o.id = i."organizationId"
     LEFT JOIN to_merge_data tmd on o.id = tmd."organizationId"
     LEFT JOIN no_merge_data nmd on o.id = nmd."organizationId"
     WHERE o.id = $(organizationId)
-      AND o."deletedAt" IS NULL
-      AND (md."organizationId" IS NOT NULL
-          OR o."manuallyCreated");
+      AND o."deletedAt" IS NULL;
       `,
       {
         organizationId,
@@ -337,9 +338,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getOrganizationSegmentCouples(ids): Promise<IOrganizationSegmentMatrix> {
     const results = await this.db().any(
       `
-      select distinct a."segmentId", a."organizationId"
-      from activities a
-      where a."organizationId" in ($(ids:csv));
+      select distinct mo."organizationId", a."segmentId"
+      from "memberOrganizations" mo
+      inner join activities a on mo."memberId" = a."memberId"
+      where mo."organizationId" in ($(ids:csv));
       `,
       {
         ids,

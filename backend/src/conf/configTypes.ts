@@ -23,7 +23,7 @@ export interface SQSConfiguration {
   host?: string
   port?: number
   nodejsWorkerQueue: string
-  nodejsWorkerDelayableQueue: string
+  nodejsWorkerPriorityQueue: string
   integrationRunWorkerQueue: string
   pythonWorkerQueue: string
   aws: AwsCredentials
@@ -92,6 +92,8 @@ export interface PlansConfiguration {
   stripWebhookSigningSecret: string
   stripeEagleEyePlanProductId: string
   stripeGrowthPlanProductId: string
+  stripeEssentialPlanProductId: string
+  stripeScalePlanProductId: string
 }
 
 export interface DevtoConfiguration {

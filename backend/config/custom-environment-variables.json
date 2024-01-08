@@ -17,7 +17,7 @@
     "host": "CROWD_SQS_HOST",
     "port": "CROWD_SQS_PORT",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
-    "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
+    "nodejsWorkerPriorityQueue": "CROWD_SQS_NODEJS_WORKER_PRIORITY_QUEUE",
     "integrationRunWorkerQueue": "CROWD_SQS_INTEGRATION_RUN_WORKER_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
     "aws": {
@@ -97,7 +97,9 @@
     "stripeSecretKey": "CROWD_STRIPE_SECRET_KEY",
     "stripWebhookSigningSecret": "CROWD_STRIPE_WEBHOOK_SIGNING_SECRET",
     "stripeEagleEyePlanProductId": "CROWD_STRIPE_EAGLE_EYE_PLAN_PRODUCT_ID",
-    "stripeGrowthPlanProductId": "CROWD_STRIPE_GROWTH_PLAN_PRODUCT_ID"
+    "stripeGrowthPlanProductId": "CROWD_STRIPE_GROWTH_PLAN_PRODUCT_ID",
+    "stripeScalePlanProductId": "CROWD_STRIPE_SCALE_PLAN_PRODUCT_ID",
+    "stripeEssentialPlanProductId": "CROWD_STRIPE_ESSENTIAL_PLAN_PRODUCT_ID"
   },
   "twitter": {
     "clientId": "CROWD_TWITTER_CLIENT_ID",

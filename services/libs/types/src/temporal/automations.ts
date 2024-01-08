@@ -17,3 +17,8 @@ export interface ITriggerMemberAutomationArgs {
   automationId: string
   memberId: string
 }
+
+export interface IProcessGenerateMemberMergeSuggestionsArgs {
+  tenantId: string
+  lastUuid?: string
+}

@@ -1,20 +1,40 @@
 <template>
   <div class="flex flex-col gap-6">
-    <app-member-aside-enrichment :member="member" @edit="identitiesDrawer = true" />
-    <div class="member-view-aside panel">
-      <app-member-aside-identities :member="member" @edit="identitiesDrawer = true" />
-      <app-lf-member-aside-organizations
-        class="mt-10"
+    <app-member-aside-enrichment
+      :member="member"
+      @edit="identitiesDrawer = true"
+    />
+
+    <div class="member-view-aside panel !px-0">
+      <app-member-aside-identities
         :member="member"
+        @edit="identitiesDrawer = true"
       />
-      <app-member-aside-custom-attributes
-        :member="member"
-        class="mt-10"
-      />
-      <app-member-aside-enriched
-        :member="member"
-        class="mt-10"
-      />
+
+      <el-divider class="!my-8 border-gray-200" />
+
+      <div class="px-6">
+        <app-lf-member-aside-organizations
+          class="mt-10"
+          :member="member"
+        />
+      </div>
+
+      <el-divider class="!my-8 border-gray-200" />
+
+      <div class="px-6">
+        <app-member-aside-custom-attributes
+          :member="member"
+          class="mt-10"
+        />
+      </div>
+
+      <div class="px-6">
+        <app-member-aside-enriched
+          :member="member"
+          class="mt-10"
+        />
+      </div>
     </div>
   </div>
   <app-member-manage-identities-drawer

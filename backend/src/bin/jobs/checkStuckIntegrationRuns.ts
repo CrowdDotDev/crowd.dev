@@ -1,20 +1,15 @@
-import { processPaginated } from '@crowd/common'
 import { Logger, getChildLogger, getServiceChildLogger } from '@crowd/logging'
+import { IntegrationRunState } from '@crowd/types'
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
-import { IntegrationRunState } from '@crowd/types'
 import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
-import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import IntegrationStreamRepository from '../../database/repositories/integrationStreamRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { IntegrationRun } from '../../types/integrationRunTypes'
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { CrowdJob } from '../../types/jobTypes'
-import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
-import { WebhookProcessor } from '../../serverless/integrations/services/webhookProcessor'
 
 const log = getServiceChildLogger('checkStuckIntegrationRuns')
 
@@ -221,32 +216,6 @@ export const checkRuns = async (): Promise<void> => {
   }
 }
 
-export const checkStuckWebhooks = async (): Promise<void> => {
-  const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
-  const repo = new IncomingWebhookRepository(dbOptions)
-
-  // update retryable error state webhooks to pending state
-  let errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
-
-  while (errorWebhooks.length > 0) {
-    await repo.markAllPending(errorWebhooks.map((w) => w.id))
-    errorWebhooks = await repo.findError(1, 20, WebhookProcessor.MAX_RETRY_LIMIT)
-  }
-
-  await processPaginated(
-    async (page) => repo.findPending(page, 20),
-    async (webhooks) => {
-      for (const webhook of webhooks) {
-        log.warn({ id: webhook.id }, 'Found stuck webhook! Restarting it!')
-        await sendNodeWorkerMessage(
-          webhook.tenantId,
-          new NodeWorkerProcessWebhookMessage(webhook.tenantId, webhook.id),
-        )
-      }
-    },
-  )
-}
-
 const job: CrowdJob = {
   name: 'Detect & Fix Stuck Integration Runs',
   cronTime: cronGenerator.every(90).minutes(),
@@ -254,7 +223,7 @@ const job: CrowdJob = {
     if (!running) {
       running = true
       try {
-        await Promise.all([checkRuns(), checkStuckIntegrations(), checkStuckWebhooks()])
+        await Promise.all([checkRuns(), checkStuckIntegrations()])
       } finally {
         running = false
       }

@@ -226,7 +226,55 @@ const constaintConfiguration = {
   ],
   [FeatureFlag.SEGMENTS]: [],
 
+  // temporal
+  [FeatureFlag.TEMPORAL_MEMBERS_ENRICHMENT]: [
+    [
+      {
+        values: [Plans.values.scale, Plans.values.enterprise],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
+  [FeatureFlag.TEMPORAL_MEMBER_MERGE_SUGGESTIONS]: [
+    [
+      {
+        values: [
+          Plans.values.essential,
+          Plans.values.growth,
+          Plans.values.scale,
+          Plans.values.enterprise,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
   [FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES]: [
+    [
+      {
+        values: [
+          Plans.values.scale,
+          Plans.values.eagleEye,
+          Plans.values.enterprise,
+          Plans.values.essential,
+          Plans.values.growth,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
+  [FeatureFlag.SERVE_PROFILES_OPENSEARCH]: [
     [
       {
         values: [
