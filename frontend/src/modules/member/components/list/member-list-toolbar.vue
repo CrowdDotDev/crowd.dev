@@ -167,9 +167,17 @@ const handleMergeMembers = async () => {
       Message.success('Contributors merged successfuly');
       fetchMembers({ reload: true });
     })
-    .catch(() => {
+    .catch((error) => {
       Message.closeAll();
-      Message.error('Error merging contributors');
+
+      if (error.response.status === 404) {
+        Message.error('Contacts already merged or deleted', {
+          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error merging contacts');
+      }
     });
 };
 
