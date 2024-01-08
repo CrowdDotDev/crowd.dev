@@ -18,8 +18,8 @@
             :show-platform-tooltip="true"
           />
 
-          <div class="flex flex-wrap items-center gap-2">
-            <div class="flex flex-wrap items-center">
+          <div class="flex flex-wrap items-center gap-2 w-full">
+            <div class="flex flex-wrap items-center w-full">
               <template v-for="({ handle, link }, vi) of value" :key="handle">
                 <div
                   v-if="platform === 'linkedin' && handle.includes('private-')"
