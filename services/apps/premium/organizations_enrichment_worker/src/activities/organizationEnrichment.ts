@@ -25,15 +25,22 @@ export async function getApplicableTenants(
   page: number,
   lastId?: string,
 ): Promise<IPremiumTenantInfo[]> {
-  svc.log.debug('Getting applicable tenants!')
+  const log = getChildLogger(getApplicableTenants.name, svc.log)
+
+  log.debug('Getting applicable tenants!')
   const repo = new TenantRepository(svc.postgres.reader, svc.log)
   const tenants = await repo.getPremiumTenants(page, lastId)
 
-  svc.log.debug(`Got ${tenants.length} applicable tenants!`)
+  log.debug(`Got ${tenants.length} applicable tenants!`)
+
   return tenants
 }
 
 export async function hasTenantOrganizationEnrichmentEnabled(tenantId: string): Promise<boolean> {
+  const log = getChildLogger(hasTenantOrganizationEnrichmentEnabled.name, svc.log, {
+    tenantId,
+  })
+
   const result = await isFeatureEnabled(
     FeatureFlag.TEMPORAL_ORGANIZATION_ENRICHMENT,
     async () => {
@@ -47,7 +54,8 @@ export async function hasTenantOrganizationEnrichmentEnabled(tenantId: string): 
     tenantId,
   )
 
-  svc.log.debug({ tenantId, enabled: result }, 'Tenant organization enrichment enabled?')
+  log.debug({ tenantId, enabled: result }, 'Tenant organization enrichment enabled?')
+  return result
 }
 
 /**
@@ -56,7 +64,7 @@ export async function hasTenantOrganizationEnrichmentEnabled(tenantId: string): 
  * @returns number of credits left for the tenant that can be used to enrich organizations
  */
 export async function getTenantCredits(tenant: IPremiumTenantInfo): Promise<number> {
-  const log = getChildLogger('getTenantCredits', svc.log, { tenantId: tenant.id })
+  const log = getChildLogger(getTenantCredits.name, svc.log, { tenantId: tenant.id })
   if (tenant.plan === TenantPlans.Growth) {
     // need to check how many credits the tenant has left
     const cache = new RedisCache(FeatureFlagRedisKey.ORGANIZATION_ENRICHMENT_COUNT, svc.redis, log)
@@ -85,7 +93,7 @@ export async function getTenantCredits(tenant: IPremiumTenantInfo): Promise<numb
  * @param tenantId
  */
 export async function incrementTenantCredits(tenantId: string, plan: TenantPlans): Promise<void> {
-  const log = getChildLogger('incrementTenantCredits', svc.log, { tenantId })
+  const log = getChildLogger(incrementTenantCredits.name, svc.log, { tenantId })
 
   if (plan === TenantPlans.Growth) {
     log.debug({ tenantId }, `Incrementing tenant credits.`)
@@ -108,9 +116,10 @@ export async function getTenantOrganizationsForEnrichment(
   perPage: number,
   lastId?: string,
 ): Promise<string[]> {
+  const log = getChildLogger(getTenantOrganizationsForEnrichment.name, svc.log, { tenantId })
   const repo = new OrganizationRepository(svc.postgres.reader, svc.log)
   const organizationIds = await repo.getTenantOrganizationsToEnrich(tenantId, perPage, lastId)
-  svc.log.debug({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
+  log.debug({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
   return organizationIds
 }
 
@@ -130,7 +139,7 @@ export async function tryEnrichOrganization(
   tenantId: string,
   organizationId: string,
 ): Promise<boolean> {
-  const log = getChildLogger('tryEnrichOrganization', svc.log, {
+  const log = getChildLogger(tryEnrichOrganization.name, svc.log, {
     tenantId,
     organizationId,
   })
