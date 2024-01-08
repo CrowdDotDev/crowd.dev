@@ -146,7 +146,7 @@ export async function tryEnrichOrganization(
 
   log.debug('Trying to enrich an organization!')
 
-  const repo = new OrganizationRepository(svc.postgres.reader, log)
+  const repo = new OrganizationRepository(svc.postgres.writer, log)
 
   const orgData = await repo.getOrganizationData(organizationId)
 
