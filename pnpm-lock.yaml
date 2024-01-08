@@ -4618,6 +4618,7 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
+    dev: false
 
   /@cubejs-client/core@0.30.74:
     resolution: {integrity: sha512-InZa/nKw1ldzvRui0nuZvLGrtYZOmGmIa1gCrCU4i9wAR7pQjlTL2nK+kZ6XLZ5MsuZGWgi3LZNNRkz1wNeiwA==}
