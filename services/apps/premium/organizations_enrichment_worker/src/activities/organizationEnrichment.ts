@@ -18,8 +18,33 @@ import {
 } from '../repos/organization.repo'
 import { IPremiumTenantInfo, TenantRepository } from '../repos/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
+import { OrganizationSyncService } from '@crowd/opensearch'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+const syncOrganizations = new OrganizationSyncService(
+  svc.postgres.writer,
+  svc.opensearch,
+  svc.log,
+  {
+    edition: process.env['CROWD_EDITION'],
+  },
+)
+
+export async function syncToOpensearch(organizationId: string): Promise<void> {
+  const log = getChildLogger(syncToOpensearch.name, svc.log, {
+    organizationId,
+  })
+
+  try {
+    await syncOrganizations.syncOrganizations([organizationId])
+  } catch (err) {
+    log.error(err, 'Error while syncing organization to OpenSearch!')
+    throw new Error(err)
+  }
+
+  return null
+}
 
 export async function getApplicableTenants(
   page: number,

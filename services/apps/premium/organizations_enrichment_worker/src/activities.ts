@@ -5,6 +5,7 @@ import {
   tryEnrichOrganization,
   getApplicableTenants,
   hasTenantOrganizationEnrichmentEnabled,
+  syncToOpensearch,
 } from './activities/organizationEnrichment'
 
 export {
@@ -14,4 +15,5 @@ export {
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
   hasTenantOrganizationEnrichmentEnabled,
+  syncToOpensearch,
 }
