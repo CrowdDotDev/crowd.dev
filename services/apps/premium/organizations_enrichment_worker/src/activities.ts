@@ -1,6 +1,6 @@
 import {
   getTenantCredits,
-  decrementTenantCredits,
+  incrementTenantCredits,
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
   getApplicableTenants,
@@ -10,7 +10,7 @@ import {
 export {
   getApplicableTenants,
   getTenantCredits,
-  decrementTenantCredits,
+  incrementTenantCredits,
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
   hasTenantOrganizationEnrichmentEnabled,

@@ -2,7 +2,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../activities/organizationEnrichment'
 import { TenantPlans } from '@crowd/types'
 
-const { tryEnrichOrganization, decrementTenantCredits } = proxyActivities<typeof activities>({
+const { tryEnrichOrganization, incrementTenantCredits } = proxyActivities<typeof activities>({
   startToCloseTimeout: '75 seconds',
 })
 
@@ -16,6 +16,6 @@ export async function enrichOrganization(input: IEnrichOrganizationInput): Promi
   const wasEnriched = await tryEnrichOrganization(input.tenantId, input.organizationId)
 
   if (wasEnriched) {
-    await decrementTenantCredits(input.tenantId, input.plan)
+    await incrementTenantCredits(input.tenantId, input.plan)
   }
 }

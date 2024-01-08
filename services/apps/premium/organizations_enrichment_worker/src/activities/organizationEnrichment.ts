@@ -81,17 +81,17 @@ export async function getTenantCredits(tenant: IPremiumTenantInfo): Promise<numb
 }
 
 /**
- * Decrement tenant organization enrichment credits by 1
+ * Increment tenant organization enrichment credits by 1
  * @param tenantId
  */
-export async function decrementTenantCredits(tenantId: string, plan: TenantPlans): Promise<void> {
-  const log = getChildLogger('decrementTenantCredits', svc.log, { tenantId })
+export async function incrementTenantCredits(tenantId: string, plan: TenantPlans): Promise<void> {
+  const log = getChildLogger('incrementTenantCredits', svc.log, { tenantId })
 
   if (plan === TenantPlans.Growth) {
-    log.debug({ tenantId }, `Decrementing tenant credits.`)
+    log.debug({ tenantId }, `Incrementing tenant credits.`)
     const cache = new RedisCache(FeatureFlagRedisKey.ORGANIZATION_ENRICHMENT_COUNT, svc.redis, log)
 
-    await cache.decrement(tenantId, 1, getSecondsTillEndOfMonth())
+    await cache.increment(tenantId, 1, getSecondsTillEndOfMonth())
   }
 }
 
