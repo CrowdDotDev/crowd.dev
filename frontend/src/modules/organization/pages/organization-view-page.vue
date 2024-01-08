@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header.vue';
@@ -103,6 +103,20 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const loading = ref(true);
 const tab = ref('members');
+
+watch(() => props.id, (id) => {
+  const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
+
+  fetchOrganization(id, segments)
+    .catch(() => {
+      Message.error('Something went wrong');
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+}, {
+  immediate: true,
+});
 
 onMounted(() => {
   const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];

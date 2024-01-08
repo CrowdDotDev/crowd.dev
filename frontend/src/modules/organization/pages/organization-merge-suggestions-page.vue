@@ -47,7 +47,7 @@
         <div class="flex items-center">
           <div
             v-if="!loading && organizationsToMerge.similarity"
-            class="w-full flex items-center justify-center pr-2"
+            class="w-full flex items-center justify-center pr-3"
           >
             <div
               class="flex text-sm"

@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-button-group class="ml-4">
-      <!-- Edit contact -->
+      <!-- Edit organization -->
       <el-button class="btn btn--bordered btn--sm !h-8" :disabled="isEditLockedForSampleData" @click="edit()">
         <span class="ri-pencil-line text-base mr-2" />Edit organization
       </el-button>

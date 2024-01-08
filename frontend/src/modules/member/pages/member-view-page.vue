@@ -61,8 +61,8 @@
 import { useStore } from 'vuex';
 import {
   computed,
-  onMounted,
   ref,
+  watch,
 } from 'vue';
 
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
@@ -101,19 +101,24 @@ const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.va
 const loading = ref(true);
 const tab = ref('activities');
 
-onMounted(async () => {
-  await store.dispatch('member/doFind', {
-    id: props.id,
-    segments: [selectedProjectGroup.value?.id],
-  });
+watch(() => props.id, (id) => {
+  loading.value = true;
 
-  if (
-    Object.keys(customAttributes.value)
-      .length === 0
-  ) {
-    await getMemberCustomAttributes();
-  }
-  loading.value = false;
+  store.dispatch('member/doFind', {
+    id,
+    segments: [selectedProjectGroup.value?.id],
+  }).then(() => {
+    if (
+      Object.keys(customAttributes.value)
+        .length === 0
+    ) {
+      getMemberCustomAttributes();
+    }
+
+    loading.value = false;
+  });
+}, {
+  immediate: true,
 });
 </script>
 

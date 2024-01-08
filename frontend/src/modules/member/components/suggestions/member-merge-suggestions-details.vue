@@ -49,25 +49,78 @@
         </button>
         <slot name="action" />
       </div>
-      <app-avatar :entity="member" class="mb-3" />
+      <div class="flex justify-between">
+        <router-link
+          :to="{
+            name: 'memberView',
+            params: { id: member.id },
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+          target="_blank"
+        >
+          <div class="relative">
+            <app-avatar
+              :entity="member"
+              class="mb-3"
+            />
+            <el-tooltip
+              v-if="member.attributes?.avatarUrl?.default && getAttributeSourceName(member.attributes.avatarUrl)"
+              :content="`Source: ${getAttributeSourceName(member.attributes.avatarUrl)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <div
+                class="absolute top-0 right-[-6px] z-10 h-4 w-4 rounded-full flex items-center justify-center"
+                :class="{
+                  'bg-white': !props.isPrimary,
+                  'bg-gray-50': props.isPrimary,
+                }"
+              >
+                <app-svg name="source" class="h-3 w-3" />
+              </div>
+            </el-tooltip>
+          </div>
+        </router-link>
+      </div>
       <div class="pb-4">
-        <h6
-          class="text-base text-black font-semibold"
-          v-html="$sanitize(member.displayName)"
-        />
-        <div
-          v-if="member.attributes.bio?.default"
-          ref="bio"
-          class="text-gray-600 leading-5 !text-xs merge-member-bio"
-          :class="{ 'line-clamp-2': !more }"
-          v-html="$sanitize(member.attributes.bio.default)"
-        />
-        <div
-          v-else-if="compareMember?.attributes.bio?.default"
-          ref="bio"
-          class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
-          v-html="$sanitize(compareMember?.attributes.bio.default)"
-        />
+        <router-link
+          :to="{
+            name: 'memberView',
+            params: { id: member.id },
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+          target="_blank"
+        >
+          <h6
+            class="text-base text-black font-semibold hover:text-brand-500"
+            v-html="$sanitize(member.displayName)"
+          />
+        </router-link>
+        <div class="flex items-center">
+          <div
+            v-if="member.attributes.bio?.default"
+            ref="bio"
+            class="text-gray-600 leading-5 !text-xs merge-member-bio"
+            :class="{ 'line-clamp-2': !more }"
+            v-html="$sanitize(member.attributes.bio.default)"
+          />
+          <div
+            v-else-if="compareMember?.attributes.bio?.default"
+            ref="bio"
+            class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
+            v-html="$sanitize(compareMember?.attributes.bio.default)"
+          />
+          <el-tooltip
+            v-if="member.attributes?.bio?.default && getAttributeSourceName(member.attributes.bio)"
+            :content="`Source: ${getAttributeSourceName(member.attributes.bio)}`"
+            placement="top"
+            trigger="hover"
+          >
+            <div class="ml-1">
+              <app-svg name="source" class="h-3 w-3" />
+            </div>
+          </el-tooltip>
+        </div>
 
         <div
           v-if="displayShowMore"
@@ -95,9 +148,19 @@
           "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
-            Location
-          </p>
+          <div class="flex items-center pr-4">
+            <p class="text-2xs font-medium text-gray-500 pr-1">
+              Location
+            </p>
+            <el-tooltip
+              v-if="member.attributes?.location?.default && getAttributeSourceName(member.attributes.location)"
+              :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
           <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ member.attributes.location?.default || '-' }}
           </p>
@@ -120,10 +183,20 @@
           "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
-            Title
-          </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <div class="flex items-center pr-4">
+            <p class="text-2xs font-medium text-gray-500 pr-1">
+              Title
+            </p>
+            <el-tooltip
+              v-if="member.attributes?.jobTitle?.default && getAttributeSourceName(member.attributes.jobTitle)"
+              :content="`Source: ${getAttributeSourceName(member.attributes.jobTitle)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
+          <p class="text-xs text-gray-900 text-right  whitespace-normal">
             {{ member.attributes.jobTitle?.default || '-' }}
           </p>
         </article>
@@ -179,6 +252,10 @@ import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppSvg from '@/shared/svg/svg.vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 const props = defineProps({
   member: {
@@ -215,6 +292,9 @@ const props = defineProps({
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)

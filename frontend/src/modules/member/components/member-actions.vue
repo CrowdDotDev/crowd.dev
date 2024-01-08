@@ -1,9 +1,9 @@
 <template>
   <div>
     <el-button-group class="ml-4">
-      <!-- Edit contact -->
+      <!-- Edit contributor -->
       <el-button class="btn btn--bordered btn--sm !h-8" :disabled="isEditLockedForSampleData" @click="edit()">
-        <span class="ri-pencil-line text-base mr-2" />Edit contact
+        <span class="ri-pencil-line text-base mr-2" />Edit contributor
       </el-button>
       <el-button
         v-if="mergeSuggestionsCount > 0"
@@ -22,6 +22,7 @@
       >
         <span class="ri-shuffle-line text-base mr-2" />Merge
       </el-button>
+
       <app-member-dropdown
         :member="props.member"
         :hide-merge="true"
