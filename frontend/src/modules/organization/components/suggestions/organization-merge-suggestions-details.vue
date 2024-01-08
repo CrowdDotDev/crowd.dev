@@ -52,6 +52,7 @@
       <div class="pb-4">
         <div class="flex justify-between">
           <router-link
+            v-if="!isPreview"
             :to="{
               name: 'organizationView',
               params: { id: organization.id },
@@ -67,9 +68,18 @@
               class="mr-4 mb-4"
             />
           </router-link>
+          <app-avatar
+            v-else
+            :entity="{
+              avatar: props.organization.logo,
+              displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
+            }"
+            class="mr-4 mb-4"
+          />
         </div>
         <div>
           <router-link
+            v-if="!isPreview"
             :to="{
               name: 'organizationView',
               params: { id: organization.id },
@@ -82,6 +92,11 @@
               v-html="$sanitize(props.organization.displayName || props.organization.name)"
             />
           </router-link>
+          <h6
+            v-else
+            class="text-base text-black font-semibold"
+            v-html="$sanitize(props.organization.displayName || props.organization.name)"
+          />
           <div
             v-if="props.organization.description"
             ref="bio"

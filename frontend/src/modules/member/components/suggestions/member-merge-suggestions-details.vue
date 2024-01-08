@@ -51,6 +51,7 @@
       </div>
       <div class="flex justify-between">
         <router-link
+          v-if="!isPreview"
           :to="{
             name: 'memberView',
             params: { id: member.id },
@@ -81,9 +82,15 @@
             </el-tooltip>
           </div>
         </router-link>
+        <app-avatar
+          v-else
+          :entity="member"
+          class="mb-3"
+        />
       </div>
       <div class="pb-4">
         <router-link
+          v-if="!isPreview"
           :to="{
             name: 'memberView',
             params: { id: member.id },
@@ -96,6 +103,11 @@
             v-html="$sanitize(member.displayName)"
           />
         </router-link>
+        <h6
+          v-else
+          class="text-base text-black font-semibold"
+          v-html="$sanitize(member.displayName)"
+        />
         <div class="flex items-center">
           <div
             v-if="member.attributes.bio?.default"
@@ -111,7 +123,7 @@
             v-html="$sanitize(compareMember?.attributes.bio.default)"
           />
           <el-tooltip
-            v-if="member.attributes?.bio?.default && getAttributeSourceName(member.attributes.bio)"
+            v-if="!isPreview && member.attributes?.bio?.default && getAttributeSourceName(member.attributes.bio)"
             :content="`Source: ${getAttributeSourceName(member.attributes.bio)}`"
             placement="top"
             trigger="hover"
@@ -153,7 +165,7 @@
               Location
             </p>
             <el-tooltip
-              v-if="member.attributes?.location?.default && getAttributeSourceName(member.attributes.location)"
+              v-if="!isPreview && member.attributes?.location?.default && getAttributeSourceName(member.attributes.location)"
               :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
               placement="top"
               trigger="hover"
@@ -188,7 +200,7 @@
               Title
             </p>
             <el-tooltip
-              v-if="member.attributes?.jobTitle?.default && getAttributeSourceName(member.attributes.jobTitle)"
+              v-if="!isPreview && member.attributes?.jobTitle?.default && getAttributeSourceName(member.attributes.jobTitle)"
               :content="`Source: ${getAttributeSourceName(member.attributes.jobTitle)}`"
               placement="top"
               trigger="hover"
