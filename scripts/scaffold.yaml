@@ -3,7 +3,7 @@ version: '3.1'
 services:
   cubejs:
     build:
-      context: ../services/libs/cubejs
+      context: ../services/libs/cubejs/src/app
     restart: always
     ports:
       - '4000:4000'
