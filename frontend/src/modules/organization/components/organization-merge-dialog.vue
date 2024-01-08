@@ -15,6 +15,7 @@
               :compare-organization="organizationToMerge"
               :is-primary="originalOrganizationPrimary"
               @make-primary="originalOrganizationPrimary = true"
+              @close-dialog="isModalOpen = false"
             />
           </div>
           <div class="w-1/2 px-3">
@@ -30,6 +31,7 @@
               :compare-organization="props.modelValue"
               :is-primary="!originalOrganizationPrimary"
               @make-primary="originalOrganizationPrimary = false"
+              @close-dialog="isModalOpen = false"
             >
               <template #action>
                 <button

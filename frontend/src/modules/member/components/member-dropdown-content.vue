@@ -92,7 +92,7 @@
   >
     <span>
       <button
-        v-if="!member.attributes.isTeamMember?.default"
+        v-if="!member.attributes?.isTeamMember?.default"
         class="h-10 el-dropdown-menu__item w-full"
         :disabled="isEditLockedForSampleData"
         type="button"
@@ -109,7 +109,7 @@
     </span>
   </el-tooltip>
   <button
-    v-if="member.attributes.isTeamMember?.default"
+    v-if="member.attributes?.isTeamMember?.default"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="isEditLockedForSampleData"
     type="button"

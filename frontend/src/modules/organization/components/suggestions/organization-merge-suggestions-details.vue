@@ -44,18 +44,51 @@
         <slot name="action" />
       </div>
       <div class="pb-4">
-        <app-avatar
-          :entity="{
-            avatar: props.organization.logo,
-            displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
-          }"
-          class="mr-4 mb-4"
-        />
+        <div class="flex justify-between">
+          <router-link
+            :to="{
+              name: 'organizationView',
+              params: { id: organization.id },
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
+          >
+            <app-avatar
+              :entity="{
+                avatar: props.organization.logo,
+                displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
+              }"
+              class="mr-4 mb-4"
+              @click="emit('closeDialog')"
+            />
+          </router-link>
+          <router-link
+            :to="{
+              name: 'organizationEdit',
+              params: { id: organization.id },
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
+          >
+            <el-button
+              class="btn btn-link btn-link--primary"
+            >
+              <i class="ri-pencil-line" /><span>Edit</span>
+            </el-button>
+          </router-link>
+        </div>
         <div>
-          <h6
-            class="text-base text-black font-semibold"
-            v-html="$sanitize(props.organization.displayName || props.organization.name)"
-          />
+          <router-link
+            :to="{
+              name: 'organizationView',
+              params: { id: organization.id },
+              query: { projectGroup: selectedProjectGroup?.id },
+            }"
+          >
+            <h6
+              class="text-base text-black font-semibold hover:text-brand-500"
+              @click="emit('closeDialog')"
+              v-html="$sanitize(props.organization.displayName || props.organization.name)"
+            />
+          </router-link>
           <div
             v-if="props.organization.description"
             ref="bio"
@@ -253,6 +286,8 @@ import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/components/identities-vertical-list-organizations.vue';
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps({
   organization: {
@@ -281,9 +316,12 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['makePrimary', 'bioHeight']);
+const emit = defineEmits(['makePrimary', 'bioHeight', 'closeDialog']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
