@@ -26100,6 +26100,14 @@ async function run() {
                 await (0, steps_1.buildStep)();
                 break;
             }
+            case types_1.ActionStep.PUSH: {
+                await (0, steps_1.pushStep)();
+                break;
+            }
+            case types_1.ActionStep.DEPLOY: {
+                await (0, steps_1.deployStep)();
+                break;
+            }
             default:
                 core.error(`Unknown action step: ${step}!`);
                 throw new Error(`Unknown action step: ${step}!`);
@@ -26213,9 +26221,6 @@ const getInputs = async () => {
                 throw new Error(`Unknown action step: ${step}!`);
         }
     }
-    // core.info(`Detected action steps: ${actionSteps.join(', ')}`)
-    // core.info(`Action inputs: ${JSON.stringify(results)}`)
-    // core.info(`Builder definitions: ${JSON.stringify(await getBuilderDefinitions())}`)
     if (results[types_1.ActionStep.BUILD] !== undefined) {
         if (results[types_1.ActionStep.BUILD].images.length === 0 && results[types_1.ActionStep.DEPLOY] !== undefined) {
             // calculate images from services
@@ -26233,6 +26238,14 @@ const getInputs = async () => {
             }
             results[types_1.ActionStep.BUILD].images = images;
         }
+    }
+    if (results[types_1.ActionStep.PUSH] !== undefined && results[types_1.ActionStep.BUILD] === undefined) {
+        core.error('Push step provided without build step!');
+        throw new Error('Push step provided without build step!');
+    }
+    if (results[types_1.ActionStep.DEPLOY] !== undefined && results[types_1.ActionStep.PUSH] === undefined) {
+        core.error('Deploy step provided without push step!');
+        throw new Error('Deploy step provided without push step!');
     }
     inputs = results;
     return results;
@@ -26325,12 +26338,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildStep = void 0;
+exports.deployStep = exports.pushStep = exports.buildStep = void 0;
 const inputs_1 = __nccwpck_require__(2117);
 const state_1 = __nccwpck_require__(5034);
 const types_1 = __nccwpck_require__(2106);
 const core = __importStar(__nccwpck_require__(3949));
 const exec = __importStar(__nccwpck_require__(7912));
+const FAILED_IMAGE_TAG = 'FAILED_BUILD';
 const buildStep = async () => {
     const inputs = await (0, inputs_1.getInputs)();
     if (inputs[types_1.ActionStep.BUILD] === undefined) {
@@ -26348,27 +26362,81 @@ const buildStep = async () => {
     }
     const timestamp = Math.floor(Date.now() / 1000);
     const actualTag = `${tag}.${timestamp}`;
+    const alreadyBuilt = [];
     for (const image of images) {
+        if (alreadyBuilt.includes(image)) {
+            core.info(`Skipping already built image: ${image}:${actualTag}`);
+            continue;
+        }
         core.info(`Building image: ${image}:${actualTag}`);
         const exitCode = await exec.exec('bash', ['cli', 'build', image, tag], {
-            listeners: {
-                stdout: (data) => {
-                    core.info(data.toString());
-                },
-                stderr: (data) => {
-                    core.info(data.toString());
-                },
-            },
             cwd: './scripts',
         });
         if (exitCode !== 0) {
             core.error(`Failed to build image: ${image}:${actualTag}`);
-            throw new Error(`Failed to build image: ${image}:${actualTag}`);
+            (0, state_1.setImageTag)(image, FAILED_IMAGE_TAG);
         }
-        (0, state_1.setImageTag)(image, actualTag);
+        else {
+            alreadyBuilt.push(image);
+            (0, state_1.setImageTag)(image, actualTag);
+        }
     }
 };
 exports.buildStep = buildStep;
+const pushStep = async () => {
+    var _a, _b;
+    const inputs = await (0, inputs_1.getInputs)();
+    const images = (_b = (_a = inputs[types_1.ActionStep.BUILD]) === null || _a === void 0 ? void 0 : _a.images) !== null && _b !== void 0 ? _b : [];
+    const pushInput = inputs[types_1.ActionStep.PUSH];
+    if (!pushInput) {
+        core.error('No push inputs provided!');
+        throw new Error('No push inputs provided!');
+    }
+    if (images.length === 0) {
+        core.error('No images provided!');
+        throw new Error('No images provided!');
+    }
+    // do a docker login
+    const exitCode = await exec.exec('docker', [
+        'login',
+        '--username',
+        pushInput.dockerUsername,
+        '--password',
+        pushInput.dockerPassword,
+    ]);
+    if (exitCode !== 0) {
+        core.error('Failed to login to docker!');
+        throw new Error('Failed to login to docker!');
+    }
+    // now push the images
+    const alreadyPushed = [];
+    for (const image of images) {
+        if (alreadyPushed.includes(image)) {
+            core.info(`Skipping already pushed image: ${image}`);
+            continue;
+        }
+        const tag = (0, state_1.getImageTag)(image);
+        if (tag == FAILED_IMAGE_TAG) {
+            core.info(`Skipping failed image: ${image}`);
+            continue;
+        }
+        core.info(`Pushing image: ${image}:${tag}!`);
+        const exitCode = await exec.exec('bash', ['cli', 'push', image, tag], {
+            cwd: './scripts',
+        });
+        if (exitCode !== 0) {
+            core.error(`Failed to push image: ${image}:${tag}`);
+            (0, state_1.setImageTag)(image, FAILED_IMAGE_TAG);
+        }
+        else {
+            alreadyPushed.push(image);
+            (0, state_1.setImageTag)(image, tag);
+        }
+    }
+};
+exports.pushStep = pushStep;
+const deployStep = async () => { };
+exports.deployStep = deployStep;
 
 
 /***/ }),

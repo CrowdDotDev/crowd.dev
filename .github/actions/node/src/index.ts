@@ -1,4 +1,4 @@
-import { buildStep } from './steps'
+import { buildStep, deployStep, pushStep } from './steps'
 import { getInputs } from './inputs'
 import { IS_POST } from './state'
 import * as core from '@actions/core'
@@ -14,6 +14,16 @@ async function run() {
     switch (step) {
       case ActionStep.BUILD: {
         await buildStep()
+        break
+      }
+
+      case ActionStep.PUSH: {
+        await pushStep()
+        break
+      }
+
+      case ActionStep.DEPLOY: {
+        await deployStep()
         break
       }
 
