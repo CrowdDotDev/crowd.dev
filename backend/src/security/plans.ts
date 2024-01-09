@@ -1,28 +1,19 @@
+import { TenantPlans } from '@crowd/types'
 import { PLANS_CONFIG } from '../conf'
 
 class Plans {
-  static get values() {
-    return {
-      essential: 'Essential',
-      growth: 'Growth',
-      eagleEye: 'Eagle Eye',
-      scale: 'Scale',
-      enterprise: 'Enterprise',
-    }
-  }
-
   static selectPlanByStripePriceId(stripePriceId) {
     const premiumStripePriceId = PLANS_CONFIG.stripePricePremium
 
     if (premiumStripePriceId === stripePriceId) {
-      return Plans.values.growth
+      return TenantPlans.Growth
     }
 
-    return Plans.values.essential
+    return TenantPlans.Essential
   }
 
   static selectStripePriceIdByPlan(plan) {
-    if (plan === Plans.values.growth) {
+    if (plan === TenantPlans.Growth) {
       return PLANS_CONFIG.stripePricePremium
     }
 
@@ -64,7 +55,7 @@ class Plans {
    * because future charges might occur
    */
   static allowTenantDestroy(plan, planStatus) {
-    if (plan === Plans.values.essential || plan === Plans.values.growth) {
+    if (plan === TenantPlans.Essential || plan === TenantPlans.Growth) {
       return true
     }
 
