@@ -37,7 +37,7 @@ export const buildStep = async (): Promise<void> => {
     }
 
     core.info(`Building image: ${image}:${actualTag}`)
-    const exitCode = await exec.exec('bash', ['cli', 'build', image, tag], {
+    const exitCode = await exec.exec('bash', ['cli', 'build', image, actualTag], {
       cwd: './scripts',
     })
 

@@ -26360,7 +26360,7 @@ const buildStep = async () => {
             continue;
         }
         core.info(`Building image: ${image}:${actualTag}`);
-        const exitCode = await exec.exec('bash', ['cli', 'build', image, tag], {
+        const exitCode = await exec.exec('bash', ['cli', 'build', image, actualTag], {
             cwd: './scripts',
         });
         if (exitCode !== 0) {
