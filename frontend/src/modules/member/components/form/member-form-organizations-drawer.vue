@@ -122,6 +122,10 @@ const save = () => {
         }),
       ),
     },
+    messageOptions: {
+      title: 'Contact\'s organizations were updated successfully',
+      message: 'Activities will soon be affiliated to organizations in the background.',
+    },
   });
 };
 

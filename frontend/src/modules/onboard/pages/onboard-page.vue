@@ -75,8 +75,8 @@
       </div>
       <el-tooltip
         placement="top"
-        :disabled="!stepConfig.ctaTooltip || !$v.$invalid"
-        :content="stepConfig.ctaTooltip"
+        :disabled="!stepConfig.ctaTooltip?.(form) || !$v.$invalid"
+        :content="stepConfig.ctaTooltip?.(form)"
       >
         <div>
           <el-button

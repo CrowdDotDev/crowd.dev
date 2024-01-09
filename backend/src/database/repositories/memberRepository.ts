@@ -47,7 +47,6 @@ import {
 } from './types/memberTypes'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
-import MemberAffiliationRepository from './memberAffiliationRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
@@ -950,7 +949,6 @@ class MemberRepository {
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
     await affiliationRepository.setForMember(memberId, data)
-    await MemberAffiliationRepository.update(memberId, options)
   }
 
   static async getAffiliations(
@@ -1215,6 +1213,25 @@ class MemberRepository {
         return new Date(dateStartB).getTime() - new Date(dateStartA).getTime()
       })
     }
+
+    const seq = SequelizeRepository.getSequelize(options)
+    result.segments = await seq.query(
+      `
+      SELECT
+          s.id,
+          s.name
+      FROM mv_activities_cube a
+      JOIN segments s ON s.id = a."segmentId"
+      WHERE a."memberId" = :id
+      GROUP BY s.id
+      `,
+      {
+        replacements: {
+          id,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
 
     return result
   }
@@ -3457,15 +3474,7 @@ class MemberRepository {
   }
 
   static async createOrUpdateWorkExperience(
-    {
-      memberId,
-      organizationId,
-      source,
-      title = null,
-      dateStart = null,
-      dateEnd = null,
-      updateAffiliation = true,
-    },
+    { memberId, organizationId, source, title = null, dateStart = null, dateEnd = null },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
@@ -3548,10 +3557,6 @@ class MemberRepository {
         transaction,
       },
     )
-
-    if (updateAffiliation) {
-      await MemberAffiliationRepository.update(memberId, options)
-    }
   }
 
   static async deleteWorkExperience(id, options: IRepositoryOptions) {

@@ -81,14 +81,20 @@
       <!-- Comparison -->
       <!-- Loading -->
       <div v-if="loading" class="flex p-5">
-        <div class="w-1/2 border rounded-l-lg">
+        <div class="w-1/3 border rounded-l-lg">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
             :is-primary="true"
           />
         </div>
-        <div class="w-1/2 -ml-px border rounded-r-lg">
+        <div class="w-1/3 -ml-px border rounded-r-lg">
+          <app-member-merge-suggestions-details
+            :member="null"
+            :loading="true"
+          />
+        </div>
+        <div class="w-1/3 ml-8 border rounded-lg bg-brand-25">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
@@ -99,7 +105,7 @@
         <div
           v-for="(member, mi) of membersToMerge.members"
           :key="member.id"
-          class="w-1/2"
+          class="w-1/3"
         >
           <app-member-merge-suggestions-details
             :member="member"
@@ -112,6 +118,13 @@
             :class="mi > 0 ? 'rounded-r-lg -ml-px' : 'rounded-l-lg'"
             @make-primary="primary = mi"
             @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
+          />
+        </div>
+        <div class="w-1/3 ml-8">
+          <app-member-merge-suggestions-details
+            :member="preview"
+            :is-preview="true"
+            class="border rounded-lg bg-brand-25"
           />
         </div>
       </div>
@@ -139,6 +152,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import { useRoute } from 'vue-router';
+import { merge } from 'lodash';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -161,6 +175,31 @@ const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
+
+const clearMember = (member) => {
+  const cleanedMember = { ...member };
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in cleanedMember.attributes) {
+    if (!cleanedMember.attributes[key].default) {
+      delete cleanedMember.attributes[key];
+    }
+  }
+  return cleanedMember;
+};
+
+const preview = computed(() => {
+  const primaryMember = membersToMerge.value.members[primary.value];
+  const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
+  const mergedMembers = merge({}, clearMember(secondaryMember), clearMember(primaryMember));
+  Object.keys(mergedMembers?.username || {}).forEach((key) => {
+    if (!primaryMember.username[key] || !secondaryMember.username[key]) {
+      return;
+    }
+    mergedMembers.username[key] = [...Object.values(primaryMember.username[key]), ...Object.values(secondaryMember.username[key])];
+  });
+  mergedMembers.score = Math.max(primaryMember.score, secondaryMember.score);
+  return mergedMembers;
+});
 
 const confidence = computed(() => {
   if (membersToMerge.value.similarity >= 0.8) {
@@ -233,8 +272,15 @@ const ignoreSuggestion = () => {
       Message.success('Merging suggestion ignored successfuly');
       fetch();
     })
-    .catch(() => {
-      Message.error('There was an error ignoring the merging suggestion');
+    .catch((error) => {
+      if (error.response.status === 404) {
+        Message.error('Suggestion already merged or ignored', {
+          message: `Sorry, the suggestion you are trying to merge might have already been merged or ignored.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error ignoring the merging suggestion');
+      }
     })
     .finally(() => {
       sendingIgnore.value = false;
@@ -255,8 +301,15 @@ const mergeSuggestion = () => {
       Message.success('Contacts merged successfuly');
       fetch();
     })
-    .catch(() => {
-      Message.error('There was an error merging contacts');
+    .catch((error) => {
+      if (error.response.status === 404) {
+        Message.error('Contacts already merged or deleted', {
+          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error merging contacts');
+      }
     })
     .finally(() => {
       sendingMerge.value = false;
