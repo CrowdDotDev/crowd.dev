@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/cubejs",
+  "name": "@crowd/cubejs-app",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,11 +9,7 @@
     "tsc-check": "./node_modules/.bin/tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
-    "@cubejs-client/core": "~0.34.9",
-    "jsonwebtoken": "~9.0.2",
-    "moment": "~2.29.4"
+    "@cubejs-backend/server-core": "^0.34.34"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
