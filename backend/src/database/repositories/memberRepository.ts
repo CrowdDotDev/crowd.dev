@@ -1210,6 +1210,25 @@ class MemberRepository {
       })
     }
 
+    const seq = SequelizeRepository.getSequelize(options)
+    result.segments = await seq.query(
+      `
+      SELECT
+          s.id,
+          s.name
+      FROM mv_activities_cube a
+      JOIN segments s ON s.id = a."segmentId"
+      WHERE a."memberId" = :id
+      GROUP BY s.id
+      `,
+      {
+        replacements: {
+          id,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
     return result
   }
 
