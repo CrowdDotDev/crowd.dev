@@ -1,6 +1,5 @@
 name: Deployer
 description: Custom Deployer Action
-author: urosh
 
 inputs:
   services:
@@ -10,6 +9,10 @@ inputs:
     description: Tag for images
     required: false
     default: ${{ github.sha }}
+  steps:
+    description: Steps to run
+    required: false
+    default: build push deploy
 
 runs:
   using: node16
