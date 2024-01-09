@@ -7,8 +7,8 @@ import { ICubeFilter } from 'types'
 import { CubeGranularity } from '../enums'
 
 /**
- * Gets `active members` timeseries data for a given date range in given granularity.
- * Members are active when they have an activity in given date range.
+ * Gets `new members` timeseries data for a given date range in given granularity.
+ * Members are new when member.joinedAt is in between given date range.
  * @param cjs cubejs service instance
  * @param startDate
  * @param endDate
@@ -60,22 +60,17 @@ export default async (
     measures: [CubeMeasures.MEMBER_COUNT],
     timeDimensions: [
       {
-        dimension: CubeDimensions.ACTIVITY_DATE,
+        dimension: CubeDimensions.MEMBER_JOINED_AT,
         dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
         granularity,
       },
     ],
-    // order: { [CubeDimensions.MEMBER_JOINED_AT]: 'asc' },
     filters,
   }
 
   cjs.log.info(query)
 
-  const activeMembersTimeseries = await cjs.load(query) // [0][CubeMeasures.MEMBER_COUNT] ?? 0
+  const newMembersTimeseries = await cjs.load(query)
 
-  console.log(activeMembersTimeseries)
-
-  return activeMembersTimeseries || []
-
-  // return parseInt(activeMembers, 10)
+  return newMembersTimeseries || []
 }

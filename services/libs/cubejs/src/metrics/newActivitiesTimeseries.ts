@@ -7,8 +7,8 @@ import { ICubeFilter } from 'types'
 import { CubeGranularity } from '../enums'
 
 /**
- * Gets `active members` timeseries data for a given date range in given granularity.
- * Members are active when they have an activity in given date range.
+ * Gets `new activities` timeseries data for a given date range in given granularity.
+ * Activities are new when activity.timestamp is in between given date range.
  * @param cjs cubejs service instance
  * @param startDate
  * @param endDate
@@ -33,11 +33,6 @@ export default async (
       operator: 'equals',
       values: ['false'],
     },
-    {
-      member: CubeDimensions.IS_ORGANIZATION,
-      operator: 'equals',
-      values: ['false'],
-    },
   ]
 
   if (platform) {
@@ -57,7 +52,7 @@ export default async (
   }
 
   const query = {
-    measures: [CubeMeasures.MEMBER_COUNT],
+    measures: [CubeMeasures.ACTIVITY_COUNT],
     timeDimensions: [
       {
         dimension: CubeDimensions.ACTIVITY_DATE,
@@ -65,17 +60,12 @@ export default async (
         granularity,
       },
     ],
-    // order: { [CubeDimensions.MEMBER_JOINED_AT]: 'asc' },
     filters,
   }
 
   cjs.log.info(query)
 
-  const activeMembersTimeseries = await cjs.load(query) // [0][CubeMeasures.MEMBER_COUNT] ?? 0
+  const newActivitiesTimeseries = await cjs.load(query)
 
-  console.log(activeMembersTimeseries)
-
-  return activeMembersTimeseries || []
-
-  // return parseInt(activeMembers, 10)
+  return newActivitiesTimeseries || []
 }
