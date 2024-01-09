@@ -26173,13 +26173,13 @@ const getBuildInputs = () => {
 const getPushInputs = () => {
     const username = process.env.DOCKERHUB_USERNAME;
     if (!username) {
-        core.error('No username provided and no DockerHub username found in DOCKERHUB_USERNAME environment variable!');
-        throw new Error('No username provided and no DockerHub username found in DOCKERHUB_USERNAME environment variable!');
+        core.error('No DockerHub username found in DOCKERHUB_USERNAME environment variable!');
+        throw new Error('No DockerHub username found in DOCKERHUB_USERNAME environment variable!');
     }
     const password = process.env.DOCKERHUB_PASSWORD;
     if (!password) {
-        core.error('No password provided and no DockerHub password found in DOCKERHUB_PASSWORD environment variable!');
-        throw new Error('No password provided and no DockerHub password found in DOCKERHUB_PASSWORD environment variable!');
+        core.error('No DockerHub password found in DOCKERHUB_PASSWORD environment variable!');
+        throw new Error('No DockerHub password found in DOCKERHUB_PASSWORD environment variable!');
     }
     return {
         dockerUsername: username,
@@ -26188,8 +26188,44 @@ const getPushInputs = () => {
 };
 const getDeployIUputs = () => {
     const services = getInputList('services');
+    const cloudEnvironment = process.env['CLOUD_ENV'];
+    if (!cloudEnvironment) {
+        core.error('No CLOUD_ENV environment variable found!');
+        throw new Error('No CLOUD_ENV environment variable found!');
+    }
+    const eksClusterName = process.env.EKS_CLUSTER_NAME;
+    if (!eksClusterName) {
+        core.error('No EKS_CLUSTER_NAME environment variable found!');
+        throw new Error('No EKS_CLUSTER_NAME environment variable found!');
+    }
+    const awsRoleArn = process.env.AWS_ROLE_ARN;
+    if (!awsRoleArn) {
+        core.error('No AWS_ROLE_ARN environment variable found!');
+        throw new Error('No AWS_ROLE_ARN environment variable found!');
+    }
+    const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
+    if (!awsAccessKeyId) {
+        core.error('No AWS_ACCESS_KEY_ID environment variable found!');
+        throw new Error('No AWS_ACCESS_KEY_ID environment variable found!');
+    }
+    const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+    if (!awsSecretAccessKey) {
+        core.error('No AWS_SECRET_ACCESS_KEY environment variable found!');
+        throw new Error('No AWS_SECRET_ACCESS_KEY environment variable found!');
+    }
+    const awsRegion = process.env.AWS_REGION;
+    if (!awsRegion) {
+        core.error('No AWS_REGION environment variable found!');
+        throw new Error('No AWS_REGION environment variable found!');
+    }
     return {
         services,
+        cloudEnvironment,
+        eksClusterName,
+        awsRoleArn,
+        awsAccessKeyId,
+        awsSecretAccessKey,
+        awsRegion,
     };
 };
 let inputs;
@@ -26335,6 +26371,7 @@ const inputs_1 = __nccwpck_require__(2117);
 const types_1 = __nccwpck_require__(2106);
 const core = __importStar(__nccwpck_require__(3949));
 const exec = __importStar(__nccwpck_require__(7912));
+const utils_1 = __nccwpck_require__(7407);
 const imageTagMap = new Map();
 const buildStep = async () => {
     const inputs = await (0, inputs_1.getInputs)();
@@ -26424,7 +26461,85 @@ const pushStep = async () => {
     }
 };
 exports.pushStep = pushStep;
-const deployStep = async () => { };
+const deployStep = async () => {
+    const inputs = await (0, inputs_1.getInputs)();
+    const deployInput = inputs[types_1.ActionStep.DEPLOY];
+    if (!deployInput) {
+        core.error('No deploy inputs provided!');
+        throw new Error('No deploy inputs provided!');
+    }
+    if (deployInput.services.length === 0) {
+        core.warning('No services specified for deploy!');
+        return;
+    }
+    const env = {
+        AWS_ACCESS_KEY_ID: deployInput.awsAccessKeyId,
+        AWS_SECRET_ACCESS_KEY: deployInput.awsSecretAccessKey,
+        AWS_REGION: deployInput.awsRegion,
+    };
+    let exitCode = await exec.exec('aws', [
+        'eks',
+        'update-kubeconfig',
+        '--name',
+        deployInput.eksClusterName,
+        '--role-arn',
+        deployInput.awsRoleArn,
+    ], {
+        env,
+    });
+    if (exitCode !== 0) {
+        core.error('Failed to update kubeconfig!');
+        throw new Error('Failed to update kubeconfig!');
+    }
+    const builderDefinitions = await (0, utils_1.getBuilderDefinitions)();
+    for (const service of deployInput.services) {
+        const builderDefinition = builderDefinitions.find((b) => b.services.includes(service));
+        if (!builderDefinition) {
+            core.warning(`No builder definition found for service: ${service}`);
+            continue;
+        }
+        const image = builderDefinition.imageName;
+        if (!imageTagMap.has(image)) {
+            core.warning(`No tag found for image: ${image} - image wasn't built successfully!`);
+            continue;
+        }
+        const tag = imageTagMap.get(image);
+        const prioritized = builderDefinition.prioritizedServices.includes(service);
+        const servicesToUpdate = [];
+        if (prioritized) {
+            switch (deployInput.cloudEnvironment) {
+                case types_1.CloudEnvironment.PRODUCTION: {
+                    servicesToUpdate.push(...[`${service}-system`, `${service}-normal`, `${service}-high`, `${service}-urgent`]);
+                    break;
+                }
+                case types_1.CloudEnvironment.LF_PRODUCTION: {
+                    servicesToUpdate.push(...[`${service}-system`, `${service}-normal`, `${service}-high`]);
+                    break;
+                }
+                case types_1.CloudEnvironment.LF_STAGING:
+                case types_1.CloudEnvironment.STAGING: {
+                    servicesToUpdate.push(`${service}-normal`);
+                    break;
+                }
+                default:
+                    core.error(`Unknown cloud environment: ${deployInput.cloudEnvironment}`);
+                    throw new Error(`Unknown cloud environment: ${deployInput.cloudEnvironment}`);
+            }
+        }
+        else {
+            servicesToUpdate.push(service);
+        }
+        core.info(`Deploying service: ${service} with image: ${image}:${tag} to deployments: ${servicesToUpdate.join(', ')}`);
+        for (const toDeploy of servicesToUpdate) {
+            exitCode = await exec.exec('kubectl', [
+                'set',
+                'image',
+                `deployments/${toDeploy}-dpl`,
+                `${toDeploy}=${image}:${tag}`,
+            ]);
+        }
+    }
+};
 exports.deployStep = deployStep;
 
 
@@ -26436,13 +26551,20 @@ exports.deployStep = deployStep;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ActionStep = void 0;
+exports.CloudEnvironment = exports.ActionStep = void 0;
 var ActionStep;
 (function (ActionStep) {
     ActionStep["BUILD"] = "build";
     ActionStep["PUSH"] = "push";
     ActionStep["DEPLOY"] = "deploy";
 })(ActionStep || (exports.ActionStep = ActionStep = {}));
+var CloudEnvironment;
+(function (CloudEnvironment) {
+    CloudEnvironment["PRODUCTION"] = "production";
+    CloudEnvironment["STAGING"] = "staging";
+    CloudEnvironment["LF_PRODUCTION"] = "lf-production";
+    CloudEnvironment["LF_STAGING"] = "lf-staging";
+})(CloudEnvironment || (exports.CloudEnvironment = CloudEnvironment = {}));
 
 
 /***/ }),

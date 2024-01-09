@@ -1,7 +1,8 @@
 import { getInputs } from './inputs'
-import { ActionStep } from './types'
+import { ActionStep, CloudEnvironment } from './types'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
+import { getBuilderDefinitions } from './utils'
 
 const imageTagMap = new Map<string, string>()
 
@@ -108,4 +109,106 @@ export const pushStep = async (): Promise<void> => {
   }
 }
 
-export const deployStep = async (): Promise<void> => {}
+export const deployStep = async (): Promise<void> => {
+  const inputs = await getInputs()
+
+  const deployInput = inputs[ActionStep.DEPLOY]
+  if (!deployInput) {
+    core.error('No deploy inputs provided!')
+    throw new Error('No deploy inputs provided!')
+  }
+
+  if (deployInput.services.length === 0) {
+    core.warning('No services specified for deploy!')
+    return
+  }
+
+  const env = {
+    AWS_ACCESS_KEY_ID: deployInput.awsAccessKeyId,
+    AWS_SECRET_ACCESS_KEY: deployInput.awsSecretAccessKey,
+    AWS_REGION: deployInput.awsRegion,
+  }
+
+  let exitCode = await exec.exec(
+    'aws',
+    [
+      'eks',
+      'update-kubeconfig',
+      '--name',
+      deployInput.eksClusterName,
+      '--role-arn',
+      deployInput.awsRoleArn,
+    ],
+    {
+      env,
+    },
+  )
+
+  if (exitCode !== 0) {
+    core.error('Failed to update kubeconfig!')
+    throw new Error('Failed to update kubeconfig!')
+  }
+
+  const builderDefinitions = await getBuilderDefinitions()
+  for (const service of deployInput.services) {
+    const builderDefinition = builderDefinitions.find((b) => b.services.includes(service))
+
+    if (!builderDefinition) {
+      core.warning(`No builder definition found for service: ${service}`)
+      continue
+    }
+
+    const image = builderDefinition.imageName
+    if (!imageTagMap.has(image)) {
+      core.warning(`No tag found for image: ${image} - image wasn't built successfully!`)
+      continue
+    }
+
+    const tag = imageTagMap.get(image)
+
+    const prioritized = builderDefinition.prioritizedServices.includes(service)
+    const servicesToUpdate: string[] = []
+
+    if (prioritized) {
+      switch (deployInput.cloudEnvironment) {
+        case CloudEnvironment.PRODUCTION: {
+          servicesToUpdate.push(
+            ...[`${service}-system`, `${service}-normal`, `${service}-high`, `${service}-urgent`],
+          )
+          break
+        }
+        case CloudEnvironment.LF_PRODUCTION: {
+          servicesToUpdate.push(...[`${service}-system`, `${service}-normal`, `${service}-high`])
+          break
+        }
+
+        case CloudEnvironment.LF_STAGING:
+        case CloudEnvironment.STAGING: {
+          servicesToUpdate.push(`${service}-normal`)
+          break
+        }
+
+        default:
+          core.error(`Unknown cloud environment: ${deployInput.cloudEnvironment}`)
+          throw new Error(`Unknown cloud environment: ${deployInput.cloudEnvironment}`)
+      }
+    } else {
+      servicesToUpdate.push(service)
+    }
+
+    core.info(
+      `Deploying service: ${service} with image: ${image}:${tag} to deployments: ${servicesToUpdate.join(
+        ', ',
+      )}`,
+    )
+
+    for (const toDeploy of servicesToUpdate) {
+      exitCode = await exec.exec('kubectl', [
+        'set',
+        'image',
+        `deployments/${toDeploy}-dpl`,
+        `${toDeploy}=${image}:${tag}`,
+      ])
+    }
+  }
+}

@@ -1,4 +1,11 @@
-import { ActionStep, IActionInputs, IBuildInput, IDeployInput, IPushInput } from './types'
+import {
+  ActionStep,
+  CloudEnvironment,
+  IActionInputs,
+  IBuildInput,
+  IDeployInput,
+  IPushInput,
+} from './types'
 import * as core from '@actions/core'
 import { getBuilderDefinitions } from './utils'
 
@@ -14,22 +21,14 @@ const getBuildInputs = (): IBuildInput => {
 const getPushInputs = (): IPushInput => {
   const username = process.env.DOCKERHUB_USERNAME
   if (!username) {
-    core.error(
-      'No username provided and no DockerHub username found in DOCKERHUB_USERNAME environment variable!',
-    )
-    throw new Error(
-      'No username provided and no DockerHub username found in DOCKERHUB_USERNAME environment variable!',
-    )
+    core.error('No DockerHub username found in DOCKERHUB_USERNAME environment variable!')
+    throw new Error('No DockerHub username found in DOCKERHUB_USERNAME environment variable!')
   }
 
   const password = process.env.DOCKERHUB_PASSWORD
   if (!password) {
-    core.error(
-      'No password provided and no DockerHub password found in DOCKERHUB_PASSWORD environment variable!',
-    )
-    throw new Error(
-      'No password provided and no DockerHub password found in DOCKERHUB_PASSWORD environment variable!',
-    )
+    core.error('No DockerHub password found in DOCKERHUB_PASSWORD environment variable!')
+    throw new Error('No DockerHub password found in DOCKERHUB_PASSWORD environment variable!')
   }
 
   return {
@@ -41,8 +40,50 @@ const getPushInputs = (): IPushInput => {
 const getDeployIUputs = (): IDeployInput => {
   const services = getInputList('services')
 
+  const cloudEnvironment = process.env['CLOUD_ENV'] as CloudEnvironment
+  if (!cloudEnvironment) {
+    core.error('No CLOUD_ENV environment variable found!')
+    throw new Error('No CLOUD_ENV environment variable found!')
+  }
+
+  const eksClusterName = process.env.EKS_CLUSTER_NAME
+  if (!eksClusterName) {
+    core.error('No EKS_CLUSTER_NAME environment variable found!')
+    throw new Error('No EKS_CLUSTER_NAME environment variable found!')
+  }
+
+  const awsRoleArn = process.env.AWS_ROLE_ARN
+  if (!awsRoleArn) {
+    core.error('No AWS_ROLE_ARN environment variable found!')
+    throw new Error('No AWS_ROLE_ARN environment variable found!')
+  }
+
+  const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
+  if (!awsAccessKeyId) {
+    core.error('No AWS_ACCESS_KEY_ID environment variable found!')
+    throw new Error('No AWS_ACCESS_KEY_ID environment variable found!')
+  }
+
+  const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+  if (!awsSecretAccessKey) {
+    core.error('No AWS_SECRET_ACCESS_KEY environment variable found!')
+    throw new Error('No AWS_SECRET_ACCESS_KEY environment variable found!')
+  }
+
+  const awsRegion = process.env.AWS_REGION
+  if (!awsRegion) {
+    core.error('No AWS_REGION environment variable found!')
+    throw new Error('No AWS_REGION environment variable found!')
+  }
+
   return {
     services,
+    cloudEnvironment,
+    eksClusterName,
+    awsRoleArn,
+    awsAccessKeyId,
+    awsSecretAccessKey,
+    awsRegion,
   }
 }
 

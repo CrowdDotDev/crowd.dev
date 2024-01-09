@@ -4,6 +4,13 @@ export enum ActionStep {
   DEPLOY = 'deploy',
 }
 
+export enum CloudEnvironment {
+  PRODUCTION = 'production',
+  STAGING = 'staging',
+  LF_PRODUCTION = 'lf-production',
+  LF_STAGING = 'lf-staging',
+}
+
 export interface IBuildInput {
   // image version tag
   tag: string
@@ -21,6 +28,16 @@ export interface IPushInput {
 export interface IDeployInput {
   // services to deploy
   services: string[]
+
+  // which cloud environment are we deploying to
+  cloudEnvironment: CloudEnvironment
+
+  // aws credentials to use when deploying
+  eksClusterName: string
+  awsRoleArn: string
+  awsAccessKeyId: string
+  awsSecretAccessKey: string
+  awsRegion: string
 }
 
 export interface IBuilderDefinition {
