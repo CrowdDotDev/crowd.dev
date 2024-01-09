@@ -1,5 +1,5 @@
 export default {
-  name: 'cvent',
+  name: 'Cvent',
   image: '/images/integrations/custom/cvent.png',
   enabled: true,
   chartColor: '#199AE0',
