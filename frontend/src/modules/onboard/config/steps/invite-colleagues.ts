@@ -10,6 +10,13 @@ const inviteColleagues: OnboardStepConfig = {
   name: 'Invite colleagues',
   component: AppOnboardInviteColleaguesStep,
   cta: 'Finish setup',
+  ctaTooltip: ({ activeIntegrations }) => {
+    if (!activeIntegrations) {
+      return 'To proceed, go back and click on the Sync data step to connect at least 1 integration';
+    }
+
+    return null;
+  },
   textColor: (currentStep: number) => ({
     'text-gray-400': currentStep < 3,
     'text-brand-400': currentStep > 3,
