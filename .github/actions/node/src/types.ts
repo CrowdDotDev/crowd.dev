@@ -20,6 +20,13 @@ export interface IDeployInput {
   services: string[]
 }
 
+export interface IBuilderDefinition {
+  imageName: string
+  dockerRepository: string
+  services: string[]
+  prioritizedServices: string[]
+}
+
 export type IActionInputs = {
   steps: ActionStep[]
   [ActionStep.BUILD]?: IBuildInput
