@@ -99,7 +99,7 @@
         <div
           v-for="(organization, mi) of organizationsToMerge.organizations"
           :key="organization.id"
-          class="w-1/2"
+          class="w-1/3"
         >
           <app-organization-merge-suggestions-details
             :organization="organization"
@@ -112,6 +112,13 @@
             :class="mi > 0 ? 'rounded-r-lg -ml-px' : 'rounded-l-lg'"
             @make-primary="primary = mi"
             @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
+          />
+        </div>
+        <div class="w-1/3 ml-8">
+          <app-organization-merge-suggestions-details
+            :organization="preview"
+            :is-preview="true"
+            class="border rounded-lg bg-brand-25"
           />
         </div>
       </div>
@@ -142,6 +149,7 @@ import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/compo
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
+import { merge } from 'lodash';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -169,6 +177,32 @@ const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
+
+const clearOrganization = (organization) => {
+  const cleanedOrganization = { ...organization };
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in cleanedOrganization) {
+    if (!cleanedOrganization[key]) {
+      delete cleanedOrganization[key];
+    }
+  }
+  return cleanedOrganization;
+};
+
+const preview = computed(() => {
+  const primaryOrganization = organizationsToMerge.value.organizations[primary.value];
+  const secondaryOrganization = organizationsToMerge.value.organizations[(primary.value + 1) % 2];
+  const mergedOrganizations = merge({}, clearOrganization(secondaryOrganization), clearOrganization(primaryOrganization));
+  if (!Array.isArray(primaryOrganization.identities)) {
+    primaryOrganization.identities = [];
+  }
+  if (!Array.isArray(secondaryOrganization.identities)) {
+    secondaryOrganization.identities = [];
+  }
+
+  mergedOrganizations.identities = [...(primaryOrganization.identities || []), ...(secondaryOrganization.identities || [])];
+  return mergedOrganizations;
+});
 
 const confidence = computed(() => {
   if (organizationsToMerge.value.similarity >= 0.8) {
@@ -242,8 +276,15 @@ const ignoreSuggestion = () => {
       Message.success('Merging suggestion ignored successfuly');
       fetch();
     })
-    .catch(() => {
-      Message.error('There was an error ignoring the merging suggestion');
+    .catch((error) => {
+      if (error.response.status === 404) {
+        Message.error('Suggestion already merged or ignored', {
+          message: `Sorry, the suggestion you are trying to merge might have already been merged or ignored.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error ignoring the merging suggestion');
+      }
     })
     .finally(() => {
       sendingIgnore.value = false;
@@ -279,9 +320,17 @@ const mergeSuggestion = () => {
 
       fetch();
     })
-    .catch((e) => {
+    .catch((error) => {
       Message.closeAll();
-      Message.error('There was an error merging organizations');
+
+      if (error.response.status === 404) {
+        Message.error('Organizations already merged or deleted', {
+          message: `Sorry, the organizations you are trying to merge might have already been merged or deleted.
+          Please refresh to see the updated information.`,
+        });
+      } else {
+        Message.error('There was an error merging organizations');
+      }
     })
     .finally(() => {
       sendingMerge.value = false;

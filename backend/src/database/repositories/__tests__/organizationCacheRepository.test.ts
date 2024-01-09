@@ -82,11 +82,14 @@ describe('OrganizationCacheCacheRepository tests', () => {
       const expectedorganizationCacheCreated = {
         id: organizationCacheCreated.id,
         ...toCreate,
+        names: [toCreate.name],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
       }
+      delete expectedorganizationCacheCreated.name
+
       expect(organizationCacheCreated).toStrictEqual(expectedorganizationCacheCreated)
     })
 
@@ -120,11 +123,13 @@ describe('OrganizationCacheCacheRepository tests', () => {
       const expectedorganizationCacheFound = {
         id: organizationCacheCreated.id,
         ...toCreate,
+        names: [toCreate.name],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
       }
+      delete expectedorganizationCacheFound.name
       const organizationCacheById = await organizationCacheRepository.findById(
         organizationCacheCreated.id,
         mockIRepositoryOptions,
@@ -165,11 +170,13 @@ describe('OrganizationCacheCacheRepository tests', () => {
       const expectedorganizationCacheFound = {
         id: organizationCacheCreated.id,
         ...toCreate,
+        names: [toCreate.name],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
       }
+      delete expectedorganizationCacheFound.name
       const organizationCacheById = await organizationCacheRepository.findByUrl(
         organizationCacheCreated.url,
         mockIRepositoryOptions,
@@ -200,11 +207,14 @@ describe('OrganizationCacheCacheRepository tests', () => {
       const expectedorganizationCacheFound = {
         id: organizationCacheCreated.id,
         ...toCreate,
+        names: [toCreate.name],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
       }
+      delete expectedorganizationCacheFound.name
+
       const organizationCacheById = await organizationCacheRepository.findByUrl(
         organizationCacheCreated.url,
         mock2,
@@ -228,7 +238,7 @@ describe('OrganizationCacheCacheRepository tests', () => {
 
       const organizationCacheUpdated = await organizationCacheRepository.update(
         organizationCacheCreated.id,
-        { name: 'updated-organizationCache-name' },
+        { importHash: 'test' },
         mockIRepositoryOptions,
       )
 
@@ -239,12 +249,13 @@ describe('OrganizationCacheCacheRepository tests', () => {
       const organizationCacheExpected = {
         id: organizationCacheCreated.id,
         ...toCreate,
-        name: organizationCacheUpdated.name,
-        importHash: null,
+        importHash: 'test',
+        names: [toCreate.name],
         createdAt: organizationCacheCreated.createdAt,
         updatedAt: organizationCacheUpdated.updatedAt,
         deletedAt: null,
       }
+      delete organizationCacheExpected.name
 
       expect(organizationCacheUpdated).toStrictEqual(organizationCacheExpected)
     })

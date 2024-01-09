@@ -1,8 +1,9 @@
 import { LoggerBase } from '@crowd/logging'
+import { TemporalWorkflowId } from '@crowd/types'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IServiceOptions } from './IServiceOptions'
 import MemberSegmentAffiliationRepository from '../database/repositories/memberSegmentAffiliationRepository'
 import MemberRepository from '../database/repositories/memberRepository'
-import MemberAffiliationRepository from '../database/repositories/memberAffiliationRepository'
 
 export default class MemberAffiliationService extends LoggerBase {
   options: IServiceOptions
@@ -53,6 +54,23 @@ export default class MemberAffiliationService extends LoggerBase {
   }
 
   async updateAffiliation(memberId: string) {
-    await MemberAffiliationRepository.update(memberId, this.options)
+    await this.options.temporal.workflow.start('memberUpdate', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${memberId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [
+        {
+          member: {
+            id: memberId,
+          },
+        },
+      ],
+      searchAttributes: {
+        TenantId: [this.options.currentTenant.id],
+      },
+    })
   }
 }

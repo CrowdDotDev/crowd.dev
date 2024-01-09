@@ -1,0 +1,64 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: profiles-worker
+  CROWD_TEMPORAL_TASKQUEUE: profiles
+  SHELL: /bin/sh
+
+services:
+  profiles-worker:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.profiles_worker
+    command: 'pnpm run start'
+    working_dir: /usr/crowd/app/services/apps/profiles_worker
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    restart: always
+    networks:
+      - crowd-bridge
+
+  profiles-worker-dev:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.profiles_worker
+    command: 'pnpm run dev'
+    working_dir: /usr/crowd/app/services/apps/profiles_worker
+    # user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    hostname: profiles-worker
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../services/libs/alerting/src:/usr/crowd/app/services/libs/alerting/src
+      - ../../services/libs/common/src:/usr/crowd/app/services/libs/common/src
+      - ../../services/libs/common_services/src:/usr/crowd/app/services/libs/common_services/src
+      - ../../services/libs/conversations/src:/usr/crowd/app/services/libs/conversations/src
+      - ../../services/libs/cubejs/src:/usr/crowd/app/services/libs/cubejs/src
+      - ../../services/libs/database/src:/usr/crowd/app/services/libs/database/src
+      - ../../services/libs/integrations/src:/usr/crowd/app/services/libs/integrations/src
+      - ../../services/libs/ioc/src:/usr/crowd/app/services/libs/ioc/src
+      - ../../services/libs/logging/src:/usr/crowd/app/services/libs/logging/src
+      - ../../services/libs/opensearch/src:/usr/crowd/app/services/libs/opensearch/src
+      - ../../services/libs/redis/src:/usr/crowd/app/services/libs/redis/src
+      - ../../services/libs/sentiment/src:/usr/crowd/app/services/libs/sentiment/src
+      - ../../services/libs/sqs/src:/usr/crowd/app/services/libs/sqs/src
+      - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src
+      - ../../services/apps/profiles_worker/src:/usr/crowd/app/services/apps/profiles_worker/src
+
+networks:
+  crowd-bridge:
+    external: true

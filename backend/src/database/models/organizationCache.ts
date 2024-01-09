@@ -9,10 +9,6 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      name: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
       url: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -75,10 +71,6 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      website: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
       founded: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -93,7 +85,7 @@ export default (sequelize) => {
         comment: 'A range representing the size of the company.',
       },
       naics: {
-        type: DataTypes.ARRAY(DataTypes.JSONB),
+        type: DataTypes.JSONB,
         allowNull: true,
         comment: 'industry classifications for a company according to NAICS',
       },

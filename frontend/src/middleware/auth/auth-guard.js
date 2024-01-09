@@ -51,8 +51,14 @@ export default async function ({
     return;
   }
 
+  if (!currentUser.acceptedTermsAndPrivacy) {
+    router.push({ path: '/auth/terms-and-privacy' });
+    return;
+  }
+
   if (store.getters['auth/currentTenant'] && isTrialExpired(store.getters['auth/currentTenant'])) {
-    if (!window.location.href.includes('/onboard/plans') && !window.location.href.includes('/onboard/payment')) {
+    if (!window.location.href.includes('/onboard/plans')
+      && !window.location.href.includes('/onboard/payment')) {
       window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
     }
     return;
@@ -67,11 +73,6 @@ export default async function ({
       ))
   ) {
     router.push('/403');
-    return;
-  }
-
-  if (!currentUser.acceptedTermsAndPrivacy) {
-    router.push({ path: '/auth/terms-and-privacy' });
     return;
   }
 
