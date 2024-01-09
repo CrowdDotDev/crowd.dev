@@ -18,7 +18,7 @@
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
-        @click="identitiesDrawer = true"
+        @click="emit('edit')"
       >
         <i class="ri-pencil-line" /><span>Edit</span>
       </el-button>
@@ -33,39 +33,32 @@
         <template #default="{ identities }">
           <app-aside-identities-extra
             :emails="identities.getEmails()"
-            @open-drawer="identitiesDrawer = true"
+            @open-drawer="emit('edit')"
           />
         </template>
       </app-identities-vertical-list-members>
     </div>
   </div>
-
-  <app-member-manage-identities-drawer
-    v-if="identitiesDrawer"
-    v-model="identitiesDrawer"
-    :member="member"
-  />
 </template>
 
 <script setup lang="ts">
 import {
-  computed, defineProps, ref,
+  computed, defineProps,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Member } from '@/modules/member/types/Member';
-import AppMemberManageIdentitiesDrawer from '../../member-manage-identities-drawer.vue';
 import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 
 defineProps<{
   member: Member
 }>();
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const emit = defineEmits(['edit']);
 
-const identitiesDrawer = ref(false);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   currentTenant.value,
