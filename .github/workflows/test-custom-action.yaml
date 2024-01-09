@@ -1,4 +1,4 @@
-name: Production Deploy
+name: Test Custom NodeJS Action
 
 on:
   workflow_dispatch:
