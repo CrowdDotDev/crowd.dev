@@ -34,7 +34,7 @@ const connect = () => {
     icon: 'ri-information-line',
     confirmButtonText: 'I\'m the GitHub organization admin',
     cancelButtonText: 'Invite organization admin to this workspace',
-    verticalCancelButtonClass: 'btn btn--md btn--bordererd w-full',
+    verticalCancelButtonClass: 'btn btn--md bg-white hover:bg-gray-100 shadow border border-gray-50 w-full hover:text-gray-600 hover:border-gray-100',
     verticalConfirmButtonClass: 'btn btn--md btn--primary w-full !mb-2',
     vertical: true,
     distinguishCancelAndClose: true,

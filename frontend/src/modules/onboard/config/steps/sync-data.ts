@@ -5,7 +5,7 @@ const syncData: OnboardStepConfig = {
   name: 'Sync data',
   component: AppOnboardSyncDataStep,
   cta: 'Continue',
-  ctaTooltip: 'Connect at least 1 integration to proceed',
+  ctaTooltip: () => 'Connect at least 1 integration to proceed',
   submitActionInfo: 'Although you have integrations getting set up, you can proceed with the workspace setup.',
   sideInfo: [
     {

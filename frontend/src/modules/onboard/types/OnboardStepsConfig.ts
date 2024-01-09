@@ -2,13 +2,20 @@ export interface OnboardStepConfig {
   name: string;
   component: any;
   textColor: (currentStep: number) => {
-    [key: string]: boolean
-  }
+    [key: string]: boolean;
+  };
   bgColor: (currentStep: number) => {
-    [key: string]: boolean
-  }
+    [key: string]: boolean;
+  };
   cta: string;
-  ctaTooltip?: string;
+  ctaTooltip?: (form: {
+    tenantName: string;
+    activeIntegrations: number;
+    invitedUsers: {
+      emails: string[];
+      roles: string[];
+    }[];
+  }) => string | null;
   submitActionInfo?: string;
   sideInfo?: {
     icon: string;
