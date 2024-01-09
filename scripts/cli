@@ -105,7 +105,7 @@ function build_and_publish() {
         VERSION="$TS_VERSION.$COMMIT_HASH"
     fi
 
-    source $CLI_HOME/builders/$1.sh
+    source $CLI_HOME/builders/$1.env
 
     say "Building $REPO version $VERSION with dockerfile '$DOCKERFILE' and context '$CONTEXT' and pushing it to $REPO:$VERSION"
     docker build --platform linux/amd64 --tag "$REPO:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
