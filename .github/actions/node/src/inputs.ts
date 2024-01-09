@@ -77,17 +77,10 @@ export const loadInputs = async (): Promise<IActionInputs> => {
   return results
 }
 
-const getInputList = (name: string, ignoreComma?: boolean): string[] => {
+const getInputList = (name: string): string[] => {
   const items = core.getInput(name)
-  if (items === '') {
-    return []
-  }
   return items
-    .split(/\r?\n/)
-    .filter((x) => x)
-    .reduce<string[]>(
-      (acc, line) =>
-        acc.concat(!ignoreComma ? line.split(',').filter((x) => x) : line).map((pat) => pat.trim()),
-      [],
-    )
+    .split(' ')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
 }

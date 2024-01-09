@@ -24848,15 +24848,12 @@ const loadInputs = async () => {
     return results;
 };
 exports.loadInputs = loadInputs;
-const getInputList = (name, ignoreComma) => {
+const getInputList = (name) => {
     const items = core.getInput(name);
-    if (items === '') {
-        return [];
-    }
     return items
-        .split(/\r?\n/)
-        .filter((x) => x)
-        .reduce((acc, line) => acc.concat(!ignoreComma ? line.split(',').filter((x) => x) : line).map((pat) => pat.trim()), []);
+        .split(' ')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
 };
 
 
