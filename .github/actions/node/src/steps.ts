@@ -32,10 +32,10 @@ export const buildStep = async (): Promise<void> => {
     const exitCode = await exec.exec('bash', ['cli', 'build', image, tag], {
       listeners: {
         stdout: (data) => {
-          core.info(`${image} builder: ${data.toString()}`)
+          core.info(data.toString())
         },
         stderr: (data) => {
-          core.error(`${image} builder error: ${data.toString()}`)
+          core.info(data.toString())
         },
       },
       cwd: './scripts',
