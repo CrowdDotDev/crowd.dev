@@ -84,14 +84,20 @@
       <!-- Comparison -->
       <!-- Loading -->
       <div v-if="loading" class="flex p-5">
-        <div class="w-1/2 border rounded-l-lg">
+        <div class="w-1/3 border rounded-l-lg">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
             :is-primary="true"
           />
         </div>
-        <div class="w-1/2 -ml-px border rounded-r-lg">
+        <div class="w-1/3 -ml-px border rounded-r-lg">
+          <app-member-merge-suggestions-details
+            :member="null"
+            :loading="true"
+          />
+        </div>
+        <div class="w-1/3 ml-8 border rounded-lg bg-brand-25">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
