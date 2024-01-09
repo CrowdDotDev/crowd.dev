@@ -29,7 +29,7 @@ export const buildStep = async (): Promise<void> => {
 
   for (const image of images) {
     core.info(`Building image: ${image}:${actualTag}`)
-    const exitCode = await exec.exec('bash', ['./scripts/cli', 'build', image, tag], {
+    const exitCode = await exec.exec('bash', ['cli', 'build', image, tag], {
       listeners: {
         stdout: (data) => {
           core.info(`${image} builder: ${data.toString()}`)
@@ -38,6 +38,7 @@ export const buildStep = async (): Promise<void> => {
           core.error(`${image} builder error: ${data.toString()}`)
         },
       },
+      cwd: './scripts',
     })
 
     if (exitCode !== 0) {
