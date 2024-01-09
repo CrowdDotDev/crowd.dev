@@ -609,6 +609,7 @@ do
             PUSH=1
             build $2 $3
             exit;
+        ;;
         db-backup)
             db_backup $2
             exit;
