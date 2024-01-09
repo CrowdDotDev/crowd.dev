@@ -6,6 +6,7 @@
         && props.integration.connectComponent
     "
     :integration="props.integration"
+    @invite-colleagues="emit('inviteColleagues')"
   >
     <template
       #default="{
@@ -73,6 +74,7 @@ const props = defineProps({
     default: () => ({}),
   },
 });
+const emit = defineEmits(['inviteColleagues']);
 
 const isCalDialogOpen = ref();
 
