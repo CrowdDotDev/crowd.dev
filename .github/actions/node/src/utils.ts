@@ -2,7 +2,13 @@ import dotenv from 'dotenv'
 import { IBuilderDefinition } from './types'
 import fs from 'fs'
 
-export const loadBuilderDefinitions = async (): Promise<IBuilderDefinition[]> => {
+let definitions: IBuilderDefinition[] | undefined
+
+export const getBuilderDefinitions = async (): Promise<IBuilderDefinition[]> => {
+  if (definitions !== undefined) {
+    return definitions
+  }
+
   const results: IBuilderDefinition[] = []
   const files = fs.readdirSync('./scripts/builders')
 
@@ -35,6 +41,8 @@ export const loadBuilderDefinitions = async (): Promise<IBuilderDefinition[]> =>
       })
     }
   }
+
+  definitions = results
 
   return results
 }

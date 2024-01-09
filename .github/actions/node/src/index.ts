@@ -1,20 +1,26 @@
-import { loadInputs } from './inputs'
+import { buildStep } from './steps'
+import { getInputs } from './inputs'
 import { IS_POST } from './state'
 import * as core from '@actions/core'
-import { loadBuilderDefinitions } from './utils'
+import { ActionStep } from './types'
 /**
  * Runs the action
  */
 async function run() {
-  const inputs = await loadInputs()
-
-  const builderDefinitions = await loadBuilderDefinitions()
-  for (const def of builderDefinitions) {
-    core.info(`Loaded builder definition: ${JSON.stringify(def)}`)
-  }
+  const inputs = await getInputs()
 
   for (const step of inputs.steps) {
     core.info(`Running step: ${step}`)
+    switch (step) {
+      case ActionStep.BUILD: {
+        await buildStep()
+        break
+      }
+
+      default:
+        core.error(`Unknown action step: ${step}!`)
+        throw new Error(`Unknown action step: ${step}!`)
+    }
   }
 }
 

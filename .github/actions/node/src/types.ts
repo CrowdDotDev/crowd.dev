@@ -7,6 +7,9 @@ export enum ActionStep {
 export interface IBuildInput {
   // image version tag
   tag: string
+
+  // images to build
+  images: string[]
 }
 
 export interface IPushInput {

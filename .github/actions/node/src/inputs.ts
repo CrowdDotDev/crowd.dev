@@ -1,11 +1,13 @@
 import { ActionStep, IActionInputs, IBuildInput, IDeployInput, IPushInput } from './types'
 import * as core from '@actions/core'
+import { getBuilderDefinitions } from './utils'
 
 const getBuildInputs = (): IBuildInput => {
   const tag = core.getInput('tag')
 
   return {
     tag,
+    images: [],
   }
 }
 
@@ -44,7 +46,12 @@ const getDeployIUputs = (): IDeployInput => {
   }
 }
 
-export const loadInputs = async (): Promise<IActionInputs> => {
+let inputs: IActionInputs | undefined
+export const getInputs = async (): Promise<IActionInputs> => {
+  if (inputs !== undefined) {
+    return inputs
+  }
+
   const actionSteps = getInputList('steps') as ActionStep[]
 
   if (actionSteps.length === 0) {
@@ -74,6 +81,27 @@ export const loadInputs = async (): Promise<IActionInputs> => {
     }
   }
 
+  if (results[ActionStep.BUILD] !== undefined) {
+    if (results[ActionStep.BUILD].images.length === 0 && results[ActionStep.DEPLOY] !== undefined) {
+      // calculate images from services
+      const buildDefinitions = await getBuilderDefinitions()
+
+      const images: string[] = []
+      for (const service of results[ActionStep.DEPLOY].services) {
+        const definition = buildDefinitions.find((d) => d.services.includes(service))
+        if (definition === undefined) {
+          core.error(`No builder definition found for service: ${service}!`)
+          throw new Error(`No builder definition found for service: ${service}!`)
+        }
+
+        if (!images.includes(definition.imageName)) {
+          images.push(definition.imageName)
+        }
+      }
+    }
+  }
+
+  inputs = results
   return results
 }
 
