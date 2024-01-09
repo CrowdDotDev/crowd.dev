@@ -132,7 +132,7 @@ export default class ActivityService extends LoggerBase {
         if (
           !data.username &&
           (data.platform === PlatformType.OTHER ||
-            // we have some custom ones in db that are not in enum
+            // we have some custom platform types in db that are not in enum
             !Object.values(PlatformType).includes(data.platform))
         ) {
           const { displayName } = await MemberRepository.findById(data.member, repositoryOptions)
