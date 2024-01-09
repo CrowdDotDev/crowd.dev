@@ -199,9 +199,9 @@ export const deployStep = async (): Promise<void> => {
     }
 
     core.info(
-      `Deploying service: ${service} with image: ${image}:${tag} to deployments: ${servicesToUpdate.join(
-        ', ',
-      )}`,
+      `Deploying service: ${service} with image: ${
+        builderDefinition.dockerRepository
+      }:${tag} to deployments: ${servicesToUpdate.join(', ')}`,
     )
 
     for (const toDeploy of servicesToUpdate) {
@@ -209,7 +209,7 @@ export const deployStep = async (): Promise<void> => {
         'set',
         'image',
         `deployments/${toDeploy}-dpl`,
-        `${toDeploy}=${image}:${tag}`,
+        `${toDeploy}=${builderDefinition.dockerRepository}:${tag}`,
       ])
 
       if (exitCode !== 0) {

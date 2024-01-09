@@ -26530,13 +26530,13 @@ const deployStep = async () => {
         else {
             servicesToUpdate.push(service);
         }
-        core.info(`Deploying service: ${service} with image: ${image}:${tag} to deployments: ${servicesToUpdate.join(', ')}`);
+        core.info(`Deploying service: ${service} with image: ${builderDefinition.dockerRepository}:${tag} to deployments: ${servicesToUpdate.join(', ')}`);
         for (const toDeploy of servicesToUpdate) {
             exitCode = await exec.exec('kubectl', [
                 'set',
                 'image',
                 `deployments/${toDeploy}-dpl`,
-                `${toDeploy}=${image}:${tag}`,
+                `${toDeploy}=${builderDefinition.dockerRepository}:${tag}`,
             ]);
             if (exitCode !== 0) {
                 core.error(`Failed to deploy service: ${service} to deployment: ${toDeploy}`);
