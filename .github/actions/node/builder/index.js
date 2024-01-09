@@ -26291,20 +26291,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getImageTag = exports.setImageTag = exports.IS_POST = void 0;
+exports.IS_POST = void 0;
 const core = __importStar(__nccwpck_require__(3949));
 exports.IS_POST = !!process.env['STATE_isPost'];
 if (!exports.IS_POST) {
     core.saveState('isPost', 'true');
 }
-const setImageTag = (image, tag) => {
-    core.saveState(`imageTag.${image}`, tag);
-};
-exports.setImageTag = setImageTag;
-const getImageTag = (image) => {
-    return core.getState(`imageTag.${image}`);
-};
-exports.getImageTag = getImageTag;
 
 
 /***/ }),
@@ -26340,11 +26332,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deployStep = exports.pushStep = exports.buildStep = void 0;
 const inputs_1 = __nccwpck_require__(2117);
-const state_1 = __nccwpck_require__(5034);
 const types_1 = __nccwpck_require__(2106);
 const core = __importStar(__nccwpck_require__(3949));
 const exec = __importStar(__nccwpck_require__(7912));
-const FAILED_IMAGE_TAG = 'FAILED_BUILD';
+const imageTagMap = new Map();
 const buildStep = async () => {
     const inputs = await (0, inputs_1.getInputs)();
     if (inputs[types_1.ActionStep.BUILD] === undefined) {
@@ -26374,11 +26365,10 @@ const buildStep = async () => {
         });
         if (exitCode !== 0) {
             core.error(`Failed to build image: ${image}:${actualTag}`);
-            (0, state_1.setImageTag)(image, FAILED_IMAGE_TAG);
         }
         else {
             alreadyBuilt.push(image);
-            (0, state_1.setImageTag)(image, actualTag);
+            imageTagMap.set(image, actualTag);
         }
     }
 };
@@ -26415,22 +26405,21 @@ const pushStep = async () => {
             core.info(`Skipping already pushed image: ${image}`);
             continue;
         }
-        const tag = (0, state_1.getImageTag)(image);
-        if (tag == FAILED_IMAGE_TAG) {
-            core.info(`Skipping failed image: ${image}`);
+        if (!imageTagMap.has(image)) {
+            core.warning(`No tag found for image: ${image} - image wasn't built successfully!`);
             continue;
         }
+        const tag = imageTagMap.get(image);
         core.info(`Pushing image: ${image}:${tag}!`);
         const exitCode = await exec.exec('bash', ['cli', 'push', image, tag], {
             cwd: './scripts',
         });
         if (exitCode !== 0) {
             core.error(`Failed to push image: ${image}:${tag}`);
-            (0, state_1.setImageTag)(image, FAILED_IMAGE_TAG);
+            imageTagMap.delete(image);
         }
         else {
             alreadyPushed.push(image);
-            (0, state_1.setImageTag)(image, tag);
         }
     }
 };

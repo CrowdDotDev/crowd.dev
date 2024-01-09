@@ -1,10 +1,9 @@
 import { getInputs } from './inputs'
-import { getImageTag, setImageTag } from './state'
 import { ActionStep } from './types'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 
-const FAILED_IMAGE_TAG = 'FAILED_BUILD'
+const imageTagMap = new Map<string, string>()
 
 export const buildStep = async (): Promise<void> => {
   const inputs = await getInputs()
@@ -44,10 +43,9 @@ export const buildStep = async (): Promise<void> => {
 
     if (exitCode !== 0) {
       core.error(`Failed to build image: ${image}:${actualTag}`)
-      setImageTag(image, FAILED_IMAGE_TAG)
     } else {
       alreadyBuilt.push(image)
-      setImageTag(image, actualTag)
+      imageTagMap.set(image, actualTag)
     }
   }
 }
@@ -88,12 +86,12 @@ export const pushStep = async (): Promise<void> => {
       continue
     }
 
-    const tag = getImageTag(image)
-
-    if (tag == FAILED_IMAGE_TAG) {
-      core.info(`Skipping failed image: ${image}`)
+    if (!imageTagMap.has(image)) {
+      core.warning(`No tag found for image: ${image} - image wasn't built successfully!`)
       continue
     }
+
+    const tag = imageTagMap.get(image)
 
     core.info(`Pushing image: ${image}:${tag}!`)
 
@@ -103,10 +101,9 @@ export const pushStep = async (): Promise<void> => {
 
     if (exitCode !== 0) {
       core.error(`Failed to push image: ${image}:${tag}`)
-      setImageTag(image, FAILED_IMAGE_TAG)
+      imageTagMap.delete(image)
     } else {
       alreadyPushed.push(image)
-      setImageTag(image, tag)
     }
   }
 }
