@@ -14,10 +14,8 @@
 
   <el-popover
     v-model:visible="isPopoverVisible"
-    :virtual-ref="inputRef"
     placement="bottom-start"
-    trigger="manual"
-    virtual-triggering
+    trigger="contextmenu"
     popper-class="project-groups-select-popper"
     :teleported="false"
     width="255px"
@@ -25,7 +23,6 @@
     <div v-if="isSearchVisible" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
       <el-input
         id="filterSearch"
-        ref="searchQueryInput"
         v-model="searchQuery"
         placeholder="Search..."
         class="filter-dropdown-search"
