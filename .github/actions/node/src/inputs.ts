@@ -81,6 +81,10 @@ export const getInputs = async (): Promise<IActionInputs> => {
     }
   }
 
+  core.info(`Detected action steps: ${actionSteps.join(', ')}`)
+  core.info(`Action inputs: ${JSON.stringify(results)}`)
+  core.info(`Builder definitions: ${JSON.stringify(await getBuilderDefinitions())}`)
+
   if (results[ActionStep.BUILD] !== undefined) {
     if (results[ActionStep.BUILD].images.length === 0 && results[ActionStep.DEPLOY] !== undefined) {
       // calculate images from services

@@ -26213,6 +26213,9 @@ const getInputs = async () => {
                 throw new Error(`Unknown action step: ${step}!`);
         }
     }
+    core.info(`Detected action steps: ${actionSteps.join(', ')}`);
+    core.info(`Action inputs: ${JSON.stringify(results)}`);
+    core.info(`Builder definitions: ${JSON.stringify(await (0, utils_1.getBuilderDefinitions)())}`);
     if (results[types_1.ActionStep.BUILD] !== undefined) {
         if (results[types_1.ActionStep.BUILD].images.length === 0 && results[types_1.ActionStep.DEPLOY] !== undefined) {
             // calculate images from services
