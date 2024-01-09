@@ -48,14 +48,14 @@ const getDeployIUputs = (): IDeployInput => {
 
   const eksClusterName = process.env.CROWD_CLUSTER
   if (!eksClusterName) {
-    core.error('No EKS_CLUSTER_NAME environment variable found!')
-    throw new Error('No EKS_CLUSTER_NAME environment variable found!')
+    core.error('No CROWD_CLUSTER environment variable found!')
+    throw new Error('No CROWD_CLUSTER environment variable found!')
   }
 
-  const awsRoleArn = process.env.AWS_ROLE_ARN
+  const awsRoleArn = process.env.CROWD_ROLE_ARN
   if (!awsRoleArn) {
-    core.error('No AWS_ROLE_ARN environment variable found!')
-    throw new Error('No AWS_ROLE_ARN environment variable found!')
+    core.error('No CROWD_ROLE_ARN environment variable found!')
+    throw new Error('No CROWD_ROLE_ARN environment variable found!')
   }
 
   const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
