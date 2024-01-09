@@ -46,7 +46,7 @@ const getDeployIUputs = (): IDeployInput => {
     throw new Error('No CLOUD_ENV environment variable found!')
   }
 
-  const eksClusterName = process.env.EKS_CLUSTER_NAME
+  const eksClusterName = process.env.CROWD_CLUSTER
   if (!eksClusterName) {
     core.error('No EKS_CLUSTER_NAME environment variable found!')
     throw new Error('No EKS_CLUSTER_NAME environment variable found!')
