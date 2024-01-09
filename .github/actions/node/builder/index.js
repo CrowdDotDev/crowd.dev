@@ -26492,6 +26492,7 @@ const deployStep = async () => {
         throw new Error('Failed to update kubeconfig!');
     }
     const builderDefinitions = await (0, utils_1.getBuilderDefinitions)();
+    let failed = [];
     for (const service of deployInput.services) {
         const builderDefinition = builderDefinitions.find((b) => b.services.includes(service));
         if (!builderDefinition) {
@@ -26537,7 +26538,17 @@ const deployStep = async () => {
                 `deployments/${toDeploy}-dpl`,
                 `${toDeploy}=${image}:${tag}`,
             ]);
+            if (exitCode !== 0) {
+                core.error(`Failed to deploy service: ${service} to deployment: ${toDeploy}`);
+                if (!failed.includes(service)) {
+                    failed.push(service);
+                }
+            }
         }
+    }
+    if (failed.length > 0) {
+        core.error(`Failed to deploy services: ${failed.join(', ')}`);
+        throw new Error(`Failed to deploy services: ${failed.join(', ')}`);
     }
 };
 exports.deployStep = deployStep;
