@@ -258,22 +258,22 @@ class MemberRepository {
 
     const mems = await options.database.sequelize.query(
       `
-        select
-            mtm."memberId" AS id,
-            mtm."toMergeId",
-            count(*) over() AS total_count,
-            mtm.similarity
-        from
-            "memberToMerge" mtm
-        join
-            "memberSegmentsView" ms on ms."memberId" = mtm."memberId" and ms."segmentId" in (:segmentIds)
-        where
-            1 = 1
-            ${memberFilter}
-            ${similarityFilter}
-        order by ${order}
-        limit :limit
-        offset :offset;
+      select
+          mtm."memberId" AS id,
+          mtm."toMergeId",
+          count(*) over() AS total_count,
+          mtm.similarity
+      from
+          "memberToMerge" mtm
+      join
+          "memberSegmentsView" msv on msv."memberId" = mtm."memberId"
+      where 
+          msv."segmentId" in (:segmentIds)
+          ${memberFilter}
+          ${similarityFilter}
+      order by ${order}
+      limit :limit
+      offset :offset;
       `,
       {
         replacements: {
