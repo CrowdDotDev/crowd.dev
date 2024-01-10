@@ -258,3 +258,8 @@ export interface EncryptionConfiguration {
 export interface IOpenStatusApiConfig {
   baseUrl: string
 }
+
+export interface IRedditConfig {
+  clientId: string
+  clientSecret: string
+}
