@@ -33,9 +33,9 @@ class Auth0ServiceClass {
     return this.webAuth.isAuthenticated().then(async (isAuthenticated) => {
       const currentUser = store.getters['auth/currentUser'];
       if (!isAuthenticated) {
-        return this.webAuth.getTokenSilently().then(async () => {
+        return this.webAuth.getTokenSilently().then(async (token) => {
           if (!currentUser) {
-            await store.dispatch('auth/doInit');
+            await store.dispatch('auth/doInit', token);
           }
 
           store.dispatch('auth/doAuthenticate');

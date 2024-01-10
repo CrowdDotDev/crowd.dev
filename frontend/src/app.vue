@@ -2,13 +2,13 @@
   <div id="app">
     <div class="sm:hidden md:block lg:block">
       <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
-      <div v-if="!loading" class="flex items-center bg-white h-screen w-screen justify-center">
+      <div v-if="loading" class="flex items-center bg-white h-screen w-screen justify-center">
         <div
           v-loading="true"
           class="app-page-spinner h-20 w-20 !relative !min-h-20 custom"
         />
       </div>
-      <router-view v-show="loading" v-slot="{ Component }">
+      <router-view v-show="!loading" v-slot="{ Component }">
         <transition>
           <div>
             <component :is="Component" />
@@ -33,6 +33,10 @@ import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 import { Auth0Service } from '@/shared/services/auth0.service';
 import identify from '@/shared/monitoring/identify';
+import initializePendo from '@/shared/monitoring/initializePendo';
+import { mapActions as piniaMapActions } from 'pinia';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default {
   name: 'App',
@@ -52,10 +56,10 @@ export default {
     }),
     loading() {
       return (
-        (this.isAuthenticated && !!AuthToken.get())
+        !((this.isAuthenticated && !!AuthToken.get())
         || (!this.featureFlag.isReady
           && !this.featureFlag.hasError
-          && !config.isCommunityVersion)
+          && !config.isCommunityVersion))
       );
     },
     showLfxMenu() {
@@ -67,6 +71,9 @@ export default {
     isAuthenticated: {
       async handler(value) {
         if (value) {
+          this.fetchActivityTypes();
+          this.fetchActivityChannels();
+
           try {
             const user = await Auth0Service.getUser();
             const lfxHeader = document.getElementById('lfx-header');
@@ -84,6 +91,7 @@ export default {
       handler(user, oldUser) {
         if (user?.id && user.id !== oldUser?.id) {
           identify(user);
+          initializePendo(user, this.currentTenant);
         }
       },
     },
@@ -103,6 +111,12 @@ export default {
   methods: {
     ...mapActions({
       resize: 'layout/resize',
+    }),
+    ...piniaMapActions(useActivityStore, {
+      fetchActivityChannels: 'fetchActivityChannels',
+    }),
+    ...piniaMapActions(useActivityTypeStore, {
+      fetchActivityTypes: 'fetchActivityTypes',
     }),
 
     handleResize() {
