@@ -116,16 +116,16 @@ export default {
   }
 
   &--fan {
-    @apply text-purple-600;
+    @apply text-blue-600;
     .member-engagement-level-value {
-      @apply bg-purple-500;
+      @apply bg-blue-500;
     }
   }
 
   &--ultra {
-    @apply text-blue-600;
+    @apply text-purple-600;
     .member-engagement-level-value {
-      @apply bg-blue-500;
+      @apply bg-purple-500;
     }
   }
 }

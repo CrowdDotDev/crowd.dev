@@ -16,7 +16,7 @@
         </el-tooltip>
       </div>
       <el-button
-        class="btn btn-link !text-gray-300"
+        class="btn btn-link text-gray-300 bg-transparent hover:bg-transparent focus:bg-transparent hover:text-brand-500"
         :disabled="isEditLockedForSampleData"
         @click="emit('edit')"
       >

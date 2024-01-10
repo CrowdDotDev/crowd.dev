@@ -15,7 +15,7 @@
       </div>
 
       <el-button
-        class="btn btn-link !text-gray-300"
+        class="btn btn-link text-gray-300 bg-transparent hover:bg-transparent focus:bg-transparent hover:text-brand-500"
         :disabled="isEditLockedForSampleData"
         @click="isOrganizationDrawerOpen = true"
       >
@@ -27,71 +27,78 @@
       v-if="member.organizations.length"
       class="flex flex-col gap-4 mt-6"
     >
-      <router-link
-        v-for="{
-          id,
-          logo,
-          name,
-          displayName,
-          memberOrganizations,
-        } of member.organizations"
-        :key="id"
-        :to="{
-          name: 'organizationView',
-          params: {
-            id,
-          },
-          query: { projectGroup: selectedProjectGroup?.id },
-        }"
-        class="group hover:cursor-pointer"
+      <app-entities
+        :entities="member.organizations"
+        :limit="3"
       >
-        <div
-          class="flex justify-start gap-3"
-          :class="{
-            'items-center': !hasValues(memberOrganizations),
-          }"
-        >
-          <div
-            class="min-w-[24px] w-6 h-6 rounded-md border border-gray-200 p-1 flex items-center justify-center overflow-hidden"
-            :class="{
-              'bg-white': logo,
-              'bg-gray-50': !logo,
+        <template #default="{ slicedEntities }">
+          <router-link
+            v-for="{
+              id,
+              logo,
+              name,
+              displayName,
+              memberOrganizations,
+            } of (slicedEntities as Organization[])"
+            :key="id"
+            :to="{
+              name: 'organizationView',
+              params: {
+                id,
+              },
+              query: { projectGroup: selectedProjectGroup?.id },
             }"
+            class="group hover:cursor-pointer"
           >
-            <img
-              v-if="logo"
-              :src="logo"
-              :alt="`${displayName || name} logo`"
-            />
-            <i
-              v-else
-              class="ri-community-line text-base text-gray-300"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
             <div
-              class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
+              class="flex justify-start gap-3"
+              :class="{
+                'items-center': !hasValues(memberOrganizations),
+              }"
             >
-              {{ displayName || name }}
+              <div
+                class="min-w-[24px] w-6 h-6 rounded-md border border-gray-200 p-1 flex items-center justify-center overflow-hidden"
+                :class="{
+                  'bg-white': logo,
+                  'bg-gray-50': !logo,
+                }"
+              >
+                <img
+                  v-if="logo"
+                  :src="logo"
+                  :alt="`${displayName || name} logo`"
+                />
+                <i
+                  v-else
+                  class="ri-community-line text-base text-gray-300"
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <div
+                  class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
+                >
+                  {{ displayName || name }}
+                </div>
+                <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
+                  <span v-if="memberOrganizations.title">{{ memberOrganizations.title }}</span>
+                  <span v-if="memberOrganizations.title" class="mx-1">•</span>
+                  <span>
+                    {{ memberOrganizations.dateStart
+                      ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
+                      : 'Unknown' }}
+                  </span>
+                  <span class="mx-1 whitespace-nowrap">-></span>
+                  <span>
+                    {{ memberOrganizations.dateEnd
+                      ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+                      : memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
-              <span v-if="memberOrganizations.title">{{ memberOrganizations.title }}</span>
-              <span v-if="memberOrganizations.title" class="mx-1">•</span>
-              <span>
-                {{ memberOrganizations.dateStart
-                  ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
-                  : 'Unknown' }}
-              </span>
-              <span class="mx-1 whitespace-nowrap">-></span>
-              <span>
-                {{ memberOrganizations.dateEnd
-                  ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
-                  : memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </router-link>
+          </router-link>
+        </template>
+      </app-entities>
     </div>
     <div v-else class="text-gray-400 mt-6 text-sm">
       No organizations
@@ -110,6 +117,8 @@ import { Member } from '@/modules/member/types/Member';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
+import AppEntities from '@/shared/modules/entities/Entities.vue';
+import { Organization } from '@/modules/organization/types/Organization';
 
 defineProps<{
   member: Member
