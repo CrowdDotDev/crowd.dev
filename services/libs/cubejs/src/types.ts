@@ -1,7 +1,16 @@
-import CubeDimensions from 'dimensions'
+import { CubeDimension, CubeOrderDirection, CubeMeasure } from 'enums'
 
 export interface ICubeFilter {
-  member: CubeDimensions
+  member: CubeDimension
   operator: string
   values: string[]
 }
+
+export interface IDashboardFilter {
+  platform?: string
+  segment?: string
+}
+
+type CubeOrderKey = CubeDimension | CubeMeasure
+
+export type ICubeOrder = { [key in CubeOrderKey]?: CubeOrderDirection }

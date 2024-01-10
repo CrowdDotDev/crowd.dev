@@ -1,8 +1,7 @@
 import moment from 'moment'
 
 import { CubeJsService } from '../service'
-import CubeDimensions from '../dimensions'
-import CubeMeasures from '../measures'
+import { CubeDimension, CubeMeasure } from '../enums'
 
 /**
  * Gets `new conversations` count for a given date range.
@@ -16,16 +15,16 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
   const newConversations =
     (
       await cjs.load({
-        measures: [CubeMeasures.CONVERSATION_COUNT],
+        measures: [CubeMeasure.CONVERSATION_COUNT],
         timeDimensions: [
           {
-            dimension: CubeDimensions.CONVERSATION_FIRST_ACTIVITY_TIME,
+            dimension: CubeDimension.CONVERSATION_FIRST_ACTIVITY_TIME,
             dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
           },
         ],
         limit: 1,
       })
-    )[0][CubeMeasures.CONVERSATION_COUNT] ?? 0
+    )[0][CubeMeasure.CONVERSATION_COUNT] ?? 0
 
   return parseInt(newConversations, 10)
 }

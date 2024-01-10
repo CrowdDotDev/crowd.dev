@@ -2,10 +2,17 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { CubeJsRepository, CubeJsService } from '@crowd/cubejs'
+import {
+  CubeJsRepository,
+  CubeJsService,
+  CubeDimension,
+  CubeMeasure,
+  CubeOrderDirection,
+} from '@crowd/cubejs'
+import { getServiceLogger } from '@crowd/logging'
+
 import moment from 'moment-timezone'
 import { databaseInit } from '@/database/databaseConnection'
-import { getServiceLogger } from '@crowd/logging'
 
 /* eslint-disable no-console */
 
@@ -65,15 +72,24 @@ if (parameters.help || !parameters.tenantId || !parameters.segmentId) {
 
     const end = moment().endOf('day')
 
-    const data = await CubeJsRepository.getActiveMembersTimeseries(
+    const data = await CubeJsRepository.getActiveMembers(cubejsService, start, end, null, {}, false)
+
+    console.log(data)
+
+    const data2 = await CubeJsRepository.getNewActivities(
       cubejsService,
       start,
       end,
-      'day',
       null,
+      [CubeDimension.ACTIVITY_SENTIMENT_MOOD],
+      {
+        platform: 'github',
+      },
+      { [CubeMeasure.ACTIVITY_COUNT]: CubeOrderDirection.DESC },
+      true,
     )
 
-    console.log(data)
+    console.log(data2)
 
     process.exit(0)
   })

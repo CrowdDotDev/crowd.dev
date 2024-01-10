@@ -1,10 +1,8 @@
 import moment from 'moment'
 
 import { CubeJsService } from '../service'
-import CubeDimensions from '../dimensions'
-import CubeMeasures from '../measures'
-import { ICubeFilter } from 'types'
-import { CubeGranularity } from '../enums'
+import { ICubeFilter } from '../types'
+import { CubeGranularity, CubeDimension, CubeMeasure } from '../enums'
 
 /**
  * Gets `new activities` timeseries data for a given date range in given granularity.
@@ -24,12 +22,12 @@ export default async (
 ) => {
   const filters: ICubeFilter[] = [
     {
-      member: CubeDimensions.IS_TEAM_MEMBER,
+      member: CubeDimension.IS_TEAM_MEMBER,
       operator: 'equals',
       values: ['false'],
     },
     {
-      member: CubeDimensions.IS_BOT,
+      member: CubeDimension.IS_BOT,
       operator: 'equals',
       values: ['false'],
     },
@@ -37,7 +35,7 @@ export default async (
 
   if (platform) {
     filters.push({
-      member: CubeDimensions.ACTIVITY_PLATFORM,
+      member: CubeDimension.ACTIVITY_PLATFORM,
       operator: 'equals',
       values: [platform],
     })
@@ -45,17 +43,17 @@ export default async (
 
   if (segment) {
     filters.push({
-      member: CubeDimensions.SEGMENTS_ID,
+      member: CubeDimension.SEGMENTS_ID,
       operator: 'equals',
       values: [segment],
     })
   }
 
   const query = {
-    measures: [CubeMeasures.ACTIVITY_COUNT],
+    measures: [CubeMeasure.ACTIVITY_COUNT],
     timeDimensions: [
       {
-        dimension: CubeDimensions.ACTIVITY_DATE,
+        dimension: CubeDimension.ACTIVITY_DATE,
         dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
         granularity,
       },
