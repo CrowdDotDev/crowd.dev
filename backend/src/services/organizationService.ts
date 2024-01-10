@@ -160,6 +160,23 @@ export default class OrganizationService extends LoggerBase {
         this.options,
       )
 
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
+
+      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
+      await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
+
+      // sync organization members
+      await searchSyncService.triggerOrganizationMembersSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
+
+      // sync organization activities
+      await searchSyncService.triggerOrganizationActivitiesSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
+
       await this.options.temporal.workflow.start('finishOrganizationMerging', {
         taskQueue: 'entity-merging',
         workflowId: `finishOrganizationMerging/${originalId}/${toMergeId}`,
@@ -177,23 +194,6 @@ export default class OrganizationService extends LoggerBase {
           TenantId: [this.options.currentTenant.id],
         },
       })
-
-      const searchSyncService = new SearchSyncService(this.options)
-
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
-      await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
-
-      // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
-
-      // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return {
