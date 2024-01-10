@@ -7,7 +7,7 @@
         Email(s)
       </div>
       <el-button
-        class="btn btn-link text-gray-300 bg-transparent hover:bg-transparent focus:bg-transparent hover:text-brand-500"
+        class="btn btn-link btn-link--linux"
         :disabled="isEditLockedForSampleData"
         @click="emit('openDrawer')"
       >
