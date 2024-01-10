@@ -26472,6 +26472,26 @@ const deployStep = async () => {
         core.warning('No services specified for deploy!');
         return;
     }
+    // check if any images failed to build
+    const builderDefinitions = await (0, utils_1.getBuilderDefinitions)();
+    const servicesToDeploy = [];
+    for (const service of deployInput.services) {
+        const builderDef = builderDefinitions.find((b) => b.services.includes(service));
+        if (!builderDef) {
+            core.error(`No builder definition found for service: ${service}`);
+            throw new Error(`No builder definition found for service: ${service}`);
+        }
+        if (!imageTagMap.has(builderDef.imageName)) {
+            core.error(`No tag found for image: ${builderDef.imageName} - image wasn't built successfully!`);
+            throw new Error(`No tag found for image: ${builderDef.imageName} - image wasn't built successfully!`);
+        }
+        const tag = imageTagMap.get(builderDef.imageName);
+        servicesToDeploy.push({
+            service,
+            tag,
+            builderDef,
+        });
+    }
     const env = {
         AWS_ACCESS_KEY_ID: deployInput.awsAccessKeyId,
         AWS_SECRET_ACCESS_KEY: deployInput.awsSecretAccessKey,
@@ -26491,21 +26511,11 @@ const deployStep = async () => {
         core.error('Failed to update kubeconfig!');
         throw new Error('Failed to update kubeconfig!');
     }
-    const builderDefinitions = await (0, utils_1.getBuilderDefinitions)();
     let failed = [];
-    for (const service of deployInput.services) {
-        const builderDefinition = builderDefinitions.find((b) => b.services.includes(service));
-        if (!builderDefinition) {
-            core.warning(`No builder definition found for service: ${service}`);
-            continue;
-        }
-        const image = builderDefinition.imageName;
-        if (!imageTagMap.has(image)) {
-            core.warning(`No tag found for image: ${image} - image wasn't built successfully!`);
-            continue;
-        }
-        const tag = imageTagMap.get(image);
-        const prioritized = builderDefinition.prioritizedServices.includes(service);
+    for (const serviceDef of servicesToDeploy) {
+        const tag = serviceDef.tag;
+        const service = serviceDef.service;
+        const prioritized = serviceDef.builderDef.prioritizedServices.includes(service);
         const servicesToUpdate = [];
         if (prioritized) {
             switch (deployInput.cloudEnvironment) {
@@ -26530,13 +26540,13 @@ const deployStep = async () => {
         else {
             servicesToUpdate.push(service);
         }
-        core.info(`Deploying service: ${service} with image: ${builderDefinition.dockerRepository}:${tag} to deployments: ${servicesToUpdate.join(', ')}`);
+        core.info(`Deploying service: ${service} with image: ${serviceDef.builderDef.dockerRepository}:${tag} to deployments: ${servicesToUpdate.join(', ')}`);
         for (const toDeploy of servicesToUpdate) {
             exitCode = await exec.exec('kubectl', [
                 'set',
                 'image',
                 `deployments/${toDeploy}-dpl`,
-                `${toDeploy}=${builderDefinition.dockerRepository}:${tag}`,
+                `${toDeploy}=${serviceDef.builderDef.dockerRepository}:${tag}`,
             ]);
             if (exitCode !== 0) {
                 core.error(`Failed to deploy service: ${service} to deployment: ${toDeploy}`);
