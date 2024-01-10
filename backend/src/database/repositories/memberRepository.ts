@@ -258,24 +258,23 @@ class MemberRepository {
 
     const mems = await options.database.sequelize.query(
       `
-      select
-          mtm."memberId" AS id,
-          mtm."toMergeId",
-          count(*) over() AS total_count,
-          mtm.similarity
-      from
-          "memberToMerge" mtm
-      where exists (
-          select 1
-          from "memberSegments" ms
-          where ms."segmentId" in (:segmentIds) and ms."memberId" = mtm."memberId"
-          ${memberFilter}
-      )
-      ${similarityFilter}
-      order by ${order}
-      limit :limit
-      offset :offset;
-    `,
+        select
+            mtm."memberId" AS id,
+            mtm."toMergeId",
+            count(*) over() AS total_count,
+            mtm.similarity
+        from
+            "memberToMerge" mtm
+        join
+            "memberSegmentsView" ms on ms."memberId" = mtm."memberId" and ms."segmentId" in (:segmentIds)
+        where
+            1 = 1
+            ${memberFilter}
+            ${similarityFilter}
+        order by ${order}
+        limit :limit
+        offset :offset;
+      `,
       {
         replacements: {
           segmentIds,
@@ -292,8 +291,8 @@ class MemberRepository {
       const toMergePromises = []
 
       for (const mem of mems) {
-        memberPromises.push(MemberRepository.findById(mem.id, options))
-        toMergePromises.push(MemberRepository.findById(mem.toMergeId, options))
+        memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
+        toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
       }
 
       const memberResults = await Promise.all(memberPromises)
