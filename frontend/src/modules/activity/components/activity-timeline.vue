@@ -13,6 +13,8 @@
             <el-select
               v-model="platform"
               clearable
+              filterable
+              no-match-text="Platform not found"
               placeholder="All platforms"
               class="w-40"
               @clear="reloadActivities"
@@ -35,18 +37,18 @@
                 />
               </template>
               <el-option
-                v-for="integration of activeIntegrations"
-                :key="integration.id"
-                :value="integration.platform"
-                :label="integration.label"
+                v-for="enabledPlatform of enabledPlatforms"
+                :key="enabledPlatform.id"
+                :value="enabledPlatform.platform"
+                :label="enabledPlatform.label"
                 @mouseleave="onSelectMouseLeave"
               >
                 <img
-                  :alt="integration.name"
-                  :src="integration.image"
+                  :alt="enabledPlatform.name"
+                  :src="enabledPlatform.image"
                   class="w-4 h-4 mr-2"
                 />
-                {{ integration.label }}
+                {{ enabledPlatform.label }}
               </el-option>
               <el-option
                 value="other"
@@ -283,13 +285,15 @@ const { projectGroups } = storeToRefs(lsSegmentsStore);
 
 const conversationId = ref(null);
 
-const activeIntegrations = computed(() => {
-  const activeIntegrationList = store.getters['integration/activeList'];
-  return Object.keys(activeIntegrationList).map((i) => ({
-    ...activeIntegrationList[i],
-    label: CrowdIntegrations.getConfig(i)?.name,
-  }));
-});
+const enabledPlatforms = computed(() => CrowdIntegrations.enabledConfigs.concat(Object.entries(CrowdIntegrations.customIntegrations).map(
+  ([key, config]) => ({
+    ...config,
+    platform: key,
+  }),
+)).map((i) => ({
+  ...i,
+  label: i.name,
+})));
 
 const loading = ref(true);
 const platform = ref(null);

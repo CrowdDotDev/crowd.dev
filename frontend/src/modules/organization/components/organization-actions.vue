@@ -43,7 +43,7 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { OrganizationPermissions } from '@/modules/organization/organization-permissions';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
@@ -55,6 +55,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const route = useRoute();
 const router = useRouter();
 
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -84,6 +86,9 @@ const edit = () => {
     name: 'organizationEdit',
     params: {
       id: props.organization.id,
+    },
+    query: {
+      segmentId: route.query.segmentId || route.query.projectGroup,
     },
   });
 };
