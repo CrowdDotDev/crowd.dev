@@ -18,7 +18,6 @@
         <app-onboard-integration-item
           :integration="highlightedIntegration"
           @allow-redirect="onConnect"
-          @invite-colleagues="emit('inviteColleagues')"
         />
       </div>
       <div class="panel !p-0">
@@ -58,7 +57,7 @@ import AppOnboardIntegrationItem from '@/modules/onboard/components/onboard-inte
 import { minValue } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
-const emit = defineEmits(['allowRedirect', 'inviteColleagues']);
+const emit = defineEmits(['allowRedirect']);
 const props = defineProps({
   modelValue: {
     type: Object,

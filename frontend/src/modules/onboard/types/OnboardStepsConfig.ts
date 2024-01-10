@@ -8,14 +8,7 @@ export interface OnboardStepConfig {
     [key: string]: boolean;
   };
   cta: string;
-  ctaTooltip?: (form: {
-    tenantName: string;
-    activeIntegrations: number;
-    invitedUsers: {
-      emails: string[];
-      roles: string[];
-    }[];
-  }) => string | null;
+  ctaTooltip?: string;
   submitActionInfo?: string;
   sideInfo?: {
     icon: string;
