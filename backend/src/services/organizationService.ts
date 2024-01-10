@@ -205,30 +205,12 @@ export default class OrganizationService extends LoggerBase {
         this.options,
       )
 
-      await this.options.temporal.workflow.start('finishOrganizationMerging', {
-        taskQueue: 'entity-merging',
-        workflowId: `finishOrganizationMerging/${originalId}/${toMergeId}`,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          originalId,
-          toMergeId,
-          original.displayName,
-          toMerge.displayName,
-          this.options.currentTenant.id,
-        ],
-        searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
-        },
-      })
-
       this.log.info(
         { originalId, toMergeId },
         '[Merge Organizations] - Sending refresh opensearch messages! ',
       )
 
-      const searchSyncService = new SearchSyncService(this.options)
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
       await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
@@ -249,6 +231,24 @@ export default class OrganizationService extends LoggerBase {
         { originalId, toMergeId },
         '[Merge Organizations] - Sending refresh opensearch messages done! ',
       )
+
+      await this.options.temporal.workflow.start('finishOrganizationMerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishOrganizationMerging/${originalId}/${toMergeId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          originalId,
+          toMergeId,
+          original.displayName,
+          toMerge.displayName,
+          this.options.currentTenant.id,
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
       return {
