@@ -4,7 +4,7 @@
       Community Lens
     </h4>
 
-    <div class="text-gray-500 text-xs mt-1">
+    <div class="text-gray-500 text-xs mt-1 mb-6">
       Discover and engage with relevant content across
       various community platforms.
     </div>
@@ -12,7 +12,8 @@
     <div v-if="eagleEyeFeedSettings">
       <!-- Feed Settings-->
       <el-button
-        class="btn btn--full btn--md btn--secondary mt-6"
+        v-if="hasPermissionToEditContent"
+        class="btn btn--full btn--md btn--secondary"
         @click="settingsDrawerOpen = true"
       >
         <i class="ri-sound-module-line text-lg" /><span>Feed settings</span>
@@ -130,6 +131,7 @@ import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.j
 import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-card.vue';
 import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 
@@ -163,6 +165,13 @@ const publishedDate = computed(
 );
 
 const aiRepliesEnabled = computed(() => eagleEyeSettings.value?.aiReplies);
+
+const hasPermissionToEditContent = computed(
+  () => new EagleEyePermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).edit,
+);
 </script>
 
 <style lang="scss" scoped>

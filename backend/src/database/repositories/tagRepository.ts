@@ -1,8 +1,8 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+import { Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
@@ -153,6 +153,8 @@ class TagRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const transaction = SequelizeRepository.getTransaction(options)
+
     const where = {
       id: {
         [Op.in]: ids,
@@ -163,6 +165,7 @@ class TagRepository {
     const records = await options.database.tag.findAll({
       attributes: ['id'],
       where,
+      transaction,
     })
 
     return records.map((record) => record.id)

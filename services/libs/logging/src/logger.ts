@@ -7,6 +7,7 @@ const PRETTY_FORMAT = new BunyanFormat({
   outputMode: 'short',
   levelInString: true,
 })
+
 const JSON_FORMAT = new BunyanFormat({
   outputMode: 'bunyan',
   levelInString: true,

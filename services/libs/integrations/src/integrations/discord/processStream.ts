@@ -1,4 +1,4 @@
-import { ProcessStreamHandler, IProcessStreamContext } from '@/types'
+import { ProcessStreamHandler, IProcessStreamContext } from '../../types'
 import {
   DiscordStreamType,
   DiscordRootStreamData,
@@ -20,6 +20,7 @@ import { ChannelType } from './externalTypes'
 import { timeout } from '@crowd/common'
 import { RateLimitError } from '@crowd/types'
 import getMessages from './api/getMessages'
+import axios from 'axios'
 
 const MAX_RETROSPECT_SECONDS = 86400 // 24 hours
 
@@ -98,6 +99,9 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as DiscordRootStreamData
   const guildId = data.guildId
 
+  const allowedChannels: DiscordApiChannel[] = []
+  const forbiddenChannels: DiscordApiChannel[] = []
+
   const fromDiscordApi = await getChannels(
     {
       guildId,
@@ -106,7 +110,33 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     ctx,
   )
 
+  if (fromDiscordApi.length === 0) {
+    ctx.log.warn(`No avaliable channels found for guild ${guildId}, skipping...`)
+    return
+  }
+
   for (const channel of fromDiscordApi) {
+    try {
+      const config = {
+        method: 'get',
+        url: `https://discord.com/api/v10/channels/${channel.id}`,
+        headers: {
+          Authorization: getDiscordToken(ctx),
+        },
+      }
+
+      await axios(config)
+      allowedChannels.push(channel)
+    } catch (err) {
+      if (err.response && err.response.status === 403) {
+        forbiddenChannels.push(channel)
+      } else {
+        throw err
+      }
+    }
+  }
+
+  for (const channel of allowedChannels) {
     await cacheDiscordChannels(channel, ctx)
   }
 
@@ -120,10 +150,15 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
   // we are only interested in threads that are in a forum channel because the rest we will get normally when a message has thread property attached
   for (const thread of threads) {
-    await cacheDiscordChannels(thread, ctx)
-    const parentChannel = await getDiscordChannel(thread.parent_id, ctx)
-    if (isDiscordForum(parentChannel)) {
-      fromDiscordApi.push(thread)
+    // check if thread.parent_id is in allowedChannels
+    if (thread.parent_id && allowedChannels.find((c) => c.id === thread.parent_id)) {
+      await cacheDiscordChannels(thread, ctx)
+      const parentChannel = await getDiscordChannel(thread.parent_id, ctx)
+      if (isDiscordForum(parentChannel)) {
+        allowedChannels.push(thread)
+      }
+    } else {
+      forbiddenChannels.push(thread)
     }
   }
 
@@ -131,17 +166,17 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   await ctx.publishStream<DiscordMemberStreamData>(DiscordStreamType.MEMBERS, {
     page: '',
     guildId,
-    channels: fromDiscordApi,
+    channels: allowedChannels,
   })
 
-  for (const channel of fromDiscordApi) {
+  for (const channel of allowedChannels) {
     await ctx.publishStream<DiscordChannelStreamData>(
       `${DiscordStreamType.CHANNEL}:${channel.id}`,
       {
         channelId: channel.id,
         guildId,
         page: '',
-        channels: fromDiscordApi,
+        channels: allowedChannels,
       },
     )
   }
@@ -150,7 +185,11 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   const currentSettings = ctx.integration.settings as IDiscordIntegrationSettings
   const newSettings = {
     ...currentSettings,
-    channels: fromDiscordApi.map((c) => ({
+    channels: allowedChannels.map((c) => ({
+      id: c.id,
+      name: c.name,
+    })),
+    forbiddenChannels: forbiddenChannels.map((c) => ({
       id: c.id,
       name: c.name,
     })),
@@ -168,7 +207,7 @@ const processMembersStream: ProcessStreamHandler = async (ctx) => {
       guildId: data.guildId,
       token: getDiscordToken(ctx),
       page: data.page,
-      perPage: 100,
+      perPage: 1000,
     },
     ctx,
   )

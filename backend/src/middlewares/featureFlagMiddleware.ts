@@ -1,6 +1,6 @@
-import Error403 from '../errors/Error403'
+import { FeatureFlag } from '@crowd/types'
+import { Error403 } from '@crowd/common'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
-import { FeatureFlag } from '../types/common'
 
 export function featureFlagMiddleware(featureFlag: FeatureFlag, errorMessage: string) {
   return async (req, res, next) => {

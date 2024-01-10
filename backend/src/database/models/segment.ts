@@ -22,7 +22,7 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
       },
       slug: {
-        type: DataTypes.DATE,
+        type: DataTypes.TEXT,
         allowNull: false,
       },
       parentSlug: {

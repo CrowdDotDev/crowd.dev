@@ -7,13 +7,15 @@ export default async function identifyTenant(req) {
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
 
     if (API_CONFIG.edition === Edition.CROWD_HOSTED || API_CONFIG.edition === Edition.LFX) {
-      analytics.group({
-        userId: req.currentUser.id,
-        groupId: req.currentTenant.id,
-        traits: {
-          name: req.currentTenant.name,
-        },
-      })
+      if (!req.currentUser.email.includes('help@crowd.dev')) {
+        analytics.group({
+          userId: req.currentUser.id,
+          groupId: req.currentTenant.id,
+          traits: {
+            name: req.currentTenant.name,
+          },
+        })
+      }
     } else if (API_CONFIG.edition === Edition.COMMUNITY) {
       if (!req.currentUser.email.includes('crowd.dev')) {
         analytics.group({

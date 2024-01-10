@@ -1,0 +1,20 @@
+export interface TenantModel {
+  id: string,
+  name: string,
+  url: string,
+  integrationsRequired: string[],
+  communitySize: string | null,
+  reasonForUsingCrowd: string | null,
+  plan: string,
+  onboardedAt: string,
+  hasSampleData: boolean,
+  isTrialPlan: boolean,
+  trialEndsAt: string | null,
+  stripeSubscriptionId: string | null,
+  planSubscriptionEndsAt: string | null,
+  createdAt: string,
+  updatedAt: string,
+  deletedAt: string | null,
+  createdById: string,
+  updatedById: string
+}

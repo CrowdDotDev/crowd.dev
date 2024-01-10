@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { HackerNewsPost, HackerNewsResponse, HackerNewsUser } from '../types'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 async function getPost(input: string, ctx: IProcessStreamContext): Promise<HackerNewsResponse> {
   try {

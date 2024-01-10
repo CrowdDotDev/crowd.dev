@@ -6,9 +6,7 @@
         class="flex grow justify-between items-center pb-5 border-b border-gray-100 mb-8"
       >
         <div class="flex gap-1">
-          <app-widget-title
-            :title="ACTIVITIES_PLATFORM_WIDGET.name"
-          />
+          <app-widget-title :title="ACTIVITIES_PLATFORM_WIDGET.name" />
         </div>
         <app-widget-period
           :template="ACTIVITIES_REPORT.nameAsId"
@@ -19,11 +17,7 @@
         />
       </div>
 
-      <query-renderer
-        v-if="cubejsApi"
-        :cubejs-api="cubejsApi"
-        :query="query"
-      >
+      <query-renderer v-if="cubejsApi" :cubejs-api="cubejsApi" :query="query">
         <template #default="{ resultSet, loading }">
           <app-widget-activities-platform-content
             :loading="loading"
@@ -37,13 +31,17 @@
 
 <script setup>
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { getSelectedPeriodFromLabel } from '@/modules/widget/widget-utility';
 import { computed, ref } from 'vue';
 import AppWidgetTitle from '@/modules/widget/components/shared/widget-title.vue';
 import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 import { QueryRenderer } from '@cubejs-client/vue3';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { LEADERBOARD_ACTIVITIES_TYPES_QUERY } from '@/modules/widget/widget-queries';
-import ACTIVITIES_REPORT, { ACTIVITIES_PLATFORM_WIDGET } from '@/modules/report/templates/config/activities';
+import ACTIVITIES_REPORT, {
+  ACTIVITIES_PLATFORM_WIDGET,
+} from '@/modules/report/templates/config/activities';
+import { useRoute, useRouter } from 'vue-router';
 import AppWidgetActivitiesPlatformContent from './widget-activities-platform-content.vue';
 
 const props = defineProps({
@@ -55,7 +53,14 @@ const props = defineProps({
 
 const { cubejsApi } = mapGetters('widget');
 
-const selectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER);
+const route = useRoute();
+const router = useRouter();
+const selectedPeriod = ref(
+  getSelectedPeriodFromLabel(
+    route.query.activitiesByPlatformPeriod,
+    SEVEN_DAYS_PERIOD_FILTER,
+  ),
+);
 
 const query = computed(() => LEADERBOARD_ACTIVITIES_TYPES_QUERY({
   period: selectedPeriod.value,
@@ -66,8 +71,13 @@ const query = computed(() => LEADERBOARD_ACTIVITIES_TYPES_QUERY({
 
 const onUpdatePeriod = (updatedPeriod) => {
   selectedPeriod.value = updatedPeriod;
+  router.replace({
+    query: {
+      ...route.query,
+      activitiesByPlatformPeriod: updatedPeriod.label,
+    },
+  });
 };
-
 </script>
 <script>
 export default {

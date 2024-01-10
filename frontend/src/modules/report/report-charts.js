@@ -24,13 +24,14 @@ const formatTooltipOptions = {
     plugins: {
       tooltip: {
         callbacks: {
-          label: (context) => pluralize(
+
+          label: (context) => (context.dataset.label ? pluralize(
             i18n(
               `widget.cubejs.tooltip.${context.dataset.label}`,
             ),
             context.dataset.data[context.dataIndex],
             true,
-          ),
+          ) : context.dataset.data[context.dataIndex]),
         },
       },
     },

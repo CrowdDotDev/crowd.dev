@@ -50,15 +50,18 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center">
-        <app-organization-dropdown
-          :organization="organization"
-        />
-      </div>
     </div>
     <div
       class="py-6 border-b border-gray-200 mb-4"
     >
+      <div v-if="organization.description || organization.headline" class="flex items-center">
+        <p class="text-gray-400 font-medium text-2xs mr-2">
+          Headline
+        </p>
+        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+          <app-svg name="source" class="h-3 w-3" />
+        </el-tooltip>
+      </div>
       <app-organization-headline :organization="organization" />
 
       <div
@@ -104,19 +107,34 @@
           }}
         </p>
       </div>
-      <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Headcount
-        </p>
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.size,
-              'string',
-            )
-          }}
-        </p>
-      </div>
+      <cr-enrichment-sneak-peak type="contact">
+        <template #default="{ enabled }">
+          <div>
+            <div class="flex items-center">
+              <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
+                Headcount
+              </p>
+              <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                <app-svg name="source" class="h-3 w-3" />
+              </el-tooltip>
+            </div>
+
+            <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+              {{
+                formattedInformation(
+                  organization.size,
+                  'string',
+                )
+              }}
+            </p>
+            <div v-else class="w-full mt-2">
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                11-50
+              </div>
+            </div>
+          </div>
+        </template>
+      </cr-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Joined date
@@ -130,19 +148,32 @@
           }}
         </p>
       </div>
-      <div>
-        <p class="text-gray-400 font-medium text-2xs">
-          Annual Revenue
-        </p>
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.revenueRange,
-              'revenueRange',
-            )
-          }}
-        </p>
-      </div>
+      <cr-enrichment-sneak-peak type="contact">
+        <template #default="{ enabled }">
+          <div>
+            <div class="flex items-center">
+              <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
+                Annual Revenue
+              </p>
+              <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+                <app-svg name="source" class="h-3 w-3" />
+              </el-tooltip>
+            </div>
+            <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+              {{
+                revenueRange.displayValue(
+                  organization.revenueRange,
+                )
+              }}
+            </p>
+            <div v-else class="w-full mt-2">
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                $1M-$10M
+              </div>
+            </div>
+          </div>
+        </template>
+      </cr-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Last active
@@ -161,9 +192,7 @@
 </template>
 
 <script setup>
-import {
-  defineProps, ref, computed,
-} from 'vue';
+import { ref, computed } from 'vue';
 import moment from 'moment';
 import {
   formatDate,
@@ -172,12 +201,13 @@ import {
 import {
   formatNumber,
   formatNumberToCompact,
-  formatRevenueRange,
 } from '@/utils/number';
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
-import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
+import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({
   organization: {
@@ -216,12 +246,6 @@ const formattedInformation = (value, type) => {
       && moment(value).isBefore(
         moment().subtract(40, 'years'),
       ))
-    // If range is not set for revenue
-    || (type === 'revenueRange'
-      && (value.min === undefined
-        || value.max === undefined
-        || value.min === null
-        || value.max === null))
   ) {
     return '-';
   }
@@ -235,8 +259,6 @@ const formattedInformation = (value, type) => {
     return formatDateToTimeAgo(value);
   } if (type === 'compact') {
     return formatNumberToCompact(value);
-  } if (type === 'revenueRange') {
-    return formatRevenueRange(value);
   }
 
   return value;

@@ -111,7 +111,6 @@
 import {
   computed,
   ref,
-  watch,
   onMounted,
 } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -125,7 +124,6 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
 // Props & emits
 const props = defineProps({
@@ -146,7 +144,6 @@ const store = useStore();
 const { doFetch } = mapActions('integration');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { setTypes } = activityTypeStore;
 
 // Drawer open
 const isFormModalOpen = ref(false);
@@ -159,22 +156,6 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
-
-const getTypes = (subprojectId) => {
-  if (subprojectId) {
-    LfService.findSegment(subprojectId).then((response) => {
-      setTypes(response.activityTypes);
-    });
-  }
-};
-
-watch(
-  () => props.subprojectId,
-  (subprojectId) => {
-    getTypes(subprojectId);
-  },
-  { immediate: true, deep: true },
-);
 
 const edit = (activityType) => {
   editableActivityType.value = activityType;

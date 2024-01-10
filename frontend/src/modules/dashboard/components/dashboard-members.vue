@@ -5,7 +5,10 @@
       title="Contributors"
       :total-loading="members.loadingRecent"
       :total="members.total"
-      :route="{ name: 'member' }"
+      :route="{
+        name: 'member',
+        query: filterQueryService().setQuery(allContacts.config),
+      }"
       button-title="All contributors"
       report-name="Members report"
     />
@@ -65,17 +68,13 @@
               <span
                 v-if="
                   member.lastActivity
-                    && getPlatformDetails(
-                      member.lastActivity.platform,
-                    )
                 "
               >joined
                 {{ formatDateToTimeAgo(member.joinedAt) }}
                 on
                 {{
-                  getPlatformDetails(
-                    member.lastActivity.platform,
-                  ).name
+                  getPlatformDetails(member.lastActivity.platform)?.name
+                    ?? member.lastActivity.platform
                 }}</span>
             </app-dashboard-member-item>
             <app-dashboard-empty-state
@@ -93,10 +92,10 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...newAndActive.filter,
+                    ...allContacts.config,
                     joinedDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                     projectGroup: selectedProjectGroup?.id,
                   }),
@@ -114,18 +113,28 @@
       <section class="px-5 w-1/2">
         <div class="flex">
           <div class="w-5/12">
+            <div class="inline-flex items-center gap-2 mb-1">
+              <h6
+                class="text-sm leading-5 font-semibold"
+              >
+                Active <span>contributors</span>
+                <el-tooltip
+                  placement="top"
+                  content="Contacts for whom at least one activity was tracked in the selected time period."
+                  popper-class="max-w-[260px]"
+                >
+                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                </el-tooltip>
+              </h6>
+            </div>
+
             <!-- info -->
-            <h6
-              class="text-sm leading-5 font-semibold mb-1"
-            >
-              Active contributors
-            </h6>
             <app-dashboard-count
               :loading="members.loadingActive"
               :query="activeMembersCount"
             />
           </div>
-          <div class="w-7/12">
+          <div class="w-7/12 h-21">
             <!-- Chart -->
             <div
               v-if="members.loadingActive"
@@ -182,10 +191,10 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allMembers.filter,
+                    ...allContacts.config,
                     lastActivityDate: {
-                      value: periodStartDate,
-                      operator: 'gt',
+                      value: periodRange,
+                      operator: 'between',
                     },
                   }),
                 }"
@@ -219,10 +228,9 @@ import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import newAndActive from '@/modules/member/config/saved-views/views/new-and-active';
-import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 
 export default {
   name: 'AppDashboardMember',
@@ -241,8 +249,7 @@ export default {
       activeMembersCount,
       formatDateToTimeAgo,
       filterQueryService,
-      newAndActive,
-      allMembers,
+      allContacts,
     };
   },
   computed: {
@@ -252,10 +259,16 @@ export default {
       'members',
       'period',
     ]),
-    periodStartDate() {
-      return moment()
-        .subtract(this.period.value, 'day')
-        .format('YYYY-MM-DD');
+    periodRange() {
+      return [
+        moment()
+          .utc()
+          .subtract(this.period.value - 1, 'day')
+          .format('YYYY-MM-DD'),
+        moment()
+          .utc()
+          .format('YYYY-MM-DD'),
+      ];
     },
     selectedProjectGroup() {
       const lsSegmentsStore = useLfSegmentsStore();

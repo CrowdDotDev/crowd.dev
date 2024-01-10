@@ -32,7 +32,7 @@ export const customAttributesService = () => {
   ): Record<string, FilterConfig> {
     const filters: Record<string, FilterConfig> = {};
     attributes
-      .filter((attribute) => attribute.show)
+      .filter((attribute) => attribute.show && attribute.name !== 'jobTitle')
       .forEach((attribute) => {
         // Number type
         if (attribute.type === FilterCustomAttributeType.NUMBER) {
@@ -112,7 +112,7 @@ export const customAttributesService = () => {
         }
         // Multiselect type
         if (attribute.type === FilterCustomAttributeType.MULTISELECT
-          || (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options.length > 0)) {
+          || (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options?.length > 0)) {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
@@ -122,10 +122,10 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
               options: [
                 {
-                  options: attribute.options.map((option) => ({
+                  options: attribute.options?.map((option) => ({
                     value: option,
                     label: option,
-                  })),
+                  })) || [],
                 },
               ],
             },

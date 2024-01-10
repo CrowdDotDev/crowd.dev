@@ -92,7 +92,7 @@ const form = reactive({
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
-const $v = useVuelidate({}, form);
+const $v = useVuelidate({}, form, { $stopPropagation: true });
 
 const { doGitConnect } = mapActions('integration');
 const isVisible = computed({

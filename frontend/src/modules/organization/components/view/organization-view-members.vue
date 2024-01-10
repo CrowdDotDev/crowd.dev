@@ -1,7 +1,16 @@
 <template>
   <div class="organization-view-members">
+    <div class="my-6">
+      <el-input
+        v-model="query"
+        placeholder="Search contributors"
+        :prefix-icon="SearchIcon"
+        clearable
+        class="organization-view-members-search"
+      />
+    </div>
     <div
-      v-if="members.length === 0"
+      v-if="!members.length && !loading"
       class="flex items-center justify-center pt-20 pb-17"
     >
       <i
@@ -10,27 +19,17 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        Contributors can take up to two minutes to appear in the
-        list
+        No contributors are currently working in this organization.
       </p>
     </div>
-    <div v-else>
-      <div class="my-6">
-        <el-input
-          v-model="query"
-          placeholder="Search contributors"
-          :prefix-icon="SearchIcon"
-          clearable
-          class="organization-view-members-search"
-        />
-      </div>
+    <div v-else-if="!!members.length && !loading">
       <div>
         <div
           v-for="member in members"
           :key="member.id"
-          class="flex flex-wrap items-center justify-between py-5 border-b border-gray-200 last:border-none gap-2"
+          class="py-5 border-b border-gray-200 last:border-none grid grid-cols-7 gap-4"
         >
-          <div class="basis-2/6">
+          <div class="col-span-3">
             <router-link
               class="flex items-center gap-2"
               :to="{
@@ -47,38 +46,38 @@
             </router-link>
           </div>
           <div
-            class="flex items-center justify-between gap-6 basis-3/6 mr-2"
+            class="col-span-1 flex items-center"
           >
-            <div>
-              <app-member-engagement-level
-                :member="member"
-              />
-            </div>
-            <app-member-identities
-              :username="member.username"
+            <app-member-engagement-level
               :member="member"
             />
           </div>
-        </div>
-        <div
-          v-if="loading"
-          v-loading="loading"
-          class="app-page-spinner"
-        />
-        <div
-          v-if="!noMore"
-          class="flex justify-center pt-4"
-        >
-          <el-button
-            class="btn btn-link btn-link--primary"
-            :disabled="loading"
-            @click="fetchMembers"
-          >
-            <i class="ri-arrow-down-line mr-2" />Load
-            more
-          </el-button>
+          <div class="col-span-3 flex items-center justify-end">
+            <app-identities-horizontal-list-members
+              :member="member"
+              :limit="5"
+            />
+          </div>
         </div>
       </div>
+    </div>
+    <div
+      v-else
+      v-loading="loading"
+      class="app-page-spinner"
+    />
+    <div
+      v-if="!noMore"
+      class="flex justify-center pt-4"
+    >
+      <el-button
+        class="btn btn-link btn-link--primary"
+        :disabled="loading"
+        @click="fetchMembers"
+      >
+        <i class="ri-arrow-down-line mr-2" />Load
+        more
+      </el-button>
     </div>
   </div>
 </template>
@@ -87,7 +86,6 @@
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
-  defineProps,
   reactive,
   ref,
   h,
@@ -98,9 +96,10 @@ import debounce from 'lodash/debounce';
 import authAxios from '@/shared/axios/auth-axios';
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
-import AppMemberIdentities from '@/modules/member/components/member-identities.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useRoute, useRouter } from 'vue-router';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -109,12 +108,7 @@ const SearchIcon = h(
 );
 
 const store = useStore();
-const props = defineProps({
-  organization: {
-    type: Object,
-    default: () => {},
-  },
-});
+const route = useRoute();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -125,18 +119,23 @@ const members = reactive([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
+const router = useRouter();
 
 let filter = {};
 
 const fetchMembers = async () => {
+  if (!router.currentRoute.value.params.id) {
+    return;
+  }
+
   const filterToApply = {
-    organizations: [props.organization.id],
+    organizations: [router.currentRoute.value.params.id],
   };
 
   if (query.value && query.value !== '') {
     filterToApply.or = [
       {
-        name: {
+        displayName: {
           textContains: query.value,
         },
       },
@@ -146,7 +145,7 @@ const fetchMembers = async () => {
         },
       },
       {
-        email: {
+        emails: {
           textContains: query.value,
         },
       },
@@ -171,7 +170,7 @@ const fetchMembers = async () => {
       orderBy: 'joinedAt_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: props.organization.segments,
+      segments: [route.query.segmentId || selectedProjectGroup.value.id],
     },
     {
       headers: {

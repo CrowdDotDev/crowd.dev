@@ -63,6 +63,16 @@ export class MemberService {
     return response.data;
   }
 
+  static async findGithub(id) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/member/github/${id}`,
+    );
+
+    return response.data;
+  }
+
   static async export({
     filter,
     orderBy,
@@ -233,7 +243,7 @@ export class MemberService {
     return response.data;
   }
 
-  static async fetchMergeSuggestions(limit, offset, segments) {
+  static async fetchMergeSuggestions(limit, offset, query, segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -241,6 +251,7 @@ export class MemberService {
       limit,
       offset,
       segments,
+      ...query,
     };
 
     return authAxios.get(

@@ -1,10 +1,15 @@
 <template>
-  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit tags"  :pre-title="member?.displayName ?? ''">
+  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit tags" :pre-title="member?.displayName ?? ''">
     <template #content>
       <div class="px-6 pb-6">
         <form v-if="modelValue" class="tags-form">
-          <app-tag-autocomplete-input v-model="editTagsModel" :fetch-fn="fields.tags.fetchFn"
-            :mapper-fn="fields.tags.mapperFn" :create-if-not-found="true" placeholder="Type to search/create tags" />
+          <app-tag-autocomplete-input
+            v-model="editTagsModel"
+            :fetch-fn="fields.tags.fetchFn"
+            :mapper-fn="fields.tags.mapperFn"
+            :create-if-not-found="true"
+            placeholder="Type to search/create tags"
+          />
         </form>
       </div>
 
@@ -34,7 +39,6 @@ const { selectedMembers } = storeToRefs(memberStore);
 
 const { fields } = MemberModel;
 const formSchema = new FormSchema([fields.tags]);
-
 
 export default {
   name: 'AppTagPopover',
@@ -73,7 +77,7 @@ export default {
       },
     },
     membersToUpdate() {
-      return this.member ? [this.member]: selectedMembers.value;
+      return this.member ? [this.member] : selectedMembers.value;
     },
   },
 
@@ -133,7 +137,7 @@ export default {
       this.editTagsModel = [];
       this.editTagsInCommon = [];
       this.computedVisible = false;
-    }
+    },
   },
 };
 </script>

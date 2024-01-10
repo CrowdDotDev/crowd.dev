@@ -4,6 +4,7 @@ export enum IntegrationState {
   ERROR = 'error',
   INACTIVE = 'inactive',
   WAITING_APPROVAL = 'waiting-approval',
+  NEEDS_RECONNECT = 'needs-reconnect',
 }
 
 export enum IntegrationRunState {
@@ -18,7 +19,6 @@ export enum IntegrationRunState {
 export enum IntegrationStreamState {
   DELAYED = 'delayed',
   PENDING = 'pending',
-  PROCESSING = 'processing',
   PROCESSED = 'processed',
   ERROR = 'error',
 }
@@ -41,10 +41,12 @@ export enum IntegrationResultState {
   PROCESSING = 'processing',
   PROCESSED = 'processed',
   ERROR = 'error',
+  DELAYED = 'delayed',
 }
 
 export enum IntegrationResultType {
   ACTIVITY = 'activity',
   MEMBER_ENRICH = 'member_enrich',
   ORGANIZATION_ENRICH = 'organization_enrich',
+  TWITTER_MEMBER_REACH = 'twitter_member_reach',
 }

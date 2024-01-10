@@ -1,11 +1,11 @@
 import { get } from 'lodash'
 import GithubStrategy from 'passport-github2'
 import { getServiceChildLogger } from '@crowd/logging'
+import { AuthProvider } from '@crowd/types'
 import { GITHUB_CONFIG } from '../../../conf'
 import { databaseInit } from '../../../database/databaseConnection'
 import AuthService from '../authService'
 import { splitFullName } from '../../../utils/splitName'
-import { AuthProvider } from '../../../types/common'
 
 const log = getServiceChildLogger('AuthSocial')
 

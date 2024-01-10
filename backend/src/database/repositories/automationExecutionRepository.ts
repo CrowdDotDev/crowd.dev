@@ -1,14 +1,10 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { QueryTypes } from 'sequelize'
+import { AutomationExecutionState, PageData } from '@crowd/types'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { DbAutomationExecutionInsertData } from './types/automationTypes'
-import {
-  AutomationExecution,
-  AutomationExecutionCriteria,
-  AutomationExecutionState,
-} from '../../types/automationTypes'
-import { PageData } from '../../types/common'
+import { AutomationExecution, AutomationExecutionCriteria } from '../../types/automationTypes'
 import { RepositoryBase } from './repositoryBase'
 
 export default class AutomationExecutionRepository extends RepositoryBase<
@@ -135,6 +131,29 @@ export default class AutomationExecutionRepository extends RepositoryBase<
 
   override async destroy(id: string): Promise<void> {
     throw new Error('Method not implemented.')
+  }
+
+  async destroyAllAutomation(automationIds: string[]): Promise<void> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const currentTenant = this.currentTenant
+
+    const query = `
+    delete 
+    from "automationExecutions"
+    where "automationId" in (:automationIds)
+      and "tenantId" = :tenantId;`
+
+    await seq.query(query, {
+      replacements: {
+        automationIds,
+        tenantId: currentTenant.id,
+      },
+      type: QueryTypes.DELETE,
+      transaction,
+    })
   }
 
   override async destroyAll(ids: string[]): Promise<void> {

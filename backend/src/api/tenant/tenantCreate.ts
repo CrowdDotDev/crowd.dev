@@ -1,4 +1,4 @@
-import Error403 from '../../errors/Error403'
+import { Error403 } from '@crowd/common'
 import identifyTenant from '../../segment/identifyTenant'
 import telemetryTrack from '../../segment/telemetryTrack'
 import track from '../../segment/track'
@@ -16,8 +16,7 @@ export default async (req, res) => {
     {
       id: payload.id,
       name: payload.name,
-      integrationsRequired: payload.integrationsRequired.map((i) => i.toLowerCase()),
-      communitySize: payload.communitySize,
+      onboard: !!payload.onboard,
     },
     { ...req },
   )

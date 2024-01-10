@@ -36,7 +36,7 @@ export default {
       state.saveLoading = false;
       commit('UPDATE_SUCCESS', tenant);
       Message.success(i18n('tenant.update.success'));
-      await dispatch('auth/doSelectTenant', tenant, {
+      await dispatch('auth/doSelectTenant', { tenant }, {
         root: true,
       });
     } catch (error) {

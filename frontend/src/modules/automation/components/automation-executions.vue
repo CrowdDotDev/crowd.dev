@@ -8,7 +8,7 @@
       <div v-if="automation" class="-mt-4">
         <div class="bg-gray-50 p-4 rounded-md mb-8">
           <h5 class="text-sm font-medium leading-5 mb-0.5">
-            {{ automation.name ?? translate(
+            {{ automation.name && automation.name.length > 0 ? automation.name : translate(
               `entities.automation.triggers.${automation.trigger}`,
             ) }}
           </h5>
@@ -31,6 +31,7 @@ import AppDrawer from '@/shared/drawer/drawer.vue';
 import { computed, defineProps } from 'vue';
 import { i18n } from '@/i18n';
 import AppAutomationExecutionList from '@/modules/automation/components/executions/automation-execution-list.vue';
+import { automationTypes } from '../config/automation-types';
 
 const props = defineProps({
   modelValue: {
@@ -44,11 +45,8 @@ const emit = defineEmits(['update:modelValue']);
 
 const title = computed(() => {
   if (props.modelValue) {
-    if (props.modelValue.type === 'webhook') {
-      return 'Webhook executions';
-    }
-    if (props.modelValue.type === 'slack') {
-      return 'Slack notification executions';
+    if (automationTypes[props.modelValue.type]) {
+      return `${automationTypes[props.modelValue.type].name} executions`;
     }
   }
   return '';

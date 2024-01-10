@@ -2,10 +2,10 @@
   <el-avatar
     v-if="name"
     shape="square"
-    class="h-8 w-8 bg-gray-900"
+    class="h-8 w-8 bg-gray-900 rounded-md"
   >
     <template #default>
-      <span class="font-semibold uppercase">{{
+      <span class="font-semibold uppercase text-base">{{
         computedInitialLetter
       }}</span>
     </template>

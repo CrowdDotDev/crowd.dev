@@ -28,29 +28,18 @@
   />
 
   <!-- Load more button -->
-  <div
-    v-if="isLoadMoreVisible"
-    class="flex grow justify-center pt-4 mb-12"
-  >
-    <div
-      v-if="loading"
-      v-loading="loading"
-      class="app-page-spinner h-16 w-16 !relative !min-h-fit"
-    />
-    <el-button
-      v-else
-      class="btn btn-link btn-link--primary"
-      @click="onLoadMore"
-    >
-      <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
-    </el-button>
-  </div>
+  <app-load-more
+    :is-visible="isLoadMoreVisible"
+    :is-loading="loading"
+    :fetch-fn="onLoadMore"
+  />
 </template>
 
 <script setup>
 import { computed, defineProps } from 'vue';
 import { useStore } from 'vuex';
 import AppEagleEyeResultCard from '@/premium/eagle-eye/components/list/eagle-eye-result-card.vue';
+import AppLoadMore from '@/shared/button/load-more.vue';
 
 const props = defineProps({
   list: {

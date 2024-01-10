@@ -9,21 +9,12 @@
     {{ selectedProjectGroup.name }}
   </div>
 
-  <div class="py-3 border-b border-gray-200">
+  <div class="py-3">
     <div class="text-2xs text-gray-400 mb-0.5">
       Projects
     </div>
     <div class="text-xs text-gray-900">
       {{ selectedProjectGroup.projects.length }}
-    </div>
-  </div>
-
-  <div class="py-3">
-    <div class="text-2xs text-gray-400 mb-0.5">
-      Contributors
-    </div>
-    <div class="text-xs text-gray-900">
-      {{ selectedProjectGroup.members }}
     </div>
   </div>
 
@@ -35,6 +26,7 @@
       Projects list
     </el-button>
     <router-link
+      v-if="hasPermissionToAccessAdminPanel && hasAccessToProjectGroup(selectedProjectGroup.id)"
       :to="{
         name: 'adminProjects',
         params: {
@@ -43,7 +35,6 @@
       }"
     >
       <el-button
-        v-if="hasPermissionToAccessAdminPanel"
         class="btn btn-link btn-link--md btn-link--primary btn--full"
       >
         <i class="ri-external-link-line" />
@@ -66,6 +57,7 @@ import isUrl from '@/utils/isUrl';
 import { ref, computed } from 'vue';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { hasAccessToProjectGroup } from '@/utils/segments';
 import AppDashboardProjectGroupDrawer from './dashboard-project-group-drawer.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();

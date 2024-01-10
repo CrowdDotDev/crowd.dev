@@ -16,27 +16,35 @@ import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
 import lfx from './custom/lfx';
+import groupsio from './groupsio';
+import confluence from './confluence';
+import gerrit from './gerrit';
+import cvent from './custom/cvent';
+import tnc from './custom/tnc';
 
 class IntegrationsConfig {
   get integrations() {
     return {
       github,
       discord,
-      slack,
-      twitter,
-      devto,
       hackernews,
-      reddit,
       linkedin,
+      twitter,
+      hubspot,
+      slack,
+      devto,
+      reddit,
       stackoverflow,
+      discourse,
       zapier,
       n8n,
       git,
       crunchbase,
-      discourse,
-      hubspot,
+      groupsio,
       // make,
       facebook,
+      confluence,
+      gerrit,
     };
   }
 
@@ -94,6 +102,8 @@ class IntegrationsConfig {
   get customIntegrations() {
     return {
       lfx,
+      cvent,
+      tnc,
     };
   }
 }

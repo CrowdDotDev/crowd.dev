@@ -13,7 +13,7 @@
         v-if="hasWarningIcon"
         class="ri-information-line text-brand-500 text-base mr-2"
       />
-      <span>{{ description }}</span>
+      <span v-html="description" />
     </div>
     <div class="flex gap-6 mt-8">
       <el-button

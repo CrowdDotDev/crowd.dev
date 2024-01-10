@@ -28,10 +28,11 @@
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 import { Auth0Service } from '@/shared/services/auth0.service';
+import identify from '@/shared/monitoring/identify';
 
 export default {
   name: 'App',
@@ -44,6 +45,7 @@ export default {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       isAuthenticated: 'auth/isAuthenticated',
+      currentUser: 'auth/currentUser',
     }),
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
@@ -78,6 +80,13 @@ export default {
         }
       },
     },
+    currentUser: {
+      handler(user, oldUser) {
+        if (user?.id && user.id !== oldUser?.id) {
+          identify(user);
+        }
+      },
+    },
   },
 
   async created() {
@@ -85,15 +94,6 @@ export default {
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
-  },
-
-  mounted() {
-    this.$router.isReady().then(() => {
-      const { ref } = this.$route.query;
-      if (ref && ref === 'eagle-eye') {
-        localStorage.setItem('onboardType', 'eagle-eye');
-      }
-    });
   },
 
   unmounted() {

@@ -256,7 +256,7 @@ export default {
     },
 
     async doGithubConnect(
-      { commit },
+      { commit, dispatch },
       { code, installId, setupAction },
     ) {
       // Function to trigger Oauth performance.
@@ -268,21 +268,24 @@ export default {
           installId,
           setupAction,
         );
+        const repos = integration?.settings?.repos || [];
+        const data = repos.reduce((a, b) => ({
+          ...a,
+          [b.url]: integration.segmentId,
+        }), {});
 
-        commit('CREATE_SUCCESS', integration);
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> '
-          + '<br /> This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'GitHub integration created successfully',
-          },
-        );
+        await IntegrationService.githubMapRepos(integration.id, data);
+
+        dispatch('doFetch');
+
         router.push({
           name: 'integration',
           params: {
             id: integration.segmentId,
           },
         });
+
+        dispatch('doFetch', [integration.segmentId]);
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
@@ -407,7 +410,7 @@ export default {
 
     async doDevtoConnect(
       { commit },
-      { users, organizations },
+      { users, organizations, apiKey },
     ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
@@ -418,6 +421,7 @@ export default {
         const integration = await IntegrationService.devtoConnect(
           users,
           organizations,
+          apiKey,
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -568,6 +572,85 @@ export default {
       }
     },
 
+    async doConfluenceConnect(
+      { commit },
+      { remotes, isUpdate },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.confluenceConnect(
+          remotes,
+        );
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+                  `Confluence integration ${isUpdate ? 'updated' : 'created'} successfully`,
+          },
+        );
+
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
+
+    async doGerritConnect(
+      { commit },
+      {
+        orgURL,
+        projectName,
+        user,
+        key,
+        isUpdate,
+      },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.gerritConnect(
+          {
+            orgURL,
+            projectName,
+            user,
+            key,
+          },
+        );
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+                  `Gerrit integration ${isUpdate ? 'updated' : 'created'} successfully`,
+          },
+        );
+
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
+
     async doDiscourseConnect(
       { commit },
       {
@@ -605,5 +688,52 @@ export default {
         commit('CREATE_ERROR');
       }
     },
+
+    async doGroupsioConnect(
+      { commit },
+      {
+        email, token, tokenExpiry, password, groupNames, isUpdate,
+      },
+    ) {
+      console.log('doGroupsioConnect', email, token, groupNames, isUpdate);
+
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.groupsioConnect(
+          email,
+          token,
+          tokenExpiry,
+          password,
+          groupNames,
+        );
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+          + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              `
+              groups.io integration ${isUpdate ? 'updated' : 'created'} successfully`,
+          },
+        );
+
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
+      } catch (error) {
+        Errors.handle(error);
+        Message.error(
+          'Something went wrong. Please try again later.',
+        );
+        commit('CREATE_ERROR');
+      }
+    },
   },
+
 };

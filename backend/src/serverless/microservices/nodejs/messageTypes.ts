@@ -1,4 +1,4 @@
-import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
+import { AutomationTrigger, AutomationType, ExportableEntity } from '@crowd/types'
 
 export type BaseNodeMicroserviceMessage = {
   service: string
@@ -68,10 +68,6 @@ export interface AnalyticsEmailsOutput extends BaseOutput {
   emailSent: boolean
 }
 
-export enum ExportableEntity {
-  MEMBERS = 'members',
-}
-
 export type BulkEnrichMessage = {
   service: string
   tenant: string
@@ -85,4 +81,12 @@ export type OrganizationBulkEnrichMessage = {
   service: string
   tenantId: string
   maxEnrichLimit: number
+}
+
+export type OrganizationMergeMessage = {
+  service: string
+  tenantId: string
+  primaryOrgId: string
+  secondaryOrgId: string
+  notifyFrontend?: boolean
 }

@@ -45,11 +45,4 @@ export interface FilterStatic {
   settings?: Record<string, any>
 }
 
-export type FilterObject = FilterStatic & Record<string, any>
-
-export interface Filter extends FilterObject {
-  pagination: {
-    page: number,
-    perPage: number
-  },
-}
+export type Filter = FilterStatic & Record<string, any>

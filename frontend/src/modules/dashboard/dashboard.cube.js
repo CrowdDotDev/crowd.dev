@@ -28,9 +28,7 @@ export function dateRange(period) {
   const end = moment().utc().endOf('day');
   const start = moment()
     .subtract(
-      period.granularity === 'day'
-        ? period.value - 1
-        : period.value,
+      period.value - 1,
       period.granularity,
     )
     .utc()

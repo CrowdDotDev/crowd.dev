@@ -19,8 +19,7 @@ export default (app, routes) => {
   routes.post('/auth/social/onboard', async (req, res) => {
     const payload = await AuthService.handleOnboard(
       req.currentUser,
-      req.body.invitationToken,
-      req.body.tenantId,
+      { invitationToken: req.body.invitationToken, tenantId: req.body.tenantId },
       req,
     )
 

@@ -1,5 +1,6 @@
-import { StartIntegrationSyncHandler } from '@/types'
+import { StartIntegrationSyncHandler } from '../../../types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
+import { AutomationState, AutomationSyncTrigger } from '@crowd/types'
 
 const handler: StartIntegrationSyncHandler = async (ctx) => {
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
@@ -9,6 +10,22 @@ const handler: StartIntegrationSyncHandler = async (ctx) => {
       ctx.tenantId,
       ctx.integration.id,
     )
+
+    const memberSyncAutomations = ctx.automations.filter(
+      (a) =>
+        a.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH &&
+        a.state === AutomationState.ACTIVE,
+    )
+
+    // sync filter automations
+    for (const automation of memberSyncAutomations) {
+      await ctx.integrationSyncWorkerEmitter.triggerOnboardAutomation(
+        ctx.tenantId,
+        ctx.integration.id,
+        automation.id,
+        automation.trigger as AutomationSyncTrigger,
+      )
+    }
   }
 
   if (settings.enabledFor.includes(HubspotEntity.ORGANIZATIONS)) {
@@ -17,6 +34,22 @@ const handler: StartIntegrationSyncHandler = async (ctx) => {
       ctx.tenantId,
       ctx.integration.id,
     )
+
+    const organizationSyncAutomations = ctx.automations.filter(
+      (a) =>
+        a.trigger === AutomationSyncTrigger.ORGANIZATION_ATTRIBUTES_MATCH &&
+        a.state === AutomationState.ACTIVE,
+    )
+
+    // sync filter automations
+    for (const automation of organizationSyncAutomations) {
+      await ctx.integrationSyncWorkerEmitter.triggerOnboardAutomation(
+        ctx.tenantId,
+        ctx.integration.id,
+        automation.id,
+        automation.trigger as AutomationSyncTrigger,
+      )
+    }
   }
 }
 

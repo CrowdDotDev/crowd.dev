@@ -26,13 +26,19 @@
           :value="option"
         >
           <div
-            class="el-checkbox filter-checkbox h-4"
+            class="h-4 el-checkbox filter-checkbox"
             :class="{ 'is-checked': props.modelValue.value.includes(option.value) }"
           >
             <span class="el-checkbox__input" :class="{ 'is-checked': form.value.includes(option.value) }">
               <span class="el-checkbox__inner" />
             </span>
           </div>
+          <template v-if="config.id === 'organizations'">
+            <span class="flex items-center justify-center w-6 h-6 p-1 mr-3 border rounded-md ">
+              <img v-if="option.logo" :src="option.logo" class="w-4 h-4 min-w-[16px]" :alt="option.label" />
+              <i v-else class="flex items-center justify-center w-4 h-4 text-gray-300 ri-community-line" />
+            </span>
+          </template>
           {{ option.label }}
         </el-option>
       </el-select>

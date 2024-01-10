@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { Logger } from '@crowd/logging'
+import { RateLimitError } from '@crowd/types'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
 import { DiscoursePostsByIdsResponse, DiscoursePostsByIdsInput } from '../../types/discourseTypes'
 
-const serializeArrayToQueryString = (params: Object) =>
+const serializeObjectToQueryString = (params: Object) =>
   Object.entries(params)
     .map(([key, value]) => {
       if (Array.isArray(value)) {
@@ -32,7 +33,7 @@ export const getDiscoursePostsByIds = async (
     post_ids: input.post_ids,
   }
 
-  const queryString = serializeArrayToQueryString(queryParameters)
+  const queryString = serializeObjectToQueryString(queryParameters)
 
   const config: AxiosRequestConfig<any> = {
     method: 'get',
@@ -47,6 +48,10 @@ export const getDiscoursePostsByIds = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
+    if (err.response && err.response.status === 429) {
+      // wait 5 mins
+      throw new RateLimitError(5 * 60, 'discourse/getpostsbyids')
+    }
     logger.error({ err, params, input }, 'Error while getting posts by ids from Discourse ')
     throw err
   }

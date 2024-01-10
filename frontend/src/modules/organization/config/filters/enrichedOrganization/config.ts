@@ -14,14 +14,14 @@ const enrichedOrganization: BooleanFilterConfig = {
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
     return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Enriched organization', value, options);
   },
-  apiFilterRenderer({ value, include }: BooleanFilterValue): any[] {
+  apiFilterRenderer({ value }: BooleanFilterValue): any[] {
     const filter = {
       lastEnrichedAt: {
-        [value ? 'ne' : 'eq']: null,
+        [value ? 'eq' : 'ne']: null,
       },
     };
     return [
-      (include ? filter : { not: filter }),
+      { not: filter },
     ];
   },
 };

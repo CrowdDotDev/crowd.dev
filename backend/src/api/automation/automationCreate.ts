@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = await new AutomationService(req).create(req.body.data)
 
-  track('Automation Created', { ...payload }, { ...req })
+  track('Automation Created', { ...req.body.data }, { ...req })
 
   identifyTenant(req)
 

@@ -1,4 +1,4 @@
-import { IProcessStreamContext, ProcessStreamHandler } from '@/types'
+import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
 import {
   SlackStreamType,
   ISlackRootStreamData,

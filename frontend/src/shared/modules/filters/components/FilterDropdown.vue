@@ -71,7 +71,7 @@ import {
   defineProps, ref,
 } from 'vue';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import { FeatureFlag } from '@/featureFlag';
+import { FeatureFlag } from '@/utils/featureFlag';
 
 const props = defineProps<{
   config: Record<string, FilterConfig>,

@@ -1,6 +1,6 @@
-import { OpenSearchService } from '@/service/opensearch.service'
+import { OpenSearchService } from '@crowd/opensearch'
 import { getServiceLogger } from '@crowd/logging'
-import { OpenSearchIndex } from '@/types'
+import { OPENSEARCH_CONFIG } from 'conf'
 
 const log = getServiceLogger()
 
@@ -14,8 +14,8 @@ if (processArguments.length !== 1) {
 const index = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log)
+  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
-  await openSearchService.deleteIndex(index as OpenSearchIndex)
+  await openSearchService.deleteIndex(index)
   process.exit(0)
 })

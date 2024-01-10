@@ -1,7 +1,22 @@
-import { Message, SQSClient } from '@aws-sdk/client-sqs'
+import {
+  ChangeMessageVisibilityRequest,
+  DeleteMessageRequest,
+  Message,
+  MessageAttributeValue,
+  ReceiveMessageRequest,
+  SQSClient,
+  SendMessageBatchRequest,
+  SendMessageRequest,
+} from '@aws-sdk/client-sqs'
 
 export type SqsClient = SQSClient
 export type SqsMessage = Message
+export type SqsReceiveMessageRequest = ReceiveMessageRequest
+export type SqsDeleteMessageRequest = DeleteMessageRequest
+export type SqsSendMessageRequest = SendMessageRequest
+export type SqsSendMessageBatchRequest = SendMessageBatchRequest
+export type SqsChangeMessageVisibilityRequest = ChangeMessageVisibilityRequest
+export type SqsMessageAttributes = Record<string, MessageAttributeValue>
 
 export interface ISqsClientConfig {
   region: string
@@ -22,6 +37,16 @@ export enum SqsQueueDeduplicationType {
 
 export enum SqsFifoThroughputLimitType {
   PER_MESSAGE_GROUP_ID = 'perMessageGroupId',
+}
+
+export enum CrowdQueue {
+  INTEGRATION_RUN_WORKER = 'integration-run-worker',
+  INTEGRATION_STREAM_WORKER = 'integration-stream-worker',
+  INTEGRATION_DATA_WORKER = 'integration-data-worker',
+  DATA_SINK_WORKER = 'data-sink-worker',
+  NODEJS_WORKER = 'nodejs-worker',
+  SEARCH_SYNC_WORKER = 'search-sync-worker',
+  INTEGRATION_SYNC_WORKER = 'integration-sync-worker',
 }
 
 export interface ISqsQueueConfig {

@@ -22,11 +22,18 @@ export interface IDevToComment {
   children: IDevToComment[]
 }
 
-export const getArticleComments = async (articleId: number): Promise<IDevToComment[]> => {
+export const getArticleComments = async (
+  articleId: number,
+  apiKey?: string,
+): Promise<IDevToComment[]> => {
   try {
     const result = await axios.get('https://dev.to/api/comments', {
       params: {
         a_id: articleId,
+      },
+      headers: {
+        Accept: 'application/vnd.forem.api-v1+json',
+        'api-key': apiKey || '',
       },
     })
     return result.data
@@ -38,7 +45,7 @@ export const getArticleComments = async (articleId: number): Promise<IDevToComme
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getArticleComments(articleId)
+          return getArticleComments(articleId, apiKey)
         }
       }
     }

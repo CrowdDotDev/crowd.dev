@@ -16,6 +16,7 @@ export class DbStore extends LoggerBase {
     parentLog?: Logger,
     private readonly dbConnection?: DbConnection,
     private readonly dbTransaction?: DbTransaction,
+    private readonly withTransactions: boolean = true,
   ) {
     super(parentLog, { transactional: dbTransaction !== undefined })
 
@@ -50,6 +51,10 @@ export class DbStore extends LoggerBase {
 
   public transactionally<T>(inTransaction: (store: DbStore) => Promise<T>): Promise<T> {
     this.checkValid()
+
+    if (!this.withTransactions) {
+      return inTransaction(this)
+    }
 
     if (this.isTransaction()) {
       this.log.debug('Using an existing transaction!')

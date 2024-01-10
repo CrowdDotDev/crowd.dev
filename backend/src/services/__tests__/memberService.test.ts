@@ -1,10 +1,9 @@
+import { generateUUIDv1, Error400, Error404 } from '@crowd/common'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import MemberService from '../memberService'
 import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
-import Error404 from '../../errors/Error404'
-import Error400 from '../../errors/Error400'
 import { MemberAttributeName, MemberAttributeType, PlatformType } from '@crowd/types'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
@@ -13,7 +12,6 @@ import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
 import Plans from '../../security/plans'
-import { generateUUIDv1 } from '@crowd/common'
 import lodash from 'lodash'
 import {
   DEVTO_MEMBER_ATTRIBUTES,
@@ -172,7 +170,20 @@ describe('MemberService tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         tenantId: mockIServiceOptions.currentTenant.id,
         segments: mockIServiceOptions.currentSegments,
         createdById: mockIServiceOptions.currentUser.id,
@@ -183,6 +194,7 @@ describe('MemberService tests', () => {
         enrichedBy: [],
         contributions: null,
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -270,12 +282,26 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -313,7 +339,20 @@ describe('MemberService tests', () => {
         attributes: {},
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -328,6 +367,7 @@ describe('MemberService tests', () => {
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -363,7 +403,20 @@ describe('MemberService tests', () => {
         displayName: username,
         attributes: {},
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -379,6 +432,7 @@ describe('MemberService tests', () => {
         reach: { total: 20, [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -416,7 +470,20 @@ describe('MemberService tests', () => {
         emails: member1.emails,
         score: member1.score,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         importHash: null,
@@ -430,6 +497,7 @@ describe('MemberService tests', () => {
         reach: { total: 20, [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -441,7 +509,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -467,14 +535,11 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: null,
         github: null,
         location: null,
         website: null,
         description: null,
-        parentUrl: null,
         emails: null,
         phoneNumbers: null,
         logo: null,
@@ -482,6 +547,7 @@ describe('MemberService tests', () => {
           dateEnd: null,
           dateStart: null,
           title: null,
+          source: null,
         },
         tags: null,
         twitter: null,
@@ -508,6 +574,26 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
+        affiliatedProfiles: null,
+        allSubsidiaries: null,
+        alternativeDomains: null,
+        alternativeNames: null,
+        averageEmployeeTenure: null,
+        averageTenureByLevel: null,
+        averageTenureByRole: null,
+        directSubsidiaries: null,
+        employeeChurnRate: null,
+        employeeCountByMonth: null,
+        employeeGrowthRate: null,
+        employeeCountByMonthByLevel: null,
+        employeeCountByMonthByRole: null,
+        gicsSector: null,
+        grossAdditionsByMonth: null,
+        grossDeparturesByMonth: null,
+        ultimateParent: null,
+        immediateParent: null,
+        manuallyChangedFields: null,
       })
     })
 
@@ -517,7 +603,7 @@ describe('MemberService tests', () => {
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -543,14 +629,11 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: 'https://crowd.dev',
         github: null,
         location: null,
         website: null,
         description: 'Here',
-        parentUrl: null,
         emails: null,
         phoneNumbers: null,
         logo: null,
@@ -558,6 +641,7 @@ describe('MemberService tests', () => {
           dateEnd: null,
           dateStart: null,
           title: null,
+          source: null,
         },
         tags: null,
         twitter: null,
@@ -584,20 +668,45 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
+        manuallyCreated: false,
+        affiliatedProfiles: null,
+        allSubsidiaries: null,
+        alternativeDomains: null,
+        alternativeNames: null,
+        averageEmployeeTenure: null,
+        averageTenureByLevel: null,
+        averageTenureByRole: null,
+        directSubsidiaries: null,
+        employeeChurnRate: null,
+        employeeCountByMonth: null,
+        employeeGrowthRate: null,
+        employeeCountByMonthByLevel: null,
+        employeeCountByMonthByRole: null,
+        gicsSector: null,
+        grossAdditionsByMonth: null,
+        grossDeparturesByMonth: null,
+        ultimateParent: null,
+        immediateParent: null,
+        manuallyChangedFields: null,
       })
     })
 
-    it('Should create non existent member - organization as id, no enrichment', async () => {
+    it('Should create non existent member - organization as id', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
-      const oCreated = await new OrganizationService(mockIServiceOptions).findOrCreate({
-        name: 'crowd.dev',
+      const oCreated = await new OrganizationService(mockIServiceOptions).createOrUpdate({
+        identities: [
+          {
+            name: 'crowd.dev',
+            platform: 'crowd',
+          },
+        ],
       })
 
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
+        emails: ['lala@gmail.com'],
         score: 10,
         attributes: {},
         reach: 10,
@@ -623,21 +732,20 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'crowd.dev',
         displayName: 'crowd.dev',
-        url: null,
         github: null,
         location: null,
         website: null,
         description: null,
-        parentUrl: null,
         emails: null,
         phoneNumbers: null,
         logo: null,
+        manuallyChangedFields: null,
         memberOrganizations: {
           dateEnd: null,
           dateStart: null,
           title: null,
+          source: null,
         },
         tags: null,
         twitter: null,
@@ -664,102 +772,25 @@ describe('MemberService tests', () => {
         address: null,
         profiles: null,
         attributes: {},
-      })
-    })
-
-    it('Should create non existent member - organization with enrichment', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
-        db,
-        Plans.values.growth,
-      )
-
-      const member1 = {
-        username: 'anil',
-        platform: PlatformType.GITHUB,
-        emails: ['lala@l.com'],
-        score: 10,
-        attributes: {},
-        reach: 10,
-        bio: 'Computer Science',
-        organizations: [{ name: 'crowd.dev', url: 'https://crowd.dev', description: 'Here' }],
-        joinedAt: '2020-05-28T15:13:30Z',
-        location: 'Istanbul',
-      }
-
-      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
-
-      memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
-      memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
-
-      const organization = (await OrganizationRepository.findAndCountAll({}, mockIServiceOptions))
-        .rows[0]
-
-      const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
-
-      const o1 = foundMember.organizations[0].get({ plain: true })
-      delete o1.createdAt
-      delete o1.updatedAt
-
-      expect(o1).toStrictEqual({
-        id: organization.id,
-        name: 'crowd.dev',
-        displayName: 'crowd.dev',
-        url: 'crowd.dev',
-        github: null,
-        location: null,
-        website: null,
-        description:
-          'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
-        parentUrl: null,
-        emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
-        phoneNumbers: ['+42 424242'],
-        logo: 'https://logo.clearbit.com/crowd.dev',
-        memberOrganizations: {
-          dateEnd: null,
-          dateStart: null,
-          title: null,
-        },
-        tags: [],
-        twitter: {
-          id: '1362101830923259908',
-          bio: 'Community-led Growth for Developer-first Companies.\nJoin our private beta. 👇',
-          site: 'https://t.co/GRLDhqFWk4',
-          avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
-          handle: 'CrowdDotDev',
-          location: '🌍 remote',
-          followers: 107,
-          following: 0,
-        },
-        linkedin: {
-          handle: 'company/crowddevhq',
-        },
-        crunchbase: {
-          handle: null,
-        },
-        employees: 5,
-        revenueRange: {
-          max: 1,
-          min: 0,
-        },
-        importHash: null,
-        deletedAt: null,
-        tenantId: mockIServiceOptions.currentTenant.id,
-        createdById: mockIServiceOptions.currentUser.id,
-        updatedById: mockIServiceOptions.currentUser.id,
-        isTeamOrganization: false,
-        type: null,
-        ticker: null,
-        size: null,
-        naics: null,
-        lastEnrichedAt: null,
-        industry: null,
-        headline: null,
-        geoLocation: null,
-        founded: null,
-        employeeCountByCountry: null,
-        address: null,
-        profiles: null,
-        attributes: {},
+        manuallyCreated: false,
+        affiliatedProfiles: null,
+        allSubsidiaries: null,
+        alternativeDomains: null,
+        alternativeNames: null,
+        averageEmployeeTenure: null,
+        averageTenureByLevel: null,
+        averageTenureByRole: null,
+        directSubsidiaries: null,
+        employeeChurnRate: null,
+        employeeCountByMonth: null,
+        employeeGrowthRate: null,
+        employeeCountByMonthByLevel: null,
+        employeeCountByMonthByRole: null,
+        gicsSector: null,
+        grossAdditionsByMonth: null,
+        grossDeparturesByMonth: null,
+        ultimateParent: null,
+        immediateParent: null,
       })
     })
 
@@ -805,7 +836,7 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: 'anil',
-        emails: ['test@email.com', 'test2@email.com'],
+        emails: ['test@gmail.com', 'test2@yahoo.com'],
         platform: PlatformType.GITHUB,
         location: 'Ankara',
       }
@@ -844,10 +875,23 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
-        emails: ['lala@l.com', 'test@email.com', 'test2@email.com'],
+        emails: ['lala@l.com', 'test@gmail.com', 'test2@yahoo.com'],
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -860,6 +904,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -955,7 +1000,20 @@ describe('MemberService tests', () => {
           },
         },
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         emails: member1.emails,
@@ -971,6 +1029,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1062,7 +1121,20 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1077,6 +1149,7 @@ describe('MemberService tests', () => {
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1241,7 +1314,20 @@ describe('MemberService tests', () => {
         },
         emails: member1.emails,
         lastEnriched: null,
-        organizations: [],
+        organizations: [
+          {
+            displayName: 'l.com',
+            id: memberCreated.organizations[0].id,
+            memberOrganizations: {
+              memberId: memberCreated.id,
+              organizationId: memberCreated.organizations[0].id,
+              dateEnd: null,
+              dateStart: null,
+              title: null,
+              source: null,
+            },
+          },
+        ],
         enrichedBy: [],
         contributions: null,
         score: member1.score,
@@ -1255,6 +1341,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1311,6 +1398,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1368,6 +1456,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1426,6 +1515,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1484,6 +1574,7 @@ describe('MemberService tests', () => {
         emails: [],
         attributes: {},
         affiliations: [],
+        manuallyCreated: false,
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1591,335 +1682,6 @@ describe('MemberService tests', () => {
   })
 
   describe('merge method', () => {
-    it('Should merge', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
-
-      await mas.createPredefined(GITHUB_MEMBER_ATTRIBUTES)
-      await mas.createPredefined(DISCORD_MEMBER_ATTRIBUTES)
-      await mas.createPredefined(TWITTER_MEMBER_ATTRIBUTES)
-      await mas.createPredefined(SLACK_MEMBER_ATTRIBUTES)
-
-      const memberService = new MemberService(mockIRepositoryOptions)
-
-      let t1 = await TagRepository.create({ name: 'tag1' }, mockIRepositoryOptions)
-      let t2 = await TagRepository.create({ name: 'tag2' }, mockIRepositoryOptions)
-      let t3 = await TagRepository.create({ name: 'tag3' }, mockIRepositoryOptions)
-
-      let o1 = await OrganizationRepository.create({ name: 'org1' }, mockIRepositoryOptions)
-      let o2 = await OrganizationRepository.create({ name: 'org2' }, mockIRepositoryOptions)
-      let o3 = await OrganizationRepository.create({ name: 'org3' }, mockIRepositoryOptions)
-
-      let task1 = await TaskRepository.create({ name: 'task1' }, mockIRepositoryOptions)
-      let task2 = await TaskRepository.create({ name: 'task2' }, mockIRepositoryOptions)
-      let task3 = await TaskRepository.create({ name: 'task3' }, mockIRepositoryOptions)
-
-      let note1 = await NoteRepository.create({ body: 'note1' }, mockIRepositoryOptions)
-      let note2 = await NoteRepository.create({ body: 'note2' }, mockIRepositoryOptions)
-      let note3 = await NoteRepository.create({ body: 'note3' }, mockIRepositoryOptions)
-
-      const member1 = {
-        username: {
-          [PlatformType.GITHUB]: 'anil',
-        },
-        displayName: 'Anil',
-        emails: ['anil+1@crowd.dev', 'anil+2@crowd.dev'],
-        joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {},
-        tags: [t1.id, t2.id],
-        organizations: [o1.id, o2.id],
-        tasks: [task1.id, task2.id],
-        notes: [note1.id, note2.id],
-      }
-
-      const member2 = {
-        username: {
-          [PlatformType.DISCORD]: 'anil',
-        },
-        emails: ['anil+1@crowd.dev', 'anil+3@crowd.dev'],
-        displayName: 'Anil',
-        joinedAt: '2021-05-30T15:14:30Z',
-        attributes: {
-          [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]: 'Crowd.dev',
-            default: 'Crowd.dev',
-          },
-          [MemberAttributeName.SOURCE_ID]: {
-            [PlatformType.DISCORD]: '#discordId',
-            default: '#discordId',
-          },
-        },
-        tags: [t2.id, t3.id],
-        organizations: [o2.id, o3.id],
-        tasks: [task2.id, task3.id],
-        notes: [note2.id, note3.id],
-      }
-
-      const member3 = {
-        username: {
-          [PlatformType.TWITTER]: 'anil',
-        },
-        displayName: 'Anil',
-        joinedAt: '2021-05-30T15:14:30Z',
-        attributes: {
-          [MemberAttributeName.URL]: {
-            [PlatformType.TWITTER]: 'https://a-twitter-url',
-            default: 'https://a-twitter-url',
-          },
-        },
-      }
-      const member4 = {
-        username: {
-          [PlatformType.SLACK]: 'testt',
-        },
-        displayName: 'Member 4',
-        joinedAt: '2021-05-30T15:14:30Z',
-        attributes: {
-          [MemberAttributeName.SOURCE_ID]: {
-            [PlatformType.SLACK]: '#slackId',
-            default: '#slackId',
-          },
-        },
-      }
-
-      const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
-      const returnedMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-      const returnedMember3 = await MemberRepository.create(member3, mockIRepositoryOptions)
-      const returnedMember4 = await MemberRepository.create(member4, mockIRepositoryOptions)
-
-      const activity = {
-        type: 'activity',
-        timestamp: '2020-05-27T15:13:30Z',
-        platform: PlatformType.GITHUB,
-        attributes: {
-          replies: 12,
-          body: 'Here',
-        },
-        sentiment: {
-          positive: 0.98,
-          negative: 0.0,
-          neutral: 0.02,
-          mixed: 0.0,
-          label: 'positive',
-          sentiment: 0.98,
-        },
-        isContribution: true,
-        username: 'anil',
-        member: returnedMember2.id,
-        score: 1,
-        sourceId: '#sourceId1',
-      }
-
-      let activityCreated = await ActivityRepository.create(activity, mockIRepositoryOptions)
-
-      // toMerge[1] = [(1,2),(1,4)] toMerge[2] = [(2,1)] toMerge[4] = [(4,1)]
-      // noMerge[2] = [3]
-      await MemberRepository.addToMerge(
-        [{ members: [returnedMember1.id, returnedMember2.id], similarity: null }],
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        [{ members: [returnedMember1.id, returnedMember4.id], similarity: null }],
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        [{ members: [returnedMember2.id, returnedMember1.id], similarity: null }],
-        mockIRepositoryOptions,
-      )
-      await MemberRepository.addToMerge(
-        [{ members: [returnedMember4.id, returnedMember1.id], similarity: null }],
-        mockIRepositoryOptions,
-      )
-
-      await MemberRepository.addNoMerge(
-        returnedMember2.id,
-        returnedMember3.id,
-        mockIRepositoryOptions,
-      )
-
-      const response = await memberService.merge(returnedMember1.id, returnedMember2.id)
-
-      const mergedMember = await MemberRepository.findById(
-        response.mergedId,
-        mockIRepositoryOptions,
-      )
-
-      // Sequelize returns associations as array of models, we need to get plain objects
-      mergedMember.activities = mergedMember.activities.map((i) => i.get({ plain: true }))
-      mergedMember.tags = mergedMember.tags.map((i) => i.get({ plain: true }))
-      mergedMember.organizations = mergedMember.organizations.map((i) =>
-        SequelizeTestUtils.objectWithoutKey(i.get({ plain: true }), ['memberOrganizations']),
-      )
-      mergedMember.tasks = mergedMember.tasks.map((i) => i.get({ plain: true }))
-      mergedMember.notes = mergedMember.notes.map((i) => i.get({ plain: true }))
-
-      // get the created activity again, it's member should be updated after merge
-      activityCreated = await ActivityRepository.findById(
-        activityCreated.id,
-        mockIRepositoryOptions,
-      )
-
-      // we don't need activity.member because we're already expecting member->activities
-      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, [
-        'member',
-        'objectMember',
-        'parent',
-        'tasks',
-        'display',
-        'organization',
-      ])
-
-      // get previously created tags
-      t1 = await TagRepository.findById(t1.id, mockIRepositoryOptions)
-      t2 = await TagRepository.findById(t2.id, mockIRepositoryOptions)
-      t3 = await TagRepository.findById(t3.id, mockIRepositoryOptions)
-
-      // get previously created organizations
-      o1 = await OrganizationRepository.findById(o1.id, mockIRepositoryOptions)
-      o2 = await OrganizationRepository.findById(o2.id, mockIRepositoryOptions)
-      o3 = await OrganizationRepository.findById(o3.id, mockIRepositoryOptions)
-
-      // get previously created tasks
-      task1 = await TaskRepository.findById(task1.id, mockIRepositoryOptions)
-      task2 = await TaskRepository.findById(task2.id, mockIRepositoryOptions)
-      task3 = await TaskRepository.findById(task3.id, mockIRepositoryOptions)
-
-      // get previously created notes
-      note1 = await NoteRepository.findById(note1.id, mockIRepositoryOptions)
-      note2 = await NoteRepository.findById(note2.id, mockIRepositoryOptions)
-      note3 = await NoteRepository.findById(note3.id, mockIRepositoryOptions)
-
-      // remove tags->member relations as well (we should be only checking 1-deep relations)
-      t1 = SequelizeTestUtils.objectWithoutKey(t1, 'members')
-      t2 = SequelizeTestUtils.objectWithoutKey(t2, 'members')
-      t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
-
-      // remove organizations->member relations as well (we should be only checking 1-deep relations)
-      o1 = SequelizeTestUtils.objectWithoutKey(o1, [
-        'memberCount',
-        'joinedAt',
-        'activityCount',
-        'memberOrganizations',
-      ])
-      o2 = SequelizeTestUtils.objectWithoutKey(o2, [
-        'memberCount',
-        'joinedAt',
-        'activityCount',
-        'memberOrganizations',
-      ])
-      o3 = SequelizeTestUtils.objectWithoutKey(o3, [
-        'memberCount',
-        'joinedAt',
-        'activityCount',
-        'memberOrganizations',
-      ])
-
-      // remove tasks->member and tasks->activity tasks->assignees relations as well (we should be only checking 1-deep relations)
-      task1 = SequelizeTestUtils.objectWithoutKey(task1, ['members', 'activities', 'assignees'])
-      task2 = SequelizeTestUtils.objectWithoutKey(task2, ['members', 'activities', 'assignees'])
-      task3 = SequelizeTestUtils.objectWithoutKey(task3, ['members', 'activities', 'assignees'])
-
-      // remove notes->member relations as well (we should be only checking 1-deep relations)
-      note1 = SequelizeTestUtils.objectWithoutKey(note1, ['members', 'createdBy'])
-      note2 = SequelizeTestUtils.objectWithoutKey(note2, ['members', 'createdBy'])
-      note3 = SequelizeTestUtils.objectWithoutKey(note3, ['members', 'createdBy'])
-
-      mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
-
-      const expectedMember = {
-        id: returnedMember1.id,
-        username: {
-          [PlatformType.GITHUB]: ['anil'],
-          [PlatformType.DISCORD]: ['anil'],
-        },
-        lastEnriched: null,
-        enrichedBy: [],
-        contributions: null,
-        displayName: 'Anil',
-        identities: [PlatformType.GITHUB, PlatformType.DISCORD],
-        activities: [activityCreated],
-        attributes: {
-          ...member1.attributes,
-          ...member2.attributes,
-        },
-        activeOn: [activityCreated.platform],
-        activityTypes: [`${activityCreated.platform}:${activityCreated.type}`],
-        emails: ['anil+1@crowd.dev', 'anil+2@crowd.dev', 'anil+3@crowd.dev'],
-        score: -1,
-        importHash: null,
-        createdAt: returnedMember1.createdAt,
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        segments: mockIRepositoryOptions.currentSegments,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-        joinedAt: new Date(member1.joinedAt),
-        reach: { total: -1 },
-        tags: [t1, t2, t3],
-        tasks: [task1, task2, task3],
-        notes: [note1, note2, note3],
-        organizations: [
-          SequelizeTestUtils.objectWithoutKey(o1, [
-            'activeOn',
-            'identities',
-            'lastActive',
-            'segments',
-          ]),
-          SequelizeTestUtils.objectWithoutKey(o2, [
-            'activeOn',
-            'identities',
-            'lastActive',
-            'segments',
-          ]),
-          SequelizeTestUtils.objectWithoutKey(o3, [
-            'activeOn',
-            'identities',
-            'lastActive',
-            'segments',
-          ]),
-        ],
-        noMerge: [returnedMember3.id],
-        toMerge: [returnedMember4.id],
-        activityCount: 1,
-        activeDaysCount: 1,
-        averageSentiment: activityCreated.sentiment.sentiment,
-        lastActive: activityCreated.timestamp,
-        lastActivity: activityCreated,
-        numberOfOpenSourceContributions: 0,
-        affiliations: [],
-      }
-
-      expect(
-        mergedMember.tasks.sort((a, b) => {
-          const nameA = a.name.toLowerCase()
-          const nameB = b.name.toLowerCase()
-          if (nameA < nameB) {
-            return -1
-          }
-          if (nameA > nameB) {
-            return 1
-          }
-          return 0
-        }),
-      ).toEqual(
-        expectedMember.tasks.sort((a, b) => {
-          const nameA = a.name.toLowerCase()
-          const nameB = b.name.toLowerCase()
-          if (nameA < nameB) {
-            return -1
-          }
-          if (nameA > nameB) {
-            return 1
-          }
-          return 0
-        }),
-      )
-      delete mergedMember.tasks
-      delete expectedMember.tasks
-      expect(mergedMember).toStrictEqual(expectedMember)
-    })
-
     it('Should catch when two members are the same', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
@@ -2128,6 +1890,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
       delete returnedMember1.affiliations
+      delete returnedMember1.manuallyCreated
 
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 
@@ -2228,6 +1991,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activeDaysCount
       delete returnedMember1.numberOfOpenSourceContributions
       delete returnedMember1.affiliations
+      delete returnedMember1.manuallyCreated
 
       returnedMember1.segments = returnedMember1.segments.map((s) => s.id)
 

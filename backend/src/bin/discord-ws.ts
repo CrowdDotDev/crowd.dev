@@ -1,9 +1,13 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
 import moment from 'moment'
 import { processPaginated, timeout } from '@crowd/common'
-import { RedisCache, getRedisClient } from '@crowd/redis'
+import { RedisCache, getRedisClient, RedisClient } from '@crowd/redis'
 import { getChildLogger, getServiceLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
+import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
+import fs from 'fs'
+import path from 'path'
+import { Sequelize, QueryTypes } from 'sequelize'
 import { DISCORD_CONFIG, REDIS_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
@@ -13,7 +17,9 @@ import {
   getIntegrationRunWorkerEmitter,
   getIntegrationStreamWorkerEmitter,
 } from '@/serverless/utils/serviceSQS'
+import { databaseInit } from '@/database/databaseConnection'
 
+const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 async function executeIfNotExists(
@@ -56,40 +62,51 @@ async function spawnClient(
 
     logger.info({ payload }, 'Processing Discord WS Message!')
 
-    try {
-      const integration = (await IntegrationRepository.findByIdentifier(
-        guildId,
-        PlatformType.DISCORD,
-      )) as any
+    await tracer.startActiveSpan('ProcessDiscordWSMessage', async (span) => {
+      try {
+        const integration = (await IntegrationRepository.findByIdentifier(
+          guildId,
+          PlatformType.DISCORD,
+        )) as any
 
-      const result = await repo.create({
-        tenantId: integration.tenantId,
-        integrationId: integration.id,
-        type: WebhookType.DISCORD,
-        payload,
-      })
+        const result = await repo.create({
+          tenantId: integration.tenantId,
+          integrationId: integration.id,
+          type: WebhookType.DISCORD,
+          payload,
+        })
 
-      const streamEmitter = await getIntegrationStreamWorkerEmitter()
+        const streamEmitter = await getIntegrationStreamWorkerEmitter()
 
-      await streamEmitter.triggerWebhookProcessing(
-        integration.tenantId,
-        integration.platform,
-        result.id,
-      )
-    } catch (err) {
-      if (err.code === 404) {
-        logger.warn({ guildId }, 'No integration found for incoming Discord WS Message!')
-      } else {
-        logger.error(
-          err,
-          {
-            discordPayload: JSON.stringify(payload),
-            guildId,
-          },
-          'Error processing Discord WS Message!',
+        await streamEmitter.triggerWebhookProcessing(
+          integration.tenantId,
+          integration.platform,
+          result.id,
         )
+        span.setStatus({
+          code: SpanStatusCode.OK,
+        })
+      } catch (err) {
+        if (err.code === 404) {
+          logger.warn({ guildId }, 'No integration found for incoming Discord WS Message!')
+        } else {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: err,
+          })
+          logger.error(
+            err,
+            {
+              discordPayload: JSON.stringify(payload),
+              guildId,
+            },
+            'Error processing Discord WS Message!',
+          )
+        }
+      } finally {
+        span.end()
       }
-    }
+    })
   }
 
   const client = new Client({
@@ -203,11 +220,22 @@ async function spawnClient(
   logger.info('Discord WS client logged in!')
 }
 
+let seq: Sequelize
+let redis: RedisClient
+const initRedisSeq = async () => {
+  if (!seq) {
+    seq = (await databaseInit()).sequelize as Sequelize
+  }
+
+  if (!redis) {
+    redis = await getRedisClient(REDIS_CONFIG, true)
+  }
+}
 setImmediate(async () => {
   // we are saving heartbeat timestamps in redis every 2 seconds
   // on boot if we detect that there has been a downtime we should trigger discord integration checks
   // so we don't miss anything
-  const redis = await getRedisClient(REDIS_CONFIG, true)
+  await initRedisSeq()
   const cache = new RedisCache('discord-ws', redis, log)
 
   const lastHeartbeat = await cache.get('heartbeat')
@@ -259,3 +287,26 @@ setImmediate(async () => {
     await cache.set('heartbeat', new Date().toISOString())
   }, 2 * 1000)
 })
+
+const liveFilePath = path.join(__dirname, 'tmp/discord-ws-live.tmp')
+const readyFilePath = path.join(__dirname, 'tmp/discord-ws-ready.tmp')
+
+setInterval(async () => {
+  try {
+    log.debug('Checking liveness and readiness for discord ws.')
+    const [redisPingRes, dbPingRes] = await Promise.all([
+      // ping redis,
+      redis.ping().then((res) => res === 'PONG'),
+      // ping database
+      seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+    ])
+    if (redisPingRes && dbPingRes) {
+      await Promise.all([
+        fs.promises.open(liveFilePath, 'a').then((file) => file.close()),
+        fs.promises.open(readyFilePath, 'a').then((file) => file.close()),
+      ])
+    }
+  } catch (err) {
+    log.error(`Error checking liveness and readiness for discord ws: ${err}`)
+  }
+}, 5000)

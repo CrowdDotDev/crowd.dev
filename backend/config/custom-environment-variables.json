@@ -17,7 +17,7 @@
     "host": "CROWD_SQS_HOST",
     "port": "CROWD_SQS_PORT",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
-    "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
+    "nodejsWorkerPriorityQueue": "CROWD_SQS_NODEJS_WORKER_PRIORITY_QUEUE",
     "integrationRunWorkerQueue": "CROWD_SQS_INTEGRATION_RUN_WORKER_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
     "aws": {
@@ -101,7 +101,8 @@
   },
   "twitter": {
     "clientId": "CROWD_TWITTER_CLIENT_ID",
-    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET"
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET",
+    "callbackUrl": "CROWD_TWITTER_CALLBACK_URL"
   },
   "slack": {
     "clientId": "CROWD_SLACK_CLIENT_ID",
@@ -157,6 +158,9 @@
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
   },
+  "githubToken": {
+    "token": "CROWD_GITHUB_TOKEN"
+  },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
   },
@@ -189,10 +193,30 @@
     "clientId": "CROWD_AUTH0_CLIENT_ID",
     "jwks": "CROWD_AUTH0_JWKS"
   },
+  "sso": {
+    "crowdTenantId": "CROWD_SSO_CROWD_TENANT_ID",
+    "lfTenantId": "CROWD_SSO_LF_TENANT_ID"
+  },
   "crowdAnalytics": {
     "isEnabled": "CROWD_ANALYTICS_IS_ENABLED",
     "tenantId": "CROWD_ANALYTICS_TENANT_ID",
     "baseUrl": "CROWD_ANALYTICS_BASE_URL",
     "apiToken": "CROWD_ANALYTICS_API_TOKEN"
+  },
+  "temporal": {
+    "serverUrl": "CROWD_TEMPORAL_SERVER_URL",
+    "namespace": "CROWD_TEMPORAL_NAMESPACE",
+    "certificate": "CROWD_TEMPORAL_CERTIFICATE",
+    "privateKey": "CROWD_TEMPORAL_PRIVATE_KEY"
+  },
+  "searchSyncApi": {
+    "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
+  },
+  "encryption": {
+    "secretKey": "CROWD_ENCRYPTION_SECRET_KEY",
+    "initVector": "CROWD_ENCRYPTION_INIT_VECTOR"
+  },
+  "openStatusApi": {
+    "baseUrl": "CROWD_OPENSTATUS_URL"
   }
 }

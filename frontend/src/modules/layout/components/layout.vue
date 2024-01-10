@@ -16,9 +16,11 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
-import identify from '@/shared/monitoring/identify';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
+import { mapActions as piniaMapActions } from 'pinia';
+import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
 
 export default {
   name: 'AppLayout',
@@ -42,7 +44,9 @@ export default {
         const param = this.$route.query.menu === 'true' || false;
 
         if (updatedValue !== param) {
-          this.$router.replace({ query: { ...this.$route.query, menu: updatedValue } });
+          this.$router.replace({
+            query: { ...this.$route.query, menu: updatedValue },
+          });
         }
       },
     },
@@ -60,14 +64,22 @@ export default {
   },
 
   async mounted() {
-    identify(this.currentUser);
     this.initPendo();
+    this.fetchActivityTypes();
+    this.fetchActivityChannels();
   },
 
   methods: {
     ...mapActions({
       toggleMenu: 'layout/toggleMenu',
     }),
+    ...piniaMapActions(useActivityStore, {
+      fetchActivityChannels: 'fetchActivityChannels',
+    }),
+    ...piniaMapActions(useActivityTypeStore, {
+      fetchActivityTypes: 'fetchActivityTypes',
+    }),
+
     initPendo() {
       // This function creates anonymous visitor IDs in Pendo unless you change the visitor id field to use your app's values
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values
@@ -75,9 +87,9 @@ export default {
       // Please use Strings, Numbers, or Bools for value types.
       window.pendo.initialize({
         visitor: {
-          id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
-          email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email
-          full_name: this.currentUser.fullName, // Recommended if using Pendo Feedback
+          id: this.currentUser?.id, // Required if user is logged in, default creates anonymous ID
+          email: this.currentUser?.email, // Recommended if using Pendo Feedback, or NPS Email
+          full_name: this.currentUser?.fullName, // Recommended if using Pendo Feedback
           // role:         // Optional
 
           // You can add any additional visitor level key-values here,

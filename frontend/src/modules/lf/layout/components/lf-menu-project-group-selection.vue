@@ -14,18 +14,15 @@
 
   <el-popover
     v-model:visible="isPopoverVisible"
-    :virtual-ref="inputRef"
     placement="bottom-start"
-    trigger="manual"
-    virtual-triggering
+    trigger="contextmenu"
     popper-class="project-groups-select-popper"
     :teleported="false"
     width="255px"
   >
-    <div v-if="projectGroups.list.length > 5" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
+    <div v-if="isSearchVisible" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
       <el-input
         id="filterSearch"
-        ref="searchQueryInput"
         v-model="searchQuery"
         placeholder="Search..."
         class="filter-dropdown-search"
@@ -54,7 +51,7 @@
                 {{ projectGroup.name }}
               </div>
               <div class="h-5 leading-5 text-3xs text-gray-400">
-                {{ pluralize('contributor', projectGroup.members, true) }} ・ {{ pluralize('project', projectGroup.projects.length, true) }}
+                {{ pluralize('project', projectGroup.projects.length, true) }}
               </div>
             </div>
           </div>
@@ -96,14 +93,15 @@ const ArrowUpIcon = h(
 );
 
 const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup, projectGroups } = storeToRefs(lsSegmentsStore);
-const { updateSelectedProjectGroup, listProjectGroups } = lsSegmentsStore;
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { updateSelectedProjectGroup } = lsSegmentsStore;
 
 const inputRef = ref(null);
 const searchQuery = ref('');
 const isPopoverVisible = ref(false);
 const projectGroupsList = ref([]);
 const loading = ref(false);
+const isSearchVisible = ref(false);
 
 const model = computed({
   get() {
@@ -124,22 +122,22 @@ const queryProjectGroups = () => {
     },
   }).then(({ rows }) => {
     projectGroupsList.value = rows;
+    if (searchQuery.value.length === 0 && rows.length > 5) {
+      isSearchVisible.value = true;
+    }
   }).finally(() => {
     loading.value = false;
   });
 };
 
-watch(projectGroups, (updatedProjectGroups) => {
-  projectGroupsList.value = updatedProjectGroups.list;
-}, {
-  deep: true,
+watch(isPopoverVisible, (isVisible) => {
+  if (isVisible) {
+    queryProjectGroups();
+  }
 });
 
 onMounted(() => {
-  listProjectGroups({
-    limit: null,
-    reset: true,
-  });
+  queryProjectGroups();
 });
 
 const onSearchProjects = debounce(() => {
@@ -154,7 +152,7 @@ const onOptionClick = (id) => {
 
 <script>
 export default {
-  name: 'AppLfSubProjectsListDropdown',
+  name: 'AppLfSubProjectsGroupSelection',
 };
 </script>
 

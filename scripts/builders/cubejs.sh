@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-DOCKERFILE="../backend/src/cubejs/Dockerfile"
-CONTEXT="../backend/src/cubejs"
+DOCKERFILE="../services/libs/cubejs/Dockerfile"
+CONTEXT="../services/libs/cubejs/src"
 REPO="crowddotdev/cubejs"

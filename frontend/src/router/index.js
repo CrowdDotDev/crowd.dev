@@ -27,6 +27,10 @@ const routes = [
       return r;
     }))
     .reduce((a, b) => a.concat(b), []),
+  {
+    path: '/',
+    redirect: '/auth/signin',
+  },
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
 // eslint-disable-next-line import/no-mutable-exports
@@ -64,7 +68,7 @@ export const createRouter = () => {
       // Set title to pages
       document.title = `LFX Community Management${to.meta.title ? ` | ${to.meta.title}` : ''}`;
 
-      if (to.name && to.query.menu === from.query.menu) {
+      if (to.name && to.query.menu === from.query.menu && to.name !== from.name) {
         ProgressBar.start();
       }
 

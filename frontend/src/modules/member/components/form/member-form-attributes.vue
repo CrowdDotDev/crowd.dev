@@ -49,21 +49,17 @@
                   {{ attribute.label }}
                 </div>
                 <el-tooltip
-                  v-if="
-                    model.attributes[attribute.name]
-                      ?.enrichment
-                  "
-                  content="Contributor enrichment"
+                  v-if="getAttributeSourceName(model.attributes[attribute.name])"
+                  :content="`Source: ${getAttributeSourceName(model.attributes[attribute.name])}`"
                   placement="top"
+                  trigger="hover"
                 >
-                  <div class="form-enrichment-badge">
-                    <app-svg name="enrichment" />
-                  </div>
+                  <app-svg name="source" class="h-3 w-3" />
                 </el-tooltip>
               </div>
               <span
                 class="text-2xs text-gray-500 leading-none"
-              >{{ attributesTypes[attribute.type] }}</span>
+              >{{ AttributeType[attribute.type.toUpperCase()] }}</span>
             </div>
             <el-form-item class="grow">
               <el-date-picker
@@ -115,6 +111,7 @@
                 :collapse-tags="true"
                 :parse-model="true"
                 :are-options-in-memory="true"
+                :options-limit="10"
               />
               <el-input
                 v-else
@@ -180,6 +177,8 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import AppSvg from '@/shared/svg/svg.vue';
+import { AttributeType } from '@/modules/organization/types/Attributes';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 const CalendarIcon = h(
   'i', // type
@@ -189,16 +188,6 @@ const CalendarIcon = h(
   }, // props
   [],
 );
-
-const attributesTypes = {
-  string: 'Text',
-  number: 'Number',
-  email: 'E-mail',
-  url: 'URL',
-  date: 'Date',
-  boolean: 'Boolean',
-  multiSelect: 'Multi-select',
-};
 
 const emit = defineEmits([
   'update:modelValue',

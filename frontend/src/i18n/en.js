@@ -30,7 +30,7 @@ const en = {
   },
 
   app: {
-    title: 'crowd.dev',
+    title: 'LFX',
   },
 
   api: {
@@ -152,9 +152,10 @@ const en = {
       create: {
         success: 'Contributor successfully saved',
         error: 'There was an error creating the contributor',
+        message: 'View contributor',
       },
       update: {
-        success: 'Contributor successfully saved',
+        success: 'Contributor edited successfully',
         error: 'There was an error updating the contributor',
       },
       destroy: {
@@ -262,7 +263,7 @@ const en = {
         revenueRange: 'Annual revenue',
         activeSince: 'Active since',
         github: 'GitHub',
-        twitter: 'Twitter',
+        twitter: 'X/Twitter',
         linkedin: 'LinkedIn',
         crunchbase: 'Crunchbase',
       },
@@ -385,6 +386,8 @@ const en = {
         new_activity:
           'New activity happened in your community',
         new_member: 'New contributor joined your community',
+        member_attributes_match: 'Contributor attributes match condition(s)',
+        organization_attributes_match: 'Organization attributes match condition(s)',
       },
     },
 
@@ -554,18 +557,6 @@ const en = {
       success: 'Email successfully verified.',
       message:
         'Just a moment, your email is being verified...',
-    },
-  },
-
-  roles: {
-    admin: {
-      label: 'Admin',
-      description: 'Full access to all resources',
-    },
-    readonly: {
-      label: 'Read-only',
-      description:
-        'Read access to Community Contributors, Activities, Conversations, and Reports',
     },
   },
 
@@ -819,7 +810,7 @@ const en = {
   /* eslint-disable */
   validation: {
     mixed: {
-      default: 'path} is invalid',
+      default: '{path} is invalid',
       required: 'This field is required',
       oneOf:
         '{path} must be one of the following values: ${values}',

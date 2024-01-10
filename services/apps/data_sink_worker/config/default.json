@@ -1,4 +1,13 @@
 {
   "db": {},
-  "sqs": {}
+  "sqs": {},
+  "redis": {},
+  "unleash": {},
+  "temporal": {
+    "automationsTaskQueue": "automations"
+  },
+  "worker": {
+    "maxStreamRetries": 5,
+    "queuePriorityLevel": "normal"
+  }
 }

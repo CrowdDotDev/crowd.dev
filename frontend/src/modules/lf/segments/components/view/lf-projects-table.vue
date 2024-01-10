@@ -49,7 +49,7 @@
             :key="id"
             class="relative w-6 h-6 flex items-center justify-center"
           >
-            <app-platform-svg-icon
+            <app-platform-svg
               :platform="platform"
             />
             <i
@@ -158,11 +158,11 @@
 import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-dropdown.vue';
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
-import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
 import { useRoute } from 'vue-router';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
+import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
 
 const route = useRoute();
 

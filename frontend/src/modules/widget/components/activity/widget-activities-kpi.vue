@@ -90,7 +90,10 @@ const widgets = computed(() => [
   {
     title: `${ACTIVITIES_KPI_WIDGET.name} today`,
     query: query(
-      ONE_DAY_PERIOD_FILTER,
+      {
+        ...ONE_DAY_PERIOD_FILTER,
+        value: 2,
+      },
       DAILY_GRANULARITY_FILTER,
     ),
     period: 'day',

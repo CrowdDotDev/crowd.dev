@@ -1,5 +1,5 @@
+import { EagleEyeActionType, EagleEyeContent } from '@crowd/types'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import { EagleEyeActionType, EagleEyeContent } from '../../types/eagleEyeTypes'
 import EagleEyeContentService from '../eagleEyeContentService'
 
 const db = null

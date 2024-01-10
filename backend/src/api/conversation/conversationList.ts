@@ -16,7 +16,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @queryParam {string} [filter[platform]] - Filter by the platform of the conversation.
  * @queryParam {string} [filter[channel]] - Filter by the channel of the conversation.
  * @queryParam {string} [filter[activitiesCountRange]] - activitiesCount lower bound. If you want a range, send this parameter twice with [min] and [max]. If you send it once it will be interpreted as a lower bound.
- * @queryParam {string} [filter[createdAtRange]] - Created at lower bound. If you want a range, send this parameter twice with [min] and [max]. If you send it once it will be interpreted as a lower bound.
+ * @queryParam {string} [filter[createdAtRange]] - Send this parameter twice with [min] and [max].
  * @queryParam {ConversationSort} [orderBy] - Sort the results. Default timestamp_DESC.
  * @queryParam {number} [offset] - Skip the first n results. Default 0.
  * @queryParam {number} [limit] - Limit the number of results. Default 50.

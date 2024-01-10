@@ -1,6 +1,7 @@
 import { IMemberAttribute, OpenSearchIndex } from '@crowd/types'
 import MemberTranslator from './memberTranslator'
 import FieldTranslator from './fieldTranslator'
+import OrganizationTranslator from './organizationTranslator'
 
 export class FieldTranslatorFactory {
   static getTranslator(
@@ -11,6 +12,8 @@ export class FieldTranslatorFactory {
     switch (index) {
       case OpenSearchIndex.MEMBERS:
         return new MemberTranslator(attributes, availablePlatforms)
+      case OpenSearchIndex.ORGANIZATIONS:
+        return new OrganizationTranslator()
       default:
         throw new Error(`Field translator for index ${index} not found!`)
     }

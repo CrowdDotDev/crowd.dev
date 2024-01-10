@@ -15,6 +15,7 @@
     fit-input-width
     value-key="id"
     :class="inputClass"
+    :teleported="teleported"
     @change="onChange"
   >
     <template
@@ -119,6 +120,10 @@ export default {
       default: () => [],
     },
     clearable: {
+      type: Boolean,
+      default: true,
+    },
+    teleported: {
       type: Boolean,
       default: true,
     },

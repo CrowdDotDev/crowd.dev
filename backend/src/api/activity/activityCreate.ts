@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = await new ActivityService(req).upsert(req.body)
 
-  track('Activity Manually Created', { ...payload }, { ...req })
+  track('Activity Manually Created', { ...req.body }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

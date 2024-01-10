@@ -9,6 +9,11 @@ export interface IActivityData {
   type: string
 
   /**
+   * Platform of the activity.
+   */
+  platform?: string
+
+  /**
    * Timestamp of the activity.
    * ISO 8601 format string.
    */

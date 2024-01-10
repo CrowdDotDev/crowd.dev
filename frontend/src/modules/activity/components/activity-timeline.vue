@@ -1,173 +1,209 @@
 <template>
   <div class="activity-timeline">
     <div class="my-6">
-      <el-input
-        v-model="query"
-        placeholder="Search activities"
-        :prefix-icon="SearchIcon"
-        clearable
-        class="activity-timeline-search"
-      >
-        <template #append>
-          <el-select
-            v-model="platform"
-            placeholder="All platforms"
-            class="w-40"
-            clearable
-            @clear="onClear"
-          >
-            <template
-              v-if="
-                platform && getPlatformDetails(platform)
-              "
-              #prefix
+      <div class="flex gap-2">
+        <el-input
+          v-model="query"
+          placeholder="Search activities"
+          :prefix-icon="SearchIcon"
+          clearable
+          class="activity-timeline-search"
+        >
+          <template #append>
+            <el-select
+              v-model="platform"
+              clearable
+              placeholder="All platforms"
+              class="w-40"
+              @clear="reloadActivities"
             >
-              <img
-                v-if="getPlatformDetails(platform)"
-                :alt="getPlatformDetails(platform).name"
-                :src="getPlatformDetails(platform).image"
-                class="w-4 h-4"
-              />
-              <i
-                v-else
-                class="ri-radar-line text-base text-gray-400"
-              />
-            </template>
-            <el-option
-              v-for="integration of activeIntegrations"
-              :key="integration.id"
-              :value="integration.platform"
-              :label="integration.label"
-              @mouseleave="onSelectMouseLeave"
-            >
-              <img
-                :alt="integration.name"
-                :src="integration.image"
-                class="w-4 h-4 mr-2"
-              />
-              {{ integration.label }}
-            </el-option>
-            <el-option
-              value="other"
-              label="Other"
-              @mouseleave="onSelectMouseLeave"
-            >
-              <i
-                class="ri-radar-line text-base text-gray-400 mr-2"
-              />
-              Other
-            </el-option>
-          </el-select>
-        </template>
-      </el-input>
+              <template
+                v-if="
+                  platform && getPlatformDetails(platform)
+                "
+                #prefix
+              >
+                <img
+                  v-if="getPlatformDetails(platform)"
+                  :alt="getPlatformDetails(platform).name"
+                  :src="getPlatformDetails(platform).image"
+                  class="w-4 h-4"
+                />
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
+              </template>
+              <el-option
+                v-for="integration of activeIntegrations"
+                :key="integration.id"
+                :value="integration.platform"
+                :label="integration.label"
+                @mouseleave="onSelectMouseLeave"
+              >
+                <img
+                  :alt="integration.name"
+                  :src="integration.image"
+                  class="w-4 h-4 mr-2"
+                />
+                {{ integration.label }}
+              </el-option>
+              <el-option
+                value="other"
+                label="Other"
+                @mouseleave="onSelectMouseLeave"
+              >
+                <i
+                  class="ri-radar-line text-base text-gray-400 mr-2"
+                />
+                Other
+              </el-option>
+            </el-select>
+          </template>
+        </el-input>
+        <el-select
+          v-model="selectedSegment"
+          clearable
+          filterable
+          no-match-text="Sub-project not found"
+          placeholder="All sub-projects"
+          class="w-52"
+          @change="fetchActivities({ reset: true })"
+        >
+          <el-option
+            v-for="segment of segments"
+            :key="segment.id"
+            :value="segment.id"
+            :label="segment.name"
+            @mouseleave="onSelectMouseLeave"
+          />
+        </el-select>
+      </div>
     </div>
     <div>
       <el-timeline>
-        <el-timeline-item
-          v-for="activity in activities"
-          :key="activity.id"
-        >
-          <div>
-            <app-member-display-name
-              v-if="entityType === 'organization'"
-              :member="activity.member"
-              custom-class="block text-gray-900 font-medium"
-              with-link
-              class="bl"
-            />
-            <div
-              class="flex gap-4 justify-between min-h-9 -mt-1"
-              :class="{
-                'items-center': !isMemberEntity,
-                'items-start': isMemberEntity,
-              }"
-            >
-              <app-activity-header
-                :activity="activity"
-                class="flex flex-wrap items-center"
+        <template v-if="activities.length && !loading">
+          <el-timeline-item
+            v-for="activity in activities"
+            :key="activity.id"
+          >
+            <div class="-mt-1.5">
+              <app-member-display-name
+                v-if="entityType === 'organization'"
+                :member="activity.member"
+                custom-class="block text-gray-900 font-medium"
+                with-link
+                class="bl"
+              />
+              <div
+                class="flex gap-4 justify-between min-h-9 -mt-1"
                 :class="{
-                  'mt-1.5': isMemberEntity,
+                  'items-center': !isMemberEntity,
+                  'items-start': isMemberEntity,
                 }"
-              />
-
-              <div class="flex items-center flex-nowrap">
-                <a
-                  v-if="
-                    activity.conversationId && isMemberEntity
-                  "
-                  class="text-xs font-medium flex items-center mr-4 cursor-pointer hover:underline"
-                  target="_blank"
-                  @click="
-                    conversationId = activity.conversationId
-                  "
-                >
-                  <i
-                    class="ri-lg ri-arrow-right-up-line mr-1"
-                  />
-                  <span class="block whitespace-nowrap">Open conversation</span>
-                </a>
-                <app-activity-dropdown
-                  v-if="showAffiliations"
-                  :show-affiliations="true"
+              >
+                <app-activity-header
                   :activity="activity"
-                  :organizations="entity.organizations"
-                  @on-update="fetchActivities({ reset: true })"
+                  class="flex flex-wrap items-center"
+                  :class="{
+                    'mt-1.5': isMemberEntity,
+                  }"
                 />
-              </div>
-            </div>
 
-            <app-lf-activity-parent
-              v-if="activity.parent && isMemberEntity"
-              :parent="activity.parent"
-            />
-
-            <app-activity-content
-              v-if="activity.title || activity.body"
-              class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
-              :activity="activity"
-              :show-more="true"
-            >
-              <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
-                <div v-if="activity.attributes">
-                  <app-activity-content-footer
-                    :source-id="activity.sourceId"
-                    :changes="activity.attributes.lines"
-                    changes-copy="line"
-                    :insertions="activity.attributes.insertions"
-                    :deletions="activity.attributes.deletions"
-                  />
-                </div>
-              </template>
-
-              <template #bottomLink>
-                <div v-if="activity.url" class="pt-6">
-                  <app-activity-link
+                <div class="flex items-center flex-nowrap">
+                  <a
+                    v-if="
+                      activity.conversationId && isMemberEntity
+                    "
+                    class="text-xs font-medium flex items-center mr-4 cursor-pointer hover:underline"
+                    target="_blank"
+                    @click="
+                      conversationId = activity.conversationId
+                    "
+                  >
+                    <i
+                      class="ri-lg ri-arrow-right-up-line mr-1"
+                    />
+                    <span class="block whitespace-nowrap">Open conversation</span>
+                  </a>
+                  <app-activity-dropdown
+                    v-if="showAffiliations"
+                    :show-affiliations="true"
                     :activity="activity"
+                    :organizations="entity.organizations ?? activity.member.organizations ?? []"
+                    :disable-edit="true"
+                    @on-update="fetchActivities({ reset: true })"
                   />
                 </div>
-              </template>
-            </app-activity-content>
-          </div>
-          <template #dot>
-            <span
-              class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
-              :class="`btn--${activity.platform}`"
-            >
-              <img
-                v-if="platformDetails(activity.platform)"
-                :src="
-                  platformDetails(activity.platform).image
-                "
-                :alt="`${activity.platform}-icon`"
-                class="w-4 h-4"
+              </div>
+
+              <app-lf-activity-parent
+                v-if="activity.parent && isMemberEntity"
+                :parent="activity.parent"
               />
-              <i
-                v-else
-                class="ri-radar-line text-base text-gray-400"
-              />
-            </span>
-          </template>
-        </el-timeline-item>
+
+              <app-activity-content
+                v-if="activity.title || activity.body"
+                class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
+                :activity="activity"
+                :show-more="true"
+              >
+                <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
+                  <div v-if="activity.attributes">
+                    <app-activity-content-footer
+                      :source-id="activity.sourceId"
+                      :changes="activity.attributes.lines"
+                      changes-copy="line"
+                      :insertions="activity.attributes.insertions"
+                      :deletions="activity.attributes.deletions"
+                    />
+                  </div>
+                </template>
+
+                <template #bottomLink>
+                  <div v-if="activity.url" class="pt-6">
+                    <app-activity-link
+                      :activity="activity"
+                    />
+                  </div>
+                </template>
+              </app-activity-content>
+            </div>
+            <template #dot>
+              <span
+                class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
+                :class="`btn--${activity.platform}`"
+              >
+                <img
+                  v-if="platformDetails(activity.platform)"
+                  :src="
+                    platformDetails(activity.platform).image
+                  "
+                  :alt="`${activity.platform}-icon`"
+                  class="w-4 h-4"
+                />
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
+              </span>
+            </template>
+          </el-timeline-item>
+        </template>
+
+        <div
+          v-if="!activities.length && !loading"
+          class="flex items-center justify-center pt-6 pb-5"
+        >
+          <div
+            class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
+          />
+          <p
+            class="text-xs leading-5 text-center italic text-gray-400"
+          >
+            This contributor has no activities in {{ getPlatformDetails(platform)?.name || 'custom platforms' }}
+          </p>
+        </div>
       </el-timeline>
       <div
         v-if="loading"
@@ -178,7 +214,7 @@
         <el-button
           class="btn btn-link btn-link--primary"
           :disabled="loading"
-          @click="fetchActivities"
+          @click="fetchActivities()"
         >
           <i class="ri-arrow-down-line mr-2" />Load
           more
@@ -199,7 +235,6 @@ import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
   computed,
-  reactive,
   ref,
   h,
   onMounted,
@@ -215,9 +250,11 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const SearchIcon = h(
   'i', // type
@@ -241,34 +278,51 @@ const props = defineProps({
   },
 });
 
+const lsSegmentsStore = useLfSegmentsStore();
+const { projectGroups } = storeToRefs(lsSegmentsStore);
+
 const conversationId = ref(null);
 
 const activeIntegrations = computed(() => {
   const activeIntegrationList = store.getters['integration/activeList'];
   return Object.keys(activeIntegrationList).map((i) => ({
     ...activeIntegrationList[i],
-    label: CrowdIntegrations.getConfig(i).name,
+    label: CrowdIntegrations.getConfig(i)?.name,
   }));
 });
 
 const loading = ref(true);
 const platform = ref(null);
 const query = ref('');
-const activities = reactive([]);
+const activities = ref([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
+const selectedSegment = ref(null);
 
 let filter = {};
 
 const isMemberEntity = computed(() => props.entityType === 'member');
 
+const subprojects = computed(() => projectGroups.value.list.reduce((acc, projectGroup) => {
+  projectGroup.projects.forEach((project) => {
+    project.subprojects.forEach((subproject) => {
+      acc[subproject.id] = {
+        id: subproject.id,
+        name: subproject.name,
+      };
+    });
+  });
+
+  return acc;
+}, {}));
+
 const segments = computed(() => props.entity.segments?.map((s) => {
   if (typeof s === 'string') {
-    return s;
+    return subprojects.value[s];
   }
 
-  return s.id;
+  return s;
 }) || []);
 
 const fetchActivities = async ({ reset } = { reset: false }) => {
@@ -320,7 +374,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   }
 
   if (!isEqual(filter, filterToApply) || reset) {
-    activities.length = 0;
+    activities.value.length = 0;
     offset.value = 0;
     noMore.value = false;
   }
@@ -342,7 +396,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value,
-      segments: segments.value,
+      segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
     },
     {
       headers: {
@@ -355,11 +409,16 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   loading.value = false;
   if (data.rows.length < limit.value) {
     noMore.value = true;
-    activities.push(...data.rows);
+    activities.value.push(...data.rows);
   } else {
     offset.value += limit.value;
-    activities.push(...data.rows);
+    activities.value.push(...data.rows);
   }
+};
+
+const reloadActivities = async () => {
+  platform.value = undefined;
+  await fetchActivities();
 };
 
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
@@ -382,12 +441,8 @@ watch(platform, async (newValue, oldValue) => {
   }
 });
 
-const onClear = () => {
-  platform.value = null;
-};
-
 onMounted(async () => {
-  await store.dispatch('integration/doFetch', segments.value);
+  await store.dispatch('integration/doFetch', segments.value.map((s) => s.id));
   await fetchActivities();
 });
 </script>

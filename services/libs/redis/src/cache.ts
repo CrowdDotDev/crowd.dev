@@ -58,6 +58,22 @@ export class RedisCache extends LoggerBase implements ICache {
     return result
   }
 
+  async decrement(key: string, decrementBy = 1, ttlSeconds?: number): Promise<number> {
+    const actualKey = this.prefixer(key)
+
+    if (ttlSeconds !== undefined) {
+      const [decrResult] = await this.client
+        .multi()
+        .decrBy(actualKey, decrementBy)
+        .expire(actualKey, ttlSeconds)
+        .exec()
+      return decrResult as number
+    }
+
+    const result = await this.client.decrBy(actualKey, decrementBy)
+    return result
+  }
+
   public setIfNotExistsAlready(key: string, value: string): Promise<boolean> {
     const actualKey = this.prefixer(key)
     return this.client.setNX(actualKey, value)
@@ -66,6 +82,21 @@ export class RedisCache extends LoggerBase implements ICache {
   public async delete(key: string): Promise<number> {
     const actualKey = this.prefixer(key)
     return this.client.del(actualKey)
+  }
+
+  public async hget(key: string, field: string): Promise<string> {
+    const actualKey = this.prefixer(key)
+    return this.client.hGet(actualKey, field)
+  }
+
+  public async hset(key: string, field: string, value: string): Promise<number> {
+    const actualKey = this.prefixer(key)
+    return this.client.hSet(actualKey, field, value)
+  }
+
+  public async hgetall(key: string): Promise<{ [key: string]: string }> {
+    const actualKey = this.prefixer(key)
+    return this.client.hGetAll(actualKey)
   }
 
   private async deleteByPattern(pattern: string): Promise<number> {

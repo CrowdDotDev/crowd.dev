@@ -1,9 +1,9 @@
 import { getRedisClient, RedisCache } from '@crowd/redis'
+import { FeatureFlagRedisKey } from '@crowd/types'
 import { getSecondsTillEndOfMonth } from '../../../../utils/timing'
 import { REDIS_CONFIG } from '../../../../conf'
 import getUserContext from '../../../../database/utils/getUserContext'
 import MemberEnrichmentService from '../../../../services/premium/enrichment/memberEnrichmentService'
-import { FeatureFlagRedisKey } from '../../../../types/common'
 
 /**
  * Sends weekly analytics emails of a given tenant

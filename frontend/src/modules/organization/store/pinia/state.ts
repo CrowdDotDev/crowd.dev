@@ -9,21 +9,21 @@ export interface OrganizationState {
   organization: Organization | null;
   selectedOrganizations: Organization[];
   totalOrganizations: number;
+  mergedOrganizations: {
+    [key: string]: string;
+  }
 }
 
 const state: OrganizationState = {
   filters: {
-    ...allOrganizations.filter,
-    pagination: {
-      page: 1,
-      perPage: 20,
-    },
+    ...allOrganizations.config,
   },
   savedFilterBody: {},
   organizations: [],
   organization: null,
   selectedOrganizations: [],
   totalOrganizations: 0,
+  mergedOrganizations: {},
 };
 
 export default () => state;

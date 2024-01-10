@@ -1,13 +1,17 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { IntegrationRunState } from '@crowd/types'
+import { IntegrationRunState, PlatformType } from '@crowd/types'
+import { Error404 } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import AutomationRepository from './automationRepository'
+import AutomationExecutionRepository from './automationExecutionRepository'
+import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
+import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 
 const { Op } = Sequelize
 const log: boolean = false
@@ -152,6 +156,30 @@ class IntegrationRepository {
       },
     )
 
+    // delete syncRemote rows coming from integration
+    await new MemberSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
+      record.id,
+    ])
+    await new OrganizationSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
+      record.id,
+    ])
+
+    // destroy existing automations for outgoing integrations
+    const syncAutomationIds = (
+      await new AutomationRepository({ ...options, transaction }).findSyncAutomations(
+        currentTenant.id,
+        record.platform,
+      )
+    ).map((a) => a.id)
+
+    if (syncAutomationIds.length > 0) {
+      await new AutomationExecutionRepository({ ...options, transaction }).destroyAllAutomation(
+        syncAutomationIds,
+      )
+    }
+
+    await new AutomationRepository({ ...options, transaction }).destroyAll(syncAutomationIds)
+
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
@@ -200,6 +228,23 @@ class IntegrationRepository {
     return this._populateRelations(record)
   }
 
+  static async findActiveIntegrationByPlatform(platform: PlatformType, tenantId: string) {
+    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+
+    const record = await options.database.integration.findOne({
+      where: {
+        platform,
+        tenantId,
+      },
+    })
+
+    if (!record) {
+      throw new Error404()
+    }
+
+    return this._populateRelations(record)
+  }
+
   /**
    * Find all active integrations for a platform
    * @param platform The platform we want to find all active integrations for
@@ -215,6 +260,7 @@ class IntegrationRepository {
       },
       limit: perPage,
       offset: (page - 1) * perPage,
+      order: [['id', 'ASC']],
     })
 
     if (!records) {
@@ -463,6 +509,37 @@ class IntegrationRepository {
     })
 
     rows = await this._populateRelationsForRows(rows)
+
+    // Some integrations (i.e GitHub, Discord, Discourse, Groupsio) receive new data via webhook post-onboarding.
+    // We track their last processedAt separately, and not using updatedAt.
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const integrationIds = rows.map((row) => row.id)
+    let results = []
+
+    if (integrationIds.length > 0) {
+      const query = `select "integrationId", max("processedAt") as "processedAt" from "incomingWebhooks" 
+      where "integrationId" in (:integrationIds) and state = 'PROCESSED'
+      group by "integrationId"`
+
+      results = await seq.query(query, {
+        replacements: {
+          integrationIds,
+        },
+        type: QueryTypes.SELECT,
+        transaction: SequelizeRepository.getTransaction(options),
+      })
+    }
+
+    const processedAtMap = results.reduce((map, item) => {
+      map[item.integrationId] = item.processedAt
+      return map
+    }, {})
+
+    rows.forEach((row) => {
+      // Either use the last processedAt, or fall back updatedAt
+      row.lastProcessedAt = processedAtMap[row.id] || row.updatedAt
+    })
 
     return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }

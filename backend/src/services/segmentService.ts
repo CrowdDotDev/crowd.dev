@@ -1,20 +1,21 @@
-import { ActivityTypeSettings, PlatformType } from '@crowd/types'
-import { LoggerBase } from '@crowd/logging'
-import SegmentRepository from '../database/repositories/segmentRepository'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import Error400 from '../errors/Error400'
 import {
+  ActivityTypeSettings,
+  PlatformType,
   SegmentActivityTypesCreateData,
   SegmentCriteria,
   SegmentData,
   SegmentLevel,
   SegmentUpdateData,
-} from '../types/segmentTypes'
+} from '@crowd/types'
+import { Error400 } from '@crowd/common'
+import { LoggerBase } from '@crowd/logging'
+import SegmentRepository from '../database/repositories/segmentRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import MemberRepository from '../database/repositories/memberRepository'
 import ReportRepository from '../database/repositories/reportRepository'
+import MemberRepository from '../database/repositories/memberRepository'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -188,24 +189,24 @@ export default class SegmentService extends LoggerBase {
   async queryProjectGroups(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjectGroups(search)
 
-    await this.addMemberCounts(result.rows, SegmentLevel.PROJECT_GROUP)
+    if (result.rows.length) {
+      const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
+        this.options,
+        result.rows.map((s) => s.id),
+      )
+      this.setMembersCount(result.rows, SegmentLevel.PROJECT_GROUP, membersCountPerSegment)
+    }
 
     return result
   }
 
   async queryProjects(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjects(search)
-
-    await this.addMemberCounts(result.rows, SegmentLevel.PROJECT)
-
     return result
   }
 
   async querySubprojects(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).querySubprojects(search)
-
-    await this.addMemberCounts(result.rows, SegmentLevel.SUB_PROJECT)
-
     return result
   }
 
@@ -355,30 +356,18 @@ export default class SegmentService extends LoggerBase {
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
 
-    const activityChannels = SegmentRepository.getActivityChannels(this.options)
-
-    if (activityChannels[data.platform]) {
-      const channelList = activityChannels[data.platform]
-      if (!channelList.includes(data.channel)) {
-        const updatedChannelList = [...channelList, data.channel]
-        activityChannels[data.platform] = updatedChannelList
-      }
-    } else {
-      activityChannels[data.platform] = [data.channel]
-    }
-
-    const updated = await new SegmentRepository(this.options).update(segment.id, {
-      activityChannels,
-    })
-
-    return updated.activityChannels
+    const segmentRepository = new SegmentRepository(this.options)
+    await segmentRepository.addActivityChannel(segment.id, data.platform, data.channel)
   }
 
-  async getTenantSubprojects(tenant: any) {
-    const segmentRepository = new SegmentRepository({
-      ...this.options,
-      currentTenant: tenant,
-    })
+  async getSegmentSubprojects(segments: string[]) {
+    const segmentRepository = new SegmentRepository(this.options)
+    const subprojects = await segmentRepository.getSegmentSubprojects(segments)
+    return subprojects
+  }
+
+  async getTenantSubprojects() {
+    const segmentRepository = new SegmentRepository(this.options)
 
     const { rows } = await segmentRepository.querySubprojects({})
     return rows
@@ -404,17 +393,11 @@ export default class SegmentService extends LoggerBase {
     }, {})
   }
 
-  static async getTenantActivityChannels(subprojects: any) {
-    return subprojects.reduce((acc: any, subproject) => {
-      for (const platform of Object.keys(subproject.activityChannels)) {
-        if (!acc[platform]) {
-          acc[platform] = []
-        }
+  static async getTenantActivityChannels(segments: string[], options: any) {
+    const segmentRepository = new SegmentRepository(options)
 
-        acc[platform] = [...acc[platform], ...subproject.activityChannels[platform]]
-      }
-      return acc
-    }, {})
+    const activityChannels = await segmentRepository.fetchTenantActivityChannels(segments)
+    return activityChannels
   }
 
   private collectSubprojectIds(segments, level: SegmentLevel) {
@@ -479,6 +462,7 @@ export default class SegmentService extends LoggerBase {
     if (!subprojectIds.length) {
       return
     }
+
     const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
       this.options,
       subprojectIds,

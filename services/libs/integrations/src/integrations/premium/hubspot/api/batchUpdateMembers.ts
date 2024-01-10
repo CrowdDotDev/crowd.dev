@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
 import { IMember, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
+import { IBatchUpdateMembersResult } from './types'
 
 export const batchUpdateMembers = async (
   nangoId: string,
@@ -12,7 +13,7 @@ export const batchUpdateMembers = async (
   memberMapper: HubspotMemberFieldMapper,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
   throttler: RequestThrottler,
-): Promise<any> => {
+): Promise<IBatchUpdateMembersResult[]> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'post',
     url: `https://api.hubapi.com/crm/v3/objects/contacts/batch/update`,
@@ -26,49 +27,55 @@ export const batchUpdateMembers = async (
     const hubspotMembers = []
 
     for (const member of members) {
-      const hubspotSourceId = member.attributes?.sourceId?.hubspot
+      if (member) {
+        const hubspotSourceId = member.attributes?.sourceId?.hubspot
 
-      if (!hubspotSourceId) {
-        ctx.log.warn(
-          `Member ${member.id} can't be updated in hubspot! Member doesn't have a hubspot sourceId in attributes.`,
-        )
-      } else {
-        const hsMember = {
-          id: hubspotSourceId,
-          properties: {},
-        } as any
+        if (!hubspotSourceId) {
+          ctx.log.warn(
+            `Member ${member.id} can't be updated in hubspot! Member doesn't have a hubspot sourceId in attributes.`,
+          )
+        } else {
+          const hsMember = {
+            id: hubspotSourceId,
+            properties: {},
+          } as any
 
-        const fields = memberMapper.getAllCrowdFields()
+          const fields = memberMapper.getAllCrowdFields()
 
-        for (const crowdField of fields) {
-          const hubspotField = memberMapper.getHubspotFieldName(crowdField)
-          if (crowdField.startsWith('attributes')) {
-            const attributeName = crowdField.split('.')[1] || null
+          for (const crowdField of fields) {
+            const hubspotField = memberMapper.getHubspotFieldName(crowdField)
+            // if hubspot e-mail field is mapped to a crowd field, we should ignore it because
+            // we handle this manually above
+            if (hubspotField && hubspotField !== 'email') {
+              if (crowdField.startsWith('attributes')) {
+                const attributeName = crowdField.split('.')[1] || null
 
-            if (
-              attributeName &&
-              hubspotField &&
-              member.attributes[attributeName]?.default !== undefined
-            ) {
-              hsMember.properties[hubspotField] = member.attributes[attributeName].default
+                if (
+                  attributeName &&
+                  hubspotField &&
+                  member.attributes[attributeName]?.default !== undefined
+                ) {
+                  hsMember.properties[hubspotField] = member.attributes[attributeName].default
+                }
+              } else if (crowdField.startsWith('identities')) {
+                const identityPlatform = crowdField.split('.')[1] || null
+
+                const identityFound = member.identities.find((i) => i.platform === identityPlatform)
+
+                if (identityPlatform && hubspotField && identityFound) {
+                  hsMember.properties[hubspotField] = identityFound.username
+                }
+              } else if (crowdField === 'organizationName') {
+                // send latest org of member as value
+              } else if (hubspotField && member[crowdField] !== undefined) {
+                hsMember.properties[hubspotField] = memberMapper.getHubspotValue(member, crowdField)
+              }
             }
-          } else if (crowdField.startsWith('identities')) {
-            const identityPlatform = crowdField.split('.')[1] || null
-
-            const identityFound = member.identities.find((i) => i.platform === identityPlatform)
-
-            if (identityPlatform && hubspotField && identityFound) {
-              hsMember.properties[hubspotField] = identityFound.username
-            }
-          } else if (crowdField === 'organizationName') {
-            // send latest org of member as value
-          } else if (hubspotField && member[crowdField] !== undefined) {
-            hsMember.properties[hubspotField] = memberMapper.getHubspotValue(member, crowdField)
           }
-        }
 
-        if (Object.keys(hsMember.properties).length > 0) {
-          hubspotMembers.push(hsMember)
+          if (Object.keys(hsMember.properties).length > 0) {
+            hubspotMembers.push(hsMember)
+          }
         }
       }
     }
@@ -78,7 +85,7 @@ export const batchUpdateMembers = async (
     }
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ nangoId, accessToken, data: config.data }, 'Updating bulk contacts in HubSpot')
 
@@ -86,7 +93,20 @@ export const batchUpdateMembers = async (
 
     const result = await throttler.throttle(() => axios(config))
 
-    return result.data?.results || []
+    return result.data.results.reduce((acc, m) => {
+      const member = members.find(
+        (crowdMember) => crowdMember.attributes?.sourceId?.hubspot === m.id,
+      )
+
+      const hubspotPayload = hubspotMembers.find((hubspotMember) => hubspotMember.id === m.id)
+
+      acc.push({
+        memberId: member.id,
+        sourceId: m.id,
+        lastSyncedPayload: hubspotPayload,
+      })
+      return acc
+    }, [])
   } catch (err) {
     ctx.log.error({ err }, 'Error while batch update contacts to HubSpot')
     throw err

@@ -1,6 +1,8 @@
+import { FeatureFlag } from '@crowd/types'
 import Permissions from '../../security/permissions'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
+import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 
 /**
  * GET /tenant/{tenantId}/member/{id}
@@ -20,7 +22,24 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
-  const payload = await new MemberService(req).findById(req.params.id)
+  const segmentId = req.query.segments?.length > 0 ? req.query.segments[0] : null
+  if (!segmentId) {
+    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, req)
+    if (segmentsEnabled) {
+      await req.responseHandler.error(req, res, {
+        code: 400,
+        message: 'Segment ID is required',
+      })
+      return
+    }
+  }
+
+  let payload
+  if (await isFeatureEnabled(FeatureFlag.SERVE_PROFILES_OPENSEARCH, req)) {
+    payload = await new MemberService(req).findByIdOpensearch(req.params.id, segmentId)
+  } else {
+    payload = await new MemberService(req).findById(req.params.id, true, true, segmentId)
+  }
 
   await req.responseHandler.success(req, res, payload)
 }

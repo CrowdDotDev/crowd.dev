@@ -1,15 +1,15 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import { PlatformType } from '@crowd/types'
+import { Error404 } from '@crowd/common'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
-import ActivityDisplayService from '../../services/activityDisplayService'
 import SegmentRepository from './segmentRepository'
 
 const Op = Sequelize.Op
@@ -393,7 +393,7 @@ class ConversationRepository {
     }
 
     // eslint-disable-next-line prefer-const
-    let { rows, count } = await options.database.conversation.findAndCountAll({
+    let rows = await options.database.conversation.findAll({
       attributes: [
         ...SequelizeFilterUtils.getLiteralProjections(
           [
@@ -427,7 +427,20 @@ class ConversationRepository {
       distinct: true,
     })
     rows = await this._populateRelationsForRows(rows, options, lazyLoad)
-    return { rows, count: count.length }
+    const [countRow] = await options.database.sequelize.query(
+      `
+        SELECT n_live_tup AS count
+        FROM pg_stat_all_tables
+        WHERE schemaname = 'public'
+          AND relname = 'conversations'
+      `,
+      {
+        type: Sequelize.QueryTypes.SELECT,
+        transaction: SequelizeRepository.getTransaction(options),
+      },
+    )
+    const { count } = countRow
+    return { rows, count: parseInt(count, 10) }
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

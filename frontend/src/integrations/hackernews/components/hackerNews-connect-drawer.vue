@@ -36,10 +36,10 @@
         </span>
         <app-keywords-input
           v-model="keywords"
-          placeholder="e.g. crowd.dev, crowddev, CrowdDotDev"
+          placeholder="e.g. LFX, linux"
         />
       </div>
-      <el-form class="form integration-hackerNews-form">
+      <el-form class="form integration-hackerNews-form" @submit.prevent>
         <div class="flex flex-col gap-2 items-start">
           <span class="text-sm font-medium">Track your URL</span>
           <span

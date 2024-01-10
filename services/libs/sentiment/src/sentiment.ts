@@ -3,11 +3,13 @@ import {
   ComprehendClient,
   DetectSentimentCommand,
   DetectSentimentResponse,
+  LanguageCode,
 } from '@aws-sdk/client-comprehend'
 import { IS_DEV_ENV } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { getComprehendClient } from './client'
 import { ISentimentAnalysisResult, ISentimentClientConfig } from './types'
+import { trimUtf8ToMaxByteLength } from '@crowd/common'
 
 const log = getServiceChildLogger('sentiment')
 
@@ -55,7 +57,7 @@ export const getSentiment = async (text: string): Promise<ISentimentAnalysisResu
 
   const params = {
     Text: preparedText,
-    LanguageCode: 'en',
+    LanguageCode: LanguageCode.EN,
   }
 
   try {
@@ -103,7 +105,7 @@ export const getSentimentBatch = async (
 
   const params = {
     TextList: textArray.map(prepareText),
-    LanguageCode: 'en',
+    LanguageCode: LanguageCode.EN,
   }
 
   try {
@@ -132,22 +134,6 @@ const mapResult = (result: DetectSentimentResponse): ISentimentAnalysisResult =>
     // Then scale it to 0,100
     sentiment: Math.round(50 + (positive - negative) / 2),
   }
-}
-
-const trimUtf8ToMaxByteLength = (utf8Str: string, maxByteLength: number): string => {
-  if (Buffer.byteLength(utf8Str, 'utf8') > maxByteLength) {
-    // this will get us close but some characters could be multibyte encoded so we might need to trim a bit more
-    utf8Str = utf8Str.slice(0, maxByteLength)
-  }
-
-  // trim till we get to the requested byte length or lower (if we cut multibyte character)
-  let byteLength = Buffer.byteLength(utf8Str, 'utf8')
-  while (byteLength > maxByteLength) {
-    utf8Str = utf8Str.slice(0, -1)
-    byteLength = Buffer.byteLength(utf8Str, 'utf8')
-  }
-
-  return utf8Str
 }
 
 const ALLOWED_MAX_BYTE_LENGTH = 5000

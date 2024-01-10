@@ -125,7 +125,7 @@ export const TOTAL_ACTIVE_MEMBERS_QUERY = ({
       dateRange: [
         moment()
           .utc()
-          .subtract(period.value, period.granularity)
+          .subtract(period.granularity === 'day' ? period.value - 1 : period.value, period.granularity)
           .format('YYYY-MM-DD'),
         moment().utc().format('YYYY-MM-DD'),
       ],
@@ -153,7 +153,7 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = ({
       dateRange: [
         moment()
           .utc()
-          .subtract(period.value, period.granularity)
+          .subtract(period.granularity === 'day' ? period.value - 1 : period.value, period.granularity)
           .format('YYYY-MM-DD'),
         moment().utc().format('YYYY-MM-DD'),
       ],
@@ -193,9 +193,8 @@ export const TOTAL_MEMBERS_QUERY = ({
     const end = moment().utc().format('YYYY-MM-DD');
     const start = moment()
       .utc()
-      .subtract(periodValue.value, periodValue.granularity)
       // we're subtracting one more day, to get the last value of the previous period within the same request
-      .subtract(1, 'day')
+      .subtract(periodValue.value, periodValue.granularity)
       .format('YYYY-MM-DD');
 
     return [start, end];
@@ -316,7 +315,7 @@ export const ACTIVITIES_QUERY = ({
       dateRange: [
         moment()
           .utc()
-          .subtract(period.value, period.granularity)
+          .subtract(period.granularity === 'day' ? period.value - 1 : period.value, period.granularity)
           .format('YYYY-MM-DD'),
         moment().utc().format('YYYY-MM-DD'),
       ],
@@ -347,7 +346,7 @@ export const LEADERBOARD_ACTIVITIES_TYPES_QUERY = ({
       dateRange: [
         moment()
           .utc()
-          .subtract(period.value, period.granularity)
+          .subtract(period.granularity === 'day' ? period.value - 1 : period.value, period.granularity)
           .format('YYYY-MM-DD'),
         moment().utc().format('YYYY-MM-DD'),
       ],
@@ -375,7 +374,7 @@ export const LEADERBOARD_ACTIVITIES_COUNT_QUERY = ({
       dateRange: [
         moment()
           .utc()
-          .subtract(period.value, period.granularity)
+          .subtract(period.granularity === 'day' ? period.value - 1 : period.value, period.granularity)
           .format('YYYY-MM-DD'),
         moment().utc().format('YYYY-MM-DD'),
       ],
@@ -402,9 +401,8 @@ export const TOTAL_ACTIVITIES_QUERY = ({
     const end = moment().utc().format('YYYY-MM-DD');
     const start = moment()
       .utc()
-      .subtract(periodValue.value, periodValue.granularity)
       // we're subtracting one more day, to get the last value of the previous period within the same request
-      .subtract(1, 'day')
+      .subtract(periodValue.value, periodValue.granularity)
       .format('YYYY-MM-DD');
 
     return [start, end];

@@ -9,7 +9,16 @@ export class EagleEyePermissions {
     );
 
     this.read = permissionChecker.match(
-      Permissions.values.eagleEyeRead,
+      Permissions.values.eagleEyeContentRead,
+    );
+    this.create = permissionChecker.match(
+      Permissions.values.eagleEyeContentCreate,
+    );
+    this.edit = permissionChecker.match(
+      Permissions.values.eagleEyeContentEdit,
+    );
+    this.action = permissionChecker.match(
+      Permissions.values.eagleEyeActionCreate,
     );
     this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
       Permissions.values.eagleEyeRead,

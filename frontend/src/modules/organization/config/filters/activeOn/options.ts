@@ -12,7 +12,7 @@ const options: MultiSelectFilterOptionGroup[] = [
         value: 'linkedin',
       },
       {
-        label: 'Twitter',
+        label: 'X/Twitter',
         value: 'twitter',
       },
       {

@@ -1,6 +1,8 @@
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { SegmentData } from '../types/segmentTypes'
+import { SegmentData } from '@crowd/types'
+import { Unleash } from '@crowd/feature-flags'
+import { Client as TemporalClient } from '@crowd/temporal'
 
 export interface IServiceOptions {
   log: Logger
@@ -10,4 +12,7 @@ export interface IServiceOptions {
   currentSegments: SegmentData[]
   database: any
   redis: RedisClient
+  transaction?: any
+  unleash?: Unleash
+  temporal: TemporalClient
 }

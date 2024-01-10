@@ -1,35 +1,19 @@
 /* eslint-disable no-case-declarations */
-import { Edition, EnrichMemberOrganizationsQueueMessage } from '@crowd/types'
-import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
-  AutomationMessage,
   CsvExportMessage,
-  NewActivityAutomationMessage,
-  NewMemberAutomationMessage,
   NodeMicroserviceMessage,
-  ProcessAutomationMessage,
-  ProcessWebhookAutomationMessage,
   BulkEnrichMessage,
-  EagleEyeEmailDigestMessage,
   IntegrationDataCheckerMessage,
   OrganizationBulkEnrichMessage,
 } from './messageTypes'
-import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
-import newActivityWorker from './automation/workers/newActivityWorker'
-import newMemberWorker from './automation/workers/newMemberWorker'
-import webhookWorker from './automation/workers/webhookWorker'
-import slackWorker from './automation/workers/slackWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
-import { eagleEyeEmailDigestWorker } from './eagle-eye-email-digest/eagleEyeEmailDigestWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
 import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
-import { API_CONFIG } from '../../../conf'
-import { enrichMemberOrganizations } from './bulk-enrichment/enrichMemberOrganizationsWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -45,11 +29,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       return processStripeWebhook(event)
     case 'sendgrid-webhooks':
       return processSendgridWebhook(event)
-    case 'weekly-analytics-emails':
-      return weeklyAnalyticsEmailsWorker(tenant)
-    case 'eagle-eye-email-digest':
-      const eagleEyeDigestMessage = event as EagleEyeEmailDigestMessage
-      return eagleEyeEmailDigestWorker(eagleEyeDigestMessage.user, eagleEyeDigestMessage.tenant)
+
     case 'integration-data-checker':
       const integrationDataCheckerMessage = event as IntegrationDataCheckerMessage
       return integrationDataCheckerWorker(
@@ -87,63 +67,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         bulkEnrichMessage.maxEnrichLimit,
       )
     }
-    case 'enrich_member_organizations':
-      const message = event as EnrichMemberOrganizationsQueueMessage
-      return enrichMemberOrganizations(message.tenant, message.memberId, message.organizationIds)
 
-    case 'automation-process':
-      if (API_CONFIG.edition === Edition.LFX) {
-        return {}
-      }
-      const automationProcessRequest = event as ProcessAutomationMessage
-
-      switch (automationProcessRequest.automationType) {
-        case AutomationType.WEBHOOK:
-          const webhookProcessRequest = event as ProcessWebhookAutomationMessage
-          return webhookWorker(
-            tenant,
-            webhookProcessRequest.automationId,
-            webhookProcessRequest.automation,
-            webhookProcessRequest.eventId,
-            webhookProcessRequest.payload,
-          )
-        case AutomationType.SLACK:
-          const slackProcessRequest = event as ProcessWebhookAutomationMessage
-          return slackWorker(
-            tenant,
-            slackProcessRequest.automationId,
-            slackProcessRequest.automation,
-            slackProcessRequest.eventId,
-            slackProcessRequest.payload,
-          )
-        default:
-          throw new Error(`Invalid automation type ${automationProcessRequest.automationType}!`)
-      }
-
-    case 'automation':
-      if (API_CONFIG.edition === Edition.LFX) {
-        return {}
-      }
-      const automationRequest = event as AutomationMessage
-
-      switch (automationRequest.trigger) {
-        case AutomationTrigger.NEW_ACTIVITY:
-          const newActivityAutomationRequest = event as NewActivityAutomationMessage
-          return newActivityWorker(
-            tenant,
-            newActivityAutomationRequest.activityId,
-            newActivityAutomationRequest.segmentId,
-          )
-        case AutomationTrigger.NEW_MEMBER:
-          const newMemberAutomationRequest = event as NewMemberAutomationMessage
-          return newMemberWorker(
-            tenant,
-            newMemberAutomationRequest.memberId,
-            newMemberAutomationRequest.segmentId,
-          )
-        default:
-          throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
-      }
     default:
       throw new Error(`Invalid microservice ${service}`)
   }

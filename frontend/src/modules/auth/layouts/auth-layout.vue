@@ -1,5 +1,5 @@
 <template>
-  <main class="flex items-center justify-center">
+  <main class="flex justify-center items-center !pt-0">
     <router-view />
   </main>
 </template>

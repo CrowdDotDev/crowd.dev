@@ -57,6 +57,11 @@ export default (sequelize) => {
       enrichedBy: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
       },
+      manuallyCreated: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       indexes: [

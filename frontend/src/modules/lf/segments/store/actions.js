@@ -1,11 +1,25 @@
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import Message from '@/shared/message/message';
 import { router } from '@/router';
+import { store } from '@/store';
+import { computed } from 'vue';
+import { PermissionChecker } from '@/modules/user/permission-checker';
+import Roles from '@/security/roles';
+
+const isAdminOnly = () => {
+  const currentUser = store.getters['auth/currentUser'];
+  const currentTenant = store.getters['auth/currentTenant'];
+
+  return new PermissionChecker(
+    currentTenant,
+    currentUser,
+  ).currentUserRolesIds.includes(Roles.values.projectAdmin);
+};
 
 export default {
   // Project Groups
   listProjectGroups({
-    search = null, offset, limit, reset = false,
+    search = null, offset, limit, reset = false, adminOnly,
   } = {}) {
     this.projectGroups.loading = true;
 
@@ -23,6 +37,7 @@ export default {
       offset: offset !== undefined ? offset : this.projectGroupOffset,
       filter: {
         name: search,
+        adminOnly,
       },
     })
       .then((response) => {
@@ -57,7 +72,10 @@ export default {
     return LfService.createProjectGroup(data)
       .then(() => {
         Message.success('Project Group created successfully');
-        this.listProjectGroups();
+
+        this.listProjectGroups({
+          adminOnly: isAdminOnly(),
+        });
       })
       .catch(() => {
         Message.error('Something went wrong while creating the project group');
@@ -68,16 +86,24 @@ export default {
     return LfService.updateSegment(id, data)
       .then(() => {
         Message.success('Project Group updated successfully');
-        this.listProjectGroups();
+
+        this.listProjectGroups({
+          adminOnly: isAdminOnly(),
+        });
       })
       .catch(() => {
         Message.error('Something went wrong while updating the project group');
       })
       .finally(() => Promise.resolve());
   },
-  searchProjectGroup(search, limit) {
+  searchProjectGroup(search, limit, adminOnly) {
     this.projectGroups.pagination.currentPage = 1;
-    this.listProjectGroups({ search, offset: 0, limit });
+    this.listProjectGroups({
+      search,
+      limit,
+      offset: 0,
+      adminOnly: adminOnly !== undefined ? adminOnly : isAdminOnly(),
+    });
   },
   // Projects
   listProjects({

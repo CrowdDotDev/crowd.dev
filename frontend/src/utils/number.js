@@ -36,8 +36,28 @@ export const formatPercentage = (percentage) => `${Math.ceil(
   percentage < 0 ? percentage * -1 : percentage,
 )} %`;
 
-export const formatRevenueRange = (range) => {
-  const min = range.min > 1000 ? `$${range.min}B` : `$${range.min}M`;
-  const max = range.max > 1000 ? `$${range.max}B` : `$${range.max}M`;
-  return `${min}-${max}`;
+export const formatFloatToYears = (years) => {
+  const integerPart = Math.floor(years);
+  const fractionalPart = Math.round((years - integerPart) * 12);
+
+  let result = '';
+
+  if (integerPart > 0) {
+    result += `${integerPart} year${integerPart > 1 ? 's' : ''}`;
+  }
+
+  if (fractionalPart > 0) {
+    if (result.length > 0) {
+      result += ' and ';
+    }
+    result += `${fractionalPart} month${fractionalPart > 1 ? 's' : ''}`;
+  }
+
+  return result;
+};
+
+export const formatFloatToPercentage = (value) => {
+  const percentage = (value * 100).toFixed(2);
+
+  return `${percentage}%`;
 };

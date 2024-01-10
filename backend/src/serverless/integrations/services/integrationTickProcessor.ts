@@ -1,18 +1,20 @@
-import { IntegrationRunWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/sqs'
-import { processPaginated } from '@crowd/common'
-import { INTEGRATION_SERVICES } from '@crowd/integrations'
-import { LoggerBase } from '@crowd/logging'
-import { IntegrationType } from '@crowd/types'
+import { processPaginated, singleOrDefault } from '@crowd/common'
 import {
+  DataSinkWorkerEmitter,
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+} from '@crowd/common_services'
+import { INTEGRATION_SERVICES } from '@crowd/integrations'
+import { LoggerBase, getChildLogger } from '@crowd/logging'
+import { IntegrationType } from '@crowd/types'
+import IntegrationRepository from '@/database/repositories/integrationRepository'
+import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
+import { IServiceOptions } from '../../../services/IServiceOptions'
+import {
+  getDataSinkWorkerEmitter,
   getIntegrationRunWorkerEmitter,
   getIntegrationStreamWorkerEmitter,
 } from '../../utils/serviceSQS'
-import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
-import { IServiceOptions } from '../../../services/IServiceOptions'
-import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerIntegrationCheckMessage'
-import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
-import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
-import { IntegrationServiceBase } from './integrationServiceBase'
 
 export class IntegrationTickProcessor extends LoggerBase {
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
@@ -23,16 +25,13 @@ export class IntegrationTickProcessor extends LoggerBase {
 
   private intStreamWorkerEmitter: IntegrationStreamWorkerEmitter
 
+  private dataSinkWorkerEmitter: DataSinkWorkerEmitter
+
   constructor(
     options: IServiceOptions,
-    private readonly integrationServices: IntegrationServiceBase[],
     private readonly integrationRunRepository: IntegrationRunRepository,
   ) {
     super(options.log)
-
-    for (const intService of this.integrationServices) {
-      this.tickTrackingMap[intService.type] = 0
-    }
 
     for (const intService of INTEGRATION_SERVICES) {
       this.tickTrackingMap[intService.type] = 0
@@ -43,6 +42,7 @@ export class IntegrationTickProcessor extends LoggerBase {
     if (!this.emittersInitialized) {
       this.intRunWorkerEmitter = await getIntegrationRunWorkerEmitter()
       this.intStreamWorkerEmitter = await getIntegrationStreamWorkerEmitter()
+      this.dataSinkWorkerEmitter = await getDataSinkWorkerEmitter()
 
       this.emittersInitialized = true
     }
@@ -56,17 +56,12 @@ export class IntegrationTickProcessor extends LoggerBase {
   private async processCheckTick() {
     this.log.trace('Processing integration processor tick!')
 
-    const tickers: IIntTicker[] = this.integrationServices.map((i) => ({
+    const tickers: IIntTicker[] = INTEGRATION_SERVICES.map((i) => ({
       type: i.type,
-      ticksBetweenChecks: i.ticksBetweenChecks,
+      ticksBetweenChecks: i.checkEvery || -1,
     }))
 
-    for (const service of INTEGRATION_SERVICES) {
-      tickers.push({
-        type: service.type,
-        ticksBetweenChecks: service.checkEvery || -1,
-      })
-    }
+    const promises: Promise<void>[] = []
 
     for (const intService of tickers) {
       let trigger = false
@@ -91,35 +86,86 @@ export class IntegrationTickProcessor extends LoggerBase {
 
       if (trigger) {
         this.log.info({ type: intService.type }, 'Triggering integration check!')
-        await sendNodeWorkerMessage(
-          new Date().toISOString(),
-          new NodeWorkerIntegrationCheckMessage(intService.type as IntegrationType),
+        promises.push(
+          this.processCheck(intService.type as IntegrationType).catch((err) => {
+            this.log.error(err, 'Error while processing integration check!')
+          }),
         )
       }
     }
+
+    if (promises.length > 0) {
+      await Promise.all(promises)
+    }
+  }
+
+  async processCheck(type: IntegrationType) {
+    const logger = getChildLogger('processCheck', this.log, { IntegrationType: type })
+    logger.trace('Processing integration check!')
+
+    const newIntService = singleOrDefault(INTEGRATION_SERVICES, (i) => i.type === type)
+
+    if (!newIntService) {
+      throw new Error(`No integration service found for type ${type}!`)
+    }
+
+    const emitter = await getIntegrationRunWorkerEmitter()
+
+    await processPaginated(
+      async (page) => IntegrationRepository.findAllActive(type, page, 10),
+      async (integrations) => {
+        logger.debug(
+          { integrationIds: integrations.map((i) => i.id) },
+          'Found new integrations to check!',
+        )
+        for (const integration of integrations as any[]) {
+          const existingRun =
+            await this.integrationRunRepository.findLastProcessingRunInNewFramework(integration.id)
+          if (!existingRun) {
+            const CHUNKS = 3 // Define the number of chunks
+            const DELAY_BETWEEN_CHUNKS = 30 * 60 * 1000 // Define the delay between chunks in milliseconds
+            const rand = Math.random() * CHUNKS
+            const chunkIndex = Math.min(Math.floor(rand), CHUNKS - 1)
+            const delay = chunkIndex * DELAY_BETWEEN_CHUNKS
+
+            // Divide integrations into chunks for Discord
+            if (newIntService.type === IntegrationType.DISCORD) {
+              setTimeout(async () => {
+                logger.info(
+                  { integrationId: integration.id },
+                  `Triggering new delayed integration check for Discord in ${
+                    delay / 60 / 1000
+                  } minutes!`,
+                )
+                await emitter.triggerIntegrationRun(
+                  integration.tenantId,
+                  integration.platform,
+                  integration.id,
+                  false,
+                )
+              }, delay)
+            } else {
+              logger.info({ integrationId: integration.id }, 'Triggering new integration check!')
+              await emitter.triggerIntegrationRun(
+                integration.tenantId,
+                integration.platform,
+                integration.id,
+                false,
+              )
+            }
+          } else {
+            logger.info({ integrationId: integration.id }, 'Existing run found, skipping!')
+          }
+        }
+      },
+    )
   }
 
   private async processDelayedTick() {
     await this.initEmitters()
     await this.intRunWorkerEmitter.checkRuns()
     await this.intStreamWorkerEmitter.checkStreams()
-
-    // TODO check streams as well
-    this.log.trace('Checking for delayed integration runs!')
-
-    await processPaginated(
-      async (page) => this.integrationRunRepository.findDelayedRuns(page, 10),
-      async (delayedRuns) => {
-        for (const run of delayedRuns) {
-          this.log.info({ runId: run.id }, 'Triggering delayed integration run processing!')
-
-          await sendNodeWorkerMessage(
-            new Date().toISOString(),
-            new NodeWorkerIntegrationProcessMessage(run.id),
-          )
-        }
-      },
-    )
+    await this.dataSinkWorkerEmitter.checkResults()
   }
 }
 

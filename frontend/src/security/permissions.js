@@ -15,7 +15,10 @@ class Permissions {
     return {
       tenantEdit: {
         id: 'tenantEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -26,7 +29,10 @@ class Permissions {
       },
       tenantDestroy: {
         id: 'tenantDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -37,7 +43,10 @@ class Permissions {
       },
       planEdit: {
         id: 'planEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -48,7 +57,10 @@ class Permissions {
       },
       planRead: {
         id: 'planRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -59,7 +71,10 @@ class Permissions {
       },
       userEdit: {
         id: 'userEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -71,7 +86,10 @@ class Permissions {
       },
       userDestroy: {
         id: 'userDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -83,7 +101,10 @@ class Permissions {
       },
       userCreate: {
         id: 'userCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -95,7 +116,10 @@ class Permissions {
       },
       userImport: {
         id: 'userImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -106,7 +130,10 @@ class Permissions {
       },
       userRead: {
         id: 'userRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -118,7 +145,10 @@ class Permissions {
       },
       userAutocomplete: {
         id: 'userAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -129,7 +159,10 @@ class Permissions {
       },
       auditLogRead: {
         id: 'auditLogRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -140,7 +173,10 @@ class Permissions {
       },
       settingsRead: {
         id: 'settingsRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -156,7 +192,10 @@ class Permissions {
       },
       settingsEdit: {
         id: 'settingsEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -172,7 +211,10 @@ class Permissions {
       },
       integrationImport: {
         id: 'integrationImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -183,7 +225,10 @@ class Permissions {
       },
       integrationCreate: {
         id: 'integrationCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -195,7 +240,10 @@ class Permissions {
       },
       integrationEdit: {
         id: 'integrationEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -207,7 +255,10 @@ class Permissions {
       },
       integrationDestroy: {
         id: 'integrationDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -219,7 +270,11 @@ class Permissions {
       },
       integrationRead: {
         id: 'integrationRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -231,7 +286,10 @@ class Permissions {
       },
       integrationAutocomplete: {
         id: 'integrationAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -243,7 +301,10 @@ class Permissions {
 
       reportImport: {
         id: 'reportImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -254,7 +315,10 @@ class Permissions {
       },
       reportCreate: {
         id: 'reportCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -267,7 +331,10 @@ class Permissions {
       },
       reportEdit: {
         id: 'reportEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -280,7 +347,10 @@ class Permissions {
       },
       reportDestroy: {
         id: 'reportDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -293,7 +363,11 @@ class Permissions {
       },
       reportRead: {
         id: 'reportRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -305,7 +379,10 @@ class Permissions {
       },
       reportAutocomplete: {
         id: 'reportAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -317,7 +394,10 @@ class Permissions {
 
       memberImport: {
         id: 'memberImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -328,7 +408,10 @@ class Permissions {
       },
       memberCreate: {
         id: 'memberCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -340,7 +423,10 @@ class Permissions {
       },
       memberEdit: {
         id: 'memberEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -352,7 +438,10 @@ class Permissions {
       },
       memberDestroy: {
         id: 'memberDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -364,7 +453,11 @@ class Permissions {
       },
       memberRead: {
         id: 'memberRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -376,7 +469,10 @@ class Permissions {
       },
       memberAutocomplete: {
         id: 'memberAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -388,7 +484,10 @@ class Permissions {
 
       organizationImport: {
         id: 'organizationImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -399,7 +498,10 @@ class Permissions {
       },
       organizationCreate: {
         id: 'organizationCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -411,7 +513,10 @@ class Permissions {
       },
       organizationEdit: {
         id: 'organizationEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -423,7 +528,10 @@ class Permissions {
       },
       organizationDestroy: {
         id: 'organizationDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -435,7 +543,11 @@ class Permissions {
       },
       organizationRead: {
         id: 'organizationRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -447,7 +559,10 @@ class Permissions {
       },
       organizationAutocomplete: {
         id: 'organizationAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -459,7 +574,10 @@ class Permissions {
 
       activityImport: {
         id: 'activityImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -470,7 +588,10 @@ class Permissions {
       },
       activityCreate: {
         id: 'activityCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -482,7 +603,10 @@ class Permissions {
       },
       activityEdit: {
         id: 'activityEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -494,7 +618,10 @@ class Permissions {
       },
       activityDestroy: {
         id: 'activityDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -506,7 +633,11 @@ class Permissions {
       },
       activityRead: {
         id: 'activityRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -518,7 +649,10 @@ class Permissions {
       },
       activityAutocomplete: {
         id: 'activityAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -526,87 +660,14 @@ class Permissions {
           plans.enterprise,
           plans.scale,
         ],
-      },
-
-      taskImport: {
-        id: 'taskImport',
-        allowedRoles: [roles.admin],
-        allowedPlans: [
-          plans.essential,
-          plans.eagleEye,
-          plans.growth,
-          plans.enterprise,
-          plans.scale,
-        ],
-        allowedSampleTenant: true,
-      },
-      taskCreate: {
-        id: 'taskCreate',
-        allowedRoles: [roles.admin],
-        allowedPlans: [
-          plans.essential,
-          plans.eagleEye,
-          plans.growth,
-          plans.enterprise,
-          plans.scale,
-        ],
-        allowedStorage: [],
-        allowedSampleTenant: true,
-      },
-      taskEdit: {
-        id: 'taskEdit',
-        allowedRoles: [roles.admin],
-        allowedPlans: [
-          plans.essential,
-          plans.eagleEye,
-          plans.growth,
-          plans.enterprise,
-          plans.scale,
-        ],
-        allowedStorage: [],
-        allowedSampleTenant: true,
-      },
-      taskDestroy: {
-        id: 'taskDestroy',
-        allowedRoles: [roles.admin],
-        allowedPlans: [
-          plans.essential,
-          plans.eagleEye,
-          plans.growth,
-          plans.enterprise,
-          plans.scale,
-        ],
-        allowedStorage: [],
-        allowedSampleTenant: true,
-      },
-      taskRead: {
-        id: 'taskRead',
-        allowedRoles: [roles.admin, roles.readonly],
-        allowedPlans: [
-          plans.essential,
-          plans.eagleEye,
-          plans.growth,
-          plans.enterprise,
-          plans.scale,
-        ],
-        allowedSampleTenant: true,
-      },
-      taskAutocomplete: {
-        id: 'taskAutocomplete',
-        allowedRoles: [roles.admin],
-        allowedPlans: [
-          plans.essential,
-          plans.eagleEye,
-          plans.growth,
-          plans.enterprise,
-          plans.scale,
-        ],
-        allowedSampleTenant: true,
       },
 
       conversationImport: {
         id: 'conversationImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -617,7 +678,10 @@ class Permissions {
       },
       conversationCreate: {
         id: 'conversationCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -629,7 +693,10 @@ class Permissions {
       },
       conversationEdit: {
         id: 'conversationEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -641,7 +708,10 @@ class Permissions {
       },
       conversationDestroy: {
         id: 'conversationDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -653,7 +723,11 @@ class Permissions {
       },
       conversationRead: {
         id: 'conversationRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -665,12 +739,18 @@ class Permissions {
       },
       conversationCustomize: {
         id: 'conversationCustomize',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [plans.growth, plans.enterprise],
       },
       conversationAutocomplete: {
         id: 'conversationAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -679,9 +759,13 @@ class Permissions {
           plans.scale,
         ],
       },
-      eagleEyeRead: {
+      eagleEyeContentRead: {
         id: 'eagleEyeRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -691,9 +775,51 @@ class Permissions {
         ],
         allowedSampleTenant: true,
       },
+      eagleEyeContentCreate: {
+        id: 'eagleEyeContentCreate',
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
+        allowedPlans: [
+          plans.growth,
+          plans.essential,
+          plans.eagleEye,
+          plans.enterprise,
+        ],
+      },
+      eagleEyeContentEdit: {
+        id: 'eagleEyeContentEdit',
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
+        allowedPlans: [
+          plans.growth,
+          plans.essential,
+          plans.eagleEye,
+          plans.enterprise,
+        ],
+      },
+      eagleEyeActionCreate: {
+        id: 'eagleEyeActionCreate',
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
+        allowedPlans: [
+          plans.growth,
+          plans.essential,
+          plans.eagleEye,
+          plans.enterprise,
+        ],
+      },
       automationImport: {
         id: 'automationImport',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -704,7 +830,10 @@ class Permissions {
       },
       automationCreate: {
         id: 'automationCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -717,7 +846,10 @@ class Permissions {
       },
       automationEdit: {
         id: 'automationEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -730,7 +862,10 @@ class Permissions {
       },
       automationDestroy: {
         id: 'automationDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -743,7 +878,11 @@ class Permissions {
       },
       automationRead: {
         id: 'automationRead',
-        allowedRoles: [roles.admin, roles.readonly],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+          roles.viewer,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -755,12 +894,18 @@ class Permissions {
       },
       automationCustomize: {
         id: 'automationCustomize',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [plans.growth, plans.enterprise],
       },
       automationAutocomplete: {
         id: 'automationAutocomplete',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.eagleEye,
@@ -771,7 +916,10 @@ class Permissions {
       },
       noteCreate: {
         id: 'noteCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -782,7 +930,10 @@ class Permissions {
       },
       noteEdit: {
         id: 'noteEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -793,7 +944,10 @@ class Permissions {
       },
       noteDestroy: {
         id: 'noteDestroy',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -804,7 +958,10 @@ class Permissions {
       },
       projectGroupCreate: {
         id: 'projectGroupCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -815,7 +972,10 @@ class Permissions {
       },
       projectGroupEdit: {
         id: 'projectGroupEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -826,7 +986,10 @@ class Permissions {
       },
       projectCreate: {
         id: 'projectCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -837,7 +1000,10 @@ class Permissions {
       },
       projectEdit: {
         id: 'projectEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -848,7 +1014,10 @@ class Permissions {
       },
       subProjectCreate: {
         id: 'subProjectCreate',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,
@@ -859,7 +1028,10 @@ class Permissions {
       },
       subProjectEdit: {
         id: 'subProjectEdit',
-        allowedRoles: [roles.admin],
+        allowedRoles: [
+          roles.admin,
+          roles.projectAdmin,
+        ],
         allowedPlans: [
           plans.essential,
           plans.growth,

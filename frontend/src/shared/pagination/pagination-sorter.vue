@@ -17,7 +17,7 @@
     <div class="flex items-center">
       <!-- TODO: Need to refactor this -->
       <button
-        v-if="module === 'member'"
+        v-if="module === 'contact'"
         type="button"
         class="btn btn-link btn-link--md btn-link--primary mr-3"
         @click="doExport"

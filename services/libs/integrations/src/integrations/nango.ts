@@ -1,3 +1,4 @@
+import { RequestThrottler } from '@crowd/common'
 import { IProcessStreamContext, IGenerateStreamsContext } from '../types'
 import axios from 'axios'
 
@@ -5,6 +6,7 @@ export const getNangoToken = async (
   connectionId: string,
   providerConfigKey: string,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
+  throttler?: RequestThrottler,
 ): Promise<string> => {
   try {
     const url = `${ctx.serviceSettings.nangoUrl}/connection/${connectionId}`
@@ -20,7 +22,13 @@ export const getNangoToken = async (
       provider_config_key: providerConfigKey,
     }
 
-    const response = await axios.get(url, { params, headers })
+    let response
+
+    if (throttler) {
+      response = await throttler.throttle(() => axios.get(url, { params, headers }))
+    } else {
+      response = await axios.get(url, { params, headers })
+    }
 
     return response.data.credentials.access_token
   } catch (err) {

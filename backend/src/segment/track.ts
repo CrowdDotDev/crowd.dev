@@ -1,8 +1,9 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import { Edition } from '@crowd/types'
 import { API_CONFIG, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { CROWD_ANALYTICS_PLATORM_NAME } from './addProductDataToCrowdTenant'
 import getTenatUser from './trackHelper'
-import addProductData, { CROWD_ANALYTICS_PLATORM_NAME } from './addProductDataToCrowdTenant'
 
 const log = getServiceChildLogger('segment')
 
@@ -13,11 +14,15 @@ export default async function identify(
   userId: any = false,
   timestamp: any = false,
 ) {
+  const userEmail = SequelizeRepository.getCurrentUser({
+    ...options,
+  }).email
   if (
     !IS_TEST_ENV &&
     SEGMENT_CONFIG.writeKey &&
     // This is only for events in the hosted version. Self-hosted has less telemetry.
-    (API_CONFIG.edition === Edition.CROWD_HOSTED || API_CONFIG.edition === Edition.LFX)
+    (API_CONFIG.edition === Edition.CROWD_HOSTED || API_CONFIG.edition === Edition.LFX) &&
+    userEmail !== 'help@crowd.dev'
   ) {
     if (
       properties &&
@@ -48,13 +53,13 @@ export default async function identify(
       analytics.track(payload)
 
       // send product analytics data to crowd tenant workspace
-      await addProductData({
-        userId: userIdOut,
-        tenantId: tenantIdOut,
-        event,
-        timestamp,
-        properties,
-      })
+      // await addProductData({
+      //   userId: userIdOut,
+      //   tenantId: tenantIdOut,
+      //   event,
+      //   timestamp,
+      //   properties,
+      // })
     } catch (error) {
       log.error(error, { payload }, 'Could not send the following payload to Segment')
     }

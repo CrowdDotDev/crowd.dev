@@ -2,9 +2,15 @@ import {
   IGenerateStreamsContext,
   IIntegrationProcessRemoteSyncContext,
   ProcessIntegrationSyncHandler,
-} from '@/types'
+} from '../../../types'
 import { HubspotEntity, IHubspotIntegrationSettings } from './types'
-import { Entity, IMember, IOrganization } from '@crowd/types'
+import {
+  AutomationSyncTrigger,
+  Entity,
+  HubspotSettings,
+  IMember,
+  IOrganization,
+} from '@crowd/types'
 import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
 import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
 import { RequestThrottler } from '@crowd/common'
@@ -14,6 +20,7 @@ import { HubspotOrganizationFieldMapper } from './field-mapper/organizationField
 import { batchCreateOrganizations } from './api/batchCreateOrganizations'
 import { batchUpdateOrganizations } from './api/batchUpdateOrganizations'
 import { IBatchOperationResult } from './api/types'
+import { addContactsToList } from './api/addContactsToList'
 
 const handler: ProcessIntegrationSyncHandler = async <T>(
   toCreate: T[],
@@ -38,7 +45,8 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
 
   switch (entity) {
     case Entity.MEMBERS: {
-      let membersCreatedInHubspot
+      let membersCreatedInHubspot = []
+      let membersUpdatedInHubspot = []
 
       const memberMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.MEMBERS,
@@ -62,7 +70,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       }
 
       if (toUpdate.length > 0) {
-        await batchUpdateMembers(
+        membersUpdatedInHubspot = await batchUpdateMembers(
           nangoId,
           toUpdate as IMember[],
           memberMapper,
@@ -71,10 +79,30 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
         )
       }
 
-      return membersCreatedInHubspot || []
+      // we should also add members to hubspot lists, if it's coming from an automation
+      if (
+        ctx.automation &&
+        ctx.automation.trigger === AutomationSyncTrigger.MEMBER_ATTRIBUTES_MATCH
+      ) {
+        const vids: string[] = [
+          ...membersCreatedInHubspot.map((m) => m.sourceId),
+          ...(toUpdate as IMember[]).map((m) => m.attributes.sourceId.hubspot),
+        ]
+
+        await addContactsToList(
+          nangoId,
+          (ctx.automation.settings as HubspotSettings).contactList,
+          vids,
+          integrationContext,
+          throttler,
+        )
+      }
+
+      return { created: membersCreatedInHubspot, updated: membersUpdatedInHubspot }
     }
     case Entity.ORGANIZATIONS: {
-      let companiesCreatedInHubspot
+      let companiesCreatedInHubspot = []
+      let companiesUpdatedInHubspot = []
 
       const organizationMapper = HubspotFieldMapperFactory.getFieldMapper(
         HubspotEntity.ORGANIZATIONS,
@@ -96,7 +124,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       }
 
       if (toUpdate.length > 0) {
-        await batchUpdateOrganizations(
+        companiesUpdatedInHubspot = await batchUpdateOrganizations(
           nangoId,
           toUpdate as IOrganization[],
           organizationMapper,
@@ -105,7 +133,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
         )
       }
 
-      return companiesCreatedInHubspot || []
+      return { created: companiesCreatedInHubspot, updated: companiesUpdatedInHubspot }
     }
     default: {
       const message = `Unsupported entity ${entity} while processing HubSpot sync remote!`

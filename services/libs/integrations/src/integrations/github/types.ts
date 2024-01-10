@@ -67,6 +67,7 @@ export interface GithubWebhookPayload {
   signature: string
   event: any
   data: any
+  date?: string
 }
 
 export enum GithubActivitySubType {
@@ -109,6 +110,15 @@ export enum GithubStreamType {
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
+export enum GithubManualStreamType {
+  ALL = 'all',
+  STARGAZERS = 'stargazers',
+  FORKS = 'forks',
+  PULLS = 'pulls',
+  ISSUES = 'issues',
+  DISCUSSIONS = 'discussions',
+}
+
 export interface GithubApiData {
   type: GithubActivityType
   subType?: string
@@ -128,6 +138,7 @@ export interface GithubWebhookData {
   member: GithubPrepareMemberOutput
   objectMember?: GithubPrepareMemberOutput
   sourceParentId?: string
+  date?: string
 }
 
 export interface GithubRootStream {
@@ -152,11 +163,16 @@ export interface GithubPlatformSettings {
   isCommitDataEnabled: string
   globalLimit?: number
   callbackUrl: string
+  personalAccessTokens: string
 }
 
 export interface GithubIntegrationSettings {
   repos: Repos
   unavailableRepos: Repos
+}
+
+export interface GithubManualIntegrationSettings extends GithubIntegrationSettings {
+  streamType: GithubManualStreamType
 }
 
 export enum GithubPullRequestEvents {

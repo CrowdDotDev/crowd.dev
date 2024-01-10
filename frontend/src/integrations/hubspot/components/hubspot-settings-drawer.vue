@@ -1,7 +1,7 @@
 <template>
   <app-drawer
     v-model="isDrawerVisible"
-    title="Discourse"
+    title="HubSpot"
     size="600px"
     pre-title="Integration"
     :show-footer="true"
@@ -12,7 +12,7 @@
       <img
         :src="hubspotDetails.image"
         class="w-6 h-6 mr-2"
-        alt="Discourse logo"
+        alt="HubSpot logo"
       />
     </template>
     <template #content>
@@ -22,21 +22,21 @@
             Enable data syncing
           </h4>
           <p class="text-2xs text-gray-500">
-            Define which crowd.dev core elements can be synced to or from HubSpot.
+            Define which LFX core elements can be synced to or from HubSpot.
           </p>
         </section>
         <section class="pb-10 border-b border-gray-200">
           <article class="border border-gray-200 rounded-t py-4 px-5 flex justify-between">
             <div>
               <h5 class="text-sm font-semibold pb-1">
-                Members
+                Contributors
               </h5>
               <p class="text-2xs text-gray-500 leading-4.5">
-                <span class="font-semibold">Data-in</span>: Existing members will automatically be enriched with data
+                <span class="font-semibold">Data-in</span>: Existing contributors will automatically be enriched with data
                 points
-                from HubSpot contacts every 8 hours.
-                <span class="font-semibold">Data-out</span>: To send members to HubSpot, use Automations or select
-                members manually.
+                from HubSpot contributors every 8 hours.
+                <span class="font-semibold">Data-out</span>: To send contributors to HubSpot, use Automations or select
+                contributors manually.
               </p>
             </div>
             <div>
@@ -66,7 +66,7 @@
           </h4>
           <div class="flex justify-between pb-5">
             <p class="text-2xs text-gray-500">
-              Select and map which attributes and properties to sync between crowd.dev and HubSpot.
+              Select and map which attributes and properties to sync between LFX and HubSpot.
             </p>
             <div class="pl-8">
               <el-button
@@ -82,7 +82,7 @@
           </div>
           <div v-if="form.members || form.organizations" class="p-2 rounded bg-blue-50 flex items-center mb-3">
             <span class="ri-information-line text-blue-900 mr-2 text-base h-4 flex items-center" />
-            <span class="text-[11px] text-blue-900 leading-4.5">We recommend creating custom properties in Hubspot for every crowd.dev attribute.
+            <span class="text-[11px] text-blue-900 leading-4.5">We recommend creating custom properties in Hubspot for every LFX attribute.
               <a
                 href="https://go.crowd.dev/hubspot-docs-properties"
                 target="_blank"
@@ -102,7 +102,7 @@
                       class="ri-arrow-down-s-line text-lg text-gray-500 mr-3 h-5 flex items-center transition-all transform"
                       :class="{ 'rotate-180': activeView === 'member' }"
                     />
-                    <span class="text-xs font-medium">Member attributes</span>
+                    <span class="text-xs font-medium">Contributor attributes</span>
                   </div>
                   <div
                     v-if="form.members"
@@ -117,7 +117,7 @@
               <div v-if="activeView === 'member'">
                 <div class="flex pt-3 pb-2 border-b border-gray-100">
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
-                    CROWD.DEV ATTRIBUTES
+                    LFX ATTRIBUTES
                   </div>
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
                     HUBSPOT PROPERTIES <span class="text-brand-500">*</span>
@@ -125,12 +125,13 @@
                 </div>
                 <section class="pt-1 pb-3">
                   <app-hubspot-property-map
-                    v-for="(type, field) in memberMappableFields"
-                    :key="field"
-                    v-model="form.mapping.members[field]"
-                    v-model:enabled="form.enabled.members[field]"
-                    :field="field as string"
-                    :hubspot-fields="getHubspotMemberFields(type, form.mapping.members[field])"
+                    v-for="(value, key) in memberMappableFields"
+                    :key="key"
+                    v-model="form.mapping.members[key]"
+                    v-model:enabled="form.enabled.members[key]"
+                    :field="key"
+                    :read-only="value.readonly"
+                    :hubspot-fields="getHubspotMemberFields(value.hubspotType, form.mapping.members[key])"
                   />
                 </section>
               </div>
@@ -157,7 +158,7 @@
               <div v-if="activeView === 'organization'">
                 <div class="flex pt-3 pb-2 border-b border-gray-100">
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
-                    CROWD.DEV ATTRIBUTES
+                    LFX ATTRIBUTES
                   </div>
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
                     HUBSPOT PROPERTIES <span class="text-brand-500">*</span>
@@ -165,12 +166,13 @@
                 </div>
                 <section class="pt-1 pb-3">
                   <app-hubspot-property-map
-                    v-for="(type, field) in organizationMappableFields"
-                    :key="field"
-                    v-model="form.mapping.organizations[field]"
-                    v-model:enabled="form.enabled.organizations[field]"
-                    :field="field as string"
-                    :hubspot-fields="getHubspotOrganizationFields(type, form.mapping.organizations[field])"
+                    v-for="(value, key) in organizationMappableFields"
+                    :key="key"
+                    v-model="form.mapping.organizations[key]"
+                    v-model:enabled="form.enabled.organizations[key]"
+                    :field="key"
+                    :read-only="value.readonly"
+                    :hubspot-fields="getHubspotOrganizationFields(value.hubspotType, form.mapping.organizations[key])"
                   />
                 </section>
               </div>
@@ -200,20 +202,28 @@
       </div>
     </template>
   </app-drawer>
+  <app-hubspot-read-only-attr-popover
+    v-model="isReadOnlyConfirmModalVisible"
+    :attributes="readOnlyAttributes"
+    @update:model-value="isReadOnlyConfirmModalVisible = $event"
+    @do-not-show-modal="handleDoNotShowModal"
+    @continue="handleContinue"
+  />
 </template>
 
 <script lang="ts" setup>
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
+import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { MappableFields } from '@/integrations/hubspot/types/MappableFields';
-import { useStore } from 'vuex';
 import { HubspotOnboard } from '@/integrations/hubspot/types/HubspotOnboard';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppHubspotPropertyMap from '@/integrations/hubspot/components/hubspot-property-map.vue';
+import AppHubspotReadOnlyAttrPopover from '@/integrations/hubspot/components/hubspot-readonly-attr-popover.vue';
 
 const props = defineProps<{
   modelValue: boolean
@@ -237,6 +247,12 @@ const isDrawerVisible = computed({
     emit('update:modelValue', val);
   },
 });
+
+const isReadOnlyConfirmModalVisible = ref<boolean>(false);
+const readOnlyAttributes = ref<string[]>([]);
+
+// updateData is a new reference of "data" object used in update() method
+const updateData = ref<HubspotOnboard | null>(null);
 
 const form = reactive({
   members: false,
@@ -313,6 +329,24 @@ const isMappingValid = computed(() => {
     && (form.members || form.organizations);
 });
 
+const getReadOnlyAttributes = (attributesMapping, mappableFields) => {
+  const filterReadOnlyAttributes = Object.keys(attributesMapping)
+    .filter((attribute) => mappableFields[attribute] && mappableFields[attribute].readonly);
+
+  return filterReadOnlyAttributes;
+};
+
+// save read only confirm modal to false in local storage
+const handleDoNotShowModal = () => {
+  localStorage.setItem('show_hubspot_read_only_confirm_modal', 'false');
+};
+
+// hide modal and execute update
+const handleContinue = () => {
+  isReadOnlyConfirmModalVisible.value = false;
+  executeUpdate(updateData.value);
+};
+
 const update = () => {
   if (!isMappingValid.value) {
     return;
@@ -341,6 +375,24 @@ const update = () => {
       [b]: form.mapping.organizations[b],
     }), {});
   }
+
+  const checkReadOnlyAttributes = [
+    ...getReadOnlyAttributes(data.attributesMapping.members, memberMappableFields.value),
+    ...getReadOnlyAttributes(data.attributesMapping.organizations, organizationMappableFields.value),
+  ];
+
+  const showReadOnlyModal = localStorage.getItem('show_hubspot_read_only_confirm_modal') === 'false';
+
+  if (checkReadOnlyAttributes.length > 0 && !showReadOnlyModal) {
+    readOnlyAttributes.value = checkReadOnlyAttributes;
+    isReadOnlyConfirmModalVisible.value = true;
+    updateData.value = data;
+  } else {
+    executeUpdate(data);
+  }
+};
+
+const executeUpdate = (data: HubspotOnboard) => {
   loading.value = true;
   HubspotApiService.finishOnboard(data)
     .then(() => {

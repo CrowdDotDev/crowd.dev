@@ -5,7 +5,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 
 export default {
   fetchOrganizations(this: OrganizationState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
-    const mappedBody = reload ? this.savedFilterBody : body;
+    const mappedBody = reload ? { ...this.savedFilterBody, ...body } : body;
     this.selectedOrganizations = [];
     return OrganizationService.query(mappedBody)
       .then((data: Pagination<Organization>) => {
@@ -20,11 +20,19 @@ export default {
         return Promise.reject(err);
       });
   },
-  fetchOrganization(this: OrganizationState, id: string): Promise<Organization> {
-    return OrganizationService.find(id)
+  fetchOrganization(this: OrganizationState, id: string, segments: string[]): Promise<Organization> {
+    return OrganizationService.find(id, segments)
       .then((organization: Organization) => {
         this.organization = organization;
         return Promise.resolve(organization);
       });
+  },
+
+  addMergedOrganizations(this: OrganizationState, primaryId: string, secondaryId: string) {
+    this.mergedOrganizations[primaryId] = secondaryId;
+  },
+
+  removeMergedOrganizations(this: OrganizationState, primaryId: string) {
+    delete this.mergedOrganizations[primaryId];
   },
 };

@@ -5,7 +5,7 @@ import {
   HackerNewsSearchResponseRaw,
   HackerNewsSearchResult,
 } from '../types'
-import { IProcessStreamContext } from '@/types'
+import { IProcessStreamContext } from '../../../types'
 
 async function getPostsByKeyword(
   input: HackerNewsKeywordSearchInput,

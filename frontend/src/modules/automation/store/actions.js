@@ -26,6 +26,9 @@ export default {
       state: published ? 'active' : 'disabled',
     })
       .then((res) => {
+        // Make sure that feature flags are updated for automationsCount
+        store.dispatch('auth/doRefreshCurrentUser');
+
         this.getAutomations();
         return Promise.resolve(res);
       });

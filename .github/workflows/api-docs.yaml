@@ -2,7 +2,7 @@ name: API docs
 
 on:
   release:
-      types: [released]
+    types: [released]
 jobs:
   tests-main:
     runs-on: ubuntu-latest
@@ -11,13 +11,13 @@ jobs:
         shell: bash
         working-directory: ./backend
 
-    steps: 
-        - name: Check out repository code
-          uses: actions/checkout@v2
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
 
-        - name: Install root dependencies
-          run:  npm ci
-        
-        - name: Run docs script
-          working-directory: ./backend
-          run: npm run docs -- ${{ secrets.README_API_KEY }}
+      - name: Install root dependencies
+        run: corepack enable && pnpm i --frozen-lockfile
+
+      - name: Run docs script
+        working-directory: ./backend
+        run: pnpm run docs -- ${{ secrets.README_API_KEY }}

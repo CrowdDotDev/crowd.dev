@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
+import { PageData } from '@crowd/types'
 import { ServiceBase } from './serviceBase'
 import {
   AutomationExecution,
@@ -9,7 +10,6 @@ import {
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import AutomationExecutionRepository from '../database/repositories/automationExecutionRepository'
-import { PageData } from '../types/common'
 
 export default class AutomationExecutionService extends ServiceBase<
   AutomationExecution,

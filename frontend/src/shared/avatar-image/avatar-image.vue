@@ -1,7 +1,9 @@
 <template>
   <img
     v-if="showImage"
-    :src="src"
+    v-lazy="src"
+    lazy="loading"
+    class="object-cover object-center"
     alt="Avatar Logo"
     @error="handleImageError"
   >
@@ -23,3 +25,9 @@ const handleImageError = () => {
   imageError.value = true;
 };
 </script>
+
+<style lang="scss" scoped>
+img[lazy='loading'] {
+  @apply w-full bg-brand-50 animate-pulse;
+}
+</style>

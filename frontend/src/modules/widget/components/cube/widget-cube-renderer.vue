@@ -6,6 +6,7 @@
   >
     <template #default="{ resultSet }">
       <app-widget-cube
+        :show="show"
         :result-set="resultSet"
         :show-subtitle="showSubtitle"
         :widget="mapWidget(widget, resultSet)"
@@ -36,6 +37,10 @@ export default {
     'app-widget-cube': WidgetCube,
   },
   props: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
     widget: {
       type: Object,
       default: null,

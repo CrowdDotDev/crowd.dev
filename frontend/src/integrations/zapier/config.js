@@ -5,7 +5,7 @@ export default {
   name: 'Zapier',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',
-  description: 'Use Zapier to connect crowd.dev with 5,000+ apps.',
+  description: 'Use Zapier to connect LFX with 5,000+ apps.',
   image:
     'https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png',
   connectComponent: ZapierConnect,
@@ -21,5 +21,8 @@ export default {
       copy: 'reply',
       number: conversation.activityCount - 1,
     }),
+  },
+  organization: {
+    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
   },
 };

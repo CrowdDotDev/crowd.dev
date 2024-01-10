@@ -1,4 +1,3 @@
-import { SlackAlertTypes, sendSlackAlert } from '@crowd/alerting'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import {
@@ -8,21 +7,23 @@ import {
 } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import {
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  SearchSyncWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
-} from '@crowd/sqs'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { NANGO_CONFIG, PLATFORM_CONFIG, SLACK_ALERTING_CONFIG } from '../conf'
+import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
 import SampleDataRepository from '../repo/sampleData.repo'
+import { AutomationRepository } from '../repo/automation.repo'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  IntegrationSyncWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
   private readonly sampleDataRepo: SampleDataRepository
+  private readonly automationRepo: AutomationRepository
 
   constructor(
     private readonly redisClient: RedisClient,
@@ -38,6 +39,7 @@ export default class IntegrationRunService extends LoggerBase {
 
     this.repo = new IntegrationRunRepository(store, this.log)
     this.sampleDataRepo = new SampleDataRepository(store, this.log)
+    this.automationRepo = new AutomationRepository(store, this.log)
   }
 
   public async handleStreamProcessed(runId: string): Promise<void> {
@@ -63,11 +65,6 @@ export default class IntegrationRunService extends LoggerBase {
       }
     }
 
-    if (count === 0) {
-      this.log.error('This run has no streams!')
-      return
-    }
-
     if (count === finishedCount) {
       const runInfo = await this.repo.getGenerateStreamData(runId)
 
@@ -80,25 +77,6 @@ export default class IntegrationRunService extends LoggerBase {
           await this.repo.markRunError(runId, {
             location: 'all-streams-processed',
             message: 'Some streams failed!',
-          })
-
-          await sendSlackAlert({
-            slackURL: SLACK_ALERTING_CONFIG().url,
-            alertType: SlackAlertTypes.INTEGRATION_ERROR,
-            integration: {
-              id: runInfo.integrationId,
-              platform: runInfo.integrationType,
-              tenantId: runInfo.tenantId,
-            },
-            userContext: {
-              currentTenant: {
-                name: runInfo.name,
-                plan: runInfo.plan,
-                isTrial: runInfo.isTrialPlan,
-              },
-            },
-            log: this.log,
-            frameworkVersion: 'new',
           })
 
           if (runInfo.onboarding) {
@@ -169,6 +147,11 @@ export default class IntegrationRunService extends LoggerBase {
             settings.syncRemoteEnabled &&
             settings.blockSyncRemote !== true
           ) {
+            const syncAutomations = await this.automationRepo.findSyncAutomations(
+              runInfo.tenantId,
+              runInfo.integrationType,
+            )
+
             const syncRemoteContext: IIntegrationStartRemoteSyncContext = {
               integrationSyncWorkerEmitter: this.integrationSyncWorkerEmitter,
               integration: {
@@ -178,7 +161,9 @@ export default class IntegrationRunService extends LoggerBase {
                 status: runInfo.integrationState,
                 settings: runInfo.integrationSettings,
                 token: runInfo.integrationToken,
+                refreshToken: runInfo.integrationRefreshToken,
               },
+              automations: syncAutomations,
               tenantId: runInfo.tenantId,
               log: this.log,
             }
@@ -199,6 +184,7 @@ export default class IntegrationRunService extends LoggerBase {
           this.log.error({ err }, 'Error while starting integration sync remote!')
         }
 
+        this.log.info('Marking run and integration as successfully processed!')
         await this.repo.markRunProcessed(runId)
         await this.repo.markIntegration(runId, 'done')
 
@@ -225,6 +211,7 @@ export default class IntegrationRunService extends LoggerBase {
         await this.repo.resetDelayedRun(run.id)
         await this.streamWorkerEmitter.continueProcessingRunStreams(
           run.tenantId,
+          run.onboarding,
           run.integrationType,
           run.id,
         )
@@ -234,7 +221,12 @@ export default class IntegrationRunService extends LoggerBase {
     }
   }
 
-  public async startIntegrationRun(integrationId: string, onboarding: boolean): Promise<void> {
+  public async startIntegrationRun(
+    integrationId: string,
+    onboarding: boolean,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void> {
     this.log = getChildLogger('start-integration-run', this.log, {
       integrationId,
       onboarding,
@@ -279,10 +271,17 @@ export default class IntegrationRunService extends LoggerBase {
       integrationInfo.tenantId,
       integrationInfo.type,
       runId,
+      onboarding,
+      isManualRun,
+      manualSettings,
     )
   }
 
-  public async generateStreams(runId: string): Promise<void> {
+  public async generateStreams(
+    runId: string,
+    isManualRun?: boolean,
+    manualSettings?: unknown,
+  ): Promise<void> {
     this.log.info({ runId }, 'Trying to generate root streams for integration run!')
 
     const runInfo = await this.repo.getGenerateStreamData(runId)
@@ -409,7 +408,12 @@ export default class IntegrationRunService extends LoggerBase {
         status: runInfo.integrationState,
         settings: runInfo.integrationSettings,
         token: runInfo.integrationToken,
+        refreshToken: runInfo.integrationRefreshToken,
       },
+
+      // this is for controling manual one off runs
+      isManualRun,
+      manualSettings,
 
       log: this.log,
       cache,
@@ -420,17 +424,33 @@ export default class IntegrationRunService extends LoggerBase {
       },
 
       publishStream: async (identifier: string, data?: unknown) => {
-        await this.publishStream(runInfo.tenantId, runInfo.integrationType, runId, identifier, data)
+        await this.publishStream(
+          runInfo.tenantId,
+          runInfo.integrationType,
+          runId,
+          identifier,
+          runInfo.onboarding,
+          data,
+        )
       },
 
       updateIntegrationSettings: async (settings: unknown) => {
         await this.updateIntegrationSettings(runId, settings)
       },
+
+      updateIntegrationToken: async (token: string) => {
+        await this.updateIntegrationToken(runId, token)
+      },
+
+      updateIntegrationRefreshToken: async (refreshToken: string) => {
+        await this.updateIntegrationRefreshToken(runId, refreshToken)
+      },
     }
 
     this.log.debug('Marking run as in progress!')
     await this.repo.markRunInProgress(runId)
-    await this.repo.touchRun(runId)
+    // TODO we might need that later to check for stuck runs
+    // await this.repo.touchRun(runId)
 
     this.log.info('Generating streams!')
     try {
@@ -445,9 +465,11 @@ export default class IntegrationRunService extends LoggerBase {
         undefined,
         err,
       )
-    } finally {
-      await this.repo.touchRun(runId)
     }
+    // TODO we might need that later to check for stuck runs
+    // finally {
+    //   await this.repo.touchRun(runId)
+    // }
   }
 
   private async updateIntegrationSettings(runId: string, settings: unknown): Promise<void> {
@@ -466,17 +488,55 @@ export default class IntegrationRunService extends LoggerBase {
     }
   }
 
+  private async updateIntegrationToken(runId: string, token: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration token!')
+      await this.repo.updateIntegrationToken(runId, token)
+    } catch (err) {
+      await this.triggerRunError(
+        runId,
+        'run-update-token',
+        'Error while updating token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
+  private async updateIntegrationRefreshToken(runId: string, refreshToken: string): Promise<void> {
+    try {
+      this.log.debug('Updating integration refresh token!')
+      await this.repo.updateIntegrationRefreshToken(runId, refreshToken)
+    } catch (err) {
+      await this.triggerRunError(
+        runId,
+        'run-update-refresh-token',
+        'Error while updating refresh token!',
+        undefined,
+        err,
+      )
+      throw err
+    }
+  }
+
   private async publishStream(
     tenantId: string,
     platform: string,
     runId: string,
     identifier: string,
+    onboarding: boolean,
     data?: unknown,
   ): Promise<void> {
     try {
       this.log.debug('Publishing new root stream!')
       const streamId = await this.repo.publishStream(runId, identifier, data)
-      await this.streamWorkerEmitter.triggerStreamProcessing(tenantId, platform, streamId)
+      await this.streamWorkerEmitter.triggerStreamProcessing(
+        tenantId,
+        platform,
+        streamId,
+        onboarding,
+      )
     } catch (err) {
       await this.triggerRunError(
         runId,

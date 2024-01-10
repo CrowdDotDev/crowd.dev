@@ -68,7 +68,7 @@
     :period="selectedPeriod"
     :show-active-days="true"
     :template="MEMBERS_REPORT.nameAsId"
-    size="480px"
+    size="620px"
     @on-export="onExport"
   >
     <template #content="contentProps">

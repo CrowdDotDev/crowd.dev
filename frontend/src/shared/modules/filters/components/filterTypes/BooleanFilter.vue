@@ -40,7 +40,6 @@ const form = computed({
 
 const defaultForm: BooleanFilterValue = {
   value: true,
-  include: true,
 };
 
 const rules: any = {

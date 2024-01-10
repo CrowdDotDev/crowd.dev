@@ -1,20 +1,19 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
+import { Error400, Error401 } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import { TenantMode } from '../../conf/configTypes'
 import UserRepository from '../../database/repositories/userRepository'
-import Error400 from '../../errors/Error400'
 import EmailSender from '../emailSender'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { API_CONFIG, TENANT_MODE } from '../../conf'
+import { API_CONFIG, SSO_CONFIG } from '../../conf'
 import TenantService from '../tenantService'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import { tenantSubdomain } from '../tenantSubdomain'
-import Error401 from '../../errors/Error401'
 import identify from '../../segment/identify'
 import track from '../../segment/track'
+import Roles from '../../security/roles'
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -37,6 +36,12 @@ class AuthService {
       email = email.toLowerCase()
 
       const existingUser = await UserRepository.findByEmail(email, options)
+
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])([^ \t]{8,})$/
+
+      if (!passwordRegex.test(password)) {
+        throw new Error400(options.language, 'auth.passwordInvalid')
+      }
 
       // Generates a hashed password to hide the original one.
       const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS)
@@ -64,10 +69,14 @@ class AuthService {
         // Handles onboarding process like
         // invitation, creation of default tenant,
         // or default joining the current tenant
-        await this.handleOnboard(existingUser, invitationToken, tenantId, {
-          ...options,
-          transaction,
-        })
+        await this.handleOnboard(
+          existingUser,
+          { invitationToken, tenantId },
+          {
+            ...options,
+            transaction,
+          },
+        )
 
         // Email may have been alreadyverified using the invitation token
         const isEmailVerified = Boolean(
@@ -138,10 +147,14 @@ class AuthService {
       // Handles onboarding process like
       // invitation, creation of default tenant,
       // or default joining the current tenant
-      await this.handleOnboard(newUser, invitationToken, tenantId, {
-        ...options,
-        transaction,
-      })
+      await this.handleOnboard(
+        newUser,
+        { invitationToken, tenantId },
+        {
+          ...options,
+          transaction,
+        },
+      )
 
       // Email may have been alreadyverified using the invitation token
       const isEmailVerified = Boolean(
@@ -221,11 +234,15 @@ class AuthService {
       // Handles onboarding process like
       // invitation, creation of default tenant,
       // or default joining the current tenant
-      await this.handleOnboard(user, invitationToken, tenantId, {
-        ...options,
-        currentUser: user,
-        transaction,
-      })
+      await this.handleOnboard(
+        user,
+        { invitationToken, tenantId },
+        {
+          ...options,
+          currentUser: user,
+          transaction,
+        },
+      )
 
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
         expiresIn: API_CONFIG.jwtExpiresIn,
@@ -251,7 +268,14 @@ class AuthService {
     }
   }
 
-  static async handleOnboard(currentUser, invitationToken, tenantId, options) {
+  static async handleOnboard(
+    currentUser,
+    { invitationToken = null, tenantId = null, roles = [] },
+    options,
+  ) {
+    if (roles === undefined) {
+      roles = []
+    }
     if (invitationToken) {
       try {
         await TenantUserRepository.acceptInvitation(invitationToken, {
@@ -266,26 +290,18 @@ class AuthService {
       }
     }
 
-    const isMultiTenantViaSubdomain =
-      [TenantMode.MULTI, TenantMode.MULTI_WITH_SUBDOMAIN].includes(TENANT_MODE) && tenantId
-
-    if (isMultiTenantViaSubdomain) {
+    if (tenantId) {
       await new TenantService({
         ...options,
         currentUser,
       }).joinWithDefaultRolesOrAskApproval(
         {
           tenantId,
-          // leave empty to require admin's approval
-          roles: [],
+          roles,
         },
         options,
       )
-    }
-
-    const singleTenant = TENANT_MODE === TenantMode.SINGLE
-
-    if (singleTenant) {
+    } else {
       // In case is single tenant, and the user is signing in
       // with an invited email and for some reason doesn't have the token
       // it auto-assigns it
@@ -300,8 +316,7 @@ class AuthService {
         currentUser,
       }).createOrJoinDefault(
         {
-          // leave empty to require admin's approval
-          roles: [],
+          roles,
         },
         options.transaction,
       )
@@ -547,17 +562,37 @@ class AuthService {
     fullName,
     invitationToken,
     tenantId,
+    roles,
     options: any = {},
   ) {
     if (!email) {
       throw new Error('auth-no-email')
     }
 
+    if (roles) {
+      roles = AuthService.translateLFRoles(roles)
+    }
+
     const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
-      email = email.toLowerCase()
-      let user = await UserRepository.findByEmail(email, options)
+      let user = await UserRepository.findByProviderId(providerId, options)
+      if (!user) {
+        user = await UserRepository.findByEmail(email, options)
+      }
+      if (user && (user.provider !== provider || user.providerId !== providerId)) {
+        await UserRepository.update(
+          user.id,
+          {
+            firstName,
+            lastName,
+            provider,
+            providerId,
+            emailVerified,
+          },
+          options,
+        )
+      }
       if (user) {
         identify(user)
         track(
@@ -569,30 +604,6 @@ class AuthService {
           options,
           user.id,
         )
-      }
-
-      // If there was no provider, we can link it to the provider
-      if (user && (!user.provider || !user.providerId)) {
-        await UserRepository.update(
-          user.id,
-          {
-            provider,
-            providerId,
-            emailVerified: true,
-          },
-          options,
-        )
-        log.debug({ user }, 'User')
-      }
-      if (user && !user.emailVerified && emailVerified) {
-        await UserRepository.update(
-          user.id,
-          {
-            emailVerified,
-          },
-          options,
-        )
-        log.debug({ user }, 'User')
       }
 
       if (!user) {
@@ -618,10 +629,55 @@ class AuthService {
         )
       }
       if (invitationToken) {
-        await this.handleOnboard(user, invitationToken, tenantId, {
-          ...options,
-          transaction,
-        })
+        await this.handleOnboard(
+          user,
+          { invitationToken, tenantId, roles },
+          {
+            ...options,
+            transaction,
+          },
+        )
+      } else if (user.tenants.length === 0) {
+        // if email ends with '@crowd.dev'
+        if (email.endsWith('@crowd.dev') && SSO_CONFIG.crowdTenantId) {
+          await this.handleOnboard(
+            user,
+            { tenantId: SSO_CONFIG.crowdTenantId, roles },
+            {
+              ...options,
+              transaction,
+            },
+          )
+        } else if (SSO_CONFIG.lfTenantId) {
+          await this.handleOnboard(
+            user,
+            { tenantId: SSO_CONFIG.lfTenantId, roles },
+            {
+              ...options,
+              transaction,
+            },
+          )
+        } else {
+          await this.handleOnboard(
+            user,
+            { roles },
+            {
+              ...options,
+              transaction,
+            },
+          )
+        }
+      } else {
+        for (const tenantUser of user.tenants) {
+          const tenantUserId = tenantUser.dataValues.id
+          await TenantUserRepository.replaceRoles(tenantUserId, roles, {
+            ...options,
+            transaction,
+            currentTenant: {
+              id: tenantUser.dataValues.tenantId,
+            },
+          })
+        }
       }
 
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
@@ -636,6 +692,15 @@ class AuthService {
 
       throw error
     }
+  }
+
+  static translateLFRoles(roles) {
+    return roles.map((role) => {
+      if (role === 'viewer') {
+        return Roles.values.readonly
+      }
+      return role
+    })
   }
 }
 

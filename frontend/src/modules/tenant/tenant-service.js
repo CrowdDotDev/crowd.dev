@@ -18,8 +18,8 @@ export class TenantService {
     // If there is a subdomain with the tenant url,
     // it must fetch the settings form that subdomain no matter
     // which one is on local storage
+    let currentTenant;
     if (tenantUrl) {
-      let currentTenant;
       try {
         currentTenant = await this.findByUrl(tenantUrl);
       } catch (error) {
@@ -37,13 +37,15 @@ export class TenantService {
     const tenantId = AuthCurrentTenant.get();
     if (tenantId && !tenantUrl) {
       try {
-        const currentTenant = await this.find(tenantId);
+        currentTenant = await this.find(tenantId);
 
         AuthCurrentTenant.set(currentTenant);
       } catch (error) {
         console.error(error);
       }
     }
+    // eslint-disable-next-line consistent-return
+    return currentTenant;
   }
 
   static async update(id, data) {
@@ -80,6 +82,20 @@ export class TenantService {
     return response.data;
   }
 
+  static async viewOrganizations() {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(`/tenant/${tenantId}/viewOrganizations`);
+
+    return response.data;
+  }
+
+  static async viewContacts() {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(`/tenant/${tenantId}/viewContacts`);
+
+    return response.data;
+  }
+
   static async acceptInvitation(
     token,
     forceAcceptOtherEmail = false,
@@ -110,11 +126,17 @@ export class TenantService {
   }
 
   static async find(id) {
+    console.error(id);
     const response = await authAxios.get(`/tenant/${id}`, {
       params: {
         excludeSegments: true,
       },
     });
+    return response.data;
+  }
+
+  static async findName(id) {
+    const response = await authAxios.get(`/tenant/${id}/name`);
     return response.data;
   }
 

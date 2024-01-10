@@ -1,0 +1,33 @@
+{
+  "name": "@crowd/template-consumer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "SERVICE=template-consumer TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=template-consumer TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "start:debug": "SERVICE=template-consumer TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
+    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
+    "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
+    "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
+    "format-check": "./node_modules/.bin/prettier --check .",
+    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@crowd/archetype-consumer": "file:../../archetypes/consumer",
+    "@crowd/archetype-standard": "file:../../archetypes/standard",
+    "@types/node": "^20.8.2",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.3"
+  }
+}

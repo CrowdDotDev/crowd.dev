@@ -6,7 +6,6 @@ components:
         name: Pied Piper
         url: https://piedpiper.io
         description: The new internet
-        parentUrl: null
         emails:
           - richard@piedpiper.io
           - hello@piedpiper.io
@@ -46,7 +45,6 @@ components:
         name: Pied Piper
         url: https://piedpiper.io
         description: The new internet
-        parentUrl: null
         emails:
           - richard@piedpiper.io
           - hello@piedpiper.io
@@ -93,7 +91,6 @@ components:
         name: Hooli
         url: https://hooli.xyz
         description: Hooli is an international corporation founded by Gavin Belson and Peter Gregory
-        parentUrl: null
         emails:
           - gavin@hooli.xyz
         phoneNumbers: null

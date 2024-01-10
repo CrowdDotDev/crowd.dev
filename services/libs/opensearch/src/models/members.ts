@@ -35,12 +35,12 @@ export class MembersOpensearch extends OpensearchModelBase {
     createdAt: {
       type: OpensearchFieldType.DATE,
     },
+    manuallyCreated: {
+      type: OpensearchFieldType.BOOL,
+    },
     reach: {
-      type: OpensearchFieldType.INT,
-      customTranslation: {
-        toOpensearch: 'int_totalReach',
-        fromOpensearch: 'int_totalReach',
-      },
+      type: OpensearchFieldType.OBJECT,
+      preventNestedFieldTranslation: true,
     },
     numberOfOpenSourceContributions: {
       type: OpensearchFieldType.INT,
@@ -64,10 +64,10 @@ export class MembersOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.FLOAT,
     },
     identities: {
-      type: OpensearchFieldType.OBJECT_ARR,
+      type: OpensearchFieldType.NESTED,
       customTranslation: {
-        toOpensearch: 'obj_arr_identities.string_platform',
-        fromOpensearch: 'obj_arr_identities',
+        toOpensearch: 'nested_identities.string_platform',
+        fromOpensearch: 'nested_identities',
       },
     },
     attributes: {
@@ -80,17 +80,45 @@ export class MembersOpensearch extends OpensearchModelBase {
       type: OpensearchFieldType.UUID_ARR,
     },
     tags: {
-      type: OpensearchFieldType.OBJECT_ARR,
+      type: OpensearchFieldType.NESTED,
       customTranslation: {
-        toOpensearch: 'obj_arr_tags.uuid_id',
-        fromOpensearch: 'obj_arr_tags',
+        toOpensearch: 'nested_tags.uuid_id',
+        fromOpensearch: 'nested_tags',
+      },
+    },
+    contributions: {
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_contributions.uuid_id',
+        fromOpensearch: 'nested_contributions',
+      },
+    },
+    affiliations: {
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_affiliations.uuid_id',
+        fromOpensearch: 'nested_affiliations',
       },
     },
     organizations: {
-      type: OpensearchFieldType.OBJECT_ARR,
+      type: OpensearchFieldType.NESTED,
       customTranslation: {
-        toOpensearch: 'obj_arr_organizations.uuid_id',
-        fromOpensearch: 'obj_arr_organizations',
+        toOpensearch: 'nested_organizations.uuid_id',
+        fromOpensearch: 'nested_organizations',
+      },
+    },
+    notes: {
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_notes.uuid_id',
+        fromOpensearch: 'nested_notes',
+      },
+    },
+    tasks: {
+      type: OpensearchFieldType.NESTED,
+      customTranslation: {
+        toOpensearch: 'nested_tasks.uuid_id',
+        fromOpensearch: 'nested_tasks',
       },
     },
   }

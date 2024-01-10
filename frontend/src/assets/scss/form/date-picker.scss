@@ -1,3 +1,12 @@
+.el-range-editor.is-active {
+  --el-input-focus-border: #4b5563; // Gray-600
+  --el-input-focus-border-color: #4b5563; // Gray-600
+  --el-select-input-focus-border-color: #4b5563; // Gray-600
+  --el-input-text-color: #111827; //Gray-900
+  --el-text-color-placeholder: #9ca3af; // Gray-400
+  --el-input-hover-border-color: #9ca3af; // Gray-400
+}
+
 .date-picker-popper {
   &.el-popper.is-light {
     @apply rounded-lg border-none;
@@ -114,6 +123,32 @@
       }
     }
   }
+
+  .el-month-table{
+    .cell:hover{
+      @apply bg-brand-100 #{!important};
+    }
+
+    .in-range {
+      &>div{
+        @apply bg-brand-50 #{!important};
+      }
+
+      .el-date-table-cell, .cell{
+        @apply bg-brand-50 text-gray-900 rounded;
+      }
+
+      &.start-date, &.end-date{
+        &>div{
+          @apply bg-brand-500 #{!important};
+        }
+
+        .el-date-table-cell, .cell{
+          @apply bg-brand-500 text-white rounded #{!important};
+        }
+      }
+    }
+  }
 }
 
 // Input
@@ -124,6 +159,20 @@
     & .el-icon {
       @apply m-0;
     }
+  }
+}
+// Input
+.custom-date-range-picker {
+  @apply h-10 #{!important};
+
+  &.is-active{
+    box-shadow: none;
+    @apply border-gray-900;
+  }
+
+
+  .el-icon{
+    @apply hidden;
   }
 }
 

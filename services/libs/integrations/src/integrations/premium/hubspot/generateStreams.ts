@@ -1,8 +1,8 @@
 import { GenerateStreamsHandler } from '../../../types'
 import {
   HubspotEntity,
+  HubspotStream,
   IHubspotAttributeMap,
-  IHubspotBaseStream,
   IHubspotIntegrationSettings,
 } from './types'
 
@@ -15,6 +15,8 @@ const handler: GenerateStreamsHandler = async (ctx) => {
     await ctx.abortRunWithError('Integration is not enabled for members or organizations!')
     return
   }
+
+  const streams: HubspotStream[] = []
 
   if (settings.enabledFor.includes(HubspotEntity.MEMBERS)) {
     const fieldMap: IHubspotAttributeMap = settings.attributesMapping?.members
@@ -40,7 +42,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       return
     }
 
-    await ctx.publishStream<IHubspotBaseStream>(`${HubspotEntity.MEMBERS}`, {})
+    streams.push(HubspotStream.MEMBERS)
   }
 
   if (settings.enabledFor.includes(HubspotEntity.ORGANIZATIONS)) {
@@ -53,7 +55,11 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       return
     }
 
-    await ctx.publishStream<IHubspotBaseStream>(`${HubspotEntity.ORGANIZATIONS}`, {})
+    streams.push(HubspotStream.ORGANIZATIONS)
+  }
+
+  if (streams.length > 0) {
+    await ctx.publishStream<HubspotStream[]>(HubspotStream.ROOT, streams)
   }
 }
 

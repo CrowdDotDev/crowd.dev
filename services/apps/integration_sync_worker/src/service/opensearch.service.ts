@@ -4,7 +4,7 @@ import { ISearchHit } from './opensearch.data'
 import { OpenSearchIndex } from '@crowd/types'
 
 export class OpenSearchService extends LoggerBase {
-  private readonly client: Client
+  public readonly client: Client
 
   constructor(parentLog: Logger, client: Client) {
     super(parentLog)

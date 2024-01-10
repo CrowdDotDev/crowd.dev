@@ -34,6 +34,14 @@ export const externalTooltipHandler = (
     }
   };
 
+  // hide the tooltip after a delay
+  const hideTooltipWithDelay = () => {
+    setTimeout(() => {
+      tooltipEl.style.opacity = 0;
+      tooltipEl.style.display = 'none';
+    }, 100); // Adjust the delay time (in milliseconds) as needed
+  };
+
   // Handle mouseleave event on tooltip
   tooltipEl.onmouseleave = ({ clientX, clientY }) => {
     if (chart.canvas) {
@@ -47,6 +55,8 @@ export const externalTooltipHandler = (
       // This will hide tooltip
       canvasNode?.dispatchEvent(evt);
     }
+
+    hideTooltipWithDelay();
   };
 
   // Hide if no tooltip

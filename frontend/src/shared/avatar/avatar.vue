@@ -43,6 +43,7 @@ export default {
         sm: '2.5rem',
         xs: '2rem',
         xxs: '1.25rem',
+        xxxs: '1rem',
       },
     };
   },
@@ -72,6 +73,7 @@ export default {
         color: this.computedTextColor,
         height: this.computedSize,
         width: this.computedSize,
+        lineHeight: this.computedSize,
         fontSize: `calc(${this.computedSize} * 0.4)`,
       };
     },

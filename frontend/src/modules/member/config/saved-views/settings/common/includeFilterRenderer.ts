@@ -1,4 +1,4 @@
-import { IncludeEnum } from '@/modules/member/config/saved-views/settings/types/IncludeEnum';
+import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common/types/IncludeEnum';
 
 export const includeFilterRenderer = (property: string, value: IncludeEnum) => {
   if (value === IncludeEnum.FILTER) {

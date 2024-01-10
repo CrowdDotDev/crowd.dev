@@ -6,7 +6,7 @@
         <div>
           <h4>Activities</h4>
           <div class="text-xs text-gray-500 mb-10">
-            Activities are everything that is happening in your community
+            Activities are all interactions with your company brand, community, and product
           </div>
         </div>
         <div class="flex">

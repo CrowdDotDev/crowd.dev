@@ -1,4 +1,4 @@
-import Error400 from '../errors/Error400'
+import { Error400 } from '@crowd/common'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import WidgetRepository from '../database/repositories/widgetRepository'

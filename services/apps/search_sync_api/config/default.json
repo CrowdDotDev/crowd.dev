@@ -1,0 +1,9 @@
+{
+  "service": {
+    "port": 8083
+  },
+  "db": {},
+  "sqs": {},
+  "redis": {},
+  "opensearch": {}
+}

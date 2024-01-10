@@ -14,9 +14,9 @@ export const BENCHMARK_WIDGET = {
 
 export default {
   nameAsId: 'Product-community fit report',
-  name: 'Product-Community Fit',
+  name: 'Project-Community Fit',
   description:
-      'Measure and benchmark Product-Community Fit for your open-source project',
+      'Measure and benchmark Project-Community Fit for your open-source project',
   icon: 'ri-rocket-2-line rotate-45',
   color: 'bg-purple-500',
   filters: {

@@ -1,4 +1,4 @@
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotAssociationType, HubspotEndpoint, IHubspotContact, IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
@@ -20,6 +20,7 @@ export const getContacts = async (
   includeOrganizations = false,
   after?: string,
 ): Promise<IPaginatedResponse<IHubspotContact>> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: AxiosRequestConfig<unknown> = {
     method: 'get',
     url: `https://api.hubapi.com/crm/v3/objects/contacts`,
@@ -32,11 +33,29 @@ export const getContacts = async (
     },
   }
 
+  // If we're not onboarding, only get data that was updated in last 8 hours
+  if (!ctx.onboarding) {
+    const date = new Date()
+    date.setHours(date.getHours() - 8)
+
+    config.params.filterGroups = JSON.stringify([
+      {
+        filters: [
+          {
+            value: date.getTime(),
+            propertyName: 'hs_lastmodifieddate',
+            operator: 'GT',
+          },
+        ],
+      },
+    ])
+  }
+
   try {
     ctx.log.debug({ nangoId }, 'Fetching contacts from HubSpot')
 
     // Get an access token from Nango
-    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx)
+    const accessToken = await getNangoToken(nangoId, PlatformType.HUBSPOT, ctx, throttler)
 
     ctx.log.debug({ accessToken }, `nango token`)
     config.headers.Authorization = `Bearer ${accessToken}`
@@ -57,6 +76,7 @@ export const getContacts = async (
           HubspotAssociationType.CONTACT_TO_COMPANY,
           element.id,
           ctx,
+          throttler,
         )
 
         if (companyAssociations.length > 0) {
@@ -69,7 +89,10 @@ export const getContacts = async (
             throttler,
           )
 
-          element.organization = company
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if ((company?.properties as any)?.name) {
+            element.organization = company
+          }
         }
       }
     }

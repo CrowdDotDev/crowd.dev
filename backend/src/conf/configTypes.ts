@@ -1,3 +1,5 @@
+import { ITemporalConfig } from '@crowd/temporal'
+
 export enum ServiceType {
   API = 'api',
   NODEJS_WORKER = 'nodejs-worker',
@@ -21,7 +23,7 @@ export interface SQSConfiguration {
   host?: string
   port?: number
   nodejsWorkerQueue: string
-  nodejsWorkerDelayableQueue: string
+  nodejsWorkerPriorityQueue: string
   integrationRunWorkerQueue: string
   pythonWorkerQueue: string
   aws: AwsCredentials
@@ -83,6 +85,11 @@ export interface Auth0Configuration {
   jwks: string
 }
 
+export interface SSOConfiguration {
+  crowdTenantId: string
+  lfTenantId: string
+}
+
 export interface PlansConfiguration {
   stripePricePremium: string
   stripePriceEnterprise: string
@@ -99,6 +106,7 @@ export interface DevtoConfiguration {
 export interface TwitterConfiguration {
   clientId: string
   clientSecret: string
+  callbackUrl: string
   globalLimit?: number
   maxRetrospectInSeconds: number
   limitResetFrequencyDays: number
@@ -191,6 +199,10 @@ export interface EagleEyeConfiguration {
   apiKey: string
 }
 
+export interface GithubTokenConfiguration {
+  token: string
+}
+
 export interface UnleashConfiguration {
   url: string
   adminApiKey: string
@@ -238,4 +250,17 @@ export interface CrowdAnalyticsConfiguration {
   tenantId: string
   baseUrl: string
   apiToken: string
+}
+
+export interface IBackendTemporalConfig extends ITemporalConfig {
+  automationsTaskQueue: string
+}
+
+export interface EncryptionConfiguration {
+  secretKey: string
+  initVector: string
+}
+
+export interface IOpenStatusApiConfig {
+  baseUrl: string
 }

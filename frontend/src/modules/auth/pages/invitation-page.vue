@@ -91,7 +91,7 @@ export default {
         token,
         forceAcceptOtherEmail,
       )
-        .then((tenant) => this.doSelectTenant(tenant))
+        .then((tenant) => this.doSelectTenant({ tenant }))
         .then(() => {
           this.warningMessage = null;
           this.loading = false;

@@ -1,27 +1,39 @@
 <template>
   <el-input
     v-model="model"
+    :type="props.type"
     class="filter-input-field"
     :placeholder="placeholder"
-  />
+  >
+    <template v-if="prefix" #prefix>
+      <span class="text-gray-600">{{ prefix }}</span>
+    </template>
+
+    <template v-if="suffix" #suffix>
+      <span class="text-gray-600">{{ suffix }}</span>
+    </template>
+  </el-input>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 
 const props = defineProps<{
-  modelValue: string,
+  modelValue: string | number,
   placeholder?: string,
+  suffix?: string,
+  prefix?: string,
+  type?: string,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string | number): void}>();
 
-const model = computed<string>({
+const model = computed<string | number>({
   get() {
     return props.modelValue;
   },
-  set(value: string) {
-    emit('update:modelValue', value);
+  set(value: string | number) {
+    emit('update:modelValue', props.type === 'number' ? +value : value);
   },
 });
 </script>

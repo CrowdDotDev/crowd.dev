@@ -69,16 +69,15 @@ useVuelidate(rules, form);
 const buildOptions = (projects: Project[]) => {
   filteredOptions.value = projects.map((p) => {
     const segments = props.modelValue.value || [];
-    const selectedSubProjects = p.subprojects.filter((subproject) => segments.includes(subproject.id));
 
     return {
       id: p.id,
       label: p.name,
-      selected: selectedSubProjects.length === p.subprojects.length,
+      selected: segments.includes(p.id),
       children: p.subprojects.map((sp) => ({
         id: sp.id,
         label: sp.name,
-        selected: selectedSubProjects.length !== p.subprojects.length && segments.includes(sp.id),
+        selected: segments.includes(sp.id),
       })),
     };
   });
@@ -92,7 +91,7 @@ const onFilterChange = (value: ProjectsOption[]) => {
 
   value.forEach((option) => {
     if (option.selected) {
-      segments = option.children.map((c) => c.id);
+      segments = [option.id];
     } else {
       option.children.forEach((child) => {
         if (child.selected) {

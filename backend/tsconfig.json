@@ -13,7 +13,8 @@
     "types": ["node", "jest"],
     "baseUrl": "./src",
     "paths": {
-      "@crowd/*": ["../../services/libs/*/dist"],
+      "@crowd/*/premium": ["../../services/libs/*/src/premium"],
+      "@crowd/*": ["../../services/libs/*/src"],
       "@/*": ["./*"]
     },
     "skipLibCheck": true

@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '@crowd/types'
 import { getNangoToken } from '../../../nango'
-import { IGenerateStreamsContext, IProcessStreamContext } from '@/types'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotEndpoint, IHubspotProperty } from '../types'
 
 export const getProperties = async (

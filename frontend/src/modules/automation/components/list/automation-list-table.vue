@@ -13,12 +13,16 @@
           <template #default="scope">
             <div class="flex items-center py-4">
               <div class="w-6">
-                <img v-if="scope.row.type === 'webhook'" alt="Webhook" src="/images/automation/webhook.png" class="w-6">
-                <img v-else-if="scope.row.type === 'slack'" alt="Slack" src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="w-6">
+                <img
+                  v-if="automationTypes[scope.row.type]"
+                  :alt="automationTypes[scope.row.type].name"
+                  :src="automationTypes[scope.row.type].icon"
+                  class="w-6"
+                >
               </div>
               <div class="pl-4">
                 <h6 class="text-sm font-medium mb-0.5 leading-5 text-black">
-                  {{ scope.row.name ?? translate(
+                  {{ scope.row.name && scope.row.name.length > 0 ? scope.row.name : translate(
                     `entities.automation.triggers.${scope.row.trigger}`,
                   ) }}
                 </h6>
@@ -117,6 +121,7 @@ import moment from 'moment';
 import { i18n } from '@/i18n';
 import AppAutomationToggle from '@/modules/automation/components/automation-toggle.vue';
 import AppAutomationDropdown from '@/modules/automation/components/automation-dropdown.vue';
+import { automationTypes } from '../../config/automation-types';
 
 const emit = defineEmits(['openEditAutomationDrawer', 'openExecutionsDrawer']);
 

@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = await new NoteService(req).create(req.body)
 
-  track('Note Created', { id: payload.id }, { ...req })
+  track('Note Created', { ...req.body }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

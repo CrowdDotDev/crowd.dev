@@ -13,7 +13,7 @@ export default [
     component: Layout,
     meta: {
       auth: true,
-      title: 'Settings',
+      title: 'Manage workspace',
     },
     children: [
       {

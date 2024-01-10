@@ -145,6 +145,7 @@ import {
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
+import { storeToRefs } from 'pinia';
 import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue';
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue';
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue';
@@ -157,7 +158,6 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
@@ -313,7 +313,6 @@ const hasFormChanged = computed(() => {
     ? getInitialModel(record.value)
     : getInitialModel();
 
-  console.log(formModel.value);
   return !isEqual(initialModel, formModel.value);
 });
 
@@ -323,13 +322,17 @@ const isSubmitBtnDisabled = computed(
     || (isEditPage.value && !hasFormChanged.value),
 );
 
+const isLeaving = ref(false);
+
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
   if (
-    hasFormChanged.value
+    !isLeaving.value
+    && hasFormChanged.value
     && !wasFormSubmittedSuccessfuly.value
     && to.fullPath !== '/500'
   ) {
+    isLeaving.value = true;
     return ConfirmDialog({})
       .then(() => true)
       .catch(() => false);
@@ -338,16 +341,19 @@ onBeforeRouteLeave((to) => {
   return true;
 });
 
-onMounted(async () => {
+onMounted(() => {
   // Fetch custom attributes on mount
-  await getMemberCustomAttributes();
+  getMemberCustomAttributes();
 
   if (isEditPage.value) {
     const { id } = route.params;
 
-    record.value = await store.dispatch('member/doFind', { id });
-    isPageLoading.value = false;
-    formModel.value = getInitialModel(record.value);
+    store.dispatch('member/doFind', { id, segments: [selectedProjectGroup.value.id] })
+      .then((res) => {
+        record.value = res;
+        isPageLoading.value = false;
+        formModel.value = getInitialModel(record.value);
+      });
   } else {
     isPageLoading.value = false;
   }
@@ -425,6 +431,7 @@ async function onSubmit() {
       tags: formModel.value.tags.map((t) => t.id),
     },
     ...formModel.value.organizations.length && {
+      organizationsReplace: true,
       organizations: formModel.value.organizations.map(
         (o) => ({
           id: o.id,
@@ -438,6 +445,7 @@ async function onSubmit() {
           ...o.memberOrganizations?.dateEnd && {
             endDate: o.memberOrganizations?.dateEnd,
           },
+          source: 'ui',
         }),
       ).filter(
         (o) => !!o.id,
@@ -460,7 +468,10 @@ async function onSubmit() {
       memberId: affiliation.memberId,
       segmentId: affiliation.segmentId,
       organizationId: affiliation.organizationId,
+      dateStart: affiliation.dateStart,
+      dateEnd: affiliation.dateEnd,
     })),
+    manuallyCreated: true,
   };
 
   let isRequestSuccessful = false;

@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { Logger } from '@crowd/logging'
+import { RateLimitError } from '@crowd/types'
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
 import { DiscourseCategoryResponse, DiscourseTopicsInput } from '../../types/discourseTypes'
 
@@ -9,7 +10,7 @@ export const getDiscourseTopics = async (
   logger: Logger,
 ): Promise<DiscourseCategoryResponse> => {
   logger.info({
-    message: 'Fetching categories from Discourse',
+    message: 'Fetching topics from Discourse',
     forumHostName: params.forumHostname,
   })
   const config: AxiosRequestConfig<any> = {
@@ -28,7 +29,11 @@ export const getDiscourseTopics = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
-    logger.error({ err, params }, 'Error while getting Discourse categories')
+    if (err.response && err.response.status === 429) {
+      // wait 5 mins
+      throw new RateLimitError(5 * 60, 'discourse/gettopics')
+    }
+    logger.error({ err, params }, 'Error while getting Discourse topics')
     throw err
   }
 }

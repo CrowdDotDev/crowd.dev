@@ -5,3 +5,4 @@ export * from './cache'
 
 export * from './instances'
 export * from './rateLimiter'
+export * from './mutex'

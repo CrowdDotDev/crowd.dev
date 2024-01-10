@@ -2,14 +2,15 @@ import {
   AutomationExecutionState,
   AutomationSettings,
   AutomationState,
+  AutomationSyncTrigger,
   AutomationTrigger,
   AutomationType,
-} from '../../../types/automationTypes'
+} from '@crowd/types'
 
 export interface DbAutomationInsertData {
   name: string
   type: AutomationType
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   settings: AutomationSettings
   state: AutomationState
 }
@@ -25,7 +26,7 @@ export interface DbAutomationExecutionInsertData {
   automationId: string
   type: AutomationType
   tenantId: string
-  trigger: AutomationTrigger
+  trigger: AutomationTrigger | AutomationSyncTrigger
   state: AutomationExecutionState
   error: any | null
   executedAt: Date

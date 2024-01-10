@@ -2,15 +2,18 @@
   <div>
     <div
       v-if="loading"
-      v-loading="loading"
-      class="app-page-spinner h-16 !relative !min-h-5"
-    />
+      class="h-16 !relative !min-h-5 flex justify-center items-center"
+    >
+      <div class="animate-spin w-fit">
+        <div class="custom-spinner" />
+      </div>
+    </div>
     <div v-else>
       <!-- Empty State -->
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community contributors yet"
+        title="No contributors yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
         secondary-btn="Add contributor"
         @secondary-click="onSecondaryBtnClick"
@@ -19,7 +22,7 @@
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No community contributors yet"
+        title="No contributors yet"
         description="Please consider that the first contributors may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
@@ -91,16 +94,19 @@
               :row-class-name="rowClass"
               @sort-change="doChangeSort"
               @selection-change="selectedMembers = $event"
+              @cell-mouse-enter="handleCellMouseEnter"
+              @cell-mouse-leave="handleCellMouseLeave"
             >
               <el-table-column type="selection" width="75" fixed />
 
+              <!-- Contacts -->
               <el-table-column
                 label="Contributor"
                 prop="displayName"
                 width="250"
-                sortable
                 fixed
                 class="-my-2"
+                sortable="custom"
               >
                 <template #default="scope">
                   <router-link
@@ -125,7 +131,18 @@
                 </template>
               </el-table-column>
 
+              <!-- Organization & Title -->
               <el-table-column label="Organization & Title" width="220">
+                <template #header>
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Organization & Title
+                    </div>
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -142,6 +159,153 @@
                   </router-link>
                 </template>
               </el-table-column>
+
+              <!-- Identities -->
+              <el-table-column label="Identities" width="280">
+                <template #header>
+                  <span>Identities</span>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Identities can be profiles on social platforms, emails, phone numbers,<br>
+                      or unique identifiers from internal sources (e.g. web app log-in email).
+                    </template>
+                    <i class="ri-information-line text-xs ml-1" />
+                  </el-tooltip>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-identities-horizontal-list-members
+                      :member="scope.row"
+                      :limit="5"
+                    />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Emails -->
+              <el-table-column label="Emails" :width="emailsColumnWidth">
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block"
+                  >
+                    <div
+                      v-if="scope.row.emails.filter((e) => !!e)?.length && scope.row.emails.filter((e) => !!e)?.some((e) => !!e)"
+                      class="text-sm cursor-auto flex flex-wrap gap-1"
+                    >
+                      <el-tooltip
+                        v-for="email of scope.row.emails.filter((e) => !!e).slice(0, 3)"
+                        :key="email"
+                        :disabled="!email"
+                        popper-class="custom-identity-tooltip"
+                        placement="top"
+                      >
+                        <template #content>
+                          <span>Send email
+                            <i
+                              v-if="email"
+                              class="ri-external-link-line text-gray-400"
+                            /></span>
+                        </template>
+                        <div @click.prevent>
+                          <a
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="badge--interactive"
+                            :href="`mailto:${email}`"
+                            @click.stop="trackEmailClick"
+                          >{{ email }}</a>
+                        </div>
+                      </el-tooltip>
+                      <el-popover
+                        v-if="scope.row.emails.filter((e) => !!e)?.length > 3"
+                        placement="top"
+                        :width="400"
+                        trigger="hover"
+                        popper-class="support-popover"
+                      >
+                        <template #reference>
+                          <span
+                            class="badge--interactive hover:text-gray-900"
+                          >+{{ scope.row.emails.filter((e) => !!e).length - 3 }}</span>
+                        </template>
+                        <div class="flex flex-wrap gap-3 my-1">
+                          <el-tooltip
+                            v-for="email of scope.row.emails.filter((e) => !!e).slice(3)"
+                            :key="email"
+                            :disabled="!email"
+                            popper-class="custom-identity-tooltip flex "
+                            placement="top"
+                          >
+                            <template #content>
+                              <span>Send email
+                                <i
+                                  v-if="email"
+                                  class="ri-external-link-line text-gray-400"
+                                /></span>
+                            </template>
+                            <div @click.prevent>
+                              <a
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="badge--interactive"
+                                :href="`mailto:${email}`"
+                                @click.stop="trackEmailClick"
+                              >{{ email }}</a>
+                            </div>
+                          </el-tooltip>
+                        </div>
+                      </el-popover>
+                    </div>
+                    <span v-else class="text-gray-500">-</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Engagement level -->
+              <el-table-column
+                label="Engagement Level"
+                prop="score"
+                width="210"
+                sortable="custom"
+              >
+                <template #header>
+                  <span>Engagement Level</span>
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Calculated based on the recency and importance of the activities<br>
+                      a contact has performed in relation to all other contacts.
+                      <br>E.g. a higher engagement level will be given to a contact who has written
+                      <br>in your Slack yesterday vs. someone who did so three weeks ago.
+                    </template>
+                    <i class="ri-information-line text-xs ml-1" />
+                  </el-tooltip>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block"
+                  >
+                    <app-member-engagement-level :member="scope.row" />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- # of Activities -->
               <el-table-column
                 label="# of Activities"
                 prop="activityCount"
@@ -161,25 +325,8 @@
                   </router-link>
                 </template>
               </el-table-column>
-              <el-table-column
-                label="Engagement Level"
-                prop="score"
-                width="200"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-engagement-level :member="scope.row" />
-                  </router-link>
-                </template>
-              </el-table-column>
+
+              <!-- Last activity -->
               <el-table-column
                 label="Last activity"
                 prop="lastActive"
@@ -198,31 +345,6 @@
                     <app-member-last-activity
                       v-if="scope.row.lastActivity"
                       :member="scope.row"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-if="showReach"
-                label="Reach"
-                prop="reach"
-                width="150"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    <app-member-reach
-                      :member="{
-                        ...scope.row,
-                        reach: scope.row.reach,
-                      }"
                     />
                   </router-link>
                 </template>
@@ -255,58 +377,21 @@
                 </template>
               </el-table-column>
 
-              <!-- # of Open Source Contributions -->
+              <!-- Location -->
               <el-table-column
-                label="# of open source contributions"
+                label="Location"
                 width="200"
-                prop="numberOfOpenSourceContributions"
-                sortable
               >
                 <template #header>
-                  <el-tooltip placement="top">
-                    <template #content>
-                      This refers to the total # of open source contributions a contributor did on GitHub.<br />
-                      To receive this attribute you have to enrich your contributors.
-                    </template>
-                    # of open source contributions
-                  </el-tooltip>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <div data-qa="member-oss-contributions" class="text-gray-900 text-sm member-oss-contributions">
-                      {{
-                        formatNumberToCompact(
-                          scope.row.numberOfOpenSourceContributions,
-                        )
-                      }}
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      Location
                     </div>
-                  </router-link>
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
                 </template>
-              </el-table-column>
-
-              <el-table-column label="Identities" width="240">
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-identities :username="scope.row.username" :member="scope.row" />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <el-table-column label="Emails" :width="emailsColumnWidth">
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -317,39 +402,242 @@
                     class="block"
                   >
                     <div
-                      v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
-                      class="text-sm cursor-auto flex flex-wrap gap-1"
+                      v-if="scope.row.attributes?.location?.default"
+                      class="text-gray-900 text-sm"
                     >
-                      <el-tooltip
-                        v-for="email of scope.row.emails"
-                        :key="email"
-                        :disabled="!email"
-                        popper-class="custom-identity-tooltip"
-                        placement="top"
-                      >
-                        <template #content>
-                          <span>Send email
-                            <i
-                              v-if="email"
-                              class="ri-external-link-line text-gray-400"
-                            /></span>
-                        </template>
-                        <div @click.prevent>
-                          <a
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="badge--interactive"
-                            :href="`mailto:${email}`"
-                            @click.stop="trackEmailClick"
-                          >{{ email }}</a>
-                        </div>
-                      </el-tooltip>
+                      {{ scope.row.attributes.location.default }}
                     </div>
-                    <span v-else class="text-gray-500">-</span>
+                    <span v-else class="text-gray-900">-</span>
                   </router-link>
                 </template>
               </el-table-column>
 
+              <!-- Reach -->
+              <el-table-column
+                v-if="showReach"
+                label="Reach"
+                prop="reach"
+                width="180"
+                sortable="custom"
+              >
+                <template #header>
+                  <div
+                    :ref="(el) => setEnrichmentAttributesRef(el, `reach`)"
+                    class="inline-flex"
+                    @mouseover="() => onColumnHeaderMouseOver('reach')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
+                    <span :class="{ 'text-purple-400': !isEnrichEnabled }">Reach</span>
+                    <div class="inline-flex items-center ml-1 gap-2">
+                      <el-tooltip placement="top">
+                        <template #content>
+                          Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
+                        </template>
+                        <i class="ri-information-line text-xs" />
+                      </el-tooltip>
+                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                    </div>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-reach`)"
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block h-full !text-gray-500"
+                  >
+                    <app-member-reach
+                      v-if="isEnrichEnabled"
+                      :member="{
+                        ...scope.row,
+                        reach: scope.row.reach,
+                      }"
+                    />
+                    <div v-else class="flex items-center h-full w-full pl-3">
+                      <div class="blur-[6px] text-gray-900 select-none">
+                        150
+                      </div>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Seniority Level -->
+              <el-table-column
+                label="Seniority Level"
+                prop="seniorityLevel"
+                width="200"
+              >
+                <template #header>
+                  <div
+                    :ref="(el) => setEnrichmentAttributesRef(el, `seniorityLevel`)"
+                    class="flex items-center"
+                    @mouseover="() => onColumnHeaderMouseOver('seniorityLevel')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
+                    <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
+                      Seniority Level
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                      :disabled="!isEnrichEnabled"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-seniorityLevel`)"
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block h-full"
+                  >
+                    <div v-if="isEnrichEnabled">
+                      <div
+                        v-if="scope.row.attributes?.seniorityLevel?.default"
+                        class="text-gray-900 text-sm"
+                      >
+                        {{ scope.row.attributes.seniorityLevel.default }}
+                      </div>
+                      <span v-else class="text-gray-900">-</span>
+                    </div>
+                    <div v-else class="flex items-center h-full w-full pl-3">
+                      <div class="blur-[6px] text-gray-900 select-none">
+                        Senior
+                      </div>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Programming Languages -->
+              <el-table-column
+                label="Programming Languages"
+                prop="programmingLanguages"
+                width="250"
+              >
+                <template #header>
+                  <div
+                    :ref="(el) => setEnrichmentAttributesRef(el, `programmingLanguagess`)"
+                    class="flex items-center"
+                    @mouseover="() => onColumnHeaderMouseOver('programmingLanguagess')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
+                    <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
+                      Programming Languages
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                      :disabled="!isEnrichEnabled"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-programmingLanguages`)"
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block h-full"
+                  >
+                    <div v-if="isEnrichEnabled">
+                      <app-shared-tag-list
+                        v-if="scope.row.attributes.programmingLanguages?.default?.length"
+                        :list="scope.row.attributes.programmingLanguages.default"
+                        :slice-size="5"
+                      >
+                        <template #itemSlot="{ item }">
+                          <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                            {{ item }}
+                          </span>
+                        </template>
+                      </app-shared-tag-list>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                    <div v-else class="flex items-center h-full w-full pl-3">
+                      <div class="blur-[6px] text-gray-900 select-none">
+                        Javascript, Java
+                      </div>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Skills -->
+              <el-table-column
+                label="Skills"
+                prop="skills"
+                width="250"
+              >
+                <template #header>
+                  <div
+                    :ref="(el) => setEnrichmentAttributesRef(el, `skills`)"
+                    class="flex items-center"
+                    @mouseover="() => onColumnHeaderMouseOver('skills')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
+                    <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
+                      Skills
+                    </div>
+                    <el-tooltip
+                      content="Source: Enrichment"
+                      placement="top"
+                      trigger="hover"
+                      :disabled="!isEnrichEnabled"
+                    >
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-skills`)"
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block h-full"
+                  >
+                    <div v-if="isEnrichEnabled">
+                      <app-shared-tag-list
+                        v-if="scope.row.attributes.skills?.default?.length"
+                        :list="scope.row.attributes.skills.default"
+                        :slice-size="5"
+                      >
+                        <template #itemSlot="{ item }">
+                          <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                            {{ item }}
+                          </span>
+                        </template>
+                      </app-shared-tag-list>
+                      <span v-else class="text-gray-500">-</span>
+                    </div>
+                    <div v-else class="flex items-center h-full w-full pl-3">
+                      <div class="blur-[6px] text-gray-900 select-none">
+                        Web development
+                      </div>
+                    </div>
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Tags -->
               <el-table-column
                 :width="tagsColumnWidth"
                 :label="translate('entities.member.fields.tag')"
@@ -368,6 +656,7 @@
                 </template>
               </el-table-column>
 
+              <!-- Action button -->
               <el-table-column fixed="right">
                 <template #default="scope">
                   <router-link
@@ -379,10 +668,18 @@
                     class="block w-full"
                   >
                     <div class="h-full flex items-center justify-center w-full">
-                      <app-member-dropdown
-                        :member="scope.row"
-                        @merge="isMergeDialogOpen = scope.row"
-                      />
+                      <button
+                        :id="`buttonRef-${scope.row.id}`"
+                        :ref="(el) => setActionBtnsRef(el, scope.row.id)"
+                        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+                        type="button"
+                        @click.prevent.stop="() => onActionBtnClick(scope.row)"
+                      >
+                        <i
+                          :id="`buttonRefIcon-${scope.row.id}`"
+                          class="text-xl ri-more-fill"
+                        />
+                      </button>
                     </div>
                   </router-link>
                 </template>
@@ -403,6 +700,44 @@
         </div>
       </div>
     </div>
+    <!-- Actions dropdown popover -->
+    <el-popover
+      placement="bottom-end"
+      popper-class="popover-dropdown"
+      :virtual-ref="actionBtnRefs[selectedActionMember?.id]"
+      trigger="click"
+      :visible="showMemberDropdownPopover"
+      virtual-triggering
+    >
+      <div v-click-outside="onClickOutside">
+        <app-member-dropdown-content
+          v-if="selectedActionMember"
+          :member="selectedActionMember"
+          @find-github="isFindGithubDrawerOpen = selectedActionMember"
+          @merge="isMergeDialogOpen = selectedActionMember"
+          @close-dropdown="closeDropdown"
+        />
+      </div>
+    </el-popover>
+
+    <!-- Enrichment popover -->
+    <el-popover
+      v-if="!isEnrichEnabled"
+      placement="top"
+      popper-class="!p-0 !mb-[-12px] !w-60"
+      :virtual-ref="enrichmentRefs[selectedEnrichmentAttribute]"
+      trigger="hover"
+      :visible="showEnrichmentPopover"
+      virtual-triggering
+      @hide="onHide"
+    >
+      <cr-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
+    </el-popover>
+
+    <app-member-find-github-drawer
+      v-if="isFindGithubDrawerOpen"
+      v-model="isFindGithubDrawerOpen"
+    />
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
     <app-tag-popover v-model="isEditTagsDialogOpen" :member="editTagMember" @reload="fetchMembers({ reload: true })" />
   </div>
@@ -413,22 +748,30 @@ import { useStore } from 'vuex';
 import {
   computed, onMounted, onUnmounted, ref, defineProps, watch,
 } from 'vue';
+import { ClickOutside as vClickOutside } from 'element-plus';
+import { storeToRefs } from 'pinia';
 import { i18n } from '@/i18n';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumberToCompact, formatNumber } from '@/utils/number';
+import { formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import AppPagination from '@/shared/pagination/pagination.vue';
+import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
+import AppSharedTagList from '@/shared/tag/tag-list.vue';
+import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import Plans from '@/security/plans';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import AppMemberBadge from '../member-badge.vue';
-import AppMemberDropdown from '../member-dropdown.vue';
-import AppMemberIdentities from '../member-identities.vue';
+import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
@@ -443,11 +786,19 @@ const isScrollbarVisible = ref(false);
 const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
-const emit = defineEmits(['onAddMember']);
-
 const isMergeDialogOpen = ref(null);
 const isEditTagsDialogOpen = ref(false);
 const editTagMember = ref(null);
+
+const showMemberDropdownPopover = ref(false);
+const actionBtnRefs = ref({});
+const selectedActionMember = ref(null);
+
+const showEnrichmentPopover = ref(false);
+const enrichmentRefs = ref({});
+const selectedEnrichmentAttribute = ref(null);
+
+const isFindGithubDrawerOpen = ref(null);
 
 const props = defineProps({
   hasIntegrations: {
@@ -462,7 +813,16 @@ const props = defineProps({
     type: Boolean,
     default: () => true,
   },
+  pagination: {
+    type: Object,
+    default: () => ({
+      page: 1,
+      perPage: 20,
+    }),
+  },
 });
+
+const emit = defineEmits(['onAddMember', 'update:pagination']);
 
 const memberStore = useMemberStore();
 const {
@@ -472,10 +832,13 @@ const { fetchMembers } = memberStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { currentTenant } = mapGetters('auth');
+
+const isEnrichEnabled = computed(() => currentTenant.value?.plan !== Plans.values.essential);
 
 const defaultSort = computed(() => ({
-  field: 'lastActive',
-  order: 'descending',
+  prop: filters.value.order.prop,
+  order: filters.value.order.order,
 }));
 
 const integrations = computed(
@@ -517,7 +880,7 @@ const emailsColumnWidth = computed(() => {
       .reduce((a, b) => a + b, 0);
 
     if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 400 ? 400 : tabWidth;
+      maxTabWidth = tabWidth > 300 ? 300 : tabWidth;
     }
   });
 
@@ -525,7 +888,14 @@ const emailsColumnWidth = computed(() => {
 });
 
 const selectedRows = computed(() => selectedMembers.value);
-const pagination = computed(() => filters.value.pagination);
+const pagination = computed({
+  get() {
+    return props.pagination;
+  },
+  set(value) {
+    emit('update:pagination', value);
+  },
+});
 
 const tableWidth = ref(0);
 
@@ -534,6 +904,77 @@ document.onmouseup = () => {
   // according to wether the mouse is hovering the table or not
   isScrollbarVisible.value = isTableHovered.value;
   isCursorDown.value = false;
+};
+
+const setActionBtnsRef = (el, id) => {
+  if (el) {
+    actionBtnRefs.value[id] = el;
+  }
+};
+
+const onActionBtnClick = (member) => {
+  if (selectedActionMember.value?.id === member.id) {
+    showMemberDropdownPopover.value = false;
+
+    setTimeout(() => {
+      selectedActionMember.value = null;
+    }, 200);
+  } else {
+    showMemberDropdownPopover.value = true;
+    selectedActionMember.value = member;
+  }
+};
+
+const setEnrichmentAttributesRef = (el, id) => {
+  if (el) {
+    enrichmentRefs.value[id] = el;
+  }
+};
+
+const handleCellMouseEnter = (row, column) => {
+  const validValues = ['reach', 'seniorityLevel', 'programmingLanguages', 'skills'];
+
+  if (validValues.includes(column.property)) {
+    showEnrichmentPopover.value = true;
+    selectedEnrichmentAttribute.value = `${row.id}-${column.property}`;
+  }
+};
+
+const onColumnHeaderMouseOver = (id) => {
+  showEnrichmentPopover.value = true;
+  selectedEnrichmentAttribute.value = id;
+};
+
+const handleCellMouseLeave = (_row, column) => {
+  const validValues = ['reach', 'seniorityLevel', 'programmingLanguages', 'skills'];
+
+  if (!validValues.includes(column.property)) {
+    closeEnrichmentPopover();
+  }
+};
+
+const closeEnrichmentPopover = (ev) => {
+  if (ev?.toElement?.id !== 'popover-content') {
+    showEnrichmentPopover.value = false;
+
+    setTimeout(() => {
+      selectedEnrichmentAttribute.value = null;
+    }, 100);
+  }
+};
+
+const closeDropdown = () => {
+  showMemberDropdownPopover.value = false;
+
+  setTimeout(() => {
+    selectedActionMember.value = null;
+  }, 200);
+};
+
+const onClickOutside = (el) => {
+  if (!el.target?.id.includes('buttonRef')) {
+    closeDropdown();
+  }
 };
 
 function handleEditTagsDialog(member) {
@@ -549,11 +990,17 @@ function doChangeSort(sorter) {
 }
 
 function doChangePaginationCurrentPage(currentPage) {
-  filters.value.pagination.page = currentPage;
+  emit('update:pagination', {
+    ...pagination.value,
+    page: currentPage,
+  });
 }
 
 function doChangePaginationPageSize(pageSize) {
-  filters.value.pagination.perPage = pageSize;
+  emit('update:pagination', {
+    page: 1,
+    perPage: pageSize,
+  });
 }
 
 function translate(key) {
@@ -687,5 +1134,10 @@ export default {
 }
 .el-table__body {
   height: 1px;
+}
+
+.popover-dropdown {
+  padding: 0.5rem !important;
+  width: fit-content !important;
 }
 </style>

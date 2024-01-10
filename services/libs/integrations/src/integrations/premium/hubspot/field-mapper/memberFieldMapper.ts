@@ -7,6 +7,7 @@ import {
   MemberAttributeType,
   PlatformType,
   ITagOpensearch,
+  OrganizationSource,
 } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
@@ -162,6 +163,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
         {
           platform: PlatformType.HUBSPOT,
           username: contactProperties.email,
+          sourceId: hubspotContact.id,
         },
       ],
       attributes: {
@@ -204,7 +206,13 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
           } else if (crowdKey === 'organizationName') {
             member.organizations = [
               {
-                name: contactProperties[hubspotPropertyName],
+                identities: [
+                  {
+                    name: contactProperties[hubspotPropertyName],
+                    platform: PlatformType.HUBSPOT,
+                  },
+                ],
+                source: OrganizationSource.HUBSPOT,
               },
             ]
           } else {

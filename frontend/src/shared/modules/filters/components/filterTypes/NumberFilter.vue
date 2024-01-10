@@ -15,6 +15,7 @@
             type="number"
             min="0"
             step="1"
+            :suffix="config.options.suffix"
             :placeholder="!isBetween ? 'Enter value' : 'From'"
             data-qa="filter-number-from"
             @blur="$v.value.$touch"
@@ -34,6 +35,7 @@
               placeholder="To"
               min="0"
               data-qa="filter-number-to"
+              :suffix="config.options.suffix"
               @blur="$v.valueTo.$touch"
               @change="$v.valueTo.$touch"
             />
@@ -91,14 +93,14 @@ const defaultForm: NumberFilterValue = {
 };
 
 const rules: any = computed(() => ({
-  value: {
+  value: props.config.options.validators || {
     required,
     numeric,
     integer,
     minValue: minValue(0),
   },
   ...(isBetween.value ? {
-    valueTo: {
+    valueTo: props.config.options.validators || {
       required,
       numeric,
       integer,

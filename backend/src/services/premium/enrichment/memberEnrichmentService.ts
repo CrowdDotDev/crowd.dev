@@ -3,6 +3,7 @@ import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import axios from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
+import { i18n, Error400 } from '@crowd/common'
 import {
   ApiWebsocketMessage,
   MemberAttributeName,
@@ -10,18 +11,10 @@ import {
   MemberEnrichmentAttributeName,
   MemberEnrichmentAttributes,
   PlatformType,
-  IOrganization,
+  OrganizationSource,
+  SyncMode,
+  IOrganizationIdentity,
 } from '@crowd/types'
-import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
-import { AttributeData } from '../../../database/attributes/attribute'
-import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
-import Error400 from '../../../errors/Error400'
-import { i18n } from '../../../i18n'
-import track from '../../../segment/track'
-import { Member } from '../../../serverless/integrations/types/messageTypes'
-import { IServiceOptions } from '../../IServiceOptions'
-import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
-import MemberService from '../../memberService'
 import {
   EnrichmentAPICertification,
   EnrichmentAPIContribution,
@@ -30,11 +23,20 @@ import {
   EnrichmentAPIResponse,
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
-} from './types/memberEnrichmentTypes'
+} from '@crowd/types/premium'
+import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
+import { AttributeData } from '../../../database/attributes/attribute'
+import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
+import track from '../../../segment/track'
+import { Member } from '../../../serverless/integrations/types/messageTypes'
+import { IServiceOptions } from '../../IServiceOptions'
+import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
+import MemberService from '../../memberService'
 import OrganizationService from '../../organizationService'
 import MemberRepository from '../../../database/repositories/memberRepository'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import SearchSyncService from '@/services/searchSyncService'
 
 export default class MemberEnrichmentService extends LoggerBase {
   options: IServiceOptions
@@ -220,12 +222,8 @@ export default class MemberEnrichmentService extends LoggerBase {
    * @param memberId - the ID of the member to enrich
    * @returns a promise that resolves to the enrichment data for the member
    */
-  async enrichOne(memberId) {
+  async enrichOne(memberId, syncMode = SyncMode.ASYNCHRONOUS) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const options = {
-      ...this.options,
-      transaction,
-    }
 
     try {
       // If the attributes have not been fetched yet, fetch them
@@ -233,8 +231,10 @@ export default class MemberEnrichmentService extends LoggerBase {
         await this.getAttributes()
       }
 
+      const searchSyncService = new SearchSyncService(this.options, syncMode)
+
       // Create an instance of the MemberService and use it to look up the member
-      const memberService = new MemberService(options)
+      const memberService = new MemberService(this.options)
       const member = await memberService.findById(memberId, false, false)
 
       // If the member's GitHub handle or email address is not available, throw an error
@@ -261,19 +261,63 @@ export default class MemberEnrichmentService extends LoggerBase {
         return null
       }
 
+      // To preserve the original member object, creating a deep copy
+      const memberCopy = JSON.parse(JSON.stringify(member))
+      const normalized = await this.normalize(memberCopy, enrichmentData)
+
+      if (normalized.username) {
+        const filteredUsername = Object.keys(normalized.username).reduce((obj, key) => {
+          if (!member.username[key]) {
+            obj[key] = normalized.username[key]
+          }
+          return obj
+        }, {})
+
+        for (const [platform, usernames] of Object.entries(filteredUsername)) {
+          const usernameArray = Array.isArray(usernames) ? usernames : [usernames]
+
+          for (const username of usernameArray) {
+            // Check if a member with this username already exists
+            const existingMember = await memberService.memberExists(username, platform)
+
+            if (existingMember) {
+              // add the member to merge suggestions
+              await MemberRepository.addToMerge(
+                [{ similarity: 0.9, members: [memberId, existingMember.id] }],
+                this.options,
+              )
+
+              if (Array.isArray(normalized.username[platform])) {
+                // Filter out the identity that belongs to another member from the normalized payload
+                normalized.username[platform] = normalized.username[platform].filter(
+                  (u) => u !== username,
+                )
+              } else if (typeof normalized.username[platform] === 'string') {
+                delete normalized.username[platform]
+              } else {
+                throw new Error(
+                  `Unsupported data type for normalized.username[platform] "${normalized.username[platform]}".`,
+                )
+              }
+            }
+          }
+        }
+      }
+
       // save raw data to cache
-      await MemberEnrichmentCacheRepository.upsert(memberId, enrichmentData, options)
-
-      const normalized = await this.normalize(member, enrichmentData)
-
+      await MemberEnrichmentCacheRepository.upsert(memberId, enrichmentData, this.options)
       // We are updating the displayName only if the existing one has one word only
       // And we are using an update here instead of the upsert because
       // upsert always takes the existing displayName
       if (!/\W/.test(member.displayName)) {
         if (enrichmentData.first_name && enrichmentData.last_name) {
-          await memberService.update(member.id, {
-            displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
-          })
+          await memberService.update(
+            member.id,
+            {
+              displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
+            },
+            false,
+          )
         }
       }
 
@@ -283,23 +327,49 @@ export default class MemberEnrichmentService extends LoggerBase {
           memberId: member.id,
           enrichedFrom,
         },
-        options,
+        this.options,
       )
 
-      let result = await memberService.upsert({
-        ...normalized,
-        platform: Object.keys(member.username)[0],
-      })
+      let result = await memberService.upsert(
+        {
+          ...normalized,
+          platform: Object.keys(member.username)[0],
+        },
+        false,
+        true,
+        false,
+      )
 
       // for every work experience in `enrichmentData`
       //   - upsert organization
       //   - upsert `memberOrganization` relation
-      const organizationService = new OrganizationService(options)
+      const organizationService = new OrganizationService(this.options)
       if (enrichmentData.work_experiences) {
         for (const workExperience of enrichmentData.work_experiences) {
-          const org = await organizationService.findOrCreate({
-            name: workExperience.company,
-          })
+          const organizationIdentities: IOrganizationIdentity[] = [
+            {
+              name: workExperience.company,
+              platform: PlatformType.ENRICHMENT,
+            },
+          ]
+
+          if (workExperience.companyLinkedInUrl) {
+            organizationIdentities.push({
+              name: workExperience.companyLinkedInUrl.split('/').pop(),
+              platform: PlatformType.LINKEDIN,
+              url: workExperience.companyLinkedInUrl,
+            })
+          }
+
+          const org = await organizationService.createOrUpdate(
+            {
+              identities: organizationIdentities,
+            },
+            {
+              doSync: true,
+              mode: syncMode,
+            },
+          )
 
           const dateEnd = workExperience.endDate
             ? moment.utc(workExperience.endDate).toISOString()
@@ -311,16 +381,20 @@ export default class MemberEnrichmentService extends LoggerBase {
             title: workExperience.title,
             dateStart: workExperience.startDate,
             dateEnd,
+            source: OrganizationSource.ENRICHMENT,
           }
-          await MemberRepository.createOrUpdateWorkExperience(data, options)
-          await OrganizationRepository.includeOrganizationToSegments(org.id, options)
+          await MemberRepository.createOrUpdateWorkExperience(data, this.options)
+          await OrganizationRepository.includeOrganizationToSegments(org.id, this.options)
         }
       }
 
-      result = await memberService.findById(result.id, true, false)
       await SequelizeRepository.commitTransaction(transaction)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
+
+      result = await MemberRepository.findByIdOpensearch(result.id, this.options)
       return result
     } catch (error) {
+      this.log.error(error, 'Error while enriching a member!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
@@ -338,39 +412,6 @@ export default class MemberEnrichmentService extends LoggerBase {
       )
       member.emails.forEach((email) => emailSet.add(email))
       member.emails = Array.from(emailSet)
-    }
-
-    if (enrichmentData.company) {
-      const organization: IOrganization = {
-        name: enrichmentData.company,
-      }
-
-      // check for more info about the company in work experiences
-      if (enrichmentData.work_experiences && enrichmentData.work_experiences.length > 0) {
-        const organizationsByWorkExperience = enrichmentData.work_experiences.filter(
-          (w) => w.company === enrichmentData.company && w.current,
-        )
-        if (organizationsByWorkExperience.length > 0) {
-          organization.location = organizationsByWorkExperience[0].location
-          const linkedinUrl = organizationsByWorkExperience[0].companyLinkedInUrl
-          if (linkedinUrl) {
-            organization.linkedin = {
-              handle: linkedinUrl.split('/').pop(),
-              // remove https/http if exists
-              url: linkedinUrl.replace(/(^\w+:|^)\/\//, ''),
-            }
-          }
-          organization.url = organizationsByWorkExperience[0].companyUrl
-
-          // fetch jobTitle from most recent work experience
-          member.attributes.jobTitle = {
-            custom: organizationsByWorkExperience[0].title,
-            default: organizationsByWorkExperience[0].title,
-          }
-        }
-      }
-
-      member.organizations = [organization]
     }
 
     member.contributions = enrichmentData.oss_contributions?.map(
@@ -475,7 +516,6 @@ export default class MemberEnrichmentService extends LoggerBase {
 
         // Assign 'value' to 'member.attributes[attributeName].enrichment'
         member.attributes[attributeName].enrichment = value
-
         await this.createAttributeAndUpdateOptions(attributeName, attribute, value)
       }
     }
@@ -577,7 +617,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
 
-      if (response.error || response.profile === undefined) {
+      if (response.error || response.profile === undefined || !response.profile) {
         this.log.error(githubHandle, `Member not found using github handle.`)
         throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
       }
@@ -613,7 +653,7 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
-      if (response.error) {
+      if (response.error || !response.profile) {
         this.log.error(email, `Member not found using email.`)
         throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
       }
