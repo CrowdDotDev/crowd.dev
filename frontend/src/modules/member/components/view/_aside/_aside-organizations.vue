@@ -15,11 +15,11 @@
       </div>
 
       <el-button
-        class="btn btn-link btn-link--primary"
+        class="btn btn-link !text-gray-300"
         :disabled="isEditLockedForSampleData"
         @click="isOrganizationDrawerOpen = true"
       >
-        <i class="ri-pencil-line" /><span>Edit</span>
+        <i class="ri-pencil-line text-lg" />
       </el-button>
     </div>
 

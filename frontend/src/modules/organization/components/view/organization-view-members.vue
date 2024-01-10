@@ -29,7 +29,7 @@
           :key="member.id"
           class="py-5 border-b border-gray-200 last:border-none grid grid-cols-7 gap-4"
         >
-          <div class="col-span-3">
+          <div class="col-span-4 smmd:col-span-7 flex items-center gap-1">
             <router-link
               class="flex items-center gap-2"
               :to="{
@@ -44,15 +44,14 @@
                 custom-class="font-medium text-sm text-gray-900"
               />
             </router-link>
-          </div>
-          <div
-            class="col-span-1 flex items-center"
-          >
+
+            <span class="text-xs text-gray-400 font-medium">・</span>
+
             <app-member-engagement-level
               :member="member"
             />
           </div>
-          <div class="col-span-3 flex items-center justify-end">
+          <div class="col-span-3 smmd:col-span-7 flex items-center justify-end smmd:justify-start">
             <app-identities-horizontal-list-members
               :member="member"
               :limit="5"

@@ -9,6 +9,10 @@ module.exports = {
       sm: {
         max: '768px'
       },
+      smmd: {
+        min: '768px',
+        max: '1050px'
+      },
       md: {
         min: '768px',
         max: '1280px'

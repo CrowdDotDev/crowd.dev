@@ -88,49 +88,44 @@ export default {
 }
 
 .member-engagement-level {
-  @apply inline-flex items-center text-xs leading-none bg-gray-600 pr-1.5 border-0 gap-1.5 rounded-md text-gray-900;
+  @apply inline-flex items-center text-xs leading-none pr-1.5 gap-1 font-medium;
 
   &-value {
-    @apply font-semibold rounded-tl-md rounded-bl-md h-6 w-6 flex items-center justify-center;
+    @apply rounded-md h-4 w-4 flex items-center justify-center text-white text-2xs;
   }
 
   &--silent {
-    @apply bg-red-100;
-
+    @apply text-red-600;
     .member-engagement-level-value {
-      @apply bg-red-200;
+      @apply bg-red-500;
     }
   }
 
   &--quiet {
-    @apply bg-yellow-100;
-
+    @apply text-yellow-600;
     .member-engagement-level-value {
-      @apply bg-yellow-200;
+      @apply bg-yellow-500;
     }
   }
 
   &--engaged {
-    @apply bg-green-100;
-
+    @apply text-green-600;
     .member-engagement-level-value {
-      @apply bg-green-200;
+      @apply bg-green-500;
     }
   }
 
   &--fan {
-    @apply bg-purple-100;
-
+    @apply text-purple-600;
     .member-engagement-level-value {
-      @apply bg-purple-200;
+      @apply bg-purple-500;
     }
   }
 
   &--ultra {
-    @apply bg-blue-100;
-
+    @apply text-blue-600;
     .member-engagement-level-value {
-      @apply bg-blue-200;
+      @apply bg-blue-500;
     }
   }
 }
