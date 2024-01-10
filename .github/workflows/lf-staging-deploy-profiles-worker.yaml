@@ -1,4 +1,4 @@
-name: LF Staging Deploy Integration Stream Worker
+name: LF Staging Deploy Profiles Worker
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - 'lf-staging-**'
     paths:
       - 'services/libs/**'
-      - 'services/apps/integration_stream_worker/**'
+      - 'services/apps/profiles_worker/**'
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -36,13 +36,13 @@ jobs:
       - uses: ./.github/actions/build-docker-image
         id: image-builder
         with:
-          image: integration-stream-worker
+          image: profiles-worker
 
       - name: Set docker image output
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
-  deploy-integration-stream-worker:
+  deploy-profiles-worker:
     needs: build-and-push
     runs-on: ubuntu-latest
     defaults:
@@ -55,8 +55,6 @@ jobs:
 
       - uses: ./.github/actions/deploy-service
         with:
-          service: integration-stream-worker
+          service: profiles-worker
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
-          cloud_env: lfx_staging
-          prioritized: true

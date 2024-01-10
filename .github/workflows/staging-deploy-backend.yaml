@@ -77,7 +77,7 @@ jobs:
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
           prioritized: true
-          staging: true
+          cloud_env: staging
 
   deploy-job-generator:
     needs: build-and-push
