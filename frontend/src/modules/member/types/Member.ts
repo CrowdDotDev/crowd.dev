@@ -56,4 +56,8 @@ export interface Member {
   toMergeIds: string[] | null;
   updatedAt: string;
   username: Record<string, string[]>
+  segments: {
+    id: string;
+    name: string;
+  }[]
 }
