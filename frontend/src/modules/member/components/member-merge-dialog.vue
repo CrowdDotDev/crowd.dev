@@ -65,11 +65,12 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-
 import { MemberService } from '@/modules/member/member-service';
-import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
@@ -84,6 +85,9 @@ const emit = defineEmits(['update:modelValue']);
 
 const route = useRoute();
 const router = useRouter();
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { doFind } = mapActions('member');
 const { fetchMembers } = useMemberStore();
@@ -115,38 +119,43 @@ const mergeSuggestion = () => {
 
   sendingMerge.value = true;
 
-  MemberService.merge(
-    originalMemberPrimary.value ? props.modelValue : memberToMerge.value,
-    originalMemberPrimary.value ? memberToMerge.value : props.modelValue,
-  )
-    .then(() => {
-      Message.success('Members merged successfuly');
+  const primaryMember = originalMemberPrimary.value ? props.modelValue : memberToMerge.value;
+  const secondaryMember = originalMemberPrimary.value ? memberToMerge.value : props.modelValue;
 
+  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+
+  loadingMessage();
+
+  MemberService.merge(primaryMember, secondaryMember)
+    .then(() => {
       emit('update:modelValue', null);
 
       if (route.name === 'memberView') {
-        const { id } = originalMemberPrimary.value ? props.modelValue : memberToMerge.value;
+        successMessage({
+          primaryMember,
+          secondaryMember,
+          selectedProjectGroupId: selectedProjectGroup.value?.id,
+        });
 
         doFind(id).then(() => {
           router.replace({
             params: {
-              id,
+              id: primaryMember.id,
             },
           });
         });
       } else if (route.name === 'member') {
+        successMessage({
+          primaryMember,
+          secondaryMember,
+          selectedProjectGroupId: selectedProjectGroup.value?.id,
+        });
+
         fetchMembers({ reload: true });
       }
     })
     .catch((error) => {
-      if (error.response.status === 404) {
-        Message.error('Contacts already merged or deleted', {
-          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
-          Please refresh to see the updated information.`,
-        });
-      } else {
-        Message.error('There was an error merging contacts');
-      }
+      apiErrorMessage({ error });
     })
     .finally(() => {
       sendingMerge.value = false;

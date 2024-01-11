@@ -149,7 +149,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import {
+  ref, onMounted, computed,
+} from 'vue';
 import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
@@ -158,6 +160,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
+import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -299,25 +302,30 @@ const mergeSuggestion = () => {
   if (sendingIgnore.value || sendingMerge.value || loading.value) {
     return;
   }
+
   sendingMerge.value = true;
-  MemberService.merge(
-    membersToMerge.value.members[primary.value],
-    membersToMerge.value.members[(primary.value + 1) % 2],
-  )
+
+  const primaryMember = membersToMerge.value.members[primary.value];
+  const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
+
+  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+
+  loadingMessage();
+
+  MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
       primary.value = 0;
-      Message.success('Contributors merged successfuly');
+
+      successMessage({
+        primaryMember,
+        secondaryMember,
+        selectedProjectGroupId: selectedProjectGroup.value?.id,
+      });
+
       fetch();
     })
     .catch((error) => {
-      if (error.response.status === 404) {
-        Message.error('Contacts already merged or deleted', {
-          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
-          Please refresh to see the updated information.`,
-        });
-      } else {
-        Message.error('There was an error merging contacts');
-      }
+      apiErrorMessage({ error });
     })
     .finally(() => {
       sendingMerge.value = false;
