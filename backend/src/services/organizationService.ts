@@ -1,4 +1,3 @@
-import { isEqual } from 'lodash'
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import {
@@ -8,8 +7,9 @@ import {
   OrganizationMergeSuggestionType,
   SyncMode,
 } from '@crowd/types'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import { isEqual } from 'lodash'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import {
   MergeActionState,
@@ -27,9 +27,8 @@ import {
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
-import SearchSyncService from './searchSyncService'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
+import SearchSyncService from './searchSyncService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -37,15 +36,6 @@ export default class OrganizationService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
-  }
-
-  async mergeAsync(originalId, toMergeId) {
-    const tenantId = this.options.currentTenant.id
-
-    await MergeActionsRepository.add(MergeActionType.ORG, originalId, toMergeId, this.options)
-
-    const emitter = await getNodejsWorkerEmitter()
-    await emitter.mergeOrg(tenantId, originalId, toMergeId)
   }
 
   async mergeSync(originalId, toMergeId) {
@@ -77,22 +67,14 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      const mergeStatusChanged = await MergeActionsRepository.setState(
+      await MergeActionsRepository.add(
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.IN_PROGRESS,
         // not using transaction here on purpose,
         // so this change is visible until we finish
         this.options,
       )
-      if (!mergeStatusChanged) {
-        this.log.info('[Merge Organizations] - Merging already in progress!')
-        return {
-          status: 203,
-          mergedId: originalId,
-        }
-      }
 
       const repoOptions: IRepositoryOptions =
         await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
@@ -192,22 +174,6 @@ export default class OrganizationService extends LoggerBase {
 
       this.log.info(
         { originalId, toMergeId },
-        '[Merge Organizations] - Moving activities to original organisation! ',
-      )
-      // update activities that belong to source org to destination org
-      await OrganizationRepository.moveActivitiesBetweenOrganizations(
-        toMergeId,
-        originalId,
-        repoOptions,
-      )
-
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Moving activities to original organisation done! ',
-      )
-
-      this.log.info(
-        { originalId, toMergeId },
         '[Merge Organizations] - Including original organisation into secondary organisation segments! ',
       )
 
@@ -227,13 +193,6 @@ export default class OrganizationService extends LoggerBase {
         '[Merge Organizations] - Including original organisation into secondary organisation segments done! ',
       )
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Destroying secondary organisation! ',
-      )
-      // Delete toMerge organization
-      await OrganizationRepository.destroy(toMergeId, repoOptions, true, false)
-
       await SequelizeRepository.commitTransaction(tx)
 
       this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
@@ -242,7 +201,7 @@ export default class OrganizationService extends LoggerBase {
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.DONE,
+        MergeActionState.FINISHING,
         this.options,
       )
 
@@ -251,7 +210,7 @@ export default class OrganizationService extends LoggerBase {
         '[Merge Organizations] - Sending refresh opensearch messages! ',
       )
 
-      const searchSyncService = new SearchSyncService(this.options)
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
       await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
@@ -273,8 +232,29 @@ export default class OrganizationService extends LoggerBase {
         '[Merge Organizations] - Sending refresh opensearch messages done! ',
       )
 
+      await this.options.temporal.workflow.start('finishOrganizationMerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishOrganizationMerging/${originalId}/${toMergeId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          originalId,
+          toMergeId,
+          original.displayName,
+          toMerge.displayName,
+          this.options.currentTenant.id,
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
+
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
-      return { status: 200, mergedId: originalId }
+      return {
+        status: 200,
+        mergedId: originalId,
+      }
     } catch (err) {
       this.options.log.error(err, 'Error while merging organizations!', {
         originalId,
@@ -477,15 +457,31 @@ export default class OrganizationService extends LoggerBase {
       const primaryIdentity = data.identities[0]
       const nameToCheckInCache = (data as any).name || primaryIdentity.name
 
-      // check cache existing by name
-      let cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
-        ...this.options,
-        transaction,
-      })
-
       // Normalize the website URL if it exists
       if (data.website) {
         data.website = websiteNormalizer(data.website)
+      }
+
+      // lets check if we have this organization in cache by website
+      let cache
+      let createCacheIdentity = false
+      if (data.website) {
+        cache = await organizationCacheRepository.findByWebsite(data.website, {
+          ...this.options,
+          transaction,
+        })
+
+        if (cache && !cache.names.includes(nameToCheckInCache)) {
+          createCacheIdentity = true
+        }
+      }
+
+      // check cache existing by name
+      if (!cache) {
+        cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
+          ...this.options,
+          transaction,
+        })
       }
 
       // if cache exists, merge current data with cache data
@@ -518,10 +514,15 @@ export default class OrganizationService extends LoggerBase {
           }
         })
         if (Object.keys(updateData).length > 0) {
-          await organizationCacheRepository.update(cache.id, updateData, {
-            ...this.options,
-            transaction,
-          })
+          await organizationCacheRepository.update(
+            cache.id,
+            updateData,
+            {
+              ...this.options,
+              transaction,
+            },
+            createCacheIdentity ? nameToCheckInCache : undefined,
+          )
 
           cache = { ...cache, ...updateData } // Update the cached data with the new data
         }
@@ -657,6 +658,11 @@ export default class OrganizationService extends LoggerBase {
           }
         }
       }
+
+      await organizationCacheRepository.linkCacheAndOrganization(cache.id, record.id, {
+        ...this.options,
+        transaction,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -809,6 +815,10 @@ export default class OrganizationService extends LoggerBase {
 
   async findOrCreateByDomain(domain) {
     return OrganizationRepository.findOrCreateByDomain(domain, this.options)
+  }
+
+  async findByIdOpensearch(id: string, segmentId?: string) {
+    return OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
   }
 
   async query(data) {

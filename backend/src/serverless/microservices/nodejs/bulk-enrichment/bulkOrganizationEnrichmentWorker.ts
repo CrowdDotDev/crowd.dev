@@ -1,9 +1,8 @@
 import { getRedisClient, RedisCache } from '@crowd/redis'
-import { FeatureFlag, FeatureFlagRedisKey } from '@crowd/types'
+import { FeatureFlag, FeatureFlagRedisKey, PLAN_LIMITS } from '@crowd/types'
 import { getSecondsTillEndOfMonth } from '../../../../utils/timing'
 import { ORGANIZATION_ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../../conf'
 import getUserContext from '../../../../database/utils/getUserContext'
-import { PLAN_LIMITS } from '../../../../feature-flags/isFeatureEnabled'
 import OrganizationEnrichmentService from '../../../../services/premium/enrichment/organizationEnrichmentService'
 
 export async function BulkorganizationEnrichmentWorker(

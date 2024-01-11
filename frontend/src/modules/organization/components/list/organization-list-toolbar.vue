@@ -92,6 +92,7 @@ import { storeToRefs } from 'pinia';
 import Errors from '@/shared/error/errors';
 import { Excel } from '@/shared/excel/excel';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
+import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
@@ -175,23 +176,19 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
 const handleMergeOrganizations = async () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
 
-  Message.info(
-    null,
-    {
-      title: 'Organizations are being merged',
-    },
-  );
+  const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
 
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
     .then(() => {
-      Message.closeAll();
-      Message.success('Organizations merged successfuly');
+      organizationStore
+        .addMergedOrganizations(firstOrganization.id, secondOrganization.id);
+
+      loadingMessage();
 
       fetchOrganizations({ reload: true });
     })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('There was an error merging organizations');
+    .catch((error) => {
+      apiErrorMessage({ error });
     });
 };
 

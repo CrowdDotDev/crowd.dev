@@ -49,9 +49,7 @@
                       {{ project.name }}
                     </div>
                     <div class="text-3xs text-gray-500 leading-4">
-                      <span>{{ pluralize('contributor', project.members, true) }}</span>
                       <span v-if="project.subprojects.length">
-                        ・
                         {{
                           pluralize(
                             "sub-project",
@@ -85,7 +83,7 @@
                       :key="id"
                       class="relative w-6 h-6 flex items-center justify-center"
                     >
-                      <app-platform-svg-icon
+                      <app-platform-svg
                         :platform="platform"
                       />
                       <i
@@ -141,7 +139,7 @@ import { computed, onMounted, ref } from 'vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import pluralize from 'pluralize';
-import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
+import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
 
 const emit = defineEmits(['update:isVisible']);
 const props = defineProps({

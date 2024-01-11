@@ -51,6 +51,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import { MemberModel } from '@/modules/member/member-model';
 import { FormSchema } from '@/shared/form/form-schema';
 import isEqual from 'lodash/isEqual';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppMemberFormIdentities from './form/member-form-identities.vue';
 
 const store = useStore();
@@ -74,6 +76,9 @@ const drawerModel = computed({
     emit('update:modelValue', value);
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const memberModel = reactive(cloneDeep(props.member));
 const loading = ref(false);
@@ -104,7 +109,10 @@ const handleSubmit = async () => {
     username: memberModel.username,
     emails: memberModel.emails,
   }, segments).then(() => {
-    store.dispatch('member/doFind', { id: props.member.id }).then(() => {
+    store.dispatch('member/doFind', {
+      id: props.member.id,
+      segments: [selectedProjectGroup.value?.id],
+    }).then(() => {
       Message.success('Contributor identities updated successfully');
     });
   }).catch((err) => {

@@ -1,31 +1,27 @@
 <template>
-  <div
-    ref="inputRef"
-    @click="isPopoverVisible = true"
-  >
-    <el-input
-      v-model="model"
-      class="project-groups-select-input"
-      placeholder="Select project group..."
-      readonly
-      :suffix-icon="isPopoverVisible ? ArrowUpIcon : ArrowDownIcon"
-    />
-  </div>
-
   <el-popover
     v-model:visible="isPopoverVisible"
-    :virtual-ref="inputRef"
     placement="bottom-start"
-    trigger="manual"
-    virtual-triggering
+    trigger="click"
     popper-class="project-groups-select-popper"
     :teleported="false"
     width="255px"
+    @show="onShow"
+    @hide="onHide"
   >
+    <template #reference>
+      <el-input
+        v-model="model"
+        class="project-groups-select-input"
+        placeholder="Select project group..."
+        readonly
+        :suffix-icon="isPopoverVisible ? ArrowUpIcon : ArrowDownIcon"
+      />
+    </template>
+
     <div v-if="isSearchVisible" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
       <el-input
         id="filterSearch"
-        ref="searchQueryInput"
         v-model="searchQuery"
         placeholder="Search..."
         class="filter-dropdown-search"
@@ -54,7 +50,7 @@
                 {{ projectGroup.name }}
               </div>
               <div class="h-5 leading-5 text-3xs text-gray-400">
-                {{ pluralize('contributor', projectGroup.members, true) }} ・ {{ pluralize('project', projectGroup.projects.length, true) }}
+                {{ pluralize('project', projectGroup.projects.length, true) }}
               </div>
             </div>
           </div>
@@ -69,7 +65,7 @@
 
 <script setup>
 import {
-  h, ref, onMounted, computed, watch,
+  h, ref, onMounted, computed,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -99,7 +95,6 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const { updateSelectedProjectGroup } = lsSegmentsStore;
 
-const inputRef = ref(null);
 const searchQuery = ref('');
 const isPopoverVisible = ref(false);
 const projectGroupsList = ref([]);
@@ -117,7 +112,8 @@ const model = computed({
 
 const queryProjectGroups = () => {
   loading.value = true;
-  LfService.queryProjectGroups({
+
+  return LfService.queryProjectGroups({
     limit: null,
     offset: 0,
     filter: {
@@ -133,14 +129,20 @@ const queryProjectGroups = () => {
   });
 };
 
-watch(isPopoverVisible, (isVisible) => {
-  if (isVisible) {
-    queryProjectGroups();
-  }
-});
+const onShow = () => {
+  isPopoverVisible.value = true;
+  queryProjectGroups();
+};
+
+const onHide = () => {
+  isPopoverVisible.value = false;
+  loading.value = true;
+};
 
 onMounted(() => {
-  queryProjectGroups();
+  queryProjectGroups().then(() => {
+    loading.value = true;
+  });
 });
 
 const onSearchProjects = debounce(() => {

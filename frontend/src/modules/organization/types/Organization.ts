@@ -23,7 +23,11 @@ export interface Organization{
   github: Record<string, string> | null;
   headline: string;
   id: string;
-  identities: string[];
+  identities: {
+    name: string;
+    platform: string;
+    url: string | null;
+  }[];
   importHash: string | null;
   industry: string;
   isTeamOrganization: boolean;

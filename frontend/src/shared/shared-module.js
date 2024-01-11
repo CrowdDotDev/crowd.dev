@@ -14,7 +14,6 @@ import InlineSelectInput from '@/shared/form/inline-select-input.vue';
 import Dialog from '@/shared/dialog/dialog.vue';
 import EmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import EmptyState from '@/shared/empty-state/empty-state.vue';
-import Platform from '@/shared/platform/platform.vue';
 import Drawer from '@/shared/drawer/drawer.vue';
 import AppLoader from '@/shared/loading/loader.vue';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
@@ -41,7 +40,6 @@ export default {
     'app-dialog': Dialog,
     'app-empty-state-cta': EmptyStateCta,
     'app-empty-state': EmptyState,
-    'app-platform': Platform,
     'app-drawer': Drawer,
     'app-loader': AppLoader,
     'app-page-wrapper': AppPageWrapper,

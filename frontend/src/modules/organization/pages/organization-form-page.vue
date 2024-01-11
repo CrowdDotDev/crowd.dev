@@ -345,7 +345,7 @@ onMounted(async () => {
 
     try {
       record.value = await OrganizationService.find(id, segments);
-    } catch (e) {
+    } catch (error) {
       Errors.handle(error);
       router.push({ name: 'organization' });
     }

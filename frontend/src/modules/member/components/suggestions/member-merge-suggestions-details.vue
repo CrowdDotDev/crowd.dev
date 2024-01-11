@@ -26,8 +26,14 @@
       <!-- primary member -->
       <div class="h-13 flex justify-between items-start">
         <div
-          v-if="props.isPrimary"
-          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          v-if="props.isPreview"
+          class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+        >
+          Preview
+        </div>
+        <div
+          v-else-if="props.isPrimary"
+          class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
         >
           Primary contributor
         </div>
@@ -43,25 +49,90 @@
         </button>
         <slot name="action" />
       </div>
-      <app-avatar :entity="member" class="mb-3" />
+      <div class="flex justify-between">
+        <router-link
+          v-if="!isPreview"
+          :to="{
+            name: 'memberView',
+            params: { id: member.id },
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+          target="_blank"
+        >
+          <div class="relative">
+            <app-avatar
+              :entity="member"
+              class="mb-3"
+            />
+            <el-tooltip
+              v-if="member.attributes?.avatarUrl?.default && getAttributeSourceName(member.attributes.avatarUrl)"
+              :content="`Source: ${getAttributeSourceName(member.attributes.avatarUrl)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <div
+                class="absolute top-0 right-[-6px] z-10 h-4 w-4 rounded-full flex items-center justify-center"
+                :class="{
+                  'bg-white': !props.isPrimary,
+                  'bg-gray-50': props.isPrimary,
+                }"
+              >
+                <app-svg name="source" class="h-3 w-3" />
+              </div>
+            </el-tooltip>
+          </div>
+        </router-link>
+        <app-avatar
+          v-else
+          :entity="member"
+          class="mb-3"
+        />
+      </div>
       <div class="pb-4">
+        <router-link
+          v-if="!isPreview"
+          :to="{
+            name: 'memberView',
+            params: { id: member.id },
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+          target="_blank"
+        >
+          <h6
+            class="text-base text-black font-semibold hover:text-brand-500"
+            v-html="$sanitize(member.displayName)"
+          />
+        </router-link>
         <h6
+          v-else
           class="text-base text-black font-semibold"
           v-html="$sanitize(member.displayName)"
         />
-        <div
-          v-if="member.attributes.bio?.default"
-          ref="bio"
-          class="text-gray-600 leading-5 !text-xs merge-member-bio"
-          :class="{ 'line-clamp-2': !more }"
-          v-html="$sanitize(member.attributes.bio.default)"
-        />
-        <div
-          v-else-if="compareMember?.attributes.bio?.default"
-          ref="bio"
-          class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
-          v-html="$sanitize(compareMember?.attributes.bio.default)"
-        />
+        <div class="flex items-center">
+          <div
+            v-if="member.attributes.bio?.default"
+            ref="bio"
+            class="text-gray-600 leading-5 !text-xs merge-member-bio"
+            :class="{ 'line-clamp-2': !more }"
+            v-html="$sanitize(member.attributes.bio.default)"
+          />
+          <div
+            v-else-if="compareMember?.attributes.bio?.default"
+            ref="bio"
+            class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
+            v-html="$sanitize(compareMember?.attributes.bio.default)"
+          />
+          <el-tooltip
+            v-if="!isPreview && member.attributes?.bio?.default && getAttributeSourceName(member.attributes.bio)"
+            :content="`Source: ${getAttributeSourceName(member.attributes.bio)}`"
+            placement="top"
+            trigger="hover"
+          >
+            <div class="ml-1">
+              <app-svg name="source" class="h-3 w-3" />
+            </div>
+          </el-tooltip>
+        </div>
 
         <div
           v-if="displayShowMore"
@@ -89,10 +160,20 @@
           "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
-            Location
-          </p>
-          <p class="text-xs text-gray-900 text-right">
+          <div class="flex items-center pr-4">
+            <p class="text-2xs font-medium text-gray-500 pr-1">
+              Location
+            </p>
+            <el-tooltip
+              v-if="!isPreview && member.attributes?.location?.default && getAttributeSourceName(member.attributes.location)"
+              :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ member.attributes.location?.default || '-' }}
           </p>
         </article>
@@ -114,10 +195,20 @@
           "
           class="flex items-center justify-between h-12 border-b border-gray-200"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
-            Title
-          </p>
-          <p class="text-xs text-gray-900 text-right">
+          <div class="flex items-center pr-4">
+            <p class="text-2xs font-medium text-gray-500 pr-1">
+              Title
+            </p>
+            <el-tooltip
+              v-if="!isPreview && member.attributes?.jobTitle?.default && getAttributeSourceName(member.attributes.jobTitle)"
+              :content="`Source: ${getAttributeSourceName(member.attributes.jobTitle)}`"
+              placement="top"
+              trigger="hover"
+            >
+              <app-svg name="source" class="h-3 w-3" />
+            </el-tooltip>
+          </div>
+          <p class="text-xs text-gray-900 text-right  whitespace-normal">
             {{ member.attributes.jobTitle?.default || '-' }}
           </p>
         </article>
@@ -128,7 +219,7 @@
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Contributor since
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 text-right whitespace-normal">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
           </p>
         </article>
@@ -149,69 +240,11 @@
         </article>
       </div>
       <div class="pt-5">
-        <div
-          v-for="(usernameHandles, platform) in member.username"
-          :key="platform"
-        >
-          <a
-            v-for="handle in usernameHandles"
-            :key="handle"
-            :href="identityUrl(platform, handle, member.attributes)"
-            class="pb-2 pt-3 flex items-center text-gray-900 hover:text-gray-900"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              v-if="platformDetails(platform)"
-              :src="platformDetails(platform).image"
-              class="h-5 w-5 mr-4"
-              :alt="platform"
-            >
-            <el-tooltip v-else :content="platform" placement="top">
-              <i class="ri-user-3-fill text-gray-500 text-lg mr-4" />
-            </el-tooltip>
-            <div
-              v-if="
-                platform === 'linkedin'
-                  && handle.includes(
-                    'private-',
-                  )
-              "
-              class="text-gray-900 text-xs"
-            >
-              *********
-              <el-tooltip
-                placement="top"
-                content="Private profile"
-              >
-                <i
-                  class="ri-lock-line text-gray-400 ml-2"
-                />
-              </el-tooltip>
-            </div>
-            <span
-              v-else
-              class="text-xs leading-5"
-              :class="{ 'underline hover:text-brand-500': identityUrl(platform, handle, member.attributes) }"
-              v-html="$sanitize(handle)"
-            />
-          </a>
-        </div>
-        <a
-          v-for="email of member.emails?.filter((e) => e && e.length)"
-          :key="email"
-          :href="`mailto:${email}`"
-          class="pb-2 pt-3 flex items-center text-gray-900"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span
-            class="ri-mail-line text-lg text-gray-600 mr-4 h-5 flex items-center"
-          />
-          <span class="text-xs leading-5 underline hover:text-brand-500">{{
-            email
-          }}</span>
-        </a>
+        <app-identities-vertical-list-members
+          :member="member"
+          :order="memberOrder.suggestions"
+          :include-emails="true"
+        />
       </div>
     </div>
   </section>
@@ -227,9 +260,14 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
+import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppSvg from '@/shared/svg/svg.vue';
+import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 const props = defineProps({
   member: {
@@ -242,6 +280,11 @@ const props = defineProps({
     default: () => null,
   },
   isPrimary: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isPreview: {
     type: Boolean,
     required: false,
     default: false,
@@ -262,6 +305,9 @@ const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
@@ -270,15 +316,6 @@ const isEditLockedForSampleData = computed(
 const bio = ref(null);
 const displayShowMore = ref(null);
 const more = ref(null);
-
-const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-const identityUrl = (platform, username, attributes) => {
-  if (platform === 'discord' || platform === 'slack') {
-    return null;
-  }
-
-  return CrowdIntegrations.getConfig(platform)?.url({ username, attributes });
-};
 
 onMounted(() => {
   setTimeout(() => {
