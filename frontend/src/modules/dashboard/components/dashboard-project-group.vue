@@ -26,7 +26,7 @@
       Projects list
     </el-button>
     <router-link
-      v-if="hasPermissionToAccessAdminPanel && hasAccessToProjectGroup(selectedProjectGroup.id)"
+      v-if="hasPermissionToEditProject && hasAccessToProjectGroup(selectedProjectGroup.id)"
       :to="{
         name: 'adminProjects',
         params: {
@@ -67,11 +67,11 @@ const isDrawerOpen = ref(false);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
-const hasPermissionToAccessAdminPanel = computed(
+const hasPermissionToEditProject = computed(
   () => new LfPermissions(
     currentTenant.value,
     currentUser.value,
-  ).editProjectGroup,
+  ).editProject,
 );
 </script>
 
