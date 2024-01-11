@@ -25,22 +25,22 @@
               New activities
             </h6>
             <app-dashboard-count
-              :loading="activities.loading"
-              :current-total="cubeData?.activity.total"
-              :previous-total="cubeData?.activity.previousPeriodTotal"
+              :loading="!cube"
+              :current-total="cube?.activity.total"
+              :previous-total="cube?.activity.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <div
-              v-if="activities.loading"
-              v-loading="activities.loading"
+              v-if="!cube"
+              v-loading="!cube"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             />
 
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets"
-              :data="{}"
+              :data="cube?.activity.timeseries"
             />
           </div>
         </div>
@@ -87,14 +87,15 @@ import AppDashboardActivityList from '@/modules/dashboard/components/activity/da
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import { ref } from 'vue';
-import { useDashboardStore } from '@/modules/dashboard/store/pinia';
-import { storeToRefs } from 'pinia';
+import { computed, ref } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 
-const dashboardStore = useDashboardStore();
 const {
   cubeData, activities,
-} = storeToRefs(dashboardStore);
+} = mapGetters('dashboard');
+
+const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const tab = ref('trending');
 

@@ -3,6 +3,9 @@ export default {
   period: (state) => state.filters.period,
   platform: (state) => state.filters.platform,
 
+  // CubeData
+  cubeData: (state) => state.cubeData,
+
   // Conversations
   trendingConversations: (state) => state.conversations.trending,
   conversations: (state) => state.conversations,

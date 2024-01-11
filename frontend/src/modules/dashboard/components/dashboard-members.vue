@@ -25,21 +25,21 @@
               New contacts
             </h6>
             <app-dashboard-count
-              :loading="!!cubeData"
-              :current-total="cubeData?.newMembers.total"
-              :previous-total="cubeData?.newMembers.previousPeriodTotal"
+              :loading="!cube"
+              :current-total="cube?.newMembers.total"
+              :previous-total="cube?.newMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="members.loadingRecent"
-              v-loading="members.loadingRecent"
+              v-if="!cube"
+              v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
-              :data="{}"
+              :data="cube?.newMembers.timeseries"
               :datasets="datasets('new members')"
             />
           </div>
@@ -130,22 +130,22 @@
 
             <!-- info -->
             <app-dashboard-count
-              :loading="!!cubeData"
-              :current-total="cubeData?.activeMembers.total"
-              :previous-total="cubeData?.activeMembers.previousPeriodTotal"
+              :loading="!cube"
+              :current-total="cube?.activeMembers.total"
+              :previous-total="cube?.activeMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12 h-21">
             <!-- Chart -->
             <div
-              v-if="members.loadingActive"
-              v-loading="members.loadingActive"
+              v-if="!cube"
+              v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets('active members')"
-              :data="{}"
+              :data="cube?.activeMembers.timeseries"
             />
           </div>
         </div>
@@ -222,14 +222,15 @@ import { filterQueryService } from '@/shared/modules/filters/services/filter-que
 import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed } from 'vue';
-import { useDashboardStore } from '@/modules/dashboard/store/pinia';
-import { storeToRefs } from 'pinia';
 import moment from 'moment';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 
-const dashboardStore = useDashboardStore();
 const {
-  cubeData, members, period, activeMembers,
-} = storeToRefs(dashboardStore);
+  cubeData, members, period, activeMembers, recentMembers,
+} = mapGetters('dashboard');
+
+const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const periodRange = computed(() => [
   moment()

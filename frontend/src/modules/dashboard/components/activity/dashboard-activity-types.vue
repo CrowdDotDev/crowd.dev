@@ -68,12 +68,11 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import pluralize from 'pluralize';
 import merge from 'lodash/merge';
-import { useDashboardStore } from '@/modules/dashboard/store/pinia';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
-const dashboardStore = useDashboardStore();
 const {
   cubeData,
-} = storeToRefs(dashboardStore);
+} = mapGetters('dashboard');
 
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
