@@ -29,7 +29,7 @@
           :key="member.id"
           class="py-5 border-b border-gray-200 last:border-none grid grid-cols-7 gap-4"
         >
-          <div class="col-span-4 smmd:col-span-7 flex items-center gap-1">
+          <div class="col-span-4 md:col-span-7 flex items-center gap-1">
             <router-link
               class="flex items-center gap-2"
               :to="{
@@ -51,7 +51,7 @@
               :member="member"
             />
           </div>
-          <div class="col-span-3 smmd:col-span-7 flex items-center justify-end smmd:justify-start">
+          <div class="col-span-3 md:col-span-7 flex items-center justify-end md:justify-start">
             <app-identities-horizontal-list-members
               :member="member"
               :limit="5"
