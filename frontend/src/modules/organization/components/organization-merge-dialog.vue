@@ -65,14 +65,13 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationSelectionDropdown from '@/modules/organization/components/organization-selection-dropdown.vue';
-import { storeToRefs } from 'pinia';
+import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 
 const props = defineProps({
   modelValue: {
@@ -87,9 +86,6 @@ const route = useRoute();
 const router = useRouter();
 
 const organizationStore = useOrganizationStore();
-const {
-  mergedOrganizations,
-} = storeToRefs(organizationStore);
 
 const originalOrganizationPrimary = ref(true);
 const sendingMerge = ref(false);
@@ -118,32 +114,24 @@ const mergeSuggestion = () => {
 
   sendingMerge.value = true;
 
-  OrganizationService.mergeOrganizations(
-    originalOrganizationPrimary.value ? props.modelValue?.id : organizationToMerge.value?.id,
-    originalOrganizationPrimary.value ? organizationToMerge.value?.id : props.modelValue?.id,
-  )
-    .then(() => {
-      const primaryOrganization = originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value;
-      const secondaryOrganization = originalOrganizationPrimary.value ? organizationToMerge.value : props.modelValue;
+  const primaryOrganization = originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value;
+  const secondaryOrganization = originalOrganizationPrimary.value ? organizationToMerge.value : props.modelValue;
 
+  const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
+
+  OrganizationService.mergeOrganizations(primaryOrganization.id, secondaryOrganization.id)
+    .then(() => {
       organizationStore
         .addMergedOrganizations(primaryOrganization.id, secondaryOrganization.id);
 
-      const processesRunning = Object.keys(mergedOrganizations.value).length;
-
-      Message.closeAll();
-      Message.info(null, {
-        title: 'Organizations merging in progress',
-        message: processesRunning > 1 ? `${processesRunning} processes running` : null,
-      });
+      loadingMessage();
 
       emit('update:modelValue', null);
 
       if (route.name === 'organizationView') {
-        const { id } = originalOrganizationPrimary.value ? props.modelValue : organizationToMerge.value;
         const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
 
-        organizationStore.fetchOrganization(id, segments).then(() => {
+        organizationStore.fetchOrganization(primaryOrganization.id, segments).then(() => {
           router.replace({
             params: {
               id,
@@ -157,15 +145,7 @@ const mergeSuggestion = () => {
       changeOrganization();
     })
     .catch((error) => {
-      Message.closeAll();
-      if (error.response.status === 404) {
-        Message.error('Organizations already merged or deleted', {
-          message: `Sorry, the organizations you are trying to merge might have already been merged or deleted.
-          Please refresh to see the updated information.`,
-        });
-      } else {
-        Message.error('There was an error merging organizations');
-      }
+      apiErrorMessage({ error });
     })
     .finally(() => {
       sendingMerge.value = false;
