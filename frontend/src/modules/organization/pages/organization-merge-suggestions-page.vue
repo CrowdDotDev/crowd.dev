@@ -304,7 +304,7 @@ const mergeSuggestion = () => {
   sendingMerge.value = true;
 
   const primaryOrganization = organizationsToMerge.value.organizations[primary.value];
-  const secondaryOrganization = organizationsToMerge.value.organizations[(primary.value + 1) % 2].id;
+  const secondaryOrganization = organizationsToMerge.value.organizations[(primary.value + 1) % 2];
 
   const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
 
