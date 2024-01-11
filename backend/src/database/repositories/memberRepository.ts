@@ -2238,27 +2238,24 @@ class MemberRepository {
 
       const lastActivities = await seq.query(
         `
-          WITH
-            leaf_segment_ids AS (
-              select id
-              from segments
-              where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-            ),
-            raw_data AS (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
+            SELECT
+                a.*
+            FROM (
+                VALUES
+                  ${memberIds.map((id) => `('${id}')`).join(',')}
+            ) m ("memberId")
+            JOIN activities a ON (a.id = (
+                SELECT id
                 FROM activities
-                INNER JOIN leaf_segment_ids ON activities."segmentId" = leaf_segment_ids.id
-                WHERE "tenantId" = :tenantId
-                  AND "memberId" IN (:memberIds)
-            )
-          SELECT *
-          FROM raw_data
-          WHERE rn = 1;
+                WHERE "memberId" = m."memberId"::uuid
+                ORDER BY timestamp DESC
+                LIMIT 1
+            ))
+            WHERE a."tenantId" = :tenantId
         `,
         {
           replacements: {
             tenantId: tenant.id,
-            memberIds,
           },
           type: QueryTypes.SELECT,
         },
