@@ -87,10 +87,10 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { sentimentQuery } from '@/modules/dashboard/dashboard.cube';
 import AppCubeRender from '@/shared/cube/cube-render.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import { sentimentQuery } from '@/modules/dashboard/dashboard.cube';
 
 export default {
   name: 'AppDashboardActivitySentiment',

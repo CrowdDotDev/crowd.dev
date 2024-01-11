@@ -1,43 +1,28 @@
 <template>
-  <app-cube-render :query="props.query(period, platform)">
-    <template #default="{ resultSet }">
-      <app-widget-area
-        class="chart"
-        :datasets="props.datasets"
-        :result-set="resultSet"
-        :chart-options="
-          chartOptions('area', dashboardChartOptions)
-        "
-        :granularity="DAILY_GRANULARITY_FILTER.value"
-      />
-    </template>
-  </app-cube-render>
+  <app-widget-area
+    v-if="props.data"
+    class="chart"
+    :datasets="props.datasets"
+    :result-set="props.data"
+    :chart-options="
+      chartOptions('area', dashboardChartOptions)
+    "
+    granularity="day"
+  />
 </template>
 
-<script setup>
-import { defineProps } from 'vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import AppCubeRender from '@/shared/cube/cube-render.vue';
+<script setup lang="ts">
 import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
-import { dashboardChartOptions } from '@/modules/dashboard/dashboard.cube';
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
+import { dashboardChartOptions } from '@/modules/dashboard/dashboard.chart';
 
-const props = defineProps({
-  query: {
-    type: Function,
-    required: true,
-  },
-  datasets: {
-    type: Object,
-    required: true,
-  },
-});
-
-const { period, platform } = mapGetters('dashboard');
+const props = defineProps<{
+  data: any,
+  datasets: any
+}>();
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppDashboardWidgetChart',
 };

@@ -26,7 +26,8 @@
             </h6>
             <app-dashboard-count
               :loading="activities.loading"
-              :query="activitiesCount"
+              :current-total="cubeData?.activity.total"
+              :previous-total="cubeData?.activity.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
@@ -39,7 +40,7 @@
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets"
-              :query="activitiesChart"
+              :data="{}"
             />
           </div>
         </div>
@@ -77,14 +78,8 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-import {
-  activitiesChart,
-  activitiesCount,
-} from '@/modules/dashboard/dashboard.cube';
+<script lang="ts" setup>
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
@@ -92,49 +87,37 @@ import AppDashboardActivityList from '@/modules/dashboard/components/activity/da
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import { ref } from 'vue';
+import { useDashboardStore } from '@/modules/dashboard/store/pinia';
+import { storeToRefs } from 'pinia';
 
+const dashboardStore = useDashboardStore();
+const {
+  cubeData, activities,
+} = storeToRefs(dashboardStore);
+
+const tab = ref('trending');
+
+const datasets = (name: string) => ({
+  name: 'new activities',
+  borderColor: '#E94F2E',
+  measure: 'Activities.count',
+  granularity: 'day',
+});
+
+const allActivitiesFilter = ({
+  search: '',
+  relation: 'and',
+  order: {
+    prop: 'timestamp',
+    order: 'descending',
+  },
+});
+</script>
+
+<script lang="ts">
 export default {
   name: 'AppDashboardActivities',
-  components: {
-    AppDashboardWidgetChart,
-    AppDashboardWidgetHeader,
-    AppDashboardActivityTypes,
-    AppDashboardCount,
-    AppDashboardActivitySentiment,
-    AppDashboardActivityList,
-    AppDashboardConversationList,
-  },
-  data() {
-    return {
-      tab: 'trending',
-      activitiesChart,
-      activitiesCount,
-      filterQueryService,
-    };
-  },
-  computed: {
-    ...mapGetters('dashboard', ['activities']),
-    datasets() {
-      return [
-        {
-          name: 'new activities',
-          borderColor: '#E94F2E',
-          measure: 'Activities.count',
-          granularity: DAILY_GRANULARITY_FILTER.value,
-        },
-      ];
-    },
-    allActivitiesFilter() {
-      return {
-        search: '',
-        relation: 'and',
-        order: {
-          prop: 'timestamp',
-          order: 'descending',
-        },
-      };
-    },
-  },
 };
 </script>
 

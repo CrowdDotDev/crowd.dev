@@ -25,8 +25,9 @@
               New contacts
             </h6>
             <app-dashboard-count
-              :loading="members.loadingRecent"
-              :query="newMembersCount"
+              :loading="!!cubeData"
+              :current-total="cubeData?.newMembers.total"
+              :previous-total="cubeData?.newMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
@@ -38,8 +39,8 @@
             />
             <app-dashboard-widget-chart
               v-else
+              :data="{}"
               :datasets="datasets('new members')"
-              :query="newMembersChart"
             />
           </div>
         </div>
@@ -116,7 +117,7 @@
               <h6
                 class="text-sm leading-5 font-semibold"
               >
-                Active <span>contacts</span>
+                Active contacts
                 <el-tooltip
                   placement="top"
                   content="Contacts for whom at least one activity was tracked in the selected time period."
@@ -129,8 +130,9 @@
 
             <!-- info -->
             <app-dashboard-count
-              :loading="members.loadingActive"
-              :query="activeMembersCount"
+              :loading="!!cubeData"
+              :current-total="cubeData?.activeMembers.total"
+              :previous-total="cubeData?.activeMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12 h-21">
@@ -143,7 +145,7 @@
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets('active members')"
-              :query="activeMembersChart"
+              :data="{}"
             />
           </div>
         </div>
@@ -209,80 +211,49 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-import moment from 'moment';
-import {
-  newMembersChart,
-  activeMembersChart,
-  activeMembersCount,
-  newMembersCount,
-} from '@/modules/dashboard/dashboard.cube';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+<script lang="ts" setup>
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { computed } from 'vue';
+import { useDashboardStore } from '@/modules/dashboard/store/pinia';
+import { storeToRefs } from 'pinia';
+import moment from 'moment';
 
+const dashboardStore = useDashboardStore();
+const {
+  cubeData, members, period, activeMembers,
+} = storeToRefs(dashboardStore);
+
+const periodRange = computed(() => [
+  moment()
+    .utc()
+    .subtract(period.value - 1, 'day')
+    .format('YYYY-MM-DD'),
+  moment()
+    .utc()
+    .format('YYYY-MM-DD'),
+]);
+const datasets = (name: string) => ({
+  name,
+  borderColor: '#E94F2E',
+  measure: 'Members.count',
+  granularity: 'day',
+});
+
+const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(platform);
+
+</script>
+
+<script lang="ts">
 export default {
-  name: 'AppDashboardMember',
-  components: {
-    AppDashboardWidgetChart,
-    AppDashboardWidgetHeader,
-    AppDashboardEmptyState,
-    AppDashboardMemberItem,
-    AppDashboardCount,
-  },
-  data() {
-    return {
-      newMembersChart,
-      newMembersCount,
-      activeMembersChart,
-      activeMembersCount,
-      formatDateToTimeAgo,
-      filterQueryService,
-      allContacts,
-    };
-  },
-  computed: {
-    ...mapGetters('dashboard', [
-      'activeMembers',
-      'recentMembers',
-      'members',
-      'period',
-    ]),
-    periodRange() {
-      return [
-        moment()
-          .utc()
-          .subtract(this.period.value - 1, 'day')
-          .format('YYYY-MM-DD'),
-        moment()
-          .utc()
-          .format('YYYY-MM-DD'),
-      ];
-    },
-  },
-  methods: {
-    datasets(name) {
-      return [
-        {
-          name,
-          borderColor: '#E94F2E',
-          measure: 'Members.count',
-          granularity: DAILY_GRANULARITY_FILTER.value,
-        },
-      ];
-    },
-    getPlatformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform);
-    },
-  },
+  name: 'CrDashboardMember',
 };
 </script>
 
