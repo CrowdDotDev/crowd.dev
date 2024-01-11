@@ -20,7 +20,6 @@ import { init as i18nInit } from '@/i18n';
 
 import { AuthService } from '@/modules/auth/auth-service';
 import { AuthToken } from '@/modules/auth/auth-token';
-import { TenantService } from '@/modules/tenant/tenant-service';
 import 'v-network-graph/lib/style.css';
 
 import App from '@/app.vue';
@@ -47,7 +46,6 @@ i18nInit();
   const isSocialOnboardRequested = AuthService.isSocialOnboardRequested();
 
   AuthToken.applyFromLocationUrlIfExists();
-  store.state.auth.currentTenant = await TenantService.fetchAndApply();
   if (isSocialOnboardRequested) {
     await AuthService.socialOnboard();
   }

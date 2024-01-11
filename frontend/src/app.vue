@@ -37,6 +37,7 @@ import initializePendo from '@/shared/monitoring/initializePendo';
 import { mapActions as piniaMapActions } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { TenantService } from '@/modules/tenant/tenant-service';
 
 export default {
   name: 'App',
@@ -71,6 +72,7 @@ export default {
     isAuthenticated: {
       async handler(value) {
         if (value) {
+          await TenantService.fetchAndApply();
           this.fetchActivityTypes();
           this.fetchActivityChannels();
 

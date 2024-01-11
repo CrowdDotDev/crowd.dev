@@ -1,5 +1,5 @@
 <template>
-  <el-container v-if="currentTenant" class="flex-col">
+  <el-container v-if="currentTenant && isAuthenticated" class="flex-col">
     <el-container style="height: calc(100vh - 60px); margin-top: 60px;">
       <!-- App menu -->
       <app-lf-menu />
@@ -30,6 +30,7 @@ export default {
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
+      isAuthenticated: 'auth/isAuthenticated',
       menu: 'layout/menuCollapsed',
     }),
   },
