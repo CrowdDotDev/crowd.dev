@@ -1,6 +1,6 @@
 <template>
   <div v-show="!loading" id="app">
-    <div class="sm:hidden md:block lg:block">
+    <div class="sm:hidden md:block lg:block xl:block">
       <router-view v-slot="{ Component }">
         <transition>
           <div>
@@ -12,7 +12,7 @@
       <div id="teleport-modal" />
     </div>
 
-    <div class="sm:block md:hidden lg:hidden">
+    <div class="sm:block md:hidden lg:hidden xl:hidden">
       <app-resize-page />
     </div>
   </div>
