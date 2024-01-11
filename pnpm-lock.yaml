@@ -23,7 +23,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: ^20.10.6
-        version: 20.10.8
+        version: 20.10.7
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.7.4
         version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
@@ -47,7 +47,7 @@ importers:
         version: 3.1.0
       ts-node:
         specifier: ^10.9.1
-        version: 10.9.1(@types/node@20.10.8)(typescript@5.3.2)
+        version: 10.9.1(@types/node@20.10.7)(typescript@5.3.2)
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
@@ -1266,6 +1266,85 @@ importers:
         specifier: ^3.0.3
         version: 3.1.0
 
+  services/apps/premium/organizations_enrichment_worker:
+    dependencies:
+      '@crowd/archetype-standard':
+        specifier: file:../../../archetypes/standard
+        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      '@crowd/archetype-worker':
+        specifier: file:../../../archetypes/worker
+        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      '@crowd/common':
+        specifier: file:../../../libs/common
+        version: file:services/libs/common
+      '@crowd/common_services':
+        specifier: file:../../../libs/common_services
+        version: file:services/libs/common_services
+      '@crowd/database':
+        specifier: file:../../../libs/database
+        version: file:services/libs/database
+      '@crowd/feature-flags':
+        specifier: file:../../../libs/feature-flags
+        version: file:services/libs/feature-flags
+      '@crowd/logging':
+        specifier: file:../../../libs/logging
+        version: file:services/libs/logging
+      '@crowd/opensearch':
+        specifier: file:../../../libs/opensearch
+        version: file:services/libs/opensearch
+      '@crowd/redis':
+        specifier: file:../../../libs/redis
+        version: file:services/libs/redis
+      '@crowd/types':
+        specifier: file:../../../libs/types
+        version: file:services/libs/types
+      '@temporalio/client':
+        specifier: ~1.8.6
+        version: 1.8.6
+      '@temporalio/workflow':
+        specifier: ~1.8.6
+        version: 1.8.6
+      peopledatalabs:
+        specifier: ~6.1.5
+        version: 6.1.5
+      ts-node:
+        specifier: ^10.9.1
+        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.1
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.7
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.7.4
+        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.7.4
+        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
+      eslint:
+        specifier: ^8.50.0
+        version: 8.54.0
+      eslint-config-prettier:
+        specifier: ^9.0.0
+        version: 9.0.0(eslint@8.54.0)
+      eslint-plugin-prettier:
+        specifier: ^5.0.0
+        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.0.1
+      prettier:
+        specifier: ^3.0.3
+        version: 3.1.0
+
   services/apps/search_sync_api:
     dependencies:
       '@crowd/common':
@@ -1765,6 +1844,9 @@ importers:
       '@crowd/archetype-standard':
         specifier: file:../../archetypes/standard
         version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      '@crowd/common':
+        specifier: file:../../libs/common
+        version: file:services/libs/common
       '@crowd/database':
         specifier: file:../../libs/database
         version: file:services/libs/database
@@ -4306,8 +4388,8 @@ packages:
     dependencies:
       regenerator-runtime: 0.14.0
 
-  /@babel/standalone@7.23.5:
-    resolution: {integrity: sha512-4bqgawmyDPu+9gQhZOKh1ftCUa6BAT0KztElMcWAJgOgQJRNhmGVA0M0McedEqvGi7SbfiBBvlH13Jc47P919A==}
+  /@babel/standalone@7.23.8:
+    resolution: {integrity: sha512-i0tPn3dyKHbEZPDV66ry/7baC1pznRU02R8sU6eJSBfTOwMkukRdYuT3ks/j/cvTl4YkHMRmhTejET+iyPZVvQ==}
     engines: {node: '>=6.9.0'}
     dev: false
 
@@ -4374,7 +4456,7 @@ packages:
       '@cubejs-backend/shared': 0.32.30(moment@2.29.4)
       '@ungap/structured-clone': 0.3.4
       body-parser: 1.20.2
-      chrono-node: 2.7.3
+      chrono-node: 2.7.4
       express-graphql: 0.12.0(graphql@15.8.0)
       graphql: 15.8.0
       graphql-scalars: 1.22.4(graphql@15.8.0)
@@ -4521,7 +4603,7 @@ packages:
       '@babel/generator': 7.23.5
       '@babel/parser': 7.23.5
       '@babel/preset-env': 7.23.5(@babel/core@7.23.5)
-      '@babel/standalone': 7.23.5
+      '@babel/standalone': 7.23.8
       '@babel/traverse': 7.23.5
       '@babel/types': 7.23.5
       '@cubejs-backend/shared': 0.32.30(moment@2.29.4)
@@ -4880,7 +4962,7 @@ packages:
     engines: {node: ^8.13.0 || >=10.10.0}
     dependencies:
       '@grpc/proto-loader': 0.7.10
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@grpc/grpc-js@1.9.12:
@@ -4888,7 +4970,7 @@ packages:
     engines: {node: ^8.13.0 || >=10.10.0}
     dependencies:
       '@grpc/proto-loader': 0.7.10
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@grpc/proto-loader@0.7.10:
@@ -4967,7 +5049,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       chalk: 4.1.2
       jest-message-util: 29.7.0
       jest-util: 29.7.0
@@ -4988,14 +5070,14 @@ packages:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 3.9.0
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@20.10.8)(ts-node@10.6.0)
+      jest-config: 29.7.0(@types/node@20.10.7)(ts-node@10.6.0)
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -5023,7 +5105,7 @@ packages:
     dependencies:
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       jest-mock: 29.7.0
     dev: true
 
@@ -5050,7 +5132,7 @@ packages:
     dependencies:
       '@jest/types': 29.6.3
       '@sinonjs/fake-timers': 10.3.0
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
@@ -5083,7 +5165,7 @@ packages:
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
       '@jridgewell/trace-mapping': 0.3.20
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       chalk: 4.1.2
       collect-v8-coverage: 1.0.2
       exit: 0.1.2
@@ -5171,7 +5253,7 @@ packages:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       '@types/yargs': 17.0.32
       chalk: 4.1.2
     dev: true
@@ -6432,7 +6514,7 @@ packages:
     resolution: {integrity: sha512-DTuBFbqu4gGfajREEMrkq5jBhcnskinhr4+AnfJEk48zhVeEv3XnUKGIX98B74kxhYsIMfApGGySTn7V3b5yBA==}
     engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@slack/types@2.10.0:
@@ -6447,7 +6529,7 @@ packages:
       '@slack/logger': 3.0.0
       '@slack/types': 2.10.0
       '@types/is-stream': 1.1.0
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       axios: 1.6.2
       eventemitter3: 3.1.2
       form-data: 2.5.1
@@ -7194,7 +7276,7 @@ packages:
     resolution: {integrity: sha512-fB3Zu92ucau0iQ0JMCFQE7b/dv8Ot07NI3KaZIkIUNXq82k4eBAqUaneXfleGY9JWskeS9y+u0nXMyspcuQrCg==}
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/btoa-lite@1.0.2:
@@ -7204,18 +7286,18 @@ packages:
   /@types/bunyan-format@0.2.9:
     resolution: {integrity: sha512-WuHXkdlVOzNejhWMO7mSu+i81rpp3b1pGB8HDCv+HtOGkz0gpoTSKfaQfDgYDUKI0BfZM4XRNGsVSI11akwrEQ==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: true
 
   /@types/bunyan@1.8.11:
     resolution: {integrity: sha512-758fRH7umIMk5qt5ELmRMff4mLDlN+xyYzC+dkPTdKwbSkJFvz6xwyScrytPU0QIBbRRwbiE8/BIg8bpajerNQ==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
 
   /@types/bunyan@1.8.9:
     resolution: {integrity: sha512-ZqS9JGpBxVOvsawzmVt30sP++gSQMTejCkIAQ3VdadOcRE8izTyW66hufvwLeH+YEGP6Js2AW7Gz+RMyvrEbmw==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/config@3.3.3:
@@ -7224,7 +7306,7 @@ packages:
   /@types/connect@3.4.38:
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/cookie@0.4.1:
@@ -7237,7 +7319,7 @@ packages:
   /@types/cors@2.8.17:
     resolution: {integrity: sha512-8CGDvrBj1zgo2qE+oS3pOCyYNqCPryMWY2bGfwA0dcfopWGgxs+78df0Rs3rc9THP4JkOhLsAa+15VdpAqkcUA==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/cron@2.4.0:
@@ -7274,7 +7356,7 @@ packages:
   /@types/express-serve-static-core@4.17.41:
     resolution: {integrity: sha512-OaJ7XLaelTgrvlZD8/aa0vvvxZdUmlCn6MtWeB7TkiKW70BQLc9XEPpDLPdbo52ZhXUCrznlWdCHWxJWtdyajA==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       '@types/qs': 6.9.10
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -7301,7 +7383,7 @@ packages:
   /@types/graceful-fs@4.1.9:
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: true
 
   /@types/he@1.2.3:
@@ -7323,7 +7405,7 @@ packages:
   /@types/is-stream@1.1.0:
     resolution: {integrity: sha512-jkZatu4QVbR60mpIzjINmtS1ZF4a/FqdTUTBeQDVOQ2PYyidtwFKr0B5G6ERukKwliq+7mIXvxyppwzG5EgRYg==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/istanbul-lib-coverage@2.0.6:
@@ -7359,13 +7441,13 @@ packages:
   /@types/jsonwebtoken@9.0.5:
     resolution: {integrity: sha512-VRLSGzik+Unrup6BsouBeHsf4d1hOEgYWTm/7Nmw1sXoN1+tRly/Gy/po3yeahnP4jfnQWWAhQAqcNfH7ngOkA==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/keyv@3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: true
 
   /@types/lru-cache@5.1.1:
@@ -7401,8 +7483,8 @@ packages:
     dependencies:
       undici-types: 5.26.5
 
-  /@types/node@20.10.8:
-    resolution: {integrity: sha512-f8nQs3cLxbAFc00vEU59yf9UyGUftkPaLGfvbVOIDdx2i1b8epBqj2aNGyP19fiyXWvlmZ7qC1XLjAzw/OKIeA==}
+  /@types/node@20.10.7:
+    resolution: {integrity: sha512-fRbIKb8C/Y2lXxB5eVMj4IU7xpdox0Lh8bUPEdtLysaylsml1hOOx1+STloRs/B9nf7C6kPRmmg/V7aQW7usNg==}
     dependencies:
       undici-types: 5.26.5
 
@@ -7410,7 +7492,7 @@ packages:
     resolution: {integrity: sha512-qk9orhti499fq5XxKCCEbd0OzdPZuancneyse3KtR+vgMiHRbh+mn8M4G6t64ob/Fg+GZGpa565MF/2dKWY32A==}
     requiresBuild: true
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
     optional: true
 
@@ -7441,7 +7523,7 @@ packages:
   /@types/pg@8.6.1:
     resolution: {integrity: sha512-1Kc4oAGzAl7uqUStZCDvaLFqZrW9qWSjXOmBfdgyBP5La7Us6Mg4GBvRlSoaZMhQF/zSj1C8CtKMBkoiT8eL8w==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       pg-protocol: 1.6.0
       pg-types: 2.2.0
     dev: false
@@ -7457,7 +7539,7 @@ packages:
   /@types/responselike@1.0.3:
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: true
 
   /@types/retry@0.12.0:
@@ -7477,7 +7559,7 @@ packages:
     resolution: {integrity: sha512-x2EM6TJOybec7c52BX0ZspPodMsQUd5L6PRwOunVyVUhXiBSKf3AezDL8Dgvgt5o0UfKNfuA0eMLr2wLT4AiBA==}
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/serve-static@1.15.5:
@@ -7485,7 +7567,7 @@ packages:
     dependencies:
       '@types/http-errors': 2.0.4
       '@types/mime': 3.0.4
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/shimmer@1.0.5:
@@ -7500,7 +7582,7 @@ packages:
     resolution: {integrity: sha512-mEafCgyKiMFin24SDzWN7yAADt4gt6YawFiNMp0QS5ZPboORfyxFt0s3VzJKhTaKg9py/4FUmrHLTNfJKt9Rbw==}
     dependencies:
       '@types/cookiejar': 2.1.5
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
 
   /@types/uuid@9.0.7:
     resolution: {integrity: sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==}
@@ -7513,7 +7595,7 @@ packages:
   /@types/ws@8.5.9:
     resolution: {integrity: sha512-jbdrY0a8lxfdTp/+r7Z4CkycbOFN8WX+IOchLJr3juT/xzbJ8URyTVSJ/hvNdadTgM1mnedb47n+Y31GsFnQlg==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /@types/yargs-parser@21.0.3:
@@ -8177,10 +8259,6 @@ packages:
 
   /aproba@1.2.0:
     resolution: {integrity: sha512-Y9J6ZjXtoYh8RnXVCMOU/ttDmk1aBjunq9vO0ta5x85WDQiQfUF9sIPBITdbiiIVcBo03Hi3jMxigBtsddlXRw==}
-    dev: false
-
-  /aproba@2.0.0:
-    resolution: {integrity: sha512-lYe4Gx7QT+MKGbDsA+Z+he/Wtef0BiwDOlK/XkBrdfsh9J/jPPXbX0tE9x9cl27Tmu5gg3QUbUrQYa/y+KOHPQ==}
     dev: false
 
   /are-we-there-yet@1.1.7:
@@ -9048,8 +9126,8 @@ packages:
     engines: {node: '>=6.0'}
     dev: false
 
-  /chrono-node@2.7.3:
-    resolution: {integrity: sha512-M/CusGocGJaubS8OFPEzmSa6IT/MJo2LaVqFyUVaLMo+UWwqyahKHsDe9FQBzwaytVGwR/bwZ5JhnAcu894Owg==}
+  /chrono-node@2.7.4:
+    resolution: {integrity: sha512-gk2xUWroQftZW3Z9mDqD3/HZW1d7fxSf0S0rNxOCfY+uUQP1FuuEcb5ulFcsEWSOQvzl02dqTeY1RK+zmc0WOQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       dayjs: 1.11.10
@@ -10237,7 +10315,7 @@ packages:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.17
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.4.2
@@ -11325,7 +11403,7 @@ packages:
     resolution: {integrity: sha512-+5J6MS/5XksCuXq++uFRsnUd7Ovu1XenbeuIuNRJxYWjgQbPuFhT14lAvsWfqfAmnwluf1OwMjz39HjfLPci0Q==}
     engines: {node: '>=10'}
     dependencies:
-      aproba: 2.0.0
+      aproba: 1.2.0
       color-support: 1.1.3
       console-control-strings: 1.1.0
       has-unicode: 2.0.1
@@ -12615,7 +12693,7 @@ packages:
       '@jest/expect': 29.7.0
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       chalk: 4.1.2
       co: 4.6.0
       dedent: 1.5.1
@@ -12705,7 +12783,7 @@ packages:
       - supports-color
     dev: true
 
-  /jest-config@29.7.0(@types/node@20.10.8)(ts-node@10.6.0):
+  /jest-config@29.7.0(@types/node@20.10.7)(ts-node@10.6.0):
     resolution: {integrity: sha512-uXbpfeQ7R6TZBqI3/TxCU4q4ttk3u0PJeC+E0zbfSoSjq6bJ7buBPxzQPL0ifrkY4DNu4JUdk0ImlBUYi840eQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -12720,7 +12798,7 @@ packages:
       '@babel/core': 7.23.5
       '@jest/test-sequencer': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       babel-jest: 29.7.0(@babel/core@7.23.5)
       chalk: 4.1.2
       ci-info: 3.9.0
@@ -12780,7 +12858,7 @@ packages:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       jest-mock: 29.7.0
       jest-util: 29.7.0
     dev: true
@@ -12796,7 +12874,7 @@ packages:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.9
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -12847,7 +12925,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       jest-util: 29.7.0
     dev: true
 
@@ -12902,7 +12980,7 @@ packages:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       chalk: 4.1.2
       emittery: 0.13.1
       graceful-fs: 4.2.11
@@ -12933,7 +13011,7 @@ packages:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       chalk: 4.1.2
       cjs-module-lexer: 1.2.3
       collect-v8-coverage: 1.0.2
@@ -12985,7 +13063,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -13010,7 +13088,7 @@ packages:
     dependencies:
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.13.1
@@ -13022,7 +13100,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: false
@@ -13031,7 +13109,7 @@ packages:
     resolution: {integrity: sha512-eIz2msL/EzL9UFTFFx7jBTkeZfku0yUAyZZZmJ93H2TYEiroIx2PQjEXcwYtYl8zXCxb+PAmA2hLIt/6ZEkPHw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -13166,6 +13244,7 @@ packages:
 
   /json-stringify-safe@5.0.1:
     resolution: {integrity: sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA==}
+    requiresBuild: true
     dev: false
 
   /json-to-ast@2.1.0:
@@ -15400,7 +15479,7 @@ packages:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       long: 5.2.3
     dev: false
 
@@ -16807,7 +16886,7 @@ packages:
     resolution: {integrity: sha512-JHV2KoL+nMQRXu3m9ervCZZvi4DDCJfzHUE6CmtJxR9TmizyYfrVuhGvnsZLLnheby9Qrnf4Hq6iOEcejGwnGQ==}
     engines: {node: ^8.1 || >=10.*}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       qs: 6.11.2
     dev: false
 
@@ -16984,7 +17063,7 @@ packages:
       https-proxy-agent: 5.0.1
       node-fetch: 2.7.0
       stream-events: 1.0.5
-      uuid: 8.3.0
+      uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -17328,7 +17407,7 @@ packages:
       yn: 3.1.1
     dev: false
 
-  /ts-node@10.9.1(@types/node@20.10.8)(typescript@5.3.2):
+  /ts-node@10.9.1(@types/node@20.10.7)(typescript@5.3.2):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -17347,7 +17426,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       acorn: 8.11.2
       acorn-walk: 8.3.0
       arg: 4.1.3
@@ -17770,11 +17849,6 @@ packages:
     hasBin: true
     dev: false
 
-  /uuid@8.3.0:
-    resolution: {integrity: sha512-fX6Z5o4m6XsXBdli9g7DtWgAx+osMsRRZFKma1mIUsLCz6vRvv+pz5VNbyu9UEDzpMWulZfvpgb/cmDXVulYFQ==}
-    hasBin: true
-    dev: false
-
   /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
@@ -17975,7 +18049,7 @@ packages:
   /wkx@0.5.0:
     resolution: {integrity: sha512-Xng/d4Ichh8uN4l0FToV/258EjMGU9MGcA0HV2d9B/ZpZB3lqQm7nkOdZdm5GhKtLLhAE7PiVQwN4eN+2YJJUg==}
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
     dev: false
 
   /wordwrapjs@4.0.1:
@@ -18329,6 +18403,7 @@ packages:
     name: '@crowd/archetype-worker'
     dependencies:
       '@crowd/archetype-standard': file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      '@crowd/common': file:services/libs/common
       '@crowd/database': file:services/libs/database
       '@crowd/temporal': file:services/libs/temporal
       '@opensearch-project/opensearch': 1.2.0
@@ -18358,7 +18433,7 @@ packages:
     resolution: {directory: services/libs/alerting, type: directory}
     name: '@crowd/alerting'
     dependencies:
-      '@types/node': 20.10.8
+      '@types/node': 20.10.7
       '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
       '@typescript-eslint/parser': 5.62.0(eslint@8.54.0)(typescript@5.3.2)
       axios: 1.6.2
