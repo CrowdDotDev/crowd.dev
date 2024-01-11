@@ -1,4 +1,3 @@
-import formbricks, { setupFormbricks } from '@/plugins/formbricks';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export default {
@@ -23,15 +22,9 @@ export default {
       payload.currentUser,
     );
     state.loading = false;
-
-    if (state.currentUser) {
-      // initialize Formbricks
-      setupFormbricks(state.currentUser);
-    }
   },
 
   AUTH_ERROR(state) {
-    formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loading = false;
@@ -115,14 +108,9 @@ export default {
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
-    if (state.currentUser) {
-      // initialize Formbricks
-      setupFormbricks(state.currentUser);
-    }
   },
 
   AUTH_INIT_ERROR(state) {
-    formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loadingInit = false;
