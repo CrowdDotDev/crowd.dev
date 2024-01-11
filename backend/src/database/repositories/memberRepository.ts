@@ -2151,7 +2151,7 @@ class MemberRepository {
       },
     })
 
-    if (segmentsEnabled) {
+    if (segmentsEnabled && segment) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
