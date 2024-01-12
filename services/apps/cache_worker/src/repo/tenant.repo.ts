@@ -17,7 +17,7 @@ class TenantRepository {
           plan
         from tenants
         where "deletedAt" is null
-          and plan IN ('Scale', 'Growth', 'Essential')
+          and plan IN ('Scale', 'Growth', 'Essential', 'Enterprise')
           and ("trialEndsAt" > NOW() or "trialEndsAt" is null);
       `)
     } catch (err) {
