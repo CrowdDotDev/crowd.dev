@@ -232,11 +232,9 @@
           </el-tooltip>
         </div>
       </div>
-
-      <app-account-dropdown />
     </el-menu>
     <div
-      class="absolute bg-gray-600 right-0 rounded-l-md h-8 w-6 flex items-center justify-center bottom-64 cursor-pointer hover:bg-gray-700"
+      class="absolute bg-gray-600 right-0 rounded-l-md h-8 w-6 flex items-center justify-center bottom-48 cursor-pointer hover:bg-gray-700"
       @click="toggleMenu"
     >
       <i
@@ -257,7 +255,6 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import AppLfMenuProjectGroupSelection from '@/modules/lf/layout/components/lf-menu-project-group-selection.vue';
-import AppAccountDropdown from '@/modules/layout/components/account-dropdown.vue';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { LfPermissions } from '@/modules/lf/lf-permissions';

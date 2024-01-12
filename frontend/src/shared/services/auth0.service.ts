@@ -1,6 +1,6 @@
-import { LocalStorageEnum } from '@/shared/types/LocalStorage';
 import config from '@/config';
 import { Auth0Client } from '@auth0/auth0-spa-js';
+import { store } from '@/store';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
@@ -15,53 +15,74 @@ class Auth0ServiceClass {
       authorizationParams: {
         redirect_uri: authCallback,
       },
+      useCookiesForTransactions: true,
+      useRefreshTokens: true,
+      useRefreshTokensFallback: true,
     });
   }
 
-  loginWithRedirect() {
-    this.webAuth.loginWithRedirect();
+  async loginWithRedirect() {
+    return this.webAuth.loginWithRedirect();
   }
 
-  public async handleAuth(): Promise<void> {
-    return this.webAuth.handleRedirectCallback()
-      .then(() => this.webAuth.getIdTokenClaims())
-      .then((idToken) => {
-        if (idToken) {
-          // eslint-disable-next-line no-underscore-dangle
-          const actualIdToken = idToken.__raw;
-          Auth0ServiceClass.localLogin({ id_token: actualIdToken, expires_in: idToken?.exp });
+  async handleAuth() {
+    return this.webAuth.handleRedirectCallback();
+  }
+
+  async init() {
+    return this.webAuth.isAuthenticated().then(async (isAuthenticated) => {
+      const currentUser = store.getters['auth/currentUser'];
+      if (!isAuthenticated) {
+        return this.webAuth.getTokenSilently().then(async (token) => {
+          if (!currentUser) {
+            await store.dispatch('auth/doInit', token);
+          }
+
+          store.dispatch('auth/doAuthenticate');
+
           return Promise.resolve();
-        }
-        return Promise.reject();
-      });
+        }).catch(() => {
+          // If getTokenSilently() fails it's because user is not authenticated
+          Auth0ServiceClass.localLogout();
+          this.loginWithRedirect();
+
+          return Promise.reject();
+        });
+      }
+
+      if (!currentUser) {
+        await store.dispatch('auth/doInit');
+      }
+
+      store.dispatch('auth/doAuthenticate');
+
+      return Promise.resolve();
+    });
   }
 
   public authData() {
-    const idToken = localStorage.getItem(LocalStorageEnum.ID_TOKEN);
-    const idTokenExpiration = localStorage.getItem(LocalStorageEnum.ID_TOKEN_EXPIRATION);
+    return this.webAuth.getIdTokenClaims()
+      .then((idToken) => {
+        if (idToken) {
+        // eslint-disable-next-line no-underscore-dangle
+          return idToken.__raw;
+        }
 
-    if (idToken && idTokenExpiration) {
-      const idTokenExpirationDate = new Date(parseInt(idTokenExpiration, 10));
-      return {
-        idToken,
-        idTokenExpiration: idTokenExpirationDate,
-      };
-    }
-    return null;
-  }
-
-  public static localLogin(authResult: any): void {
-    localStorage.setItem(LocalStorageEnum.ID_TOKEN, authResult.id_token as string);
-    localStorage.setItem(LocalStorageEnum.ID_TOKEN_EXPIRATION, authResult.expires_in);
+        return null;
+      });
   }
 
   public static localLogout() {
     localStorage.removeItem('jwt');
   }
 
-  public logout(): void {
+  public logout() {
     Auth0ServiceClass.localLogout();
     this.webAuth.logout();
+  }
+
+  public getUser() {
+    return this.webAuth.getUser().then((user) => user);
   }
 }
 
