@@ -39,8 +39,9 @@
         class="mt-20"
         icon="ri-folder-5-line"
         title="No project groups yet"
-        description="Create your first project group and start integrating your projects"
-        cta-btn="Manage project groups"
+        :description="`${!hasPermissionToCreateProjects
+          ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
+        :cta-btn="hasPermissionToCreateProjects ? 'Manage project groups' : null"
         @cta-click="router.push({
           name: 'adminPanel',
           query: {
@@ -94,7 +95,7 @@
             </el-button>
 
             <router-link
-              v-if="hasPermissionToAccessAdminPanel && hasAccessToProjectGroup(projectGroup.id)"
+              v-if="hasPermissionToEditProjectGroup && hasAccessToProjectGroup(projectGroup.id)"
               :to="{
                 name: 'adminProjects',
                 params: {
@@ -198,11 +199,18 @@ const handleImageError = (id, e) => {
   imageErrors[id] = true;
 };
 
-const hasPermissionToAccessAdminPanel = computed(
+const hasPermissionToEditProjectGroup = computed(
   () => new LfPermissions(
     currentTenant.value,
     currentUser.value,
   ).editProjectGroup,
+);
+
+const hasPermissionToCreateProjects = computed(
+  () => new LfPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).createProjectGroup,
 );
 </script>
 

@@ -34,7 +34,8 @@ export const hasAccessToProjectGroup = (segmentId) => {
     return true;
   }
 
-  const { adminSegments = [] } = currentUser;
+  const tenant = currentUser.tenants.find((t) => t.tenantId === currentTenant.id);
+  const { adminSegments = [] } = tenant;
 
   if (!adminSegments.length) {
     return false;

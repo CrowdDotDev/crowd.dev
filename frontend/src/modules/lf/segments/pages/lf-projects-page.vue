@@ -1,6 +1,7 @@
 <template>
   <app-page-wrapper>
     <router-link
+      v-if="hasPermissionToEditProjectGroups"
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center pb-6"
       :to="{
         name: 'adminPanel',
@@ -157,6 +158,11 @@ const hasPermissionToCreate = computed(() => new LfPermissions(
   currentTenant.value,
   currentUser.value,
 )?.createProject);
+
+const hasPermissionToEditProjectGroups = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.editProjectGroup);
 
 onMounted(() => {
   findProjectGroup(route.params.id)
