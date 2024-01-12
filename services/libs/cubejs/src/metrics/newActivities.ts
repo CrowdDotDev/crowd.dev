@@ -51,19 +51,22 @@ export default async (
     })
   }
 
-  const newActivities = await cjs.load({
-    measures: [CubeMeasure.ACTIVITY_COUNT],
-    dimensions,
-    timeDimensions: [
-      {
-        dimension: CubeDimension.ACTIVITY_DATE,
-        dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
-        granularity,
-      },
-    ],
-    order,
-    filters,
-  })
+  const newActivities = await cjs.load(
+    {
+      measures: [CubeMeasure.ACTIVITY_COUNT],
+      dimensions,
+      timeDimensions: [
+        {
+          dimension: CubeDimension.ACTIVITY_DATE,
+          dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
+          granularity,
+        },
+      ],
+      order,
+      filters,
+    },
+    rawResult,
+  )
 
   if (rawResult || granularity) {
     return newActivities

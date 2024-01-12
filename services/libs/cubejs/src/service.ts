@@ -38,8 +38,11 @@ export class CubeJsService {
    * @returns
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async load(query: any): Promise<any> {
+  async load(query: any, rawResult = false): Promise<any> {
     const result = await this.api.load(query)
+    if (rawResult) {
+      return result
+    }
     return result.loadResponses[0].data
   }
 

@@ -44,6 +44,38 @@ export default class DashboardService {
     const cache = new RedisCache('dashboard-cache', this.options.redis, this.options.log)
     const data = await cache.get(key)
 
+    if (!data) {
+      return {
+        newMembers: {
+          total: 0,
+          previousPeriodTotal: 0,
+          timeseries: null,
+        },
+        activeMembers: {
+          total: 0,
+          previousPeriodTotal: 0,
+          timeseries: null,
+        },
+        newOrganizations: {
+          total: 0,
+          previousPeriodTotal: 0,
+          timeseries: null,
+        },
+        activeOrganizations: {
+          total: 0,
+          previousPeriodTotal: 0,
+          timeseries: null,
+        },
+        activity: {
+          total: 0,
+          previousPeriodTotal: 0,
+          timeseries: null,
+          bySentimentMood: null,
+          byTypeAndPlatform: null,
+        },
+      }
+    }
+
     return JSON.parse(data)
   }
 }
