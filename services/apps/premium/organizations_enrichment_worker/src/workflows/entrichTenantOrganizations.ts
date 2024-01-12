@@ -7,6 +7,8 @@ import {
   startChild,
 } from '@temporalio/workflow'
 import { enrichOrganization } from './enrichOrganization'
+import { EDITION, IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
+import { Edition } from '@crowd/types'
 
 const { getTenantCredits, getTenantOrganizationsForEnrichment } = proxyActivities<
   typeof activities
@@ -14,7 +16,8 @@ const { getTenantCredits, getTenantOrganizationsForEnrichment } = proxyActivitie
   startToCloseTimeout: '75 seconds',
 })
 
-const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION = 100
+const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION =
+  IS_DEV_ENV || IS_TEST_ENV ? 10 : EDITION === Edition.LFX ? 500 : 100
 const BATCH_SIZE = 10
 
 export async function enrichTenantOrganizations(tenant: IPremiumTenantInfo): Promise<void> {
