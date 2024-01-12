@@ -13,19 +13,18 @@ import { distinctBy } from '@crowd/common'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface IOrgCacheToMerge {
-  website: string
+  name: string
   ids: string[]
 }
 
-async function getOrganizationCachesToMigrate(db: DbConnection): Promise<IOrgCacheToMerge[]> {
+async function getOrganizationsToFix(db: DbConnection): Promise<IOrgCacheToMerge[]> {
   const results = await db.any(
     `
-select oc."oldWebsite", array_agg(oc.id) as ids
-from "organizationCaches" oc
-where oc."oldWebsite" is not null
-  and not exists (select 1 from "organizationCacheIdentities" oci where oci.website = oc."oldWebsite")
-group by oc."oldWebsite"
-limit 100;
+    select name, array_agg(id) as ids
+    from "organizationCacheIdentities"
+    group by name
+    having count(*) > 1
+    limit 100
 `,
   )
 
@@ -43,24 +42,6 @@ where id in ($(ids:csv))
   )
 
   return results
-}
-
-async function createOrgCacheIdentity(
-  db: DbTransaction,
-  dbInstance: DbInstance,
-  id: string,
-  identities: { name: string; website: string }[],
-): Promise<void> {
-  const prepared = identities.map((i) => {
-    return { ...i, id }
-  })
-
-  const query = dbInstance.helpers.insert(
-    prepared,
-    ['id', 'name', 'website'],
-    'organizationCacheIdentities',
-  )
-  await db.none(query)
 }
 
 async function moveLinksToNewCacheId(
@@ -118,6 +99,10 @@ async function moveLinksToNewCacheId(
 
 async function removeCaches(db: DbTransaction, ids: string[]): Promise<void> {
   await db.none(`delete from "organizationCaches" where id in ($(ids:csv))`, { ids })
+}
+
+async function removeCacheIdentities(db: DbTransaction, ids: string[]): Promise<void> {
+  await db.none(`delete from "organizationCacheIdentities" where id in ($(ids:csv))`, { ids })
 }
 
 const columnsToIgnore = [
@@ -201,47 +186,23 @@ async function processOrgCache(
       }
     }
 
-    let identities = caches.map((c) => {
-      return {
-        name: c.oldName,
-        website: c.oldWebsite,
-      }
-    })
-
-    identities = distinctBy(identities, (i) => `${i.name}:${i.website}`)
-
     try {
       await db.tx(async (tx) => {
-        await createOrgCacheIdentity(tx, dbInstance, data.id, identities)
         if (Object.keys(toUpdate).length > 0) {
           await updateOrganizationCacheData(dbInstance, tx, data.id, toUpdate)
         }
         const cacheIdsToRemove = caches.filter((c) => c.id !== data.id).map((c) => c.id)
+
         await moveLinksToNewCacheId(tx, cacheIdsToRemove, data.id)
+        await removeCacheIdentities(tx, cacheIdsToRemove)
         await removeCaches(tx, cacheIdsToRemove)
       })
     } catch (err) {
       log.error(err, { id: data.id }, 'Error while processing organization caches!')
       throw err
     }
-  } else if (ids.length === 1) {
-    if (caches.length !== 1) {
-      throw new Error(`Did not find org cache for id: ${ids[0]}`)
-    }
-    // no need to merge datapoints just extract identity into organizationCacheIdentities
-    const data = caches[0]
-    try {
-      await db.tx(async (tx) => {
-        await createOrgCacheIdentity(tx, dbInstance, data.id, [
-          { name: data.oldName, website: data.oldWebsite },
-        ])
-      })
-    } catch (err) {
-      log.error(err, { id: data.id }, 'Error while processing organization cache!')
-      throw err
-    }
   } else {
-    throw new Error(`No ids found!`)
+    throw new Error('should not happen')
   }
 }
 
@@ -249,7 +210,7 @@ setImmediate(async () => {
   const db = await getDbConnection(DB_CONFIG())
   const dbInstance = getDbInstance()
 
-  let results = await getOrganizationCachesToMigrate(db)
+  let results = await getOrganizationsToFix(db)
 
   let count = 0
   while (results.length > 0) {
@@ -259,7 +220,7 @@ setImmediate(async () => {
       log.info({ count }, `Processed org cache!`)
     }
 
-    results = await getOrganizationCachesToMigrate(db)
+    results = await getOrganizationsToFix(db)
   }
 
   process.exit(0)
