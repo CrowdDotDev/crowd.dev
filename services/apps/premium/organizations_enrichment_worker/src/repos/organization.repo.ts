@@ -46,12 +46,22 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                           from activities
                           where "tenantId" = $(tenantId)
                             and "deletedAt" is null
-                          group by "organizationId")
+                          group by "organizationId"),
+            identities as (select oi."organizationId",
+                                  json_agg(json_build_object(
+                                          'platform', oi.platform,
+                                          'name', oi.name,
+                                          'url', oi.url
+                                            )) as "identities"
+                            from "organizationIdentities" oi
+                            where oi."tenantId" = $(tenantId)
+                group by oi."organizationId")
     select o.id
     from organizations o
             inner join activity_data ad on ad."organizationId" = o.id
+            inner join identities i on i."organizationId" = o.id
     where ${conditions.join(' and ')}
-    order by o.id
+    order by ad."activityCount" desc, o.id
     limit ${perPage};
     `
 

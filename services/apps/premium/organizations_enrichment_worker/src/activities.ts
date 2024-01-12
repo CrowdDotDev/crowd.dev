@@ -1,5 +1,5 @@
 import {
-  getTenantCredits,
+  getRemainingTenantCredits,
   incrementTenantCredits,
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
@@ -10,7 +10,7 @@ import {
 
 export {
   getApplicableTenants,
-  getTenantCredits,
+  getRemainingTenantCredits,
   incrementTenantCredits,
   getTenantOrganizationsForEnrichment,
   tryEnrichOrganization,
