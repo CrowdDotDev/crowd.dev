@@ -45,9 +45,6 @@
           </div>
         </div>
         <div class="pt-10">
-          <h6 class="text-sm leading-5 font-semibold mb-4">
-            Overall sentiment
-          </h6>
           <app-dashboard-activity-sentiment />
         </div>
       </section>

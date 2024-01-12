@@ -1,4 +1,7 @@
 <template>
+  <h6 v-if="cube.activity.bySentimentMood" class="text-sm leading-5 font-semibold mb-4">
+    Overall sentiment
+  </h6>
   <div v-if="!cube">
     <div class="pb-3">
       <app-loading height="8px" />
@@ -86,6 +89,7 @@ import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRouter } from 'vue-router';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import { ResultSet } from '@cubejs-client/core';
 
 const router = useRouter();
 
@@ -96,7 +100,7 @@ const {
 const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const bySentiment = computed<Record<string, number>>(() => {
-  const data = cube.value.activity.bySentimentMood;
+  const data = new ResultSet(cube.value.activity.bySentimentMood);
   const seriesNames = data.seriesNames();
   const pivot = data.chartPivot();
   let series: any[] = [];

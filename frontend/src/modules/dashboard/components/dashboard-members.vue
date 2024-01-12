@@ -241,12 +241,12 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-const datasets = (name: string) => ({
+const datasets = (name: string) => [{
   name,
   borderColor: '#E94F2E',
   measure: 'Members.count',
   granularity: 'day',
-});
+}];
 
 const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(platform);
 

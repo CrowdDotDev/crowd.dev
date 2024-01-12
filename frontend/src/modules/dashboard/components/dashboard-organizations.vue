@@ -218,12 +218,12 @@ const periodRange = computed(() => [
     .format('YYYY-MM-DD'),
 ]);
 
-const datasets = (name: string) => ({
+const datasets = (name: string) => [{
   name,
   borderColor: '#E94F2E',
   measure: 'Organizations.count',
   granularity: 'day',
-});
+}];
 
 </script>
 

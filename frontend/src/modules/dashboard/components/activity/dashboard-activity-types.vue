@@ -45,7 +45,7 @@
       </p>
     </article>
     <div
-      v-if="activityTypes.length === 0"
+      v-if="!cubeData.activity.byTypeAndPlatform || activityTypes.length === 0"
       class="flex items-center justify-center pt-6 pb-5"
     >
       <div
@@ -69,6 +69,7 @@ import { computed } from 'vue';
 import pluralize from 'pluralize';
 import merge from 'lodash/merge';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { ResultSet } from '@cubejs-client/core';
 
 const {
   cubeData,
@@ -83,7 +84,8 @@ const activityTypes = computed(() => {
   if (!cubeData) {
     return [];
   }
-  const pivot = cubeData.value.activity.byTypeAndPlatform.chartPivot();
+  const data = new ResultSet(cubeData.value.activity.byTypeAndPlatform);
+  const pivot = data.chartPivot();
   return pivot.map((el) => {
     const [plat, type] = el.x.split(',');
     return {

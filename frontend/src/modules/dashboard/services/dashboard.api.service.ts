@@ -12,8 +12,8 @@ export class DashboardApiService {
         headers: {
           Authorization: sampleTenant?.token,
         },
-        query: {
-          period,
+        params: {
+          timeframe: period,
           platform,
         },
       },
