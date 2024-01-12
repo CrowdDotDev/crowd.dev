@@ -30,7 +30,7 @@ class IntegrationRepository {
       throw new Error(err)
     }
 
-    return result.platforms
+    return result.platforms || []
   }
 }
 
