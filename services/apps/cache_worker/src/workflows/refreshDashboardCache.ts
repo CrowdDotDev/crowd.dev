@@ -285,7 +285,7 @@ async function getDashboardCacheData(
     segmentIds,
     startDate,
     endDate,
-    dimensions: ['Activities.type', 'Activities.platform'],
+    dimensions: ['Activities.platform', 'Activities.type'],
     order: { 'Activities.count': 'desc' },
     platform,
     rawResult: true,
