@@ -22,6 +22,20 @@ export async function moveActivitiesBetweenMembers(
   secondaryId: string,
   tenantId: string,
 ): Promise<void> {
+  const memberExists = await svc.postgres.writer.connection().one(
+    `
+      SELECT id
+      FROM members
+      WHERE id = $1
+        AND "tenantId" = $2
+    `,
+    [primaryId, tenantId],
+  )
+
+  if (!memberExists) {
+    return
+  }
+
   await svc.postgres.writer.connection().query(
     `
       UPDATE activities
