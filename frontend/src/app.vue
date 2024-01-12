@@ -32,6 +32,7 @@ import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 import { Auth0Service } from '@/shared/services/auth0.service';
+import identify from '@/shared/monitoring/identify';
 import { mapActions as piniaMapActions } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
@@ -84,6 +85,13 @@ export default {
           } catch (e) {
             console.error(e);
           }
+        }
+      },
+    },
+    currentUser: {
+      handler(user, oldUser) {
+        if (user?.id && user.id !== oldUser?.id) {
+          identify(user);
         }
       },
     },
