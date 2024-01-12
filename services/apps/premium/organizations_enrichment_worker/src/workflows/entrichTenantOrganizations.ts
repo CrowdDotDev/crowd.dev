@@ -7,33 +7,24 @@ import {
   startChild,
 } from '@temporalio/workflow'
 import { enrichOrganization } from './enrichOrganization'
-import { EDITION, IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
-import { Edition } from '@crowd/types'
 
-const { getTenantCredits, getTenantOrganizationsForEnrichment } = proxyActivities<
+const { getRemainingTenantCredits, getTenantOrganizationsForEnrichment } = proxyActivities<
   typeof activities
 >({
   startToCloseTimeout: '75 seconds',
 })
 
-const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION =
-  IS_DEV_ENV || IS_TEST_ENV ? 10 : EDITION === Edition.LFX ? 500 : 100
 const BATCH_SIZE = 10
 
 export async function enrichTenantOrganizations(tenant: IPremiumTenantInfo): Promise<void> {
   // check how many credits the tenant has left
   // this will be our limit (1 credit = 1 enriched organization)
-  const credits = await getTenantCredits(tenant)
+  let remainingCredits = await getRemainingTenantCredits(tenant)
 
-  if (credits === 0) {
+  if (remainingCredits === 0) {
     // we have no credits left on this tenant
     return
   }
-
-  let remainingCredits =
-    credits === -1
-      ? MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION
-      : Math.min(credits, MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION)
 
   let lastId: string | undefined
   while (remainingCredits > 0) {

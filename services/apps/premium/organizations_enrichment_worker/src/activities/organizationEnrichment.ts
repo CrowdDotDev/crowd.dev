@@ -1,7 +1,16 @@
-import { distinct, distinctBy, getSecondsTillEndOfMonth, renameKeys } from '@crowd/common'
+import {
+  EDITION,
+  IS_DEV_ENV,
+  IS_TEST_ENV,
+  distinct,
+  distinctBy,
+  getSecondsTillEndOfMonth,
+  renameKeys,
+} from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache } from '@crowd/redis'
 import {
+  Edition,
   FeatureFlag,
   FeatureFlagRedisKey,
   IEnrichableOrganization,
@@ -20,6 +29,9 @@ import { isFeatureEnabled } from '@crowd/feature-flags'
 import { OrganizationSyncService } from '@crowd/opensearch'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION =
+  IS_DEV_ENV || IS_TEST_ENV ? 10 : EDITION === Edition.LFX ? 500 : 100
 
 const syncOrganizations = new OrganizationSyncService(
   svc.postgres.writer,
@@ -87,8 +99,8 @@ export async function hasTenantOrganizationEnrichmentEnabled(tenantId: string): 
  * @param tenant
  * @returns number of credits left for the tenant that can be used to enrich organizations
  */
-export async function getTenantCredits(tenant: IPremiumTenantInfo): Promise<number> {
-  const log = getChildLogger(getTenantCredits.name, svc.log, { tenantId: tenant.id })
+export async function getRemainingTenantCredits(tenant: IPremiumTenantInfo): Promise<number> {
+  const log = getChildLogger(getRemainingTenantCredits.name, svc.log, { tenantId: tenant.id })
   if (tenant.plan === TenantPlans.Growth) {
     // need to check how many credits the tenant has left
     const cache = new RedisCache(FeatureFlagRedisKey.ORGANIZATION_ENRICHMENT_COUNT, svc.redis, log)
@@ -101,12 +113,13 @@ export async function getTenantCredits(tenant: IPremiumTenantInfo): Promise<numb
       PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.ORGANIZATION_ENRICHMENT] - usedCredits
 
     log.debug({ tenantId: tenant.id }, `Tenant has ${remainingCredits} credits left.`)
-    return remainingCredits
+    const toSpend = Math.min(remainingCredits, MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION)
+    return toSpend
   }
 
   if ([TenantPlans.Enterprise, TenantPlans.Scale].includes(tenant.plan)) {
     log.debug({ tenantId: tenant.id }, `Tenant has unlimited credits.`)
-    return -1
+    return MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION
   }
 
   throw new Error(`Only premium tenant plans are supported - got ${tenant.plan}!`)
