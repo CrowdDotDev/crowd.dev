@@ -1,9 +1,9 @@
-import assert from 'assert'
 import { Error400 } from '@crowd/common'
+import { TenantPlans } from '@crowd/types'
+import assert from 'assert'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import UserRepository from '../../database/repositories/userRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
-import Plans from '../../security/plans'
+import UserRepository from '../../database/repositories/userRepository'
 import { IServiceOptions } from '../IServiceOptions'
 
 /**
@@ -65,7 +65,7 @@ export default class UserDestroyer {
   async _isRemovingPlanUser() {
     const { currentTenant } = this.options
 
-    if (currentTenant.plan === Plans.values.essential) {
+    if (currentTenant.plan === TenantPlans.Essential) {
       return false
     }
 

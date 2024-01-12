@@ -103,6 +103,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
         and "segmentId" = $(segmentId)
         and "sourceId" = $(sourceId)
         and channel = $(channel)
+        and "deletedAt" IS NULL
       limit 1;
     `,
       {

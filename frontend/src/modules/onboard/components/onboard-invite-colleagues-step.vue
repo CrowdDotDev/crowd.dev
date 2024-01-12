@@ -34,8 +34,10 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import useVuelidate from '@vuelidate/core';
 import AppOnboardUserArrayInput from '@/modules/onboard/components/onboard-user-array-input.vue';
 import { RoleEnum } from '@/modules/user/types/Roles';
+import { minValue } from '@vuelidate/validators';
 
 type Form = {
+  activeIntegrations: number;
   invitedUsers: {
     emails: string[];
     roles: string[];
@@ -58,7 +60,11 @@ const form = computed<Form>({
   },
 });
 
-const $v = useVuelidate({}, form);
+const $v = useVuelidate({
+  activeIntegrations: {
+    minValue: minValue(1),
+  },
+}, form);
 
 const addUser = () => {
   form.value.invitedUsers.push({

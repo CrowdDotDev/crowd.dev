@@ -6,6 +6,7 @@ import { Config, Service } from '@crowd/archetype-standard'
 import { getDbConnection, DbStore } from '@crowd/database'
 import { OpenSearchService } from '@crowd/opensearch'
 import { getDataConverter } from '@crowd/temporal'
+import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
@@ -25,12 +26,15 @@ const envvars = {
     'CROWD_DB_PASSWORD',
     'CROWD_DB_DATABASE',
   ],
-  opensearch: [
-    'CROWD_OPENSEARCH_AWS_REGION',
-    'CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID',
-    'CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY',
-    'CROWD_OPENSEARCH_NODE',
-  ],
+  opensearch:
+    IS_DEV_ENV || IS_TEST_ENV
+      ? ['CROWD_OPENSEARCH_NODE']
+      : [
+          'CROWD_OPENSEARCH_AWS_REGION',
+          'CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID',
+          'CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY',
+          'CROWD_OPENSEARCH_NODE',
+        ],
 }
 
 /*
