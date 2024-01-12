@@ -16,7 +16,7 @@ import {
 } from 'types'
 import moment from 'moment'
 
-const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
+const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '5 minute' })
 
 export async function refreshDashboardCache(
   args: IProcessRefreshDashboardCacheArgs,
