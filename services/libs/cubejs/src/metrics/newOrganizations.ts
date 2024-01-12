@@ -49,18 +49,21 @@ export default async (
     })
   }
 
-  const newOrganizations = await cjs.load({
-    measures: [CubeMeasure.ORGANIZATION_COUNT],
-    timeDimensions: [
-      {
-        dimension: CubeDimension.ORGANIZATIONS_JOINED_AT,
-        dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
-        granularity,
-      },
-    ],
-    order: { [CubeDimension.ORGANIZATIONS_JOINED_AT]: 'asc' },
-    filters,
-  })
+  const newOrganizations = await cjs.load(
+    {
+      measures: [CubeMeasure.ORGANIZATION_COUNT],
+      timeDimensions: [
+        {
+          dimension: CubeDimension.ORGANIZATIONS_JOINED_AT,
+          dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
+          granularity,
+        },
+      ],
+      order: { [CubeDimension.ORGANIZATIONS_JOINED_AT]: 'asc' },
+      filters,
+    },
+    rawResult,
+  )
 
   if (rawResult || granularity) {
     return newOrganizations

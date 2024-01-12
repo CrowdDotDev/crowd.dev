@@ -70,7 +70,7 @@ export default async (
     filters,
   }
 
-  const newMembers = await cjs.load(query)
+  const newMembers = await cjs.load(query, rawResult)
 
   if (rawResult || granularity) {
     return newMembers

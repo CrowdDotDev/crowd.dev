@@ -55,18 +55,21 @@ export default async (
     })
   }
 
-  const activeMembers = await cjs.load({
-    measures: [CubeMeasure.MEMBER_COUNT],
-    timeDimensions: [
-      {
-        dimension: CubeDimension.ACTIVITY_DATE,
-        dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
-        granularity,
-      },
-    ],
-    order: { [CubeDimension.MEMBER_JOINED_AT]: 'asc' },
-    filters,
-  })
+  const activeMembers = await cjs.load(
+    {
+      measures: [CubeMeasure.MEMBER_COUNT],
+      timeDimensions: [
+        {
+          dimension: CubeDimension.ACTIVITY_DATE,
+          dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
+          granularity,
+        },
+      ],
+      order: { [CubeDimension.MEMBER_JOINED_AT]: 'asc' },
+      filters,
+    },
+    rawResult,
+  )
 
   if (rawResult || granularity) {
     return activeMembers
