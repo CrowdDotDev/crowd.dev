@@ -45,6 +45,7 @@ WHERE a."deletedAt" IS NULL
 ;
 
 CREATE INDEX IF NOT EXISTS mv_activities_cube_timestamp ON mv_activities_cube (timestamp);
+CREATE INDEX IF NOT EXISTS mv_activities_cube_platform ON mv_activities_cube (platform);
 CREATE INDEX IF NOT EXISTS mv_activities_cube_org_id ON mv_activities_cube ("organizationId");
 CREATE UNIQUE INDEX IF NOT EXISTS mv_activities_cube_id ON mv_activities_cube (id);
 CREATE INDEX IF NOT EXISTS mv_activities_cube_tenantId_timestamp_idx ON mv_activities_cube ("tenantId", "timestamp");
