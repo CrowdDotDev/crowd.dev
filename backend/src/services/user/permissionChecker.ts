@@ -1,12 +1,11 @@
 import assert from 'assert'
 import lodash from 'lodash'
 import { Error400, Error403 } from '@crowd/common'
-import Plans from '../../security/plans'
-import Roles from '../../security/roles'
+import { TenantPlans } from '@crowd/types'
 import Permissions from '../../security/permissions'
 import EmailSender from '../emailSender'
+import Roles from '../../security/roles'
 
-const plans = Plans.values
 const roles = Roles.values
 
 /**
@@ -192,7 +191,7 @@ export default class PermissionChecker {
    */
   get currentTenantPlan() {
     if (!this.currentTenant || !this.currentTenant.plan) {
-      return plans.essential
+      return TenantPlans.Essential
     }
 
     return this.currentTenant.plan

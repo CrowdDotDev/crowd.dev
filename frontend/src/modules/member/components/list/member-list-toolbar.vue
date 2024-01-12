@@ -98,12 +98,18 @@ import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
+
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
 const { fetchMembers } = memberStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const bulkTagsUpdateVisible = ref(false);
 const bulkAttributesUpdateVisible = ref(false);
@@ -154,30 +160,23 @@ const markAsTeamMemberOptions = computed(() => {
 
 const handleMergeMembers = async () => {
   const [firstMember, secondMember] = selectedMembers.value;
-  Message.info(
-    null,
-    {
-      title: 'Contacts are being merged',
-    },
-  );
+
+  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+
+  loadingMessage();
 
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
-      Message.closeAll();
-      Message.success('Contributors merged successfuly');
+      successMessage({
+        primaryMember: firstMember,
+        secondaryMember: secondMember,
+        selectedProjectGroupId: selectedProjectGroup.value?.id,
+      });
+
       fetchMembers({ reload: true });
     })
     .catch((error) => {
-      Message.closeAll();
-
-      if (error.response.status === 404) {
-        Message.error('Contacts already merged or deleted', {
-          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
-          Please refresh to see the updated information.`,
-        });
-      } else {
-        Message.error('There was an error merging contacts');
-      }
+      apiErrorMessage({ error });
     });
 };
 

@@ -292,8 +292,8 @@ class MemberRepository {
       const toMergePromises = []
 
       for (const mem of mems) {
-        memberPromises.push(MemberRepository.findById(mem.id, options))
-        toMergePromises.push(MemberRepository.findById(mem.toMergeId, options))
+        memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
+        toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
       }
 
       const memberResults = await Promise.all(memberPromises)
@@ -1149,27 +1149,37 @@ class MemberRepository {
       await MemberAttributeSettingsRepository.findAndCountAll({}, options)
     ).rows
 
-    const response = await this.findAndCountAllOpensearch(
-      {
-        filter: {
-          and: [
-            {
-              id: {
-                eq: id,
-              },
+    const queryObject = {
+      filter: {
+        and: [
+          {
+            id: {
+              eq: id,
             },
-          ],
-        },
-        limit: 1,
-        offset: 0,
-        attributesSettings: memberAttributeSettings,
+          },
+        ],
+      },
+      limit: 1,
+      offset: 0,
+      attributesSettings: memberAttributeSettings,
+    }
+
+    let response = await this.findAndCountAllOpensearch(
+      {
+        ...queryObject,
         segments,
       },
       options,
     )
 
+    // if not found, try to find it in all segments
     if (response.count === 0) {
-      throw new Error404()
+      response = await this.findAndCountAllOpensearch(queryObject, options)
+
+      // still not found, throw 404
+      if (response.count === 0) {
+        throw new Error404()
+      }
     }
 
     const result = response.rows[0]
@@ -2141,7 +2151,7 @@ class MemberRepository {
       },
     })
 
-    if (segmentsEnabled) {
+    if (segmentsEnabled && segment) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
@@ -2238,27 +2248,24 @@ class MemberRepository {
 
       const lastActivities = await seq.query(
         `
-          WITH
-            leaf_segment_ids AS (
-              select id
-              from segments
-              where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-            ),
-            raw_data AS (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
+            SELECT
+                a.*
+            FROM (
+                VALUES
+                  ${memberIds.map((id) => `('${id}')`).join(',')}
+            ) m ("memberId")
+            JOIN activities a ON (a.id = (
+                SELECT id
                 FROM activities
-                INNER JOIN leaf_segment_ids ON activities."segmentId" = leaf_segment_ids.id
-                WHERE "tenantId" = :tenantId
-                  AND "memberId" IN (:memberIds)
-            )
-          SELECT *
-          FROM raw_data
-          WHERE rn = 1;
+                WHERE "memberId" = m."memberId"::uuid
+                ORDER BY timestamp DESC
+                LIMIT 1
+            ))
+            WHERE a."tenantId" = :tenantId
         `,
         {
           replacements: {
             tenantId: tenant.id,
-            memberIds,
           },
           type: QueryTypes.SELECT,
         },

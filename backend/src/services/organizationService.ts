@@ -1,4 +1,3 @@
-import { isEqual } from 'lodash'
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import {
@@ -8,8 +7,9 @@ import {
   OrganizationMergeSuggestionType,
   SyncMode,
 } from '@crowd/types'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import { isEqual } from 'lodash'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import {
   MergeActionState,
@@ -27,8 +27,8 @@ import {
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
-import SearchSyncService from './searchSyncService'
 import MemberOrganizationService from './memberOrganizationService'
+import SearchSyncService from './searchSyncService'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -457,15 +457,31 @@ export default class OrganizationService extends LoggerBase {
       const primaryIdentity = data.identities[0]
       const nameToCheckInCache = (data as any).name || primaryIdentity.name
 
-      // check cache existing by name
-      let cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
-        ...this.options,
-        transaction,
-      })
-
       // Normalize the website URL if it exists
       if (data.website) {
         data.website = websiteNormalizer(data.website)
+      }
+
+      // lets check if we have this organization in cache by website
+      let cache
+      let createCacheIdentity = false
+      if (data.website) {
+        cache = await organizationCacheRepository.findByWebsite(data.website, {
+          ...this.options,
+          transaction,
+        })
+
+        if (cache && !cache.names.includes(nameToCheckInCache)) {
+          createCacheIdentity = true
+        }
+      }
+
+      // check cache existing by name
+      if (!cache) {
+        cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
+          ...this.options,
+          transaction,
+        })
       }
 
       // if cache exists, merge current data with cache data
@@ -498,10 +514,15 @@ export default class OrganizationService extends LoggerBase {
           }
         })
         if (Object.keys(updateData).length > 0) {
-          await organizationCacheRepository.update(cache.id, updateData, {
-            ...this.options,
-            transaction,
-          })
+          await organizationCacheRepository.update(
+            cache.id,
+            updateData,
+            {
+              ...this.options,
+              transaction,
+            },
+            createCacheIdentity ? nameToCheckInCache : undefined,
+          )
 
           cache = { ...cache, ...updateData } // Update the cached data with the new data
         }
@@ -637,6 +658,11 @@ export default class OrganizationService extends LoggerBase {
           }
         }
       }
+
+      await organizationCacheRepository.linkCacheAndOrganization(cache.id, record.id, {
+        ...this.options,
+        transaction,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 

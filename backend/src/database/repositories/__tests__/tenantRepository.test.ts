@@ -1,6 +1,7 @@
 import TenantRepository from '../tenantRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Plans from '../../../security/plans'
+import { TenantPlans } from '@crowd/types'
 
 const db = null
 
@@ -20,12 +21,12 @@ describe('TenantRepository tests', () => {
       const ToCreatePLanForEssentialPlanTenantOnTrial = {
         name: 'essential tenant name',
         url: 'an-essential-tenant-name',
-        plan: Plans.values.essential,
+        plan: TenantPlans.Essential,
       }
       const ToCreatPlanForGrowthTenantOnTrial = {
         name: 'growth tenant name',
         url: 'a-growth-tenant-name',
-        plan: Plans.values.growth,
+        plan: TenantPlans.Growth,
       }
       const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await options.database.tenant.create(ToCreatePLanForEssentialPlanTenantOnTrial)
@@ -56,7 +57,7 @@ describe('TenantRepository tests', () => {
       await options.database.tenant.create({
         name: tenantName,
         url: 'a-tenant-name',
-        plan: Plans.values.essential,
+        plan: TenantPlans.Essential,
       })
 
       // now generate function should return 'a-tenant-name-1' because it already exists

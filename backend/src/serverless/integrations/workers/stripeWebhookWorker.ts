@@ -1,13 +1,12 @@
 import { timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import { getRedisClient, RedisPubSubEmitter } from '@crowd/redis'
-import { ApiWebsocketMessage } from '@crowd/types'
+import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
+import { ApiWebsocketMessage, TenantPlans } from '@crowd/types'
 import moment from 'moment'
 import { Stripe } from 'stripe'
 import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { PLANS_CONFIG, REDIS_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
-import Plans from '../../../security/plans'
 
 const log = getServiceChildLogger('stripeWebhookWorker')
 
@@ -73,9 +72,9 @@ export const processStripeWebhook = async (message: any) => {
       let productPlan
 
       if ((subscription as any).plan.product === PLANS_CONFIG.stripeEagleEyePlanProductId) {
-        productPlan = Plans.values.eagleEye
+        productPlan = TenantPlans.EagleEye
       } else if ((subscription as any).plan.product === PLANS_CONFIG.stripeGrowthPlanProductId) {
-        productPlan = Plans.values.growth
+        productPlan = TenantPlans.Growth
       } else {
         log.error({ subscription }, `Unknown product in subscription`)
         process.exit(1)

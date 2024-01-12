@@ -1,19 +1,18 @@
-import moment from 'moment'
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import { SegmentStatus } from '@crowd/types'
 import { getTemporalClient } from '@crowd/temporal'
+import { SegmentStatus, TenantPlans } from '@crowd/types'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import moment from 'moment'
+import { API_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
+import Roles from '../../security/roles'
+import { IServiceOptions } from '../../services/IServiceOptions'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
-import { IServiceOptions } from '../../services/IServiceOptions'
-import Roles from '../../security/roles'
-import UserRepository from '../repositories/userRepository'
-import TenantRepository from '../repositories/tenantRepository'
-import Plans from '../../security/plans'
-import { API_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
 import SettingsRepository from '../repositories/settingsRepository'
+import TenantRepository from '../repositories/tenantRepository'
+import UserRepository from '../repositories/userRepository'
 
 const logger = getServiceLogger()
 
@@ -22,6 +21,8 @@ export default class SequelizeTestUtils {
     db = await this.getDatabase(db)
 
     const tables = [
+      '"organizationCacheIdentities"',
+      '"organizationCacheLinks"',
       '"organizationIdentities"',
       '"activityTasks"',
       '"automationExecutions"',
@@ -101,7 +102,12 @@ export default class SequelizeTestUtils {
     return db
   }
 
-  static async getTestIServiceOptions(db, plan = Plans.values.essential, tenantName?, tenantUrl?) {
+  static async getTestIServiceOptions(
+    db,
+    plan: TenantPlans = TenantPlans.Essential,
+    tenantName?,
+    tenantUrl?,
+  ) {
     db = await this.getDatabase(db)
 
     const randomTenant =
@@ -230,11 +236,11 @@ export default class SequelizeTestUtils {
     } as IRepositoryOptions
   }
 
-  static getRandomTestTenant(plan = Plans.values.essential) {
+  static getRandomTestTenant(plan = TenantPlans.Essential) {
     return this.getTenant(this.getRandomString('test-tenant'), this.getRandomString('url#'), plan)
   }
 
-  static getTenant(name, url, plan = Plans.values.essential) {
+  static getTenant(name, url, plan = TenantPlans.Essential) {
     return {
       name,
       url,

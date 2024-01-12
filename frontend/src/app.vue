@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div class="sm:hidden md:block lg:block">
+    <div class="sm:hidden md:block lg:block xl:block">
       <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
       <div v-if="loading" class="flex items-center bg-white h-screen w-screen justify-center">
         <div
@@ -19,7 +19,7 @@
       <div id="teleport-modal" />
     </div>
 
-    <div class="sm:block md:hidden lg:hidden">
+    <div class="sm:block md:hidden lg:hidden xl:hidden">
       <app-resize-page />
     </div>
   </div>

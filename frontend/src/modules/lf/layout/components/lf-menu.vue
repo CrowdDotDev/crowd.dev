@@ -318,10 +318,14 @@ const isEagleEyeLocked = computed(
 );
 
 const hasPermissionToAccessAdminPanel = computed(
-  () => new LfPermissions(
-    currentTenant.value,
-    currentUser.value,
-  ).createProjectGroup,
+  () => {
+    const lfPermissions = new LfPermissions(
+      currentTenant.value,
+      currentUser.value,
+    );
+
+    return lfPermissions.createProjectGroup || lfPermissions.editProjectGroup;
+  },
 );
 
 function toggleMenu() {
