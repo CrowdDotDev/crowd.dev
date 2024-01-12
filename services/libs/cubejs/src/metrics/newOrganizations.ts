@@ -16,7 +16,7 @@ export default async (
   cjs: CubeJsService,
   startDate: moment.Moment,
   endDate: moment.Moment,
-  granularity: CubeGranularity = null,
+  granularity: CubeGranularity | string = null,
   filter: IDashboardFilter = {},
   rawResult = false,
 ) => {
@@ -41,11 +41,11 @@ export default async (
     })
   }
 
-  if (filter.segment) {
+  if (filter.segments) {
     filters.push({
       member: CubeDimension.SEGMENTS_ID,
       operator: 'equals',
-      values: [filter.segment],
+      values: filter.segments,
     })
   }
 

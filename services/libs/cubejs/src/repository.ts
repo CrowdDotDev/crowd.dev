@@ -5,8 +5,6 @@ export class CubeJsRepository {
 
   static getNewActivities = metrics.newActivities
 
-  static getNewActivitiesTimeseries = metrics.newActivitiesTimeseries
-
   static getNewConversations = metrics.newConversations
 
   static getNewMembers = metrics.newMembers

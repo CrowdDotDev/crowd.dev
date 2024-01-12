@@ -38,7 +38,8 @@ SELECT
     END::VARCHAR(8) AS "sentimentMood",
     a."organizationId",
     a."segmentId",
-    a."conversationId"
+    a."conversationId",
+    a."createdAt"
 FROM activities a
 WHERE a."deletedAt" IS NULL
 ;

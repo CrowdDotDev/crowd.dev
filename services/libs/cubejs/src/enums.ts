@@ -1,15 +1,18 @@
 export enum CubeDimension {
   MEMBER_JOINED_AT = 'Members.joinedAt',
+  MEMBER_JOINED_AT_DAY = 'Members.joinedAt.day',
   IS_TEAM_MEMBER = 'Members.isTeamMember',
   IS_BOT = 'Members.isBot',
   IS_ORGANIZATION = 'Members.isOrganization',
   ACTIVITY_DATE = 'Activities.date',
+  ACTIVITY_DATE_DAY = 'Activities.date.day',
   ACTIVITY_PLATFORM = 'Activities.platform',
   ACTIVITY_TYPE = 'Activities.type',
   ACTIVITY_SENTIMENT_MOOD = 'Activities.sentimentMood',
   CONVERSATION_CREATED_AT = 'Conversations.createdat',
   CONVERSATION_FIRST_ACTIVITY_TIME = 'Conversations.firstActivityTime',
   ORGANIZATIONS_JOINED_AT = 'Organizations.joinedAt',
+  ORGANIZATIONS_JOINED_AT_DAY = 'Organizations.joinedAt.day',
   SEGMENTS_ID = 'Segments.id',
 }
 

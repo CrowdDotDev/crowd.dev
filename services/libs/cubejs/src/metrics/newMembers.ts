@@ -3,6 +3,9 @@ import moment from 'moment'
 import { CubeJsService } from '../service'
 import { CubeGranularity, CubeDimension, CubeMeasure } from '../enums'
 import { ICubeFilter, IDashboardFilter } from '../types'
+import { getServiceLogger } from '@crowd/logging'
+
+const log = getServiceLogger()
 
 /**
  * Gets `new members` count or timeseries data for a given date range and granularity.
@@ -16,7 +19,7 @@ export default async (
   cjs: CubeJsService,
   startDate: moment.Moment,
   endDate: moment.Moment,
-  granularity: CubeGranularity = null,
+  granularity: CubeGranularity | string = null,
   filter: IDashboardFilter = {},
   rawResult = false,
 ) => {
@@ -46,15 +49,15 @@ export default async (
     })
   }
 
-  if (filter.segment) {
+  if (filter.segments) {
     filters.push({
       member: CubeDimension.SEGMENTS_ID,
       operator: 'equals',
-      values: [filter.segment],
+      values: filter.segments,
     })
   }
 
-  const newMembers = await cjs.load({
+  const query = {
     measures: [CubeMeasure.MEMBER_COUNT],
     timeDimensions: [
       {
@@ -65,7 +68,9 @@ export default async (
     ],
     order: { [CubeDimension.MEMBER_JOINED_AT]: 'asc' },
     filters,
-  })
+  }
+
+  const newMembers = await cjs.load(query)
 
   if (rawResult || granularity) {
     return newMembers

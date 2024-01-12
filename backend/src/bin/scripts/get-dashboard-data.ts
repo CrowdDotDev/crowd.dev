@@ -72,7 +72,29 @@ if (parameters.help || !parameters.tenantId || !parameters.segmentId) {
 
     const end = moment().endOf('day')
 
-    const data = await CubeJsRepository.getActiveMembers(cubejsService, start, end, null, {}, false)
+    console.log('START DATE: ')
+    console.log(start.toISOString())
+    console.log('END DATE: ')
+    console.log(end.toISOString())
+
+    const previousStartDate = moment().subtract(13, 'days').startOf('day')
+    const previousEndDate = moment().subtract(7, 'days').endOf('day')
+
+    console.log("PREVIOUS START DATE:")
+    console.log(previousStartDate.toISOString())
+    console.log("PREVIOUS END DATE: ")
+    console.log(previousEndDate.toISOString())
+
+    const data = await CubeJsRepository.getNewActivities(
+      cubejsService,
+      start,
+      end,
+      'day',
+      [],
+      {},
+      { [CubeDimension.ACTIVITY_DATE]: CubeOrderDirection.ASC },
+      true,
+    )
 
     console.log(data)
 
@@ -81,7 +103,7 @@ if (parameters.help || !parameters.tenantId || !parameters.segmentId) {
       start,
       end,
       null,
-      [CubeDimension.ACTIVITY_SENTIMENT_MOOD],
+      [CubeDimension.ACTIVITY_TYPE, CubeDimension.ACTIVITY_PLATFORM],
       {
         platform: 'github',
       },

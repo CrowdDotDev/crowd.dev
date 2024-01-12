@@ -8,7 +8,7 @@ export interface ICubeFilter {
 
 export interface IDashboardFilter {
   platform?: string
-  segment?: string
+  segments?: string[]
 }
 
 type CubeOrderKey = CubeDimension | CubeMeasure
