@@ -41,7 +41,7 @@ export class CubeJsService {
   async load(query: any, rawResult = false): Promise<any> {
     const result = await this.api.load(query)
     if (rawResult) {
-      return result
+      return result.loadResponse
     }
     return result.loadResponses[0].data
   }

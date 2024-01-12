@@ -47,7 +47,7 @@ class SegmentRepository {
       rows = await this.connection.query(
         `
         select 
-        id, 
+        id as "segmentId", 
         slug, 
         "parentSlug", 
         "grandparentSlug"
@@ -81,7 +81,7 @@ class SegmentRepository {
       rows = await this.connection.query(
         `
         select 
-        id, 
+        id as "segmentId", 
         slug, 
         "parentSlug", 
         "grandparentSlug"
