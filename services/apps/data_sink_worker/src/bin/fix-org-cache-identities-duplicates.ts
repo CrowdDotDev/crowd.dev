@@ -8,7 +8,6 @@ import {
 } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG } from '../conf'
-import { distinctBy } from '@crowd/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -21,7 +20,7 @@ async function getOrganizationsToFix(db: DbConnection): Promise<IOrgCacheToMerge
   const results = await db.any(
     `
     select name, array_agg(id) as ids
-    from "organizationCacheIdentities"
+    from "organizationCacheIdentities" where website is null
     group by name
     having count(*) > 1
     limit 100
