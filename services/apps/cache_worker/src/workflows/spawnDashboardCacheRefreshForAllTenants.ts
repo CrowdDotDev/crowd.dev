@@ -8,16 +8,13 @@ import {
 
 import * as activities from '../activities/getTenantSegmentInfo'
 import { refreshDashboardCache } from './refreshDashboardCache'
-// import { isFeatureEnabled } from '@crowd/feature-flags'
-// import { FeatureFlag } from '@crowd/types'
 import { ISegment } from 'types'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
 export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
   const tenants = await activity.getAllTenants()
-  // const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, null)
-  const segmentsEnabled = false
+  const segmentsEnabled = await activity.isSegmentsEnabled()
   const info = workflowInfo()
 
   if (segmentsEnabled) {

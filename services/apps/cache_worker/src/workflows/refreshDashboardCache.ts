@@ -1,8 +1,8 @@
 import { proxyActivities } from '@temporalio/workflow'
-import * as activities from '../activities/dashboard-cache/refreshDashboardCache'
 
 import { IProcessRefreshDashboardCacheArgs } from '@crowd/types'
-import { DashboardTimeframe } from '../enums'
+import * as activities from '../activities/dashboard-cache/refreshDashboardCache'
+
 import {
   IActiveMembersTimeseriesResult,
   IActiveOrganizationsTimeseriesResult,
@@ -15,6 +15,7 @@ import {
   ITimeframe,
 } from 'types'
 import moment from 'moment'
+import { DashboardTimeframe } from '../enums'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '5 minute' })
 
@@ -285,6 +286,7 @@ async function getDashboardCacheData(
     startDate,
     endDate,
     dimensions: ['Activities.type', 'Activities.platform'],
+    order: { 'Activities.count': 'desc' },
     platform,
     rawResult: true,
   })

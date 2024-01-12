@@ -3,6 +3,7 @@ import {
   getAllSegments,
   getProjectLeafSegments,
   getProjectGroupLeafSegments,
+  isSegmentsEnabled,
 } from './activities/getTenantSegmentInfo'
 
 import {
@@ -35,4 +36,5 @@ export {
   getActivePlatforms,
   findNewActivityPlatforms,
   updateMemberMergeSuggestionsLastGeneratedAt,
+  isSegmentsEnabled,
 }
