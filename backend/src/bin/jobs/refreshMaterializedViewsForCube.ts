@@ -1,7 +1,10 @@
 import { Logger, logExecutionTimeV2 } from '@crowd/logging'
+import { getTemporalClient } from '@crowd/temporal'
+import { randomUUID } from 'crypto'
 import { QueryTypes } from 'sequelize'
 import { CrowdJob } from '../../types/jobTypes'
 import { databaseInit } from '../../database/databaseConnection'
+import { TEMPORAL_CONFIG } from '@/conf'
 
 function createRefreshQuery(view: string) {
   return `REFRESH MATERIALIZED VIEW CONCURRENTLY "${view}"`
@@ -63,6 +66,20 @@ const job: CrowdJob = {
     } catch (e) {
       log.error({ error: e }, `Error while refreshing materialized views!`)
     }
+
+    const temporal = await getTemporalClient(TEMPORAL_CONFIG)
+
+    const uuid = randomUUID()
+
+    await temporal.workflow.start('spawnDashboardCacheRefreshForAllTenants', {
+      taskQueue: 'cache',
+      workflowId: `${uuid}`,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [],
+      searchAttributes: {},
+    })
   },
 }
 

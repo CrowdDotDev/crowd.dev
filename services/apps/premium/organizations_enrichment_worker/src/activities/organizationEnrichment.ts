@@ -9,7 +9,6 @@ import {
   PlatformType,
   TenantPlans,
 } from '@crowd/types'
-import { EnrichmentParams, IEnrichmentResponse } from '@crowd/types/premium'
 import { svc } from '../main'
 import {
   IOrganizationData,
@@ -300,17 +299,14 @@ async function prepareIdentities(
  * @param enrichmentInput - The object that contains organization enrichment attributes
  * @returns the PDL company response
  */
-async function getEnrichment(
-  { name, website, locality }: EnrichmentParams,
-  log: Logger,
-): Promise<any> {
+async function getEnrichment({ name, website, locality }: any, log: Logger): Promise<any> {
   const PDLJSModule = await import('peopledatalabs')
   const PDLClient = new PDLJSModule.default({
     apiKey: process.env['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
   })
-  let data: null | IEnrichmentResponse
+  let data: null | any
   try {
-    const payload: Partial<EnrichmentParams> = {}
+    const payload: any = {}
 
     if (name) {
       payload.name = name
@@ -320,7 +316,7 @@ async function getEnrichment(
       payload.website = website
     }
 
-    data = await PDLClient.company.enrichment(payload as EnrichmentParams)
+    data = await PDLClient.company.enrichment(payload)
 
     if (data.website === 'undefined.es') {
       return null
@@ -339,10 +335,7 @@ async function getEnrichment(
   return data
 }
 
-function convertEnrichedDataToOrg(
-  pdlData: Awaited<IEnrichmentResponse>,
-  existingIdentities: IOrganizationIdentity[],
-): any {
+function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizationIdentity[]): any {
   let data = <IEnrichableOrganization>renameKeys(pdlData, {
     summary: 'description',
     employee_count_by_country: 'employeeCountByCountry',
@@ -474,8 +467,8 @@ function sanitize(data: any): any {
 function enrichSocialNetworks(
   data: IEnrichableOrganization,
   socialNetworks: {
-    profiles: IEnrichmentResponse['profiles']
-    linkedin_id: IEnrichmentResponse['linkedin_id']
+    profiles: any
+    linkedin_id: any
   },
 ): IEnrichableOrganization {
   const socials = socialNetworks.profiles.reduce((acc, social) => {
