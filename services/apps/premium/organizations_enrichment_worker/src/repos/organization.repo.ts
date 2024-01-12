@@ -54,7 +54,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                           'url', oi.url
                                             )) as "identities"
                             from "organizationIdentities" oi
-                            where oi."organizationId" = $(organizationId)
+                            where oi."tenantId" = $(tenantId)
                 group by oi."organizationId")
     select o.id
     from organizations o
