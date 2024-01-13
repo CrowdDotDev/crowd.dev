@@ -1255,6 +1255,40 @@ export default class IntegrationService {
     return integration
   }
 
+    
+  /**
+   * Adds/updates Jira integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async jiraConnectOrUpdate(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+    try {
+      integration = await this.createOrUpdate(
+          {
+            platform: PlatformType.JIRA,
+            settings: {
+              //remotes: integrationData.remotes,
+              jiraURL: integrationData.jiraURL,
+              jiraUsername: integrationData.jiraUsername,
+              jiraUserToken: integrationData.jiraUserToken,
+              projects: integrationData.projects,
+            },
+            status: 'done',
+          },
+          transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+    return integration
+  }
+
+  
   /**
    * Adds/updates Gerrit integration
    * @param integrationData  to create the integration object

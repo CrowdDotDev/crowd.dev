@@ -345,6 +345,66 @@ export class IntegrationService {
 
     return response.data;
   }
+  
+  static async jiraConnect(jiraURL,jiraUsername,jiraUserToken,projects) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.put(`/tenant/${tenantId}/jira-connect`, {
+      jiraURL,
+      jiraUsername,
+      jiraUserToken,
+      projects,
+      ...getSegments(),
+    });
+
+    return response.data;
+  }
+
+  static async jiraValidateURL(jiraURL, jiraUsername,jiraUserToken) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/jira-validate-url`,
+      {
+        jiraURL,
+        jiraUsername,
+        jiraUserToken,
+      },
+    );
+    
+    return response.status === 200;
+  }
+ 
+  static async jiraValidateAuthenticate(jiraURL, jiraUsername,jiraUserToken) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/jira-validate-authenticate`,
+      {
+        jiraURL,
+        jiraUsername,
+        jiraUserToken,
+      },
+    );
+
+    return response.status === 200;
+  }
+
+  static async jiraValidateProject(jiraURL, jiraUsername,jiraUserToken, jiraProject) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/jira-validate-project`,
+      {
+        jiraURL,
+        jiraUsername,
+        jiraUserToken,
+        jiraProject,
+      },
+    );
+
+    return response.status === 200;
+  }
+
 
   static async gerritConnect(remote) {
     const tenantId = AuthCurrentTenant.get();

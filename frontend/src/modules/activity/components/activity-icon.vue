@@ -91,6 +91,13 @@ const icons = ref({
       bgColor: 'bg-white',
     },
   },
+  jira: {
+    page: {
+      imgSrc: '/images/integrations/jira.png',
+      color: 'text-black',
+      bgColor: 'bg-white',
+    },
+  },
   gerrit: {
     page: {
       imgSrc: '/images/integrations/gerrit.jpg',

@@ -606,6 +606,44 @@ export default {
       }
     },
 
+    async doJiraConnect(
+      { commit },
+      { jiraURL, jiraUsername, jiraUserToken, projects, isUpdate },
+    ) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.jiraConnect(
+          //remotes,
+          jiraURL, 
+          jiraUsername, 
+          jiraUserToken,
+          projects,
+        );
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+                  `Jira integration ${isUpdate ? 'updated' : 'created'} successfully`,
+          },
+        );
+
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
+    
     async doGerritConnect(
       { commit },
       {

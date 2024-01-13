@@ -24,6 +24,7 @@ import { DISCOURSE_GRID } from './discourse/grid'
 import { Groupsio_GRID } from './groupsio/grid'
 import { GroupsioActivityType } from './groupsio/types'
 import { ConfluenceActivityType } from './confluence/types'
+import { JiraActivityType } from './jira/types'
 import { GerritActivityType } from './gerrit/types'
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
@@ -42,6 +43,10 @@ const defaultGithubChannelFormatter = (channel) => {
 }
 
 const defaultConfluenceChannelFormatter = (channel) => {
+  return `<a href="${channel}" target="_blank">${channel}</a>`
+}
+
+const defaultJiraChannelFormatter = (channel) => {
   return `<a href="${channel}" target="_blank">${channel}</a>`
 }
 
@@ -784,6 +789,53 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution: true,
     },
+  },
+  [PlatformType.JIRA]: {
+    [JiraActivityType.ISSUE_OPENED]: {
+      display: {
+        default: 'opened a jira issue in {channel}',
+        short: 'opened a issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultJiraChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">xxx ${prNumberAndTitle}</a>`
+          },    
+        },
+      },
+      isContribution: true,
+    },
+    [JiraActivityType.ISSUE_CLOSED]: {
+      display: {
+        default: 'closed a jira issue in {channel}',
+        short: 'closed a issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultJiraChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">xxx ${prNumberAndTitle}</a>`
+          },
+        }
+      },
+      isContribution: true,
+    },
+    [JiraActivityType.COMMENT]: {
+      display: {
+        default: 'commented on a jira issue in {channel}',
+        short: 'commented on a issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultJiraChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">xxx ${prNumberAndTitle}</a>`
+          },
+        }
+      },
+      isContribution: true,
+    }
   },
   [PlatformType.GERRIT]: {
     [GerritActivityType.CHANGESET_CREATED]: {
