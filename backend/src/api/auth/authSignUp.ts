@@ -16,11 +16,12 @@ export default async (req, res) => {
     req,
   )
 
-  req.currentUser = user
-
-  await new TenantService(req).create({
-    name: 'temporaryName',
-  })
+  if (!req.body.invitationToken) {
+    req.currentUser = user
+    await new TenantService(req).create({
+      name: 'temporaryName',
+    })
+  }
 
   return req.responseHandler.success(req, res, token)
 }
