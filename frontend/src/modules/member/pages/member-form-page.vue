@@ -3,18 +3,57 @@
     :container-class="'col-start-1 col-span-12'"
   >
     <div class="member-form-page">
-      <el-button
-        key="members"
-        link
-        :icon="ArrowPrevIcon"
-        class="text-gray-600 btn-link--md btn-link--secondary p-0"
-        @click="onCancel"
-      >
-        Contacts
-      </el-button>
-      <h4 class="mt-4 mb-6">
-        {{ isEditPage ? 'Edit contact' : 'New contact' }}
-      </h4>
+      <div class="sticky -top-5 z-20 bg-gray-50 -mx-2 px-2 -mt-6 pt-6 block mb-1">
+        <el-button
+          key="members"
+          link
+          :icon="ArrowPrevIcon"
+          class="text-gray-600 btn-link--md btn-link--secondary p-0"
+          @click="onCancel"
+        >
+          Contacts
+        </el-button>
+        <div class="flex justify-between">
+          <div>
+            <h4 class="mt-4 mb-6">
+              {{ isEditPage ? 'Edit contact' : 'New contact' }}
+            </h4>
+          </div>
+          <div class="flex items-center">
+            <el-button
+              v-if="isEditPage && hasFormChanged"
+              class="btn btn-link btn-link--primary !px-3"
+              :disabled="isFormSubmitting"
+              @click="onReset"
+            >
+              <i class="ri-arrow-go-back-line" />
+              <span>Reset changes</span>
+            </el-button>
+            <div class="mx-4 border-x border-gray-200 h-10" />
+            <div class="flex gap-4">
+              <el-button
+                :disabled="isFormSubmitting"
+                class="btn btn--md btn--bordered"
+                @click="onCancel"
+              >
+                Cancel
+              </el-button>
+              <el-button
+                :disabled="isSubmitBtnDisabled"
+                :loading="isFormSubmitting"
+                :loading-icon="LoaderIcon"
+                class="btn btn--md btn--primary"
+                @click="onSubmit"
+              >
+                {{
+                  isEditPage ? 'Update contact' : 'Add contact'
+                }}
+              </el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <el-container
         v-if="!isPageLoading"
         class="bg-white rounded-lg shadow shadow-black/15"
