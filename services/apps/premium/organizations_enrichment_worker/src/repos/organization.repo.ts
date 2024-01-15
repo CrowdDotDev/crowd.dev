@@ -190,6 +190,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           platform: i.platform,
           organizationId,
           tenantId,
+          url: i.url,
         }
       })
 
@@ -212,13 +213,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           platform: i.platform,
           organizationId,
           tenantId,
+          url: i.url,
         }
       })
 
       const query =
         this.dbInstance.helpers.insert(
           entries,
-          ['organizationId', 'tenantId', 'platform', 'name'],
+          ['organizationId', 'tenantId', 'platform', 'name', 'url'],
           'organizationIdentities',
         ) + ` on conflict do nothing`
 
