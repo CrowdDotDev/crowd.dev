@@ -43,7 +43,7 @@ const organizations: MultiSelectAsyncFilterConfig = {
   },
   apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
     const filter = {
-      organizationId: value,
+      organizationId: { in: value },
     };
     return [
       (include ? filter : { not: filter }),
