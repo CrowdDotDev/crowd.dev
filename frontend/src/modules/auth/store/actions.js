@@ -109,7 +109,7 @@ export default {
 
   doSigninWithAuth0(
     { commit, dispatch },
-    token,
+    { token, appState },
   ) {
     commit('AUTH_START');
     return AuthService.ssoGetToken(token)
@@ -121,7 +121,11 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser: currentUser || null,
         });
-        router.push('/');
+
+        window.history.replaceState(null, '', appState?.targetUrl ?? '/');
+        window.history.pushState(null, '', appState?.targetUrl ?? '/');
+
+        router.push(appState?.targetUrl ?? '/');
       })
       .catch((error) => {
         AuthService.signout();
