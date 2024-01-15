@@ -35,7 +35,15 @@ export async function refreshDashboardCache(
 
   const activePlatforms = await activity.getActivePlatforms(args.leafSegmentIds)
 
-  if (!dashboardLastRefreshedAt) {
+  const currentDate = new Date()
+
+  // we should do a full refresh, when
+  // - dashboard wasn't refreshed before yet (ie: it's null)
+  // - day changed between now() and dashboardLastRefreshedAt, so we need to calculate the metrics for the new time range
+  if (
+    !dashboardLastRefreshedAt ||
+    currentDate.getUTCDate() !== new Date(dashboardLastRefreshedAt).getUTCDate()
+  ) {
     // main view with no platform filter
     await refreshDashboardCacheForAllTimeranges(args.tenantId, args.segmentId, args.leafSegmentIds)
 
@@ -90,7 +98,7 @@ async function refreshDashboardCacheForAllTimeranges(
   leafSegmentIds: string[],
   platform?: string,
 ) {
-  const info = platform ?? 'all'
+  const info = platform ?? 'default view without platform filters'
   console.log(`Refreshing cache for ${info}!`)
   for (const timeframe in DashboardTimeframe) {
     const data = await getDashboardCacheData(
