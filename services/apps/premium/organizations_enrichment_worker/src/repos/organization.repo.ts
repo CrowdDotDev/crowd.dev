@@ -200,7 +200,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           ['?organizationId', '?tenantId', '?platform', '?name', 'url'],
           'organizationIdentities',
         ) +
-        ' where t."organizationId" = v."organizationId" and t.platform = v.platform and t.name = v.name and t."tenantId" = v."tenantId"'
+        ' where t."organizationId" = v."organizationId"::uuid and t.platform = v.platform and t.name = v.name and t."tenantId" = v."tenantId"::uuid'
 
       queries.push(query)
     }
