@@ -115,7 +115,7 @@
         </div>
       </template>
       <template #default="{ row }">
-        <div class="h-10 items-center flex justify-end gap-3">
+        <div v-if="hasAccessToSegmentId(row.id)" class="h-10 items-center flex justify-end gap-3">
           <router-link
             :to="{
               name: 'integration',
@@ -163,6 +163,7 @@ import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
+import { hasAccessToSegmentId } from '@/utils/segments';
 
 const route = useRoute();
 

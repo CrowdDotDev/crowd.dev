@@ -1,4 +1,4 @@
-import { hasAccessToProjectGroup } from '@/utils/segments';
+import { hasAccessToProjectGroup, hasAccessToSegmentId } from '@/utils/segments';
 
 /**
  * Segment Guard
@@ -19,7 +19,9 @@ export default async function ({ to, store, router }) {
 
   await store.dispatch('auth/doWaitUntilInit');
 
-  if (!hasAccessToProjectGroup(to.params[to.meta.paramSegmentAccess])) {
+  if (to.meta.paramSegmentAccess.name === 'grandparent'
+    ? !hasAccessToProjectGroup(to.params[to.meta.paramSegmentAccess.parameter])
+    : !hasAccessToSegmentId(to.params[to.meta.paramSegmentAccess.parameter])) {
     router.push('/403');
   }
 }
