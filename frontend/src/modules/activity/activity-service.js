@@ -1,5 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { store } from '@/store';
+import moment from 'moment';
 
 export class ActivityService {
   static async update(id, data) {
@@ -7,7 +9,7 @@ export class ActivityService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/activity/${id}`,
-      data
+      data,
     );
 
     return response.data;
@@ -32,7 +34,7 @@ export class ActivityService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity`,
-      data.data
+      data.data,
     );
 
     return response.data;
@@ -41,16 +43,21 @@ export class ActivityService {
   static async query(body, countOnly = false) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const currentTenant = store.getters['auth/currentTenant'];
 
+    const isTenantNew = moment(currentTenant.createdAt).add(1, 'months').isAfter(moment());
+
+    // If tenant is less than a month old, use old query
+    // Else use new query
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity/query`,
       { ...body, countOnly },
       {
         headers: {
-          'x-crowd-api-version': '1',
+          ...(isTenantNew ? {} : { 'x-crowd-api-version': '1' }),
           Authorization: sampleTenant?.token,
         },
-      }
+      },
     );
 
     return response.data;
@@ -79,7 +86,7 @@ export class ActivityService {
         headers: {
           Authorization: sampleTenant?.token,
         },
-      }
+      },
     );
 
     return response.data;
