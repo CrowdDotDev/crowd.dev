@@ -22,7 +22,7 @@ export async function moveActivitiesBetweenMembers(
   secondaryId: string,
   tenantId: string,
 ): Promise<void> {
-  const memberExists = await svc.postgres.writer.connection().one(
+  const memberExists = await svc.postgres.writer.connection().oneOrNone(
     `
       SELECT id
       FROM members
