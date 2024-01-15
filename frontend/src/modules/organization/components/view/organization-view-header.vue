@@ -4,9 +4,11 @@
       <div class="flex items-center">
         <app-avatar
           :entity="{
+            ...organization,
             avatar: organization.logo,
             displayName: (organization.displayName || organization.name)?.replace('@', ''),
           }"
+          entity-name="organization"
           size="xl"
           class="mr-4"
         />

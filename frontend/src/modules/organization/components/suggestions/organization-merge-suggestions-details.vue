@@ -62,18 +62,22 @@
           >
             <app-avatar
               :entity="{
+                ...props.organization,
                 avatar: props.organization.logo,
                 displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
               }"
+              entity-name="organization"
               class="mr-4 mb-4"
             />
           </router-link>
           <app-avatar
             v-else
             :entity="{
+              ...props.organization,
               avatar: props.organization.logo,
               displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
             }"
+            entity-name="organization"
             class="mr-4 mb-4"
           />
         </div>

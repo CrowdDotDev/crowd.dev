@@ -1,0 +1,66 @@
+<template>
+  <el-tooltip
+    v-if="isNew"
+    placement="top"
+    :content="computedContent"
+  >
+    <div
+      v-if="!isSmallAvatar"
+      class="absolute text-3xs text-white bg-brand-500
+      h-3 flex items-center justify-center top-[-4px] px-1 font-medium rounded z-10 outline outline-2 outline-white"
+    >
+      New
+    </div>
+    <div
+      v-else
+      class="absolute bg-brand-500 rounded-full h-2 w-2 top-0 right-0 z-10 outline outline-2 outline-white"
+    />
+  </el-tooltip>
+</template>
+
+<script setup>
+import moment from 'moment';
+import { computed } from 'vue';
+
+const props = defineProps({
+  entity: {
+    type: Object,
+    default: () => {},
+  },
+  entityName: {
+    type: String,
+    default: null,
+  },
+  isSmallAvatar: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const isNew = computed(() => {
+  if (!props.entity.joinedAt) {
+    return false;
+  }
+
+  return moment().diff(moment(props.entity.joinedAt), 'days')
+    <= 14;
+});
+
+const computedContent = computed(() => {
+  if (props.entityName === 'organization') {
+    return `Organization since ${moment(
+      props.entity.joinedAt,
+    ).format('MMM DD, YYYY')}`;
+  }
+
+  return `Member since ${moment(
+    props.entity.joinedAt,
+  ).format('MMM DD, YYYY')}`;
+});
+</script>
+
+<script>
+export default {
+  name: 'AppAvatarNewBadge',
+};
+</script>
