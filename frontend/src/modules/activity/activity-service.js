@@ -7,7 +7,7 @@ export class ActivityService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/activity/${id}`,
-      data,
+      data
     );
 
     return response.data;
@@ -20,12 +20,9 @@ export class ActivityService {
 
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.delete(
-      `/tenant/${tenantId}/activity`,
-      {
-        params,
-      },
-    );
+    const response = await authAxios.delete(`/tenant/${tenantId}/activity`, {
+      params,
+    });
 
     return response.data;
   }
@@ -35,26 +32,25 @@ export class ActivityService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity`,
-      data.data,
+      data.data
     );
 
     return response.data;
   }
 
-  static async query(
-    body,
-  ) {
+  static async query(body, countOnly = false) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity/query`,
-      body,
+      { ...body, countOnly },
       {
         headers: {
+          'x-crowd-api-version': '1',
           Authorization: sampleTenant?.token,
         },
-      },
+      }
     );
 
     return response.data;
@@ -64,14 +60,11 @@ export class ActivityService {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/activity/type`,
-      {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
+    const response = await authAxios.get(`/tenant/${tenantId}/activity/type`, {
+      headers: {
+        Authorization: sampleTenant?.token,
       },
-    );
+    });
 
     return response.data;
   }
@@ -86,7 +79,7 @@ export class ActivityService {
         headers: {
           Authorization: sampleTenant?.token,
         },
-      },
+      }
     );
 
     return response.data;
