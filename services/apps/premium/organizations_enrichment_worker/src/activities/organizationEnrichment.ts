@@ -27,6 +27,7 @@ import {
 import { IPremiumTenantInfo, TenantRepository } from '../repos/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { OrganizationSyncService } from '@crowd/opensearch'
+import { ENRICHMENT_PLATFORM_PRIORITY } from '../types/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -159,12 +160,6 @@ export async function getTenantOrganizationsForEnrichment(
   log.debug({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
   return organizationIds
 }
-
-const ENRICHMENT_PLATFORM_PRIORITY = [
-  PlatformType.GITHUB,
-  PlatformType.LINKEDIN,
-  PlatformType.TWITTER,
-]
 
 /**
  * Attempts organization enrichment.

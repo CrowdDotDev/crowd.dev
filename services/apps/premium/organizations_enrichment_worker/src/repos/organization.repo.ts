@@ -2,6 +2,7 @@ import { EDITION, singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { Edition } from '@crowd/types'
+import { ENRICHMENT_PLATFORM_PRIORITY } from '../types/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -54,7 +55,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                           'url', oi.url
                                             )) as "identities"
                             from "organizationIdentities" oi
-                            where oi."tenantId" = $(tenantId)
+                            where oi."tenantId" = $(tenantId) and oi.platform in (${ENRICHMENT_PLATFORM_PRIORITY.map(
+                              (p) => `'${p}'`,
+                            ).join(', ')})
                 group by oi."organizationId")
     select o.id
     from organizations o
