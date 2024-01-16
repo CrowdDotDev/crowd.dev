@@ -402,7 +402,7 @@ export class IntegrationService {
       },
     );
 
-    return response.status === 200;
+    return response.data.id;
   }
 
 

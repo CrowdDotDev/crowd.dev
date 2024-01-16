@@ -58,6 +58,10 @@
             placeholder="https://jira.hyperledger.org"
             @blur="onBlurJiraURL()"
           />
+          <div v-if="validateJiraURLFailed" class="mt-1">
+            <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
+            <span class="text-red-500 text-[13px]">URL validation failed</span>
+          </div>
         </app-form-item>
         <app-form-item
           class="mb-6"
@@ -102,10 +106,19 @@
             placeholder="dXNlcmV4YW1wbGVAamlyYWRvbWFpbi5jb20= "
             @blur="onBlurJiraUserToken()"
           />
+          <div class="text-2xs text-gray-500 leading-normal mt-1">
+            <a
+              href="https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-blue-500 underline"
+            >
+               How to generate Jira User Token?
+            </a>
+          </div>
         </app-form-item>
         <div class="flex flex-row gap-2">
           <el-button
-            v-if="isJiraURLValid"
             class="btn btn--secondary btn--md"
             :disabled="!isJiraURLValid"
             :loading="loading"
@@ -114,7 +127,7 @@
             Verify Account
           </el-button>
 
-          <div v-if="isJiraAuthenticateFailed" class="mt-1">
+          <div v-if="validateJiraAuthenticateFailed" class="mt-1">
             <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
             <span class="text-red-500 text-[13px]">Authentication failed</span>
           </div>
@@ -265,8 +278,9 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('jira').image);
 
 const isJiraURLValid = ref(false);
+const validateJiraURLFailed = ref(false);
 const isJiraAuthenticateValid = ref(false);
-const isJiraAuthenticateFailed = ref(false);
+const validateJiraAuthenticateFailed = ref(false);
 const isProjectValid = ref(false);
 
 
@@ -288,8 +302,9 @@ onMounted(() => {
     isProjectValid.value=true;
   }
   isJiraURLValid.value = false;
+  validateJiraURLFailed.value = false;
   isJiraAuthenticateValid.value = false;
-  isJiraAuthenticateFailed.value = false;
+  validateJiraAuthenticateFailed.value = false;
   formSnapshot();
 });
 
@@ -322,14 +337,14 @@ const cancel = () => {
   if (!props.integration?.settings?.jiraUsername) {
     form.jiraUsername = '';
     isJiraAuthenticateValid.value = false;
-    isJiraAuthenticateFailed.value = false;
+    validateJiraAuthenticateFailed.value = false;
   } else {
     form.jiraUsername = props.integration?.settings?.jiraUsername;
   }
   if (!props.integration?.settings?.jiraUserToken) { 
     form.jiraUserToken = '';
     isJiraAuthenticateValid.value = false;
-    isJiraAuthenticateFailed.value = false;
+    validateJiraAuthenticateFailed.value = false;
   } else {
     form.jiraUserToken = props.integration?.settings?.jiraUserToken;
   }
@@ -340,6 +355,7 @@ const cancel = () => {
     form.projects = props.integration?.settings?.projects;
     isProjectValid.value=true;
   } 
+  validateJiraURLFailed.value = false;
   $externalResults.value = {};
   $v.value.$reset();
   formSnapshot();
@@ -379,6 +395,7 @@ async function validateJiraURL() {
   try {
     await IntegrationService.jiraValidateURL(form.jiraURL, form.jiraUsername,form.jiraUserToken);
     isJiraURLValid.value = true;
+    validateJiraURLFailed.value = false;
 
   } catch {
     const errors = {
@@ -386,6 +403,7 @@ async function validateJiraURL() {
     };
     $externalResults.value = errors;
     isJiraURLValid.value = false;
+    validateJiraURLFailed.value = true;
   }
 
   isValidating.value = false;
@@ -399,19 +417,21 @@ async function validateJiraAuthenticate() {
   // check if everything is valid
   if ($v.$error) return; 
   
+  if (!form.jiraUsername || !form.jiraUserToken) return; 
+
   isValidating.value = true;
 
   try {
     await IntegrationService.jiraValidateAuthenticate(form.jiraURL, form.jiraUsername,form.jiraUserToken);
     isJiraAuthenticateValid.value = true;
-    isJiraAuthenticateFailed.value = false;
+    validateJiraAuthenticateFailed.value = false;
 
   } catch {
     const errors = {
       jiraUsername: 'Invalid jira username or token',
     };
     $externalResults.value = errors;
-    isJiraAuthenticateFailed.value = true;
+    validateJiraAuthenticateFailed.value = true;
   }
 
   isValidating.value = false;
@@ -427,9 +447,9 @@ const validateProject = async (index) => {
   isValidating.value = true;
 
   try {
-    await IntegrationService.jiraValidateProject(form.jiraURL, form.jiraUsername,form.jiraUserToken,form.projects[index]);
+    const projectId  = await IntegrationService.jiraValidateProject(form.jiraURL, form.jiraUsername,form.jiraUserToken,form.projects[index]);
     isProjectValid.value = true;
-
+    form.projects[index]=projectId
   } catch {
     const errors = {
       jiraUsername: 'Invalid jira username or token',
@@ -442,20 +462,21 @@ const validateProject = async (index) => {
 };
 
 const onBlurJiraURL = async () => {
-  //$v.value.remotes.$touch();
+  validateJiraURLFailed.value=false
   $v.value.jiraURL.$touch();
   await validateJiraURL();
 };
 
 const onBlurJiraUsername = async () => {
-  isJiraAuthenticateFailed.value=false
+  validateJiraAuthenticateFailed.value=false
   $v.value.jiraUsername.$touch();
 };
 
 const onBlurJiraUserToken = async () => {
-  isJiraAuthenticateFailed.value=false
+  validateJiraAuthenticateFailed.value=false
   $v.value.jiraUserToken.$touch();
 };
+
 
 </script>
 
@@ -464,4 +485,3 @@ export default {
   name: 'AppJiraConnectDrawer',
 };
 </script>
-
