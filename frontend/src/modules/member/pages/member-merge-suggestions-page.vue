@@ -156,13 +156,11 @@ import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import { PermissionChecker } from '@/modules/user/permission-checker';
-import Roles from '@/security/roles';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -172,7 +170,6 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const route = useRoute();
-const router = useRouter();
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -189,15 +186,6 @@ const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
-
-const isAdminUser = computed(() => {
-  const permissionChecker = new PermissionChecker(
-    currentTenant.value,
-    currentUser.value,
-  );
-
-  return permissionChecker.currentUserRolesIds.includes(Roles.values.admin);
-});
 
 const clearMember = (member) => {
   const cleanedMember = { ...member };
@@ -345,11 +333,7 @@ const mergeSuggestion = () => {
 };
 
 onMounted(async () => {
-  if (!isAdminUser.value && !route.query?.memberId) {
-    router.push('/403');
-  } else {
-    fetch(0);
-  }
+  fetch(0);
 });
 </script>
 

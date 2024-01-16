@@ -154,13 +154,11 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import { PermissionChecker } from '@/modules/user/permission-checker';
-import Roles from '@/security/roles';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -169,7 +167,6 @@ const { currentTenant, currentUser } = mapGetters('auth');
 const organizationStore = useOrganizationStore();
 
 const route = useRoute();
-const router = useRouter();
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -186,15 +183,6 @@ const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
-
-const isAdminUser = computed(() => {
-  const permissionChecker = new PermissionChecker(
-    currentTenant.value,
-    currentUser.value,
-  );
-
-  return permissionChecker.currentUserRolesIds.includes(Roles.values.admin);
-});
 
 const clearOrganization = (organization) => {
   const cleanedOrganization = { ...organization };
@@ -340,11 +328,7 @@ const mergeSuggestion = () => {
 };
 
 onMounted(async () => {
-  if (!isAdminUser.value && !route.query?.memberId) {
-    router.push('/403');
-  } else {
-    fetch(0);
-  }
+  fetch(0);
 });
 </script>
 
