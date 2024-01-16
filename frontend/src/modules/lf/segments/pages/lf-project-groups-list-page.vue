@@ -139,7 +139,7 @@ const { currentTenant, currentUser } = mapGetters('auth');
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
 const {
-  listProjectGroups, updateSelectedProjectGroup, searchProjectGroup,
+  listProjectGroups, updateSelectedProjectGroup, searchProjectGroup, listAdminProjectGroups,
 } = lsSegmentsStore;
 
 const activeTab = ref();
@@ -154,7 +154,8 @@ const isProjectAdminUser = computed(() => {
 });
 const adminOnly = computed(() => isProjectAdminUser.value && activeTab.value === 'project-groups');
 
-const loading = computed(() => projectGroups.value.loading);
+const loadingProjectAdmin = ref(true);
+const loading = computed(() => projectGroups.value.loading && loadingProjectAdmin.value);
 const pagination = computed(() => projectGroups.value.pagination);
 const list = computed(() => projectGroups.value.list);
 
@@ -212,6 +213,16 @@ const hasPermissionToCreateProjects = computed(
     currentUser.value,
   ).createProjectGroup,
 );
+
+onMounted(() => {
+  if (isProjectAdminUser.value) {
+    listAdminProjectGroups().finally(() => {
+      loadingProjectAdmin.value = false;
+    });
+  } else {
+    loadingProjectAdmin.value = false;
+  }
+});
 </script>
 
 <script>

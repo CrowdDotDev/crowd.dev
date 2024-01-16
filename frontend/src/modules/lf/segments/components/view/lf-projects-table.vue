@@ -109,6 +109,7 @@
         <span class="h-10 block" />
         <div class="flex justify-end mb-4">
           <app-lf-projects-dropdown
+            :id="project.id"
             @on-edit-project="emit('onEditProject', project.id)"
             @on-add-sub-project="emit('onAddSubProject', project.slug)"
           />
@@ -130,13 +131,14 @@
             </el-button>
           </router-link>
           <app-lf-sub-projects-dropdown
+            :id="row.id"
             @on-edit-sub-project="emit('onEditSubProject', row.id)"
           />
         </div>
       </template>
     </el-table-column>
 
-    <template v-if="project.subprojects?.length && hasPermissionToCreateSubProject" #append>
+    <template v-if="project.subprojects?.length && (hasPermissionToCreateSubProject && hasAccessToSegmentId(project.id))" #append>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project
@@ -144,7 +146,7 @@
       </div>
     </template>
 
-    <template v-if="hasPermissionToCreateSubProject" #empty>
+    <template v-if="(hasPermissionToCreateSubProject && hasAccessToSegmentId(project.id))" #empty>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project

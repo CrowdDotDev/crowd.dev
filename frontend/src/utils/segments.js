@@ -45,45 +45,11 @@ export const hasAccessToProjectGroup = (segmentId) => {
   }
 
   const lsSegmentsStore = useLfSegmentsStore();
-  const { projectGroups } = storeToRefs(lsSegmentsStore);
+  const { adminProjectGroups } = storeToRefs(lsSegmentsStore);
 
-  if (!projectGroups.value.list.length) {
-    return LfService.queryProjectGroups({
-      limit: null,
-      offset: 0,
-      filter: {
-        adminOnly: true,
-      },
-    }).then((list) => {
-      const subprojectsIds = list.rows.reduce((acc, projectGroup) => {
-        if (projectGroup.id === segmentId) {
-          projectGroup.projects.forEach((project) => {
-            project.subprojects.forEach((subproject) => {
-              acc.push(subproject.id);
-            });
-          });
-        }
+  const segments = adminProjectGroups.value.list.map((p) => p.id);
 
-        return acc;
-      }, []);
-
-      return subprojectsIds.some((id) => adminSegments.includes(id));
-    });
-  }
-
-  const subprojectsIds = projectGroups.value.list.reduce((acc, projectGroup) => {
-    if (projectGroup.id === segmentId) {
-      projectGroup.projects.forEach((project) => {
-        project.subprojects.forEach((subproject) => {
-          acc.push(subproject.id);
-        });
-      });
-    }
-
-    return acc;
-  }, []);
-
-  return subprojectsIds.some((id) => adminSegments.includes(id));
+  return segments.includes(segmentId);
 };
 
 export const hasAccessToSegmentId = (segmentId) => {

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="hasPermissionToEditSubProject">
+  <div v-if="hasPermissionToEditSubProject && hasAccessToSegmentId(id)">
     <el-dropdown
       trigger="click"
       placement="bottom-end"
@@ -31,6 +31,14 @@
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
+import { hasAccessToSegmentId } from '@/utils/segments';
+
+defineProps({
+  id: {
+    type: String,
+    default: null,
+  },
+});
 
 const emit = defineEmits(['onEditSubProject']);
 
