@@ -26,6 +26,7 @@
       <div class="flex items-center">
         <app-avatar
           :entity="entity"
+          entity-name="organization"
           size="xxs"
           class="mr-4"
         />
@@ -73,6 +74,7 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const { segments } = mapGetters('dashboard');
 
 const entity = computed(() => ({
+  ...props.organization,
   avatar: props.organization.logo,
   displayName: props.organization.displayName.replace('@', ''),
 }));
