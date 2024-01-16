@@ -1,8 +1,8 @@
 import moment from 'moment'
 
 import { CubeJsService } from '../service'
-import { CubeGranularity, CubeDimension, CubeMeasure } from '../enums'
-import { ICubeFilter, IDashboardFilter } from '../types'
+import { CubeGranularity, CubeDimension, CubeMeasure, CubeOrderDirection } from '../enums'
+import { ICubeFilter, ICubeOrder, IDashboardFilter } from '../types'
 
 /**import  CubeDimension from '../dimensions'
 
@@ -19,6 +19,7 @@ export default async (
   endDate: moment.Moment,
   granularity: CubeGranularity | string = null,
   filter: IDashboardFilter = {},
+  order: ICubeOrder = { [CubeDimension.MEMBER_JOINED_AT]: CubeOrderDirection.ASC },
   rawResult = false,
 ) => {
   const filters: ICubeFilter[] = [
@@ -65,7 +66,7 @@ export default async (
           granularity,
         },
       ],
-      order: { [CubeDimension.MEMBER_JOINED_AT]: 'asc' },
+      order,
       filters,
     },
     rawResult,

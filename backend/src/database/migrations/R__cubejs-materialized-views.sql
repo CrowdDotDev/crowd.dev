@@ -15,6 +15,12 @@ FROM members m
 ;
 
 CREATE INDEX IF NOT EXISTS mv_members_cube_tenant ON mv_members_cube ("tenantId");
+CREATE INDEX IF NOT EXISTS mv_members_cube_tenant ON mv_members_cube ("isBot");
+CREATE INDEX IF NOT EXISTS mv_members_cube_tenant ON mv_members_cube ("isTeamMember");
+CREATE INDEX IF NOT EXISTS mv_members_cube_tenant ON mv_members_cube ("isOrganization");
+CREATE INDEX IF NOT EXISTS mv_members_cube_tenant ON mv_members_cube ("joinedAt");
+
+
 CREATE UNIQUE INDEX IF NOT EXISTS mv_members_cube_id ON mv_members_cube (id);
 
 

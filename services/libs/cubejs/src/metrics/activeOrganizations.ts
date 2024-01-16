@@ -1,8 +1,8 @@
 import moment from 'moment'
 
 import { CubeJsService } from '../service'
-import { CubeGranularity, CubeDimension, CubeMeasure } from '../enums'
-import { ICubeFilter, IDashboardFilter } from '../types'
+import { CubeGranularity, CubeDimension, CubeMeasure, CubeOrderDirection } from '../enums'
+import { ICubeFilter, ICubeOrder, IDashboardFilter } from '../types'
 
 /**
  * Gets `active organizations` count for a given date range.
@@ -18,6 +18,7 @@ export default async (
   endDate: moment.Moment,
   granularity: CubeGranularity | string = undefined,
   filter: IDashboardFilter = {},
+  order: ICubeOrder = { [CubeDimension.ORGANIZATIONS_JOINED_AT]: CubeOrderDirection.ASC },
   rawResult = false,
 ) => {
   const filters: ICubeFilter[] = [
@@ -59,7 +60,7 @@ export default async (
           granularity,
         },
       ],
-      order: { [CubeDimension.ORGANIZATIONS_JOINED_AT]: 'asc' },
+      order,
       filters,
     },
     rawResult,
