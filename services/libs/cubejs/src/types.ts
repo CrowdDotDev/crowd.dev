@@ -13,4 +13,4 @@ export interface IDashboardFilter {
 
 type CubeOrderKey = CubeDimension | CubeMeasure
 
-export type ICubeOrder = { [key in CubeOrderKey]?: CubeOrderDirection }
+export type ICubeOrder = { [key in CubeOrderKey]?: CubeOrderDirection | string }
