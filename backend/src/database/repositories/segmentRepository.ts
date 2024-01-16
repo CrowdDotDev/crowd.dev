@@ -857,8 +857,6 @@ class SegmentRepository extends RepositoryBase<
         FROM segments
         WHERE "tenantId" = :tenantId
           AND "sourceId" IN (:sourceIds)
-          AND "parentSlug" IS NOT NULL
-          AND "grandparentSlug" IS NOT NULL
       `,
       {
         replacements: { sourceIds, tenantId: this.options.currentTenant.id },
