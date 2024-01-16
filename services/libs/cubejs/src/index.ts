@@ -1,7 +1,6 @@
 export * from './cube'
-export * from './dimensions'
-export * from './measures'
+export * from './types'
+export * from './enums'
 export * from './repository'
 export * from './service'
-
 export * from './metrics'
