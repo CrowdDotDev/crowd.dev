@@ -52,7 +52,7 @@ export async function getNewMembers<T>(params: ICubeQueryParams): Promise<T> {
       {
         platform: params.platform,
       },
-      undefined,
+      null,
       params.rawResult,
     )
   } catch (err) {
@@ -76,7 +76,7 @@ export async function getActiveMembers<T>(params: ICubeQueryParams): Promise<T> 
       {
         platform: params.platform,
       },
-      undefined,
+      null,
       params.rawResult,
     )
   } catch (err) {
@@ -100,7 +100,7 @@ export async function getNewOrganizations<T>(params: ICubeQueryParams): Promise<
       {
         platform: params.platform,
       },
-      undefined,
+      null,
       params.rawResult,
     )
   } catch (err) {
@@ -124,7 +124,7 @@ export async function getActiveOrganizations<T>(params: ICubeQueryParams): Promi
       {
         platform: params.platform,
       },
-      undefined,
+      null,
       params.rawResult,
     )
   } catch (err) {
