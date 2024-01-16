@@ -31,9 +31,11 @@
           <div class="w-1/3 flex items-center">
             <app-avatar
               :entity="{
+                ...organization,
                 displayName: organization.displayName || organization.name,
                 avatar: organization.logo,
               }"
+              entity-name="organization"
               size="xxs"
               class="mr-2"
             />

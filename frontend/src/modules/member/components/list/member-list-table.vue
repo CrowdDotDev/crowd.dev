@@ -118,13 +118,13 @@
                     class="block"
                   >
                     <div class="flex items-center text-black">
-                      <app-avatar :entity="scope.row" size="sm" class="mr-2" />
+                      <app-avatar :entity="scope.row" size="xs" class="mr-2" />
                       <span
                         class="font-semibold"
                         data-qa="members-name"
                         v-html="$sanitize(scope.row.displayName)"
                       />
-                      <app-member-sentiment :member="scope.row" class="ml-2" />
+                      <app-member-sentiment :member="scope.row" class="ml-1 mr-1" />
                       <app-member-badge :member="scope.row" />
                     </div>
                   </router-link>

@@ -2,6 +2,7 @@ import { EDITION, singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { Edition } from '@crowd/types'
+import { ENRICHMENT_PLATFORM_PRIORITY } from '../types/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -13,7 +14,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getTenantOrganizationsToEnrich(
     tenantId: string,
     perPage: number,
-    lastId?: string,
+    page: number,
   ): Promise<string[]> {
     const parameters: Record<string, unknown> = {
       tenantId,
@@ -24,11 +25,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       'o."deletedAt" is null',
       `(o."lastEnrichedAt" is null or o."lastEnrichedAt" < now() - interval '3 months')`,
     ]
-
-    if (lastId) {
-      conditions.push('o.id > $(lastId)')
-      parameters.lastId = lastId
-    }
 
     if (EDITION === Edition.LFX) {
       conditions.push('ad."activityCount" >= 3')
@@ -54,15 +50,17 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                           'url', oi.url
                                             )) as "identities"
                             from "organizationIdentities" oi
-                            where oi."tenantId" = $(tenantId)
+                            where oi."tenantId" = $(tenantId) and oi.platform in (${ENRICHMENT_PLATFORM_PRIORITY.map(
+                              (p) => `'${p}'`,
+                            ).join(', ')})
                 group by oi."organizationId")
     select o.id
     from organizations o
             inner join activity_data ad on ad."organizationId" = o.id
             inner join identities i on i."organizationId" = o.id
     where ${conditions.join(' and ')}
-    order by ad."activityCount" desc, o.id
-    limit ${perPage};
+    order by ad."activityCount" desc
+    limit ${perPage} offset ${(page - 1) * perPage};
     `
 
     const results = await this.db().any(query, parameters)
@@ -190,6 +188,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           platform: i.platform,
           organizationId,
           tenantId,
+          url: i.url,
         }
       })
 
@@ -199,7 +198,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           ['?organizationId', '?tenantId', '?platform', '?name', 'url'],
           'organizationIdentities',
         ) +
-        ' where t."organizationId" = v."organizationId" and t.platform = v.platform and t.name = v.name and t."tenantId" = v."tenantId"'
+        ' where t."organizationId" = v."organizationId"::uuid and t.platform = v.platform and t.name = v.name and t."tenantId" = v."tenantId"::uuid'
 
       queries.push(query)
     }
@@ -212,13 +211,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           platform: i.platform,
           organizationId,
           tenantId,
+          url: i.url,
         }
       })
 
       const query =
         this.dbInstance.helpers.insert(
           entries,
-          ['organizationId', 'tenantId', 'platform', 'name'],
+          ['organizationId', 'tenantId', 'platform', 'name', 'url'],
           'organizationIdentities',
         ) + ` on conflict do nothing`
 
