@@ -14,7 +14,7 @@ const { getRemainingTenantCredits, getTenantOrganizationsForEnrichment } = proxy
   startToCloseTimeout: '75 seconds',
 })
 
-const BATCH_SIZE = 10
+const BATCH_SIZE = 100
 
 export async function enrichTenantOrganizations(tenant: IPremiumTenantInfo): Promise<void> {
   // check how many credits the tenant has left
@@ -26,11 +26,11 @@ export async function enrichTenantOrganizations(tenant: IPremiumTenantInfo): Pro
     return
   }
 
-  let lastId: string | undefined
+  let page = 1
   while (remainingCredits > 0) {
     const batchSize = Math.min(remainingCredits, BATCH_SIZE)
     // get organizations that should be enriched
-    const organizationIds = await getTenantOrganizationsForEnrichment(tenant.id, batchSize, lastId)
+    const organizationIds = await getTenantOrganizationsForEnrichment(tenant.id, batchSize, page)
 
     if (organizationIds.length === 0) {
       // no more organizations to enrich
@@ -69,6 +69,6 @@ export async function enrichTenantOrganizations(tenant: IPremiumTenantInfo): Pro
 
     await Promise.all(promises)
 
-    lastId = organizationIds[organizationIds.length - 1]
+    page++
   }
 }
