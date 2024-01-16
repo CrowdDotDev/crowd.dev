@@ -70,11 +70,9 @@ const job: CrowdJob = {
 
     const temporal = await getTemporalClient(TEMPORAL_CONFIG)
 
-    const uuid = randomUUID()
-
     await temporal.workflow.start('spawnDashboardCacheRefreshForAllTenants', {
       taskQueue: 'cache',
-      workflowId: `${uuid}`,
+      workflowId: `refreshAllTenants`,
       retry: {
         maximumAttempts: 10,
       },
