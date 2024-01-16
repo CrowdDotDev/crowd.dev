@@ -1,18 +1,21 @@
 <template>
   <app-drawer
     v-model="drawerModel"
-    size="35%"
+    size="600px"
     title="Edit identities"
     custom-class="identities-drawer"
   >
     <template #content>
-      <el-form :model="memberModel">
-        <app-member-form-identities
-          v-model="memberModel"
-          :record="member"
-          :show-header="false"
-        />
-      </el-form>
+      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
+        <el-form :model="memberModel">
+          <app-member-form-identities
+            v-if="memberModel"
+            v-model="memberModel"
+            :record="member"
+            :show-header="false"
+          />
+        </el-form>
+      </div>
     </template>
     <template #footer>
       <div style="flex: auto">
