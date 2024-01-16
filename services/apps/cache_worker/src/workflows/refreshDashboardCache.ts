@@ -22,8 +22,6 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '5 mi
 export async function refreshDashboardCache(
   args: IProcessRefreshDashboardCacheArgs,
 ): Promise<void> {
-  console.log(args)
-
   // if no segments were sent, set current segment as default one
   if (!args.segmentId) {
     const defaultSegment = await activity.getDefaultSegment(args.tenantId)
@@ -80,16 +78,11 @@ export async function refreshDashboardCache(
           platform,
         )
       }
-    } else {
-      console.log('No new activities found.. not calculating cache again!')
     }
   }
 
   // update dashboardLastRefreshedAt
   await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.segmentId)
-  console.log(
-    `Done generating dashboard cache for tenant ${args.tenantId}, segment: ${args.segmentId}`,
-  )
 }
 
 async function refreshDashboardCacheForAllTimeranges(
@@ -98,8 +91,6 @@ async function refreshDashboardCacheForAllTimeranges(
   leafSegmentIds: string[],
   platform?: string,
 ) {
-  const info = platform ?? 'default view without platform filters'
-  console.log(`Refreshing cache for ${info}!`)
   for (const timeframe in DashboardTimeframe) {
     const data = await getDashboardCacheData(
       tenantId,
