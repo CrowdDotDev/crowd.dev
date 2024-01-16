@@ -541,6 +541,7 @@ class SegmentRepository extends RepositoryBase<
    */
   async queryProjectGroups(criteria: QueryData): Promise<PageData<SegmentData>> {
     let searchQuery = 'WHERE 1=1'
+    let segmentsSearchQuery = ''
 
     const replacements = {
       tenantId: this.currentTenant.id,
@@ -562,7 +563,7 @@ class SegmentRepository extends RepositoryBase<
       if (adminSegments.length === 0) {
         return { count: 0, rows: [], limit: criteria.limit, offset: criteria.offset }
       }
-      searchQuery += `AND s.id IN (:adminSegments)`
+      segmentsSearchQuery += `AND sp.id IN (:adminSegments)`
       replacements.adminSegments = adminSegments
     }
 
@@ -601,6 +602,7 @@ class SegmentRepository extends RepositoryBase<
                              AND sp."tenantId" = f."tenantId"
                   WHERE f."parentSlug" IS NULL
                     AND f."tenantId" = :tenantId
+                    ${segmentsSearchQuery}
                   GROUP BY f."id", p.id
               )
           SELECT

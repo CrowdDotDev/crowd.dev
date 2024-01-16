@@ -39,7 +39,7 @@ export default [
         component: AdminPanelPage,
         meta: {
           title: 'Admin Panel',
-          permission: Permissions.values.projectGroupCreate,
+          permission: Permissions.values.projectGroupEdit,
         },
       },
       {
@@ -49,7 +49,7 @@ export default [
         meta: {
           auth: true,
           title: 'Admin Panel',
-          permission: Permissions.values.projectCreate,
+          permission: Permissions.values.projectEdit,
           paramSegmentAccess: 'id',
         },
       },

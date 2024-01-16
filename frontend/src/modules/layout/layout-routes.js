@@ -5,6 +5,9 @@ export default [
     name: 'error403',
     path: '/403',
     component: ErrorPage,
+    meta: {
+      auth: true,
+    },
     props: {
       code: 403,
       title: 'Restricted access',
@@ -16,6 +19,9 @@ export default [
     name: 'error404',
     path: '/404',
     component: ErrorPage,
+    meta: {
+      auth: true,
+    },
     props: {
       code: 404,
       title: 'Page not found',

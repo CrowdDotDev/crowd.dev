@@ -126,7 +126,6 @@ export class TenantService {
   }
 
   static async find(id) {
-    console.error(id);
     const response = await authAxios.get(`/tenant/${id}`, {
       params: {
         excludeSegments: true,

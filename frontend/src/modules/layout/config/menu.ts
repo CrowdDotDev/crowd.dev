@@ -7,7 +7,6 @@ import reports from './links/reports';
 import eagleEye from './links/eagle-eye';
 import automations from './links/automations';
 import integrations from './links/integrations';
-import shareFeedback from './links/share-feedback';
 import documentation from './links/documentation';
 import changelog from './links/changelog';
 import community from './links/community';
@@ -32,7 +31,6 @@ export const bottomMenu: MenuLink[] = [
 
 // Support menu
 export const supportMenu: MenuLink[] = [
-  shareFeedback,
   documentation,
   changelog,
   community,

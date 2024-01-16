@@ -831,6 +831,21 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
   },
   [PlatformType.GERRIT]: {
+    [GerritActivityType.CHANGESET_NEW]: {
+      display: {
+        default: 'Created a gerrit changeset in {channel}',
+        short: 'created a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
     [GerritActivityType.CHANGESET_CREATED]: {
       display: {
         default: 'Created a gerrit changeset in {channel}',
