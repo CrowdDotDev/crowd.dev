@@ -56,6 +56,7 @@
         :config="memberSavedViews"
         :filters="memberFilters"
         :custom-filters="customAttributesFilter"
+        :static-views="memberStaticViews"
         placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
       />
@@ -107,7 +108,7 @@ import AppMemberListTable from '@/modules/member/components/list/member-list-tab
 import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
-import { memberSavedViews } from '../config/saved-views/main';
+import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 
 const router = useRouter();
 
