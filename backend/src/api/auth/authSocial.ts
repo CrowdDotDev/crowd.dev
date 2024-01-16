@@ -24,7 +24,7 @@ export default (app, routes) => {
       req.body.tenantId,
       req,
     )
-    if (!req.body.tenantId) {
+    if (!req.body.tenantId && !req.body.invitationToken) {
       await new TenantService(req).create({
         name: 'temporaryName',
       })

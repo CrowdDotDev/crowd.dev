@@ -151,7 +151,7 @@ class OrganizationCacheRepository {
 
     if (nameToCreateIdentity) {
       await seq.query(
-        `insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))`,
+        `insert into "organizationCacheIdentities" (id, name, website) values (:id, :name, :website)`,
         {
           replacements: {
             id,

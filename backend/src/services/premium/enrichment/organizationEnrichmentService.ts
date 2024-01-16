@@ -11,8 +11,8 @@ import {
   PlatformType,
   SyncMode,
 } from '@crowd/types'
-import { EnrichmentParams, IEnrichmentResponse } from '@crowd/types/premium'
 import { renameKeys } from '@crowd/common'
+import { EnrichmentParams, IEnrichmentResponse } from '../../../types/enrichmentTypes'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
 import { IServiceOptions } from '../../IServiceOptions'
