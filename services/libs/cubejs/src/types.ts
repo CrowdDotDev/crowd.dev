@@ -1,4 +1,4 @@
-import { CubeDimension, CubeOrderDirection, CubeMeasure } from 'enums'
+import { CubeDimension, CubeOrderDirection, CubeMeasure } from './enums'
 
 export interface ICubeFilter {
   member: CubeDimension
