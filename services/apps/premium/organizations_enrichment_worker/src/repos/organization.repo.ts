@@ -14,7 +14,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getTenantOrganizationsToEnrich(
     tenantId: string,
     perPage: number,
-    lastId?: string,
+    page: number,
   ): Promise<string[]> {
     const parameters: Record<string, unknown> = {
       tenantId,
@@ -25,11 +25,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       'o."deletedAt" is null',
       `(o."lastEnrichedAt" is null or o."lastEnrichedAt" < now() - interval '3 months')`,
     ]
-
-    if (lastId) {
-      conditions.push('o.id > $(lastId)')
-      parameters.lastId = lastId
-    }
 
     if (EDITION === Edition.LFX) {
       conditions.push('ad."activityCount" >= 3')
@@ -64,8 +59,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             inner join activity_data ad on ad."organizationId" = o.id
             inner join identities i on i."organizationId" = o.id
     where ${conditions.join(' and ')}
-    order by ad."activityCount" desc, o.id
-    limit ${perPage};
+    order by ad."activityCount" desc
+    limit ${perPage} offset ${(page - 1) * perPage};
     `
 
     const results = await this.db().any(query, parameters)
