@@ -38,7 +38,7 @@ export async function updateMemberMergeSuggestionsLastGeneratedAt(
   await segmentRepo.updateDashboardCacheLastRefreshedAt(segmentId)
 }
 
-export async function getNewMembers<T>(params: ICubeQueryParams) {
+export async function getNewMembers<T>(params: ICubeQueryParams): Promise<T> {
   const cjs = new CubeJsService()
   await cjs.init(params.tenantId, params.segmentIds)
 
@@ -61,7 +61,7 @@ export async function getNewMembers<T>(params: ICubeQueryParams) {
   return result
 }
 
-export async function getActiveMembers<T>(params: ICubeQueryParams) {
+export async function getActiveMembers<T>(params: ICubeQueryParams): Promise<T> {
   const cjs = new CubeJsService()
   await cjs.init(params.tenantId, params.segmentIds)
 
@@ -84,7 +84,7 @@ export async function getActiveMembers<T>(params: ICubeQueryParams) {
   return result
 }
 
-export async function getNewOrganizations<T>(params: ICubeQueryParams) {
+export async function getNewOrganizations<T>(params: ICubeQueryParams): Promise<T> {
   const cjs = new CubeJsService()
   await cjs.init(params.tenantId, params.segmentIds)
 
@@ -107,7 +107,7 @@ export async function getNewOrganizations<T>(params: ICubeQueryParams) {
   return result
 }
 
-export async function getActiveOrganizations<T>(params: ICubeQueryParams) {
+export async function getActiveOrganizations<T>(params: ICubeQueryParams): Promise<T> {
   const cjs = new CubeJsService()
   await cjs.init(params.tenantId, params.segmentIds)
 
@@ -130,7 +130,7 @@ export async function getActiveOrganizations<T>(params: ICubeQueryParams) {
   return result
 }
 
-export async function getActivities<T>(params: ICubeQueryParams) {
+export async function getActivities<T>(params: ICubeQueryParams): Promise<T> {
   const cjs = new CubeJsService()
   await cjs.init(params.tenantId, params.segmentIds)
 

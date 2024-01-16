@@ -2,7 +2,6 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { getServiceLogger } from '@crowd/logging'
 import { randomUUID } from 'crypto'
 
 import { getTemporalClient } from '@crowd/temporal'
@@ -12,7 +11,6 @@ import { TEMPORAL_CONFIG } from '@/conf'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
-const log = getServiceLogger()
 
 const options = [
   {

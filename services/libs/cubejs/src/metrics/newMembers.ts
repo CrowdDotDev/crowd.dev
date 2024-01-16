@@ -3,9 +3,6 @@ import moment from 'moment'
 import { CubeJsService } from '../service'
 import { CubeGranularity, CubeDimension, CubeMeasure } from '../enums'
 import { ICubeFilter, IDashboardFilter } from '../types'
-import { getServiceLogger } from '@crowd/logging'
-
-const log = getServiceLogger()
 
 /**
  * Gets `new members` count or timeseries data for a given date range and granularity.
