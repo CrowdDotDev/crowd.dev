@@ -136,9 +136,7 @@ export default class PermissionChecker {
       }
 
       // Third, for project admin, we need to check if the user is admin of all segments
-      return this.currentSegments.every((segment) =>
-        this.adminSegments.includes(segment.id),
-      )
+      return this.currentSegments.every((segment) => this.adminSegments.includes(segment.id))
     })
   }
 
