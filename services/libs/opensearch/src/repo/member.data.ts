@@ -30,6 +30,7 @@ export interface IDbMemberOrganization {
     title: string
     dateStart: string
     dateEnd: string
+    source?: string
   }
 }
 
