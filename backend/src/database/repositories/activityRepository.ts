@@ -336,9 +336,13 @@ class ActivityRepository {
   ])
 
   static async findAndCountAllv2(
-    { filter = {} as any, limit = 20, offset = 0, orderBy = 'timestamp_DESC', countOnly = false },
+    { filter = {} as any, limit = 20, offset = 0, orderBy = '', countOnly = false },
     options: IRepositoryOptions,
   ) {
+    if (!orderBy || orderBy.trim().length === 0) {
+      orderBy = 'timestamp_DESC'
+    }
+
     const tenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
     const seq = SequelizeRepository.getSequelize(options)
