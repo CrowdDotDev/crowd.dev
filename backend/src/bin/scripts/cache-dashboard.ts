@@ -11,7 +11,6 @@ import { TEMPORAL_CONFIG } from '@/conf'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
-
 const options = [
   {
     name: 'help',
