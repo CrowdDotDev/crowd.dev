@@ -155,7 +155,7 @@ const isProjectAdminUser = computed(() => {
 const adminOnly = computed(() => isProjectAdminUser.value && activeTab.value === 'project-groups');
 
 const loadingProjectAdmin = ref(true);
-const loading = computed(() => projectGroups.value.loading && loadingProjectAdmin.value);
+const loading = computed(() => projectGroups.value.loading || loadingProjectAdmin.value);
 const pagination = computed(() => projectGroups.value.pagination);
 const list = computed(() => projectGroups.value.list);
 
