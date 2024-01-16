@@ -110,7 +110,7 @@ const model = computed({
   },
 });
 
-const queryProjectGroups = () => {
+const queryProjectGroups = async () => {
   loading.value = true;
 
   return LfService.queryProjectGroups({
