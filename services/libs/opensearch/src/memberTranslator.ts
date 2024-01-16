@@ -74,6 +74,7 @@ export default class MemberTranslator extends FieldTranslator {
     this.translations.title = 'string_title'
     this.translations.dateStart = 'date_dateStart'
     this.translations.dateEnd = 'date_dateEnd'
+    this.translations.source = 'string_source'
 
     // identities
     this.translations.platform = 'string_platform'
