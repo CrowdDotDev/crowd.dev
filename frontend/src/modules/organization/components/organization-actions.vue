@@ -11,14 +11,15 @@
         placement="top"
         :disabled="hasPermissionsToMerge"
       >
-        <el-button
-          v-if="mergeSuggestionsCount > 0"
-          class="btn btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25"
-          :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
-          @click="mergeSuggestions()"
-        >
-          <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
-        </el-button>
+        <span>
+          <el-button
+            class="btn btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none"
+            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            @click="mergeSuggestions()"
+          >
+            <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
+          </el-button>
+        </span>
       </el-tooltip>
 
       <el-tooltip
@@ -27,13 +28,15 @@
         placement="top"
         :disabled="hasPermissionsToMerge"
       >
-        <el-button
-          class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5"
-          :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
-          @click="merge()"
-        >
-          <span class="ri-shuffle-line text-base mr-2" />Merge
-        </el-button>
+        <span>
+          <el-button
+            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-l-none"
+            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            @click="merge()"
+          >
+            <span class="ri-shuffle-line text-base mr-2" />Merge
+          </el-button>
+        </span>
       </el-tooltip>
       <app-organization-dropdown
         :organization="props.organization"

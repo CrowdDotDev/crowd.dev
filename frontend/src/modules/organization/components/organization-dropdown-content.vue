@@ -25,20 +25,26 @@
   </router-link>
 
   <!-- Merge organization -->
-  <button
+  <el-tooltip
     v-if="!hideMerge"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    :disabled="isEditLockedForSampleData"
-    @click="
-      handleCommand({
-        action: Actions.MERGE_ORGANIZATION,
-        organization,
-      })
-    "
+    content="Coming soon"
+    placement="top"
+    :disabled="hasPermissionsToMerge"
   >
-    <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
-  </button>
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+      @click="
+        handleCommand({
+          action: Actions.MERGE_ORGANIZATION,
+          organization,
+        })
+      "
+    >
+      <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
+    </button>
+  </el-tooltip>
 
   <!-- Hubspot -->
   <button
@@ -195,6 +201,11 @@ const isDeleteLockedForSampleData = computed(
   () => new OrganizationPermissions(currentTenant.value, currentUser.value)
     .destroyLockedForSampleData,
 );
+
+const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeOrganizations);
 
 const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
 
