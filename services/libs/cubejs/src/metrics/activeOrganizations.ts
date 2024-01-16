@@ -21,6 +21,7 @@ export default async (
   order: ICubeOrder = { [CubeDimension.ORGANIZATIONS_JOINED_AT]: CubeOrderDirection.ASC },
   rawResult = false,
 ) => {
+  /*
   const filters: ICubeFilter[] = [
     {
       member: CubeDimension.IS_TEAM_MEMBER,
@@ -33,6 +34,9 @@ export default async (
       values: ['false'],
     },
   ]
+  */
+
+  const filters: ICubeFilter[] = []
 
   if (filter.platform) {
     filters.push({
