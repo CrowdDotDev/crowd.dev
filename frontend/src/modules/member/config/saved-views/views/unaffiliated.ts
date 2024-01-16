@@ -1,0 +1,26 @@
+import { SavedView } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+
+const unaffiliated: SavedView = {
+  id: 'unaffiliated',
+  name: 'Unaffiliated',
+  placement: 'member',
+  visibility: 'tenant',
+  config: {
+    search: '',
+    relation: 'and',
+    order: {
+      prop: 'activityCount',
+      order: 'descending',
+    },
+    settings: {
+      bot: 'exclude',
+      teamMember: 'exclude',
+      organization: 'exclude',
+    },
+    enrichedMember: {
+      value: false,
+    },
+  },
+};
+
+export default unaffiliated;
