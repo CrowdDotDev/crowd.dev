@@ -857,7 +857,7 @@ class SegmentRepository extends RepositoryBase<
         FROM segments s
         JOIN segments s1 ON s1."parentSlug" = s.slug
         JOIN segments s2 ON s2."parentSlug" = s1.slug
-        WHERE s.tenantId = :tenantId
+        WHERE s."tenantId" = :tenantId
           AND s."sourceId" IN (:sourceIds)
       `,
       {
