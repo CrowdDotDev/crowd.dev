@@ -120,7 +120,7 @@
         <div class="flex flex-row gap-2">
           <el-button
             class="btn btn--secondary btn--md"
-            :disabled="!isJiraURLValid"
+            :disabled="!isAuthenticationReady"
             :loading="loading"
             @click="validateJiraAuthenticate()"
           >
@@ -136,13 +136,13 @@
           Connect projects for each Jira repository.
         </div>
 
-        <div v-if="isJiraAuthenticateValid">
+        <div v-if="isJiraURLValid">
           <app-array-input
             v-for="(_, ii) of form.projects"
             :key="ii"
             v-model="form.projects[ii]"
             placeholder="10001"
-            :disabled="!isJiraAuthenticateValid"
+            :disabled="!isJiraURLValid"
           >         
             <template #after>
               <div class="d-flex align-items-center">  
@@ -159,7 +159,7 @@
                   <i class="ri-delete-bin-line text-lg" />
                 </el-button>
               </div>  
-          
+
               <div v-if="!isProjectValid" class="mt-1">
                 <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
                 <span class="text-red-500 text-[13px]">Project must be validated </span>
@@ -172,7 +172,7 @@
             </template>    
           </app-array-input>
 
-          <el-button class="btn btn-link btn-link--primary" :disabled="!isJiraAuthenticateValid" @click="addProject()">
+          <el-button class="btn btn-link btn-link--primary" :disabled="!isJiraURLValid" @click="addProject()">
             + Add project id
           </el-button>
         </div>
@@ -278,6 +278,7 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('jira').image);
 
 const isJiraURLValid = ref(false);
+const isAuthenticationReady = ref(false);
 const validateJiraURLFailed = ref(false);
 const isJiraAuthenticateValid = ref(false);
 const validateJiraAuthenticateFailed = ref(false);
@@ -302,6 +303,7 @@ onMounted(() => {
     isProjectValid.value=true;
   }
   isJiraURLValid.value = false;
+  isAuthenticationReady.value = false;
   validateJiraURLFailed.value = false;
   isJiraAuthenticateValid.value = false;
   validateJiraAuthenticateFailed.value = false;
@@ -395,6 +397,9 @@ async function validateJiraURL() {
   try {
     await IntegrationService.jiraValidateURL(form.jiraURL, form.jiraUsername,form.jiraUserToken);
     isJiraURLValid.value = true;
+    if (form.jiraUsername != '' && form.jiraUserToken != '') {
+      isAuthenticationReady.value = true;
+    }
     validateJiraURLFailed.value = false;
 
   } catch {
@@ -403,6 +408,7 @@ async function validateJiraURL() {
     };
     $externalResults.value = errors;
     isJiraURLValid.value = false;
+    isAuthenticationReady.value = false;
     validateJiraURLFailed.value = true;
   }
 
@@ -469,11 +475,19 @@ const onBlurJiraURL = async () => {
 
 const onBlurJiraUsername = async () => {
   validateJiraAuthenticateFailed.value=false
+  isAuthenticationReady.value = false;
+  if (form.jiraUsername != '' && form.jiraUserToken != '') {
+    isAuthenticationReady.value = true;
+  }
   $v.value.jiraUsername.$touch();
 };
 
 const onBlurJiraUserToken = async () => {
   validateJiraAuthenticateFailed.value=false
+  isAuthenticationReady.value = false;
+  if (form.jiraUsername != '' && form.jiraUserToken != '') {
+    isAuthenticationReady.value = true;
+  }
   $v.value.jiraUserToken.$touch();
 };
 
