@@ -606,7 +606,7 @@ class OrganizationRepository {
       })
 
       // ensure that it's not the same organization
-      if (existingOrg.id !== record.id) {
+      if (existingOrg && existingOrg.id !== record.id) {
         throw new Error409(options.language, 'organization.errors.websiteAlreadyExists')
       }
     }
