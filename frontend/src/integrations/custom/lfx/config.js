@@ -1,5 +1,5 @@
 export default {
-  name: 'lfx',
+  name: 'LFX',
   image: '/images/integrations/custom/lfx.png',
   enabled: true,
   chartColor: '#003764',

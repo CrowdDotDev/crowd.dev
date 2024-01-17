@@ -4,9 +4,11 @@
       <div class="flex items-center">
         <app-avatar
           :entity="{
+            ...organization,
             avatar: organization.logo,
             displayName: (organization.displayName || organization.name)?.replace('@', ''),
           }"
+          entity-name="organization"
           size="xl"
           class="mr-4"
         />
@@ -49,12 +51,6 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="flex items-center">
-        <app-organization-dropdown
-          :organization="organization"
-          @merge="isMergeDialogOpen = organization"
-        />
       </div>
     </div>
     <div
@@ -194,8 +190,6 @@
         </p>
       </div>
     </div>
-
-    <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -212,9 +206,7 @@ import {
 } from '@/utils/number';
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
-import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
-import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
@@ -228,7 +220,6 @@ const props = defineProps({
 
 const showMore = ref(false);
 const descriptionRef = ref(null);
-const isMergeDialogOpen = ref(null);
 const displayShowMore = computed(() => {
   if (!props.organization.description) {
     return false;

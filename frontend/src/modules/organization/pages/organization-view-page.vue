@@ -6,15 +6,19 @@
       class="app-page-spinner"
     />
     <div v-else-if="organization">
-      <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{
-          path: '/organizations',
-          query: { projectGroup: selectedProjectGroup?.id },
-        }"
-      >
-        <i class="ri-arrow-left-s-line mr-2" />Organizations
-      </router-link>
+      <div class="flex items-center justify-between">
+        <router-link
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+          :to="{
+            path: '/organizations',
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+        >
+          <i class="ri-arrow-left-s-line mr-2" />Organizations
+        </router-link>
+        <app-organization-actions :organization="organization" />
+      </div>
+
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-organization-view-header
           :organization="organization"
@@ -69,7 +73,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header.vue';
@@ -80,6 +84,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { useRoute } from 'vue-router';
+import AppOrganizationActions from '@/modules/organization/components/organization-actions.vue';
 
 const props = defineProps({
   id: {
@@ -98,6 +103,20 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const loading = ref(true);
 const tab = ref('members');
+
+watch(() => props.id, (id) => {
+  const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
+
+  fetchOrganization(id, segments)
+    .catch(() => {
+      Message.error('Something went wrong');
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+}, {
+  immediate: true,
+});
 
 onMounted(() => {
   const segments = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];

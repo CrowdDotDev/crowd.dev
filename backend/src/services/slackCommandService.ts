@@ -1,8 +1,9 @@
 /* eslint-disable no-case-declarations */
 import { validateUUID as uuidValidate } from '@crowd/common'
+import { TenantPlans } from '@crowd/types'
 import moment from 'moment'
-import { Section, Message, SlackMessageDto, Divider } from 'slack-block-builder'
-import { IS_DEV_ENV, IS_STAGING_ENV, IS_PROD_ENV } from '../conf'
+import { Divider, Message, Section, SlackMessageDto } from 'slack-block-builder'
+import { IS_DEV_ENV, IS_PROD_ENV, IS_STAGING_ENV } from '../conf'
 import TenantRepository from '../database/repositories/tenantRepository'
 import {
   SlackCommand,
@@ -12,7 +13,6 @@ import {
   SlackParameterParseResult,
 } from '../types/slackTypes'
 import { IServiceOptions } from './IServiceOptions'
-import Plans from '../security/plans'
 
 export default class SlackCommandService {
   private readonly commands: SlackCommandDefinition[]
@@ -57,7 +57,7 @@ export default class SlackCommandService {
             required: true,
             description: 'Plan to set',
             type: SlackCommandParameterType.STRING,
-            allowedValues: [Plans.values.growth, Plans.values.essential],
+            allowedValues: [TenantPlans.Growth, TenantPlans.Essential],
           },
           {
             name: 'trialEndsAt',

@@ -1,12 +1,11 @@
 import assert from 'assert'
 import lodash from 'lodash'
 import { Error400, Error403 } from '@crowd/common'
-import Plans from '../../security/plans'
-import Roles from '../../security/roles'
+import { TenantPlans } from '@crowd/types'
 import Permissions from '../../security/permissions'
 import EmailSender from '../emailSender'
+import Roles from '../../security/roles'
 
-const plans = Plans.values
 const roles = Roles.values
 
 /**
@@ -28,9 +27,9 @@ export default class PermissionChecker {
     this.language = language
     this.currentUser = currentUser
     this.currentSegments = currentSegments
-    this.adminSegments = currentUser.tenants.find(
-      (t) => t.tenantId === currentTenant.id,
-    )?.adminSegments
+    this.adminSegments = !currentUser
+      ? []
+      : currentUser.tenants.find((t) => t.tenantId === currentTenant.id)?.adminSegments
   }
 
   /**
@@ -137,9 +136,7 @@ export default class PermissionChecker {
       }
 
       // Third, for project admin, we need to check if the user is admin of all segments
-      return this.currentSegments.every((segment) =>
-        this.adminSegments.includes(segment.projectGroupId),
-      )
+      return this.currentSegments.every((segment) => this.adminSegments.includes(segment.id))
     })
   }
 
@@ -192,7 +189,7 @@ export default class PermissionChecker {
    */
   get currentTenantPlan() {
     if (!this.currentTenant || !this.currentTenant.plan) {
-      return plans.essential
+      return TenantPlans.Essential
     }
 
     return this.currentTenant.plan

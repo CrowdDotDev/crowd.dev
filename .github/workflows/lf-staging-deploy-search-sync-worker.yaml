@@ -58,5 +58,5 @@ jobs:
           service: search-sync-worker
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
-          staging: true
+          cloud_env: lfx_staging
           prioritized: true

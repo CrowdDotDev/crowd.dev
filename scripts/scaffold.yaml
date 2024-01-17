@@ -44,6 +44,7 @@ services:
       - bootstrap.memory_lock=true
       - 'DISABLE_INSTALL_DEMO_CONFIG=true'
       - 'DISABLE_SECURITY_PLUGIN=true'
+      - cluster.routing.allocation.disk.threshold_enabled=false
     ulimits:
       memlock:
         soft: -1
@@ -153,6 +154,7 @@ services:
     build:
       context: scaffold/temporal
     restart: always
+    entrypoint: ["temporal", "server", "start-dev", "--ip", "0.0.0.0"]
     ports:
       - '7233:7233'
       - '8233:8233'

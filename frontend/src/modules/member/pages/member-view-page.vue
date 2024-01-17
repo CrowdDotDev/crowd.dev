@@ -6,15 +6,19 @@
       class="app-page-spinner"
     />
     <div v-else>
-      <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{
-          path: '/contributors',
-          query: { projectGroup: selectedProjectGroup?.id },
-        }"
-      >
-        <i class="ri-arrow-left-s-line mr-2" />Contributors
-      </router-link>
+      <div class="flex justify-between">
+        <router-link
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+          :to="{
+            path: '/contributors',
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+        >
+          <i class="ri-arrow-left-s-line mr-2" />Contributors
+        </router-link>
+
+        <app-member-actions :member="member" />
+      </div>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header
           :member="member"
@@ -57,14 +61,15 @@
 import { useStore } from 'vuex';
 import {
   computed,
-  onMounted,
   ref,
+  watch,
 } from 'vue';
 
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header.vue';
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
+import AppMemberActions from '@/modules/member/components/member-actions.vue';
 import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
@@ -96,19 +101,24 @@ const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.va
 const loading = ref(true);
 const tab = ref('activities');
 
-onMounted(async () => {
-  await store.dispatch('member/doFind', {
-    id: props.id,
-    segments: [selectedProjectGroup.value?.id],
-  });
+watch(() => props.id, (id) => {
+  loading.value = true;
 
-  if (
-    Object.keys(customAttributes.value)
-      .length === 0
-  ) {
-    await getMemberCustomAttributes();
-  }
-  loading.value = false;
+  store.dispatch('member/doFind', {
+    id,
+    segments: [selectedProjectGroup.value?.id],
+  }).then(() => {
+    if (
+      Object.keys(customAttributes.value)
+        .length === 0
+    ) {
+      getMemberCustomAttributes();
+    }
+
+    loading.value = false;
+  });
+}, {
+  immediate: true,
 });
 </script>
 

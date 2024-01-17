@@ -11,9 +11,11 @@
             <div class="h-6 w-6 border border-gray-200 rounded flex items-center justify-center mr-2.5">
               <app-avatar
                 :entity="{
+                  ...organization,
                   displayName: organization.displayName || organization.name,
                   avatar: organization.logo,
                 }"
+                entity-name="organization"
                 size="xxxs"
               />
             </div>
@@ -121,6 +123,10 @@ const save = () => {
           source: 'ui',
         }),
       ),
+    },
+    messageOptions: {
+      title: 'Contact\'s organizations were updated successfully',
+      message: 'Activities will soon be affiliated to organizations in the background.',
     },
   });
 };

@@ -1,0 +1,27 @@
+name: Staging Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: Space separated list of services to deploy
+        required: true
+
+env:
+  CLOUD_ENV: staging
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  CROWD_CLUSTER: ${{ secrets.STAGING_CLUSTER_NAME }}
+  CROWD_ROLE_ARN: ${{ secrets.STAGING_CLUSTER_ROLE_ARN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/node/builder
+        with:
+          services: ${{ github.event.inputs.services }}

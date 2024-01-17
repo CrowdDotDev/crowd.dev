@@ -16,9 +16,10 @@ import {
 import { Auth0Service } from '@/shared/services/auth0.service';
 
 export default {
-  async doInit({ commit, dispatch, state }) {
+  async doInit({ commit, dispatch, state }, auth0Token) {
     try {
-      const token = AuthToken.get();
+      const token = auth0Token || AuthToken.get();
+
       if (token) {
         connectSocket(token);
         const currentUser = await AuthService.fetchMe();
@@ -42,14 +43,18 @@ export default {
     }
   },
 
+  doAuthenticate({ commit }) {
+    commit('AUTHENTICATE');
+  },
+
   doWaitUntilInit({ getters }) {
-    if (!getters.loadingInit) {
+    if (getters.isAuthenticated) {
       return Promise.resolve();
     }
 
     return new Promise((resolve) => {
       const waitUntilInitInterval = setInterval(() => {
-        if (!getters.loadingInit) {
+        if (getters.isAuthenticated) {
           clearInterval(waitUntilInitInterval);
           resolve({});
         }

@@ -157,7 +157,7 @@ export default (moduleName, moduleService = null) => {
       },
 
       async doUpdate({ commit }, {
-        id, values, successMessage, errorMessage, segments,
+        id, values, successMessage, errorMessage, segments, messageOptions,
       }) {
         try {
           commit('UPDATE_STARTED');
@@ -171,6 +171,7 @@ export default (moduleName, moduleService = null) => {
           commit('UPDATE_SUCCESS', response);
           Message.success(
             successMessage || i18n(`entities.${moduleName}.update.success`),
+            messageOptions,
           );
 
           return response;

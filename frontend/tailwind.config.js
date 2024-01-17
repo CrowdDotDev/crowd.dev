@@ -11,11 +11,13 @@ module.exports = {
       },
       md: {
         min: '768px',
-        max: '1280px'
+        max: '1024px',
       },
       lg: {
-        min: '1280px'
-      }
+        min: '1024px',
+        max: '1280px'
+      },
+      xl: '1280px',
     },
     colors: {
       transparent: 'transparent',

@@ -21,7 +21,7 @@ export default ({
         a.type === 'multiSelect'
           || a.type === 'special'
       ) {
-        return a.options.length && show;
+        return a.options?.length && show;
       }
 
       return show;
@@ -49,11 +49,11 @@ export default ({
 
         case 'multiSelect':
         case 'special': {
-          const options = customAttribute.options.map(
+          const options = customAttribute.options?.map(
             (o) => ({
               value: o,
               label: o,
-            }),
+            }) || [],
           );
 
           return new MemberArrayAttributesField(

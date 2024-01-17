@@ -30,6 +30,21 @@
           name=""
         />
         <el-tab-pane
+          v-for="(view, vi) of (props.staticViews || [])"
+          :key="view.name"
+          :label="view.name"
+          :name="view.id"
+        >
+          <template #label>
+            {{ view.name }}
+            <div
+              v-if="vi >= (props.staticViews || []).length - 1"
+              class="absolute right-0 top-0 h-full border-r-2 border-gray-200"
+            />
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane
           v-for="view of views"
           :key="view.name"
           :label="view.name"
@@ -112,6 +127,7 @@ const props = defineProps<{
   filters: Record<string, FilterConfig>,
   customFilters?: Record<string, FilterConfig>,
   placement: string,
+  staticViews?: SavedView[],
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
@@ -132,7 +148,7 @@ const selectedTab = ref<string>('');
 
 const getView = (id: string): SavedView => {
   if (id.length > 0) {
-    const view = views.value.find((v) => v.id === id);
+    const view = allViews.value.find((v) => v.id === id);
     if (view) {
       return view;
     }
@@ -200,12 +216,13 @@ const checkIfTabConfigMatch = () => {
   }
 };
 
-// watch(() => props.modelValue, () => {
-//   checkIfTabConfigMatch();
-// }, { deep: true });
-
 // View management
 const views = ref<SavedView[]>([]);
+
+const allViews = computed<SavedView[]>(() => [
+  ...(props.staticViews || []),
+  ...views.value,
+]);
 
 const getViews = () => {
   SavedViewsService.query({

@@ -39,8 +39,9 @@
         class="mt-20"
         icon="ri-folder-5-line"
         title="No project groups yet"
-        description="Create your first project group and start integrating your projects"
-        cta-btn="Manage project groups"
+        :description="`${!hasPermissionToCreateProjects
+          ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
+        :cta-btn="hasPermissionToCreateProjects ? 'Manage project groups' : null"
         @cta-click="router.push({
           name: 'adminPanel',
           query: {
@@ -83,10 +84,6 @@
 
             <div class="mb-8 flex flex-wrap gap-2.5">
               <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
-                {{ pluralize('contributor', projectGroup.members, true) }}
-              </div>
-
-              <div class="bg-gray-200 text-gray-900 text-2xs px-2 h-6 flex items-center w-fit rounded-md">
                 {{ pluralize('project', projectGroup.projects.length, true) }}
               </div>
             </div>
@@ -98,7 +95,7 @@
             </el-button>
 
             <router-link
-              v-if="hasPermissionToAccessAdminPanel && hasAccessToProjectGroup(projectGroup.id)"
+              v-if="hasPermissionToEditProjectGroup && hasAccessToProjectGroup(projectGroup.id)"
               :to="{
                 name: 'adminProjects',
                 params: {
@@ -142,7 +139,7 @@ const { currentTenant, currentUser } = mapGetters('auth');
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
 const {
-  listProjectGroups, updateSelectedProjectGroup, searchProjectGroup,
+  listProjectGroups, updateSelectedProjectGroup, searchProjectGroup, listAdminProjectGroups,
 } = lsSegmentsStore;
 
 const activeTab = ref();
@@ -157,7 +154,8 @@ const isProjectAdminUser = computed(() => {
 });
 const adminOnly = computed(() => isProjectAdminUser.value && activeTab.value === 'project-groups');
 
-const loading = computed(() => projectGroups.value.loading);
+const loadingProjectAdmin = ref(true);
+const loading = computed(() => projectGroups.value.loading || loadingProjectAdmin.value);
 const pagination = computed(() => projectGroups.value.pagination);
 const list = computed(() => projectGroups.value.list);
 
@@ -202,12 +200,29 @@ const handleImageError = (id, e) => {
   imageErrors[id] = true;
 };
 
-const hasPermissionToAccessAdminPanel = computed(
+const hasPermissionToEditProjectGroup = computed(
   () => new LfPermissions(
     currentTenant.value,
     currentUser.value,
   ).editProjectGroup,
 );
+
+const hasPermissionToCreateProjects = computed(
+  () => new LfPermissions(
+    currentTenant.value,
+    currentUser.value,
+  ).createProjectGroup,
+);
+
+onMounted(() => {
+  if (isProjectAdminUser.value) {
+    listAdminProjectGroups().finally(() => {
+      loadingProjectAdmin.value = false;
+    });
+  } else {
+    loadingProjectAdmin.value = false;
+  }
+});
 </script>
 
 <script>

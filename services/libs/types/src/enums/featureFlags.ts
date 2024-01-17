@@ -12,6 +12,11 @@ export enum FeatureFlag {
 
   // opensearch
   SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',
+
+  // temporal
+  TEMPORAL_MEMBERS_ENRICHMENT = 'temporal-members-enrichment',
+  TEMPORAL_MEMBER_MERGE_SUGGESTIONS = 'temporal-member-merge-suggestions',
+  TEMPORAL_ORGANIZATION_ENRICHMENT = 'temporal-organization-enrichment',
   SERVE_PROFILES_OPENSEARCH = 'serve-profiles-opensearch',
 }
 

@@ -3,6 +3,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
 
 export default {
+  isAuthenticated: (state) => state.isAuthenticated,
   currentUser: (state) => state.currentUser,
   currentTenant: (state) => state.currentTenant,
   currentTenantUser: (state) => {

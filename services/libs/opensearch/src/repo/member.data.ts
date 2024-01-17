@@ -30,6 +30,7 @@ export interface IDbMemberOrganization {
     title: string
     dateStart: string
     dateEnd: string
+    source?: string
   }
 }
 
@@ -82,6 +83,7 @@ export interface IDbMemberSyncData {
   contributions: IDbMemberContributionData[]
   affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
+  weakIdentities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
   toMergeIds: string[]

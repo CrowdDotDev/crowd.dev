@@ -189,11 +189,14 @@ export default class SegmentService extends LoggerBase {
   async queryProjectGroups(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjectGroups(search)
 
-    const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
-      this.options,
-      result.rows.map((s) => s.id),
-    )
-    this.setMembersCount(result.rows, SegmentLevel.PROJECT_GROUP, membersCountPerSegment)
+    if (result.rows.length) {
+      const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
+        this.options,
+        result.rows.map((s) => s.id),
+      )
+      this.setMembersCount(result.rows, SegmentLevel.PROJECT_GROUP, membersCountPerSegment)
+    }
+
     return result
   }
 

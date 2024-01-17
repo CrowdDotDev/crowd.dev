@@ -1,16 +1,26 @@
 <template>
   <div class="flex flex-col gap-6">
     <app-member-aside-enrichment :member="member" @edit="identitiesDrawer = true" />
-    <div class="member-view-aside panel">
+    <div class="member-view-aside panel !px-0">
       <app-member-aside-identities :member="member" @edit="identitiesDrawer = true" />
-      <app-lf-member-aside-organizations
-        class="mt-10"
-        :member="member"
-      />
-      <app-lf-member-aside-sub-projects
-        class="mt-10"
-        :member="member"
-      />
+
+      <el-divider class="!my-8 border-gray-200" />
+
+      <div class="px-6">
+        <app-lf-member-aside-organizations
+          class="mt-10"
+          :member="member"
+        />
+      </div>
+
+      <el-divider class="!my-8 border-gray-200" />
+
+      <div class="px-6">
+        <app-lf-member-aside-sub-projects
+          class="mt-10"
+          :member="member"
+        />
+      </div>
     </div>
 
     <div class="member-view-aside panel">

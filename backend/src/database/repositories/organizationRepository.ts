@@ -1429,11 +1429,15 @@ class OrganizationRepository {
   }
 
   static async findOrganizationsWithMergeSuggestions(
-    { limit = 20, offset = 0 },
+    { limit = 20, offset = 0, organizationId = undefined },
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
+
+    const organizationFilter = organizationId
+      ? ` AND ("otm"."organizationId" = :organizationId OR "otm"."toMergeId" = :organizationId)`
+      : ''
 
     const orgs = await options.database.sequelize.query(
       `WITH
@@ -1457,6 +1461,7 @@ class OrganizationRepository {
         WHERE org."tenantId" = :tenantId
           AND os."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
+          ${organizationFilter}
       ),
       
       count_cte AS (
@@ -1494,6 +1499,7 @@ class OrganizationRepository {
           offset,
           mergeActionType: MergeActionType.ORG,
           mergeActionStatus: MergeActionState.ERROR,
+          organizationId,
         },
         type: QueryTypes.SELECT,
       },

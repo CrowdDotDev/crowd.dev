@@ -273,7 +273,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -366,7 +366,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -456,7 +456,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -546,7 +546,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -636,7 +636,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -726,7 +726,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -764,7 +764,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -881,7 +881,7 @@ class Permissions {
         allowedRoles: [
           roles.admin,
           roles.projectAdmin,
-          roles.viewer,
+          roles.readonly,
         ],
         allowedPlans: [
           plans.essential,
@@ -960,7 +960,6 @@ class Permissions {
         id: 'projectGroupCreate',
         allowedRoles: [
           roles.admin,
-          roles.projectAdmin,
         ],
         allowedPlans: [
           plans.essential,
@@ -1039,6 +1038,32 @@ class Permissions {
         ],
         allowedStorage: [],
         allowedSampleTenant: true,
+      },
+      mergeMembers: {
+        id: 'mergeMembers',
+        allowedRoles: [
+          roles.admin,
+        ],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: false,
+      },
+      mergeOrganizations: {
+        id: 'mergeOrganizations',
+        allowedRoles: [
+          roles.admin,
+        ],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: false,
       },
     };
   }
