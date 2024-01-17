@@ -20,11 +20,7 @@ const sentiment: MultiSelectFilterConfig = {
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {
-      or: [
-        ...(value.includes('positive') ? [{ sentiment: { gte: 67 } }] : []),
-        ...(value.includes('negative') ? [{ sentiment: { lt: 33 } }] : []),
-        ...(value.includes('neutral') ? [{ sentiment: { between: [33, 67] } }] : []),
-      ],
+      sentiment: { in: value },
     };
     return [
       (include ? filter : { not: filter }),
