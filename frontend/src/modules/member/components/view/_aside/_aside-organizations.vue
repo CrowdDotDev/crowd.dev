@@ -6,6 +6,7 @@
           Organizations
         </div>
         <el-tooltip
+          v-if="member.organizations.length"
           content="Source: Enrichment & GitHub"
           placement="top"
           trigger="hover"
@@ -100,7 +101,7 @@
         </template>
       </app-entities>
     </div>
-    <div v-else class="text-gray-400 mt-6 text-sm">
+    <div v-else class="text-gray-400 mt-6 text-xs italic">
       No organizations
     </div>
   </div>
