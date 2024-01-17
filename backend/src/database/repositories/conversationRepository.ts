@@ -225,7 +225,7 @@ class ConversationRepository {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Object.entries(advancedFilter).forEach(([key, value], index) => {
       if (Array.isArray(value) && value.length > 0) {
-        include = applyHavingInWhereClause(include, value) 
+        include = applyHavingInWhereClause(include, value)
       }
     })
 
@@ -677,7 +677,7 @@ function applyHavingInWhereClause(include, value) {
     if (constraint.and) {
       include = applyHavingInWhereClause(include, constraint.and)
     } else if (constraint.or) {
-      include =  applyHavingInWhereClause(include, constraint.or)
+      include = applyHavingInWhereClause(include, constraint.or)
     }
 
     if (constraint.lastActive) {
