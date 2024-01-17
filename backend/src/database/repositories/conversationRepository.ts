@@ -699,6 +699,12 @@ function applyHavingInWhereClause(include, value) {
       }
 
       include[0].where.platform.push(constraint.platform)
+    } else if (constraint.createdAt) {
+      if (!include[0].where.createdAt) {
+        include[0].where.createdAt = []
+      }
+
+      include[0].where.createdAt.push(constraint.createdAt)
     }
   })
 
