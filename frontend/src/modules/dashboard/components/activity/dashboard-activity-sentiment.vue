@@ -109,7 +109,6 @@ const bySentiment = computed<Record<string, number>>(() => {
     const data = pivot.map((p: any) => [p.x, p[e.key]]);
     series = [...series, ...data];
   });
-  console.log(series);
   const seriesObject = series.reduce(
     (a, [key, value]) => ({
       ...a,
@@ -117,7 +116,6 @@ const bySentiment = computed<Record<string, number>>(() => {
     }),
     {},
   );
-  console.log(seriesObject);
 
   return {
     positive: seriesObject.positive > 0 ? seriesObject.positive : undefined,
