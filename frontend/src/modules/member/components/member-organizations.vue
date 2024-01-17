@@ -151,7 +151,7 @@ const activeOrganization = computed(() => {
     .filter((organization) => !!organization.memberOrganizations?.dateStart && !organization.memberOrganizations?.dateEnd);
 
   // Return the most recent organization, comparing the startDate
-  return completeOrganizations.reduce((mostRecent, organization) => {
+  const mostRecent = completeOrganizations.reduce((mostRecent, organization) => {
     const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
     const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
 
@@ -161,6 +161,12 @@ const activeOrganization = computed(() => {
 
     return mostRecent;
   }, completeOrganizations.length ? completeOrganizations[0] : null);
+
+  if (mostRecent) {
+    return mostRecent;
+  }
+
+  return organizations[0];
 });
 </script>
 

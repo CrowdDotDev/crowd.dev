@@ -13,7 +13,7 @@
       >
         <span>
           <el-button
-            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none"
+            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-x-none"
             :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
             @click="mergeSuggestions()"
           >
@@ -30,7 +30,7 @@
       >
         <span>
           <el-button
-            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-l-none"
+            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-x-none"
             :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
             @click="merge()"
           >
