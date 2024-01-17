@@ -20,6 +20,7 @@ export default {
   setSegments({ commit, dispatch }, { segments }) {
     commit('SET_SEGMENTS', { segments });
 
+    dispatch('getCubeData');
     dispatch('getConversations');
     dispatch('getActivities');
     dispatch('getMembers');
@@ -44,10 +45,12 @@ export default {
   // Fetch cube data
   getCubeData({ state }) {
     state.cubeData = null;
-    const { platform, period } = state.filters;
+    const { platform, period, segments } = state.filters;
+    const [segment] = segments.segments;
     return DashboardApiService.fetchCubeData({
       period: period.label,
       platform: platform !== 'all' ? platform : undefined,
+      segment,
     })
       .then((data) => {
         state.cubeData = data;
