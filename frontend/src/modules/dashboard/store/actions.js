@@ -7,6 +7,7 @@ import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
+import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
 
 export default {
   async reset({ dispatch }) {
@@ -34,11 +35,26 @@ export default {
       period,
       platform,
     });
+    dispatch('getCubeData');
     dispatch('getConversations');
     dispatch('getActivities');
     dispatch('getMembers');
     dispatch('getOrganizations');
   },
+  // Fetch cube data
+  getCubeData({ state }) {
+    state.cubeData = null;
+    const { platform, period } = state.filters;
+    return DashboardApiService.fetchCubeData({
+      period: period.label,
+      platform: platform !== 'all' ? platform : undefined,
+    })
+      .then((data) => {
+        state.cubeData = data;
+        return Promise.resolve(data);
+      });
+  },
+
   // fetch conversations data
   async getConversations({ dispatch }) {
     dispatch('getTrendingConversations');
