@@ -695,6 +695,11 @@ function applyHavingInWhereClause(include, value) {
       if (constraint.lastActive.between) {
         include[0].where.timestamp[Op.between] = constraint.lastActive.between
       }
+      if (constraint.lastActive.not) {
+        if (constraint.lastActive.not.between) {
+          include[0].where.timestamp[Op.notBetween] = constraint.lastActive.not.between
+        }
+      }
     } else if (constraint.platform) {
       if (!include[0].where.platform) {
         include[0].where.platform = {
