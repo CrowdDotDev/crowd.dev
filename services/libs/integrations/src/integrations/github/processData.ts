@@ -7,12 +7,14 @@ import {
   GithubWebhookData,
   GithubActivityType,
   GithubPrepareMemberOutput,
+  GithubPrepareOrgMemberOutput,
   GithubActivitySubType,
   GithubWehookEvent,
   GithubPullRequest,
   GithubIssue,
   GithubPullRequestTimelineItem,
   GithubIssueTimelineItem,
+  INDIRECT_FORK,
 } from './types'
 import {
   IActivityData,
@@ -136,6 +138,56 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
   return member
 }
 
+const parseOrgMember = (memberData: GithubPrepareOrgMemberOutput): IMemberData => {
+  const { orgFromApi } = memberData
+
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITHUB,
+        username: orgFromApi.login,
+      },
+    ],
+    ...(orgFromApi?.twitterUsername && {
+      weakIdentities: [
+        {
+          platform: PlatformType.TWITTER,
+          username: orgFromApi.twitterUsername,
+        },
+      ],
+    }),
+    displayName: orgFromApi?.name?.trim() || orgFromApi.login,
+    attributes: {
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITHUB]: orgFromApi.url,
+      },
+      [MemberAttributeName.BIO]: {
+        [PlatformType.GITHUB]: orgFromApi.description || '',
+      },
+      [MemberAttributeName.LOCATION]: {
+        [PlatformType.GITHUB]: orgFromApi.location || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITHUB]: orgFromApi.avatarUrl || '',
+      },
+    },
+    emails: orgFromApi.email ? [orgFromApi.email] : [],
+  }
+
+  if (orgFromApi.websiteUrl) {
+    member.attributes[MemberAttributeName.WEBSITE_URL] = {
+      [PlatformType.GITHUB]: orgFromApi.websiteUrl,
+    }
+  }
+
+  // mark as organization
+  member.attributes[MemberAttributeName.IS_ORGANIZATION] = {
+    [PlatformType.GITHUB]: true,
+  }
+
+  return member
+}
+
 const parseStar: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data
@@ -165,9 +217,31 @@ const parseStar: ProcessDataHandler = async (ctx) => {
 const parseFork: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data
+  const relatedData = apiData.relatedData
   const memberData = apiData.member
+  const subType = apiData.subType
 
   const member = parseMember(memberData)
+
+  if (subType && subType === INDIRECT_FORK) {
+    const activity: IActivityData = {
+      type: GithubActivityType.FORK,
+      sourceId: data.id,
+      sourceParentId: '',
+      timestamp: new Date(data.createdAt).toISOString(),
+      channel: apiData.repo.url,
+      member,
+      score: GITHUB_GRID.fork.score,
+      isContribution: GITHUB_GRID.fork.isContribution,
+      attributes: {
+        isIndirectFork: true,
+        directParent: relatedData.url,
+      },
+    }
+
+    await ctx.publishActivity(activity)
+    return
+  }
 
   const activity: IActivityData = {
     type: GithubActivityType.FORK,
@@ -178,6 +252,53 @@ const parseFork: ProcessDataHandler = async (ctx) => {
     member,
     score: GITHUB_GRID.fork.score,
     isContribution: GITHUB_GRID.fork.isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parseForkByOrg: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.orgMember
+  const subType = apiData.subType
+
+  const member = parseOrgMember(memberData)
+
+  if (subType && subType === INDIRECT_FORK) {
+    const activity: IActivityData = {
+      type: GithubActivityType.FORK,
+      sourceId: data.id,
+      sourceParentId: '',
+      timestamp: new Date(data.createdAt).toISOString(),
+      channel: apiData.repo.url,
+      member,
+      score: GITHUB_GRID.fork.score,
+      isContribution: GITHUB_GRID.fork.isContribution,
+      attributes: {
+        isIndirectFork: true,
+        directParent: relatedData.url,
+        isForkByOrg: true,
+      },
+    }
+
+    await ctx.publishActivity(activity)
+    return
+  }
+
+  const activity: IActivityData = {
+    type: GithubActivityType.FORK,
+    sourceId: data.id,
+    sourceParentId: '',
+    timestamp: new Date(data.createdAt).toISOString(),
+    channel: apiData.repo.url,
+    member,
+    score: GITHUB_GRID.fork.score,
+    isContribution: GITHUB_GRID.fork.isContribution,
+    attributes: {
+      isForkByOrg: true,
+    },
   }
 
   await ctx.publishActivity(activity)
@@ -1179,6 +1300,9 @@ const handler: ProcessDataHandler = async (ctx) => {
         break
       case GithubActivityType.FORK:
         await parseFork(ctx)
+        break
+      case GithubActivityType.FORK_BY_ORG:
+        await parseForkByOrg(ctx)
         break
       case GithubActivityType.PULL_REQUEST_OPENED:
         await parsePullRequestOpened(ctx)

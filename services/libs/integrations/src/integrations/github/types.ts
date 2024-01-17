@@ -10,6 +10,7 @@ export enum GithubActivityType {
   ISSUE_OPENED = 'issues-opened',
   ISSUE_CLOSED = 'issues-closed',
   FORK = 'fork',
+  FORK_BY_ORG = 'fork-by-org',
   STAR = 'star',
   UNSTAR = 'unstar',
   PULL_REQUEST_COMMENT = 'pull_request-comment',
@@ -119,12 +120,15 @@ export enum GithubManualStreamType {
   DISCUSSIONS = 'discussions',
 }
 
+export const INDIRECT_FORK = 'indirect-fork'
+
 export interface GithubApiData {
   type: GithubActivityType
   subType?: string
   data: any[] | any
   relatedData?: any | any[]
-  member: GithubPrepareMemberOutput
+  member?: GithubPrepareMemberOutput
+  orgMember?: GithubPrepareOrgMemberOutput
   objectMember?: GithubPrepareMemberOutput
   sourceParentId?: string
   repo: Repo
@@ -215,4 +219,8 @@ export interface GithubPrepareMemberOutput {
   email: string
   orgs: any
   memberFromApi: any
+}
+
+export interface GithubPrepareOrgMemberOutput {
+  orgFromApi: any
 }
