@@ -21,21 +21,30 @@
           Export to CSV
         </el-dropdown-item>
 
-        <el-dropdown-item
+        <el-tooltip
           v-if="selectedOrganizations.length === 2"
-          :command="{
-            action: 'mergeOrganizations',
-          }"
-          :disabled="
-            isPermissionReadOnly
-              || isEditLockedForSampleData
-          "
+          content="Coming soon"
+          placement="top"
+          :disabled="hasPermissionsToMerge"
         >
-          <i
-            class="ri-lg mr-1 ri-shuffle-line"
-          />
-          Merge organizations
-        </el-dropdown-item>
+          <span>
+            <el-dropdown-item
+              :command="{
+                action: 'mergeOrganizations',
+              }"
+              :disabled="
+                isPermissionReadOnly
+                  || isEditLockedForSampleData
+                  || !hasPermissionsToMerge
+              "
+            >
+              <i
+                class="ri-lg mr-1 ri-shuffle-line"
+              />
+              Merge organizations
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
 
         <el-dropdown-item
           v-if="markAsTeamOrganizationOptions"
@@ -157,6 +166,11 @@ const markAsTeamOrganizationOptions = computed(() => {
     value: true,
   };
 });
+
+const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeOrganizations);
 
 const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',

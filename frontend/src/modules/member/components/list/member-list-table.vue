@@ -79,7 +79,7 @@
             @mouseleave="onTableMouseLeft"
           />
           <div
-            class="-mx-6 -mt-6"
+            class="-mx-6 -mt-6 relative"
             @mouseover="onTableMouseover"
             @mouseleave="onTableMouseLeft"
           >
@@ -657,6 +657,18 @@
                 </template>
               </el-table-column>
             </el-table>
+            <div
+              v-if="isTableLoading"
+              class="absolute w-full top-0 left-0 bottom-[64px] bg-white opacity-60 z-20 flex items-center justify-center"
+            >
+              <div
+                class="h-16 !relative !min-h-5 flex justify-center items-center"
+              >
+                <div class="animate-spin w-fit">
+                  <div class="custom-spinner" />
+                </div>
+              </div>
+            </div>
 
             <div v-if="!!totalMembers" class="mt-8 px-6">
               <app-pagination
@@ -785,6 +797,10 @@ const props = defineProps({
   isPageLoading: {
     type: Boolean,
     default: () => true,
+  },
+  isTableLoading: {
+    type: Boolean,
+    default: () => false,
   },
   pagination: {
     type: Object,
