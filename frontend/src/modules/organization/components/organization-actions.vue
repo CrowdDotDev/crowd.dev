@@ -5,23 +5,39 @@
       <el-button class="btn btn--bordered btn--sm !h-8" :disabled="isEditLockedForSampleData" @click="edit()">
         <span class="ri-pencil-line text-base mr-2" />Edit organization
       </el-button>
-      <el-button
+      <el-tooltip
         v-if="mergeSuggestionsCount > 0"
-        class="btn btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25"
-        :disabled="isEditLockedForSampleData"
-        @click="mergeSuggestions()"
+        content="Coming soon"
+        placement="top"
+        :disabled="hasPermissionsToMerge"
       >
-        <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
-      </el-button>
+        <span>
+          <el-button
+            class="btn btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none"
+            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            @click="mergeSuggestions()"
+          >
+            <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
+          </el-button>
+        </span>
+      </el-tooltip>
 
-      <el-button
+      <el-tooltip
         v-else
-        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5"
-        :disabled="isEditLockedForSampleData"
-        @click="merge()"
+        content="Coming soon"
+        placement="top"
+        :disabled="hasPermissionsToMerge"
       >
-        <span class="ri-shuffle-line text-base mr-2" />Merge
-      </el-button>
+        <span>
+          <el-button
+            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-l-none"
+            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            @click="merge()"
+          >
+            <span class="ri-shuffle-line text-base mr-2" />Merge
+          </el-button>
+        </span>
+      </el-tooltip>
       <app-organization-dropdown
         :organization="props.organization"
         :hide-merge="true"
@@ -43,7 +59,7 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { OrganizationPermissions } from '@/modules/organization/organization-permissions';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
@@ -55,6 +71,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const route = useRoute();
 const router = useRouter();
 
 const { currentUser, currentTenant } = mapGetters('auth');
@@ -66,6 +84,11 @@ const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
+
+const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeOrganizations);
 
 const fetchOrganizationsToMergeCount = () => {
   OrganizationService.fetchMergeSuggestions(1, 0, {
@@ -84,6 +107,9 @@ const edit = () => {
     name: 'organizationEdit',
     params: {
       id: props.organization.id,
+    },
+    query: {
+      segmentId: route.query.segmentId || route.query.projectGroup,
     },
   });
 };

@@ -60,6 +60,20 @@ export default {
         this.projectGroups.loading = false;
       });
   },
+  listAdminProjectGroups() {
+    return LfService.queryProjectGroups({
+      limit: null,
+      offset: 0,
+      filter: {
+        adminOnly: true,
+      },
+    })
+      .then((response) => {
+        this.adminProjectGroups.list = response.rows;
+        return Promise.resolve();
+      })
+      .catch(() => Promise.reject());
+  },
   findProjectGroup(id) {
     return LfService.findSegment(id)
       .then((projectGroup) => Promise.resolve(projectGroup))

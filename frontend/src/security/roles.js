@@ -8,7 +8,7 @@ class Roles {
   static get values() {
     return {
       admin: 'admin',
-      viewer: 'viewer',
+      readonly: 'readonly',
       projectAdmin: 'projectAdmin',
     };
   }

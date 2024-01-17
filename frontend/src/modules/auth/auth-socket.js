@@ -11,6 +11,7 @@ import {
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { router } from '@/router';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 
 let socketIoClient;
 
@@ -142,56 +143,30 @@ export const connectSocket = (token) => {
       return;
     }
 
-    const { mergedOrganizations, removeMergedOrganizations } = useOrganizationStore();
-
-    const buttonElement = h(
-      'el-button',
-      {
-        class: 'btn btn--xs btn--secondary !h-6 !w-fit',
-        onClick: () => {
-          router.push({
-            name: 'organizationView',
-            params: { id: primaryOrgId },
-          });
-          Message.closeAll();
-        },
-      },
-      'View organization',
-    );
-
-    const messageElements = [buttonElement];
-
-    if (original && toMerge) {
-      const descriptionElement = h(
-        'span',
-        {
-          innerHTML: `${toMerge} merged with ${original}.`,
-        },
-      );
-
-      removeMergedOrganizations(primaryOrgId);
-
-      messageElements.unshift(descriptionElement);
-    }
+    const { removeMergedOrganizations } = useOrganizationStore();
+    const primaryOrganization = {
+      id: primaryOrgId,
+      displayName: original,
+    };
+    const secondaryOrganization = {
+      displayName: toMerge,
+    };
 
     Message.closeAll();
 
+    removeMergedOrganizations(primaryOrgId);
+
+    const { successMessage, socketErrorMessage } = useOrganizationMergeMessage;
     if (success) {
-      Message.success(
-        h(
-          'div',
-          {
-            class: 'flex flex-col gap-2',
-          },
-          messageElements,
-        ),
-        {
-          title:
-            'Organizations merged successfully',
-        },
-      );
+      successMessage({
+        primaryOrganization,
+        secondaryOrganization,
+      });
     } else {
-      Message.error(`There was an error merging ${toMerge} with ${original}`);
+      socketErrorMessage({
+        primaryOrganization,
+        secondaryOrganization,
+      });
     }
   });
 };

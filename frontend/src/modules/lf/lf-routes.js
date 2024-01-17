@@ -1,6 +1,5 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import Permissions from '@/security/permissions';
-import { hasAccessToProjectGroup } from '@/utils/segments';
 
 const ProjectGroupsListPage = () => import(
   '@/modules/lf/segments/pages/lf-project-groups-list-page.vue'
@@ -39,7 +38,7 @@ export default [
         component: AdminPanelPage,
         meta: {
           title: 'Admin Panel',
-          permission: Permissions.values.projectGroupCreate,
+          permission: Permissions.values.projectGroupEdit,
         },
       },
       {
@@ -49,8 +48,11 @@ export default [
         meta: {
           auth: true,
           title: 'Admin Panel',
-          permission: Permissions.values.projectCreate,
-          paramSegmentAccess: 'id',
+          permission: Permissions.values.projectEdit,
+          paramSegmentAccess: {
+            name: 'grandparent',
+            parameter: 'id',
+          },
         },
       },
     ],

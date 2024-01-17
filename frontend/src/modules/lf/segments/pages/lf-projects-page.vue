@@ -1,6 +1,7 @@
 <template>
   <app-page-wrapper>
     <router-link
+      v-if="hasPermissionToEditProjectGroups"
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center pb-6"
       :to="{
         name: 'adminPanel',
@@ -21,7 +22,7 @@
         Manage projects
       </h4>
       <el-button
-        v-if="pagination.total && hasPermissionToCreate"
+        v-if="pagination.total && hasPermissionToCreate && hasAccessToSegmentId(route.params.id)"
         class="btn btn--md btn--primary"
         @click="onAddProject"
       >
@@ -48,8 +49,9 @@
         class="mt-20"
         icon="ri-stack-line"
         title="No projects yet"
-        description="Add your first project and start collecting data from your community"
-        :cta-btn="hasPermissionToCreate ? 'Add project' : null"
+        :description="`${!(hasPermissionToCreate && hasAccessToSegmentId(route.params.id))
+          ? 'Ask an administrator to a' : 'A'}dd your first project and start collecting data from your community`"
+        :cta-btn="hasPermissionToCreate && hasAccessToSegmentId(route.params.id) ? 'Add project' : null"
         @cta-click="onAddProject"
       />
 
@@ -107,6 +109,7 @@
       :id="subProjectForm.id"
       v-model="isSubProjectFormDrawerOpen"
       :parent-slug="projectForm.slug"
+      :parent-id="projectForm.id"
       :grandparent-slug="projectGroupForm.slug"
     />
   </app-page-wrapper>
@@ -125,6 +128,7 @@ import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-in
 import { storeToRefs } from 'pinia';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { hasAccessToSegmentId } from '@/utils/segments';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -157,6 +161,11 @@ const hasPermissionToCreate = computed(() => new LfPermissions(
   currentTenant.value,
   currentUser.value,
 )?.createProject);
+
+const hasPermissionToEditProjectGroups = computed(() => new LfPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.editProjectGroup);
 
 onMounted(() => {
   findProjectGroup(route.params.id)

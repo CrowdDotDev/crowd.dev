@@ -121,6 +121,19 @@
         @apply cursor-not-allowed text-gray-400 bg-transparent;
       }
     }
+
+    &--linux {
+      @apply text-gray-300;
+
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-brand-500 bg-transparent;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed text-gray-200 bg-transparent;
+      }
+    }
   }
 
   &--link {

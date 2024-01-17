@@ -1,5 +1,6 @@
 import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { QueryTypes } from 'sequelize'
+import { IS_DEV_ENV } from '@crowd/common'
 import { CrowdJob } from '../../types/jobTypes'
 import { databaseInit } from '../../database/databaseConnection'
 
@@ -9,7 +10,7 @@ function createRefreshQuery(view: string) {
 
 const job: CrowdJob = {
   name: 'Refresh Materialized View For Cube',
-  cronTime: '1,31 * * * *',
+  cronTime: IS_DEV_ENV || IS_TEST_ENV ? '* * * * *' : '1,31 * * * *',
   onTrigger: async (log: Logger) => {
     try {
       // initialize database with 15 minutes query timeout

@@ -92,6 +92,7 @@ import { storeToRefs } from 'pinia';
 import Errors from '@/shared/error/errors';
 import { Excel } from '@/shared/excel/excel';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
+import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
@@ -111,7 +112,6 @@ const organizationStore = useOrganizationStore();
 const {
   selectedOrganizations,
   filters,
-  mergedOrganizations,
 } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
 
@@ -176,33 +176,19 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
 const handleMergeOrganizations = async () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
 
+  const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
+
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
     .then(() => {
-      Message.closeAll();
-
       organizationStore
         .addMergedOrganizations(firstOrganization.id, secondOrganization.id);
 
-      const processesRunning = Object.keys(mergedOrganizations.value).length;
-
-      Message.info(null, {
-        title: 'Organizations merging in progress',
-        message: processesRunning > 1 ? `${processesRunning} processes running` : null,
-      });
+      loadingMessage();
 
       fetchOrganizations({ reload: true });
     })
     .catch((error) => {
-      Message.closeAll();
-
-      if (error.response.status === 404) {
-        Message.error('Organizations already merged or deleted', {
-          message: `Sorry, the organizations you are trying to merge might have already been merged or deleted.
-          Please refresh to see the updated information.`,
-        });
-      } else {
-        Message.error('There was an error merging organizations');
-      }
+      apiErrorMessage({ error });
     });
 };
 

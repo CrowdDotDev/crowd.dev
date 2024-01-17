@@ -43,7 +43,7 @@
     </div>
     <aside
       v-if="selectedProjectGroup"
-      class="border-l border-gray-200 overflow-auto px-5 py-6 h-screen"
+      class="border-l border-gray-200 overflow-auto px-5 py-6 h-screen min-w-[15rem]"
     >
       <cr-dashboard-upgrade-plan-widget v-if="displayUpgradeWidget" class="mb-10" />
       <app-dashboard-project-group />

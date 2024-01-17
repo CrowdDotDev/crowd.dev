@@ -5,6 +5,13 @@ import { ApiWebsocketMessage } from '@crowd/types'
 export async function deleteOrganization(organizationId: string): Promise<void> {
   await svc.postgres.writer.connection().query(
     `
+      DELETE FROM "organizationCacheLinks"
+      WHERE "organizationId" = $1
+    `,
+    [organizationId],
+  )
+  await svc.postgres.writer.connection().query(
+    `
       DELETE FROM "organizationSegments"
       WHERE "organizationId" = $1
     `,

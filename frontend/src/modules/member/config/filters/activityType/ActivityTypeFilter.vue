@@ -47,10 +47,10 @@ const data = computed({
   set: (value: any) => emit('update:data', value),
 });
 
-watch(() => types, (typesValue: any) => {
-  const platformsOptions = Object.entries(typesValue.value.default)
+watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
+  const platformsOptions = Object.entries(typesValue.default)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .filter(([platform, _]) => activeIntegrations.value.includes(platform))
+    .filter(([platform, _]) => activeIntegrationsValue.includes(platform))
     .map(([platform, activityTypes]: [string, any]) => ({
       label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
@@ -59,7 +59,7 @@ watch(() => types, (typesValue: any) => {
       })),
     }));
 
-  const customOptions = Object.entries(typesValue.value.custom)
+  const customOptions = Object.entries(typesValue.custom)
     .map(([platform, activityTypes]: [string, any]) => ({
       label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
@@ -72,7 +72,9 @@ watch(() => types, (typesValue: any) => {
     ...platformsOptions,
     ...customOptions,
   ];
-}, { deep: true });
+}, {
+  deep: true,
+});
 
 onMounted(async () => {
   await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));

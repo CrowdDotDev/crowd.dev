@@ -2,6 +2,9 @@ import { ProjectGroup, Project } from '@/modules/lf/segments/types/Segments';
 
 export interface SegmentsState {
   selectedProjectGroup: ProjectGroup | null;
+  adminProjectGroups: {
+    list: ProjectGroups[],
+  }
   projectGroups: {
     list: ProjectGroup[],
     loading: boolean,
@@ -27,6 +30,9 @@ export interface SegmentsState {
 
 const state: SegmentsState = {
   selectedProjectGroup: null,
+  adminProjectGroups: {
+    list: [],
+  },
   projectGroups: {
     list: [],
     loading: true,

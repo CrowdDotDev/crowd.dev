@@ -16,11 +16,11 @@
         </el-tooltip>
       </div>
       <el-button
-        class="btn btn-link btn-link--primary"
+        class="btn btn-link btn-link--linux"
         :disabled="isEditLockedForSampleData"
         @click="emit('edit')"
       >
-        <i class="ri-pencil-line" /><span>Edit</span>
+        <i class="ri-pencil-line text-lg" />
       </el-button>
     </div>
     <div class="-mx-6 mt-6">
