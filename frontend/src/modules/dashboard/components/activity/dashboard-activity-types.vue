@@ -81,7 +81,7 @@ const { types } = storeToRefs(activityTypeStore);
 const typeNames = computed(() => (merge(types.value.default, types.value.custom)));
 
 const activityTypes = computed(() => {
-  if (!cubeData) {
+  if (!cubeData.value?.activity?.bySentimentMood) {
     return [];
   }
   const data = new ResultSet(cubeData.value.activity.byTypeAndPlatform);
