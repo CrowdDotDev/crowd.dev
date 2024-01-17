@@ -1,4 +1,4 @@
-import { CubeDimension, CubeOrderDirection, CubeMeasure } from 'enums'
+import { CubeDimension, CubeOrderDirection, CubeMeasure } from './enums'
 
 export interface ICubeFilter {
   member: CubeDimension
@@ -13,4 +13,4 @@ export interface IDashboardFilter {
 
 type CubeOrderKey = CubeDimension | CubeMeasure
 
-export type ICubeOrder = { [key in CubeOrderKey]?: CubeOrderDirection }
+export type ICubeOrder = { [key in CubeOrderKey]?: CubeOrderDirection | string }

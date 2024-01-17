@@ -2,6 +2,7 @@ import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { getTemporalClient } from '@crowd/temporal'
 import { randomUUID } from 'crypto'
 import { QueryTypes } from 'sequelize'
+import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 import { CrowdJob } from '../../types/jobTypes'
 import { databaseInit } from '../../database/databaseConnection'
 import { TEMPORAL_CONFIG } from '@/conf'
@@ -12,7 +13,7 @@ function createRefreshQuery(view: string) {
 
 const job: CrowdJob = {
   name: 'Refresh Materialized View For Cube',
-  cronTime: '1,31 * * * *',
+  cronTime: IS_DEV_ENV || IS_TEST_ENV ? '* * * * *' : '1,31 * * * *',
   onTrigger: async (log: Logger) => {
     try {
       // initialize database with 15 minutes query timeout
@@ -69,11 +70,9 @@ const job: CrowdJob = {
 
     const temporal = await getTemporalClient(TEMPORAL_CONFIG)
 
-    const uuid = randomUUID()
-
     await temporal.workflow.start('spawnDashboardCacheRefreshForAllTenants', {
       taskQueue: 'cache',
-      workflowId: `${uuid}`,
+      workflowId: `refreshAllTenants`,
       retry: {
         maximumAttempts: 10,
       },

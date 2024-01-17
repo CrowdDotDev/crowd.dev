@@ -17,13 +17,11 @@ import {
 import moment from 'moment'
 import { DashboardTimeframe } from '../enums'
 
-const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '5 minute' })
+const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '15 minute' })
 
 export async function refreshDashboardCache(
   args: IProcessRefreshDashboardCacheArgs,
 ): Promise<void> {
-  console.log(args)
-
   // if no segments were sent, set current segment as default one
   if (!args.segmentId) {
     const defaultSegment = await activity.getDefaultSegment(args.tenantId)
@@ -35,7 +33,15 @@ export async function refreshDashboardCache(
 
   const activePlatforms = await activity.getActivePlatforms(args.leafSegmentIds)
 
-  if (!dashboardLastRefreshedAt) {
+  const currentDate = new Date()
+
+  // we should do a full refresh, when
+  // - dashboard wasn't refreshed before yet (ie: it's null)
+  // - day changed between now() and dashboardLastRefreshedAt, so we need to calculate the metrics for the new time range
+  if (
+    !dashboardLastRefreshedAt ||
+    currentDate.getUTCDate() !== new Date(dashboardLastRefreshedAt).getUTCDate()
+  ) {
     // main view with no platform filter
     await refreshDashboardCacheForAllTimeranges(args.tenantId, args.segmentId, args.leafSegmentIds)
 
@@ -72,16 +78,11 @@ export async function refreshDashboardCache(
           platform,
         )
       }
-    } else {
-      console.log('No new activities found.. not calculating cache again!')
     }
   }
 
   // update dashboardLastRefreshedAt
   await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.segmentId)
-  console.log(
-    `Done generating dashboard cache for tenant ${args.tenantId}, segment: ${args.segmentId}`,
-  )
 }
 
 async function refreshDashboardCacheForAllTimeranges(
@@ -90,8 +91,6 @@ async function refreshDashboardCacheForAllTimeranges(
   leafSegmentIds: string[],
   platform?: string,
 ) {
-  const info = platform ?? 'all'
-  console.log(`Refreshing cache for ${info}!`)
   for (const timeframe in DashboardTimeframe) {
     const data = await getDashboardCacheData(
       tenantId,
@@ -137,8 +136,8 @@ async function getDashboardCacheData(
   const newMembersTimeseries = await activity.getNewMembers<INewMembersTimeseriesResult[]>({
     tenantId,
     segmentIds,
-    startDate: previousPeriodStartDate,
-    endDate: previousPeriodEndDate,
+    startDate,
+    endDate,
     granularity: 'day',
     platform,
     rawResult: true,
@@ -167,8 +166,8 @@ async function getDashboardCacheData(
     {
       tenantId,
       segmentIds,
-      startDate: previousPeriodStartDate,
-      endDate: previousPeriodEndDate,
+      startDate,
+      endDate,
       granularity: 'day',
       platform,
       rawResult: true,
@@ -199,8 +198,8 @@ async function getDashboardCacheData(
   >({
     tenantId,
     segmentIds,
-    startDate: previousPeriodStartDate,
-    endDate: previousPeriodEndDate,
+    startDate,
+    endDate,
     granularity: 'day',
     platform,
     rawResult: true,
@@ -230,8 +229,8 @@ async function getDashboardCacheData(
   >({
     tenantId,
     segmentIds,
-    startDate: previousPeriodStartDate,
-    endDate: previousPeriodEndDate,
+    startDate,
+    endDate,
     granularity: 'day',
     platform,
     rawResult: true,
@@ -259,8 +258,8 @@ async function getDashboardCacheData(
   const activitiesTimeseries = await activity.getActivities<IActivityTimeseriesResult[]>({
     tenantId,
     segmentIds,
-    startDate: previousPeriodStartDate,
-    endDate: previousPeriodEndDate,
+    startDate,
+    endDate,
     granularity: 'day',
     platform,
     rawResult: true,

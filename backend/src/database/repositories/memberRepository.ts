@@ -2250,7 +2250,7 @@ class MemberRepository {
             ) m ("memberId")
             JOIN activities a ON (a.id = (
                 SELECT id
-                FROM activities
+                FROM mv_activities_cube
                 WHERE "memberId" = m."memberId"::uuid
                 ORDER BY timestamp DESC
                 LIMIT 1

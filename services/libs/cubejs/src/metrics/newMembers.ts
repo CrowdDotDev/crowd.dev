@@ -1,11 +1,8 @@
 import moment from 'moment'
 
 import { CubeJsService } from '../service'
-import { CubeGranularity, CubeDimension, CubeMeasure } from '../enums'
-import { ICubeFilter, IDashboardFilter } from '../types'
-import { getServiceLogger } from '@crowd/logging'
-
-const log = getServiceLogger()
+import { CubeGranularity, CubeDimension, CubeMeasure, CubeOrderDirection } from '../enums'
+import { ICubeFilter, ICubeOrder, IDashboardFilter } from '../types'
 
 /**
  * Gets `new members` count or timeseries data for a given date range and granularity.
@@ -21,6 +18,7 @@ export default async (
   endDate: moment.Moment,
   granularity: CubeGranularity | string = null,
   filter: IDashboardFilter = {},
+  order: ICubeOrder = { [CubeDimension.MEMBER_JOINED_AT]: CubeOrderDirection.ASC },
   rawResult = false,
 ) => {
   const filters: ICubeFilter[] = [
@@ -66,7 +64,7 @@ export default async (
         granularity,
       },
     ],
-    order: { [CubeDimension.MEMBER_JOINED_AT]: 'asc' },
+    order,
     filters,
   }
 
