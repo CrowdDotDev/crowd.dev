@@ -1,5 +1,5 @@
 <template>
-  <h6 v-if="cube.activity.bySentimentMood" class="text-sm leading-5 font-semibold mb-4">
+  <h6 v-if="cube?.activity?.bySentimentMood" class="text-sm leading-5 font-semibold mb-4">
     Overall sentiment
   </h6>
   <div v-if="!cube">
@@ -100,6 +100,13 @@ const {
 const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const bySentiment = computed<Record<string, number>>(() => {
+  if (!cube.value?.activity?.bySentimentMood) {
+    return {
+      positive: 0,
+      negative: 0,
+      neutral: 0,
+    };
+  }
   const data = new ResultSet(cube.value.activity.bySentimentMood);
   const seriesNames = data.seriesNames();
   const pivot = data.chartPivot();
