@@ -331,6 +331,7 @@ class ActivityRepository {
     ['timestamp', 'a.timestamp'],
     ['memberId', 'a."memberId"'],
     ['organizationId', 'a."organizationId"'],
+    ['conversationId', 'a."conversationId"'],
     ['sentiment', 'a."sentimentMood"'],
   ])
 
