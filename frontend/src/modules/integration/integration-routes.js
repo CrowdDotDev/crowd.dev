@@ -1,6 +1,5 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import Permissions from '@/security/permissions';
-import { hasAccessToProjectGroup } from '@/utils/segments';
 
 const IntegrationListPage = () => import(
   '@/modules/integration/components/integration-list-page.vue'
@@ -57,7 +56,10 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.integrationRead,
-          paramSegmentAccess: 'grandparentId',
+          paramSegmentAccess: {
+            name: 'child',
+            parameter: 'id',
+          },
         },
       },
     ],

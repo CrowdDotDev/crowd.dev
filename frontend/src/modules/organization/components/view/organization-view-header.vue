@@ -4,9 +4,11 @@
       <div class="flex items-center">
         <app-avatar
           :entity="{
+            ...organization,
             avatar: organization.logo,
             displayName: (organization.displayName || organization.name)?.replace('@', ''),
           }"
+          entity-name="organization"
           size="xl"
           class="mr-4"
         />
@@ -122,7 +124,7 @@
             <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
               {{
                 formattedInformation(
-                  organization.size,
+                  organization.size || organization.employees,
                   'string',
                 )
               }}

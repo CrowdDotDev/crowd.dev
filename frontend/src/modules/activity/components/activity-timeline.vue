@@ -246,17 +246,16 @@ import debounce from 'lodash/debounce';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { onSelectMouseLeave } from '@/utils/select';
-import authAxios from '@/shared/axios/auth-axios';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
   'i', // type
@@ -335,9 +334,9 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   };
 
   if (props.entityType === 'member') {
-    filterToApply.memberId = props.entity.id;
+    filterToApply.memberId = { in: [props.entityId] };
   } else {
-    filterToApply[`${props.entityType}s`] = [props.entity.id];
+    filterToApply.organizationId = { in: [props.entityId] };
   }
 
   if (props.entity.id) {
@@ -389,25 +388,13 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   loading.value = true;
 
-  const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-  const tenantId = sampleTenant?.id
-    || store.getters['auth/currentTenant'].id;
-
-  const { data } = await authAxios.post(
-    `/tenant/${tenantId}/activity/query`,
-    {
-      filter: filterToApply,
-      orderBy: 'timestamp_DESC',
-      limit: limit.value,
-      offset: offset.value,
-      segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
-    },
-    {
-      headers: {
-        Authorization: sampleTenant?.token,
-      },
-    },
-  );
+  const data = await ActivityService.query({
+    filter: filterToApply,
+    orderBy: 'timestamp_DESC',
+    limit: limit.value,
+    offset: offset.value,
+    segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
+  });
 
   filter = { ...filterToApply };
   loading.value = false;

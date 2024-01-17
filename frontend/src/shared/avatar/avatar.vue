@@ -1,5 +1,10 @@
 <template>
-  <div class="relative">
+  <div
+    class="relative"
+    :class="{
+      'flex justify-center': !isSmallAvatar,
+    }"
+  >
     <div
       v-if="entity"
       class="avatar"
@@ -10,22 +15,34 @@
         :src="url"
       />
     </div>
+    <app-avatar-new-badge
+      :entity="entity"
+      :is-small-avatar="isSmallAvatar"
+      :entity-name="entityName"
+    />
+
     <slot name="icon" />
   </div>
 </template>
 
 <script>
 import AppAvatarImage from '@/shared/avatar-image/avatar-image.vue';
+import AppAvatarNewBadge from '@/shared/avatar/avatar-new-badge.vue';
 
 export default {
   name: 'AppAvatar',
   components: {
     AppAvatarImage,
+    AppAvatarNewBadge,
   },
   props: {
     entity: {
       type: Object,
       default: () => {},
+    },
+    entityName: {
+      type: String,
+      default: null,
     },
     size: {
       type: String,
@@ -48,6 +65,9 @@ export default {
     };
   },
   computed: {
+    isSmallAvatar() {
+      return ['xxxs', 'xxs', 'xs', 'sm'].includes(this.size);
+    },
     computedSize() {
       return this.sizes[this.size] ?? this.size;
     },

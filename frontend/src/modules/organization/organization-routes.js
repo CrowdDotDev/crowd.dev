@@ -78,7 +78,7 @@ export default [
         component: OrganizationMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationEdit,
+          permission: Permissions.values.mergeOrganizations,
         },
         props: true,
       },

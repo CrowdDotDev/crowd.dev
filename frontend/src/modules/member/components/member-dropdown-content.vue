@@ -36,20 +36,27 @@
     ><i class="ri-github-fill" /></span>
     <span class="ml-2 text-xs"> Find GitHub </span>
   </button>
-  <button
+
+  <el-tooltip
     v-if="!props.hideMerge"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.MERGE_CONTACT,
-        member,
-      })
-    "
+    content="Coming soon"
+    placement="top"
+    :disabled="hasPermissionsToMerge"
   >
-    <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
-  </button>
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.MERGE_CONTACT,
+          member,
+        })
+      "
+    >
+      <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
+    </button>
+  </el-tooltip>
   <a
     class="h-10 el-dropdown-menu__item"
     href="https://app.formbricks.com/s/clr4u0mp29k228up0nh9yurm5"
@@ -239,6 +246,11 @@ const isDeleteLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .destroyLockedForSampleData,
 );
+
+const hasPermissionsToMerge = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeMembers);
 
 const isSyncingWithHubspot = computed(
   () => props.member.attributes?.syncRemote?.hubspot || false,

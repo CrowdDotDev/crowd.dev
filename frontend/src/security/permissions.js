@@ -1039,6 +1039,32 @@ class Permissions {
         allowedStorage: [],
         allowedSampleTenant: true,
       },
+      mergeMembers: {
+        id: 'mergeMembers',
+        allowedRoles: [
+          roles.admin,
+        ],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: false,
+      },
+      mergeOrganizations: {
+        id: 'mergeOrganizations',
+        allowedRoles: [
+          roles.admin,
+        ],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+        ],
+        allowedStorage: [],
+        allowedSampleTenant: false,
+      },
     };
   }
 

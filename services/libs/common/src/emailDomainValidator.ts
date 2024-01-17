@@ -108,6 +108,7 @@ const blacklistedDomains = [
   '126.com',
   '163.com',
   'foxmail.com',
+  'groups.io',
 ]
 
 /**
