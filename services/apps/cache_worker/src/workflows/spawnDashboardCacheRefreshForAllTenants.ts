@@ -21,13 +21,12 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
     // we should spawn refreshDashboardCache for each tenant-segment couples
 
     const SEGMENT_PAGE_SIZE = 250
-    let offset = 0
-    let segments: ISegment[]
-
-    const segmentLeafIdMap = new Map<string, string[]>()
 
     for (const tenant of tenants) {
       // get all segments in tenant
+      let offset = 0
+      let segments: ISegment[]
+      const segmentLeafIdMap = new Map<string, string[]>()
 
       do {
         segments = await activity.getAllSegments(tenant.tenantId, SEGMENT_PAGE_SIZE, offset)
