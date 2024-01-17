@@ -353,8 +353,6 @@ class ActivityRepository {
       offset,
     }
 
-    // console.log('filter', filter)
-
     if (filter.member) {
       if (filter.member.isTeamMember) {
         filter.isTeamMember = filter.member.isTeamMember
@@ -366,8 +364,6 @@ class ActivityRepository {
 
       delete filter.member
     }
-
-    // console.log('fixed filter', filter)
 
     let orderByString = ''
     const orderByParts = orderBy.split('_')
@@ -428,11 +424,6 @@ class ActivityRepository {
       order by ${orderByString}
       limit :limit offset :offset
     `
-
-    // console.log('query', query)
-    // console.log('countQuery', countQuery)
-
-    // console.log('params', params)
 
     const [results, countResults] = await Promise.all([
       seq.query(query, {
