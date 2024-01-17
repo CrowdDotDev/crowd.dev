@@ -17,7 +17,7 @@ export default () => ({
     search: '',
     relation: 'and',
     order: {
-      prop: 'activityCount',
+      prop: 'lastActive',
       order: 'descending',
     },
     lastActivityDate: {

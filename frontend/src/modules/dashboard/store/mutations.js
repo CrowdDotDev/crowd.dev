@@ -7,8 +7,8 @@ export default {
       || SEVEN_DAYS_PERIOD_FILTER;
     state.filters.platform = payload.platform || state.filters.platform || 'all';
   },
-  SET_TRENDING_CONVERSATIONS(state, { rows }) {
-    state.conversations.trending = rows;
+  SET_RECENT_CONVERSATIONS(state, { rows }) {
+    state.conversations.recent = rows;
   },
   SET_RECENT_ACTIVITIES(state, { rows }) {
     state.activities.recent = rows;
