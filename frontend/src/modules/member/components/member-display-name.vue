@@ -8,6 +8,7 @@
           ? {
             name: 'memberView',
             params: { id: member.id },
+            query: { projectGroup: selectedProjectGroup?.id },
           }
           : null
       "
@@ -21,6 +22,8 @@
 <script setup>
 import { defineProps } from 'vue';
 import AppMemberBadge from '@/modules/member/components/member-badge.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps({
   member: {
@@ -41,6 +44,9 @@ const props = defineProps({
     default: null,
   },
 });
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const customComponent = props.withLink ? 'router-link' : 'span';
 </script>

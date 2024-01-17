@@ -11,7 +11,7 @@
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
       >
-        Contributors
+        Contributor
       </el-button>
       <div class="flex items-center gap-4 mt-4 mb-6">
         <h4>
@@ -403,7 +403,13 @@ async function onReset() {
 }
 
 async function onCancel() {
-  router.push({ name: 'member' });
+  router.push({
+    name: 'memberView',
+    params: {
+      id: record.value.id,
+    },
+    query: { projectGroup: selectedProjectGroup?.id },
+  });
 }
 
 async function onSubmit() {

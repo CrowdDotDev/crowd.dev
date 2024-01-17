@@ -7,15 +7,16 @@
     />
     <div v-else>
       <div class="flex items-center justify-between">
-        <router-link
-          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-          :to="{
+        <app-back-link
+          :default-route="{
             path: '/reports',
             query: { projectGroup: selectedProjectGroup?.id },
           }"
         >
-          <i class="ri-arrow-left-s-line mr-2" />Reports
-        </router-link>
+          <template #default>
+            Reports
+          </template>
+        </app-back-link>
         <div class="flex items-center">
           <router-link
             class="btn btn-link btn-link--md btn-link--primary mr-4"
@@ -54,6 +55,7 @@ import AppReportForm from '@/modules/report/components/report-form.vue';
 import AppReportDropdown from '@/modules/report/components/report-dropdown.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 
 export default {
   name: 'AppReportFormPage',
@@ -61,6 +63,7 @@ export default {
   components: {
     AppReportForm,
     AppReportDropdown,
+    AppBackLink,
   },
 
   props: {
