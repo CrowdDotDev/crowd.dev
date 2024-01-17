@@ -15,8 +15,7 @@ const config: Config = {
 }
 
 const options: Options = {
-  maxConcurrentActivityTaskExecutions: 30,
-  maxTaskQueueActivitiesPerSecond: 20,
+  maxConcurrentActivityTaskExecutions: 100,
   postgres: {
     enabled: true,
   },
