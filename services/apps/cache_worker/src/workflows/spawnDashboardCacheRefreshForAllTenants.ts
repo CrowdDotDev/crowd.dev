@@ -39,17 +39,21 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
           } else if (segment.slug && segment.parentSlug && !segment.grandparentSlug) {
             // it's a parent segment, find its leafs
             const leafs = await activity.getProjectLeafSegments(segment.slug, tenant.tenantId)
-            segmentLeafIdMap.set(
-              segment.segmentId,
-              leafs.map((l) => l.segmentId),
-            )
+            if (leafs && leafs.length > 0) {
+              segmentLeafIdMap.set(
+                segment.segmentId,
+                leafs.map((l) => l.segmentId),
+              )
+            }
           } else if (segment.slug && !segment.parentSlug && !segment.grandparentSlug) {
             // it's a grandparent segment, find its leafs
             const leafs = await activity.getProjectGroupLeafSegments(segment.slug, tenant.tenantId)
-            segmentLeafIdMap.set(
-              segment.segmentId,
-              leafs.map((l) => l.segmentId),
-            )
+            if (leafs && leafs.length > 0) {
+              segmentLeafIdMap.set(
+                segment.segmentId,
+                leafs.map((l) => l.segmentId),
+              )
+            }
           }
         }
 
