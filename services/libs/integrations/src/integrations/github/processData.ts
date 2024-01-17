@@ -216,6 +216,16 @@ const parseStar: ProcessDataHandler = async (ctx) => {
 
 const parseFork: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
+
+  if (apiData.orgMember && !apiData.member) {
+    await parseForkByOrg(ctx)
+    return
+  } else if (apiData.member && apiData.orgMember) {
+    throw new Error('Both member and orgMember are present')
+  } else if (!apiData.member && !apiData.orgMember) {
+    throw new Error('Both member and orgMember are missing')
+  }
+
   const data = apiData.data
   const relatedData = apiData.relatedData
   const memberData = apiData.member
@@ -1300,9 +1310,6 @@ const handler: ProcessDataHandler = async (ctx) => {
         break
       case GithubActivityType.FORK:
         await parseFork(ctx)
-        break
-      case GithubActivityType.FORK_BY_ORG:
-        await parseForkByOrg(ctx)
         break
       case GithubActivityType.PULL_REQUEST_OPENED:
         await parsePullRequestOpened(ctx)

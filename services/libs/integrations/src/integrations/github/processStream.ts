@@ -378,7 +378,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
 
       // publish data
       await ctx.publishData<GithubApiData>({
-        type: GithubActivityType.FORK_BY_ORG,
+        type: GithubActivityType.FORK,
         data: record,
         orgMember,
         repo: data.repo,
@@ -406,7 +406,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
 
         // publish data
         await ctx.publishData<GithubApiData>({
-          type: GithubActivityType.FORK_BY_ORG,
+          type: GithubActivityType.FORK,
           subType: INDIRECT_FORK,
           data: indirectFork,
           relatedData: record,

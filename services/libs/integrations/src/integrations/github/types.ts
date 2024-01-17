@@ -10,7 +10,6 @@ export enum GithubActivityType {
   ISSUE_OPENED = 'issues-opened',
   ISSUE_CLOSED = 'issues-closed',
   FORK = 'fork',
-  FORK_BY_ORG = 'fork-by-org',
   STAR = 'star',
   UNSTAR = 'unstar',
   PULL_REQUEST_COMMENT = 'pull_request-comment',
