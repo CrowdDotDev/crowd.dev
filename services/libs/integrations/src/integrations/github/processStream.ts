@@ -33,11 +33,13 @@ import {
   GithubIntegrationSettings,
   GithubPlatformSettings,
   GithubPrepareMemberOutput,
+  GithubPrepareOrgMemberOutput,
   GithubPullRequestEvents,
   GithubRootStream,
   GithubStreamType,
   Repo,
   Repos,
+  INDIRECT_FORK,
 } from './types'
 import { GithubTokenRotator } from './tokenRotator'
 
@@ -224,6 +226,12 @@ export const prepareMember = async (
   }
 }
 
+export const prepareMemberFromOrg = (orgFromApi: any): GithubPrepareOrgMemberOutput => {
+  return {
+    orgFromApi,
+  }
+}
+
 /**
  * Searches given repository name among installed repositories
  * Returns null if given repo is not found.
@@ -355,15 +363,60 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
   await publishNextPageStream(ctx, result)
 
   for (const record of result.data) {
-    const member = await prepareMember(record.owner, ctx)
+    if (record.owner.__typename === 'User') {
+      const member = await prepareMember(record.owner, ctx)
 
-    // publish data
-    await ctx.publishData<GithubApiData>({
-      type: GithubActivityType.FORK,
-      data: record,
-      member,
-      repo: data.repo,
-    })
+      // publish data
+      await ctx.publishData<GithubApiData>({
+        type: GithubActivityType.FORK,
+        data: record,
+        member,
+        repo: data.repo,
+      })
+    } else if (record.owner.__typename === 'Organization') {
+      const orgMember = prepareMemberFromOrg(record.owner)
+
+      // publish data
+      await ctx.publishData<GithubApiData>({
+        type: GithubActivityType.FORK,
+        data: record,
+        orgMember,
+        repo: data.repo,
+      })
+    } else {
+      ctx.log.warn(`Unsupported owner type: ${record.owner.__typename}`)
+    }
+
+    // traverse through indirect forks
+    for (const indirectFork of record.indirectForks.nodes) {
+      if (indirectFork.owner.__typename === 'User') {
+        const member = await prepareMember(indirectFork.owner, ctx)
+
+        // publish data
+        await ctx.publishData<GithubApiData>({
+          type: GithubActivityType.FORK,
+          subType: INDIRECT_FORK,
+          data: indirectFork,
+          relatedData: record,
+          member,
+          repo: data.repo,
+        })
+      } else if (indirectFork.owner.__typename === 'Organization') {
+        const orgMember = prepareMemberFromOrg(indirectFork.owner)
+
+        // publish data
+        await ctx.publishData<GithubApiData>({
+          type: GithubActivityType.FORK,
+          subType: INDIRECT_FORK,
+          data: indirectFork,
+          relatedData: record,
+          orgMember,
+          repo: data.repo,
+        })
+      } else {
+        ctx.log.warn(`Unsupported owner type: ${indirectFork.owner.__typename}`)
+      }
+    }
   }
 }
 
