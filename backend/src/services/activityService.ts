@@ -786,7 +786,7 @@ export default class ActivityService extends LoggerBase {
 
   async queryV2(data) {
     const filter = data.filter
-    const orderBy = data.orderBy
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
     const countOnly = data.countOnly ?? false

@@ -334,9 +334,9 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   };
 
   if (props.entityType === 'member') {
-    filterToApply.memberId = { in: [props.entityId] };
+    filterToApply.memberId = { in: [props.entity.id] };
   } else {
-    filterToApply.organizationId = { in: [props.entityId] };
+    filterToApply.organizationId = { in: [props.entity.id] };
   }
 
   if (props.entity.id) {
