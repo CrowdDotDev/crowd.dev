@@ -335,11 +335,11 @@ class ActivityRepository {
   ])
 
   static async findAndCountAllv2(
-    { filter = {} as any, limit = 20, offset = 0, orderBy = '', countOnly = false },
+    { filter = {} as any, limit = 20, offset = 0, orderBy = [''], countOnly = false },
     options: IRepositoryOptions,
   ) {
-    if (!orderBy || orderBy.trim().length === 0) {
-      orderBy = 'timestamp_DESC'
+    if (orderBy.length === 0 || (orderBy.length === 1 && orderBy[0].trim().length === 0)) {
+      orderBy = ['timestamp_DESC']
     }
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -365,18 +365,33 @@ class ActivityRepository {
       delete filter.member
     }
 
-    let orderByString = ''
-    const orderByParts = orderBy.split('_')
-    const direction = orderByParts[1].toLowerCase()
-    switch (orderByParts[0]) {
-      case 'timestamp':
-        orderByString = 'a.timestamp'
-        break
+    const parsedOrderBys = []
 
-      default:
-        throw new Error(`Invalid order by: ${orderBy}!`)
+    for (const orderByPart of orderBy) {
+      const orderByParts = orderByPart.split('_')
+      const direction = orderByParts[1].toLowerCase()
+      switch (orderByParts[0]) {
+        case 'timestamp':
+          parsedOrderBys.push({
+            property: orderByParts[0],
+            column: 'a.timestamp',
+            direction,
+          })
+          break
+        case 'createdAt':
+          parsedOrderBys.push({
+            property: orderByParts[0],
+            column: 'a."createdAt"',
+            direction,
+          })
+          break
+
+        default:
+          throw new Error(`Invalid order by: ${orderByPart}!`)
+      }
     }
-    orderByString = `${orderByString} ${direction}`
+
+    const orderByString = parsedOrderBys.map((o) => `${o.column} ${o.direction}`).join(',')
 
     let filterString = RawQueryParser.parseFilters(
       filter,
@@ -464,6 +479,8 @@ class ActivityRepository {
       },
     ]
 
+    const order = parsedOrderBys.map((a) => [a.property, a.direction])
+
     let rows = await options.database.activity.findAll({
       include,
       attributes: [
@@ -474,7 +491,7 @@ class ActivityRepository {
           [Op.in]: ids,
         },
       },
-      order: [[orderByParts[0], direction]],
+      order,
     })
 
     rows = await this._populateRelationsForRows(rows, false, options)
