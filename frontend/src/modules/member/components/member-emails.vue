@@ -79,8 +79,9 @@ const props = defineProps<{
   member: Member
 }>();
 
-const hasEmails = computed(() => props.member.emails.filter((e) => !!e)?.length && props.member.emails.filter((e) => !!e)?.some((e) => !!e));
+const parsedEmails = computed(() => props.member.emails.filter((e) => !!e));
+const hasEmails = computed(() => parsedEmails.value?.length && parsedEmails.value?.some((e) => !!e));
 
-const slicedEmails = computed(() => props.member.emails.slice(0, 3));
-const remainingEmails = computed(() => props.member.emails.slice(3));
+const slicedEmails = computed(() => parsedEmails.value.slice(0, 3));
+const remainingEmails = computed(() => parsedEmails.value.slice(3));
 </script>

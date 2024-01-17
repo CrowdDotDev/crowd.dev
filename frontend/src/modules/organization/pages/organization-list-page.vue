@@ -71,6 +71,7 @@
         v-model:pagination="pagination"
         :has-organizations="totalOrganizations > 0"
         :is-page-loading="loading"
+        :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
       />
     </div>
@@ -107,6 +108,7 @@ const { fetchOrganizations } = organizationStore;
 const { getGuides } = useQuickStartStore();
 
 const loading = ref(true);
+const tableLoading = ref(false);
 const organizationCount = ref(0);
 
 const organizationFilter = ref<CrFilter | null>(null);
@@ -182,12 +184,15 @@ const fetch = ({
 const onPaginationChange = ({
   page, perPage,
 }: FilterQuery) => {
+  tableLoading.value = true;
   fetchOrganizations({
     reload: true,
     body: {
       offset: (page - 1) * perPage || 0,
       limit: perPage || 20,
     },
+  }).finally(() => {
+    tableLoading.value = false;
   });
 };
 

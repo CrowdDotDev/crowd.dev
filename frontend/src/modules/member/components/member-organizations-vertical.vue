@@ -10,7 +10,9 @@
       class="flex items-start hover:cursor-pointer"
       @click.stop
     >
-      <div class="w-6 h-6 min-w-[24px] mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center">
+      <div
+        class="w-6 h-6 min-w-[24px] mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center"
+      >
         <div v-if="organization.logo">
           <img :src="organization.logo" alt="Logo" />
         </div>
@@ -18,10 +20,9 @@
       </div>
       <div class="max-w-full">
         <p
-          class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4
-          hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
+          class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
         >
-          {{ organization.displayName || organization.name || '-' }}
+          {{ organization.displayName || organization.name || "-" }}
         </p>
       </div>
     </router-link>
@@ -33,10 +34,9 @@
     >
       <template #reference>
         <div
-
           class="text-gray-500 text-xs px-2 h-6 flex items-center justify-center border rounded-lg w-fit border-gray-200"
         >
-          +{{ pluralize('organization', remainingOrganizations.length, true) }}
+          +{{ pluralize("organization", remainingOrganizations.length, true) }}
         </div>
       </template>
       <div class="flex flex-col gap-3">
@@ -50,16 +50,17 @@
           class="flex items-start hover:cursor-pointer"
           @click.stop
         >
-          <div class="w-6 h-6 mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center">
+          <div
+            class="w-6 h-6 mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center"
+          >
             <img v-if="organization.logo" :src="organization.logo" alt="Logo" />
             <i v-else class="ri-community-line text-sm text-gray-300" />
           </div>
           <div class="max-w-full">
             <p
-              class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-2 decoration-dashed decoration-gray-400 underline-offset-4
-          hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
+              class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-2 decoration-dashed decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
             >
-              {{ organization.displayName || organization.name || '-' }}
+              {{ organization.displayName || organization.name || "-" }}
             </p>
           </div>
         </router-link>
@@ -82,8 +83,34 @@ const props = defineProps({
   },
 });
 
-const slicedOrganizations = computed(() => props.member.organizations.slice(0, 3));
-const remainingOrganizations = computed(() => props.member.organizations.slice(3));
+const hasRecentDefined = computed(() => props.member.organizations.some(
+  (o) => !o.memberOrganizations?.dateEnd && !!o.memberOrganizations?.dateStart,
+));
+const currentOrganizations = computed(() => props.member.organizations
+  .filter((o) => {
+    if (hasRecentDefined.value) {
+      return (
+        !o.memberOrganizations?.dateEnd && !!o.memberOrganizations?.dateStart
+      );
+    }
+
+    return !o.memberOrganizations?.dateEnd;
+  })
+  .sort((a, b) => {
+    const mostRecentStartDate = new Date(a.memberOrganizations?.dateStart);
+    const organizationStartDate = new Date(b.memberOrganizations?.dateStart);
+
+    if (mostRecentStartDate > organizationStartDate) {
+      return -1;
+    }
+    if (mostRecentStartDate < organizationStartDate) {
+      return 1;
+    }
+    // a must be equal to b
+    return 0;
+  }));
+const slicedOrganizations = computed(() => currentOrganizations.value.slice(0, 3));
+const remainingOrganizations = computed(() => currentOrganizations.value.slice(3));
 </script>
 
 <script>

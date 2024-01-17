@@ -1,6 +1,6 @@
 <template>
-  <div class="member-view-header panel relative">
-    <div class="flex items-start gap-4">
+  <div class="member-view-header panel !px-0 relative">
+    <div class="flex items-start gap-4 px-6">
       <app-avatar :entity="member" size="xl" />
       <div class="flex grow flex-col gap-2">
         <div class="flex justify-between items-center">
@@ -20,10 +20,13 @@
         />
       </div>
     </div>
-    <div class="text-sm text-gray-600 py-6 border-b border-gray-200 mb-4">
+    <div
+      v-if="member.attributes?.bio?.default"
+      class="text-sm text-gray-600 py-6 border-b border-gray-200 mb-4 px-6"
+    >
       <app-member-bio :member="member" />
     </div>
-    <div class="grid grid-rows-2 grid-flow-col gap-4">
+    <div class="grid grid-rows-2 grid-flow-col gap-4 px-6">
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           # of activities
