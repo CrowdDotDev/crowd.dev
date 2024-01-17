@@ -77,6 +77,7 @@ GROUP BY o.id
 
 CREATE UNIQUE INDEX IF NOT EXISTS mv_organizations_cube_id ON mv_organizations_cube (id);
 CREATE INDEX IF NOT EXISTS mv_organizations_cube_tenantId ON mv_organizations_cube ("tenantId");
+CREATE INDEX IF NOT EXISTS mv_organizations_cube_joined_at ON mv_organizations_cube ("earliestJoinedAt");
 
 
 -- Segments

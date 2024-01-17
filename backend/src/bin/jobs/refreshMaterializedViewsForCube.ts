@@ -1,6 +1,5 @@
 import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { getTemporalClient } from '@crowd/temporal'
-import { randomUUID } from 'crypto'
 import { QueryTypes } from 'sequelize'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 import { CrowdJob } from '../../types/jobTypes'

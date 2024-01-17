@@ -128,7 +128,7 @@ onBeforeUnmount(() => {
 });
 
 watch(currentTenant, (updatedTenant, previousTenant) => {
-  if (updatedTenant.id !== previousTenant.id) {
+  if (updatedTenant?.id !== previousTenant?.id) {
     getCubeToken();
   }
 }, {

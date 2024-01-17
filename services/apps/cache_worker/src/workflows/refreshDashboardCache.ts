@@ -17,7 +17,10 @@ import {
 import moment from 'moment'
 import { DashboardTimeframe } from '../enums'
 
-const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '15 minute' })
+const activity = proxyActivities<typeof activities>({
+  startToCloseTimeout: '3 minute',
+  retry: { maximumAttempts: 3 },
+})
 
 export async function refreshDashboardCache(
   args: IProcessRefreshDashboardCacheArgs,
