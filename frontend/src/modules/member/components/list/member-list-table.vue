@@ -105,7 +105,7 @@
               <el-table-column
                 label="Contact"
                 prop="displayName"
-                width="250"
+                width="300"
                 fixed
                 class="-my-2"
                 sortable="custom"
@@ -118,30 +118,35 @@
                     }"
                     class="block"
                   >
-                    <div class="flex items-center text-black">
-                      <app-avatar :entity="scope.row" size="sm" class="mr-2" />
-                      <span
-                        class="font-semibold"
-                        data-qa="members-name"
-                        v-html="$sanitize(scope.row.displayName)"
-                      />
-                      <app-member-sentiment :member="scope.row" class="ml-2" />
-                      <app-member-badge :member="scope.row" />
+                    <div class="flex items-center">
+                      <app-avatar :entity="scope.row" size="xs" class="mr-3" />
+                      <div class="inline-flex flex-wrap overflow-wrap items-center">
+                        <span
+                          class="font-medium text-sm text-gray-900 line-clamp-2 w-auto"
+                          data-qa="members-name"
+                          v-html="$sanitize(scope.row.displayName)"
+                        />
+                        <app-member-sentiment :member="scope.row" class="ml-1 mr-1" />
+                        <app-member-badge :member="scope.row" />
+                      </div>
                     </div>
                   </router-link>
                 </template>
               </el-table-column>
 
-              <!-- Organization & Title -->
-              <el-table-column label="Organization & Title" width="220">
+              <!-- Organization -->
+              <el-table-column
+                label="Organization"
+                width="300"
+              >
                 <template #header>
                   <div class="flex items-center">
-                    <div class="mr-2">
-                      Organization & Title
-                    </div>
                     <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
                       <app-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
+                    <div class="ml-2 text-purple-800">
+                      Organization
+                    </div>
                   </div>
                 </template>
                 <template #default="scope">
@@ -152,24 +157,53 @@
                     }"
                     class="block"
                   >
-                    <app-member-organizations
+                    <app-member-organizations-vertical
                       :member="scope.row"
-                      :show-title="true"
                     />
                   </router-link>
                 </template>
               </el-table-column>
 
-              <!-- Identities -->
-              <el-table-column label="Identities" width="280">
+              <!-- Job Title -->
+              <el-table-column
+                label="Job Title"
+                width="260"
+              >
                 <template #header>
-                  <span>Identities</span>
+                  <div class="flex items-center">
+                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <app-svg name="source" class="h-3 w-3" />
+                    </el-tooltip>
+                    <div class="ml-2 text-purple-800">
+                      Job Title
+                    </div>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                    }"
+                    class="block"
+                  >
+                    <app-member-job-title :member="scope.row" />
+                  </router-link>
+                </template>
+              </el-table-column>
+
+              <!-- Identities -->
+              <el-table-column
+                label="Identities"
+                width="280"
+              >
+                <template #header>
                   <el-tooltip placement="top">
                     <template #content>
                       Identities can be profiles on social platforms, emails, phone numbers,<br>
                       or unique identifiers from internal sources (e.g. web app log-in email).
                     </template>
-                    <i class="ri-information-line text-xs ml-1" />
+                    <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Identities</span>
                   </el-tooltip>
                 </template>
                 <template #default="scope">
@@ -189,7 +223,10 @@
               </el-table-column>
 
               <!-- Emails -->
-              <el-table-column label="Emails" :width="emailsColumnWidth">
+              <el-table-column
+                label="Emails"
+                width="300"
+              >
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -198,75 +235,7 @@
                     }"
                     class="block"
                   >
-                    <div
-                      v-if="scope.row.emails.filter((e) => !!e)?.length && scope.row.emails.filter((e) => !!e)?.some((e) => !!e)"
-                      class="text-sm cursor-auto flex flex-wrap gap-1"
-                    >
-                      <el-tooltip
-                        v-for="email of scope.row.emails.filter((e) => !!e).slice(0, 3)"
-                        :key="email"
-                        :disabled="!email"
-                        popper-class="custom-identity-tooltip"
-                        placement="top"
-                      >
-                        <template #content>
-                          <span>Send email
-                            <i
-                              v-if="email"
-                              class="ri-external-link-line text-gray-400"
-                            /></span>
-                        </template>
-                        <div @click.prevent>
-                          <a
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="badge--interactive"
-                            :href="`mailto:${email}`"
-                            @click.stop="trackEmailClick"
-                          >{{ email }}</a>
-                        </div>
-                      </el-tooltip>
-                      <el-popover
-                        v-if="scope.row.emails.filter((e) => !!e)?.length > 3"
-                        placement="top"
-                        :width="400"
-                        trigger="hover"
-                        popper-class="support-popover"
-                      >
-                        <template #reference>
-                          <span
-                            class="badge--interactive hover:text-gray-900"
-                          >+{{ scope.row.emails.filter((e) => !!e).length - 3 }}</span>
-                        </template>
-                        <div class="flex flex-wrap gap-3 my-1">
-                          <el-tooltip
-                            v-for="email of scope.row.emails.filter((e) => !!e).slice(3)"
-                            :key="email"
-                            :disabled="!email"
-                            popper-class="custom-identity-tooltip flex "
-                            placement="top"
-                          >
-                            <template #content>
-                              <span>Send email
-                                <i
-                                  v-if="email"
-                                  class="ri-external-link-line text-gray-400"
-                                /></span>
-                            </template>
-                            <div @click.prevent>
-                              <a
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="badge--interactive"
-                                :href="`mailto:${email}`"
-                                @click.stop="trackEmailClick"
-                              >{{ email }}</a>
-                            </div>
-                          </el-tooltip>
-                        </div>
-                      </el-popover>
-                    </div>
-                    <span v-else class="text-gray-500">-</span>
+                    <app-member-emails :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -275,11 +244,10 @@
               <el-table-column
                 label="Engagement Level"
                 prop="score"
-                width="210"
+                width="220"
                 sortable="custom"
               >
                 <template #header>
-                  <span>Engagement Level</span>
                   <el-tooltip placement="top">
                     <template #content>
                       Calculated based on the recency and importance of the activities<br>
@@ -287,7 +255,7 @@
                       <br>E.g. a higher engagement level will be given to a contact who has written
                       <br>in your Slack yesterday vs. someone who did so three weeks ago.
                     </template>
-                    <i class="ri-information-line text-xs ml-1" />
+                    <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Engagement Level</span>
                   </el-tooltip>
                 </template>
                 <template #default="scope">
@@ -307,7 +275,7 @@
               <el-table-column
                 label="# of Activities"
                 prop="activityCount"
-                width="200"
+                width="220"
                 sortable="custom"
               >
                 <template #default="scope">
@@ -327,7 +295,7 @@
               <el-table-column
                 label="Last activity"
                 prop="lastActive"
-                width="250"
+                width="220"
                 sortable="custom"
               >
                 <template #default="scope">
@@ -349,7 +317,7 @@
               <!-- Joined Date -->
               <el-table-column
                 label="Joined Date"
-                width="200"
+                width="180"
                 prop="joinedAt"
                 sortable
               >
@@ -375,16 +343,16 @@
               <!-- Location -->
               <el-table-column
                 label="Location"
-                width="200"
+                width="260"
               >
                 <template #header>
                   <div class="flex items-center">
-                    <div class="mr-2">
-                      Location
-                    </div>
                     <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
                       <app-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
+                    <div class="ml-2 text-purple-800">
+                      Location
+                    </div>
                   </div>
                 </template>
                 <template #default="scope">
@@ -411,7 +379,7 @@
                 v-if="showReach"
                 label="Reach"
                 prop="reach"
-                width="180"
+                width="140"
                 sortable="custom"
               >
                 <template #header>
@@ -421,16 +389,19 @@
                     @mouseover="() => onColumnHeaderMouseOver('reach')"
                     @mouseleave="closeEnrichmentPopover"
                   >
-                    <span :class="{ 'text-purple-400': !isEnrichEnabled }">Reach</span>
                     <div class="inline-flex items-center ml-1 gap-2">
+                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                        <app-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
                       <el-tooltip placement="top">
                         <template #content>
                           Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
                         </template>
-                        <i class="ri-information-line text-xs" />
-                      </el-tooltip>
-                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <span
+                          class="underline decoration-dashed text-purple-800 decoration-purple-800 underline-offset-4"
+                        >
+                          Reach
+                        </span>
                       </el-tooltip>
                     </div>
                   </div>
@@ -464,7 +435,7 @@
               <el-table-column
                 label="Seniority Level"
                 prop="seniorityLevel"
-                width="200"
+                width="220"
               >
                 <template #header>
                   <div
@@ -473,9 +444,6 @@
                     @mouseover="() => onColumnHeaderMouseOver('seniorityLevel')"
                     @mouseleave="closeEnrichmentPopover"
                   >
-                    <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                      Seniority Level
-                    </div>
                     <el-tooltip
                       content="Source: Enrichment"
                       placement="top"
@@ -484,6 +452,9 @@
                     >
                       <app-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
+                    <div class="ml-2 text-purple-800">
+                      Seniority Level
+                    </div>
                   </div>
                 </template>
                 <template #default="scope">
@@ -517,7 +488,7 @@
               <el-table-column
                 label="Programming Languages"
                 prop="programmingLanguages"
-                width="250"
+                width="300"
               >
                 <template #header>
                   <div
@@ -526,9 +497,6 @@
                     @mouseover="() => onColumnHeaderMouseOver('programmingLanguagess')"
                     @mouseleave="closeEnrichmentPopover"
                   >
-                    <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                      Programming Languages
-                    </div>
                     <el-tooltip
                       content="Source: Enrichment"
                       placement="top"
@@ -537,6 +505,9 @@
                     >
                       <app-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
+                    <div class="ml-2 text-purple-800">
+                      Programming Languages
+                    </div>
                   </div>
                 </template>
                 <template #default="scope">
@@ -555,7 +526,7 @@
                         :slice-size="5"
                       >
                         <template #itemSlot="{ item }">
-                          <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                          <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
                             {{ item }}
                           </span>
                         </template>
@@ -575,7 +546,7 @@
               <el-table-column
                 label="Skills"
                 prop="skills"
-                width="250"
+                width="300"
               >
                 <template #header>
                   <div
@@ -584,9 +555,6 @@
                     @mouseover="() => onColumnHeaderMouseOver('skills')"
                     @mouseleave="closeEnrichmentPopover"
                   >
-                    <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                      Skills
-                    </div>
                     <el-tooltip
                       content="Source: Enrichment"
                       placement="top"
@@ -595,6 +563,9 @@
                     >
                       <app-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
+                    <div class="ml-2 text-purple-800">
+                      Skills
+                    </div>
                   </div>
                 </template>
                 <template #default="scope">
@@ -613,7 +584,7 @@
                         :slice-size="5"
                       >
                         <template #itemSlot="{ item }">
-                          <span class="border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900 inline-flex break-keep">
+                          <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
                             {{ item }}
                           </span>
                         </template>
@@ -631,8 +602,8 @@
 
               <!-- Tags -->
               <el-table-column
-                :width="tagsColumnWidth"
-                :label="translate('entities.member.fields.tag')"
+                label="Tags"
+                width="300"
               >
                 <template #default="scope">
                   <router-link
@@ -741,9 +712,10 @@ import {
 } from 'vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import { storeToRefs } from 'pinia';
-import { i18n } from '@/i18n';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
-import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
+import AppMemberOrganizationsVertical from '@/modules/member/components/member-organizations-vertical.vue';
+import AppMemberJobTitle from '@/modules/member/components/member-job-title.vue';
+import AppMemberEmails from '@/modules/member/components/member-emails.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumber } from '@/utils/number';
@@ -826,7 +798,7 @@ const { currentTenant } = mapGetters('auth');
 const isEnrichEnabled = computed(() => currentTenant.value?.plan !== Plans.values.essential);
 
 const defaultSort = computed(() => ({
-  prop: 'lastActive',
+  prop: 'activityCount',
   order: 'descending',
 }));
 
@@ -842,39 +814,6 @@ const showReach = computed(
 const loading = computed(
   () => props.isPageLoading,
 );
-
-const tagsColumnWidth = computed(() => {
-  let maxTabWidth = 0;
-  members.value.forEach((row) => {
-    if (row.tags) {
-      const tabWidth = row.tags
-        .map((tag) => tag.name.length * 20)
-        .reduce((a, b) => a + b, 0);
-
-      if (tabWidth > maxTabWidth) {
-        maxTabWidth = tabWidth;
-      }
-    }
-  });
-
-  return Math.min(maxTabWidth + 100, 500);
-});
-
-const emailsColumnWidth = computed(() => {
-  let maxTabWidth = 0;
-
-  members.value.forEach((row) => {
-    const tabWidth = row.emails
-      .map((email) => (email ? email.length * 12 : 0))
-      .reduce((a, b) => a + b, 0);
-
-    if (tabWidth > maxTabWidth) {
-      maxTabWidth = tabWidth > 300 ? 300 : tabWidth;
-    }
-  });
-
-  return maxTabWidth;
-});
 
 const selectedRows = computed(() => selectedMembers.value);
 const pagination = computed({
@@ -992,10 +931,6 @@ function doChangePaginationPageSize(pageSize) {
   });
 }
 
-function translate(key) {
-  return i18n(key);
-}
-
 function rowClass({ row }) {
   const isSelected = selectedRows.value.find((r) => r.id === row.id) !== undefined;
 
@@ -1042,12 +977,6 @@ const onTableMouseover = () => {
 const onTableMouseLeft = () => {
   isTableHovered.value = false;
   isScrollbarVisible.value = isCursorDown.value;
-};
-
-const trackEmailClick = () => {
-  window.analytics.track('Click Member Contact', {
-    channel: 'Email',
-  });
 };
 
 watch(table, (newValue) => {

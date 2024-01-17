@@ -102,7 +102,7 @@
                 <el-table-column
                   label="Organization"
                   prop="displayName"
-                  width="240"
+                  width="300"
                   fixed
                   sortable
                 >
@@ -123,7 +123,10 @@
                 </el-table-column>
 
                 <!-- Website -->
-                <el-table-column label="Website" width="180">
+                <el-table-column
+                  label="Website"
+                  width="260"
+                >
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -137,7 +140,8 @@
                       >
                         <a
                           v-if="scope.row.website"
-                          class="text-gray-500 hover:!text-brand-500"
+                          class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4
+          hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
                           :href="withHttp(scope.row.website)"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -156,16 +160,16 @@
                 <el-table-column
                   label="Headline"
                   prop="headline"
-                  width="300"
+                  width="420"
                 >
                   <template #header>
                     <div class="flex items-center">
-                      <div class="mr-2">
-                        Headline
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Headline
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -179,9 +183,9 @@
                       <div class="mr-4">
                         <span
                           v-if="scope.row.headline || scope.row.description"
-                          class="text-sm h-full flex items-center text-gray-900"
+                          class="text-sm h-full flex items-center text-gray-900 line-clamp-3"
                         >
-                          {{ truncateText((scope.row.headline || scope.row.description), 150, '...') }}
+                          {{ scope.row.headline || scope.row.description }}
                         </span>
                         <span
                           v-else
@@ -198,13 +202,12 @@
                   width="280"
                 >
                   <template #header>
-                    <span>Identities</span>
                     <el-tooltip placement="top">
                       <template #content>
                         Identities can be profiles on social platforms, emails,<br>
                         or unique identifiers from internal sources.
                       </template>
-                      <i class="ri-information-line text-xs ml-1" />
+                      <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Identities</span>
                     </el-tooltip>
                   </template>
                   <template #default="scope">
@@ -228,7 +231,7 @@
                 <!-- Number of members -->
                 <el-table-column
                   label="# Contacts"
-                  width="150"
+                  width="220"
                   prop="memberCount"
                   sortable
                 >
@@ -255,8 +258,8 @@
 
                 <!-- Number of activities -->
                 <el-table-column
-                  label="# Activities"
-                  width="150"
+                  label="# of Activities"
+                  width="200"
                   prop="activityCount"
                   sortable
                 >
@@ -281,11 +284,11 @@
                   </template>
                 </el-table-column>
 
-                <!-- TBD: Last active -->
+                <!-- Last active -->
                 <el-table-column
                   label="Last active"
                   prop="lastActive"
-                  width="150"
+                  width="180"
                   sortable="lastActive"
                 >
                   <template #default="scope">
@@ -314,7 +317,7 @@
                 <!-- Joined Date -->
                 <el-table-column
                   label="Joined Date"
-                  width="200"
+                  width="180"
                   prop="joinedAt"
                   sortable
                 >
@@ -347,17 +350,17 @@
                 <!-- Location -->
                 <el-table-column
                   label="Location"
-                  width="150"
+                  width="260"
                   prop="location"
                 >
                   <template #header>
                     <div class="flex items-center">
-                      <div class="mr-2">
-                        Location
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Location
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -385,7 +388,7 @@
                 <!-- Industry -->
                 <el-table-column
                   label="Industry"
-                  width="150"
+                  width="220"
                   prop="industry"
                 >
                   <template #header>
@@ -395,12 +398,12 @@
                       @mouseover="() => onColumnHeaderMouseOver('industry')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                        Industry
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Industry
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -435,7 +438,7 @@
                 <!-- Headcount -->
                 <el-table-column
                   label="Headcount"
-                  width="150"
+                  width="180"
                   prop="size"
                 >
                   <template #header>
@@ -445,12 +448,12 @@
                       @mouseover="() => onColumnHeaderMouseOver('size')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                        Headcount
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Headcount
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -466,9 +469,9 @@
                         v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
-                        <span v-if="scope.row.size" class="text-gray-900">
+                        <span v-if="scope.row.size || scope.row.employees" class="text-gray-900">
                           {{
-                            scope.row.size
+                            scope.row.size || scope.row.employees
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
@@ -486,7 +489,7 @@
                 <el-table-column
                   label="Annual Revenue"
                   prop="revenueRange"
-                  width="180"
+                  width="220"
                 >
                   <template #header>
                     <div
@@ -495,12 +498,12 @@
                       @mouseover="() => onColumnHeaderMouseOver('revenueRange')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                        Annual Revenue
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Annual Revenue
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -535,7 +538,7 @@
                 <!-- Founded -->
                 <el-table-column
                   label="Founded"
-                  width="150"
+                  width="160"
                   prop="founded"
                   sortable
                 >
@@ -547,12 +550,12 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <div class="flex items-center">
-                        <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                          Founded
-                        </div>
                         <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                           <app-svg name="source" class="h-3 w-3" />
                         </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Founded
+                        </div>
                       </div>
                     </div>
                   </template>
@@ -588,9 +591,9 @@
 
                 <!-- Employee Growth Rate -->
                 <el-table-column
-                  label="Ann. Employee Growth Rate"
+                  label="Ann. Employee Growth"
                   prop="employeeGrowthRate"
-                  width="250"
+                  width="280"
                 >
                   <template #header>
                     <div
@@ -599,12 +602,12 @@
                       @mouseover="() => onColumnHeaderMouseOver('employeeGrowthRate')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                        Ann. Employee Growth Rate
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Ann. Employee Growth Rate
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -640,7 +643,7 @@
                 <el-table-column
                   label="Smart tags"
                   prop="tags"
-                  :width="tagsColumnWidth"
+                  width="280"
                 >
                   <template #header>
                     <div
@@ -649,12 +652,12 @@
                       @mouseover="() => onColumnHeaderMouseOver('tags')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <div class="mr-2" :class="{ 'text-purple-400': !isEnrichEnabled }">
-                        Smart Tags
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Smart Tags
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -667,14 +670,17 @@
                       class="block h-full"
                     >
                       <div v-if="isEnrichEnabled">
-                        <app-tag-list
+                        <app-shared-tag-list
                           v-if="scope.row.tags?.length"
-                          :member="{
-                            ...scope.row,
-                            tags: scope.row.tags.map((t) => ({ id: t, name: t })),
-                          }"
-                          :editable="false"
-                        />
+                          :list="scope.row.tags"
+                          :slice-size="5"
+                        >
+                          <template #itemSlot="{ item }">
+                            <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
+                              {{ item }}
+                            </span>
+                          </template>
+                        </app-shared-tag-list>
                         <span v-else class="text-gray-500">-</span>
                       </div>
                       <div v-else class="flex items-center h-full w-full pl-3">
@@ -782,13 +788,13 @@ import {
 import { useRouter } from 'vue-router';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
-import { withHttp, toSentenceCase, truncateText } from '@/utils/string';
+import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
-import AppTagList from '@/modules/tag/components/tag-list.vue';
+import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
@@ -868,24 +874,6 @@ const showBottomPagination = computed(() => (
     ) > 1
 ));
 const isLoading = computed(() => props.isPageLoading);
-
-const tagsColumnWidth = computed(() => {
-  let maxTabWidth = 0;
-
-  organizations.value.forEach((row) => {
-    if (row.tags) {
-      const tabWidth = row.tags
-        .map((tag) => tag.length * 20)
-        .reduce((a, b) => a + b, 0);
-
-      if (tabWidth > maxTabWidth) {
-        maxTabWidth = tabWidth;
-      }
-    }
-  });
-
-  return Math.min(maxTabWidth + 150, 500);
-});
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility

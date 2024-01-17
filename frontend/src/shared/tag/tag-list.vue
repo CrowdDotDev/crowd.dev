@@ -1,5 +1,5 @@
 <template>
-  <div v-if="list.length > 0" class="flex flex-wrap gap-1">
+  <div v-if="list.length > 0" class="flex flex-wrap gap-2">
     <div
       v-for="item of slicedValues"
       :key="item"
@@ -9,12 +9,13 @@
 
     <el-popover
       v-if="list.length > sliceSize"
+      popper-class="max-h-100 overflow-auto"
       placement="top"
       width="240px"
     >
       <template #reference>
         <div
-          class="flex border border-gray-200 px-2.5 text-xs rounded-md h-6 text-gray-900"
+          class="flex border border-gray-200 px-2 text-xs rounded-md h-6 text-gray-500 bg-white"
         >
           +
           {{ restOfValues.length }}
