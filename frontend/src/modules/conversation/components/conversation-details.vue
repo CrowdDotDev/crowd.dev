@@ -292,7 +292,7 @@ export default {
                 type: value,
               },
               {
-                conversationId: this.conversation.id,
+                conversationId: { in: [this.conversation.id] },
               },
             ],
           },
