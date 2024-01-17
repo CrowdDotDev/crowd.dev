@@ -289,7 +289,7 @@ export default {
           filter: {
             and: [
               {
-                type: value,
+                type: { eq: value },
               },
               {
                 conversationId: { in: [this.conversation.id] },
