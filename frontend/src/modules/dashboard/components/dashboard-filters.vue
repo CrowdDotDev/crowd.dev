@@ -137,6 +137,8 @@ export default {
     },
   },
   mounted() {
+    const { projectGroup } = this.$route.query;
+    this.setSegments({ segments: { segments: [projectGroup], childSegments: [] } });
   },
   methods: {
     ...mapActions({
