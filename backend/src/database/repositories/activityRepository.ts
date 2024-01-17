@@ -3,7 +3,6 @@ import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { Error400, Error404, RawQueryParser } from '@crowd/common'
-import { Z_ASCII } from 'zlib'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -253,7 +252,7 @@ class ActivityRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record, options)
+    return this._populateRelations(record, true, options)
   }
 
   /**
@@ -276,7 +275,7 @@ class ActivityRepository {
       transaction,
     })
 
-    return this._populateRelations(record, options)
+    return this._populateRelations(record, true, options)
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
