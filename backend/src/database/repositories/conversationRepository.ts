@@ -695,7 +695,7 @@ function applyHavingInWhereClause(include, value) {
     } else if (constraint.platform) {
       if (!include[0].where.platform) {
         include[0].where.platform = {
-          [Op.in]: []
+          [Op.in]: [],
         }
       }
 
