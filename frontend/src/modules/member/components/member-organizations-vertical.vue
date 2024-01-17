@@ -95,8 +95,9 @@ const props = defineProps({
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const slicedOrganizations = computed(() => props.member.organizations.slice(0, 3));
-const remainingOrganizations = computed(() => props.member.organizations.slice(3));
+const currentOrganizations = computed(() => props.member.organizations.filter((o) => !o.memberOrganizations?.dateEnd));
+const slicedOrganizations = computed(() => currentOrganizations.value.slice(0, 3));
+const remainingOrganizations = computed(() => currentOrganizations.value.slice(3));
 </script>
 
 <script>
