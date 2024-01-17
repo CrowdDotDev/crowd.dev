@@ -4,26 +4,68 @@
     :container-class="'col-start-1 col-span-12'"
   >
     <div class="member-form-page">
-      <el-button
-        key="members"
-        link
-        :icon="ArrowPrevIcon"
-        class="text-gray-600 btn-link--md btn-link--secondary p-0"
-        @click="onCancel"
-      >
-        Contributors
-      </el-button>
-      <div class="flex items-center gap-4 mt-4 mb-6">
-        <h4>
-          {{ isEditPage ? 'Edit contributor' : 'New contributor' }}
-        </h4>
-        <div
-          v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
-          class="badge badge--gray-light badge--xs"
-        >
-          {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+      <div class="sticky -top-5 z-20 bg-gray-50 -mx-2 px-2 -mt-6 pt-6 block">
+        <div class="border-b border-gray-200">
+          <el-button
+            key="members"
+            link
+            :icon="ArrowPrevIcon"
+            class="text-gray-600 btn-link--md btn-link--secondary p-0"
+            @click="onCancel"
+          >
+            Contributors
+          </el-button>
+          <div class="flex justify-between">
+            <div class="flex items-center gap-4 mt-4 mb-6">
+              <h4>
+                {{ isEditPage ? 'Edit contributor' : 'New contributor' }}
+              </h4>
+              <div
+                  v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
+                  class="badge badge--gray-light badge--xs"
+              >
+                {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+              </div>
+            </div>
+            <div class="flex items-center">
+              <el-button
+                v-if="isEditPage && hasFormChanged"
+                class="btn btn-link btn-link--primary !px-3"
+                :disabled="isFormSubmitting"
+                @click="onReset"
+              >
+                <i class="ri-arrow-go-back-line" />
+                <span>Reset changes</span>
+              </el-button>
+              <div
+                v-if="isEditPage && hasFormChanged"
+                class="mx-4 border-x border-gray-200 h-10"
+              />
+              <div class="flex gap-4">
+                <el-button
+                  :disabled="isFormSubmitting"
+                  class="btn btn--md btn--bordered"
+                  @click="onCancel"
+                >
+                  Cancel
+                </el-button>
+                <el-button
+                  :disabled="isSubmitBtnDisabled"
+                  :loading="isFormSubmitting"
+                  :loading-icon="LoaderIcon"
+                  class="btn btn--md btn--primary"
+                  @click="onSubmit"
+                >
+                  {{
+                    isEditPage ? 'Update contact' : 'Add contact'
+                  }}
+                </el-button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
       <el-container
         v-if="!isPageLoading"
         class="bg-white rounded-lg shadow shadow-black/15 flex-col"
