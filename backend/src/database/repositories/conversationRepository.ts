@@ -213,7 +213,6 @@ class ConversationRepository {
         as: 'activities',
         attributes: [],
         where: {} as Record<string, any>,
-        required: false,
       },
     ]
 
@@ -695,16 +694,16 @@ function applyHavingInWhereClause(include, value) {
       }
     } else if (constraint.platform) {
       if (!include[0].where.platform) {
-        include[0].where.platform = []
+        include[0].where.platform = {
+          [Op.in]: []
+        }
       }
 
-      include[0].where.platform.push(constraint.platform)
+      include[0].where.platform[Op.in].push(constraint.platform)
     } else if (constraint.createdAt) {
-      if (!include[0].where.createdAt) {
-        include[0].where.createdAt = []
+      include[0].where.createdAt = {
+        [Op.gte]: constraint.createdAt.gte,
       }
-
-      include[0].where.createdAt.push(constraint.createdAt)
     }
   })
 
