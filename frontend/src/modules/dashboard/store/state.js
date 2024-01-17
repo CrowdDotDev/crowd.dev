@@ -5,6 +5,7 @@ export default () => ({
     period: SEVEN_DAYS_PERIOD_FILTER,
     platform: 'all',
   },
+  cubeData: null,
   conversations: {
     loading: false,
     trending: [],
