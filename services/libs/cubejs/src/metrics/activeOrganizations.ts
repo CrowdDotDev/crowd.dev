@@ -1,8 +1,8 @@
 import moment from 'moment'
 
 import { CubeJsService } from '../service'
-import CubeDimensions from '../dimensions'
-import CubeMeasures from '../measures'
+import { CubeGranularity, CubeDimension, CubeMeasure, CubeOrderDirection } from '../enums'
+import { ICubeFilter, ICubeOrder, IDashboardFilter } from '../types'
 
 /**
  * Gets `active organizations` count for a given date range.
@@ -12,28 +12,69 @@ import CubeMeasures from '../measures'
  * @param endDate
  * @returns
  */
-export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: moment.Moment) => {
-  const activeOrganizations =
-    (
-      await cjs.load({
-        measures: [CubeMeasures.ORGANIZATION_COUNT],
-        timeDimensions: [
-          {
-            dimension: CubeDimensions.ACTIVITY_DATE,
-            dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
-          },
-        ],
-        limit: 1,
-        order: { [CubeDimensions.ORGANIZATIONS_JOINED_AT]: 'asc' },
-        filters: [
-          {
-            member: CubeDimensions.IS_TEAM_MEMBER,
-            operator: 'equals',
-            values: ['false'],
-          },
-        ],
-      })
-    )[0][CubeMeasures.ORGANIZATION_COUNT] ?? 0
+export default async (
+  cjs: CubeJsService,
+  startDate: moment.Moment,
+  endDate: moment.Moment,
+  granularity: CubeGranularity | string = undefined,
+  filter: IDashboardFilter = {},
+  order: ICubeOrder = { [CubeDimension.ORGANIZATIONS_JOINED_AT]: CubeOrderDirection.ASC },
+  rawResult = false,
+) => {
+  /*
+  const filters: ICubeFilter[] = [
+    {
+      member: CubeDimension.IS_TEAM_MEMBER,
+      operator: 'equals',
+      values: ['false'],
+    },
+    {
+      member: CubeDimension.IS_BOT,
+      operator: 'equals',
+      values: ['false'],
+    },
+  ]
+  */
 
-  return parseInt(activeOrganizations, 10)
+  const filters: ICubeFilter[] = []
+
+  if (filter.platform) {
+    filters.push({
+      member: CubeDimension.ACTIVITY_PLATFORM,
+      operator: 'equals',
+      values: [filter.platform],
+    })
+  }
+
+  if (filter.segments) {
+    filters.push({
+      member: CubeDimension.SEGMENTS_ID,
+      operator: 'equals',
+      values: filter.segments,
+    })
+  }
+
+  const activeOrganizations = await cjs.load(
+    {
+      measures: [CubeMeasure.ORGANIZATION_COUNT],
+      timeDimensions: [
+        {
+          dimension: CubeDimension.ACTIVITY_DATE,
+          dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
+          granularity,
+        },
+      ],
+      order,
+      filters,
+    },
+    rawResult,
+  )
+
+  if (rawResult || granularity) {
+    return activeOrganizations
+  }
+
+  const parsedResult = activeOrganizations[0][CubeMeasure.ORGANIZATION_COUNT] ?? 0
+
+  return parseInt(parsedResult, 10)
 }

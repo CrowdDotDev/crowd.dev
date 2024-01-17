@@ -27,6 +27,7 @@ import {
 import { IPremiumTenantInfo, TenantRepository } from '../repos/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { OrganizationSyncService } from '@crowd/opensearch'
+import { ENRICHMENT_PLATFORM_PRIORITY } from '../types/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -112,13 +113,20 @@ export async function getRemainingTenantCredits(tenant: IPremiumTenantInfo): Pro
     const remainingCredits =
       PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.ORGANIZATION_ENRICHMENT] - usedCredits
 
-    log.debug({ tenantId: tenant.id }, `Tenant has ${remainingCredits} credits left.`)
     const toSpend = Math.min(remainingCredits, MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION)
+
+    log.info(
+      { tenantId: tenant.id },
+      `Tenant has ${remainingCredits} credits left. Spending ${toSpend} credits.`,
+    )
     return toSpend
   }
 
   if ([TenantPlans.Enterprise, TenantPlans.Scale].includes(tenant.plan)) {
-    log.debug({ tenantId: tenant.id }, `Tenant has unlimited credits.`)
+    log.info(
+      { tenantId: tenant.id },
+      `Tenant has unlimited credits. Spending ${MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION} credits.`,
+    )
     return MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION
   }
 
@@ -151,20 +159,14 @@ export async function incrementTenantCredits(tenantId: string, plan: TenantPlans
 export async function getTenantOrganizationsForEnrichment(
   tenantId: string,
   perPage: number,
-  lastId?: string,
+  page: number,
 ): Promise<string[]> {
   const log = getChildLogger(getTenantOrganizationsForEnrichment.name, svc.log, { tenantId })
   const repo = new OrganizationRepository(svc.postgres.reader, svc.log)
-  const organizationIds = await repo.getTenantOrganizationsToEnrich(tenantId, perPage, lastId)
-  log.debug({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
+  const organizationIds = await repo.getTenantOrganizationsToEnrich(tenantId, perPage, page)
+  log.info({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
   return organizationIds
 }
-
-const ENRICHMENT_PLATFORM_PRIORITY = [
-  PlatformType.GITHUB,
-  PlatformType.LINKEDIN,
-  PlatformType.TWITTER,
-]
 
 /**
  * Attempts organization enrichment.

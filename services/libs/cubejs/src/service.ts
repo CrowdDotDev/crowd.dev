@@ -1,6 +1,7 @@
 import jwt, { JsonWebTokenError } from 'jsonwebtoken'
 import cubejs from '@cubejs-client/core'
 import { Error400 } from '@crowd/common'
+import { Logger } from '@crowd/logging'
 
 export class CubeJsService {
   private tenantId: string
@@ -15,13 +16,16 @@ export class CubeJsService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   meta: any
 
+  log: Logger
+
   /**
    * Sets tenant security context for cubejs api.
    * Also initializes cubejs api object from security context.
    * @param tenantId
    * @param segments
    */
-  async init(tenantId: string, segments: string[]): Promise<void> {
+  async init(tenantId: string, segments: string[], log?: Logger): Promise<void> {
+    this.log = log
     this.tenantId = tenantId
     this.segments = segments
     this.token = await CubeJsService.generateJwtToken(this.tenantId, this.segments)
@@ -34,8 +38,11 @@ export class CubeJsService {
    * @returns
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async load(query: any): Promise<any> {
+  async load(query: any, rawResult = false): Promise<any> {
     const result = await this.api.load(query)
+    if (rawResult) {
+      return result.loadResponse
+    }
     return result.loadResponses[0].data
   }
 

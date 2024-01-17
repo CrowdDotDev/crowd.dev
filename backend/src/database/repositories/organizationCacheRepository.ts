@@ -156,7 +156,7 @@ class OrganizationCacheRepository {
           replacements: {
             id,
             name: nameToCreateIdentity,
-            website: data.website,
+            website: data.website || null,
           },
           type: QueryTypes.INSERT,
           transaction,

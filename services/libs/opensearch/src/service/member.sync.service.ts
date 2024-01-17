@@ -764,6 +764,7 @@ export class MemberSyncService {
           string_title: organization.memberOrganizations?.title || null,
           date_dateStart: organization.memberOrganizations?.dateStart || null,
           date_dateEnd: organization.memberOrganizations?.dateEnd || null,
+          string_source: organization.memberOrganizations?.source || null,
         },
       })
     }

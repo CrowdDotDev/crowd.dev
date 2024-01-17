@@ -42,6 +42,7 @@ Options is used to configure the worker service.
 */
 export interface Options {
   maxTaskQueueActivitiesPerSecond?: number
+  maxConcurrentActivityTaskExecutions?: number
   postgres: {
     enabled: boolean
   }
@@ -214,6 +215,7 @@ export class ServiceWorker extends Service {
         activities: require(path.resolve('./src/activities')),
         dataConverter: await getDataConverter(),
         maxTaskQueueActivitiesPerSecond: this.options.maxTaskQueueActivitiesPerSecond,
+        maxConcurrentActivityTaskExecutions: this.options.maxConcurrentActivityTaskExecutions,
       })
     } catch (err) {
       throw new Error(err)
