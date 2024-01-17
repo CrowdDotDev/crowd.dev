@@ -48,11 +48,11 @@ export default {
 
   // fetch conversations data
   async getConversations({ dispatch }) {
-    dispatch('getTrendingConversations');
+    dispatch('getRecentConversations');
     // dispatch('getConversationCount');
   },
-  // Fetch trending conversations
-  async getTrendingConversations({ commit, state }) {
+  // Fetch recent conversations
+  async getRecentConversations({ commit, state }) {
     state.conversations.loading = true;
     const { platform, period } = state.filters;
 
@@ -87,7 +87,7 @@ export default {
       offset: 0,
     })
       .then((data) => {
-        commit('SET_TRENDING_CONVERSATIONS', data);
+        commit('SET_RECENT_CONVERSATIONS', data);
         return Promise.resolve(data);
       })
       .finally(() => {

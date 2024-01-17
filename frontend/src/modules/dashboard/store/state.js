@@ -8,7 +8,7 @@ export default () => ({
   cubeData: null,
   conversations: {
     loading: false,
-    trending: [],
+    recent: [],
     total: 0,
   },
   activities: {
