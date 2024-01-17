@@ -220,8 +220,6 @@ import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-wi
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed } from 'vue';
