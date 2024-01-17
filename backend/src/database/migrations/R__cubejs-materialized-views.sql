@@ -47,6 +47,7 @@ CREATE INDEX IF NOT EXISTS mv_activities_cube_timestamp ON mv_activities_cube (t
 CREATE INDEX IF NOT EXISTS mv_activities_cube_org_id ON mv_activities_cube ("organizationId");
 CREATE UNIQUE INDEX IF NOT EXISTS mv_activities_cube_id ON mv_activities_cube (id);
 CREATE INDEX IF NOT EXISTS mv_activities_cube_tenantId_timestamp_idx ON mv_activities_cube ("tenantId", "timestamp");
+CREATE INDEX mv_activities_cube_member_id_timestamp ON mv_activities_cube ("memberId", timestamp);
 
 
 -- Organizations
