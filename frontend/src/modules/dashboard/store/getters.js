@@ -7,7 +7,7 @@ export default {
   cubeData: (state) => state.cubeData,
 
   // Conversations
-  trendingConversations: (state) => state.conversations.trending,
+  recentConversations: (state) => state.conversations.recent,
   conversations: (state) => state.conversations,
 
   // Activities
