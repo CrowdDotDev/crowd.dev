@@ -84,6 +84,7 @@
         :has-integrations="hasIntegrations"
         :has-members="membersCount > 0"
         :is-page-loading="loading"
+        :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
         @on-add-member="isSubProjectSelectionOpen = true"
       />
@@ -172,6 +173,7 @@ const fetchMembersToMergeCount = () => {
 };
 
 const loading = ref(true);
+const tableLoading = ref(false);
 
 const doGetMembersCount = () => {
   (
@@ -221,12 +223,15 @@ const fetch = ({
 const onPaginationChange = ({
   page, perPage,
 }: FilterQuery) => {
+  tableLoading.value = true;
   fetchMembers({
     reload: true,
     body: {
       offset: (page - 1) * perPage || 0,
       limit: perPage || 20,
     },
+  }).finally(() => {
+    tableLoading.value = false;
   });
 };
 
