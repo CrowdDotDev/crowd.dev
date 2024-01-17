@@ -1,13 +1,24 @@
 <template>
-  <app-identities-vertical-list
-    :identities="{
+  <div
+    v-if="Object.keys({
       ...identities.getIdentities(),
       ...(includeEmails ? { emails: identities.getEmails() } : {}),
       ...(includePhoneNumbers ? { phoneNumbers: identities.getPhoneNumbers() } : {}),
-    }"
-    :x-padding="xPadding"
-    :display-show-more="displayShowMore"
-  />
+    }).length"
+  >
+    <app-identities-vertical-list
+      :identities="{
+        ...identities.getIdentities(),
+        ...(includeEmails ? { emails: identities.getEmails() } : {}),
+        ...(includePhoneNumbers ? { phoneNumbers: identities.getPhoneNumbers() } : {}),
+      }"
+      :x-padding="xPadding"
+      :display-show-more="displayShowMore"
+    />
+  </div>
+  <div v-else class="text-gray-400 mt-6 text-xs italic">
+    No identities
+  </div>
 
   <slot :identities="identities" />
 </template>

@@ -41,7 +41,7 @@
             Location
           </p>
           <el-tooltip
-            v-if="getAttributeSourceName(member.attributes.location)"
+            v-if="getAttributeSourceName(member.attributes.location) && member.attributes.location?.default"
             :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
             placement="top"
             trigger="hover"
@@ -79,6 +79,7 @@
                   <i class="ri-information-line text-gray-500 text-xs mr-1" />
                 </el-tooltip>
                 <el-tooltip
+                  v-if="member.reach && member.reach.total !== -1"
                   content="Source: GitHub"
                   placement="top"
                   trigger="hover"

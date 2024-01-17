@@ -1,12 +1,12 @@
 <template>
-  <el-divider v-if="emails.length" class="!my-8 border-gray-200" />
+  <el-divider class="!my-8 border-gray-200" />
 
-  <div v-if="emails.length" class="flex flex-col px-6">
+  <div class="flex flex-col px-6">
     <div class="font-medium text-black">
       Email(s)
     </div>
 
-    <div class="flex flex-col gap-2 mt-6">
+    <div v-if="emails.length" class="flex flex-col gap-2 mt-6">
       <div
         v-for="(emailIdentity, index) in emails"
         :key="emailIdentity.handle"
@@ -43,16 +43,20 @@
         Show {{ displayEmailsMore ? 'less' : 'more' }}
       </div>
     </div>
+
+    <div v-else class="text-xs text-gray-400 italic mt-6">
+      No email addresses
+    </div>
   </div>
 
-  <el-divider v-if="phoneNumbers.length" class="!my-8" />
+  <el-divider class="!my-8" />
 
-  <div v-if="phoneNumbers.length" class="flex flex-col px-6">
+  <div class="flex flex-col px-6">
     <div class="font-medium text-black">
       Phone number(s)
     </div>
 
-    <div class="flex flex-col gap-2 mt-6">
+    <div v-if="phoneNumbers.length" class="flex flex-col gap-2 mt-6">
       <div
         v-for="(phoneNumberIdentity, index) in phoneNumbers"
         :key="phoneNumberIdentity.handle"
@@ -88,6 +92,10 @@
       >
         Show {{ displayPhoneNumbersMore ? 'less' : 'more' }}
       </div>
+    </div>
+
+    <div v-else class="text-xs text-gray-400 italic mt-6">
+      No phone numbers
     </div>
   </div>
 </template>
