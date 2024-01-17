@@ -26,30 +26,50 @@ import {
 } from '../repos/organization.repo'
 import { IPremiumTenantInfo, TenantRepository } from '../repos/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
-import { OrganizationSyncService } from '@crowd/opensearch'
 import { ENRICHMENT_PLATFORM_PRIORITY } from '../types/common'
+import {
+  PriorityLevelContextRepository,
+  QueuePriorityContextLoader,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION =
   IS_DEV_ENV || IS_TEST_ENV ? 10 : EDITION === Edition.LFX ? 500 : 100
 
-const syncOrganizations = new OrganizationSyncService(
-  svc.postgres.writer,
-  svc.opensearch,
-  svc.log,
-  {
-    edition: process.env['CROWD_EDITION'],
-  },
-)
+let searchSyncWorkerEmitter: SearchSyncWorkerEmitter | undefined
+async function getSearchSyncWorkerEmitter(): Promise<SearchSyncWorkerEmitter> {
+  if (searchSyncWorkerEmitter) {
+    return searchSyncWorkerEmitter
+  }
 
-export async function syncToOpensearch(organizationId: string): Promise<void> {
+  const repo = new PriorityLevelContextRepository(svc.postgres.reader, svc.log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    repo.loadPriorityLevelContext(tenantId)
+
+  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
+    svc.sqs,
+    svc.redis,
+    svc.tracer,
+    svc.unleash,
+    loader,
+    svc.log,
+  )
+
+  await searchSyncWorkerEmitter.init()
+
+  return searchSyncWorkerEmitter
+}
+
+export async function syncToOpensearch(tenantId: string, organizationId: string): Promise<void> {
   const log = getChildLogger(syncToOpensearch.name, svc.log, {
     organizationId,
   })
 
   try {
-    await syncOrganizations.syncOrganizations([organizationId])
+    const emitter = await getSearchSyncWorkerEmitter()
+    await emitter.triggerOrganizationSync(tenantId, organizationId, false)
   } catch (err) {
     log.error(err, 'Error while syncing organization to OpenSearch!')
     throw new Error(err)
