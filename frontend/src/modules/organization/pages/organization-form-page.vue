@@ -3,7 +3,7 @@
     :container-class="'col-start-1 col-span-12'"
   >
     <div class="organization-form-page">
-      <div class="sticky -top-5 z-20 bg-gray-50 -mx-2 px-2 -mt-6 pt-6 block">
+      <div class="sticky -top-5 z-20 bg-white -mx-2 px-2 -mt-6 pt-6 block">
         <div class="border-b border-gray-200">
           <el-button
             key="organizations"
@@ -19,13 +19,13 @@
               <h4>
                 {{
                   isEditPage
-                      ? 'Edit organization'
-                      : 'New organization'
+                    ? 'Edit organization'
+                    : 'New organization'
                 }}
               </h4>
               <div
-                  v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
-                  class="badge badge--gray-light badge--xs"
+                v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
+                class="badge badge--gray-light badge--xs"
               >
                 {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
               </div>
@@ -82,8 +82,17 @@
 
       <el-container
         v-if="!isPageLoading"
-        class="bg-white rounded-b-lg shadow shadow-black/15"
+        class="bg-white rounded-b-lg flex flex-col"
       >
+        <div v-if="!isEditPage" class="grid gap-x-12 grid-cols-3 bg-gray-50 p-6">
+          <div class="col-span-2 col-start-2 relative">
+            <app-lf-sub-projects-list-dropdown
+              :selected-subproject="selectedSegments.subproject"
+              :selected-subproject-parent="selectedSegments.project"
+              @on-change="onChange"
+            />
+          </div>
+        </div>
         <el-main class="p-6">
           <el-form
             ref="formRef"
