@@ -222,12 +222,14 @@ class ConversationRepository {
     // Quick win, need to be improved. We are seeing long requests because
     // filters are applied in HAVING using Sequelize, but setting these in
     // WHERE clause is better for performances.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Object.entries(advancedFilter).forEach(([key, value], index) => {
-      if (Array.isArray(value) && value.length > 0) {
-        include = applyHavingInWhereClause(include, value)
-      }
-    })
+    if (advancedFilter) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      Object.entries(advancedFilter).forEach(([key, value], index) => {
+        if (Array.isArray(value) && value.length > 0) {
+          include = applyHavingInWhereClause(include, value)
+        }
+      })
+    }
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
