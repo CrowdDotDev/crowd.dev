@@ -28,7 +28,7 @@
     </div>
   </div>
   <div v-else>
-    <div v-if="total > 0">
+    <div>
       <div class="flex w-full pb-5">
         <div
           v-for="(count, type) in bySentiment"
@@ -73,12 +73,6 @@
         </div>
       </div>
     </div>
-    <div
-      v-else
-      class="text-xs italic text-gray-400"
-    >
-      No data
-    </div>
   </div>
 </template>
 
@@ -115,13 +109,15 @@ const bySentiment = computed<Record<string, number>>(() => {
     const data = pivot.map((p: any) => [p.x, p[e.key]]);
     series = [...series, ...data];
   });
+  console.log(series);
   const seriesObject = series.reduce(
     (a, [key, value]) => ({
       ...a,
-      [key]: value,
+      [key]: +value,
     }),
     {},
   );
+  console.log(seriesObject);
 
   return {
     positive: seriesObject.positive > 0 ? seriesObject.positive : undefined,
