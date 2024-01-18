@@ -93,6 +93,12 @@ const en = {
     },
   },
 
+  organization: {
+    errors: {
+      websiteAlreadyExists: 'Website already exists in another organization. ID: {0}',
+    },
+  },
+
   errors: {
     notFound: {
       message: 'Page not found',

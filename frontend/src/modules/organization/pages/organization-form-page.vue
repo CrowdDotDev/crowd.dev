@@ -1,7 +1,5 @@
 <template>
-  <app-page-wrapper
-    :container-class="'col-start-1 col-span-12'"
-  >
+  <app-page-wrapper :container-class="'col-start-1 col-span-12'">
     <div class="organization-form-page">
       <el-button
         key="organizations"
@@ -14,24 +12,29 @@
       </el-button>
       <div class="flex items-center gap-4 mt-4 mb-6">
         <h4>
-          {{
-            isEditPage
-              ? 'Edit organization'
-              : 'New organization'
-          }}
+          {{ isEditPage ? "Edit organization" : "New organization" }}
         </h4>
         <div
-          v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
+          v-if="
+            !isEditPage &&
+            selectedSegments.project &&
+            selectedSegments.subproject
+          "
           class="badge badge--gray-light badge--xs"
         >
-          {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+          {{ selectedSegments.subproject.name }} ({{
+            selectedSegments.project.name
+          }})
         </div>
       </div>
       <el-container
         v-if="!isPageLoading"
         class="bg-white rounded-lg shadow shadow-black/15"
       >
-        <div v-if="!isEditPage" class="grid gap-x-12 grid-cols-3 bg-gray-50 p-6">
+        <div
+          v-if="!isEditPage"
+          class="grid gap-x-12 grid-cols-3 bg-gray-50 p-6"
+        >
           <div class="col-span-2 col-start-2 relative">
             <app-lf-sub-projects-list-dropdown
               :selected-subproject="selectedSegments.subproject"
@@ -52,17 +55,13 @@
               v-model="formModel"
               :fields="fields"
             />
-            <el-divider
-              class="!mb-6 !mt-8 !border-gray-200"
-            />
+            <el-divider class="!mb-6 !mt-8 !border-gray-200" />
             <app-organization-form-identities
               v-model="formModel"
               :record="record"
             />
             <div v-if="shouldShowAttributes">
-              <el-divider
-                class="!mb-6 !mt-8 !border-gray-200"
-              />
+              <el-divider class="!mb-6 !mt-8 !border-gray-200" />
               <app-organization-form-attributes
                 v-model="formModel"
                 :organization="record"
@@ -73,9 +72,7 @@
         <el-footer
           class="bg-gray-50 flex items-center p-6 h-fit rounded-b-lg"
           :class="
-            isEditPage && hasFormChanged
-              ? 'justify-between'
-              : 'justify-end'
+            isEditPage && hasFormChanged ? 'justify-between' : 'justify-end'
           "
         >
           <el-button
@@ -102,70 +99,51 @@
               class="btn btn--md btn--primary"
               @click="onSubmit"
             >
-              {{
-                isEditPage
-                  ? 'Update organization'
-                  : 'Add organization'
-              }}
+              {{ isEditPage ? "Update organization" : "Add organization" }}
             </el-button>
           </div>
         </el-footer>
       </el-container>
       <el-container v-else>
-        <div
-          v-loading="isPageLoading"
-          class="app-page-spinner w-full"
-        />
+        <div v-loading="isPageLoading" class="app-page-spinner w-full" />
       </el-container>
     </div>
   </app-page-wrapper>
 </template>
 
 <script setup>
-import {
-  computed,
-  h,
-  onMounted,
-  onUnmounted,
-  reactive,
-  ref,
-  watch,
-} from 'vue';
-import {
-  onBeforeRouteLeave,
-  useRoute,
-  useRouter,
-} from 'vue-router';
-import isEqual from 'lodash/isEqual';
-import { OrganizationModel } from '@/modules/organization/organization-model';
-import { FormSchema } from '@/shared/form/form-schema';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
-import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
-import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
-import { OrganizationService } from '@/modules/organization/organization-service';
-import Errors from '@/shared/error/errors';
-import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
-import enrichmentAttributes from '@/modules/organization/config/enrichment';
-import { AttributeType } from '@/modules/organization/types/Attributes';
+import { computed, h, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
+import isEqual from "lodash/isEqual";
+import { OrganizationModel } from "@/modules/organization/organization-model";
+import { FormSchema } from "@/shared/form/form-schema";
+import ConfirmDialog from "@/shared/dialog/confirm-dialog";
+import AppOrganizationFormIdentities from "@/modules/organization/components/form/organization-form-identities.vue";
+import AppOrganizationFormDetails from "@/modules/organization/components/form/organization-form-details.vue";
+import AppOrganizationFormAttributes from "@/modules/organization/components/form/organization-form-attributes.vue";
+import { storeToRefs } from "pinia";
+import { useLfSegmentsStore } from "@/modules/lf/segments/store";
+import AppLfSubProjectsListDropdown from "@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue";
+import { OrganizationService } from "@/modules/organization/organization-service";
+import Errors from "@/shared/error/errors";
+import Message from "@/shared/message/message";
+import { i18n } from "@/i18n";
+import enrichmentAttributes from "@/modules/organization/config/enrichment";
+import { AttributeType } from "@/modules/organization/types/Attributes";
 
 const LoaderIcon = h(
-  'i',
+  "i",
   {
-    class: 'ri-loader-4-fill text-sm text-white',
+    class: "ri-loader-4-fill text-sm text-white",
   },
-  [],
+  []
 );
 const ArrowPrevIcon = h(
-  'i', // type
+  "i", // type
   {
-    class: 'ri-arrow-left-s-line text-base leading-none',
+    class: "ri-arrow-left-s-line text-base leading-none",
   }, // props
-  [],
+  []
 );
 
 const props = defineProps({
@@ -226,15 +204,15 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const selectedSegments = computed(() => {
   let subproject;
 
-  const project = selectedProjectGroup.value.projects.find(
-    (p) => p.subprojects.some((sp) => {
+  const project = selectedProjectGroup.value.projects.find((p) =>
+    p.subprojects.some((sp) => {
       if (sp.id === route.query.subprojectId) {
         subproject = sp;
         return true;
       }
 
       return false;
-    }),
+    })
   );
 
   return {
@@ -248,29 +226,30 @@ function getInitialModel(record) {
     JSON.stringify(
       formSchema.initialValues({
         ...(record || {}),
-        name: record ? record.name : '',
-        displayName: record ? record.displayName || record.name : '',
-        headline: record ? record.headline : '',
-        description: record ? record.description : '',
-        joinedAt: record ? record.joinedAt : '',
-        identities: record ? [...record.identities.map((i) => ({
-          ...i,
-          platform: i.platform,
-          name: i.name,
-          username: i.url ? i.url.split('/').at(-1) : null,
-          url: i.url,
-        }))] : [],
+        name: record ? record.name : "",
+        displayName: record ? record.displayName || record.name : "",
+        headline: record ? record.headline : "",
+        description: record ? record.description : "",
+        joinedAt: record ? record.joinedAt : "",
+        identities: record
+          ? [
+              ...record.identities.map((i) => ({
+                ...i,
+                platform: i.platform,
+                name: i.name,
+                username: i.url ? i.url.split("/").at(-1) : null,
+                url: i.url,
+              })),
+            ]
+          : [],
         revenueRange: record ? record.revenueRange : {},
-        emails:
-          record && record.emails?.length > 0
-            ? record.emails
-            : [''],
+        emails: record && record.emails?.length > 0 ? record.emails : [""],
         phoneNumbers:
           record && record.phoneNumbers?.length > 0
             ? record.phoneNumbers
-            : [''],
-      }),
-    ),
+            : [""],
+      })
+    )
   );
 }
 
@@ -290,7 +269,9 @@ const isFormValid = computed(() => formSchema.isValidSync(formModel.value));
 
 const segments = computed(() => {
   if (!isEditPage.value) {
-    return selectedSegments.value.subproject ? [selectedSegments.value.subproject.id] : [];
+    return selectedSegments.value.subproject
+      ? [selectedSegments.value.subproject.id]
+      : [];
   }
 
   return record.value.segments?.map((s) => s.id) || [];
@@ -305,29 +286,32 @@ const hasFormChanged = computed(() => {
 });
 
 const isSubmitBtnDisabled = computed(
-  () => !isFormValid.value
-    || isFormSubmitting.value
-    || (isEditPage.value && !hasFormChanged.value),
+  () =>
+    !isFormValid.value ||
+    isFormSubmitting.value ||
+    (isEditPage.value && !hasFormChanged.value)
 );
 
-const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
-  if (!a.showInForm) {
-    return false;
-  }
+const shouldShowAttributes = computed(() =>
+  enrichmentAttributes.some((a) => {
+    if (!a.showInForm) {
+      return false;
+    }
 
-  if (a.type === AttributeType.ARRAY) {
-    return !!record.value?.[a.name]?.length;
-  }
+    if (a.type === AttributeType.ARRAY) {
+      return !!record.value?.[a.name]?.length;
+    }
 
-  return !!record.value?.[a.name];
-}));
+    return !!record.value?.[a.name];
+  })
+);
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
   if (
-    hasFormChanged.value
-    && !wasFormSubmittedSuccessfuly.value
-    && to.fullPath !== '/500'
+    hasFormChanged.value &&
+    !wasFormSubmittedSuccessfuly.value &&
+    to.fullPath !== "/500"
   ) {
     return ConfirmDialog({})
       .then(() => true)
@@ -341,13 +325,14 @@ onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
     const { segmentId, projecGroup } = route.query;
-    const segments = segmentId || projecGroup ? [segmentId || projecGroup] : null;
+    const segments =
+      segmentId || projecGroup ? [segmentId || projecGroup] : null;
 
     try {
       record.value = await OrganizationService.find(id, segments);
     } catch (error) {
       Errors.handle(error);
-      router.push({ name: 'organization' });
+      router.push({ name: "organization" });
     }
 
     isPageLoading.value = false;
@@ -361,43 +346,37 @@ onMounted(async () => {
 const preventWindowReload = (e) => {
   if (hasFormChanged.value) {
     e.preventDefault();
-    e.returnValue = '';
+    e.returnValue = "";
   }
 };
 
-window.addEventListener('beforeunload', preventWindowReload);
+window.addEventListener("beforeunload", preventWindowReload);
 
 onUnmounted(() => {
-  window.removeEventListener(
-    'beforeunload',
-    preventWindowReload,
-  );
+  window.removeEventListener("beforeunload", preventWindowReload);
 });
 
 // Once form is submitted successfuly, update route
-watch(
-  wasFormSubmittedSuccessfuly,
-  (isFormSubmittedSuccessfuly) => {
-    if (isFormSubmittedSuccessfuly) {
-      if (isEditPage.value) {
-        const { segmentId, projectGroup } = route.query;
+watch(wasFormSubmittedSuccessfuly, (isFormSubmittedSuccessfuly) => {
+  if (isFormSubmittedSuccessfuly) {
+    if (isEditPage.value) {
+      const { segmentId, projectGroup } = route.query;
 
-        return router.push({
-          name: 'organizationView',
-          params: {
-            id: record.value.id,
-          },
-          query: {
-            segmentId: segmentId || projectGroup,
-          },
-        });
-      }
-
-      return router.push({ name: 'organization' });
+      return router.push({
+        name: "organizationView",
+        params: {
+          id: record.value.id,
+        },
+        query: {
+          segmentId: segmentId || projectGroup,
+        },
+      });
     }
-    return null;
-  },
-);
+
+    return router.push({ name: "organization" });
+  }
+  return null;
+});
 
 function onReset() {
   formModel.value = isEditPage.value
@@ -409,7 +388,7 @@ function onCancel() {
   const { segmentId, projectGroup } = route.query;
 
   router.push({
-    name: 'organizationView',
+    name: "organizationView",
     params: {
       id: record.value.id,
     },
@@ -426,52 +405,47 @@ async function onSubmit() {
     manuallyCreated: true,
     ...formModel.value,
     name: isEditPage.value === false ? formModel.value.displayName : undefined,
-    displayName: isEditPage.value === true ? formModel.value.displayName : undefined,
+    displayName:
+      isEditPage.value === true ? formModel.value.displayName : undefined,
     emails: formModel.value.emails.reduce((acc, item) => {
-      if (item !== '') {
+      if (item !== "") {
         acc.push(item);
       }
       return acc;
     }, []),
-    identities: formModel.value.identities.filter((i) => i.username?.length > 0 || i.organizationId).map((i) => ({
-      ...i,
-      platform: i.platform,
-      url: i.url,
-      name: i.name,
-    })),
-    phoneNumbers: formModel.value.phoneNumbers.reduce(
-      (acc, item) => {
-        if (item !== '') {
-          acc.push(item);
-        }
-        return acc;
-      },
-      [],
-    ),
+    identities: formModel.value.identities
+      .filter((i) => i.username?.length > 0 || i.organizationId)
+      .map((i) => ({
+        ...i,
+        platform: i.platform,
+        url: i.url,
+        name: i.name,
+      })),
+    phoneNumbers: formModel.value.phoneNumbers.reduce((acc, item) => {
+      if (item !== "") {
+        acc.push(item);
+      }
+      return acc;
+    }, []),
   };
 
   const payload = isEditPage.value
     ? {
-      id: props.id,
-      values: data,
-      segments: segments.value,
-    }
+        id: props.id,
+        values: data,
+        segments: segments.value,
+      }
     : {
-      ...data,
-      segments: segments.value,
-    };
+        ...data,
+        segments: segments.value,
+      };
 
   // Edit
   if (isEditPage.value) {
     try {
-      await OrganizationService.update(
-        payload.id,
-        payload.values,
-      );
-      Message.success(i18n('entities.organization.update.success'));
+      await OrganizationService.update(payload.id, payload.values);
+      Message.success(i18n("entities.organization.update.success"));
     } catch (error) {
-      Message.error(i18n('entities.organization.update.error'));
-
       Errors.handle(error);
     }
   } else {
@@ -479,9 +453,9 @@ async function onSubmit() {
     try {
       await OrganizationService.create(payload);
 
-      Message.success(i18n('entities.organization.create.success'));
+      Message.success(i18n("entities.organization.create.success"));
     } catch (error) {
-      Message.error(i18n('entities.organization.create.error'));
+      Message.error(i18n("entities.organization.create.error"));
       Errors.handle(error);
     }
   }
@@ -491,7 +465,7 @@ async function onSubmit() {
 
 const onChange = ({ subprojectId }) => {
   router.replace({
-    name: 'organizationCreate',
+    name: "organizationCreate",
     query: {
       subprojectId,
     },
@@ -501,13 +475,13 @@ const onChange = ({ subprojectId }) => {
 
 <script>
 export default {
-  name: 'OrganizationFormPage',
+  name: "OrganizationFormPage",
 };
 </script>
 
 <style lang="scss">
 .organization-form-page {
-  .el-button [class*='el-icon'] + span {
+  .el-button [class*="el-icon"] + span {
     @apply ml-1;
   }
 

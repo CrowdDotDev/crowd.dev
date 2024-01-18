@@ -2,7 +2,7 @@ import lodash, { chunk } from 'lodash'
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { Error404, PageData } from '@crowd/common'
+import { Error404, Error409, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -593,6 +593,26 @@ class OrganizationRepository {
 
     if (!record) {
       throw new Error404()
+    }
+
+    // check if website already exists in another organization in the same tenant
+    if (data.website) {
+      const existingOrg = await options.database.organization.findOne({
+        where: {
+          website: data.website,
+          tenantId: currentTenant.id,
+        },
+        transaction,
+      })
+
+      // ensure that it's not the same organization
+      if (existingOrg && existingOrg.id !== record.id) {
+        throw new Error409(
+          options.language,
+          'organization.errors.websiteAlreadyExists',
+          existingOrg.id,
+        )
+      }
     }
 
     // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
