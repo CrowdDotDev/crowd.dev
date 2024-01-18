@@ -9,7 +9,7 @@
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
-        @click="emit('openDrawer')"
+        @click="emit('edit')"
       >
         <i class="ri-pencil-line" /><span>Edit</span>
       </el-button>
@@ -56,12 +56,12 @@
 
 <script setup lang="ts">
 import {
-  computed, defineProps, ref,
+  computed, ref,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
-const emit = defineEmits(['openDrawer']);
+const emit = defineEmits(['edit']);
 const props = defineProps<{
   emails: {
     handle: string;
