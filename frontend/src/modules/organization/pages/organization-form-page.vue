@@ -10,7 +10,7 @@
         class="text-gray-600 btn-link--md btn-link--secondary p-0"
         @click="onCancel"
       >
-        Organizations
+        Organization
       </el-button>
       <div class="flex items-center gap-4 mt-4 mb-6">
         <h4>
@@ -406,7 +406,17 @@ function onReset() {
 }
 
 function onCancel() {
-  router.push({ name: 'organization' });
+  const { segmentId, projectGroup } = route.query;
+
+  router.push({
+    name: 'organizationView',
+    params: {
+      id: record.value.id,
+    },
+    query: {
+      segmentId: segmentId || projectGroup,
+    },
+  });
 }
 
 async function onSubmit() {

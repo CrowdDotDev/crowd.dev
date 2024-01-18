@@ -67,6 +67,7 @@ export default [
         path: '/organizations/:id',
         component: OrganizationViewPage,
         meta: {
+          title: 'Organization',
           auth: true,
           permission: Permissions.values.organizationRead,
         },

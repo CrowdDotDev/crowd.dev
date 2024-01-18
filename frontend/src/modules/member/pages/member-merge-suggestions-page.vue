@@ -1,14 +1,16 @@
 <template>
   <app-page-wrapper size="narrow">
-    <router-link
-      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mt-1 mb-4"
-      :to="{
+    <app-back-link
+      class="mt-1 mb-4"
+      :default-route="{
         path: '/contributors',
         query: { projectGroup: selectedProjectGroup?.id },
       }"
     >
-      <i class="ri-arrow-left-s-line mr-2" />Contributors
-    </router-link>
+      <template #default>
+        Contributors
+      </template>
+    </app-back-link>
     <h4 class="text-xl font-semibold leading-9 mb-1">
       Merging suggestions
     </h4>
@@ -161,6 +163,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
+import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 

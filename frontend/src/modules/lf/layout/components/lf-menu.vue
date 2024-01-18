@@ -85,6 +85,7 @@
             class="el-menu-item"
             :class="classFor('/contributors', false, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"
+            @click="onContributorsClick"
           >
             <i class="ri-group-2-line" />
             <span v-if="!isCollapsed">
@@ -112,6 +113,7 @@
             class="el-menu-item"
             :class="classFor('/organizations', false, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"
+            @click="onOrganizationsClick"
           >
             <i class="ri-community-line" />
             <span v-if="!isCollapsed">
@@ -260,6 +262,10 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { useStore } from 'vuex';
 import { useActivityStore } from '@/modules/activity/store/pinia';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
+import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const store = useStore();
 
@@ -271,6 +277,20 @@ const { fetchActivityChannels } = useActivityStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const memberStore = useMemberStore();
+const { filters: membersFilters } = storeToRefs(memberStore);
+
+const organizationStore = useOrganizationStore();
+const { filters: organizationFilters } = storeToRefs(organizationStore);
+
+const onContributorsClick = () => {
+  membersFilters.value = allContacts.config;
+};
+
+const onOrganizationsClick = () => {
+  organizationFilters.value = allOrganizations.config;
+};
 
 watch(
   selectedProjectGroup,
