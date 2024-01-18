@@ -1,18 +1,8 @@
 <template>
   <div>
     <div class="flex items-center justify-between">
-      <div class="flex items-center">
-        <div class="font-medium text-black mr-2">
-          Organizations
-        </div>
-        <el-tooltip
-          v-if="member.organizations.length"
-          content="Source: Enrichment & GitHub"
-          placement="top"
-          trigger="hover"
-        >
-          <app-svg name="source" class="h-3 w-3" />
-        </el-tooltip>
+      <div class="font-medium text-black mr-2">
+        Organizations
       </div>
 
       <el-button
@@ -81,12 +71,14 @@
                   >
                     {{ displayName || name }}
                   </div>
-                  <span
+                  <el-tooltip
                     v-if="memberOrganizations?.source"
-                    class="bg-gray-100 rounded-full px-2 text-2xs text-gray-900"
+                    :content="getSource(memberOrganizations?.source)"
+                    placement="top"
+                    trigger="hover"
                   >
-                    {{ getSource(memberOrganizations?.source) }}
-                  </span>
+                    <app-svg name="source" class="h-3 w-3" />
+                  </el-tooltip>
                 </div>
                 <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
                   <span v-if="memberOrganizations.title">

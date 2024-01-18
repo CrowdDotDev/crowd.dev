@@ -35,7 +35,7 @@
                   :is="link ? 'a' : 'span'"
                   v-else
                   :href="link"
-                  class="text-gray-900 text-xs font-medium leading-5 items-center w-auto break-words"
+                  class="text-gray-900 text-xs font-medium leading-5 items-center w-auto break-all"
                   :class="{
                     'underline decoration-dashed decoration-gray-400 underline-offset-4 ':
                       link,
