@@ -17,7 +17,18 @@ const lastActivityDate: DateFilterConfig = {
     return itemLabelRendererByType[FilterConfigType.DATE]('Last activity', value, options);
   },
   apiFilterRenderer(value: DateFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.DATE]('lastActive', value);
+    let { operator } = value;
+
+    if (value.operator === 'gt') {
+      operator = 'gte';
+    } else if (value.operator === 'lt') {
+      operator = 'lte';
+    }
+
+    return apiFilterRendererByType[FilterConfigType.DATE]('lastActive', {
+      ...value,
+      operator,
+    });
   },
 };
 

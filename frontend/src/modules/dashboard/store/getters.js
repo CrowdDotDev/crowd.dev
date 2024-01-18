@@ -5,7 +5,7 @@ export default {
   segments: (state) => state.filters.segments,
 
   // Conversations
-  trendingConversations: (state) => state.conversations.trending,
+  recentConversations: (state) => state.conversations.recent,
   conversations: (state) => state.conversations,
 
   // Activities

@@ -26,29 +26,54 @@ import {
 } from '../repos/organization.repo'
 import { IPremiumTenantInfo, TenantRepository } from '../repos/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
-import { OrganizationSyncService } from '@crowd/opensearch'
+import { ENRICHMENT_PLATFORM_PRIORITY } from '../types/common'
+import {
+  PriorityLevelContextRepository,
+  QueuePriorityContextLoader,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION =
   IS_DEV_ENV || IS_TEST_ENV ? 10 : EDITION === Edition.LFX ? 500 : 100
 
-const syncOrganizations = new OrganizationSyncService(
-  svc.postgres.writer,
-  svc.opensearch,
-  svc.log,
-  {
-    edition: process.env['CROWD_EDITION'],
-  },
-)
+let searchSyncWorkerEmitter: SearchSyncWorkerEmitter | undefined
+async function getSearchSyncWorkerEmitter(): Promise<SearchSyncWorkerEmitter> {
+  if (searchSyncWorkerEmitter) {
+    if (!searchSyncWorkerEmitter.isInitialized()) {
+      await searchSyncWorkerEmitter.init()
+    }
 
-export async function syncToOpensearch(organizationId: string): Promise<void> {
+    return searchSyncWorkerEmitter
+  }
+
+  const repo = new PriorityLevelContextRepository(svc.postgres.reader, svc.log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    repo.loadPriorityLevelContext(tenantId)
+
+  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
+    svc.sqs,
+    svc.redis,
+    svc.tracer,
+    svc.unleash,
+    loader,
+    svc.log,
+  )
+
+  await searchSyncWorkerEmitter.init()
+
+  return searchSyncWorkerEmitter
+}
+
+export async function syncToOpensearch(tenantId: string, organizationId: string): Promise<void> {
   const log = getChildLogger(syncToOpensearch.name, svc.log, {
     organizationId,
   })
 
   try {
-    await syncOrganizations.syncOrganizations([organizationId])
+    const searchSyncWorkerEmitter = await getSearchSyncWorkerEmitter()
+    await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, organizationId, false)
   } catch (err) {
     log.error(err, 'Error while syncing organization to OpenSearch!')
     throw new Error(err)
@@ -112,13 +137,20 @@ export async function getRemainingTenantCredits(tenant: IPremiumTenantInfo): Pro
     const remainingCredits =
       PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.ORGANIZATION_ENRICHMENT] - usedCredits
 
-    log.debug({ tenantId: tenant.id }, `Tenant has ${remainingCredits} credits left.`)
     const toSpend = Math.min(remainingCredits, MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION)
+
+    log.info(
+      { tenantId: tenant.id },
+      `Tenant has ${remainingCredits} credits left. Spending ${toSpend} credits.`,
+    )
     return toSpend
   }
 
   if ([TenantPlans.Enterprise, TenantPlans.Scale].includes(tenant.plan)) {
-    log.debug({ tenantId: tenant.id }, `Tenant has unlimited credits.`)
+    log.info(
+      { tenantId: tenant.id },
+      `Tenant has unlimited credits. Spending ${MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION} credits.`,
+    )
     return MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION
   }
 
@@ -151,20 +183,14 @@ export async function incrementTenantCredits(tenantId: string, plan: TenantPlans
 export async function getTenantOrganizationsForEnrichment(
   tenantId: string,
   perPage: number,
-  lastId?: string,
+  page: number,
 ): Promise<string[]> {
   const log = getChildLogger(getTenantOrganizationsForEnrichment.name, svc.log, { tenantId })
   const repo = new OrganizationRepository(svc.postgres.reader, svc.log)
-  const organizationIds = await repo.getTenantOrganizationsToEnrich(tenantId, perPage, lastId)
-  log.debug({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
+  const organizationIds = await repo.getTenantOrganizationsToEnrich(tenantId, perPage, page)
+  log.info({ tenantId, nrOrgs: organizationIds.length }, 'Got organizations for enrichment!')
   return organizationIds
 }
-
-const ENRICHMENT_PLATFORM_PRIORITY = [
-  PlatformType.GITHUB,
-  PlatformType.LINKEDIN,
-  PlatformType.TWITTER,
-]
 
 /**
  * Attempts organization enrichment.

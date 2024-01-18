@@ -853,12 +853,12 @@ class SegmentRepository extends RepositoryBase<
     const segments = await seq.query(
       `
         SELECT
-          id
-        FROM segments
-        WHERE "tenantId" = :tenantId
-          AND "sourceId" IN (:sourceIds)
-          AND "parentSlug" IS NOT NULL
-          AND "grandparentSlug" IS NOT NULL
+            DISTINCT UNNEST(ARRAY[s.id, s1.id, s2.id]) AS id
+        FROM segments s
+        JOIN segments s1 ON s1."parentSlug" = s.slug
+        JOIN segments s2 ON s2."parentSlug" = s1.slug
+        WHERE s."tenantId" = :tenantId
+          AND s."sourceId" IN (:sourceIds)
       `,
       {
         replacements: { sourceIds, tenantId: this.options.currentTenant.id },

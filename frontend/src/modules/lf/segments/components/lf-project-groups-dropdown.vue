@@ -14,7 +14,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="hasPermissionToEditProjectGroup"
+          v-if="hasPermissionToEditProjectGroup && hasAccessToSegmentId(id)"
           class="h-10 mb-1"
           :command="editProjectGroup"
         >
@@ -24,7 +24,7 @@
           <span class="text-xs">Edit project group</span>
         </el-dropdown-item>
         <el-dropdown-item
-          v-if="hasPermissionToCreateProject"
+          v-if="hasPermissionToCreateProject && hasAccessToSegmentId(id)"
           class="h-10 mb-1"
           :command="addProject"
         >
@@ -33,7 +33,7 @@
           /><span class="text-xs">Add project</span>
         </el-dropdown-item>
         <el-divider
-          v-if="hasPermissionToEditProjectGroup || hasPermissionToCreateProject"
+          v-if="(hasPermissionToEditProjectGroup && hasAccessToSegmentId(id)) || (hasPermissionToCreateProject && hasAccessToSegmentId(id))"
           class="border-gray-200 !my-2"
         />
         <el-dropdown-item
@@ -56,6 +56,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
+import { hasAccessToSegmentId } from '@/utils/segments';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 

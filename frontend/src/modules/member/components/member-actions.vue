@@ -5,23 +5,39 @@
       <el-button class="btn btn--bordered btn--sm !h-8" :disabled="isEditLockedForSampleData" @click="edit()">
         <span class="ri-pencil-line text-base mr-2" />Edit contributor
       </el-button>
-      <el-button
+      <el-tooltip
         v-if="mergeSuggestionsCount > 0"
-        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25"
-        :disabled="isEditLockedForSampleData"
-        @click="mergeSuggestions()"
+        content="Coming soon"
+        placement="top"
+        :disabled="hasPermissionsToMerge"
       >
-        <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
-      </el-button>
+        <span>
+          <el-button
+            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none !rounded-r-none"
+            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            @click="mergeSuggestions()"
+          >
+            <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
+          </el-button>
+        </span>
+      </el-tooltip>
 
-      <el-button
+      <el-tooltip
         v-else
-        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5"
-        :disabled="isEditLockedForSampleData"
-        @click="merge()"
+        content="Coming soon"
+        placement="top"
+        :disabled="hasPermissionsToMerge"
       >
-        <span class="ri-shuffle-line text-base mr-2" />Merge
-      </el-button>
+        <span>
+          <el-button
+            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-l-none !rounded-r-none"
+            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            @click="merge()"
+          >
+            <span class="ri-shuffle-line text-base mr-2" />Merge
+          </el-button>
+        </span>
+      </el-tooltip>
 
       <app-member-dropdown
         :member="props.member"
@@ -77,6 +93,11 @@ const isEditLockedForSampleData = computed(
   () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
+
+const hasPermissionsToMerge = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeMembers);
 
 const fetchMembersToMergeCount = () => {
   MemberService.fetchMergeSuggestions(1, 0, {

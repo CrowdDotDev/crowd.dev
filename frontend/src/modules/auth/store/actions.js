@@ -21,7 +21,9 @@ export default {
       const token = auth0Token || AuthToken.get();
 
       if (token) {
-        connectSocket(token);
+        if (AuthToken.get()) {
+          connectSocket(AuthToken.get());
+        }
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
 
@@ -109,11 +111,12 @@ export default {
 
   doSigninWithAuth0(
     { commit, dispatch },
-    token,
+    { token, appState },
   ) {
     commit('AUTH_START');
     return AuthService.ssoGetToken(token)
       .then((token) => {
+        connectSocket(token);
         AuthToken.set(token, true);
         return AuthService.fetchMe();
       })
@@ -121,9 +124,14 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser: currentUser || null,
         });
-        router.push('/');
+
+        window.history.replaceState(null, '', appState?.targetUrl ?? '/');
+        window.history.pushState(null, '', appState?.targetUrl ?? '/');
+
+        router.push(appState?.targetUrl ?? '/');
       })
       .catch((error) => {
+        disconnectSocket();
         AuthService.signout();
         Errors.handle(error);
         commit('AUTH_ERROR');

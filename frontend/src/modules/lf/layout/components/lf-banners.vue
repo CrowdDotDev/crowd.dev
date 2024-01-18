@@ -15,6 +15,7 @@
           <span class="font-semibold mx-1">{{ integrationsWithErrors[0]?.name }}</span>
           <span>has integrations with connectivity issues</span>
           <router-link
+            v-if="hasAccessToSegmentId(integrationsWithErrors[0].id)"
             :to="{
               name: 'integration',
               params: {
@@ -72,6 +73,7 @@
           <span class="font-semibold mx-1">{{ integrationsWithNoData[0]?.name }}</span>
           <span>has integrations that are not receiving activities</span>
           <router-link
+            v-if="hasAccessToSegmentId(integrationsWithNoData[0].id)"
             :to="{
               name: 'integration',
               params: {
@@ -163,7 +165,7 @@ import {
   watch, ref, computed, onUnmounted,
 } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { getSegmentsFromProjectGroup, hasAccessToSegmentId } from '@/utils/segments';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useRoute } from 'vue-router';

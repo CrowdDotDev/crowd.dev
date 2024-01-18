@@ -12,12 +12,26 @@ class ForksQuery extends BaseQuery {
             pageInfo ${BaseQuery.PAGE_SELECT}
             nodes {
               owner {
-                ... on User ${BaseQuery.USER_SELECT}
+                __typename
+               ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
+               ... on User ${BaseQuery.USER_SELECT}
               }
               name
               url
               id
               createdAt
+              indirectForks: forks(last: 100) {
+                nodes {
+                  owner {
+                    __typename
+                  ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
+                  ... on User ${BaseQuery.USER_SELECT}
+                  }
+                  id
+                  url
+                  createdAt
+                }
+              }
             }
           }
         }

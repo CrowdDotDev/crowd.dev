@@ -6,28 +6,37 @@
         <div class="flex items-center justify-between">
           <h4>Contributors</h4>
           <div class="flex items-center">
-            <router-link
-              class="mr-4"
-              :class="{ 'pointer-events-none': isEditLockedForSampleData }"
-              :to="{
-                name: 'memberMergeSuggestions',
-                query: { projectGroup: selectedProjectGroup?.id },
-              }"
+            <el-tooltip
+              v-if="membersToMergeCount > 0"
+              content="Coming soon"
+              placement="top"
+              :disabled="hasPermissionsToMerge"
             >
-              <button
-                v-if="membersToMergeCount > 0"
-                :disabled="isEditLockedForSampleData"
-                type="button"
-                class="btn btn--secondary btn--md flex items-center"
-              >
-                <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
-                <span class="text-gray-900">Merge suggestions</span>
-                <span
-                  v-if="membersToMergeCount > 0"
-                  class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
-                >{{ Math.ceil(membersToMergeCount) }}</span>
-              </button>
-            </router-link>
+              <span>
+                <component
+                  :is="hasPermissionsToMerge ? 'router-link' : 'span'"
+                  class="mr-4"
+                  :class="{ 'pointer-events-none': isEditLockedForSampleData }"
+                  :to="{
+                    name: 'memberMergeSuggestions',
+                    query: { projectGroup: selectedProjectGroup?.id },
+                  }"
+                >
+                  <button
+                    :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+                    type="button"
+                    class="btn btn--secondary btn--md flex items-center"
+                  >
+                    <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                    <span class="text-gray-900">Merge suggestions</span>
+                    <span
+                      v-if="membersToMergeCount > 0"
+                      class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                    >{{ Math.ceil(membersToMergeCount) }}</span>
+                  </button>
+                </component>
+              </span>
+            </el-tooltip>
 
             <el-button
               v-if="
@@ -56,6 +65,7 @@
         :config="memberSavedViews"
         :filters="memberFilters"
         :custom-filters="customAttributesFilter"
+        :static-views="memberStaticViews"
         placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
       />
@@ -74,6 +84,7 @@
         :has-integrations="hasIntegrations"
         :has-members="membersCount > 0"
         :is-page-loading="loading"
+        :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
         @on-add-member="isSubProjectSelectionOpen = true"
       />
@@ -107,7 +118,7 @@ import AppMemberListTable from '@/modules/member/components/list/member-list-tab
 import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
-import { memberSavedViews } from '../config/saved-views/main';
+import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 
 const router = useRouter();
 
@@ -134,6 +145,11 @@ const hasPermissionToCreate = computed(() => new MemberPermissions(
   currentUser.value,
 )?.create);
 
+const hasPermissionsToMerge = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeMembers);
+
 const pagination = ref({
   page: 1,
   perPage: 20,
@@ -157,6 +173,7 @@ const fetchMembersToMergeCount = () => {
 };
 
 const loading = ref(true);
+const tableLoading = ref(false);
 
 const doGetMembersCount = () => {
   (
@@ -206,12 +223,15 @@ const fetch = ({
 const onPaginationChange = ({
   page, perPage,
 }: FilterQuery) => {
+  tableLoading.value = true;
   fetchMembers({
     reload: true,
     body: {
       offset: (page - 1) * perPage || 0,
       limit: perPage || 20,
     },
+  }).finally(() => {
+    tableLoading.value = false;
   });
 };
 

@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import AppOrganizationMergeSuggestionsDetails
@@ -78,6 +78,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  toMerge: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -90,7 +94,7 @@ const organizationStore = useOrganizationStore();
 const originalOrganizationPrimary = ref(true);
 const sendingMerge = ref(false);
 
-const organizationToMerge = ref(null);
+const organizationToMerge = ref();
 
 const isModalOpen = computed({
   get() {
@@ -100,6 +104,12 @@ const isModalOpen = computed({
     emit('update:modelValue', null);
     organizationToMerge.value = null;
   },
+});
+
+watch(() => props.toMerge, (toMerge) => {
+  if (toMerge) {
+    organizationToMerge.value = toMerge;
+  }
 });
 
 const changeOrganization = () => {

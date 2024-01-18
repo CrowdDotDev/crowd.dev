@@ -76,7 +76,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column fixed="right" width="268">
+      <el-table-column fixed="right" width="288">
         <template #default="{ row }">
           <div class="w-full flex justify-end gap-3">
             <router-link

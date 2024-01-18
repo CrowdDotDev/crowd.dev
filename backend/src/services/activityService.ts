@@ -784,6 +784,18 @@ export default class ActivityService extends LoggerBase {
     return ActivityRepository.findAndCountAll(args, this.options)
   }
 
+  async queryV2(data) {
+    const filter = data.filter
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    const limit = data.limit
+    const offset = data.offset
+    const countOnly = data.countOnly ?? false
+    return ActivityRepository.findAndCountAllv2(
+      { filter, orderBy, limit, offset, countOnly },
+      this.options,
+    )
+  }
+
   async query(data) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)

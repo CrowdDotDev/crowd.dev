@@ -1,8 +1,8 @@
 import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { Error400, Error404 } from '@crowd/common'
+import { Error400, Error404, RawQueryParser } from '@crowd/common'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -252,7 +252,7 @@ class ActivityRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record, options)
+    return this._populateRelations(record, true, options)
   }
 
   /**
@@ -275,7 +275,7 @@ class ActivityRepository {
       transaction,
     })
 
-    return this._populateRelations(record, options)
+    return this._populateRelations(record, true, options)
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -320,6 +320,189 @@ class ActivityRepository {
       },
       transaction,
     })
+  }
+
+  public static ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
+    ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
+    ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
+    ['platform', 'a.platform'],
+    ['type', 'a.type'],
+    ['channel', 'a.channel'],
+    ['timestamp', 'a.timestamp'],
+    ['memberId', 'a."memberId"'],
+    ['organizationId', 'a."organizationId"'],
+    ['conversationId', 'a."conversationId"'],
+    ['sentiment', 'a."sentimentMood"'],
+  ])
+
+  static async findAndCountAllv2(
+    { filter = {} as any, limit = 20, offset = 0, orderBy = [''], countOnly = false },
+    options: IRepositoryOptions,
+  ) {
+    if (orderBy.length === 0 || (orderBy.length === 1 && orderBy[0].trim().length === 0)) {
+      orderBy = ['timestamp_DESC']
+    }
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      tenantId: tenant.id,
+      segmentIds,
+      limit,
+      offset,
+    }
+
+    if (filter.member) {
+      if (filter.member.isTeamMember) {
+        filter.isTeamMember = filter.member.isTeamMember
+      }
+
+      if (filter.member.isBot) {
+        filter.isBot = filter.member.isBot
+      }
+
+      delete filter.member
+    }
+
+    const parsedOrderBys = []
+
+    for (const orderByPart of orderBy) {
+      const orderByParts = orderByPart.split('_')
+      const direction = orderByParts[1].toLowerCase()
+      switch (orderByParts[0]) {
+        case 'timestamp':
+          parsedOrderBys.push({
+            property: orderByParts[0],
+            column: 'a.timestamp',
+            direction,
+          })
+          break
+        case 'createdAt':
+          parsedOrderBys.push({
+            property: orderByParts[0],
+            column: 'a."createdAt"',
+            direction,
+          })
+          break
+
+        default:
+          throw new Error(`Invalid order by: ${orderByPart}!`)
+      }
+    }
+
+    const orderByString = parsedOrderBys.map((o) => `${o.column} ${o.direction}`).join(',')
+
+    let filterString = RawQueryParser.parseFilters(
+      filter,
+      ActivityRepository.ACTIVITY_QUERY_FILTER_COLUMN_MAP,
+      [],
+      params,
+    )
+
+    if (filterString.trim().length === 0) {
+      filterString = '1=1'
+    }
+
+    const baseQuery = `
+      from mv_activities_cube a
+      inner join members m on m.id = a."memberId"
+      where a."tenantId" = :tenantId
+      and a."segmentId" in (:segmentIds)
+      and ${filterString}
+    `
+
+    const countQuery = `
+    select count(a.id) as count
+    ${baseQuery}
+    `
+
+    if (countOnly) {
+      const countResults = (await seq.query(countQuery, {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      })) as any
+
+      const count = countResults[0].count
+
+      return {
+        rows: [],
+        count,
+        limit,
+        offset,
+      }
+    }
+
+    const query = `
+      select a.id
+      ${baseQuery}
+      order by ${orderByString}
+      limit :limit offset :offset
+    `
+
+    const [results, countResults] = await Promise.all([
+      seq.query(query, {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      }),
+      seq.query(countQuery, {
+        replacements: params,
+        type: QueryTypes.SELECT,
+      }),
+    ])
+
+    const count = (countResults[0] as any).count
+    const ids = (results as any).map((r) => r.id)
+
+    const include = [
+      {
+        model: options.database.member,
+        as: 'member',
+      },
+      {
+        model: options.database.activity,
+        as: 'parent',
+        include: [
+          {
+            model: options.database.member,
+            as: 'member',
+          },
+        ],
+      },
+      {
+        model: options.database.member,
+        as: 'objectMember',
+      },
+      {
+        model: options.database.organization,
+        as: 'organization',
+      },
+    ]
+
+    const order = parsedOrderBys.map((a) => [a.property, a.direction])
+
+    let rows = await options.database.activity.findAll({
+      include,
+      attributes: [
+        ...SequelizeFilterUtils.getLiteralProjectionsOfModel('activity', options.database),
+      ],
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      order,
+    })
+
+    rows = await this._populateRelationsForRows(rows, false, options)
+
+    return {
+      rows,
+      count,
+      limit,
+      offset,
+    }
   }
 
   static async findAndCountAll(
@@ -693,7 +876,7 @@ class ActivityRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    rows = await this._populateRelationsForRows(rows, options)
+    rows = await this._populateRelationsForRows(rows, true, options)
 
     return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
@@ -750,15 +933,15 @@ class ActivityRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows, options: IRepositoryOptions) {
+  static async _populateRelationsForRows(rows, loadTasks: boolean, options: IRepositoryOptions) {
     if (!rows) {
       return rows
     }
 
-    return Promise.all(rows.map((record) => this._populateRelations(record, options)))
+    return Promise.all(rows.map((record) => this._populateRelations(record, loadTasks, options)))
   }
 
-  static async _populateRelations(record, options: IRepositoryOptions) {
+  static async _populateRelations(record, loadTasks: boolean, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
@@ -778,10 +961,12 @@ class ActivityRepository {
       )
     }
 
-    output.tasks = await record.getTasks({
-      transaction,
-      joinTableAttributes: [],
-    })
+    if (loadTasks) {
+      output.tasks = await record.getTasks({
+        transaction,
+        joinTableAttributes: [],
+      })
+    }
 
     return output
   }

@@ -72,8 +72,6 @@ export default {
       async handler(value) {
         if (value) {
           await TenantService.fetchAndApply();
-          this.fetchActivityTypes();
-          this.fetchActivityChannels();
 
           try {
             const user = await Auth0Service.getUser();
@@ -92,6 +90,14 @@ export default {
       handler(user, oldUser) {
         if (user?.id && user.id !== oldUser?.id) {
           identify(user);
+        }
+      },
+    },
+    currentTenant: {
+      handler(tenant, oldTenant) {
+        if (tenant?.id && tenant.id !== oldTenant?.id) {
+          this.fetchActivityTypes();
+          this.fetchActivityChannels();
         }
       },
     },

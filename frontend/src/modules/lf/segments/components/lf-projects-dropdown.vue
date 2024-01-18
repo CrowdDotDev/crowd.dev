@@ -1,5 +1,5 @@
 <template>
-  <div v-if="hasPermissionToCreateSubProject || hasPermissionToEditProject">
+  <div v-if="(hasPermissionToCreateSubProject && hasAccessToSegmentId(id)) || (hasPermissionToEditProject && hasAccessToSegmentId(id))">
     <el-dropdown
       trigger="click"
       placement="bottom-end"
@@ -14,7 +14,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="hasPermissionToEditProject"
+          v-if="(hasPermissionToEditProject && hasAccessToSegmentId(id))"
           class="h-10 mb-1"
           :command="editProject"
         >
@@ -24,7 +24,7 @@
           <span class="text-xs">Edit project</span>
         </el-dropdown-item>
         <el-dropdown-item
-          v-if="hasPermissionToCreateSubProject"
+          v-if="(hasPermissionToCreateSubProject && hasAccessToSegmentId(id))"
           class="h-10"
           :command="addSubProject"
         >
@@ -41,6 +41,14 @@
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
+import { hasAccessToSegmentId } from '@/utils/segments';
+
+defineProps({
+  id: {
+    type: String,
+    default: null,
+  },
+});
 
 const emit = defineEmits(['onEditProject', 'onAddSubProject']);
 

@@ -8,30 +8,39 @@
             <h4>Organizations</h4>
           </div>
           <div class="flex items-center">
-            <router-link
-              class=" mr-4 "
-              :class="{ 'pointer-events-none': isEditLockedForSampleData }"
-              :to="{
-                name: 'organizationMergeSuggestions',
-                query: {
-                  projectGroup: selectedProjectGroup?.id,
-                },
-              }"
+            <el-tooltip
+              v-if="organizationsToMergeCount > 0"
+              content="Coming soon"
+              placement="top"
+              :disabled="hasPermissionsToMerge"
             >
-              <button
-                v-if="organizationsToMergeCount > 0"
-                :disabled="isEditLockedForSampleData"
-                type="button"
-                class="btn btn--secondary btn--md flex items-center"
-              >
-                <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
-                <span class="text-gray-900">Merge suggestions</span>
-                <span
-                  v-if="organizationsToMergeCount > 0"
-                  class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
-                >{{ Math.ceil(organizationsToMergeCount) }}</span>
-              </button>
-            </router-link>
+              <span>
+                <component
+                  :is="hasPermissionsToMerge ? 'router-link' : 'span'"
+                  class=" mr-4 "
+                  :class="{ 'pointer-events-none': isEditLockedForSampleData }"
+                  :to="{
+                    name: 'organizationMergeSuggestions',
+                    query: {
+                      projectGroup: selectedProjectGroup?.id,
+                    },
+                  }"
+                >
+                  <button
+                    :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+                    type="button"
+                    class="btn btn--secondary btn--md flex items-center"
+                  >
+                    <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                    <span class="text-gray-900">Merge suggestions</span>
+                    <span
+                      v-if="organizationsToMergeCount > 0"
+                      class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                    >{{ Math.ceil(organizationsToMergeCount) }}</span>
+                  </button>
+                </component>
+              </span>
+            </el-tooltip>
             <el-button
               v-if="hasPermissionToCreate"
               class="btn btn--primary btn--md"
@@ -70,6 +79,7 @@
         v-model:pagination="pagination"
         :has-organizations="totalOrganizations > 0"
         :is-page-loading="loading"
+        :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
         @on-add-organization="isSubProjectSelectionOpen = true"
       />
@@ -114,6 +124,7 @@ const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizatio
 const { fetchOrganizations } = organizationStore;
 
 const loading = ref(true);
+const tableLoading = ref(false);
 const organizationCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
@@ -141,6 +152,11 @@ const isEditLockedForSampleData = computed(
     currentUser.value,
   ).editLockedForSampleData,
 );
+
+const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeOrganizations);
 
 const pagination = ref({
   page: 1,
@@ -192,12 +208,15 @@ const fetch = ({
 const onPaginationChange = ({
   page, perPage,
 }: FilterQuery) => {
+  tableLoading.value = true;
   fetchOrganizations({
     reload: true,
     body: {
       offset: (page - 1) * perPage || 0,
       limit: perPage || 20,
     },
+  }).finally(() => {
+    tableLoading.value = false;
   });
 };
 

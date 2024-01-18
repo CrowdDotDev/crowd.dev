@@ -7,15 +7,16 @@
     />
     <div v-else-if="organization">
       <div class="flex items-center justify-between">
-        <router-link
-          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-          :to="{
+        <app-back-link
+          :default-route="{
             path: '/organizations',
             query: { projectGroup: selectedProjectGroup?.id },
           }"
         >
-          <i class="ri-arrow-left-s-line mr-2" />Organizations
-        </router-link>
+          <template #default>
+            Organizations
+          </template>
+        </app-back-link>
         <app-organization-actions :organization="organization" />
       </div>
 
@@ -74,7 +75,6 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue';
-
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header.vue';
 import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside.vue';
@@ -85,6 +85,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { useRoute } from 'vue-router';
 import AppOrganizationActions from '@/modules/organization/components/organization-actions.vue';
+import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 
 const props = defineProps({
   id: {
