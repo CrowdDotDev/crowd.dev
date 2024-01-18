@@ -196,7 +196,7 @@
               <!-- Identities -->
               <el-table-column
                 label="Identities"
-                width="280"
+                width="300"
               >
                 <template #header>
                   <el-tooltip placement="top">

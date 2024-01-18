@@ -6,7 +6,7 @@
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 mt-6 group">
+    <div v-if="member.segments.length" class="flex flex-col gap-4 mt-6 group">
       <app-entities
         :entities="member.segments"
         :limit="3"
@@ -17,13 +17,17 @@
             :key="segment.id"
             class="flex flex-col gap-4"
           >
-            <div class="text-xs text-gray-900">
-              {{ segment.name }}
+            <div class="text-xs text-gray-900 flex items-center gap-3">
+              <i class="ri-stack-line text-lg" />
+              <span>{{ segment.name }}</span>
             </div>
             <el-divider v-if="i !== slicedEntities.length - 1" class="!my-0 border-gray-200" />
           </div>
         </template>
       </app-entities>
+    </div>
+    <div v-else class="text-gray-400 mt-6 text-xs italic">
+      No sub-projects
     </div>
   </div>
 </template>

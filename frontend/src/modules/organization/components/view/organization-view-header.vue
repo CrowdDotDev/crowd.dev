@@ -53,14 +53,18 @@
         </div>
       </div>
     </div>
-    <div v-if="organization.description || organization.headline" class="px-6">
+    <div v-if="organization.description || organization.headline" class="px-6 mt-6">
       <div
         class="flex items-center"
       >
         <p class="text-gray-400 font-medium text-2xs mr-2">
           Headline
         </p>
-        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+        <el-tooltip
+          content="Source: Enrichment"
+          placement="top"
+          trigger="hover"
+        >
           <app-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
@@ -119,7 +123,13 @@
               <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
                 Headcount
               </p>
-              <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+              <el-tooltip
+                v-if="organization.size || organization.employees"
+                content="Source: Enrichment"
+                placement="top"
+                trigger="hover"
+                :disabled="!enabled"
+              >
                 <app-svg name="source" class="h-3 w-3" />
               </el-tooltip>
             </div>
@@ -160,7 +170,13 @@
               <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
                 Annual Revenue
               </p>
-              <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!enabled">
+              <el-tooltip
+                v-if="organization.revenueRange"
+                content="Source: Enrichment"
+                placement="top"
+                trigger="hover"
+                :disabled="!enabled"
+              >
                 <app-svg name="source" class="h-3 w-3" />
               </el-tooltip>
             </div>

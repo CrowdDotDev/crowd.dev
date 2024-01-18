@@ -43,6 +43,10 @@ export class QueuePriorityService {
     )
   }
 
+  public isInitialized(): boolean {
+    return this.emitter.isInitialized()
+  }
+
   public async init(): Promise<void> {
     await this.emitter.init()
   }

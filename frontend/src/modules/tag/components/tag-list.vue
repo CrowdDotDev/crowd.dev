@@ -3,7 +3,7 @@
     @mouseenter="showEdit = true"
     @mouseleave="showEdit = true"
   >
-    <div v-if="computedTags.length" class="inline-flex items-center flex-wrap w-full justify-between gap-x-2 gap-y-2.5">
+    <div class="inline-flex items-center flex-wrap w-full justify-between gap-x-2 gap-y-2.5">
       <span
         v-for="tag in computedTags"
         :key="tag.id"
