@@ -97,6 +97,13 @@ export class SqsPrioritizedQueueEmitter {
     }
   }
 
+  public isInitialized(): boolean {
+    const allInitialized =
+      Array.from(this.emittersMap.values()).find((e) => !e.isInitialized()) === undefined
+
+    return allInitialized && this.defaultEmitter.isInitialized()
+  }
+
   public async init(): Promise<void> {
     await Promise.all(
       Array.from(this.emittersMap.values())

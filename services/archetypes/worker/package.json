@@ -13,6 +13,7 @@
     "@crowd/database": "file:../../libs/database",
     "@crowd/temporal": "file:../../libs/temporal",
     "@crowd/common": "file:../../libs/common",
+    "@crowd/sqs": "file:../../libs/sqs",
     "@opensearch-project/opensearch": "^1.2.0",
     "@temporalio/client": "~1.8.6",
     "@temporalio/worker": "~1.8.6",
