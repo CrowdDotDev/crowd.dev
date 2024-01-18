@@ -15,8 +15,14 @@ const config: Config = {
 }
 
 const options: Options = {
-  maxConcurrentActivityTaskExecutions: 30,
-  maxTaskQueueActivitiesPerSecond: 20,
+  maxTaskQueueActivitiesPerSecond: process.env['CROWD_TEMPORAL_TASKQUEUE_CACHE_MAX_ACTIVITIES']
+    ? Number(process.env['CROWD_TEMPORAL_TASKQUEUE_CACHE_MAX_ACTIVITIES'])
+    : undefined,
+  maxConcurrentActivityTaskExecutions: process.env[
+    'CROWD_TEMPORAL_TASKQUEUE_CACHE_CONCURRENT_ACTIVITIES'
+  ]
+    ? Number(process.env['CROWD_TEMPORAL_TASKQUEUE_CACHE_CONCURRENT_ACTIVITIES'])
+    : undefined,
   postgres: {
     enabled: true,
   },
