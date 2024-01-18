@@ -75,13 +75,23 @@
                 />
               </div>
               <div class="flex flex-col gap-1">
-                <div
-                  class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
-                >
-                  {{ displayName || name }}
+                <div class="flex gap-2 items-center">
+                  <div
+                    class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
+                  >
+                    {{ displayName || name }}
+                  </div>
+                  <span
+                    v-if="memberOrganizations?.source"
+                    class="bg-gray-100 rounded-full px-2 text-2xs text-gray-900"
+                  >
+                    {{ getSource(memberOrganizations?.source) }}
+                  </span>
                 </div>
                 <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
-                  <span v-if="memberOrganizations.title">{{ memberOrganizations.title }}</span>
+                  <span v-if="memberOrganizations.title">
+                    {{ memberOrganizations.title }}
+                  </span>
                   <span v-if="memberOrganizations.title" class="mx-1">•</span>
                   <span>
                     {{ memberOrganizations.dateStart
@@ -119,7 +129,15 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppEntities from '@/shared/modules/entities/Entities.vue';
-import { Organization } from '@/modules/organization/types/Organization';
+import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
+
+const OrganizationSourceValue = {
+  [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
+  [OrganizationSource.ENRICHMENT]: 'Enrichment',
+  [OrganizationSource.HUBSPOT]: 'HubSpot',
+  [OrganizationSource.GITHUB]: 'GitHub',
+  [OrganizationSource.UI]: 'Custom',
+};
 
 defineProps<{
   member: Member
@@ -142,4 +160,6 @@ const hasValues = (organizations: {
   dateEnd: string,
   dateStart: string
 }) => Object.values(organizations || {});
+
+const getSource = (source: OrganizationSource) => OrganizationSourceValue[source];
 </script>
