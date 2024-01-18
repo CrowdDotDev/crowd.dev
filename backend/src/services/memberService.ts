@@ -713,7 +713,9 @@ export default class MemberService extends LoggerBase {
               },
               'Error while triggering member sync changes!',
             )
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+            await new Promise((resolve) => {
+              setTimeout(resolve, 1000)
+            })
           }
         }
       }
