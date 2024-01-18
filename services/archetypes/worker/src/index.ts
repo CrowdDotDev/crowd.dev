@@ -7,6 +7,7 @@ import { getDbConnection, DbStore } from '@crowd/database'
 import { OpenSearchService } from '@crowd/opensearch'
 import { getDataConverter } from '@crowd/temporal'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
+import { SqsClient, getSqsClient } from '@crowd/sqs'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
@@ -35,6 +36,13 @@ const envvars = {
           'CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY',
           'CROWD_OPENSEARCH_NODE',
         ],
+  sqs: [
+    'CROWD_SQS_AWS_REGION',
+    'CROWD_SQS_HOST',
+    'CROWD_SQS_PORT',
+    'CROWD_SQS_AWS_ACCESS_KEY_ID',
+    'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
+  ],
 }
 
 /*
@@ -42,10 +50,13 @@ Options is used to configure the worker service.
 */
 export interface Options {
   maxTaskQueueActivitiesPerSecond?: number
-  postgres: {
+  postgres?: {
     enabled: boolean
   }
-  opensearch: {
+  opensearch?: {
+    enabled: boolean
+  }
+  sqs?: {
     enabled: boolean
   }
 }
@@ -63,6 +74,8 @@ export class ServiceWorker extends Service {
 
   protected _opensearchService: OpenSearchService
 
+  protected _sqsClient: SqsClient
+
   constructor(config: Config, opts: Options) {
     super(config)
 
@@ -70,7 +83,7 @@ export class ServiceWorker extends Service {
   }
 
   get postgres(): { reader: DbStore; writer: DbStore } | null {
-    if (!this.options.postgres.enabled) {
+    if (!this.options.postgres?.enabled) {
       return null
     }
 
@@ -81,11 +94,19 @@ export class ServiceWorker extends Service {
   }
 
   get opensearch(): OpenSearchService {
-    if (!this.options.opensearch.enabled) {
+    if (!this.options.opensearch?.enabled) {
       return null
     }
 
     return this._opensearchService
+  }
+
+  get sqs(): SqsClient {
+    if (!this.options.sqs?.enabled) {
+      return null
+    }
+
+    return this._sqsClient
   }
 
   // We first need to ensure a standard service can be initialized given the config
@@ -108,7 +129,7 @@ export class ServiceWorker extends Service {
     })
 
     // Only validate PostgreSQL-related environment variables if enabled.
-    if (this.options.postgres.enabled) {
+    if (this.options.postgres?.enabled) {
       envvars.postgres.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
@@ -117,8 +138,17 @@ export class ServiceWorker extends Service {
     }
 
     // Only validate OpenSearch-related environment variables if enabled.
-    if (this.options.opensearch.enabled) {
+    if (this.options.opensearch?.enabled) {
       envvars.opensearch.forEach((envvar) => {
+        if (!process.env[envvar]) {
+          missing.push(envvar)
+        }
+      })
+    }
+
+    // Only validate Sqs related environment variables if enabled
+    if (this.options.sqs?.enabled) {
+      envvars.sqs.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
         }
@@ -130,7 +160,7 @@ export class ServiceWorker extends Service {
       throw new Error(`Missing environment variables: ${missing.join(', ')}`)
     }
 
-    if (this.options.postgres.enabled) {
+    if (this.options.postgres?.enabled) {
       try {
         const dbConnection = await getDbConnection({
           host: process.env['CROWD_DB_READ_HOST'],
@@ -160,13 +190,27 @@ export class ServiceWorker extends Service {
       }
     }
 
-    if (this.options.opensearch.enabled) {
+    if (this.options.opensearch?.enabled) {
       try {
         this._opensearchService = new OpenSearchService(this.log, {
           region: process.env['CROWD_OPENSEARCH_AWS_REGION'],
           accessKeyId: process.env['CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID'],
           secretAccessKey: process.env['CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY'],
           node: process.env['CROWD_OPENSEARCH_NODE'],
+        })
+      } catch (err) {
+        throw new Error(err)
+      }
+    }
+
+    if (this.options.sqs?.enabled) {
+      try {
+        this._sqsClient = getSqsClient({
+          region: process.env['CROWD_SQS_AWS_REGION'],
+          host: process.env['CROWD_SQS_HOST'],
+          port: Number(process.env['CROWD_SQS_PORT']),
+          accessKeyId: process.env['CROWD_SQS_AWS_ACCESS_KEY_ID'],
+          secretAccessKey: process.env['CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
         })
       } catch (err) {
         throw new Error(err)
@@ -232,11 +276,11 @@ export class ServiceWorker extends Service {
   // Stop allows to gracefully stop the service. Order for closing connections
   // matters. We need to stop the Temporal worker before closing other connections.
   protected override async stop() {
-    if (this.options.opensearch.enabled) {
+    if (this.options.opensearch?.enabled) {
       await this._opensearchService.client.close()
     }
 
-    if (this.options.postgres.enabled) {
+    if (this.options.postgres?.enabled) {
       this._postgresWriter.dbInstance.end()
       this._postgresReader.dbInstance.end()
     }

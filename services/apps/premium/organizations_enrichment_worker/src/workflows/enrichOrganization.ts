@@ -18,7 +18,7 @@ export async function enrichOrganization(input: IEnrichOrganizationInput): Promi
   const wasEnriched = await tryEnrichOrganization(input.tenantId, input.organizationId)
 
   if (wasEnriched) {
-    await syncToOpensearch(input.organizationId)
+    await syncToOpensearch(input.tenantId, input.organizationId)
     await incrementTenantCredits(input.tenantId, input.plan)
   }
 }
