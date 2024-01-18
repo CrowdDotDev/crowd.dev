@@ -4,6 +4,7 @@ import {
   ParentClosePolicy,
   ChildWorkflowCancellationType,
   workflowInfo,
+  executeChild,
 } from '@temporalio/workflow'
 
 import * as activities from '../activities/getTenantSegmentInfo'
@@ -60,31 +61,43 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
         offset += SEGMENT_PAGE_SIZE
       } while (segments.length > 0)
 
-      // create a workflow for each tenantId-segmentId couple
-      await Promise.all(
-        Array.from(segmentLeafIdMap).map(([segmentId, leafSegmentIds]) => {
-          return startChild(refreshDashboardCache, {
-            workflowId: `${info.workflowId}/${tenant.tenantId}/${segmentId}`,
-            cancellationType: ChildWorkflowCancellationType.ABANDON,
-            parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-            retry: {
-              backoffCoefficient: 2,
-              initialInterval: 2 * 1000,
-              maximumInterval: 30 * 1000,
-            },
-            args: [
-              {
-                tenantId: tenant.tenantId,
-                segmentId,
-                leafSegmentIds,
+      // execute each child with batcheds of 100
+      const CHUNK_SIZE = 100
+      const entries = [...segmentLeafIdMap] // Convert map entries into an Array
+      const chunked: Map<string, string[]>[] = []
+
+      for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+        const chunk = new Map(entries.slice(i, i + CHUNK_SIZE)) // Create new Map(s) with the chunked entries
+        chunked.push(chunk)
+      }
+
+      for (const chunk of chunked) {
+        // create a workflow for each tenantId-segmentId couple
+        await Promise.all(
+          Array.from(chunk).map(([segmentId, leafSegmentIds]) => {
+            return executeChild(refreshDashboardCache, {
+              workflowId: `${info.workflowId}/${tenant.tenantId}/${segmentId}`,
+              cancellationType: ChildWorkflowCancellationType.ABANDON,
+              parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+              retry: {
+                backoffCoefficient: 2,
+                initialInterval: 2 * 1000,
+                maximumInterval: 30 * 1000,
               },
-            ],
-            searchAttributes: {
-              TenantId: [tenant.tenantId],
-            },
-          })
-        }),
-      )
+              args: [
+                {
+                  tenantId: tenant.tenantId,
+                  segmentId,
+                  leafSegmentIds,
+                },
+              ],
+              searchAttributes: {
+                TenantId: [tenant.tenantId],
+              },
+            })
+          }),
+        )
+      }
     }
   } else {
     await Promise.all(
