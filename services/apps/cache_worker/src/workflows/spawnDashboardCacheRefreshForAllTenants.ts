@@ -61,8 +61,8 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
         offset += SEGMENT_PAGE_SIZE
       } while (segments.length > 0)
 
-      // execute each child with batcheds of 100
-      const CHUNK_SIZE = 25
+      // execute each child with batcheds of 50
+      const CHUNK_SIZE = 50
       const entries = [...segmentLeafIdMap] // Convert map entries into an Array
       const chunked: Map<string, string[]>[] = []
 
