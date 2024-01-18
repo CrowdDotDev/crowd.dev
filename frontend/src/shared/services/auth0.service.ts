@@ -1,6 +1,7 @@
 import config from '@/config';
 import { Auth0Client } from '@auth0/auth0-spa-js';
 import { store } from '@/store';
+import { router } from '@/router';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
@@ -41,12 +42,17 @@ class Auth0ServiceClass {
           store.dispatch('auth/doAuthenticate');
 
           return Promise.resolve();
-        }).catch(() => {
-          // If getTokenSilently() fails it's because user is not authenticated
-          Auth0ServiceClass.localLogout();
-          this.loginWithRedirect();
+        }).catch((error) => {
+          if (error.error === 'login_required' || error.error === 'consent_required' || error.error
+=== 'missing_refresh_token') {
+            return this.webAuth.loginWithRedirect({
+              appState: {
+                targetUrl: router.currentRoute.value.fullPath,
+              },
+            });
+          }
 
-          return Promise.reject();
+          return Promise.reject(error);
         });
       }
 
