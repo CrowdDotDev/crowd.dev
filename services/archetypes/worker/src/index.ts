@@ -84,7 +84,7 @@ export class ServiceWorker extends Service {
   }
 
   get postgres(): { reader: DbStore; writer: DbStore } | null {
-    if (!this.options.postgres.enabled) {
+    if (!this.options.postgres?.enabled) {
       return null
     }
 
@@ -95,7 +95,7 @@ export class ServiceWorker extends Service {
   }
 
   get opensearch(): OpenSearchService {
-    if (!this.options.opensearch.enabled) {
+    if (!this.options.opensearch?.enabled) {
       return null
     }
 
@@ -130,7 +130,7 @@ export class ServiceWorker extends Service {
     })
 
     // Only validate PostgreSQL-related environment variables if enabled.
-    if (this.options.postgres.enabled) {
+    if (this.options.postgres?.enabled) {
       envvars.postgres.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
@@ -139,7 +139,7 @@ export class ServiceWorker extends Service {
     }
 
     // Only validate OpenSearch-related environment variables if enabled.
-    if (this.options.opensearch.enabled) {
+    if (this.options.opensearch?.enabled) {
       envvars.opensearch.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
@@ -161,7 +161,7 @@ export class ServiceWorker extends Service {
       throw new Error(`Missing environment variables: ${missing.join(', ')}`)
     }
 
-    if (this.options.postgres.enabled) {
+    if (this.options.postgres?.enabled) {
       try {
         const dbConnection = await getDbConnection({
           host: process.env['CROWD_DB_READ_HOST'],
@@ -191,7 +191,7 @@ export class ServiceWorker extends Service {
       }
     }
 
-    if (this.options.opensearch.enabled) {
+    if (this.options.opensearch?.enabled) {
       try {
         this._opensearchService = new OpenSearchService(this.log, {
           region: process.env['CROWD_OPENSEARCH_AWS_REGION'],
@@ -278,11 +278,11 @@ export class ServiceWorker extends Service {
   // Stop allows to gracefully stop the service. Order for closing connections
   // matters. We need to stop the Temporal worker before closing other connections.
   protected override async stop() {
-    if (this.options.opensearch.enabled) {
+    if (this.options.opensearch?.enabled) {
       await this._opensearchService.client.close()
     }
 
-    if (this.options.postgres.enabled) {
+    if (this.options.postgres?.enabled) {
       this._postgresWriter.dbInstance.end()
       this._postgresReader.dbInstance.end()
     }

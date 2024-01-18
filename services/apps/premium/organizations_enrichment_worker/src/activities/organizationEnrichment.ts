@@ -41,6 +41,10 @@ const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION =
 let searchSyncWorkerEmitter: SearchSyncWorkerEmitter | undefined
 async function getSearchSyncWorkerEmitter(): Promise<SearchSyncWorkerEmitter> {
   if (searchSyncWorkerEmitter) {
+    if (!searchSyncWorkerEmitter.isInitialized()) {
+      await searchSyncWorkerEmitter.init()
+    }
+
     return searchSyncWorkerEmitter
   }
 
@@ -68,8 +72,8 @@ export async function syncToOpensearch(tenantId: string, organizationId: string)
   })
 
   try {
-    const emitter = await getSearchSyncWorkerEmitter()
-    await emitter.triggerOrganizationSync(tenantId, organizationId, false)
+    const searchSyncWorkerEmitter = await getSearchSyncWorkerEmitter()
+    await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, organizationId, false)
   } catch (err) {
     log.error(err, 'Error while syncing organization to OpenSearch!')
     throw new Error(err)
