@@ -4,6 +4,14 @@ export interface OrganizationAttribute {
   hubspot?: any;
 }
 
+export enum OrganizationSource {
+  EMAIL_DOMAIN = 'email-domain',
+  ENRICHMENT = 'enrichment',
+  HUBSPOT = 'hubspot',
+  GITHUB = 'github',
+  UI = 'ui',
+}
+
 export interface Organization{
   attributes: Record<string, OrganizationAttribute>,
   activeOn: string[];
@@ -57,5 +65,6 @@ export interface Organization{
     title: string;
     dateStart: string;
     dateEnd: string;
+    source: OrganizationSource;
   }
 }

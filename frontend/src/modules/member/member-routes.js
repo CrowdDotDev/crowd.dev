@@ -64,6 +64,7 @@ export default [
         component: MemberViewPage,
         meta: {
           auth: true,
+          title: 'Contributor',
           permission: Permissions.values.memberRead,
         },
         props: true,

@@ -190,6 +190,7 @@ const hasChanged = computed<boolean>(() => {
 
 const onTabChange = (id: string) => {
   const { config } = getView(id);
+
   if (config) {
     filters.value = {
       ...config,

@@ -7,15 +7,16 @@
     />
     <div v-else>
       <div class="flex justify-between">
-        <router-link
-          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-          :to="{
+        <app-back-link
+          :default-route="{
             path: '/contributors',
             query: { projectGroup: selectedProjectGroup?.id },
           }"
         >
-          <i class="ri-arrow-left-s-line mr-2" />Contributors
-        </router-link>
+          <template #default>
+            Contributors
+          </template>
+        </app-back-link>
 
         <app-member-actions :member="member" />
       </div>
@@ -77,6 +78,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppMemberViewContributionsCta from '@/modules/member/components/view/member-view-contributions-cta.vue';
 import Plans from '@/security/plans';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 
 const store = useStore();
 const props = defineProps({

@@ -1,6 +1,5 @@
 <template>
   <div
-    v-if="member.attributes.bio?.default"
     v-html="
       $sanitize($marked(member.attributes.bio?.default))
     "

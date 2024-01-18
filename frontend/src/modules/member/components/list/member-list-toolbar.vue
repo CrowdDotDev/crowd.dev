@@ -16,14 +16,22 @@
           <i class="ri-lg ri-file-download-line mr-1" />
           Export to CSV
         </el-dropdown-item>
-        <el-dropdown-item
+        <el-tooltip
           v-if="selectedMembers.length === 2"
-          :command="{ action: 'mergeMembers' }"
-          :disabled="isEditLockedForSampleData"
+          content="Coming soon"
+          placement="top"
+          :disabled="hasPermissionsToMerge"
         >
-          <i class="ri-lg ri-group-line mr-1" />
-          Merge contributors
-        </el-dropdown-item>
+          <span>
+            <el-dropdown-item
+              :command="{ action: 'mergeMembers' }"
+              :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            >
+              <i class="ri-lg ri-group-line mr-1" />
+              Merge contributors
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
         <el-dropdown-item
           :command="{
             action: 'markAsTeamMember',
@@ -157,6 +165,11 @@ const markAsTeamMemberOptions = computed(() => {
     value: true,
   };
 });
+
+const hasPermissionsToMerge = computed(() => new MemberPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeMembers);
 
 const handleMergeMembers = async () => {
   const [firstMember, secondMember] = selectedMembers.value;

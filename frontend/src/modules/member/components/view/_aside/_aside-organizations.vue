@@ -1,17 +1,8 @@
 <template>
   <div>
     <div class="flex items-center justify-between">
-      <div class="flex items-center">
-        <div class="font-medium text-black mr-2">
-          Organizations
-        </div>
-        <el-tooltip
-          content="Source: Enrichment & GitHub"
-          placement="top"
-          trigger="hover"
-        >
-          <app-svg name="source" class="h-3 w-3" />
-        </el-tooltip>
+      <div class="font-medium text-black mr-2">
+        Organizations
       </div>
 
       <el-button
@@ -74,13 +65,25 @@
                 />
               </div>
               <div class="flex flex-col gap-1">
-                <div
-                  class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
-                >
-                  {{ displayName || name }}
+                <div class="flex gap-2 items-center">
+                  <div
+                    class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
+                  >
+                    {{ displayName || name }}
+                  </div>
+                  <el-tooltip
+                    v-if="memberOrganizations?.source"
+                    :content="getSource(memberOrganizations?.source)"
+                    placement="top"
+                    trigger="hover"
+                  >
+                    <app-svg name="source" class="h-3 w-3" />
+                  </el-tooltip>
                 </div>
                 <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
-                  <span v-if="memberOrganizations.title">{{ memberOrganizations.title }}</span>
+                  <span v-if="memberOrganizations.title">
+                    {{ memberOrganizations.title }}
+                  </span>
                   <span v-if="memberOrganizations.title" class="mx-1">•</span>
                   <span>
                     {{ memberOrganizations.dateStart
@@ -100,7 +103,7 @@
         </template>
       </app-entities>
     </div>
-    <div v-else class="text-gray-400 mt-6 text-sm">
+    <div v-else class="text-gray-400 mt-6 text-xs italic">
       No organizations
     </div>
   </div>
@@ -118,7 +121,15 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppEntities from '@/shared/modules/entities/Entities.vue';
-import { Organization } from '@/modules/organization/types/Organization';
+import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
+
+const OrganizationSourceValue = {
+  [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
+  [OrganizationSource.ENRICHMENT]: 'Enrichment',
+  [OrganizationSource.HUBSPOT]: 'HubSpot',
+  [OrganizationSource.GITHUB]: 'GitHub',
+  [OrganizationSource.UI]: 'Custom',
+};
 
 defineProps<{
   member: Member
@@ -141,4 +152,6 @@ const hasValues = (organizations: {
   dateEnd: string,
   dateStart: string
 }) => Object.values(organizations || {});
+
+const getSource = (source: OrganizationSource) => OrganizationSourceValue[source];
 </script>

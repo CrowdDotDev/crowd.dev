@@ -3,9 +3,9 @@
     <app-member-aside-enrichment :member="member" @edit="identitiesDrawer = true" />
     <div class="member-view-aside panel !px-0">
       <app-member-aside-identities :member="member" @edit="identitiesDrawer = true" />
+    </div>
 
-      <el-divider class="!my-8 border-gray-200" />
-
+    <div class="member-view-aside panel !px-0">
       <div class="px-6">
         <app-lf-member-aside-organizations
           class="mt-10"

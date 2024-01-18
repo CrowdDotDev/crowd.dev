@@ -3,26 +3,24 @@
     @mouseenter="showEdit = true"
     @mouseleave="showEdit = true"
   >
-    <div class="inline-flex items-center flex-wrap w-full justify-between">
-      <div v-if="computedTags.length">
-        <span
-          v-for="tag in computedTags"
-          :key="tag.id"
-          class="tag mr-2 my-1 text-xs"
-          :class="tagClasses"
-        >
-          {{ getTagName(tag) }}
-        </span>
-      </div>
+    <div class="inline-flex items-center flex-wrap w-full justify-between gap-x-2 gap-y-2.5">
+      <span
+        v-for="tag in computedTags"
+        :key="tag.id"
+        class="tag text-xs"
+        :class="tagClasses"
+      >
+        {{ getTagName(tag) }}
+      </span>
       <el-button
         v-if="editable && showEdit"
-        class="text-gray-600 btn btn-link text-2xs bg-transparent hover:bg-transparent focus:bg-transparent"
+        class="text-gray-400 btn btn-link text-2xs bg-transparent hover:bg-transparent focus:bg-transparent"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
         :disabled="isEditLockedForSampleData"
         @click.prevent.stop="$emit('edit')"
       >
         <i class="ri-pencil-line !mr-1 text-sm" />
-        <span>Edit tags</span>
+        <span>{{ member.tags.length ? 'Edit' : 'Add' }} tags</span>
       </el-button>
     </div>
   </div>

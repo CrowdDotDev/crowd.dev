@@ -59,14 +59,14 @@
     <div class="dashboard-tabs">
       <el-tabs v-model="tab">
         <el-tab-pane
-          label="Trending conversations"
-          name="trending"
+          label="Recent conversations"
+          name="recentConversations"
         >
           <app-dashboard-conversation-list />
         </el-tab-pane>
         <el-tab-pane
           label="Recent activities"
-          name="recent"
+          name="recentActivities"
         >
           <app-dashboard-activity-list />
         </el-tab-pane>

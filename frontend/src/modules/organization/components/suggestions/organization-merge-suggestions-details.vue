@@ -132,7 +132,7 @@
             props.organization.website
               || props.compareOrganization?.website
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Website
@@ -149,7 +149,7 @@
             props.organization.location
               || props.compareOrganization?.location
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200 truncate"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200 truncate"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Location
@@ -163,7 +163,7 @@
             props.organization.employees
               || props.compareOrganization?.employees
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Number of employees
@@ -177,7 +177,7 @@
             props.organization.revenueRange
               || props.compareOrganization?.revenueRange
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Annual Revenue
@@ -193,7 +193,7 @@
             props.organization.industry
               || props.compareOrganization?.industry
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Industry
@@ -207,7 +207,7 @@
             props.organization.type
               || props.compareOrganization?.type
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Type
@@ -221,7 +221,7 @@
             props.organization.founded
               || props.compareOrganization?.founded
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Founded
@@ -235,7 +235,7 @@
             props.organization.joinedAt
               || props.compareOrganization?.joinedAt
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Joined date
@@ -249,7 +249,7 @@
             props.organization.memberCount
               || props.compareOrganization?.memberCount
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             # of contributors
@@ -263,7 +263,7 @@
             props.organization.activityCount
               || props.compareOrganization?.activityCount
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             # of Activities

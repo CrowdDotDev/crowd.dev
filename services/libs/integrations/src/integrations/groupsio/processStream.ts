@@ -115,7 +115,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
       // we need to create a fake member object
       member = {
         user_id: userId,
-        full_name: message.name || 'Anonymous User',
+        full_name: 'Anonymous User',
         email: 'anonymous+fake+email@groups.io',
         group_id: message.group_id,
       } as MemberInfoMinimal
