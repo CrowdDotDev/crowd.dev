@@ -16,9 +16,9 @@
         </h4>
         <div
           v-if="
-            !isEditPage &&
-            selectedSegments.project &&
-            selectedSegments.subproject
+            !isEditPage
+              && selectedSegments.project
+              && selectedSegments.subproject
           "
           class="badge badge--gray-light badge--xs"
         >
@@ -112,38 +112,41 @@
 </template>
 
 <script setup>
-import { computed, h, onMounted, onUnmounted, reactive, ref, watch } from "vue";
-import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-import isEqual from "lodash/isEqual";
-import { OrganizationModel } from "@/modules/organization/organization-model";
-import { FormSchema } from "@/shared/form/form-schema";
-import ConfirmDialog from "@/shared/dialog/confirm-dialog";
-import AppOrganizationFormIdentities from "@/modules/organization/components/form/organization-form-identities.vue";
-import AppOrganizationFormDetails from "@/modules/organization/components/form/organization-form-details.vue";
-import AppOrganizationFormAttributes from "@/modules/organization/components/form/organization-form-attributes.vue";
-import { storeToRefs } from "pinia";
-import { useLfSegmentsStore } from "@/modules/lf/segments/store";
-import AppLfSubProjectsListDropdown from "@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue";
-import { OrganizationService } from "@/modules/organization/organization-service";
-import Errors from "@/shared/error/errors";
-import Message from "@/shared/message/message";
-import { i18n } from "@/i18n";
-import enrichmentAttributes from "@/modules/organization/config/enrichment";
-import { AttributeType } from "@/modules/organization/types/Attributes";
+import {
+  computed, h, onMounted, onUnmounted, reactive, ref, watch,
+} from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import isEqual from 'lodash/isEqual';
+import { OrganizationModel } from '@/modules/organization/organization-model';
+import { FormSchema } from '@/shared/form/form-schema';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
+import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details.vue';
+import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import Errors from '@/shared/error/errors';
+import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
+import enrichmentAttributes from '@/modules/organization/config/enrichment';
+import { AttributeType } from '@/modules/organization/types/Attributes';
+import { useOrganizationStore } from '../store/pinia';
 
 const LoaderIcon = h(
-  "i",
+  'i',
   {
-    class: "ri-loader-4-fill text-sm text-white",
+    class: 'ri-loader-4-fill text-sm text-white',
   },
-  []
+  [],
 );
 const ArrowPrevIcon = h(
-  "i", // type
+  'i', // type
   {
-    class: "ri-arrow-left-s-line text-base leading-none",
+    class: 'ri-arrow-left-s-line text-base leading-none',
   }, // props
-  []
+  [],
 );
 
 const props = defineProps({
@@ -201,19 +204,19 @@ const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
+const organizationsStore = useOrganizationStore();
+
 const selectedSegments = computed(() => {
   let subproject;
 
-  const project = selectedProjectGroup.value.projects.find((p) =>
-    p.subprojects.some((sp) => {
-      if (sp.id === route.query.subprojectId) {
-        subproject = sp;
-        return true;
-      }
+  const project = selectedProjectGroup.value.projects.find((p) => p.subprojects.some((sp) => {
+    if (sp.id === route.query.subprojectId) {
+      subproject = sp;
+      return true;
+    }
 
-      return false;
-    })
-  );
+    return false;
+  }));
 
   return {
     project,
@@ -226,30 +229,30 @@ function getInitialModel(record) {
     JSON.stringify(
       formSchema.initialValues({
         ...(record || {}),
-        name: record ? record.name : "",
-        displayName: record ? record.displayName || record.name : "",
-        headline: record ? record.headline : "",
-        description: record ? record.description : "",
-        joinedAt: record ? record.joinedAt : "",
+        name: record ? record.name : '',
+        displayName: record ? record.displayName || record.name : '',
+        headline: record ? record.headline : '',
+        description: record ? record.description : '',
+        joinedAt: record ? record.joinedAt : '',
         identities: record
           ? [
-              ...record.identities.map((i) => ({
-                ...i,
-                platform: i.platform,
-                name: i.name,
-                username: i.url ? i.url.split("/").at(-1) : null,
-                url: i.url,
-              })),
-            ]
+            ...record.identities.map((i) => ({
+              ...i,
+              platform: i.platform,
+              name: i.name,
+              username: i.url ? i.url.split('/').at(-1) : null,
+              url: i.url,
+            })),
+          ]
           : [],
         revenueRange: record ? record.revenueRange : {},
-        emails: record && record.emails?.length > 0 ? record.emails : [""],
+        emails: record && record.emails?.length > 0 ? record.emails : [''],
         phoneNumbers:
           record && record.phoneNumbers?.length > 0
             ? record.phoneNumbers
-            : [""],
-      })
-    )
+            : [''],
+      }),
+    ),
   );
 }
 
@@ -286,32 +289,29 @@ const hasFormChanged = computed(() => {
 });
 
 const isSubmitBtnDisabled = computed(
-  () =>
-    !isFormValid.value ||
-    isFormSubmitting.value ||
-    (isEditPage.value && !hasFormChanged.value)
+  () => !isFormValid.value
+    || isFormSubmitting.value
+    || (isEditPage.value && !hasFormChanged.value),
 );
 
-const shouldShowAttributes = computed(() =>
-  enrichmentAttributes.some((a) => {
-    if (!a.showInForm) {
-      return false;
-    }
+const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
+  if (!a.showInForm) {
+    return false;
+  }
 
-    if (a.type === AttributeType.ARRAY) {
-      return !!record.value?.[a.name]?.length;
-    }
+  if (a.type === AttributeType.ARRAY) {
+    return !!record.value?.[a.name]?.length;
+  }
 
-    return !!record.value?.[a.name];
-  })
-);
+  return !!record.value?.[a.name];
+}));
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
   if (
-    hasFormChanged.value &&
-    !wasFormSubmittedSuccessfuly.value &&
-    to.fullPath !== "/500"
+    hasFormChanged.value
+    && !wasFormSubmittedSuccessfuly.value
+    && to.fullPath !== '/500'
   ) {
     return ConfirmDialog({})
       .then(() => true)
@@ -325,14 +325,13 @@ onMounted(async () => {
   if (isEditPage.value) {
     const { id } = route.params;
     const { segmentId, projecGroup } = route.query;
-    const segments =
-      segmentId || projecGroup ? [segmentId || projecGroup] : null;
+    const segments = segmentId || projecGroup ? [segmentId || projecGroup] : null;
 
     try {
       record.value = await OrganizationService.find(id, segments);
     } catch (error) {
       Errors.handle(error);
-      router.push({ name: "organization" });
+      router.push({ name: 'organization' });
     }
 
     isPageLoading.value = false;
@@ -346,14 +345,14 @@ onMounted(async () => {
 const preventWindowReload = (e) => {
   if (hasFormChanged.value) {
     e.preventDefault();
-    e.returnValue = "";
+    e.returnValue = '';
   }
 };
 
-window.addEventListener("beforeunload", preventWindowReload);
+window.addEventListener('beforeunload', preventWindowReload);
 
 onUnmounted(() => {
-  window.removeEventListener("beforeunload", preventWindowReload);
+  window.removeEventListener('beforeunload', preventWindowReload);
 });
 
 // Once form is submitted successfuly, update route
@@ -363,7 +362,7 @@ watch(wasFormSubmittedSuccessfuly, (isFormSubmittedSuccessfuly) => {
       const { segmentId, projectGroup } = route.query;
 
       return router.push({
-        name: "organizationView",
+        name: 'organizationView',
         params: {
           id: record.value.id,
         },
@@ -373,7 +372,7 @@ watch(wasFormSubmittedSuccessfuly, (isFormSubmittedSuccessfuly) => {
       });
     }
 
-    return router.push({ name: "organization" });
+    return router.push({ name: 'organization' });
   }
   return null;
 });
@@ -388,7 +387,7 @@ function onCancel() {
   const { segmentId, projectGroup } = route.query;
 
   router.push({
-    name: "organizationView",
+    name: 'organizationView',
     params: {
       id: record.value.id,
     },
@@ -408,7 +407,7 @@ async function onSubmit() {
     displayName:
       isEditPage.value === true ? formModel.value.displayName : undefined,
     emails: formModel.value.emails.reduce((acc, item) => {
-      if (item !== "") {
+      if (item !== '') {
         acc.push(item);
       }
       return acc;
@@ -422,7 +421,7 @@ async function onSubmit() {
         name: i.name,
       })),
     phoneNumbers: formModel.value.phoneNumbers.reduce((acc, item) => {
-      if (item !== "") {
+      if (item !== '') {
         acc.push(item);
       }
       return acc;
@@ -431,31 +430,58 @@ async function onSubmit() {
 
   const payload = isEditPage.value
     ? {
-        id: props.id,
-        values: data,
-        segments: segments.value,
-      }
+      id: props.id,
+      values: data,
+      segments: segments.value,
+    }
     : {
-        ...data,
-        segments: segments.value,
-      };
+      ...data,
+      segments: segments.value,
+    };
 
   // Edit
   if (isEditPage.value) {
     try {
       await OrganizationService.update(payload.id, payload.values);
-      Message.success(i18n("entities.organization.update.success"));
+      Message.success(i18n('entities.organization.update.success'));
     } catch (error) {
-      Errors.handle(error);
+      if (error.response.status === 409) {
+        Message.error(
+          h(
+            'div',
+            {
+              class: 'flex flex-col gap-2',
+            },
+            [
+              h(
+                'el-button',
+                {
+                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  onClick: () => {
+                    organizationsStore.addToMergeOrganizations(payload.id, error.response.data);
+                    Message.closeAll();
+                  },
+                },
+                'Merge organizations',
+              ),
+            ],
+          ),
+          {
+            title: 'Organization was not updated because the website already exists in another organization.',
+          },
+        );
+      } else {
+        Errors.handle(error);
+      }
     }
   } else {
     // Create
     try {
       await OrganizationService.create(payload);
 
-      Message.success(i18n("entities.organization.create.success"));
+      Message.success(i18n('entities.organization.create.success'));
     } catch (error) {
-      Message.error(i18n("entities.organization.create.error"));
+      Message.error(i18n('entities.organization.create.error'));
       Errors.handle(error);
     }
   }
@@ -465,7 +491,7 @@ async function onSubmit() {
 
 const onChange = ({ subprojectId }) => {
   router.replace({
-    name: "organizationCreate",
+    name: 'organizationCreate',
     query: {
       subprojectId,
     },
@@ -475,7 +501,7 @@ const onChange = ({ subprojectId }) => {
 
 <script>
 export default {
-  name: "OrganizationFormPage",
+  name: 'OrganizationFormPage',
 };
 </script>
 

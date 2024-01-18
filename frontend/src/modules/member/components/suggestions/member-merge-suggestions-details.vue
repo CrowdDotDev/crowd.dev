@@ -146,7 +146,7 @@
 
       <div>
         <article
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Engagement level
@@ -158,7 +158,7 @@
             member.attributes.location?.default
               || compareMember?.attributes.location?.default
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <div class="flex items-center pr-4">
             <p class="text-2xs font-medium text-gray-500 pr-1">
@@ -181,7 +181,7 @@
           v-if="
             member.organizations.length || compareMember?.organizations.length
           "
-          class="flex items-center justify-between min-h-12 border-b border-gray-200 py-2"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Organization
@@ -193,7 +193,7 @@
             member.attributes.jobTitle?.default
               || compareMember?.attributes.jobTitle?.default
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <div class="flex items-center pr-4">
             <p class="text-2xs font-medium text-gray-500 pr-1">
@@ -214,7 +214,7 @@
         </article>
         <article
           v-if="member.joinedAt || compareMember?.joinedAt"
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Contributor since
@@ -225,7 +225,7 @@
         </article>
         <article
           v-if="member.tags.length > 0 || compareMember?.tags.length > 0"
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
         >
           <p class="text-2xs font-medium text-gray-500 pr-4">
             Tags

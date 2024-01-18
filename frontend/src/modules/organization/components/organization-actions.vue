@@ -51,7 +51,7 @@
       </app-organization-dropdown>
     </el-button-group>
   </div>
-  <app-organization-merge-dialog v-model="isMergeDialogOpen" />
+  <app-organization-merge-dialog v-model="isMergeDialogOpen" :to-merge="organizationToMerge" />
 </template>
 
 <script setup>
@@ -64,6 +64,8 @@ import { OrganizationPermissions } from '@/modules/organization/organization-per
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   organization: {
@@ -75,10 +77,14 @@ const props = defineProps({
 const route = useRoute();
 const router = useRouter();
 
+const organizationStore = useOrganizationStore();
+const { toMergeOrganizations } = storeToRefs(organizationStore);
+
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const isMergeDialogOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
+const organizationToMerge = ref(null);
 
 const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(currentTenant.value, currentUser.value)
@@ -89,6 +95,19 @@ const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
   currentTenant.value,
   currentUser.value,
 )?.mergeOrganizations);
+
+watch(toMergeOrganizations.value, (updatedValue) => {
+  if (updatedValue.originalId && updatedValue.toMergeId) {
+    OrganizationService.find(updatedValue.toMergeId, [route.query.projectGroup]).then((response) => {
+      isMergeDialogOpen.value = props.organization;
+      organizationToMerge.value = response;
+
+      organizationStore.removeToMergeOrganizations();
+    });
+  }
+}, {
+  deep: true,
+});
 
 const fetchOrganizationsToMergeCount = () => {
   OrganizationService.fetchMergeSuggestions(1, 0, {
