@@ -93,7 +93,7 @@ const {
 
 const cube = computed<DashboardCubeData>(() => cubeData.value);
 
-const tab = ref('trending');
+const tab = ref('recentConversations');
 
 const datasets = [{
   name: 'new activities',
