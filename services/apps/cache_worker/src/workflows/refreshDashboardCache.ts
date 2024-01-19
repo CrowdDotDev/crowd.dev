@@ -25,6 +25,8 @@ const activity = proxyActivities<typeof activities>({
 export async function refreshDashboardCache(
   args: IProcessRefreshDashboardCacheArgs,
 ): Promise<void> {
+  const segmentsEnabled = args.segmentId ? true : false
+
   // if no segments were sent, set current segment as default one
   if (!args.segmentId) {
     const defaultSegment = await activity.getDefaultSegment(args.tenantId)
@@ -39,9 +41,11 @@ export async function refreshDashboardCache(
   const currentDate = new Date()
 
   // we should do a full refresh, when
+  // - segments are enabled (we only refresh once a day for segment enabled deploys, so no need for same-day optimizations)
   // - dashboard wasn't refreshed before yet (ie: it's null)
   // - day changed between now() and dashboardLastRefreshedAt, so we need to calculate the metrics for the new time range
   if (
+    segmentsEnabled ||
     !dashboardLastRefreshedAt ||
     currentDate.getUTCDate() !== new Date(dashboardLastRefreshedAt).getUTCDate()
   ) {
