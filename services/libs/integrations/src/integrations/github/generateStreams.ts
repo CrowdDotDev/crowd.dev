@@ -29,22 +29,23 @@ const handler: GenerateStreamsHandler = async (ctx) => {
     }
 
     if (manualSettings.repos) {
-      const repo = manualSettings.repos[0] // TODO: support multiple repos
-      for (const endpoint of [
-        GithubStreamType.STARGAZERS,
-        GithubStreamType.FORKS,
-        GithubStreamType.PULLS,
-        GithubStreamType.ISSUES,
-        GithubStreamType.DISCUSSIONS,
-      ]) {
-        if (
-          manualSettings.streamType === GithubManualStreamType.ALL ||
-          manualSettings.streamType === streamToManualStreamMap.get(endpoint)
-        ) {
-          await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
-            repo,
-            page: '',
-          })
+      for (const repo of manualSettings.repos) {
+        for (const endpoint of [
+          GithubStreamType.STARGAZERS,
+          GithubStreamType.FORKS,
+          GithubStreamType.PULLS,
+          GithubStreamType.ISSUES,
+          GithubStreamType.DISCUSSIONS,
+        ]) {
+          if (
+            manualSettings.streamType === GithubManualStreamType.ALL ||
+            manualSettings.streamType === streamToManualStreamMap.get(endpoint)
+          ) {
+            await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
+              repo,
+              page: '',
+            })
+          }
         }
       }
     }
