@@ -96,12 +96,12 @@ const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const tab = ref('recentConversations');
 
-const datasets = (name: string) => ({
+const datasets = [{
   name: 'new activities',
   borderColor: '#E94F2E',
   measure: 'Activities.count',
   granularity: 'day',
-});
+}];
 
 const allActivitiesFilter = ({
   search: '',
