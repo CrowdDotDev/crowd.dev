@@ -15,14 +15,11 @@ FROM members m
 ;
 
 CREATE INDEX IF NOT EXISTS mv_members_cube_tenant ON mv_members_cube ("tenantId");
+CREATE UNIQUE INDEX IF NOT EXISTS mv_members_cube_id ON mv_members_cube (id);
 CREATE INDEX IF NOT EXISTS mv_members_cube_is_bot ON mv_members_cube ("isBot");
 CREATE INDEX IF NOT EXISTS mv_members_cube_is_team_member ON mv_members_cube ("isTeamMember");
 CREATE INDEX IF NOT EXISTS mv_members_cube_is_organization ON mv_members_cube ("isOrganization");
 CREATE INDEX IF NOT EXISTS mv_members_cube_joined_at ON mv_members_cube ("joinedAt");
-
-
-CREATE UNIQUE INDEX IF NOT EXISTS mv_members_cube_id ON mv_members_cube (id);
-
 
 -- Activities
 DROP MATERIALIZED VIEW IF EXISTS mv_activities_cube;
@@ -54,9 +51,9 @@ CREATE INDEX IF NOT EXISTS mv_activities_cube_timestamp ON mv_activities_cube (t
 CREATE INDEX IF NOT EXISTS mv_activities_cube_platform ON mv_activities_cube (platform);
 CREATE INDEX IF NOT EXISTS mv_activities_cube_org_id ON mv_activities_cube ("organizationId");
 CREATE INDEX IF NOT EXISTS mv_activities_cube_segment_id ON mv_activities_cube ("segmentId");
-
 CREATE UNIQUE INDEX IF NOT EXISTS mv_activities_cube_id ON mv_activities_cube (id);
 CREATE INDEX IF NOT EXISTS mv_activities_cube_tenantId_timestamp_idx ON mv_activities_cube ("tenantId", "timestamp");
+CREATE INDEX mv_activities_cube_member_id_timestamp ON mv_activities_cube ("memberId", timestamp);
 
 
 -- Organizations
@@ -76,7 +73,6 @@ GROUP BY o.id
 CREATE UNIQUE INDEX IF NOT EXISTS mv_organizations_cube_id ON mv_organizations_cube (id);
 CREATE INDEX IF NOT EXISTS mv_organizations_cube_tenantId ON mv_organizations_cube ("tenantId");
 CREATE INDEX IF NOT EXISTS mv_organizations_cube_joined_at ON mv_organizations_cube ("earliestJoinedAt");
-
 
 -- Segments
 DROP MATERIALIZED VIEW IF EXISTS mv_segments_cube;
