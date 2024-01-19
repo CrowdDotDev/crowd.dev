@@ -15,6 +15,13 @@ cube('Activities', {
     },
   },
 
+  joins: {
+    Segments: {
+      sql: `${CUBE}."segmentId" = ${Segments}."id"`,
+      relationship: 'belongsTo',
+    },
+  },
+
   dimensions: {
     id: {
       sql: `${CUBE}.id`,
