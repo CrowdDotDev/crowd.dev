@@ -1,11 +1,15 @@
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { useRoute } from 'vue-router';
 
 export default {
   SET_FILTERS(state, payload) {
+    const route = useRoute();
     state.filters.period = payload.period
       || state.filters.period
       || SEVEN_DAYS_PERIOD_FILTER;
-    state.filters.platform = payload.platform || state.filters.platform || 'all';
+    if (payload.segments && payload.segments.segments.length) {
+      state.filters.segments = payload.segments || state.filters.segments || { segments: [route.query.projectGroup], childSegments: [] };
+    }
   },
   SET_RECENT_CONVERSATIONS(state, { rows }) {
     state.conversations.recent = rows;
@@ -24,8 +28,5 @@ export default {
   },
   SET_RECENT_ORGANIZATIONS(state, { rows }) {
     state.organizations.recent = rows;
-  },
-  SET_SEGMENTS(state, { segments }) {
-    state.filters.segments = segments;
   },
 };
