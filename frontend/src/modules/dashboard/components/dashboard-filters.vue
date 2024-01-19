@@ -64,7 +64,7 @@
 
     <app-lf-project-filter-button
       :segments="segments"
-      :set-segments="setSegments"
+      :set-segments="setSegment"
     />
   </div>
 </template>
@@ -114,24 +114,14 @@ export default {
     },
   },
   watch: {
-    currentTenant: {
-      deep: true,
-      immediate: true,
-      handler(tenant, previousTenant) {
-        if (
-          !previousTenant
-          || tenant.id !== previousTenant.id
-        ) {
-          this.setFilters({});
-        }
-      },
-    },
     selectedProjectGroup: {
       deep: true,
       immediate: true,
       handler(updatedSelectedProjectGroup, previouSelectedProjectGroup) {
         if (previouSelectedProjectGroup?.id !== updatedSelectedProjectGroup?.id) {
-          this.setSegments({ segments: { segments: [updatedSelectedProjectGroup?.id], childSegments: [] } });
+          this.setFilters({
+            segments: { segments: [updatedSelectedProjectGroup?.id], childSegments: [] },
+          });
           this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
         }
       },
@@ -142,9 +132,13 @@ export default {
   methods: {
     ...mapActions({
       setFilters: 'dashboard/setFilters',
-      setSegments: 'dashboard/setSegments',
       doFetch: 'integration/doFetch',
     }),
+    setSegment(filters) {
+      if (filters.segments?.segments?.length) {
+        this.setFilters(filters);
+      }
+    },
     platformDetails(platform) {
       return CrowdIntegrations.getConfig(platform);
     },

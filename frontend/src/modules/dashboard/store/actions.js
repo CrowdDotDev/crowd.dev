@@ -11,30 +11,18 @@ import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.
 
 export default {
   async reset({ dispatch }) {
-    dispatch('setFilters', {
-      period: SEVEN_DAYS_PERIOD_FILTER,
-      platform: 'all',
-    });
-  },
-
-  setSegments({ commit, dispatch }, { segments }) {
-    commit('SET_SEGMENTS', { segments });
-
-    dispatch('getCubeData');
-    dispatch('getConversations');
-    dispatch('getActivities');
-    dispatch('getMembers');
-    dispatch('getOrganizations');
+    dispatch('setFilters', {});
   },
 
   // Set new filters & fetch new data
   async setFilters(
     { commit, dispatch },
-    { period, platform },
+    { period, platform, segments },
   ) {
     commit('SET_FILTERS', {
       period,
       platform,
+      segments,
     });
     dispatch('getCubeData');
     dispatch('getConversations');
