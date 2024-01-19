@@ -32,7 +32,7 @@
           v-if="!isEnrichmentEnabled"
         />
         <app-member-view-contributions
-          v-else-if="member.contributions"
+          v-else-if="member.contributions?.length"
           :contributions="member.contributions"
           class="col-span-2"
         />
