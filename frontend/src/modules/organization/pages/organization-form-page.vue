@@ -31,15 +31,6 @@
             <div class="flex items-center">
               <el-button
                 v-if="isEditPage && hasFormChanged"
-                class="btn btn-link btn-link--primary"
-                :disabled="isFormSubmitting"
-                @click="onReset"
-              >
-                <i class="ri-arrow-go-back-line" />
-                <span>Reset changes</span>
-              </el-button>
-              <el-button
-                v-if="isEditPage && hasFormChanged"
                 class="btn btn-link btn-link--primary !px-3"
                 :disabled="isFormSubmitting"
                 @click="onReset"
