@@ -7,6 +7,7 @@ export default {
     state.filters.period = payload.period
       || state.filters.period
       || SEVEN_DAYS_PERIOD_FILTER;
+    state.filters.platform = payload.platform || state.filters.platform || 'all';
     if (payload.segments && payload.segments.segments.length) {
       state.filters.segments = payload.segments || state.filters.segments || { segments: [route.query.projectGroup], childSegments: [] };
     }
