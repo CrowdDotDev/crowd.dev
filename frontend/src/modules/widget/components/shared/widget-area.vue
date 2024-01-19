@@ -116,12 +116,15 @@ const series = (resultSet) => {
 
   if (resultSet.loadResponses.length > 0) {
     resultSet.loadResponses.forEach((_, index) => {
+      if (!props.datasets[index]) {
+        return;
+      }
       const prefix = resultSet.loadResponses.length === 1
         ? ''
         : `${index},`; // has more than 1 dataset
       const computedData = pivot.map((p) => [
         p.x,
-        p[`${prefix}${props.datasets[index].measure}`] || 0,
+        p[`${prefix}${props.datasets[index]?.measure}`] || 0,
       ]);
 
       highestValue.value = Math.max(...computedData.map((d) => d[1]));
@@ -129,7 +132,7 @@ const series = (resultSet) => {
 
       emit('on-highest-number-calculation', highestValue.value);
       computedSeries.push({
-        name: props.datasets[index].name,
+        name: props.datasets[index]?.name,
         data: computedData,
         ...{
           dataset: buildSeriesDataset(computedData, index),

@@ -48,12 +48,6 @@ export default {
     }
 
     query.filters.push({
-      member: `Members.isBot`,
-      operator: 'equals',
-      values: ['0'],
-    })
-
-    query.filters.push({
       member: `${measureCube[0]}.tenantId`,
       operator: 'equals',
       values: [securityContext.tenantId],

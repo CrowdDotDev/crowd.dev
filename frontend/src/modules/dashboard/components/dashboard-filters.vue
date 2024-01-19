@@ -131,6 +131,7 @@ export default {
       immediate: true,
       handler(updatedSelectedProjectGroup, previouSelectedProjectGroup) {
         if (previouSelectedProjectGroup?.id !== updatedSelectedProjectGroup?.id) {
+          this.setSegments({ segments: { segments: [updatedSelectedProjectGroup?.id], childSegments: [] } });
           this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
         }
       },

@@ -9,6 +9,7 @@ export default () => ({
       childSegments: [],
     },
   },
+  cubeData: null,
   conversations: {
     loading: false,
     recent: [],
