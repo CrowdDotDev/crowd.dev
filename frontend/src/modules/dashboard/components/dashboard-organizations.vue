@@ -222,7 +222,7 @@ const periodRange = computed(() => [
 
 const datasets = (name: string) => [{
   name,
-  borderColor: '#E94F2E',
+  borderColor: '#003778',
   measure: 'Organizations.count',
   granularity: 'day',
 }];

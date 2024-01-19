@@ -36,7 +36,6 @@
               v-loading="!cube"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             />
-
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets"
@@ -96,12 +95,12 @@ const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const tab = ref('trending');
 
-const datasets = (name: string) => ({
+const datasets = [{
   name: 'new activities',
-  borderColor: '#E94F2E',
+  borderColor: '#003778',
   measure: 'Activities.count',
   granularity: 'day',
-});
+}];
 
 const allActivitiesFilter = ({
   search: '',

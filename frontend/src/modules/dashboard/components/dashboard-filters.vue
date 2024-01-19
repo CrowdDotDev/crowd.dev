@@ -122,8 +122,6 @@ export default {
           !previousTenant
           || tenant.id !== previousTenant.id
         ) {
-          const { projectGroup } = this.$route.query;
-          this.setSegments({ segments: { segments: [projectGroup], childSegments: [] } });
           this.setFilters({});
         }
       },
@@ -133,6 +131,7 @@ export default {
       immediate: true,
       handler(updatedSelectedProjectGroup, previouSelectedProjectGroup) {
         if (previouSelectedProjectGroup?.id !== updatedSelectedProjectGroup?.id) {
+          this.setSegments({ segments: { segments: [updatedSelectedProjectGroup?.id], childSegments: [] } });
           this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
         }
       },
