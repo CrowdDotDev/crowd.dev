@@ -120,7 +120,6 @@ export default {
       handler(updatedSelectedProjectGroup, previouSelectedProjectGroup) {
         if (previouSelectedProjectGroup?.id !== updatedSelectedProjectGroup?.id) {
           this.setFilters({
-            test: 'issu',
             segments: { segments: [updatedSelectedProjectGroup?.id], childSegments: [] },
           });
           this.doFetch(getSegmentsFromProjectGroup(updatedSelectedProjectGroup));
