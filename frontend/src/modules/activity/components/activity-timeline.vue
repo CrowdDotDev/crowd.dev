@@ -255,7 +255,6 @@ import AppConversationDrawer from '@/modules/conversation/components/conversatio
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -281,7 +280,7 @@ const props = defineProps({
 });
 
 const lsSegmentsStore = useLfSegmentsStore();
-const { projectGroups, selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { projectGroups } = storeToRefs(lsSegmentsStore);
 
 const conversationId = ref(null);
 
@@ -323,7 +322,7 @@ const subprojects = computed(() => projectGroups.value.list.reduce((acc, project
 
 const segments = computed(() => {
   if (!props.entity.segments) {
-    return getSegmentsFromProjectGroup(selectedProjectGroup.value)?.map((s) => subprojects.value[s]) || [];
+    return Object.values(subprojects.value);
   }
 
   return props.entity.segments?.map((s) => {
