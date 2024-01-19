@@ -264,7 +264,7 @@ class MemberRepository {
             mtm.similarity,
             mtm."activityEstimate"
         FROM "memberToMerge" mtm
-        JOIN "memberSegments" ms ON ms."memberId" = mtm."memberId"
+        JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
         WHERE ms."segmentId" IN (:segmentIds)
           ${memberFilter}
           ${similarityFilter}
@@ -305,7 +305,7 @@ class MemberRepository {
           SELECT
               COUNT(DISTINCT mtm."memberId"::TEXT || mtm."toMergeId"::TEXT) AS count
           FROM "memberToMerge" mtm
-          JOIN "memberSegments" ms ON ms."memberId" = mtm."memberId"
+          JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
           WHERE ms."segmentId" IN (:segmentIds)
             ${memberFilter}
             ${similarityFilter}

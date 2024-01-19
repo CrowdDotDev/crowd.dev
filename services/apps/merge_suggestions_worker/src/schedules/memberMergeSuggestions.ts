@@ -2,18 +2,24 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 
 import { svc } from '../main'
 import { spawnSuggestionsForAllTenants } from 'workflows/spawnSuggestionsForAllTenants'
+import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 export const scheduleGenerateMemberMergeSuggestions = async () => {
   try {
     await svc.temporal.schedule.create({
       scheduleId: 'member-merge-suggestions',
-      spec: {
-        intervals: [
-          {
-            every: '2 hours',
-          },
-        ],
-      },
+      spec:
+        IS_DEV_ENV || IS_TEST_ENV
+          ? {
+              cronExpressions: ['*/2 * * * *'],
+            }
+          : {
+              intervals: [
+                {
+                  every: '2 hours',
+                },
+              ],
+            },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
         catchupWindow: '1 minute',
