@@ -56,13 +56,10 @@
 import {
   defineEmits,
   defineProps,
-  reactive,
-  computed,
-  watch, onMounted, ref,
+  watch,
+  ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import cloneDeep from 'lodash/cloneDeep';
-import AppPlatformIcon from '@/shared/modules/platform/components/platform-icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 

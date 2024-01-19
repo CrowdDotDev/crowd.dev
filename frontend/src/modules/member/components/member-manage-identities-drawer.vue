@@ -44,13 +44,10 @@ import {
   defineEmits,
   defineProps,
   computed,
-  reactive, onMounted,
 } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
-import isEqual from 'lodash/isEqual';
-import formChangeDetector from '@/shared/form/form-change';
 import AppMemberFormIdentities from './form/member-form-identities.vue';
 
 const store = useStore();

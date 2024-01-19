@@ -9,7 +9,7 @@
       <app-member-aside-identities
         :member="member"
         @edit="identitiesDrawer = true"
-        @editEmail="emailDrawer = true"
+        @edit-email="emailDrawer = true"
       />
 
       <el-divider class="!my-8 border-gray-200" />
