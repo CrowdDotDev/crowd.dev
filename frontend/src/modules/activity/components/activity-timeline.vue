@@ -330,7 +330,7 @@ const segments = computed(() => props.entity.segments?.map((s) => {
 
 const fetchActivities = async ({ reset } = { reset: false }) => {
   const filterToApply = {
-    platform: platform.value ?? undefined,
+    platform: platform.value ? { in: [platform.value] } : undefined,
   };
 
   if (props.entityType === 'member') {

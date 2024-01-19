@@ -158,7 +158,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform,
+                platform: { in: [platform] },
               },
             ]
             : []),
