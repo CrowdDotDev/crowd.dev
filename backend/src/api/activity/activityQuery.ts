@@ -21,7 +21,15 @@ import track from '../../segment/track'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.activityRead)
 
-  const payload = await new ActivityService(req).query(req.body)
+  let payload
+  const newVersion = req.headers['x-crowd-api-version'] === '1'
+  const service = new ActivityService(req)
+
+  if (newVersion) {
+    payload = await service.queryV2(req.body)
+  } else {
+    payload = await service.query(req.body)
+  }
 
   if (req.body?.filter && Object.keys(req.body.filter).length > 0) {
     track('Activities Advanced Filter', { ...req.body }, { ...req })

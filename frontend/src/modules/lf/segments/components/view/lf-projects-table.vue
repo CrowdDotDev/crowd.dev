@@ -104,7 +104,7 @@
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" width="268" class-name="table-columns">
+    <el-table-column fixed="right" width="288" class-name="table-columns">
       <template #header>
         <span class="h-10 block" />
         <div class="flex justify-end mb-4">

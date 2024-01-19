@@ -112,15 +112,22 @@ const model = computed({
 });
 
 const computedOptions = computed(() => {
-  if (
-    props.module === 'activity'
-    || props.module === 'conversation'
-  ) {
+  if (props.module === 'activity') {
     return [
       {
         value: 'trending',
         label: 'Trending',
       },
+      {
+        value: 'recentActivity',
+        label: 'Most recent activity',
+      },
+    ];
+  }
+
+  if (props.module === 'conversation'
+  ) {
+    return [
       {
         value: 'recentActivity',
         label: 'Most recent activity',

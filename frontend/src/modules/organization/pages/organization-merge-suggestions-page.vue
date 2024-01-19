@@ -1,11 +1,13 @@
 <template>
   <app-page-wrapper size="narrow">
-    <router-link
-      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mt-1 mb-4"
-      :to="{ path: '/organizations' }"
+    <app-back-link
+      class="mt-1 mb-4"
+      :default-route="{ path: '/organizations' }"
     >
-      <i class="ri-arrow-left-s-line mr-2" />Organizations
-    </router-link>
+      <template #default>
+        Organizations
+      </template>
+    </app-back-link>
     <h4 class="text-xl font-semibold leading-9 mb-1">
       Merging suggestions
     </h4>
@@ -159,6 +161,7 @@ import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 

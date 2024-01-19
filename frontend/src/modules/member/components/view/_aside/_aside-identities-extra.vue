@@ -1,7 +1,7 @@
 <template>
-  <el-divider v-if="emails.length" class="!my-8 border-gray-200" />
+  <el-divider class="!my-8 border-gray-200" />
 
-  <div v-if="emails.length" class="flex flex-col px-6">
+  <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
         Email(s)
@@ -15,7 +15,7 @@
       </el-button>
     </div>
 
-    <div class="flex flex-col gap-2 mt-6">
+    <div v-if="emails.length" class="flex flex-col gap-2 mt-6">
       <div
         v-for="(emailIdentity, index) in emails"
         :key="emailIdentity.handle"
@@ -50,6 +50,10 @@
       >
         Show {{ displayMore ? 'less' : 'more' }}
       </div>
+    </div>
+
+    <div v-else class="text-xs text-gray-400 italic mt-6">
+      No email addresses
     </div>
   </div>
 </template>

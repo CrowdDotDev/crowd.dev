@@ -226,7 +226,7 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
         type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
         organizationId,
       },
-      organizationId,
+      undefined,
       {
         onboarding,
       },

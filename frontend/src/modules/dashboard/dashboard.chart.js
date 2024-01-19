@@ -13,11 +13,11 @@ export const dashboardChartOptions = {
     stops: [
       {
         offset: 0.38,
-        color: 'rgba(253,237, 234,1)',
+        color: 'rgba(0, 148, 255, 0.10)',
       },
       {
         offset: 1,
-        color: 'rgba(253,237, 234,0)',
+        color: 'rgba(0, 148, 255, 0.00)',
       },
     ],
   },

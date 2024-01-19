@@ -407,7 +407,13 @@ async function onReset() {
 }
 
 async function onCancel() {
-  router.push({ name: 'member' });
+  router.push({
+    name: 'memberView',
+    params: {
+      id: record.value.id,
+    },
+    query: { projectGroup: selectedProjectGroup?.id },
+  });
 }
 
 async function onSubmit() {

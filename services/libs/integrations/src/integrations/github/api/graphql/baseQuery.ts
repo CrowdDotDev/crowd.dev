@@ -35,6 +35,7 @@ class BaseQuery {
     }`
 
   static ORGANIZATION_SELECT = `{
+    login
     email
     url
     location

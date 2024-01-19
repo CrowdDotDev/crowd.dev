@@ -7,6 +7,7 @@ export enum FilterDateOperator {
   NE = 'ne',
   LT = 'lt',
   GT = 'gt',
+  GTE = 'gte',
   BETWEEN = 'between',
   NOT_BETWEEN = 'not-between',
 }

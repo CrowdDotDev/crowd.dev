@@ -19,7 +19,7 @@ const options: Options = {
   postgres: {
     enabled: true,
   },
-  opensearch: {
+  sqs: {
     enabled: true,
   },
 }
