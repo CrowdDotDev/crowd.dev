@@ -36,13 +36,16 @@ const envvars = {
           'CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY',
           'CROWD_OPENSEARCH_NODE',
         ],
-  sqs: [
-    'CROWD_SQS_AWS_REGION',
-    'CROWD_SQS_HOST',
-    'CROWD_SQS_PORT',
-    'CROWD_SQS_AWS_ACCESS_KEY_ID',
-    'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
-  ],
+  sqs:
+    IS_DEV_ENV || IS_TEST_ENV
+      ? [
+          'CROWD_SQS_AWS_REGION',
+          'CROWD_SQS_HOST',
+          'CROWD_SQS_PORT',
+          'CROWD_SQS_AWS_ACCESS_KEY_ID',
+          'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
+        ]
+      : ['CROWD_SQS_AWS_REGION', 'CROWD_SQS_AWS_ACCESS_KEY_ID', 'CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
 }
 
 /*
@@ -207,8 +210,8 @@ export class ServiceWorker extends Service {
       try {
         this._sqsClient = getSqsClient({
           region: process.env['CROWD_SQS_AWS_REGION'],
-          host: process.env['CROWD_SQS_HOST'],
-          port: Number(process.env['CROWD_SQS_PORT']),
+          host: process.env['CROWD_SQS_HOST'] ? process.env['CROWD_SQS_HOST'] : undefined,
+          port: process.env['CROWD_SQS_PORT'] ? Number(process.env['CROWD_SQS_PORT']) : undefined,
           accessKeyId: process.env['CROWD_SQS_AWS_ACCESS_KEY_ID'],
           secretAccessKey: process.env['CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
         })
