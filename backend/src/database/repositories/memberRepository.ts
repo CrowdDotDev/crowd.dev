@@ -1166,7 +1166,7 @@ class MemberRepository {
       await MemberAttributeSettingsRepository.findAndCountAll({}, options)
     ).rows
 
-    const response = await this.findAndCountAllOpensearch(
+    let response = await this.findAndCountAllOpensearch(
       {
         filter: {
           and: [
@@ -1186,7 +1186,43 @@ class MemberRepository {
     )
 
     if (response.count === 0) {
-      throw new Error404()
+      // Get one of the segments where the member belongs
+      const memberSegment = await options.database.sequelize.query(
+        `
+        SELECT "segmentId"
+        FROM member_segments_mv
+        WHERE "memberId" = :id
+        LIMIT 1
+        `,
+        {
+          replacements: { id },
+          type: options.database.sequelize.QueryTypes.SELECT,
+        },
+      )
+
+      // Repeat the query with the obtained segment
+      response = await this.findAndCountAllOpensearch(
+        {
+          filter: {
+            and: [
+              {
+                id: {
+                  eq: id,
+                },
+              },
+            ],
+          },
+          limit: 1,
+          offset: 0,
+          attributesSettings: memberAttributeSettings,
+          segments: memberSegment,
+        },
+        options,
+      )
+
+      if (response.count === 0) {
+        throw new Error404()
+      }
     }
 
     const result = response.rows[0]
