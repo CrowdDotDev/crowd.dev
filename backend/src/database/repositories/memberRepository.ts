@@ -1215,13 +1215,13 @@ class MemberRepository {
           limit: 1,
           offset: 0,
           attributesSettings: memberAttributeSettings,
-          segments: ['d4457ee2-32ca-4454-ae4f-840b569b41d9'],
+          segments: ['3db9e5ad-3bbb-489a-93b7-030262c05142'],
         },
         options,
       )
 
       if (response.count === 0) {
-        throw new Error500()
+        throw new Error404()
       }
     }
 
