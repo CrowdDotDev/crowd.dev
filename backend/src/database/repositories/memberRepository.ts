@@ -16,7 +16,7 @@ import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404 } from '@crowd/common'
+import { Error400, Error404, Error500 } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -1221,7 +1221,7 @@ class MemberRepository {
       )
 
       if (response.count === 0) {
-        throw new Error404()
+        throw new Error500()
       }
     }
 
