@@ -16,7 +16,7 @@ import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404 } from '@crowd/common'
+import { Error400, Error404, Error500 } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -1166,7 +1166,7 @@ class MemberRepository {
       await MemberAttributeSettingsRepository.findAndCountAll({}, options)
     ).rows
 
-    const response = await this.findAndCountAllOpensearch(
+    let response = await this.findAndCountAllOpensearch(
       {
         filter: {
           and: [
@@ -1186,7 +1186,92 @@ class MemberRepository {
     )
 
     if (response.count === 0) {
-      throw new Error404()
+      // Get one of the segments where the member belongs
+      const memberSegment = await options.database.sequelize.query(
+        `
+        SELECT "segmentId"
+        FROM member_segments_mv
+        WHERE "memberId" = :id
+        LIMIT 1
+        `,
+        {
+          replacements: { id },
+          type: options.database.sequelize.QueryTypes.SELECT,
+        },
+      )
+
+      let segmentId = memberSegment[0]?.segmentId
+
+      if (segmentId) {
+        const segment = await options.database.sequelize.query(
+          `
+          SELECT "grandparentSlug", "parentSlug", slug
+          FROM segments
+          WHERE id = :segmentId
+          `,
+          {
+            replacements: { segmentId },
+            type: options.database.sequelize.QueryTypes.SELECT,
+          },
+        )
+
+        const grandparentSlug = segment[0]?.grandparentSlug
+        const parentSlug = segment[0]?.parentSlug
+
+        if (grandparentSlug) {
+          const grandparentSegment = await options.database.sequelize.query(
+            `
+            SELECT id
+            FROM segments
+            WHERE slug = :grandparentSlug
+            `,
+            {
+              replacements: { grandparentSlug },
+              type: options.database.sequelize.QueryTypes.SELECT,
+            },
+          )
+          segmentId = grandparentSegment[0]?.id
+        } else if (parentSlug) {
+          const parentSegment = await options.database.sequelize.query(
+            `
+            SELECT id
+            FROM segments
+            WHERE slug = :parentSlug
+            `,
+            {
+              replacements: { parentSlug },
+              type: options.database.sequelize.QueryTypes.SELECT,
+            },
+          )
+          segmentId = parentSegment[0]?.id
+        }
+      }
+
+      const segmentIdToUse = segmentId || memberSegment[0]?.segmentId
+
+      // Repeat the query with the obtained segment
+      response = await this.findAndCountAllOpensearch(
+        {
+          filter: {
+            and: [
+              {
+                id: {
+                  eq: id,
+                },
+              },
+            ],
+          },
+          limit: 1,
+          offset: 0,
+          attributesSettings: memberAttributeSettings,
+          segments: [segmentIdToUse],
+        },
+        options,
+      )
+
+      if (response.count === 0) {
+        throw new Error404()
+      }
     }
 
     const result = response.rows[0]
