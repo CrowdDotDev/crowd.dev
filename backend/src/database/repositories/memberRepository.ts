@@ -1215,7 +1215,7 @@ class MemberRepository {
           limit: 1,
           offset: 0,
           attributesSettings: memberAttributeSettings,
-          segments: memberSegment,
+          segments: ['d4457ee2-32ca-4454-ae4f-840b569b41d9'],
         },
         options,
       )
