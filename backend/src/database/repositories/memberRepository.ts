@@ -1200,6 +1200,55 @@ class MemberRepository {
         },
       )
 
+      let segmentId = memberSegment[0]?.segmentId
+
+      if (segmentId) {
+        const segment = await options.database.sequelize.query(
+          `
+          SELECT "grandparentSlug", "parentSlug", slug
+          FROM segments
+          WHERE id = :segmentId
+          `,
+          {
+            replacements: { segmentId },
+            type: options.database.sequelize.QueryTypes.SELECT,
+          },
+        )
+
+        const grandparentSlug = segment[0]?.grandparentSlug
+        const parentSlug = segment[0]?.parentSlug
+
+        if (grandparentSlug) {
+          const grandparentSegment = await options.database.sequelize.query(
+            `
+            SELECT id
+            FROM segments
+            WHERE slug = :grandparentSlug
+            `,
+            {
+              replacements: { grandparentSlug },
+              type: options.database.sequelize.QueryTypes.SELECT,
+            },
+          )
+          segmentId = grandparentSegment[0]?.id
+        } else if (parentSlug) {
+          const parentSegment = await options.database.sequelize.query(
+            `
+            SELECT id
+            FROM segments
+            WHERE slug = :parentSlug
+            `,
+            {
+              replacements: { parentSlug },
+              type: options.database.sequelize.QueryTypes.SELECT,
+            },
+          )
+          segmentId = parentSegment[0]?.id
+        }
+      }
+
+      const segmentIdToUse = segmentId || memberSegment[0]?.segmentId
+
       // Repeat the query with the obtained segment
       response = await this.findAndCountAllOpensearch(
         {
@@ -1215,7 +1264,7 @@ class MemberRepository {
           limit: 1,
           offset: 0,
           attributesSettings: memberAttributeSettings,
-          segments: ['3db9e5ad-3bbb-489a-93b7-030262c05142'],
+          segments: [segmentIdToUse],
         },
         options,
       )
