@@ -289,8 +289,8 @@ class MemberRepository {
       const toMergePromises = []
 
       for (const mem of mems) {
-        memberPromises.push(MemberRepository.findById(mem.id, options))
-        toMergePromises.push(MemberRepository.findById(mem.toMergeId, options))
+        memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
+        toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
       }
 
       const memberResults = await Promise.all(memberPromises)
@@ -1166,27 +1166,37 @@ class MemberRepository {
       await MemberAttributeSettingsRepository.findAndCountAll({}, options)
     ).rows
 
-    const response = await this.findAndCountAllOpensearch(
-      {
-        filter: {
-          and: [
-            {
-              id: {
-                eq: id,
-              },
+    const memberSearchQuery = {
+      filter: {
+        and: [
+          {
+            id: {
+              eq: id,
             },
-          ],
-        },
-        limit: 1,
-        offset: 0,
-        attributesSettings: memberAttributeSettings,
+          },
+        ],
+      },
+      limit: 1,
+      offset: 0,
+      attributesSettings: memberAttributeSettings,
+    }
+
+    let response = await this.findAndCountAllOpensearch(
+      {
+        ...memberSearchQuery,
         segments,
       },
       options,
     )
 
+    // if not found, try to find it in all segments and return the first one
     if (response.count === 0) {
-      throw new Error404()
+      response = await this.findAndCountAllOpensearch(memberSearchQuery, options)
+
+      // still not found, throw 404
+      if (response.count === 0) {
+        throw new Error404()
+      }
     }
 
     const result = response.rows[0]
@@ -2158,7 +2168,7 @@ class MemberRepository {
       },
     })
 
-    if (segmentsEnabled) {
+    if (segmentsEnabled && segment) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
