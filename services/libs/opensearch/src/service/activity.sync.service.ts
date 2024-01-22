@@ -273,7 +273,6 @@ export class ActivitySyncService {
     p.int_score = data.score ?? 0
     p.keyword_sourceId = data.sourceId
     p.keyword_sourceParentId = data.sourceParentId
-    p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
     p.keyword_channel = data.channel
     p.string_body = trimUtf8ToMaxByteLength(data.body, ActivitySyncService.MAX_BYTE_LENGTH)
     p.string_title = data.title
