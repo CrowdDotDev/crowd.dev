@@ -32,7 +32,8 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
             "parentId",
             username,
             "objectMemberId",
-            "objectMemberUsername"
+            "objectMemberUsername",
+            "organizationId"
       from activities where id in ($(activityIds:csv)) and "deletedAt" is null
     `,
       {
