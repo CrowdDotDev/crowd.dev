@@ -50,22 +50,22 @@
         <slot name="action" />
       </div>
       <app-avatar :entity="member" class="mb-3" />
-      <div class="pb-4">
+      <div class="pb-6">
         <h6
-          class="text-base text-black font-semibold"
+          class="text-base text-black font-semibold leading-6"
           v-html="$sanitize(member.displayName)"
         />
         <div
           v-if="member.attributes.bio?.default"
           ref="bio"
-          class="text-gray-600 leading-5 !text-xs merge-member-bio"
+          class="text-gray-600 leading-5 !text-xs merge-member-bio mt-2"
           :class="{ 'line-clamp-2': !more }"
           v-html="$sanitize(member.attributes.bio.default)"
         />
         <div
           v-else-if="compareMember?.attributes.bio?.default"
           ref="bio"
-          class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
+          class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2 mt-2"
           v-html="$sanitize(compareMember?.attributes.bio.default)"
         />
 
@@ -80,10 +80,8 @@
       </div>
 
       <div>
-        <article
-          class="flex items-center justify-between h-12 border-b border-gray-200"
-        >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+        <article class="pb-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Engagement level
           </p>
           <app-community-engagement-level :member="member" />
@@ -93,12 +91,12 @@
             member.attributes.location?.default
               || compareMember?.attributes.location?.default
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ member.attributes.location?.default || '-' }}
           </p>
         </article>
@@ -106,43 +104,45 @@
           v-if="
             member.organizations.length || compareMember?.organizations.length
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Organization
           </p>
-          <app-member-organizations :member="member" :show-title="false" />
+          <div>
+            <app-member-organizations :member="member" :show-title="false" />
+          </div>
         </article>
         <article
           v-if="
             member.attributes.jobTitle?.default
               || compareMember?.attributes.jobTitle?.default
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Title
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ member.attributes.jobTitle?.default || '-' }}
           </p>
         </article>
         <article
           v-if="member.joinedAt || compareMember?.joinedAt"
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Contact since
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
           </p>
         </article>
         <article
           v-if="member.tags.length > 0 || compareMember?.tags.length > 0"
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Tags
           </p>
           <app-tags
@@ -154,7 +154,10 @@
           <span v-else>-</span>
         </article>
       </div>
-      <div class="pt-5">
+      <div class="pt-4">
+        <h6 class="text-sm font-semibold pb-3">
+          Identities
+        </h6>
         <app-identities-vertical-list-members
           :member="member"
           :order="memberOrder.suggestions"
