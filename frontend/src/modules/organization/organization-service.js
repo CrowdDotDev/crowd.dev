@@ -171,4 +171,48 @@ export class OrganizationService {
     )
       .then(({ data }) => Promise.resolve(data));
   }
+
+  static async listActive({
+    platform,
+    isTeamOrganization,
+    activityTimestampFrom,
+    activityTimestampTo,
+    orderBy,
+    offset,
+    limit,
+    segments,
+  }) {
+    const params = {
+      ...(platform.length && {
+        'filter[platforms]': platform
+          .map((p) => p.value)
+          .join(','),
+      }),
+      ...(isTeamOrganization === false && {
+        'filter[isTeamOrganization]': isTeamOrganization,
+      }),
+      'filter[activityTimestampFrom]':
+        activityTimestampFrom,
+      'filter[activityTimestampTo]': activityTimestampTo,
+      orderBy,
+      offset,
+      limit,
+      segments,
+    };
+
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/organization/active`,
+      {
+        params,
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
 }
