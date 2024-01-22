@@ -9,6 +9,8 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
 import { router } from '@/router';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   async reset({ dispatch }) {
@@ -76,9 +78,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform: {
-                  eq: platform,
-                },
+                platform,
               },
             ]
             : []),
@@ -332,7 +332,10 @@ export default {
     state.organizations.loadingActive = true;
     const { platform, period, segments } = state.filters;
 
-    const isZephyrProjectGroup = router.currentRoute.value?.query.projectGroup === '46c06f88-9112-46d3-9f89-53d02e824d90';
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+    const isZephyrProjectGroup = selectedProjectGroup.value?.id === '46c06f88-9112-46d3-9f89-53d02e824d90';
 
     if (isZephyrProjectGroup) {
       return OrganizationService.listActive({
