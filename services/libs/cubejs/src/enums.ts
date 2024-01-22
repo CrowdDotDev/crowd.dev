@@ -7,6 +7,7 @@ export enum CubeDimension {
   ACTIVITY_DATE = 'Activities.date',
   ACTIVITY_DATE_DAY = 'Activities.date.day',
   ACTIVITY_PLATFORM = 'Activities.platform',
+  MEMBER_IDENTITIES_PLATFORM = 'MemberIdentities.platform',
   ACTIVITY_TYPE = 'Activities.type',
   ACTIVITY_SENTIMENT_MOOD = 'Activities.sentimentMood',
   CONVERSATION_CREATED_AT = 'Conversations.createdat',

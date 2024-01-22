@@ -286,6 +286,7 @@ export class ActivitySyncService {
     p.string_username = data.username
     p.uuid_objectMemberId = data.objectMemberId
     p.string_objectMemberUsername = data.objectMemberUsername
+    p.uuid_organizationId = data.organizationId
 
     return p
   }
