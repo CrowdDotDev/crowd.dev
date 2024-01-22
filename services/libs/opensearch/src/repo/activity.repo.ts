@@ -33,7 +33,7 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
             "objectMemberId",
             "objectMemberUsername",
             "organizationId"
-      from activities where id in ($(activityIds:csv)) and "deletedAt" is null
+      from activities where id in ($(activityIds:csv)) and "deletedAt" is null and "segmentId" in ('bc22112e-c956-425b-931a-79471e508614', 'e10065cb-44be-4a6c-9d6f-0abcf9369d91')
     `,
       {
         activityIds,
