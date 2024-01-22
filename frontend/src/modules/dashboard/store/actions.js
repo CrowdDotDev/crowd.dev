@@ -78,9 +78,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform: {
-                  eq: platform,
-                },
+                platform,
               },
             ]
             : []),
