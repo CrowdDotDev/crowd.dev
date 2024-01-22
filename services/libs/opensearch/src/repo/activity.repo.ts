@@ -78,7 +78,7 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
       results = await this.db().any(
         `
       select id from activities 
-      where "tenantId" = $(tenantId) and "deletedAt" is null  and "segmentId" in ('bc22112e-c956-425b-931a-79471e508614', 'e10065cb-44be-4a6c-9d6f-0abcf9369d91') and id > $(lastId)
+      where "tenantId" = $(tenantId) and "deletedAt" is null and id > $(lastId)
       order by id
       limit ${perPage};
       `,
@@ -91,7 +91,7 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
       results = await this.db().any(
         `
       select id from activities 
-      where "tenantId" = $(tenantId) and "deletedAt" is null  and "segmentId" in ('bc22112e-c956-425b-931a-79471e508614', 'e10065cb-44be-4a6c-9d6f-0abcf9369d91')
+      where "tenantId" = $(tenantId) and "deletedAt" is null
       order by id
       limit ${perPage};
       `,
