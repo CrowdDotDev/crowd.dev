@@ -20,7 +20,6 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
             score,
             "sourceId",
             "sourceParentId",
-            attributes,
             channel,
             body,
             title,
