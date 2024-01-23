@@ -458,7 +458,7 @@ export default {
             const filter = f;
             const { values } = filter;
 
-            if (filter.member.name === 'Members.score') {
+            if (filter.member.name === 'Members.score' || filter.member.name === 'Members.engagementLevel') {
               const parsedValues = values.map((v) => Number(v));
               const engagement = this.computedEngagementLevelTypes.find((t) => isEqual(t.value, parsedValues))?.label;
 
@@ -509,6 +509,10 @@ export default {
             values = this.computedEngagementLevelTypes
               .filter((t) => t.label === filter.value)?.[0]
               .value.map((v) => `${v}`);
+          } else if (filter.select === 'Members.engagementLevel') {
+            values = [`${this.computedEngagementLevelTypes
+              .filter((t) => t.label === filter.value)?.[0]
+              .label}`];
           }
 
           return {
