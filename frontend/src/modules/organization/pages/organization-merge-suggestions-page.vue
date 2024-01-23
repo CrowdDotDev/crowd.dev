@@ -1,5 +1,5 @@
 <template>
-  <app-page-wrapper size="narrow">
+  <app-page-wrapper>
     <router-link
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mt-1 mb-4"
       :to="{ path: '/organizations' }"
