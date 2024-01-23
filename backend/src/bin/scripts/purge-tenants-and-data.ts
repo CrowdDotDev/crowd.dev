@@ -16,7 +16,8 @@ const options = [
     name: 'tenantIds',
     alias: 't',
     type: String,
-    description: 'Tenants to be excluded from the data purging process. IDs should be comma-separated list.',
+    description:
+      'Tenants to be excluded from the data purging process. IDs should be comma-separated list.',
   },
   {
     name: 'help',
