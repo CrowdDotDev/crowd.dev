@@ -74,9 +74,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform: {
-                  eq: platform,
-                },
+                platform,
               },
             ]
             : []),
@@ -140,7 +138,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform,
+                platform: { eq: platform },
               },
             ]
             : []),
