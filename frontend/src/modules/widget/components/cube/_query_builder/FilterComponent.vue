@@ -272,6 +272,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -290,6 +291,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -299,6 +301,7 @@ export default {
         'Members.count': {
           noDimension: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -310,6 +313,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.location',
             'Members.organization',
           ],
@@ -318,6 +322,7 @@ export default {
         'Members.cumulativeCount': {
           noDimension: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -329,6 +334,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.location',
             'Members.organization',
           ],
