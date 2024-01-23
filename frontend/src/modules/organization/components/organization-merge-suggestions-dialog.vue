@@ -7,14 +7,14 @@
     custom-class="mt-6 mb-6"
   >
     <template #content>
-      <app-member-merge-suggestions :query="props.query" class="!shadow-none -mt-5" />
+      <app-organization-merge-suggestions :query="props.query" class="!shadow-none -mt-5" />
     </template>
   </app-dialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import AppMemberMergeSuggestions from '@/modules/member/components/member-merge-suggestions.vue';
+import AppOrganizationMergeSuggestions from '@/modules/organization/components/organization-merge-suggestions.vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
 
 const props = defineProps<{
@@ -36,6 +36,6 @@ const isModalOpen = computed<boolean>({
 
 <script lang="ts">
 export default {
-  name: 'AppMemberMergeSuggestionsDialog',
+  name: 'AppOrganizationMergeSuggestionsDialog',
 };
 </script>

@@ -111,12 +111,6 @@ const mergeSuggestions = () => {
     return;
   }
   isMergeSuggestionsDialogOpen.value = true;
-  // router.push({
-  //   name: 'memberMergeSuggestions',
-  //   query: {
-  //     memberId: props.member.id,
-  //   },
-  // });
 };
 
 const merge = () => {
