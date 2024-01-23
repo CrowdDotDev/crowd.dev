@@ -14,6 +14,10 @@ export default (app) => {
     safeWrap(require('./organizationAutocomplete').default),
   )
   app.get(`/tenant/:tenantId/organization`, safeWrap(require('./organizationList').default))
+  app.get(
+    `/tenant/:tenantId/organization/active`,
+    safeWrap(require('./organizationActiveList').default),
+  )
   app.get(`/tenant/:tenantId/organization/:id`, safeWrap(require('./organizationFind').default))
 
   app.put(

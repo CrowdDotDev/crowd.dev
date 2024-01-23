@@ -296,6 +296,7 @@ export class InitService {
       username: 'Test Member',
       objectMemberId: '4ea4c0f7-fdf8-448c-99ff-e03d0df95358',
       objectMemberUsername: 'Test Member2',
+      organizationId: '2badb0e5-e21b-4955-aba7-d52ef66bae59',
     }
 
     const prepared = ActivitySyncService.prefixData(fakeActivity)
