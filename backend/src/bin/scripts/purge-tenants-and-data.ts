@@ -53,8 +53,6 @@ async function purgeTenantsAndData(): Promise<void> {
   let count = 0
   let purgeableTenants
 
-  const transaction = await prodDb.sequelize.transaction()
-
   log.info('Querying database for tenants where trialEndsAt exists and trial period is over.')
 
   const doNotPurgeTenantIds = parameters.tenantIds.split(',')
@@ -93,19 +91,20 @@ async function purgeTenantsAndData(): Promise<void> {
     'organizations',
   ]
 
-  try {
-    for (const tenant of purgeableTenants) {
+  for (const tenant of purgeableTenants) {
+    const transaction = await prodDb.sequelize.transaction()
+    try {
       for (const table of tables) {
         // The 'organizationCacheLinks' table has a foreign key constraint on 'organizations' table.
         // So, before deleting any record from 'organizations', we need to delete the corresponding records from 'organizationCacheLinks'.
         if (table === 'organizationCacheLinks') {
           await prodDb.sequelize.query(
             `
-            delete from "${table}"
-            where "organizationId" IN
-                  (select id
-                   from organizations
-                   where "tenantId" = :tenantId)`,
+              delete from "${table}"
+              where "organizationId" IN
+                    (select id
+                     from organizations
+                     where "tenantId" = :tenantId)`,
             {
               replacements: { tenantId: tenant.id },
               type: QueryTypes.DELETE,
@@ -115,8 +114,8 @@ async function purgeTenantsAndData(): Promise<void> {
         } else {
           await prodDb.sequelize.query(
             `
-            delete from "${table}"
-            where "tenantId" = :tenantId`,
+              delete from "${table}"
+              where "tenantId" = :tenantId`,
             {
               replacements: { tenantId: tenant.id },
               type: QueryTypes.DELETE,
@@ -129,8 +128,8 @@ async function purgeTenantsAndData(): Promise<void> {
       // remove tenant from tenants table
       await prodDb.sequelize.query(
         `
-        delete from tenants
-        where id = :tenantId`,
+          delete from tenants
+          where id = :tenantId`,
         {
           replacements: { tenantId: tenant.id },
           type: QueryTypes.DELETE,
@@ -138,16 +137,18 @@ async function purgeTenantsAndData(): Promise<void> {
         },
       )
 
+      await transaction.commit()
+
       count++
       log.info(`Purged ${count}/${purgeableTenants.length} tenants!`)
+    } catch (error) {
+      await transaction.rollback()
+      log.error(`Error purging tenants and their data: ${error.message}`)
+      process.exit(1)
     }
-    await transaction.commit()
-    log.info('Revoked access and purged data for free tenants!')
-  } catch (error) {
-    await transaction.rollback()
-    log.error(`Error purging tenants and their data: ${error.message}`)
-    process.exit(1)
   }
+
+  log.info('Revoked access and purged data for free tenants!')
 }
 
 if (parameters.help) {
