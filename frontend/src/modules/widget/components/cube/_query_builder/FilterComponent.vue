@@ -136,7 +136,7 @@
               </el-option-group>
             </el-select>
             <el-select
-              v-else-if="filter.select === 'Members.score' || filter.select === 'Members.engagementLvel'"
+              v-else-if="filter.select === 'Members.score' || filter.select === 'Members.engagementLevel'"
               v-model="filter.value"
               class="third-filter"
               placeholder="Value"
