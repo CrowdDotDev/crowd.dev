@@ -1492,6 +1492,20 @@ class MemberRepository {
       })
     }
 
+    if (filter.isDeleted === true) {
+      memberQueryPayload.and.push({
+        isDeleted: {
+          eq: true,
+        },
+      })
+    } else if (filter.isDeleted === false) {
+      memberQueryPayload.and.push({
+        isDeleted: {
+          not: true,
+        },
+      })
+    }
+
     // to retain the sort came from activity query
     const customSortFunction = {
       _script: {
@@ -1719,6 +1733,7 @@ class MemberRepository {
     ['isOrganization', "coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)"],
     ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
     ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
+    ['isDeleted', "coalesce((m.attributes -> 'isDeleted' -> 'default')::boolean, false)"],
     ['activeOn', 'aggs."activeOn"'],
     ['activityCount', 'aggs."activityCount"'],
     ['activityTypes', 'aggs."activityTypes"'],

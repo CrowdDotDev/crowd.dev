@@ -16,6 +16,7 @@ const allContacts: SavedView = {
       bot: 'exclude',
       teamMember: 'exclude',
       organization: 'exclude',
+      deleted: 'exclude',
     },
   },
 };

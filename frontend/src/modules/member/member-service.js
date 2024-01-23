@@ -150,6 +150,7 @@ export class MemberService {
       }),
       'filter[isOrganization]': false,
       'filter[isBot]': false,
+      'filter[isDeleted]': false,
       'filter[activityTimestampFrom]':
         activityTimestampFrom,
       'filter[activityTimestampTo]': activityTimestampTo,
