@@ -8,9 +8,6 @@ import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
-import { router } from '@/router';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   async reset({ dispatch }) {
@@ -332,66 +329,19 @@ export default {
     state.organizations.loadingActive = true;
     const { platform, period, segments } = state.filters;
 
-    const lsSegmentsStore = useLfSegmentsStore();
-    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-    const isZephyrProjectGroup = selectedProjectGroup.value?.id === '46c06f88-9112-46d3-9f89-53d02e824d90';
-
-    if (isZephyrProjectGroup) {
-      return OrganizationService.listActive({
-        platform: platform !== 'all' ? [{ value: platform }] : [],
-        isTeamOrganization: false,
-        activityTimestampFrom: moment()
-          .utc()
-          .subtract(period.value - 1, period.granularity)
-          .startOf('day')
-          .toISOString(),
-        activityTimestampTo: moment().utc().endOf('day'),
-        orderBy: 'activityCount_DESC',
-        offset: 0,
-        limit: 5,
-        segments: segments.segments,
-      })
-        .then((data) => {
-          commit('SET_ACTIVE_ORGANIZATIONS', data);
-          return Promise.resolve(data);
-        })
-        .finally(() => {
-          state.organizations.loadingActive = false;
-        });
-    }
-
-    return OrganizationService.query({
-      filter: {
-        and: [
-          ...DEFAULT_ORGANIZATION_FILTERS,
-          {
-            lastActive: {
-              gte: moment()
-                .utc()
-                .startOf('day')
-                .subtract(
-                  period.value - 1,
-                  period.granularity,
-                )
-                .toISOString(),
-            },
-          },
-          ...(platform !== 'all'
-            ? [
-              {
-                activeOn: {
-                  contains: [platform],
-                },
-              },
-            ]
-            : []),
-        ],
-      },
-      orderBy: 'lastActive_DESC',
-      limit: 5,
+    return OrganizationService.listActive({
+      platform: platform !== 'all' ? [{ value: platform }] : [],
+      isTeamOrganization: false,
+      activityTimestampFrom: moment()
+        .utc()
+        .subtract(period.value - 1, period.granularity)
+        .startOf('day')
+        .toISOString(),
+      activityTimestampTo: moment().utc().endOf('day'),
+      orderBy: 'activityCount_DESC',
       offset: 0,
-      segments: segments.childSegments,
+      limit: 5,
+      segments: segments.segments,
     })
       .then((data) => {
         commit('SET_ACTIVE_ORGANIZATIONS', data);
