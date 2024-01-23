@@ -75,9 +75,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform: {
-                  eq: platform,
-                },
+                platform,
               },
             ]
             : []),
@@ -331,37 +329,19 @@ export default {
     state.organizations.loadingActive = true;
     const { platform, period, segments } = state.filters;
 
-    return OrganizationService.query({
-      filter: {
-        and: [
-          ...DEFAULT_ORGANIZATION_FILTERS,
-          {
-            lastActive: {
-              gte: moment()
-                .utc()
-                .startOf('day')
-                .subtract(
-                  period.value - 1,
-                  period.granularity,
-                )
-                .toISOString(),
-            },
-          },
-          ...(platform !== 'all'
-            ? [
-              {
-                activeOn: {
-                  contains: [platform],
-                },
-              },
-            ]
-            : []),
-        ],
-      },
-      orderBy: 'lastActive_DESC',
-      limit: 5,
+    return OrganizationService.listActive({
+      platform: platform !== 'all' ? [{ value: platform }] : [],
+      isTeamOrganization: false,
+      activityTimestampFrom: moment()
+        .utc()
+        .subtract(period.value - 1, period.granularity)
+        .startOf('day')
+        .toISOString(),
+      activityTimestampTo: moment().utc().endOf('day'),
+      orderBy: 'activityCount_DESC',
       offset: 0,
-      segments: segments.childSegments,
+      limit: 5,
+      segments: segments.segments,
     })
       .then((data) => {
         commit('SET_ACTIVE_ORGANIZATIONS', data);
