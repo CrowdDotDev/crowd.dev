@@ -14,7 +14,7 @@ const operatorText: Record<FilterDateOperator, string> = {
 };
 
 export const dateItemLabelRenderer = (property: string, { value, operator }: DateFilterValue): string => {
-  const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value);
+  const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value && option.operator === operator);
   let valueText = `${value}`;
   let operatorTextDisplay = operatorText[operator].length > 0 ? `${operatorText[operator]} ` : '';
 
