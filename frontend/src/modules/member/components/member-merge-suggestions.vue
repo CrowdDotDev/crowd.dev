@@ -2,8 +2,9 @@
   <div v-if="loading || count > 0" class="panel !p-0">
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-5 border-b">
-      <div v-if="Math.ceil(count) > 1" class="flex items-center">
+      <div class="flex items-center">
         <button
+          v-if="Math.ceil(count) > 1"
           type="button"
           class="btn btn--transparent btn--md"
           :disabled="loading || offset <= 0"
@@ -14,12 +15,19 @@
         </button>
         <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
         <div
-          v-else
+          v-else-if="Math.ceil(count) > 1"
           class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
         >
           <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
         </div>
+        <div
+          v-else
+          class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
+        >
+          <div>1 suggestion</div>
+        </div>
         <button
+          v-if="Math.ceil(count) > 1"
           type="button"
           class="btn btn--transparent btn--md"
           :disabled="loading || offset >= count - 1"
@@ -29,7 +37,6 @@
           <span class="ri-arrow-right-s-line text-lg ml-2" />
         </button>
       </div>
-      <div v-else />
       <div class="flex items-center">
         <div
           v-if="!loading && membersToMerge.similarity"
