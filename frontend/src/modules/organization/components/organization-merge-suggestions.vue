@@ -153,6 +153,14 @@ import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrgani
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
+const props = defineProps({
+  query: {
+    type: Object,
+    required: false,
+    default: () => ({}),
+  },
+});
+
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();

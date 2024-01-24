@@ -151,6 +151,14 @@ import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeM
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
+const props = defineProps({
+  query: {
+    type: Object,
+    required: false,
+    default: () => ({}),
+  },
+});
+
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
