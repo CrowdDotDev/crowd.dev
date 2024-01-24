@@ -72,13 +72,14 @@ async function purgeTenantsAndData(): Promise<void> {
   log.info(`Found ${purgeableTenants.length} tenants to purge!`)
 
   const tables = [
+    'githubRepos',
+    'integrations',
+    'incomingWebhooks',
     'memberSegments',
     'organizationSegments',
     'microservices',
     'conversations',
     'activities',
-    'githubRepos',
-    'integrations',
     'reports',
     'settings',
     'widgets',
@@ -95,6 +96,7 @@ async function purgeTenantsAndData(): Promise<void> {
     const transaction = await prodDb.sequelize.transaction()
     try {
       for (const table of tables) {
+        log.info(`Purging data from ${table} table for tenant: ${tenant.id}`)
         // The 'organizationCacheLinks' table has a foreign key constraint on 'organizations' table.
         // So, before deleting any record from 'organizations', we need to delete the corresponding records from 'organizationCacheLinks'.
         if (table === 'organizationCacheLinks') {
