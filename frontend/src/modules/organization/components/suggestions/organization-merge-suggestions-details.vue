@@ -49,7 +49,8 @@
         </button>
         <slot name="action" />
       </div>
-      <div class="pb-4">
+      <div class="pb-6">
+        <app-organization-merge-dialog v-model="isMergeDialogOpen" />
         <div class="flex justify-between">
           <router-link
             v-if="!isPreview"
@@ -92,26 +93,26 @@
             target="_blank"
           >
             <h6
-              class="text-base text-black font-semibold hover:text-brand-500"
+              class="text-base text-black font-semibold hover:text-brand-500 leading-6"
               v-html="$sanitize(props.organization.displayName || props.organization.name)"
             />
           </router-link>
           <h6
             v-else
-            class="text-base text-black font-semibold"
+            class="text-base text-black font-semibold leading-6"
             v-html="$sanitize(props.organization.displayName || props.organization.name)"
           />
           <div
             v-if="props.organization.description"
             ref="bio"
-            class="text-gray-600 leading-5 !text-xs merge-member-bio"
+            class="text-gray-600 leading-5 !text-xs merge-member-bio mt-2"
             :class="{ 'line-clamp-2': !more }"
             v-html="$sanitize(props.organization.description)"
           />
           <div
             v-else-if="compareOrganization?.description"
             ref="bio"
-            class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
+            class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2 mt-2"
             v-html="$sanitize(compareOrganization?.description)"
           />
 
@@ -132,16 +133,16 @@
             props.organization.website
               || props.compareOrganization?.website
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Website
           </p>
           <a
             :href="withHttp(props.organization.website)"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-gray-900 text-right whitespace-normal"
+            class="text-xs text-gray-900 whitespace-normal inline-block leading"
           >{{ props.organization.website || '-' }}</a>
         </article>
         <article
@@ -149,12 +150,12 @@
             props.organization.location
               || props.compareOrganization?.location
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200 truncate"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.location || '-' }}
           </p>
         </article>
@@ -163,12 +164,12 @@
             props.organization.employees
               || props.compareOrganization?.employees
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Number of employees
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.employees || '-' }}
           </p>
         </article>
@@ -177,12 +178,12 @@
             props.organization.revenueRange
               || props.compareOrganization?.revenueRange
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Annual Revenue
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ revenueRange.displayValue(
               props.organization.revenueRange,
             ) || '-' }}
@@ -193,12 +194,12 @@
             props.organization.industry
               || props.compareOrganization?.industry
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Industry
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase whitespace-normal">
+          <p class="text-xs text-gray-900 first-letter:uppercase whitespace-normal">
             {{ props.organization.industry || '-' }}
           </p>
         </article>
@@ -207,12 +208,12 @@
             props.organization.type
               || props.compareOrganization?.type
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Type
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase whitespace-normal">
+          <p class="text-xs text-gray-900 first-letter:uppercase whitespace-normal">
             {{ props.organization.type || '-' }}
           </p>
         </article>
@@ -221,12 +222,12 @@
             props.organization.founded
               || props.compareOrganization?.founded
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Founded
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.founded || '-' }}
           </p>
         </article>
@@ -235,12 +236,12 @@
             props.organization.joinedAt
               || props.compareOrganization?.joinedAt
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Joined date
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ formatDateToTimeAgo(props.organization.joinedAt) || '-' }}
           </p>
         </article>
@@ -249,12 +250,12 @@
             props.organization.memberCount
               || props.compareOrganization?.memberCount
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             # of contributors
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.memberCount || '-' }}
           </p>
         </article>
@@ -263,17 +264,20 @@
             props.organization.activityCount
               || props.compareOrganization?.activityCount
           "
-          class="flex items-center justify-between min-h-12 py-3 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             # of Activities
           </p>
-          <p class="text-xs text-gray-900 text-right whitespace-normal">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.activityCount || '-' }}
           </p>
         </article>
       </div>
-      <div class="pt-5">
+      <div class="pt-4">
+        <h6 class="text-sm font-semibold pb-3">
+          Identities
+        </h6>
         <app-identities-vertical-list-organizations
           :organization="organization"
           :include-emails="true"
