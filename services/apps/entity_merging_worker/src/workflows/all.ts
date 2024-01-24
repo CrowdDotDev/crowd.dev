@@ -28,6 +28,7 @@ export async function finishOrganizationMerging(
   original: string,
   toMerge: string,
   tenantId: string,
+  userId: string,
 ): Promise<void> {
   let movedSomething = true
   do {
@@ -36,5 +37,5 @@ export async function finishOrganizationMerging(
 
   await deleteOrganization(secondaryId)
   await markMergeActionDone(primaryId, secondaryId, tenantId)
-  await notifyFrontend(primaryId, secondaryId, original, toMerge, tenantId)
+  await notifyFrontend(primaryId, secondaryId, original, toMerge, tenantId, userId)
 }
