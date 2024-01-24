@@ -34,15 +34,6 @@
                 <i class="ri-arrow-go-back-line" />
                 <span>Reset changes</span>
               </el-button>
-              <el-button
-                v-if="isEditPage && hasFormChanged"
-                class="btn btn-link btn-link--primary !px-3"
-                :disabled="isFormSubmitting"
-                @click="onReset"
-              >
-                <i class="ri-arrow-go-back-line" />
-                <span>Reset changes</span>
-              </el-button>
               <div
                 v-if="isEditPage && hasFormChanged"
                 class="mx-4 border-x border-gray-200 h-10"
