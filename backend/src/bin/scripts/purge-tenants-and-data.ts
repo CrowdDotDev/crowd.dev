@@ -47,8 +47,8 @@ const parameters = commandLineArgs(options)
 const log = getServiceLogger()
 
 async function purgeTenantsAndData(): Promise<void> {
-  // initialize database with 15 minutes query timeout
-  const prodDb = await databaseInit(1000 * 60 * 15, true)
+  // initialize database with 60 minutes query timeout
+  const prodDb = await databaseInit(1000 * 60 * 60, true)
 
   let count = 0
   let purgeableTenants
