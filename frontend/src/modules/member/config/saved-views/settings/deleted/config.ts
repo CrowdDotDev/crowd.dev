@@ -4,7 +4,7 @@ import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common
 import MemberDeletedSetting from './MemberDeletedSetting.vue';
 
 const deleted: SavedViewsSetting<IncludeEnum> = {
-  inSettings: true,
+  inSettings: false,
   settingsComponent: MemberDeletedSetting,
   defaultValue: IncludeEnum.EXCLUDE,
   queryUrlParser(value: string): IncludeEnum {
