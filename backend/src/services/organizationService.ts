@@ -190,7 +190,7 @@ export default class OrganizationService extends LoggerBase {
           original.displayName,
           toMerge.displayName,
           this.options.currentTenant.id,
-          this.options.currentUser.id
+          this.options.currentUser.id,
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
