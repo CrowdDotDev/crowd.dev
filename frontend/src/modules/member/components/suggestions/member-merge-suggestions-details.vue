@@ -159,7 +159,7 @@
           class="pb-4"
         >
           <div class="flex items-center pb-1">
-            <p class="text-2xs font-medium text-gray-500">
+            <p class="text-2xs font-medium text-gray-500 mr-1">
               Location
             </p>
             <el-tooltip

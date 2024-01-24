@@ -7,7 +7,7 @@
     custom-class="mt-6 mb-6"
   >
     <template #content>
-      <app-member-merge-suggestions :query="props.query" class="!shadow-none -mt-5" />
+      <app-member-merge-suggestions :query="props.query" class="!border-t-0 !shadow-none -mt-5" />
     </template>
   </app-dialog>
 </template>
