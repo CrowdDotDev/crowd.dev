@@ -9,7 +9,10 @@ export default ({ error }: ApiErrorMessage) => {
       message: `Sorry, the organizations you are trying to merge might have already been merged or deleted.
         Please refresh to see the updated information.`,
     });
-  } else {
-    Message.error('There was an error merging organizations');
+
+    return true;
   }
+
+  Message.error('There was an error merging organizations');
+  return false;
 };

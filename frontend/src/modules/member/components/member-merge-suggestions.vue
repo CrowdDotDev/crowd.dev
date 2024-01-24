@@ -313,7 +313,11 @@ const mergeSuggestion = () => {
       fetch();
     })
     .catch((error) => {
-      apiErrorMessage({ error });
+      const shouldLoadNextSuggestion = apiErrorMessage({ error });
+
+      if (shouldLoadNextSuggestion) {
+        fetch();
+      }
     })
     .finally(() => {
       sendingMerge.value = false;

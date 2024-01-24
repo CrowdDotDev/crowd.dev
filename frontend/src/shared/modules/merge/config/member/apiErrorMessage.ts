@@ -8,7 +8,9 @@ export default ({ error }: ErrorMessage) => {
       message: `Sorry, the contributors you are trying to merge might have already been merged or deleted.
           Please refresh to see the updated information.`,
     });
-  } else {
-    Message.error('There was an error merging contributors');
+    return true;
   }
+
+  Message.error('There was an error merging contributors');
+  return false;
 };
