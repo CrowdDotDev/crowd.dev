@@ -40,7 +40,7 @@
       <div class="flex items-center">
         <div
           v-if="!loading && organizationsToMerge.similarity"
-          class="w-full flex items-center justify-center pr-2"
+          class="w-full flex items-center justify-center pr-3"
         >
           <div
             class="flex text-sm"
@@ -146,27 +146,19 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { storeToRefs } from 'pinia';
+import { useRoute } from 'vue-router';
 import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
+import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
-
-const props = defineProps({
-  query: {
-    type: Object,
-    required: false,
-    default: () => ({}),
-  },
-});
 
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();
-const {
-  mergedOrganizations,
-} = storeToRefs(organizationStore);
+
+const route = useRoute();
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -245,7 +237,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  OrganizationService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
+  OrganizationService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;
@@ -258,7 +250,7 @@ const fetch = (page) => {
       primary.value = 0;
 
       if (firstOrganization && secondOrganization && ((firstOrganization.identities.length < secondOrganization.identities.length)
-        || (firstOrganization.activityCount < secondOrganization.activityCount))) {
+            || (firstOrganization.activityCount < secondOrganization.activityCount))) {
         organizationsToMerge.value.organizations.reverse();
       }
     })
@@ -303,40 +295,24 @@ const mergeSuggestion = () => {
   }
   sendingMerge.value = true;
 
-  OrganizationService.mergeOrganizations(
-    organizationsToMerge.value.organizations[primary.value].id,
-    organizationsToMerge.value.organizations[(primary.value + 1) % 2].id,
-  )
-    .then(() => {
-      const primaryOrganization = organizationsToMerge.value.organizations[primary.value];
-      const secondaryOrganization = organizationsToMerge.value.organizations[(primary.value + 1) % 2].id;
+  const primaryOrganization = organizationsToMerge.value.organizations[primary.value];
+  const secondaryOrganization = organizationsToMerge.value.organizations[(primary.value + 1) % 2];
 
+  const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
+
+  OrganizationService.mergeOrganizations(primaryOrganization.id, secondaryOrganization.id)
+    .then(() => {
       organizationStore
         .addMergedOrganizations(primaryOrganization.id, secondaryOrganization.id);
 
       primary.value = 0;
 
-      const processesRunning = Object.keys(mergedOrganizations.value).length;
-
-      Message.closeAll();
-      Message.info(null, {
-        title: 'Organizations merging in progress',
-        message: processesRunning > 1 ? `${processesRunning} processes running...` : null,
-      });
+      loadingMessage();
 
       fetch();
     })
     .catch((error) => {
-      Message.closeAll();
-
-      if (error.response.status === 404) {
-        Message.error('Organizations already merged or deleted', {
-          message: `Sorry, the organizations you are trying to merge might have already been merged or deleted.
-          Please refresh to see the updated information.`,
-        });
-      } else {
-        Message.error('There was an error merging organizations');
-      }
+      apiErrorMessage({ error });
     })
     .finally(() => {
       sendingMerge.value = false;
@@ -350,6 +326,6 @@ onMounted(async () => {
 
 <script>
 export default {
-  name: 'AppOrganizationMergeSuggestions',
+  name: 'AppOrganizationMergeSuggestionsPage',
 };
 </script>

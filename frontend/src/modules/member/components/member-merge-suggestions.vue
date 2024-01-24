@@ -6,7 +6,7 @@
         <button
           v-if="Math.ceil(count) > 1"
           type="button"
-          class="btn btn--transparent btn--md"
+          class="btn btn-link btn-link--md btn-link--primary"
           :disabled="loading || offset <= 0"
           @click="fetch(offset - 1)"
         >
@@ -29,7 +29,7 @@
         <button
           v-if="Math.ceil(count) > 1"
           type="button"
-          class="btn btn--transparent btn--md"
+          class="btn btn-link btn-link--md btn-link--primary"
           :disabled="loading || offset >= count - 1"
           @click="fetch(offset + 1)"
         >
@@ -40,7 +40,7 @@
       <div class="flex items-center">
         <div
           v-if="!loading && membersToMerge.similarity"
-          class="w-full flex items-center justify-center pr-2"
+          class="w-full flex items-center justify-center pr-3"
         >
           <div
             class="flex text-sm"
@@ -54,7 +54,7 @@
         </div>
         <el-button
           :disabled="loading || isEditLockedForSampleData"
-          class="btn btn--bordered btn--md"
+          class="btn btn--secondary btn--md"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
         >
@@ -66,7 +66,7 @@
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
-          Merge contacts
+          Merge contributors
         </el-button>
       </div>
     </header>
@@ -131,30 +131,33 @@
       No merge suggestions
     </h5>
     <p class="text-sm text-center text-gray-600 leading-5">
-      We couldn’t find any duplicated contacts
+      We couldn’t find any duplicated contributors
     </p>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import {
+  ref, onMounted, computed,
+} from 'vue';
 import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
+import { useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
+import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
-const props = defineProps({
-  query: {
-    type: Object,
-    required: false,
-    default: () => ({}),
-  },
-});
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { currentTenant, currentUser } = mapGetters('auth');
+
+const route = useRoute();
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -232,7 +235,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  MemberService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
+  MemberService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;
@@ -244,7 +247,7 @@ const fetch = (page) => {
 
       // Set member with maximum identities and activities as primary
       if (members.length >= 2 && ((members[0].identities.length < members[1].identities.length)
-        || (members[0].activityCount < members[1].activityCount))) {
+            || (members[0].activityCount < members[1].activityCount))) {
         membersToMerge.value.members.reverse();
       }
     })
@@ -287,25 +290,30 @@ const mergeSuggestion = () => {
   if (sendingIgnore.value || sendingMerge.value || loading.value) {
     return;
   }
+
   sendingMerge.value = true;
-  MemberService.merge(
-    membersToMerge.value.members[primary.value],
-    membersToMerge.value.members[(primary.value + 1) % 2],
-  )
+
+  const primaryMember = membersToMerge.value.members[primary.value];
+  const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
+
+  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+
+  loadingMessage();
+
+  MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
       primary.value = 0;
-      Message.success('Contacts merged successfuly');
+
+      successMessage({
+        primaryMember,
+        secondaryMember,
+        selectedProjectGroupId: selectedProjectGroup.value?.id,
+      });
+
       fetch();
     })
     .catch((error) => {
-      if (error.response.status === 404) {
-        Message.error('Contacts already merged or deleted', {
-          message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
-          Please refresh to see the updated information.`,
-        });
-      } else {
-        Message.error('There was an error merging contacts');
-      }
+      apiErrorMessage({ error });
     })
     .finally(() => {
       sendingMerge.value = false;
@@ -319,6 +327,6 @@ onMounted(async () => {
 
 <script>
 export default {
-  name: 'AppMemberMergeSuggestions',
+  name: 'AppMemberMergeSuggestionsPage',
 };
 </script>

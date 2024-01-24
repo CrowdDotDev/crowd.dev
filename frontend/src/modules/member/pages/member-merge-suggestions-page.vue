@@ -1,16 +1,21 @@
 <template>
   <app-page-wrapper>
-    <router-link
-      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mt-1 mb-4"
-      :to="{ path: '/contacts' }"
+    <app-back-link
+      class="mt-1 mb-4"
+      :default-route="{
+        path: '/contributors',
+        query: { projectGroup: selectedProjectGroup?.id },
+      }"
     >
-      <i class="ri-arrow-left-s-line mr-2" />Contacts
-    </router-link>
+      <template #default>
+        Contributors
+      </template>
+    </app-back-link>
     <h4 class="text-xl font-semibold leading-9 mb-1">
       Merging suggestions
     </h4>
     <div class="text-xs text-gray-600 pb-6">
-      crowd.dev is constantly checking your community for duplicate contacts.
+      LFX is constantly checking your community for duplicate contributors.
       Here you can check all the merging suggestions.
     </div>
 
