@@ -171,7 +171,7 @@ const handleMergeMembers = async () => {
       Message.closeAll();
 
       if (error.response.status === 404) {
-        Message.error('Contacts already merged or deleted', {
+        Message.success('Contacts already merged or deleted', {
           message: `Sorry, the contacts you are trying to merge might have already been merged or deleted.
           Please refresh to see the updated information.`,
         });
