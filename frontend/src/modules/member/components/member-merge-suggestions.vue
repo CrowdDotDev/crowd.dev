@@ -6,7 +6,7 @@
         <button
           v-if="Math.ceil(count) > 1"
           type="button"
-          class="btn btn-link btn-link--md btn-link--primary"
+          class="btn btn--transparent btn--md"
           :disabled="loading || offset <= 0"
           @click="fetch(offset - 1)"
         >
@@ -29,7 +29,7 @@
         <button
           v-if="Math.ceil(count) > 1"
           type="button"
-          class="btn btn-link btn-link--md btn-link--primary"
+          class="btn btn--transparent btn--md"
           :disabled="loading || offset >= count - 1"
           @click="fetch(offset + 1)"
         >
