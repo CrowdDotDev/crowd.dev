@@ -146,7 +146,6 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { useRoute } from 'vue-router';
 import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
@@ -157,8 +156,6 @@ import { OrganizationPermissions } from '../organization-permissions';
 const { currentTenant, currentUser } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();
-
-const route = useRoute();
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -237,7 +234,7 @@ const fetch = (page) => {
   }
   loading.value = true;
 
-  OrganizationService.fetchMergeSuggestions(1, offset.value, route.query ?? {})
+  OrganizationService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;
