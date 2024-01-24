@@ -87,6 +87,8 @@ async function purgeTenantsAndData(): Promise<void> {
     'eagleEyeContents',
     'members',
     'memberAttributeSettings',
+    'tags',
+    'notes',
     'tasks',
     'organizationCacheLinks',
     'organizations',
