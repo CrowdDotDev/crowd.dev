@@ -98,7 +98,7 @@ export const batchCreateMembers = async (
     return result.data.results.reduce((acc, m) => {
       const member = members.find(
         (crowdMember) =>
-          crowdMember.emails.length > 0 && crowdMember.emails[0] === m.properties.email,
+          crowdMember.emails.length > 0 && crowdMember.emails.includes(m.properties.email),
       )
 
       const hubspotPayload = hubspotMembers.find(
