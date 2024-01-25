@@ -60,8 +60,8 @@ async function purgeTenantsAndData(): Promise<void> {
 
   log.info('Querying database for tenants where trialEndsAt exists and trial period is over.')
 
-  const doNotPurgeTenantIds = parameters.exclude?.split(',')
-  const includeTenantIds = parameters.include?.split(',')
+  const doNotPurgeTenantIds = parameters.exclude?.split(',') || []
+  const includeTenantIds = parameters.include?.split(',') || []
 
   if (includeTenantIds) {
     purgeableTenants = includeTenantIds
