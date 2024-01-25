@@ -90,7 +90,7 @@ import { computed, ref } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
@@ -100,6 +100,8 @@ import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-e
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 
 const { currentUser, currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
+
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
 const { fetchMembers } = memberStore;
@@ -220,7 +222,7 @@ const handleDoExport = async () => {
     await MemberService.export({
       filter,
       orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      limit: 0,
+      limit: ids.length || 0,
       offset: null,
     });
 

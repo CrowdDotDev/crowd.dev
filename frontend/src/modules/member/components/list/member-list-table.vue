@@ -1079,7 +1079,7 @@ watch(table, (newValue) => {
 const doExport = () => MemberService.export({
   filter: savedFilterBody.value.filter,
   orderBy: savedFilterBody.value.orderBy,
-  limit: 0,
+  limit: totalMembers.value,
   offset: null,
 });
 
