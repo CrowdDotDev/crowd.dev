@@ -2,7 +2,7 @@
   <div>
     <!-- Emails editing -->
     <div>
-      <app-member-form-emails-item
+      <app-organization-form-emails-item
         v-for="(_, ei) of computedModelEmails"
         :key="ei"
         v-model="computedModelEmails[ei]"
@@ -16,7 +16,7 @@
             <i class="ri-delete-bin-line text-lg" />
           </el-button>
         </template>
-      </app-member-form-emails-item>
+      </app-organization-form-emails-item>
       <div class="flex">
         <div class="text-xs font-medium text-brand-500 cursor-pointer" @click="addEmail()">
           + Add email address
@@ -30,7 +30,7 @@
 import {
   computed,
 } from 'vue';
-import AppMemberFormEmailsItem from '@/modules/member/components/form/member-form-emails-item.vue';
+import AppOrganizationFormEmailsItem from '@/modules/organization/components/form/organization-form-emails-item.vue';
 
 const emit = defineEmits(['update:modelValue']);
 
@@ -75,6 +75,6 @@ const removeEmail = (index) => {
 
 <script>
 export default {
-  name: 'AppMemberFormEmails',
+  name: 'AppOrganizationFormEmails',
 };
 </script>

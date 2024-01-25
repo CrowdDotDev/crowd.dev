@@ -163,7 +163,7 @@ watch(
       platform: platform || props.modelValue.platform,
       identities: platforms,
       attributes: {
-        ...props.modelValue,
+        ...props.modelValue.attributes,
         url,
       },
     });

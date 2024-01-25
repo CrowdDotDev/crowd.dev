@@ -38,10 +38,37 @@
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <app-organization-form-identities
-              v-model="formModel"
-              :record="record"
+            <div class="grid gap-x-12 grid-cols-3">
+              <h6>Identities</h6>
+              <div class="col-span-2">
+                <app-organization-form-identities
+                  v-model="formModel"
+                  :record="record"
+                />
+              </div>
+            </div>
+            <el-divider
+              class="!mb-6 !mt-8 !border-gray-200"
             />
+            <div class="grid gap-x-12 grid-cols-3">
+              <h6>Emails</h6>
+              <div class="col-span-2">
+                <app-organization-form-emails
+                  v-model="formModel"
+                />
+              </div>
+            </div>
+            <el-divider
+              class="!mb-6 !mt-8 !border-gray-200"
+            />
+            <div class="grid gap-x-12 grid-cols-3">
+              <h6>Phone numbers</h6>
+              <div class="col-span-2">
+                <app-organization-form-phone-number
+                  v-model="formModel"
+                />
+              </div>
+            </div>
             <div v-if="shouldShowAttributes">
               <el-divider
                 class="!mb-6 !mt-8 !border-gray-200"
@@ -132,6 +159,8 @@ import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import { AttributeType } from '@/modules/organization/types/Attributes';
+import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
+import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
 
 const LoaderIcon = h(
   'i',
@@ -365,12 +394,14 @@ async function onSubmit() {
       }
       return acc;
     }, []),
-    identities: formModel.value.identities.filter((i) => i.username?.length > 0 || i.organizationId).map((i) => ({
-      ...i,
-      platform: i.platform,
-      url: i.url,
-      name: i.name,
-    })),
+    identities: formModel.value.identities
+      .filter((i) => i.username?.length > 0 || i.organizationId)
+      .map((i) => ({
+        ...i,
+        platform: i.platform,
+        url: i.url,
+        name: i.name,
+      })),
     phoneNumbers: formModel.value.phoneNumbers.reduce(
       (acc, item) => {
         if (item !== '') {

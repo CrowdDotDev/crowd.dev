@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { defineEmits, defineProps, ref, watch, } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['update:modelValue']);
@@ -81,16 +81,19 @@ watch(
   props.modelValue,
   (organization, previous) => {
     if (!previous) {
-      const { identities } = organization;
+      const identities = organization.identities.map((i) => ({
+        ...i,
+        username: i.url ? i.url.split('/').at(-1) : null,
+      }));
       const platforms = [...new Set(organization.identities.map((i) => i.platform))];
       const noIdentity = Object.keys(identitiesForm)
         .filter((platform) => !platforms.includes(platform))
-        .map((platform) => ({
+        .map((platform) => (reactive({
           name: '',
           platform,
           url: null,
-          username: null,
-        }));
+          username: '',
+        })));
       model.value = [
         ...identities,
         ...noIdentity,
@@ -105,11 +108,11 @@ watch(
   (value) => {
     // Parse username object
     const identities = value
-      .filter((i) => !!i.name.trim())
+      .filter((i) => !!i.username?.trim() || !!i.name?.trim())
       .map((i) => ({
         ...i,
         name: i.username,
-        url: i.username.length ? `https://${identitiesForm[i.platform]?.urlPrefix}${i.username}` : null,
+        url: i.username?.length ? `https://${identitiesForm[i.platform]?.urlPrefix}${i.username}` : null,
       }));
 
     // Emit updated member
@@ -131,5 +134,11 @@ function editingDisabled(platform) {
 
 const removeUsername = (index) => {
   model.value.splice(index, 1);
+};
+</script>
+
+<script>
+export default {
+  name: 'AppOrganizationFormIdentities',
 };
 </script>
