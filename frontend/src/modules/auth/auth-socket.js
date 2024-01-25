@@ -133,13 +133,14 @@ export const connectSocket = (token) => {
     const {
       success,
       tenantId,
+      userId,
       primaryOrgId,
       secondaryOrgId,
       original,
       toMerge,
     } = JSON.parse(payload);
 
-    if (currentTenant.value.id !== tenantId) {
+    if (currentTenant.value.id !== tenantId && currentUser.value.id !== userId) {
       return;
     }
 

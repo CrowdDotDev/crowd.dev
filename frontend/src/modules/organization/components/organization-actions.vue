@@ -52,6 +52,13 @@
     </el-button-group>
   </div>
   <app-organization-merge-dialog v-model="isMergeDialogOpen" :to-merge="organizationToMerge" />
+  <app-organization-merge-suggestions-dialog
+    v-if="isMergeSuggestionsDialogOpen"
+    v-model="isMergeSuggestionsDialogOpen"
+    :query="{
+      organizationId: props.organization?.id,
+    }"
+  />
 </template>
 
 <script setup>
@@ -66,6 +73,8 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
+import AppOrganizationMergeSuggestionsDialog
+  from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
 
 const props = defineProps({
   organization: {
@@ -82,6 +91,7 @@ const { toMergeOrganizations } = storeToRefs(organizationStore);
 
 const { currentUser, currentTenant } = mapGetters('auth');
 
+const isMergeSuggestionsDialogOpen = ref(false);
 const isMergeDialogOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
 const organizationToMerge = ref(null);
@@ -137,12 +147,7 @@ const mergeSuggestions = () => {
   if (isEditLockedForSampleData.value) {
     return;
   }
-  router.push({
-    name: 'organizationMergeSuggestions',
-    query: {
-      organizationId: props.organization.id,
-    },
-  });
+  isMergeSuggestionsDialogOpen.value = true;
 };
 
 const merge = () => {

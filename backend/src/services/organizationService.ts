@@ -29,6 +29,7 @@ import {
 } from './helpers/mergeFunctions'
 import MemberOrganizationService from './memberOrganizationService'
 import SearchSyncService from './searchSyncService'
+import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -244,6 +245,7 @@ export default class OrganizationService extends LoggerBase {
           original.displayName,
           toMerge.displayName,
           this.options.currentTenant.id,
+          this.options.currentUser.id,
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
@@ -807,6 +809,23 @@ export default class OrganizationService extends LoggerBase {
 
   async findAndCountAll(args) {
     return OrganizationRepository.findAndCountAll(args, this.options)
+  }
+
+  async findAndCountActive(
+    filters: IActiveOrganizationFilter,
+    offset: number,
+    limit: number,
+    orderBy: string,
+    segments: string[],
+  ) {
+    return OrganizationRepository.findAndCountActiveOpensearch(
+      filters,
+      limit,
+      offset,
+      orderBy,
+      this.options,
+      segments,
+    )
   }
 
   async findByUrl(url) {
