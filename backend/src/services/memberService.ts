@@ -1217,11 +1217,14 @@ export default class MemberService extends LoggerBase {
       offset: data.offset || 0,
       orderBy: data.orderBy,
       countOnly: false,
-      segments: this.options.currentSegments.map(s => s.id) || [],
-      attributesSettings: (await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)).rows,
+      segments: this.options.currentSegments.map((s) => s.id) || [],
+      attributesSettings: (
+        await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+      ).rows,
     }
 
-    const found = await MemberRepository.findAndCountAllOpensearch(transformed, {...this.options,
+    const found = await MemberRepository.findAndCountAllOpensearch(transformed, {
+      ...this.options,
       opensearch: getOpensearchClient(OPENSEARCH_CONFIG),
     })
 
