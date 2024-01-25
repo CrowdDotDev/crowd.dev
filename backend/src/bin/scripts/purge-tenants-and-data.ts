@@ -13,11 +13,16 @@ const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const options = [
   {
-    name: 'tenantIds',
-    alias: 't',
+    name: 'exclude',
+    alias: 'e',
     type: String,
-    description:
-      'Tenants to be excluded from the data purging process. IDs should be comma-separated list.',
+    description: 'Tenant IDs that should be excluded from the data purging process.',
+  },
+  {
+    name: 'include',
+    alias: 'i',
+    type: String,
+    description: 'Tenant IDs that should be included from the data purging process.',
   },
   {
     name: 'help',
@@ -55,19 +60,24 @@ async function purgeTenantsAndData(): Promise<void> {
 
   log.info('Querying database for tenants where trialEndsAt exists and trial period is over.')
 
-  const doNotPurgeTenantIds = parameters.tenantIds.split(',')
+  const doNotPurgeTenantIds = parameters.exclude.split(',')
+  const includeTenantIds = parameters.include.split(',')
 
-  purgeableTenants = await prodDb.sequelize.query(
-    `
-      select id
-      from tenants
-      where "trialEndsAt" is not null and "trialEndsAt" < now()`,
-    {
-      type: QueryTypes.SELECT,
-    },
-  )
+  if (includeTenantIds) {
+    purgeableTenants = includeTenantIds
+  } else {
+    purgeableTenants = await prodDb.sequelize.query(
+      `
+        select id
+        from tenants
+        where "trialEndsAt" is not null and "trialEndsAt" < now()`,
+      {
+        type: QueryTypes.SELECT,
+      },
+    )
+  }
 
-  purgeableTenants = purgeableTenants.filter((t) => !doNotPurgeTenantIds.includes(t.id))
+  purgeableTenants = purgeableTenants.filter((tenant) => !doNotPurgeTenantIds.includes(tenant.id))
 
   log.info(`Found ${purgeableTenants.length} tenants to purge!`)
 
