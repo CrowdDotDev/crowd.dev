@@ -761,6 +761,7 @@ export class MemberSyncService {
       p_organizations.push({
         uuid_id: organization.id,
         string_logo: organization.logo,
+        string_website: organization.website,
         string_displayName: organization.displayName,
         obj_memberOrganizations: {
           string_title: organization.memberOrganizations?.title || null,
