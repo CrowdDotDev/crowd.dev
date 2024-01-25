@@ -135,6 +135,10 @@ const props = defineProps({
     type: String,
     default: () => null,
   },
+  parentId: {
+    type: String,
+    default: () => null,
+  },
   grandparentSlug: {
     type: String,
     default: () => null,
@@ -224,7 +228,10 @@ const onSubmit = () => {
         model.value = false;
       });
   } else {
-    createSubProject(form)
+    createSubProject({
+      ...form,
+      segments: [props.parentId],
+    })
       .finally(() => {
         submitLoading.value = false;
         model.value = false;

@@ -6,7 +6,6 @@
 import { computed } from 'vue';
 import config from '@/config';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { useRouter } from 'vue-router';
 import GithubSettings from './github-settings.vue';
 
 defineProps({
@@ -15,8 +14,6 @@ defineProps({
     default: () => {},
   },
 });
-
-const router = useRouter();
 
 // We have 3 GitHub apps: test, test-local and prod
 // Getting the proper URL from config file
@@ -33,8 +30,8 @@ const connect = () => {
     icon: 'ri-information-line',
     confirmButtonText: 'I\'m the GitHub organization admin',
     cancelButtonText: 'Invite organization admin to this workspace',
-    verticalCancelButtonClass: 'btn btn--md btn--primary w-full',
-    verticalConfirmButtonClass: 'btn btn--md btn--secondary w-full !mb-2',
+    verticalCancelButtonClass: 'hidden',
+    verticalConfirmButtonClass: 'btn btn--md btn--primary w-full !mb-2',
     vertical: true,
     distinguishCancelAndClose: true,
     autofocus: false,

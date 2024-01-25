@@ -5,6 +5,13 @@ import { ApiWebsocketMessage } from '@crowd/types'
 export async function deleteOrganization(organizationId: string): Promise<void> {
   await svc.postgres.writer.connection().query(
     `
+      DELETE FROM "organizationCacheLinks"
+      WHERE "organizationId" = $1
+    `,
+    [organizationId],
+  )
+  await svc.postgres.writer.connection().query(
+    `
       DELETE FROM "organizationSegments"
       WHERE "organizationId" = $1
     `,
@@ -67,6 +74,7 @@ export async function notifyFrontend(
   original: string,
   toMerge: string,
   tenantId: string,
+  userId: string,
 ): Promise<void> {
   const emitter = new RedisPubSubEmitter(
     'api-pubsub',
@@ -84,6 +92,7 @@ export async function notifyFrontend(
       JSON.stringify({
         success: true,
         tenantId,
+        userId,
         primaryOrgId,
         secondaryOrgId,
         original,

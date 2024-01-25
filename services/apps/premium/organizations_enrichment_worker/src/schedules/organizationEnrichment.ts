@@ -1,6 +1,7 @@
 import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
 import { svc } from '../main'
 import { triggerTenantOrganizationEnrichment } from '../workflows'
+import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 export const scheduleOrganizationsEnrichment = async () => {
   try {
@@ -8,7 +9,7 @@ export const scheduleOrganizationsEnrichment = async () => {
       scheduleId: 'organizations-enrichment',
       spec: {
         // every hour (at minute 0)
-        cronExpressions: ['0 * * * *'],
+        cronExpressions: IS_DEV_ENV || IS_TEST_ENV ? ['*/2 * * * *'] : ['0 * * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,

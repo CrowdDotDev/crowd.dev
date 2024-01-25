@@ -1,5 +1,7 @@
-import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import allContacts from './views/all-contacts';
+import unaffiliated from './views/unaffiliated';
+import toReview from './views/to-review';
 
 import bot from './settings/bot/config';
 import teamMember from './settings/teamMember/config';
@@ -21,3 +23,8 @@ export const memberSavedViews: SavedViewsConfig = {
     numberOfOpenSourceContributions: '# of OSS contributions',
   },
 };
+
+export const memberStaticViews: SavedView[] = [
+  unaffiliated,
+  toReview,
+];

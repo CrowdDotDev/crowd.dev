@@ -55,7 +55,7 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit,
+          permission: Permissions.values.mergeMembers,
         },
       },
       {
@@ -64,6 +64,7 @@ export default [
         component: MemberViewPage,
         meta: {
           auth: true,
+          title: 'Contributor',
           permission: Permissions.values.memberRead,
         },
         props: true,

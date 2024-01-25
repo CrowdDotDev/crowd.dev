@@ -6,7 +6,7 @@
           Attributes
         </div>
         <el-tooltip
-          v-if="isEnrichmentEnabled && attributesSameSource"
+          v-if="isEnrichmentEnabled && attributesSameSource && computedCustomAttributes.length"
           :content="`Source: ${attributesSameSource}`"
           placement="top"
           trigger="hover"
@@ -25,7 +25,7 @@
     </div>
     <div
       v-if="!computedCustomAttributes.length"
-      class="py-3 text-gray-500 text-xs italic"
+      class="pb-3 pt-6 text-gray-400 text-xs italic"
     >
       No attributes defined
     </div>

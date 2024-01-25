@@ -691,21 +691,32 @@ export default class MemberService extends LoggerBase {
       })
 
       if (syncOptions.doSync) {
-        try {
-          const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
-
-          await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
-          await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
-        } catch (emitError) {
-          this.log.error(
-            emitError,
-            {
-              tenantId: this.options.currentTenant.id,
-              originalId,
-              toMergeId,
-            },
-            'Error while triggering member sync changes!',
-          )
+        let attempts = 0
+        const maxAttempts = 5
+        while (attempts < maxAttempts) {
+          try {
+            const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
+            await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
+            await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+            break
+          } catch (emitError) {
+            attempts++
+            if (attempts === maxAttempts) {
+              throw new Error('Failed to trigger member sync changes after 5 attempts')
+            }
+            this.log.error(
+              emitError,
+              {
+                tenantId: this.options.currentTenant.id,
+                originalId,
+                toMergeId,
+              },
+              'Error while triggering member sync changes!',
+            )
+            await new Promise((resolve) => {
+              setTimeout(resolve, 1000)
+            })
+          }
         }
       }
 

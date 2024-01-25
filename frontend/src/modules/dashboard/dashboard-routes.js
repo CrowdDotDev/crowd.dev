@@ -9,6 +9,7 @@ export default [
     component: Layout,
     meta: {
       auth: true,
+      title: 'Home',
       segments: {
         requireSelectedProjectGroup: true,
       },

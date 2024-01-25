@@ -44,7 +44,7 @@ const member: MultiSelectAsyncFilterConfig = {
   },
   apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
     const filter = {
-      memberId: value,
+      memberId: { in: value },
     };
     return [
       (include ? filter : { not: filter }),

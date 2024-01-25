@@ -13,7 +13,6 @@
               params: { id: activity.member.id },
               query: { projectGroup: selectedProjectGroup?.id },
             }"
-            target="_blank"
           >
             <app-avatar
               :entity="activity.member"

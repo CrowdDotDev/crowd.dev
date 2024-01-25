@@ -38,5 +38,8 @@ export class OrganizationPermissions {
     this.destroyLockedForSampleData = permissionChecker.lockedForSampleData(
       Permissions.values.organizationDestroy,
     );
+    this.mergeOrganizations = permissionChecker.match(
+      Permissions.values.mergeOrganizations,
+    );
   }
 }

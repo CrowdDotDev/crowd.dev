@@ -9,10 +9,17 @@
     />
     <div
       v-if="loading && !conversations.length"
-      class="h-16 !relative !min-h-5 flex justify-center items-center"
+      class="flex flex-col items-center mt-10"
     >
-      <div class="animate-spin w-fit">
-        <div class="custom-spinner" />
+      <div
+        class="h-16 !relative !min-h-5 flex justify-center items-center"
+      >
+        <div class="animate-spin w-fit">
+          <div class="custom-spinner" />
+        </div>
+      </div>
+      <div class="text-gray-500 italic text-xs">
+        This might take up to 10 seconds for a large project group
       </div>
     </div>
     <div v-else>
@@ -32,9 +39,9 @@
             :total="totalConversations"
             :current-page="pagination.page"
             :has-page-counter="false"
+            :sorter="false"
             module="conversation"
             position="top"
-            @change-sorter="doChangeFilter"
           />
         </div>
 
@@ -89,22 +96,13 @@ const { fetchConversation } = conversationStore;
 
 const loading = ref(false);
 
-const sorterFilter = computed(() => (filters.value.order.prop === 'activityCount'
-  ? 'trending'
-  : 'recentActivity'));
+const sorterFilter = ref('recentActivity');
 
 const emptyState = computed(() => ({
   title: 'No conversations found',
   description:
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
-
-const doChangeFilter = (filter) => {
-  filters.value.order = {
-    prop: filter === 'recentActivity' ? 'lastActive' : 'activityCount',
-    order: 'descending',
-  };
-};
 
 const isLoadMoreVisible = computed(() => (
   pagination.value.page

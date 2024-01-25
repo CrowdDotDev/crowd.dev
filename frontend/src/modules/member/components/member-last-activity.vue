@@ -1,32 +1,24 @@
 <template>
-  <div>
-    <div class="flex gap-2 items-center">
-      <el-tooltip
-        effect="dark"
-        :content="platform?.name || member.lastActivity.platform"
-        class="text-gray-400"
-        placement="top"
-      >
-        <i
-          v-if="!platform"
-          class="ri-radar-line text-base"
-        />
-        <app-svg
-          v-else
-          :name="member.lastActivity.platform"
-          class="w-4 h-4"
-        />
-      </el-tooltip>
-      <app-activity-message
-        :activity="member.lastActivity"
-        type="short"
+  <div class="flex items-center gap-2">
+    <el-tooltip
+      effect="dark"
+      :content="platform?.name || member.lastActivity.platform"
+      class="text-gray-400"
+      placement="top"
+    >
+      <img
+        v-if="platform"
+        :alt="platform.name"
+        class="w-4 h-4"
+        :src="platform.image"
       />
-    </div>
-    <div class="flex items-center">
-      <div class="w-4 mr-2" />
-      <div class="text-gray-500 text-xs">
-        {{ timeAgo }}
-      </div>
+      <i
+        v-else
+        class="ri-radar-line text-base"
+      />
+    </el-tooltip>
+    <div class="text-gray-500 text-xs">
+      {{ timeAgo }}
     </div>
   </div>
 </template>
@@ -34,15 +26,10 @@
 <script>
 import { formatDateToTimeAgo } from '@/utils/date';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import { toSentenceCase } from '@/utils/string';
 
 export default {
   name: 'AppMemberLastActivity',
-  components: {
-    AppActivityMessage,
-    AppSvg,
-  },
   props: {
     member: {
       type: Object,
@@ -60,6 +47,9 @@ export default {
         this.member.lastActivity.timestamp,
       );
     },
+  },
+  methods: {
+    toSentenceCase,
   },
 };
 </script>

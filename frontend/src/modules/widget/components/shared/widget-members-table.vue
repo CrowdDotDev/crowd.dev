@@ -19,7 +19,6 @@
     <router-link
       v-for="member in list"
       :key="member.id"
-      target="_blank"
       class="h-14 border-b border-gray-100 last:border-none grid grid-cols-8 gap-4 hover:bg-gray-50 hover:cursor-pointer group"
       :to="{
         name: 'memberView',

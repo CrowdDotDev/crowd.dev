@@ -258,24 +258,21 @@ class MemberRepository {
 
     const mems = await options.database.sequelize.query(
       `
-      select
-          mtm."memberId" AS id,
-          mtm."toMergeId",
-          count(*) over() AS total_count,
-          mtm.similarity
-      from
-          "memberToMerge" mtm
-      where exists (
-          select 1
-          from "memberSegments" ms
-          where ms."segmentId" in (:segmentIds) and ms."memberId" = mtm."memberId"
+        SELECT
+            DISTINCT
+            mtm."memberId" AS id,
+            mtm."toMergeId",
+            mtm.similarity,
+            mtm."activityEstimate"
+        FROM "memberToMerge" mtm
+        JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
+        WHERE ms."segmentId" IN (:segmentIds)
           ${memberFilter}
-      )
-      ${similarityFilter}
-      order by ${order}
-      limit :limit
-      offset :offset;
-    `,
+          ${similarityFilter}
+        ORDER BY ${order}
+        LIMIT :limit
+        OFFSET :offset
+      `,
       {
         replacements: {
           segmentIds,
@@ -292,8 +289,8 @@ class MemberRepository {
       const toMergePromises = []
 
       for (const mem of mems) {
-        memberPromises.push(MemberRepository.findById(mem.id, options))
-        toMergePromises.push(MemberRepository.findById(mem.toMergeId, options))
+        memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
+        toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
       }
 
       const memberResults = await Promise.all(memberPromises)
@@ -303,7 +300,27 @@ class MemberRepository {
         members: [i, memberToMergeResults[idx]],
         similarity: mems[idx].similarity,
       }))
-      return { rows: result, count: mems[0].total_count, limit, offset }
+
+      const totalCount = await options.database.sequelize.query(
+        `
+          SELECT
+              COUNT(DISTINCT mtm."memberId"::TEXT || mtm."toMergeId"::TEXT) AS count
+          FROM "memberToMerge" mtm
+          JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
+          WHERE ms."segmentId" IN (:segmentIds)
+            ${memberFilter}
+            ${similarityFilter}
+        `,
+        {
+          replacements: {
+            segmentIds,
+            memberId,
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      return { rows: result, count: totalCount[0].count, limit, offset }
     }
 
     return { rows: [{ members: [], similarity: 0 }], count: 0, limit, offset }
@@ -1149,27 +1166,37 @@ class MemberRepository {
       await MemberAttributeSettingsRepository.findAndCountAll({}, options)
     ).rows
 
-    const response = await this.findAndCountAllOpensearch(
-      {
-        filter: {
-          and: [
-            {
-              id: {
-                eq: id,
-              },
+    const memberSearchQuery = {
+      filter: {
+        and: [
+          {
+            id: {
+              eq: id,
             },
-          ],
-        },
-        limit: 1,
-        offset: 0,
-        attributesSettings: memberAttributeSettings,
+          },
+        ],
+      },
+      limit: 1,
+      offset: 0,
+      attributesSettings: memberAttributeSettings,
+    }
+
+    let response = await this.findAndCountAllOpensearch(
+      {
+        ...memberSearchQuery,
         segments,
       },
       options,
     )
 
+    // if not found, try to find it in all segments and return the first one
     if (response.count === 0) {
-      throw new Error404()
+      response = await this.findAndCountAllOpensearch(memberSearchQuery, options)
+
+      // still not found, throw 404
+      if (response.count === 0) {
+        throw new Error404()
+      }
     }
 
     const result = response.rows[0]
@@ -2141,7 +2168,7 @@ class MemberRepository {
       },
     })
 
-    if (segmentsEnabled) {
+    if (segmentsEnabled && segment) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
@@ -2246,7 +2273,7 @@ class MemberRepository {
             ) m ("memberId")
             JOIN activities a ON (a.id = (
                 SELECT id
-                FROM activities
+                FROM mv_activities_cube
                 WHERE "memberId" = m."memberId"::uuid
                 ORDER BY timestamp DESC
                 LIMIT 1

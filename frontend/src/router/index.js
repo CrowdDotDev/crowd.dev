@@ -9,6 +9,7 @@ import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -90,8 +91,8 @@ export const createRouter = () => {
           store,
         };
 
-        middlewareArray.forEach((middleware) => {
-          middleware(context);
+        await middlewareArray.forEach(async (middleware) => {
+          await middleware(context);
         });
 
         // Redirect to project group landing pages if routes that require a selected project group
@@ -107,7 +108,7 @@ export const createRouter = () => {
             return;
           }
 
-          if (!selectedProjectGroup.value) {
+          if (!selectedProjectGroup.value && AuthCurrentTenant.get()) {
             try {
               await listProjectGroups({
                 limit: null,

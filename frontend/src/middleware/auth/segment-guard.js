@@ -1,4 +1,5 @@
-import { hasAccessToProjectGroup } from '@/utils/segments';
+import { hasAccessToProjectGroup, hasAccessToSegmentId } from '@/utils/segments';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 /**
  * Segment Guard
@@ -19,7 +20,19 @@ export default async function ({ to, store, router }) {
 
   await store.dispatch('auth/doWaitUntilInit');
 
-  if (!hasAccessToProjectGroup(to.params[to.meta.paramSegmentAccess])) {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const isCheckingProjectGroup = to.meta.paramSegmentAccess.name === 'grandparent';
+  let hasPermission;
+
+  if (isCheckingProjectGroup) {
+    await lsSegmentsStore.listAdminProjectGroups();
+
+    hasPermission = hasAccessToProjectGroup(to.params[to.meta.paramSegmentAccess.parameter]);
+  } else {
+    hasPermission = hasAccessToSegmentId(to.params[to.meta.paramSegmentAccess.parameter]);
+  }
+
+  if (!hasPermission) {
     router.push('/403');
   }
 }

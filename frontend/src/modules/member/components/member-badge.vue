@@ -1,23 +1,14 @@
 <template>
   <div
-    v-if="isNew || isTeam || isBot"
+    v-if="isTeam || isBot"
     class="member-badge flex items-center ml-1 min-w-fit"
   >
-    <el-tooltip
-      v-if="isNew"
-      placement="top"
-      :content="computedTooltipContent('new')"
-    >
-      <div v-if="isNew" :class="computedBadgeClass('new')">
-        New
-      </div>
-    </el-tooltip>
     <el-tooltip
       v-if="isTeam"
       placement="top"
       :content="computedTooltipContent('team')"
     >
-      <div :class="computedBadgeClass('team')">
+      <div class="inline-flex text-2xs px-1 font-medium text-white rounded h-4 items-center justify-center bg-gray-400">
         Team
       </div>
     </el-tooltip>
@@ -26,7 +17,7 @@
       placement="top"
       :content="computedTooltipContent('bot')"
     >
-      <div :class="computedBadgeClass('bot')">
+      <div class="inline-flex text-2xs px-1 font-medium text-white rounded h-4 items-center justify-center bg-gray-400">
         Bot
       </div>
     </el-tooltip>
@@ -35,7 +26,6 @@
 
 <script setup>
 import { defineProps, computed } from 'vue';
-import moment from 'moment/moment';
 
 const props = defineProps({
   member: {
@@ -48,34 +38,8 @@ const isTeam = computed(() => props.member.attributes.isTeamMember?.default);
 
 const isBot = computed(() => props.member.attributes.isBot?.default);
 
-const isNew = computed(() => (
-  moment().diff(moment(props.member.joinedAt), 'days')
-    <= 14
-));
-
-const computedBadgeClass = (badge) => {
-  let classes = 'badge inline-flex uppercase !text-3xs !px-1 !py-0 leading-normal font-semibold';
-
-  if (badge === 'new') {
-    classes += ' badge--light-brand';
-    if (isTeam.value) {
-      classes += ' mr-1';
-    }
-  } else if (badge === 'team') {
-    classes += ' badge--gray-dark';
-  } else if (badge === 'bot') {
-    classes += ' badge--gray';
-  }
-
-  return classes;
-};
-
 const computedTooltipContent = (tooltip) => {
-  if (tooltip === 'new') {
-    return `Contributor since ${moment(
-      props.member.joinedAt,
-    ).format('MMM DD, YYYY')}`;
-  } if (tooltip === 'team') {
+  if (tooltip === 'team') {
     return 'This contributor belongs to your organization';
   }
   return 'Bot';

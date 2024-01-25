@@ -120,6 +120,7 @@ import {
 import AppFormItem from '@/shared/form/form-item.vue';
 import statusOptions from '@/modules/lf/config/status';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useRoute } from 'vue-router';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -136,6 +137,8 @@ const props = defineProps({
     default: () => null,
   },
 });
+
+const route = useRoute();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const {
@@ -218,7 +221,10 @@ const onSubmit = () => {
         model.value = false;
       });
   } else {
-    createProject(form)
+    createProject({
+      ...form,
+      segments: [route.params.id],
+    })
       .finally(() => {
         submitLoading.value = false;
         model.value = false;

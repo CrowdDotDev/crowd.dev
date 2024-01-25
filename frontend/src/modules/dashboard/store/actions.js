@@ -7,45 +7,52 @@ import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
+import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
 
 export default {
   async reset({ dispatch }) {
-    dispatch('setFilters', {
-      period: SEVEN_DAYS_PERIOD_FILTER,
-      platform: 'all',
-    });
-  },
-
-  setSegments({ commit, dispatch }, { segments }) {
-    commit('SET_SEGMENTS', { segments });
-
-    dispatch('getConversations');
-    dispatch('getActivities');
-    dispatch('getMembers');
-    dispatch('getOrganizations');
+    dispatch('setFilters', {});
   },
 
   // Set new filters & fetch new data
   async setFilters(
     { commit, dispatch },
-    { period, platform },
+    { period, platform, segments },
   ) {
     commit('SET_FILTERS', {
       period,
       platform,
+      segments,
     });
+    dispatch('getCubeData');
     dispatch('getConversations');
     dispatch('getActivities');
     dispatch('getMembers');
     dispatch('getOrganizations');
   },
+  // Fetch cube data
+  getCubeData({ state }) {
+    state.cubeData = null;
+    const { platform, period, segments } = state.filters;
+    const [segment] = segments.segments;
+    return DashboardApiService.fetchCubeData({
+      period: period.label,
+      platform: platform !== 'all' ? platform : undefined,
+      segment,
+    })
+      .then((data) => {
+        state.cubeData = data;
+        return Promise.resolve(data);
+      });
+  },
+
   // fetch conversations data
   async getConversations({ dispatch }) {
-    dispatch('getTrendingConversations');
+    dispatch('getRecentConversations');
     // dispatch('getConversationCount');
   },
-  // Fetch trending conversations
-  async getTrendingConversations({ commit, state }) {
+  // Fetch recent conversations
+  async getRecentConversations({ commit, state }) {
     state.conversations.loading = true;
 
     const { platform, period, segments } = state.filters;
@@ -68,9 +75,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform: {
-                  eq: platform,
-                },
+                platform,
               },
             ]
             : []),
@@ -82,7 +87,7 @@ export default {
       segments: segments.childSegments,
     })
       .then((data) => {
-        commit('SET_TRENDING_CONVERSATIONS', data);
+        commit('SET_RECENT_CONVERSATIONS', data);
         return Promise.resolve(data);
       })
       .finally(() => {
@@ -139,7 +144,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform,
+                platform: { in: [platform] },
               },
             ]
             : []),
@@ -172,7 +177,7 @@ export default {
             ...(platform !== 'all'
               ? [
                 {
-                  platform,
+                  platform: { in: [platform] },
                 },
               ]
               : []),
@@ -324,37 +329,19 @@ export default {
     state.organizations.loadingActive = true;
     const { platform, period, segments } = state.filters;
 
-    return OrganizationService.query({
-      filter: {
-        and: [
-          ...DEFAULT_ORGANIZATION_FILTERS,
-          {
-            lastActive: {
-              gte: moment()
-                .utc()
-                .startOf('day')
-                .subtract(
-                  period.value - 1,
-                  period.granularity,
-                )
-                .toISOString(),
-            },
-          },
-          ...(platform !== 'all'
-            ? [
-              {
-                activeOn: {
-                  contains: [platform],
-                },
-              },
-            ]
-            : []),
-        ],
-      },
-      orderBy: 'lastActive_DESC',
-      limit: 5,
+    return OrganizationService.listActive({
+      platform: platform !== 'all' ? [{ value: platform }] : [],
+      isTeamOrganization: false,
+      activityTimestampFrom: moment()
+        .utc()
+        .subtract(period.value - 1, period.granularity)
+        .startOf('day')
+        .toISOString(),
+      activityTimestampTo: moment().utc().endOf('day'),
+      orderBy: 'activityCount_DESC',
       offset: 0,
-      segments: segments.childSegments,
+      limit: 5,
+      segments: segments.segments,
     })
       .then((data) => {
         commit('SET_ACTIVE_ORGANIZATIONS', data);
