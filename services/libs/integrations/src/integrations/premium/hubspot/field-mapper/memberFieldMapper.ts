@@ -45,6 +45,9 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     reach: {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
+      serialize: (reach) => {
+        return reach.total
+      },
     },
     numberOfOpensourceContributions: {
       hubspotType: HubspotPropertyType.NUMBER,
