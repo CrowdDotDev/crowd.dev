@@ -64,7 +64,7 @@ async function purgeTenantsAndData(): Promise<void> {
   const includeTenantIds = parameters.include ? parameters.include.split(',') : []
 
   if (includeTenantIds) {
-    purgeableTenants = includeTenantIds
+    purgeableTenants = includeTenantIds.map(id => ({ id }))
   } else {
     purgeableTenants = await prodDb.sequelize.query(
       `
