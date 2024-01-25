@@ -1214,7 +1214,7 @@ export default class MemberService extends LoggerBase {
     const found = await this.query(data, true)
 
     const relations = [
-      { relation: 'organizations', attributes: ['name'] },
+      { relation: 'organizations', attributes: ['displayName', 'website'] },
       { relation: 'notes', attributes: ['body'] },
       { relation: 'tags', attributes: ['name'] },
     ]
