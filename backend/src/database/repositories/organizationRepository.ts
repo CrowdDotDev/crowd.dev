@@ -2,7 +2,7 @@ import lodash, { chunk } from 'lodash'
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { Error404, Error409, PageData } from '@crowd/common'
+import { Error400, Error404, Error409, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -11,6 +11,8 @@ import {
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
   SegmentData,
+  SegmentProjectGroupNestedData,
+  SegmentProjectNestedData,
   SyncStatus,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
@@ -24,6 +26,7 @@ import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import SegmentRepository from './segmentRepository'
 import { MergeActionType, MergeActionState } from './mergeActionsRepository'
+import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 
 const { Op } = Sequelize
 
@@ -606,7 +609,7 @@ class OrganizationRepository {
       })
 
       // ensure that it's not the same organization
-      if (existingOrg.id !== record.id) {
+      if (existingOrg && existingOrg.id !== record.id) {
         throw new Error409(options.language, 'organization.errors.websiteAlreadyExists')
       }
     }
@@ -2263,6 +2266,250 @@ class OrganizationRepository {
     )
 
     return { rows: translatedRows, count: countResponse.body.count, limit, offset }
+  }
+
+  static async findAndCountActiveOpensearch(
+    filter: IActiveOrganizationFilter,
+    limit: number,
+    offset: number,
+    orderBy: string,
+    options: IRepositoryOptions,
+    segments: string[] = [],
+  ): Promise<PageData<IActiveOrganizationData>> {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+
+    let originalSegment
+
+    if (segmentsEnabled) {
+      if (segments.length !== 1) {
+        throw new Error400(
+          `This operation can have exactly one segment. Found ${segments.length} segments.`,
+        )
+      }
+      originalSegment = segments[0]
+
+      const segmentRepository = new SegmentRepository(options)
+
+      const segment = await segmentRepository.findById(originalSegment)
+
+      if (segment === null) {
+        return {
+          rows: [],
+          count: 0,
+          limit,
+          offset,
+        }
+      }
+
+      if (SegmentRepository.isProjectGroup(segment)) {
+        segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
+          acc.push(...p.subprojects.map((sp) => sp.id))
+          return acc
+        }, [])
+      } else if (SegmentRepository.isProject(segment)) {
+        segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
+      } else {
+        segments = [originalSegment]
+      }
+    } else {
+      originalSegment = (await new SegmentRepository(options).getDefaultSegment()).id
+    }
+
+    const activityPageSize = 10000
+    let activityOffset = 0
+
+    const activityQuery = {
+      query: {
+        bool: {
+          must: [
+            {
+              range: {
+                date_timestamp: {
+                  gte: filter.activityTimestampFrom,
+                  lte: filter.activityTimestampTo,
+                },
+              },
+            },
+            {
+              term: {
+                uuid_tenantId: tenant.id,
+              },
+            },
+          ],
+        },
+      },
+      aggs: {
+        group_by_organization: {
+          terms: {
+            field: 'uuid_organizationId',
+            size: 10000000,
+          },
+          aggs: {
+            activity_count: {
+              value_count: {
+                field: 'uuid_id',
+              },
+            },
+            active_days_count: {
+              cardinality: {
+                field: 'date_timestamp',
+                script: {
+                  source: "doc['date_timestamp'].value.toInstant().toEpochMilli()/86400000",
+                },
+              },
+            },
+            active_organizations_bucket_sort: {
+              bucket_sort: {
+                sort: [{ activity_count: { order: 'desc' } }],
+                size: activityPageSize,
+                from: activityOffset,
+              },
+            },
+          },
+        },
+      },
+      size: 0,
+    } as any
+
+    if (filter.platforms) {
+      const subQueries = filter.platforms.map((p) => ({ match_phrase: { keyword_platform: p } }))
+
+      activityQuery.query.bool.must.push({
+        bool: {
+          should: subQueries,
+        },
+      })
+    }
+
+    if (segmentsEnabled) {
+      const subQueries = segments.map((s) => ({ term: { uuid_segmentId: s } }))
+
+      activityQuery.query.bool.must.push({
+        bool: {
+          should: subQueries,
+        },
+      })
+    }
+
+    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
+    if (orderBy.startsWith('activityCount')) {
+      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.sort =
+        [{ activity_count: { order: direction } }]
+    } else if (orderBy.startsWith('activeDaysCount')) {
+      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.sort =
+        [{ active_days_count: { order: direction } }]
+    } else {
+      throw new Error(`Invalid order by: ${orderBy}`)
+    }
+
+    const organizationIds = []
+    let organizationMap = {}
+    let activities
+
+    do {
+      activities = await options.opensearch.search({
+        index: OpenSearchIndex.ACTIVITIES,
+        body: activityQuery,
+      })
+
+      organizationIds.push(
+        ...activities.body.aggregations.group_by_organization.buckets.map((b) => b.key),
+      )
+
+      organizationMap = {
+        ...organizationMap,
+        ...activities.body.aggregations.group_by_organization.buckets.reduce((acc, b) => {
+          acc[b.key] = {
+            activityCount: b.activity_count,
+            activeDaysCount: b.active_days_count,
+          }
+
+          return acc
+        }, {}),
+      }
+
+      activityOffset += activityPageSize
+
+      // update page
+      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.from =
+        activityOffset
+    } while (activities.body.aggregations.group_by_organization.buckets.length === activityPageSize)
+
+    if (organizationIds.length === 0) {
+      return {
+        rows: [],
+        count: 0,
+        limit,
+        offset,
+      }
+    }
+
+    const organizationQueryPayload = {
+      and: [
+        {
+          id: {
+            in: organizationIds,
+          },
+        },
+      ],
+    } as any
+
+    if (filter.isTeamOrganization === true) {
+      organizationQueryPayload.and.push({
+        isTeamOrganization: {
+          eq: true,
+        },
+      })
+    } else if (filter.isTeamOrganization === false) {
+      organizationQueryPayload.and.push({
+        isTeamOrganization: {
+          not: true,
+        },
+      })
+    }
+
+    // to retain the sort came from activity query
+    const customSortFunction = {
+      _script: {
+        type: 'number',
+        script: {
+          lang: 'painless',
+          source: `
+              def organizationId = doc['uuid_organizationId'].value;
+              return params.organizationIds.indexOf(organizationId);
+            `,
+          params: {
+            organizationIds: organizationIds.map((i) => `${i}`),
+          },
+        },
+        order: 'asc',
+      },
+    }
+
+    const organizations = await this.findAndCountAllOpensearch(
+      {
+        filter: organizationQueryPayload,
+        segments: [originalSegment],
+        countOnly: false,
+        limit,
+        offset,
+        customSortFunction,
+      },
+      options,
+    )
+
+    return {
+      rows: organizations.rows.map((o) => {
+        o.activityCount = organizationMap[o.id].activityCount.value
+        o.activeDaysCount = organizationMap[o.id].activeDaysCount.value
+        return o
+      }),
+      count: organizations.count,
+      offset,
+      limit,
+    }
   }
 
   static async findAndCountAll(

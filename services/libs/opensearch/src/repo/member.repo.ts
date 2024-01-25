@@ -405,6 +405,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                           'memberOrganizations', json_build_object(
                                         'dateStart', mo."dateStart",
                                         'dateEnd', mo."dateEnd",
+                                        'source', mo."source",
                                         'title', mo.title
                           )
                       )

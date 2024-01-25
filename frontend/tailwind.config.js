@@ -13,9 +13,8 @@ module.exports = {
         min: '768px',
         max: '1280px'
       },
-      lg: {
-        min: '1280px'
-      }
+      lg: '1024px',
+      xl: '1280px'
     },
     colors: {
       transparent: 'transparent',

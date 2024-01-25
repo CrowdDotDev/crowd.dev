@@ -20,7 +20,7 @@
     "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/types": "file:../../libs/types",
     "@crowd/redis": "file:../../libs/redis",
-    "@sendgrid/mail": "~7.7.0",
+    "@sendgrid/mail": "~8.1.0",
     "@temporalio/activity": "~1.8.6",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",

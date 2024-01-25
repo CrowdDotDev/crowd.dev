@@ -58,11 +58,11 @@ export default class MemberTranslator extends FieldTranslator {
     this.translations.firstCommitDate = 'date_firstCommitDate'
 
     // affiliations
-    this.translations.segmentId = 'uuid_segmentId'
+    this.translations.segmentId = 'string_segmentId'
     this.translations.segmentSlug = 'string_segmentSlug'
     this.translations.segmentName = 'string_segmentName'
     this.translations.segmentParentName = 'string_segmentParentName'
-    this.translations.organizationId = 'uuid_organizationId'
+    this.translations.organizationId = 'string_organizationId'
     this.translations.organizationName = 'string_organizationName'
     this.translations.organizationLogo = 'string_organizationLogo'
     this.translations.dateStart = 'date_dateStart'
@@ -74,6 +74,7 @@ export default class MemberTranslator extends FieldTranslator {
     this.translations.title = 'string_title'
     this.translations.dateStart = 'date_dateStart'
     this.translations.dateEnd = 'date_dateEnd'
+    this.translations.source = 'string_source'
 
     // identities
     this.translations.platform = 'string_platform'

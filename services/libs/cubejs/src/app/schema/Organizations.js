@@ -5,9 +5,18 @@ cube('Organizations', {
       sql: `${CUBE}.id = ${MemberOrganizations}."organizationId"`,
       relationship: 'hasMany',
     },
+    Activities: {
+      sql: `${CUBE}.id = ${Activities}."organizationId"`,
+      relationship: 'hasMany',
+    },
     OrganizationSegments: {
       sql: `${CUBE}.id = ${OrganizationSegments}."organizationId"`,
       relationship: 'belongsTo',
+    },
+
+    OrganizationIdentities: {
+      sql: `${CUBE}.id = ${OrganizationIdentities}."organizationId"`,
+      relationship: 'hasMany',
     },
   },
   measures: {

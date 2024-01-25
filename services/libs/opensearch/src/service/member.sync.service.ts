@@ -749,8 +749,10 @@ export class MemberSyncService {
         string_organizationId: affiliation.organizationId,
         string_organizationName: affiliation.organizationName,
         string_organizationLogo: affiliation.organizationLogo,
-        date_dateStart: new Date(affiliation.dateStart).toISOString(),
-        date_dateEnd: new Date(affiliation.dateEnd).toISOString(),
+        date_dateStart: affiliation.dateStart
+          ? new Date(affiliation.dateStart).toISOString()
+          : null,
+        date_dateEnd: affiliation.dateEnd ? new Date(affiliation.dateEnd).toISOString() : null,
       })
     }
 
@@ -764,6 +766,7 @@ export class MemberSyncService {
           string_title: organization.memberOrganizations?.title || null,
           date_dateStart: organization.memberOrganizations?.dateStart || null,
           date_dateEnd: organization.memberOrganizations?.dateEnd || null,
+          string_source: organization.memberOrganizations?.source || null,
         },
       })
     }

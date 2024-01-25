@@ -136,7 +136,7 @@
               </el-option-group>
             </el-select>
             <el-select
-              v-else-if="filter.select === 'Members.score'"
+              v-else-if="filter.select === 'Members.score' || filter.select === 'Members.engagementLevel'"
               v-model="filter.value"
               class="third-filter"
               placeholder="Value"
@@ -272,6 +272,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -290,6 +291,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -299,6 +301,7 @@ export default {
         'Members.count': {
           noDimension: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -310,6 +313,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.location',
             'Members.organization',
           ],
@@ -318,6 +322,7 @@ export default {
         'Members.cumulativeCount': {
           noDimension: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.joinedAt',
             'Members.location',
             'Members.organization',
@@ -329,6 +334,7 @@ export default {
           ],
           Members: [
             'Members.score',
+            'Members.engagementLevel',
             'Members.location',
             'Members.organization',
           ],
@@ -452,7 +458,7 @@ export default {
             const filter = f;
             const { values } = filter;
 
-            if (filter.member.name === 'Members.score') {
+            if (filter.member.name === 'Members.score' || filter.member.name === 'Members.engagementLevel') {
               const parsedValues = values.map((v) => Number(v));
               const engagement = this.computedEngagementLevelTypes.find((t) => isEqual(t.value, parsedValues))?.label;
 
@@ -503,6 +509,10 @@ export default {
             values = this.computedEngagementLevelTypes
               .filter((t) => t.label === filter.value)?.[0]
               .value.map((v) => `${v}`);
+          } else if (filter.select === 'Members.engagementLevel') {
+            values = [`${this.computedEngagementLevelTypes
+              .filter((t) => t.label === filter.value)?.[0]
+              .label}`];
           }
 
           return {

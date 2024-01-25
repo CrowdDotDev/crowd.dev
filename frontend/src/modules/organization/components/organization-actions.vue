@@ -36,6 +36,13 @@
     </el-button-group>
   </div>
   <app-organization-merge-dialog v-model="isMergeDialogOpen" />
+  <app-organization-merge-suggestions-dialog
+    v-if="isMergeSuggestionsDialogOpen"
+    v-model="isMergeSuggestionsDialogOpen"
+    :query="{
+      organizationId: props.organization?.id,
+    }"
+  />
 </template>
 
 <script setup>
@@ -48,6 +55,8 @@ import { OrganizationPermissions } from '@/modules/organization/organization-per
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+import AppOrganizationMergeSuggestionsDialog
+  from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
 
 const props = defineProps({
   organization: {
@@ -59,6 +68,7 @@ const router = useRouter();
 
 const { currentUser, currentTenant } = mapGetters('auth');
 
+const isMergeSuggestionsDialogOpen = ref(false);
 const isMergeDialogOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
 
@@ -92,12 +102,7 @@ const mergeSuggestions = () => {
   if (isEditLockedForSampleData.value) {
     return;
   }
-  router.push({
-    name: 'organizationMergeSuggestions',
-    query: {
-      organizationId: props.organization.id,
-    },
-  });
+  isMergeSuggestionsDialogOpen.value = true;
 };
 
 const merge = () => {

@@ -21,6 +21,11 @@ cube('Members', {
       sql: `${CUBE}.id = ${MemberSegments}."memberId"`,
       relationship: 'belongsTo',
     },
+
+    MemberIdentities: {
+      sql: `${CUBE}.id = ${MemberIdentities}."memberId"`,
+      relationship: 'hasMany',
+    },
   },
 
   measures: {
@@ -81,6 +86,20 @@ cube('Members', {
     score: {
       sql: `${CUBE}."score"`,
       type: 'number',
+    },
+
+    engagementLevel: {
+      type: 'string',
+      case: {
+        when: [
+          { sql: `${CUBE}.score = 0 or ${CUBE}.score = 1`, label: `Silent` },
+          { sql: `${CUBE}.score = 2 or ${CUBE}.score = 3`, label: `Quiet` },
+          { sql: `${CUBE}.score = 4 or ${CUBE}.score = 5 or ${CUBE}.score = 6`, label: `Engaged` },
+          { sql: `${CUBE}.score = 7 or ${CUBE}.score = 8`, label: `Fan` },
+          { sql: `${CUBE}.score = 9 or ${CUBE}.score = 10`, label: `Ultra` },
+        ],
+        else: { label: `Unknown` },
+      },
     },
   },
 })
