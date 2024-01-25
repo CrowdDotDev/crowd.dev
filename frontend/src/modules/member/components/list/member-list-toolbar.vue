@@ -222,7 +222,7 @@ const handleDoExport = async () => {
     await MemberService.export({
       filter,
       orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      limit: 0,
+      limit: ids.length || 0,
       offset: null,
     });
 
