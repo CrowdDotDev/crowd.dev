@@ -3,7 +3,6 @@ import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.se
 import { RedisClient } from '@crowd/redis'
 import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
-import { Tracer } from '@crowd/tracing'
 import {
   CheckResultsQueueMessage,
   CreateAndProcessActivityResultQueueMessage,
@@ -18,7 +17,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
-    tracer: Tracer,
     unleash: UnleashClient | undefined,
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
@@ -28,7 +26,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
       DATA_SINK_WORKER_QUEUE_SETTINGS,
       sqsClient,
       redis,
-      tracer,
       unleash,
       priorityLevelCalculationContextLoader,
       parentLog,

@@ -1,6 +1,5 @@
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import MemberRepository from '../repo/member.repo'
@@ -18,7 +17,6 @@ import {
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -49,26 +47,18 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new DataSinkWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const emitter = new DataSinkWorkerEmitter(sqsClient, redis, unleash, loader, log)
   await emitter.init()
 
   const dataSinkRepo = new DataSinkRepository(store, log)
   const memberRepo = new MemberRepository(store, log)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    sqsClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, redis, unleash, loader, log)
   await nodejsWorkerEmitter.init()
 
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     sqsClient,
     redis,
-    tracer,
     unleash,
     loader,
     log,

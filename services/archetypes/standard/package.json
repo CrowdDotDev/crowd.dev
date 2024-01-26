@@ -13,7 +13,6 @@
     "@crowd/temporal": "file:../../libs/temporal",
     "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/logging": "file:../../libs/logging",
-    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/types": "file:../../libs/types",
     "@temporalio/client": "~1.8.6",

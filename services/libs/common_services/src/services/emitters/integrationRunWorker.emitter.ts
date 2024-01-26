@@ -1,7 +1,6 @@
 import { CrowdQueue, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 import { RedisClient } from '@crowd/redis'
-import { Tracer } from '@crowd/tracing'
 import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import {
@@ -16,7 +15,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
-    tracer: Tracer,
     unleash: UnleashClient | undefined,
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
@@ -26,7 +24,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
       INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
       sqsClient,
       redis,
-      tracer,
       unleash,
       priorityLevelCalculationContextLoader,
       parentLog,

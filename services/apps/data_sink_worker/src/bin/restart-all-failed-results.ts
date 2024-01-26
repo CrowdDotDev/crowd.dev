@@ -2,7 +2,6 @@ import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import DataSinkRepository from '../repo/dataSink.repo'
 import { partition } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
@@ -16,7 +15,6 @@ import { getRedisClient } from '@crowd/redis'
 
 const batchSize = 500
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
@@ -31,7 +29,7 @@ setImmediate(async () => {
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const emitter = new DataSinkWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const emitter = new DataSinkWorkerEmitter(sqsClient, redis, unleash, loader, log)
   await emitter.init()
 
   const repo = new DataSinkRepository(store, log)

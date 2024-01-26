@@ -1,6 +1,5 @@
 import { SqsClient, getSqsClient } from '@crowd/sqs'
 import { getServiceChildLogger } from '@crowd/logging'
-import { getServiceTracer } from '@crowd/tracing'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
@@ -16,7 +15,6 @@ import { REDIS_CONFIG, SERVICE, SQS_CONFIG, UNLEASH_CONFIG } from '../../conf'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { PriorityLevelContextRepository } from '@/database/repositories/priorityLevelContextRepository'
 
-const tracer = getServiceTracer()
 const log = getServiceChildLogger('service.sqs')
 
 let sqsClient: SqsClient
@@ -81,7 +79,6 @@ export const getIntegrationRunWorkerEmitter = async (): Promise<IntegrationRunWo
   runWorkerEmitter = new IntegrationRunWorkerEmitter(
     SQS_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
     await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
@@ -98,7 +95,6 @@ export const getIntegrationStreamWorkerEmitter =
     streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
       SQS_CLIENT(),
       await REDIS_CLIENT(),
-      tracer,
       await UNLEASH_CLIENT(),
       await QUEUE_PRIORITY_LOADER(),
       log,
@@ -114,7 +110,6 @@ export const getSearchSyncWorkerEmitter = async (): Promise<SearchSyncWorkerEmit
   searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     SQS_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
     await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
@@ -130,7 +125,6 @@ export const getIntegrationSyncWorkerEmitter = async (): Promise<IntegrationSync
   integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(
     SQS_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
     await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
@@ -146,7 +140,6 @@ export const getDataSinkWorkerEmitter = async (): Promise<DataSinkWorkerEmitter>
   dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
     SQS_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
     await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
@@ -162,7 +155,6 @@ export const getNodejsWorkerEmitter = async (): Promise<NodejsWorkerEmitter> => 
   nodejsWorkerEmitter = new NodejsWorkerEmitter(
     SQS_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
     await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,

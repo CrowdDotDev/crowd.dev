@@ -1,6 +1,5 @@
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
@@ -44,7 +43,6 @@ const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
 // example call for all repos
 // pnpm run script:process-repo 5f8b1a3a-0b0a-4c0a-8b0a-4c0a8b0a4c0a all forks -- this will trigger forks streams for all repos in settings
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -84,7 +82,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, unleash, loader, log)
   await emitter.init()
 
   const repo = new IntegrationRunRepository(store, log)

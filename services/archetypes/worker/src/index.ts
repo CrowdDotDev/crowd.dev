@@ -256,7 +256,6 @@ export class ServiceWorker extends Service {
         identity: this.name,
         namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
         taskQueue: process.env['CROWD_TEMPORAL_TASKQUEUE'],
-        enableSDKTracing: true,
         showStackTraceSources: true,
         workflowBundle: workflowBundle,
         activities: require(path.resolve('./src/activities')),

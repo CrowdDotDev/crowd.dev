@@ -29,7 +29,6 @@
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",
-    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
     "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/common_services": "file:../../libs/common_services",

@@ -1,5 +1,4 @@
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WORKER_CONFIG } from './conf'
@@ -15,7 +14,6 @@ import {
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 2
@@ -33,18 +31,10 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const runWorkerEmitter = new IntegrationRunWorkerEmitter(
-    sqsClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const runWorkerEmitter = new IntegrationRunWorkerEmitter(sqsClient, redis, unleash, loader, log)
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     sqsClient,
     redis,
-    tracer,
     unleash,
     loader,
     log,
@@ -52,7 +42,6 @@ setImmediate(async () => {
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     sqsClient,
     redis,
-    tracer,
     unleash,
     loader,
     log,
@@ -60,7 +49,6 @@ setImmediate(async () => {
   const integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(
     sqsClient,
     redis,
-    tracer,
     unleash,
     loader,
     log,
@@ -78,7 +66,6 @@ setImmediate(async () => {
     searchSyncWorkerEmitter,
     integrationSyncWorkerEmitter,
     apiPubSubEmitter,
-    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )

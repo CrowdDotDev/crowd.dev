@@ -8,10 +8,8 @@ import { getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
-import { getServiceTracer } from '@crowd/tracing'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -34,7 +32,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, unleash, loader, log)
   await emitter.init()
 
   const results = await dbConnection.any(

@@ -32,7 +32,6 @@
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sentiment": "file:../../libs/sentiment",
     "@crowd/sqs": "file:../../libs/sqs",
-    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
     "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/temporal": "file:../../libs/temporal",

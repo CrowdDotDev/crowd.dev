@@ -18,7 +18,6 @@
     "@crowd/database": "file:../../libs/database",
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/sqs": "file:../../libs/sqs",
-    "@crowd/tracing": "file:../../libs/tracing",
     "@crowd/types": "file:../../libs/types",
     "@crowd/opensearch": "file:../../libs/opensearch",
     "@crowd/integrations": "file:../../libs/integrations",

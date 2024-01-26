@@ -1,6 +1,5 @@
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import {
@@ -13,7 +12,6 @@ import { getRedisClient } from '@crowd/redis'
 
 const BATCH_SIZE = 100
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
@@ -25,14 +23,7 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const emitter = new IntegrationStreamWorkerEmitter(
-    sqsClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const emitter = new IntegrationStreamWorkerEmitter(sqsClient, redisClient, unleash, loader, log)
   await emitter.init()
 
   let results = await dbConnection.any(

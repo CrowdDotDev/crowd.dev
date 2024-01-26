@@ -3,7 +3,6 @@ import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { singleOrDefault, timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import {
@@ -14,7 +13,6 @@ import {
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getRedisClient } from '@crowd/redis'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
@@ -27,7 +25,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, unleash, loader, log)
   await emitter.init()
 
   const repo = new IntegrationRunRepository(store, log)
