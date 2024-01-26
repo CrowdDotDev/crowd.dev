@@ -26,6 +26,7 @@
     color: var(--cr-btn-disabled-text);
     background: var(--cr-btn-disabled-background);
     border-color: var(--cr-btn-disabled-border);
+    @apply cursor-default;
   }
 
   &__loader{

@@ -257,7 +257,7 @@ const { fields } = UserModel;
 
 export default {
   name: 'AppSignupPage',
-  components: { CrButton, AppSvg, AppI18n },
+  components: { AppSvg, AppI18n },
   data() {
     return {
       sending: false,
