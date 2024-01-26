@@ -253,14 +253,14 @@ import config from '@/config';
 import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
 import AppI18n from '@/shared/i18n/i18n.vue';
 import AppSvg from '@/shared/svg/svg.vue';
-
 const { fields } = UserModel;
 
 export default {
   name: 'AppSignupPage',
-  components: { AppSvg, AppI18n },
+  components: { CrButton, AppSvg, AppI18n },
   data() {
     return {
+      sending: false,
       rules: {
         firstName: fields.firstName.forFormRules(),
         lastName: fields.lastName.forFormRules(),

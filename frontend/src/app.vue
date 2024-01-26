@@ -25,11 +25,13 @@ import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { AuthToken } from '@/modules/auth/auth-token';
 import identify from '@/shared/monitoring/identify';
+import CrButton from '@/shared/ui-kit/button/Button.vue';
 
 export default {
   name: 'App',
 
   components: {
+    CrButton,
     AppResizePage,
   },
 
