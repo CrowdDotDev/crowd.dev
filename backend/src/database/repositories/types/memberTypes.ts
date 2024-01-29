@@ -13,6 +13,7 @@ export interface IActiveMemberFilter {
   isBot?: boolean
   isTeamMember?: boolean
   isOrganization?: boolean
+  isDeleted?: boolean
   activityIsContribution?: boolean
   activityTimestampFrom: string
   activityTimestampTo: string
