@@ -1,3 +1,5 @@
+import { IMember } from '@crowd/types'
+
 export interface IPaginatedResponse<T> {
   elements: T[]
   after?: string
@@ -17,7 +19,16 @@ export interface IBatchCreateMembersResult {
   lastSyncedPayload: unknown
 }
 
-export type IBatchUpdateMembersResult = IBatchCreateMembersResult
+export interface IBatchCreateMemberResultWithConflicts {
+  members: IBatchCreateMembersResult[]
+  conflicts: IMember[]
+}
+
+export interface IBatchUpdateMembersResult {
+  memberId: string
+  sourceId: string
+  lastSyncedPayload: unknown
+}
 
 export interface IBatchOperationResult {
   created: IBatchCreateMembersResult[] | IBatchCreateOrganizationsResult[]
