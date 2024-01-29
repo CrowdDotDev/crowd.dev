@@ -49,9 +49,37 @@
         </button>
         <slot name="action" />
       </div>
-      <app-avatar :entity="member" class="mb-3" />
+      <router-link
+        v-if="!isPreview"
+        :to="{
+          name: 'memberView',
+          params: {
+            id: member.id,
+          },
+        }"
+        target="_blank"
+      >
+        <app-avatar :entity="member" class="mb-3" />
+      </router-link>
+      <app-avatar v-else :entity="member" class="mb-3" />
       <div class="pb-6">
+        <router-link
+          v-if="!isPreview"
+          :to="{
+            name: 'memberView',
+            params: {
+              id: member.id,
+            },
+          }"
+          target="_blank"
+        >
+          <h6
+            class="text-base text-black hover:text-brand-500 font-semibold leading-6"
+            v-html="$sanitize(member.displayName)"
+          />
+        </router-link>
         <h6
+          v-else
           class="text-base text-black font-semibold leading-6"
           v-html="$sanitize(member.displayName)"
         />
