@@ -124,6 +124,11 @@ function parseMember(activity: RedditPost | RedditComment): IMemberData {
         },
       ],
       displayName: 'Deleted User',
+      attributes: {
+        [MemberAttributeName.IS_DELETED]: {
+          [PlatformType.REDDIT]: true,
+        },
+      },
     }
   }
   return {

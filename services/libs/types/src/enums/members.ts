@@ -25,6 +25,7 @@ export enum MemberAttributeName {
   IS_TEAM_MEMBER = 'isTeamMember',
   IS_ORGANIZATION = 'isOrganization',
   IS_BOT = 'isBot',
+  IS_DELETED = 'isDeleted',
   TIMEZONE = 'timezone',
   KARMA = 'karma',
   SYNC_REMOTE = 'syncRemote',
@@ -90,6 +91,10 @@ export const MemberAttributes = {
   [MemberAttributeName.IS_BOT]: {
     name: MemberAttributeName.IS_BOT,
     label: 'is Bot',
+  },
+  [MemberAttributeName.IS_DELETED]: {
+    name: MemberAttributeName.IS_DELETED,
+    label: 'is Deleted',
   },
   [MemberAttributeName.KARMA]: {
     name: MemberAttributeName.KARMA,
