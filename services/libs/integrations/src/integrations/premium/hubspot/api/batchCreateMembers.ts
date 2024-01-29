@@ -101,15 +101,18 @@ export const batchCreateMembers = async (
           crowdMember.emails.length > 0 && crowdMember.emails.includes(m.properties.email),
       )
 
-      const hubspotPayload = hubspotMembers.find(
-        (hubspotMember) => hubspotMember.properties.email === m.properties.email,
-      )
+      if (member) {
+        const hubspotPayload = hubspotMembers.find(
+          (hubspotMember) => hubspotMember.properties.email === m.properties.email,
+        )
 
-      acc.push({
-        memberId: member.id,
-        sourceId: m.id,
-        lastSyncedPayload: hubspotPayload,
-      })
+        acc.push({
+          memberId: member.id,
+          sourceId: m.id,
+          lastSyncedPayload: hubspotPayload,
+        })
+      }
+
       return acc
     }, [])
   } catch (err) {
