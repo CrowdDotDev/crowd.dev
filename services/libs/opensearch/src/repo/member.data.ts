@@ -25,6 +25,7 @@ export interface IDbMemberTaskData {
 export interface IDbMemberOrganization {
   id: string
   logo: string | null
+  website: string | null
   displayName: string | null
   memberOrganizations: {
     title: string
