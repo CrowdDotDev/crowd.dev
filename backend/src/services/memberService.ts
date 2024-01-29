@@ -1229,7 +1229,7 @@ export default class MemberService extends LoggerBase {
     })
 
     const relations = [
-      { relation: 'organizations', attributes: ['name'] },
+      { relation: 'organizations', attributes: ['displayName', 'website', 'logo'] },
       { relation: 'notes', attributes: ['body'] },
       { relation: 'tags', attributes: ['name'] },
     ]
