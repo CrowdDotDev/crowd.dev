@@ -6,10 +6,3 @@
 @function rem($size) {
   @return calc($size / 16) * 1rem;
 }
-
-/* mixin for internet explorer */
-@mixin ie {
-  @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-    @content;
-  }
-}
