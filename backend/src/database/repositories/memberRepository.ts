@@ -2177,6 +2177,16 @@ class MemberRepository {
       },
     })
 
+    // remove deleted members
+    if (!parsed.query.bool.must_not) {
+      parsed.query.bool.must_not = []
+    }
+    parsed.query.bool.must_not.push({
+      term: {
+        'obj_attributes.obj_isDeleted.bool_default': true,
+      },
+    })
+
     if (segmentsEnabled) {
       // add segment filter
       parsed.query.bool.must.push({
