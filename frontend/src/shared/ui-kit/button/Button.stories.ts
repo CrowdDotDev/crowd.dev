@@ -7,12 +7,6 @@ export default {
   title: 'Crowd.dev/Button',
   component: CrButton,
   tags: ['autodocs'],
-  parameters: {
-    design: {
-      type: 'figma',
-      url: 'https://www.figma.com/file/2tcYumu8Vb1KAIH5zmNI0o/Design-System?node-id=824%3A14683&mode=dev',
-    },
-  },
   argTypes: {
     // Props
     type: {
