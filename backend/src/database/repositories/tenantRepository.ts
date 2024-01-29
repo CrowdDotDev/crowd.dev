@@ -117,7 +117,7 @@ class TenantRepository {
     )
 
     if (checkTenantUrl.count > 0) {
-      cleanedTenantUrl += `-${checkTenantUrl.count}`
+      cleanedTenantUrl += `-${new Date().getTime()}`
     }
 
     return cleanedTenantUrl
