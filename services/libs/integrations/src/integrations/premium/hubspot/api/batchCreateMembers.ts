@@ -154,7 +154,6 @@ export const batchCreateMembers = async (
               return m
             })
 
-          // await batchUpdateMembers(nangoId, updateMembers, memberMapper, ctx, throttler)
           return await batchCreateMembers(
             nangoId,
             createMembers,

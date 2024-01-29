@@ -70,7 +70,7 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
         membersCreatedInHubspot = batchCreateResult.members
         if (batchCreateResult.conflicts.length > 0) {
           // append create conflicts to update array
-          // also remove duplicates (where two members have same email, we should select one of them to syncing)
+          // also remove duplicates (where two members have same email, we should select one of them to sync)
           ;(toUpdate as IMember[]) = (toUpdate as IMember[])
             .concat(batchCreateResult.conflicts)
             .filter(
