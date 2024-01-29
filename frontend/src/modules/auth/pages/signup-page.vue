@@ -253,6 +253,7 @@ import config from '@/config';
 import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
 import AppI18n from '@/shared/i18n/i18n.vue';
 import AppSvg from '@/shared/svg/svg.vue';
+
 const { fields } = UserModel;
 
 export default {
