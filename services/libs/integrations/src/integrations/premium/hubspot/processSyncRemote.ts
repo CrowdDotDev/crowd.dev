@@ -69,7 +69,17 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
         )
         membersCreatedInHubspot = batchCreateResult.members
         if (batchCreateResult.conflicts.length > 0) {
-          ;(toUpdate as IMember[]).push(...batchCreateResult.conflicts)
+          // append create conflicts to update array
+          // also remove duplicates (where two members have same email, we should select one of them to syncing)
+          ;(toUpdate as IMember[]) = (toUpdate as IMember[])
+            .concat(batchCreateResult.conflicts)
+            .filter(
+              (member, index, self) =>
+                index ===
+                self.findIndex(
+                  (m) => m.attributes?.sourceId?.hubspot === member.attributes?.sourceId?.hubspot,
+                ),
+            )
         }
       }
 
