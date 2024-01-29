@@ -204,7 +204,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
             const identityPlatform = crowdKey.split('.')[1] || null
 
             if (identityPlatform) {
-              member.identities.push({
+              member.weakIdentities.push({
                 username: contactProperties[hubspotPropertyName],
                 platform: identityPlatform,
               })
