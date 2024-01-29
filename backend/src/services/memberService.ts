@@ -42,6 +42,11 @@ import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { ServiceType } from '@/conf/configTypes'
 import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
+import {
+  MergeActionState,
+  MergeActionType,
+  MergeActionsRepository,
+} from '@/database/repositories/mergeActionsRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -598,6 +603,26 @@ export default class MemberService extends LoggerBase {
     try {
       const original = await MemberRepository.findById(originalId, this.options)
       const toMerge = await MemberRepository.findById(toMergeId, this.options)
+
+      const backup = {
+        primary: {
+          ...original,
+          identities: await MemberRepository.getRawMemberIdentities(originalId, this.options),
+        },
+        secondary: {
+          ...toMerge,
+          identities: await MemberRepository.getRawMemberIdentities(toMergeId, this.options),
+        },
+      }
+
+      await MergeActionsRepository.add(
+        MergeActionType.MEMBER,
+        originalId,
+        toMergeId,
+        this.options,
+        MergeActionState.IN_PROGRESS,
+        backup,
+      )
 
       if (original.id === toMerge.id) {
         return {

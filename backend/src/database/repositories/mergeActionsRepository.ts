@@ -15,20 +15,27 @@ enum MergeActionState {
   ERROR = 'error',
 }
 
+interface IUnmergeBackup {
+  primary: unknown
+  secondary: unknown
+}
+
 class MergeActionsRepository {
   static async add(
     type: MergeActionType,
     primaryId: string,
     secondaryId: string,
     options: IRepositoryOptions,
+    state: MergeActionState = MergeActionState.PENDING,
+    backup: IUnmergeBackup = undefined,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
     const tenantId = options.currentTenant.id
 
     await options.database.sequelize.query(
       `
-        INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state)
-        VALUES (:tenantId, :type, :primaryId, :secondaryId, :state)
+        INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, "unmergeBackup")
+        VALUES (:tenantId, :type, :primaryId, :secondaryId, :state, :backup)
         ON CONFLICT ("tenantId", "type", "primaryId", "secondaryId")
         DO UPDATE SET state = :state
       `,
@@ -38,7 +45,8 @@ class MergeActionsRepository {
           type,
           primaryId,
           secondaryId,
-          state: MergeActionState.PENDING,
+          state,
+          backup: backup ? JSON.stringify(backup) : null,
         },
         type: QueryTypes.INSERT,
         transaction,

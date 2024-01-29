@@ -59,12 +59,11 @@ export async function markMergeActionDone(
       UPDATE "mergeActions"
       SET state = $4
       WHERE "tenantId" = $3
-        AND type = $5
         AND "primaryId" = $1
         AND "secondaryId" = $2
         AND state != $4
     `,
-    [primaryId, secondaryId, tenantId, 'done', 'org'],
+    [primaryId, secondaryId, tenantId, 'done'],
   )
 }
 

@@ -20,6 +20,7 @@ export async function finishMemberMerging(
 ): Promise<void> {
   await moveActivitiesBetweenMembers(primaryId, secondaryId, tenantId)
   await deleteMember(secondaryId)
+  await markMergeActionDone(primaryId, secondaryId, tenantId)
 }
 
 export async function finishOrganizationMerging(

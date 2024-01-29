@@ -1046,6 +1046,28 @@ class MemberRepository {
     return results
   }
 
+  static async getRawMemberIdentities(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const memberIdentities = (await seq.query(
+      `
+        SELECT *
+        FROM "memberIdentities"
+        WHERE "memberId" = :memberId;
+      `,
+      {
+        replacements: {
+          memberId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )) as IMemberIdentity[]
+
+    return memberIdentities
+  }
+
   static async findById(
     id,
     options: IRepositoryOptions,
