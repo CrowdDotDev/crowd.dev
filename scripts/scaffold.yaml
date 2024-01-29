@@ -3,7 +3,7 @@ version: '3.1'
 services:
   cubejs:
     build:
-      context: ../services/libs/cubejs
+      context: ../services/libs/cubejs/src/app
     restart: always
     ports:
       - '4000:4000'
@@ -44,6 +44,7 @@ services:
       - bootstrap.memory_lock=true
       - 'DISABLE_INSTALL_DEMO_CONFIG=true'
       - 'DISABLE_SECURITY_PLUGIN=true'
+      - cluster.routing.allocation.disk.threshold_enabled=false
     ulimits:
       memlock:
         soft: -1

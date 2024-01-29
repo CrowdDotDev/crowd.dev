@@ -35,7 +35,10 @@ export async function weeklyGetNextEmails(): Promise<InputAnalytics[]> {
   try {
     rows = await svc.postgres.reader.connection().query(`
       SELECT id as "tenantId", name as "tenantName"
-      FROM tenants WHERE "deletedAt" IS NULL;
+        FROM tenants
+        WHERE "deletedAt" IS NULL
+        AND plan IN ('Scale', 'Growth', 'Essential')
+        AND ("trialEndsAt" > NOW() OR "trialEndsAt" IS NULL);
     `)
   } catch (err) {
     throw new Error(err)

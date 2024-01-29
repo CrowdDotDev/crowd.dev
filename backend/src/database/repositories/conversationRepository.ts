@@ -207,13 +207,28 @@ class ConversationRepository {
     options: IRepositoryOptions,
   ) {
     let customOrderBy: Array<any> = []
-    const include = [
+    let include = [
       {
         model: options.database.activity,
         as: 'activities',
         attributes: [],
+        where: {} as Record<string, any>,
       },
     ]
+
+    orderBy = 'lastActive_DESC'
+
+    // Quick win, need to be improved. We are seeing long requests because
+    // filters are applied in HAVING using Sequelize, but setting these in
+    // WHERE clause is better for performances.
+    if (advancedFilter) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      Object.entries(advancedFilter).forEach(([key, value], index) => {
+        if (Array.isArray(value) && value.length > 0) {
+          include = applyHavingInWhereClause(include, value)
+        }
+      })
+    }
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -656,6 +671,51 @@ class ConversationRepository {
 
     return output
   }
+}
+
+function applyHavingInWhereClause(include, value) {
+  value.forEach((constraint) => {
+    if (constraint.and) {
+      include = applyHavingInWhereClause(include, constraint.and)
+    } else if (constraint.or) {
+      include = applyHavingInWhereClause(include, constraint.or)
+    }
+
+    if (constraint.lastActive) {
+      if (!include[0].where.timestamp) {
+        include[0].where.timestamp = {}
+      }
+
+      if (constraint.lastActive.gte) {
+        include[0].where.timestamp[Op.gte] = constraint.lastActive.gte
+      }
+      if (constraint.lastActive.lte) {
+        include[0].where.timestamp[Op.lte] = constraint.lastActive.lte
+      }
+      if (constraint.lastActive.between) {
+        include[0].where.timestamp[Op.between] = constraint.lastActive.between
+      }
+      if (constraint.lastActive.not) {
+        if (constraint.lastActive.not.between) {
+          include[0].where.timestamp[Op.notBetween] = constraint.lastActive.not.between
+        }
+      }
+    } else if (constraint.platform) {
+      if (!include[0].where.platform) {
+        include[0].where.platform = {
+          [Op.in]: [],
+        }
+      }
+
+      include[0].where.platform[Op.in].push(constraint.platform)
+    } else if (constraint.createdAt) {
+      include[0].where.createdAt = {
+        [Op.gte]: constraint.createdAt.gte,
+      }
+    }
+  })
+
+  return include
 }
 
 export default ConversationRepository

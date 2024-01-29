@@ -113,6 +113,7 @@ export class MemberSyncService extends LoggerBase {
 
       if (updated.length > 0) {
         const memberUpdated = updated[0] as IBatchUpdateMembersResult
+        await this.memberRepo.setSyncRemoteSourceId(syncRemoteId, memberUpdated.sourceId)
         await this.memberRepo.setLastSyncedAtBySyncRemoteId(
           syncRemoteId,
           memberUpdated.lastSyncedPayload,
@@ -258,6 +259,11 @@ export class MemberSyncService extends LoggerBase {
         }
 
         for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setIntegrationSourceId(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.sourceId,
+          )
           await this.memberRepo.setLastSyncedAt(
             updatedMember.memberId,
             integration.id,
@@ -473,6 +479,11 @@ export class MemberSyncService extends LoggerBase {
           }
 
           for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+            await this.memberRepo.setIntegrationSourceId(
+              updatedMember.memberId,
+              integration.id,
+              updatedMember.sourceId,
+            )
             await this.memberRepo.setLastSyncedAt(
               updatedMember.memberId,
               integration.id,
@@ -557,33 +568,35 @@ export class MemberSyncService extends LoggerBase {
         this.log.info(`Syncing member ${memberToSync.memberId} to ${integration.platform} remote!`)
         const member = await this.memberRepo.findMember(memberToSync.memberId)
 
-        let syncRemote = await this.memberRepo.findSyncRemote(
-          member.id,
-          integration.id,
-          automation.id,
-        )
+        if (member) {
+          let syncRemote = await this.memberRepo.findSyncRemote(
+            member.id,
+            integration.id,
+            automation.id,
+          )
 
-        // member isn't marked yet, mark it
-        if (!syncRemote) {
-          syncRemote = await this.memberRepo.markMemberForSyncing({
-            integrationId: integration.id,
-            memberId: member.id,
-            metaData: null,
-            syncFrom: automation.id,
-          })
-        }
-
-        if (syncRemote.sourceId) {
-          member.attributes = {
-            ...member.attributes,
-            sourceId: {
-              ...(member.attributes.sourceId || {}),
-              [integration.platform]: syncRemote.sourceId,
-            },
+          // member isn't marked yet, mark it
+          if (!syncRemote) {
+            syncRemote = await this.memberRepo.markMemberForSyncing({
+              integrationId: integration.id,
+              memberId: member.id,
+              metaData: null,
+              syncFrom: automation.id,
+            })
           }
-          membersToUpdate.push(member)
-        } else {
-          membersToCreate.push(member)
+
+          if (syncRemote.sourceId) {
+            member.attributes = {
+              ...member.attributes,
+              sourceId: {
+                ...(member.attributes.sourceId || {}),
+                [integration.platform]: syncRemote.sourceId,
+              },
+            }
+            membersToUpdate.push(member)
+          } else {
+            membersToCreate.push(member)
+          }
         }
       }
 
@@ -622,6 +635,11 @@ export class MemberSyncService extends LoggerBase {
         }
 
         for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setIntegrationSourceId(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.sourceId,
+          )
           await this.memberRepo.setLastSyncedAt(
             updatedMember.memberId,
             integration.id,

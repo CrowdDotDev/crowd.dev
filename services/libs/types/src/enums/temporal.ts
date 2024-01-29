@@ -4,4 +4,6 @@ export enum TemporalWorkflowId {
 
   EMAIL_WEEKLY_ANALYTICS = 'email-weekly-analytics',
   EMAIL_EAGLEEYE_DIGEST = 'email-eagleeye-digest',
+
+  MEMBER_UPDATE = 'member-update',
 }

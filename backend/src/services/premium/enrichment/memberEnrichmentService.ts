@@ -14,6 +14,7 @@ import {
   OrganizationSource,
   SyncMode,
   IOrganizationIdentity,
+  TemporalWorkflowId,
 } from '@crowd/types'
 import {
   EnrichmentAPICertification,
@@ -24,10 +25,10 @@ import {
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
 } from '@crowd/types/premium'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
-import track from '../../../segment/track'
 import { Member } from '../../../serverless/integrations/types/messageTypes'
 import { IServiceOptions } from '../../IServiceOptions'
 import MemberAttributeSettingsService from '../../memberAttributeSettingsService'
@@ -242,16 +243,13 @@ export default class MemberEnrichmentService extends LoggerBase {
         throw new Error400(this.options.language, 'enrichment.errors.noGithubHandleOrEmail')
       }
 
-      let enrichedFrom = ''
       let enrichmentData: EnrichmentAPIMember
       // If the member has a GitHub handle, use it to make a request to the Enrichment API
       if (member.username[PlatformType.GITHUB]) {
-        enrichedFrom = 'github'
         enrichmentData = await this.getEnrichmentByGithubHandle(
           member.username[PlatformType.GITHUB][0],
         )
       } else if (member.emails.length > 0) {
-        enrichedFrom = 'email'
         // If the member has an email address, use it to make a request to the Enrichment API
         enrichmentData = await this.getEnrichmentByEmail(member.emails[0])
       }
@@ -321,15 +319,6 @@ export default class MemberEnrichmentService extends LoggerBase {
         }
       }
 
-      track(
-        'Member Enriched',
-        {
-          memberId: member.id,
-          enrichedFrom,
-        },
-        this.options,
-      )
-
       let result = await memberService.upsert(
         {
           ...normalized,
@@ -389,6 +378,28 @@ export default class MemberEnrichmentService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+      if (enrichmentData.work_experiences) {
+        await this.options.temporal.workflow.start('memberUpdate', {
+          taskQueue: 'profiles',
+          workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${result.id}`,
+          workflowIdReusePolicy:
+            WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+          retry: {
+            maximumAttempts: 10,
+          },
+          args: [
+            {
+              member: {
+                id: result.id,
+              },
+            },
+          ],
+          searchAttributes: {
+            TenantId: [this.options.currentTenant.id],
+          },
+        })
+      }
+
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, result.id)
 
       result = await MemberRepository.findByIdOpensearch(result.id, this.options)

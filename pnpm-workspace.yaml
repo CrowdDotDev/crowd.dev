@@ -4,3 +4,4 @@ packages:
   - 'services/apps/*'
   - 'services/apps/premium/*'
   - 'backend'
+  - '.github/actions/node'

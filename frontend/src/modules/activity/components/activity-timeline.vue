@@ -192,14 +192,13 @@ import {
 import debounce from 'lodash/debounce';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { onSelectMouseLeave } from '@/utils/select';
-import authAxios from '@/shared/axios/auth-axios';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
   'i', // type
@@ -245,13 +244,13 @@ const fetchActivities = async (reload = false) => {
   }
 
   const filterToApply = {
-    platform: platform.value ?? undefined,
+    platform: platform.value ? { eq: platform.value } : undefined,
   };
 
   if (props.entityType === 'member') {
-    filterToApply.memberId = props.entityId;
+    filterToApply.memberId = { in: [props.entityId] };
   } else {
-    filterToApply[`${props.entityType}s`] = [props.entityId];
+    filterToApply.organizationId = { in: [props.entityId] };
   }
 
   if (props.entityId) {
@@ -303,24 +302,12 @@ const fetchActivities = async (reload = false) => {
 
   loading.value = true;
 
-  const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-  const tenantId = sampleTenant?.id
-    || store.getters['auth/currentTenant'].id;
-
-  const { data } = await authAxios.post(
-    `/tenant/${tenantId}/activity/query`,
-    {
-      filter: filterToApply,
-      orderBy: 'timestamp_DESC',
-      limit: limit.value,
-      offset: offset.value,
-    },
-    {
-      headers: {
-        Authorization: sampleTenant?.token,
-      },
-    },
-  );
+  const data = await ActivityService.query({
+    filter: filterToApply,
+    orderBy: 'timestamp_DESC',
+    limit: limit.value,
+    offset: offset.value,
+  });
 
   filter = { ...filterToApply };
   loading.value = false;

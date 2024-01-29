@@ -1,6 +1,6 @@
 import { Stripe } from 'stripe'
+import { TenantPlans } from '@crowd/types'
 import { PLANS_CONFIG } from '@/conf'
-import Plans from '@/security/plans'
 
 const stripe = new Stripe(PLANS_CONFIG.stripeSecretKey, {
   apiVersion: '2022-08-01',
@@ -18,16 +18,16 @@ class StripeService {
 
   static getPlanFromProductId(productId: string) {
     if (productId === PLANS_CONFIG.stripeScalePlanProductId) {
-      return Plans.values.scale
+      return TenantPlans.Scale
     }
     if (productId === PLANS_CONFIG.stripeEssentialPlanProductId) {
-      return Plans.values.essential
+      return TenantPlans.Essential
     }
     if (productId === PLANS_CONFIG.stripeEagleEyePlanProductId) {
-      return Plans.values.eagleEye
+      return TenantPlans.EagleEye
     }
     if (productId === PLANS_CONFIG.stripeGrowthPlanProductId) {
-      return Plans.values.growth
+      return TenantPlans.Growth
     }
     return null
   }

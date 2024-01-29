@@ -691,6 +691,7 @@ export class MemberSyncService {
 
     p.obj_attributes = p_attributes
     p.string_arr_emails = data.emails || []
+    p.keyword_emails = data.emails || []
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
@@ -709,10 +710,20 @@ export class MemberSyncService {
       p_identities.push({
         string_platform: identity.platform,
         string_username: identity.username,
+        keyword_username: identity.username,
       })
     }
     p.nested_identities = p_identities
 
+    const p_weakIdentities = []
+    for (const identity of data.weakIdentities) {
+      p_weakIdentities.push({
+        string_platform: identity.platform,
+        string_username: identity.username,
+        keyword_username: identity.username,
+      })
+    }
+    p.nested_weakIdentities = p_weakIdentities
     const p_contributions = []
     if (data.contributions) {
       for (const contribution of data.contributions) {
@@ -738,8 +749,10 @@ export class MemberSyncService {
         string_organizationId: affiliation.organizationId,
         string_organizationName: affiliation.organizationName,
         string_organizationLogo: affiliation.organizationLogo,
-        date_dateStart: new Date(affiliation.dateStart).toISOString(),
-        date_dateEnd: new Date(affiliation.dateEnd).toISOString(),
+        date_dateStart: affiliation.dateStart
+          ? new Date(affiliation.dateStart).toISOString()
+          : null,
+        date_dateEnd: affiliation.dateEnd ? new Date(affiliation.dateEnd).toISOString() : null,
       })
     }
 
@@ -748,11 +761,13 @@ export class MemberSyncService {
       p_organizations.push({
         uuid_id: organization.id,
         string_logo: organization.logo,
+        string_website: organization.website,
         string_displayName: organization.displayName,
         obj_memberOrganizations: {
           string_title: organization.memberOrganizations?.title || null,
           date_dateStart: organization.memberOrganizations?.dateStart || null,
           date_dateEnd: organization.memberOrganizations?.dateEnd || null,
+          string_source: organization.memberOrganizations?.source || null,
         },
       })
     }

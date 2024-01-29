@@ -213,10 +213,17 @@ export class InitService {
           username: 'Test Member',
         },
       ],
+      weakIdentities: [
+        {
+          platform: 'github',
+          username: 'fakeWeakIdentity',
+        },
+      ],
       organizations: [
         {
           id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',
           logo: 'https://placehold.co/400',
+          website: 'https://example.com',
           displayName: 'Test Organization',
           memberOrganizations: {
             title: 'blabla',
@@ -290,6 +297,7 @@ export class InitService {
       username: 'Test Member',
       objectMemberId: '4ea4c0f7-fdf8-448c-99ff-e03d0df95358',
       objectMemberUsername: 'Test Member2',
+      organizationId: '2badb0e5-e21b-4955-aba7-d52ef66bae59',
     }
 
     const prepared = ActivitySyncService.prefixData(fakeActivity)

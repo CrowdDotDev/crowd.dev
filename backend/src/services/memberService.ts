@@ -15,7 +15,8 @@ import {
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { TEMPORAL_CONFIG } from '@/conf'
+import { getOpensearchClient } from '@crowd/opensearch'
+import { OPENSEARCH_CONFIG, TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -1000,6 +1001,24 @@ export default class MemberService extends LoggerBase {
       const record = await MemberRepository.update(id, data, repoOptions)
 
       await SequelizeRepository.commitTransaction(transaction)
+      await this.options.temporal.workflow.start('memberUpdate', {
+        taskQueue: 'profiles',
+        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${id}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          {
+            member: {
+              id,
+            },
+          },
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       if (syncToOpensearch) {
         try {
@@ -1192,11 +1211,25 @@ export default class MemberService extends LoggerBase {
   }
 
   async queryForCsv(data) {
-    data.limit = 10000000000000
-    const found = await this.query(data, true)
+    const transformed = {
+      filter: data.filter,
+      limit: data.limit || 200,
+      offset: data.offset || 0,
+      orderBy: data.orderBy,
+      countOnly: false,
+      segments: this.options.currentSegments.map((s) => s.id) || [],
+      attributesSettings: (
+        await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+      ).rows,
+    }
+
+    const found = await MemberRepository.findAndCountAllOpensearch(transformed, {
+      ...this.options,
+      opensearch: getOpensearchClient(OPENSEARCH_CONFIG),
+    })
 
     const relations = [
-      { relation: 'organizations', attributes: ['name'] },
+      { relation: 'organizations', attributes: ['displayName', 'website', 'logo'] },
       { relation: 'notes', attributes: ['body'] },
       { relation: 'tags', attributes: ['name'] },
     ]

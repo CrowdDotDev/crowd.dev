@@ -1,0 +1,1 @@
+alter table "tenants" drop column "memberMergeSuggestionsLastGeneratedAt";

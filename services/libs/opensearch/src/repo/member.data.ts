@@ -25,11 +25,13 @@ export interface IDbMemberTaskData {
 export interface IDbMemberOrganization {
   id: string
   logo: string | null
+  website: string | null
   displayName: string | null
   memberOrganizations: {
     title: string
     dateStart: string
     dateEnd: string
+    source?: string
   }
 }
 
@@ -82,6 +84,7 @@ export interface IDbMemberSyncData {
   contributions: IDbMemberContributionData[]
   affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
+  weakIdentities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
   toMergeIds: string[]

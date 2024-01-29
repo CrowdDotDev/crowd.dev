@@ -22,4 +22,5 @@ export interface IDbActivitySyncData {
   username: string
   objectMemberId: string | null
   objectMemberUsername: string | null
+  organizationId: string | null
 }

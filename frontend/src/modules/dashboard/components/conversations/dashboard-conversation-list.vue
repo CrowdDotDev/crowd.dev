@@ -5,7 +5,7 @@
         v-for="(el, ci) of new Array(2)"
         :key="el"
         :class="{
-          'border-b': ci < trendingConversations.length - 1,
+          'border-b': ci < recentConversations.length - 1,
         }"
         :loading="true"
         @conversation-destroyed="refreshConversations"
@@ -13,10 +13,10 @@
     </div>
     <div v-else>
       <app-dashboard-conversation-item
-        v-for="(conversation, ci) of trendingConversations"
+        v-for="(conversation, ci) of recentConversations"
         :key="conversation.id"
         :class="{
-          'border-b': ci < trendingConversations.length - 1,
+          'border-b': ci < recentConversations.length - 1,
         }"
         :conversation="conversation"
         @details="conversationId = conversation.id"
@@ -24,7 +24,7 @@
       />
 
       <app-dashboard-empty-state
-        v-if="trendingConversations.length === 0"
+        v-if="recentConversations.length === 0"
         icon-class="ri-question-answer-line"
         class="pt-20 pb-17"
       >
@@ -76,7 +76,7 @@ export default {
   },
   computed: {
     ...mapGetters('dashboard', [
-      'trendingConversations',
+      'recentConversations',
       'conversations',
     ]),
     allConversationsFilter() {
@@ -84,7 +84,7 @@ export default {
         search: '',
         relation: 'and',
         order: {
-          prop: 'activityCount',
+          prop: 'lastActive',
           order: 'descending',
         },
         lastActivityDate: {
@@ -98,7 +98,7 @@ export default {
   methods: {
     refreshConversations() {
       this.$store.dispatch(
-        'dashboard/getTrendingConversations',
+        'dashboard/getRecentConversations',
       );
     },
   },

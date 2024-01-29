@@ -401,10 +401,12 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                   json_build_object(
                           'id', o.id,
                           'logo', o.logo,
+                          'website', o.website,
                           'displayName', o."displayName",
                           'memberOrganizations', json_build_object(
                                         'dateStart', mo."dateStart",
                                         'dateEnd', mo."dateEnd",
+                                        'source', mo."source",
                                         'title', mo.title
                           )
                       )
@@ -522,7 +524,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         ad."lastActive",
         ad."averageSentiment",
 
-        i.identities,
+        coalesce(i.identities, '[]'::json)            as "identities",
+        coalesce(m."weakIdentities", '[]'::jsonb)            as "weakIdentities",
         coalesce(mo.all_organizations, json_build_array()) as organizations,
         coalesce(mt.all_tags, json_build_array())          as tags,
         coalesce(ma.all_affiliations, json_build_array())  as affiliations,
