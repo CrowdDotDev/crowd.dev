@@ -5,8 +5,7 @@ import { getNangoToken } from './../../../nango'
 import { IMember, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
-import { IBatchCreateMembersResult } from './types'
-import { batchUpdateMembers } from './batchUpdateMembers'
+import { IBatchCreateMemberResultWithConflicts } from './types'
 import { getContactById } from './contactById'
 
 export const batchCreateMembers = async (
@@ -15,7 +14,8 @@ export const batchCreateMembers = async (
   memberMapper: HubspotMemberFieldMapper,
   ctx: IProcessStreamContext | IGenerateStreamsContext,
   throttler: RequestThrottler,
-): Promise<IBatchCreateMembersResult[]> => {
+  conflicts: IMember[] = [],
+): Promise<IBatchCreateMemberResultWithConflicts> => {
   const config: AxiosRequestConfig<unknown> = {
     method: 'post',
     url: `https://api.hubapi.com/crm/v3/objects/contacts/batch/create`,
@@ -95,7 +95,7 @@ export const batchCreateMembers = async (
     const result = await throttler.throttle(() => axios(config))
 
     // return hubspot ids back to sync worker for saving
-    return result.data.results.reduce((acc, m) => {
+    const membersCreated = result.data.results.reduce((acc, m) => {
       const member = members.find(
         (crowdMember) =>
           crowdMember.emails.length > 0 && crowdMember.emails.includes(m.properties.email),
@@ -115,6 +115,7 @@ export const batchCreateMembers = async (
 
       return acc
     }, [])
+    return { members: membersCreated, conflicts }
   } catch (err) {
     // this means that member actually exists in hubspot but we tried re-creating it
     // handle it gracefully
@@ -153,8 +154,15 @@ export const batchCreateMembers = async (
               return m
             })
 
-          await batchUpdateMembers(nangoId, updateMembers, memberMapper, ctx, throttler)
-          return await batchCreateMembers(nangoId, createMembers, memberMapper, ctx, throttler)
+          // await batchUpdateMembers(nangoId, updateMembers, memberMapper, ctx, throttler)
+          return await batchCreateMembers(
+            nangoId,
+            createMembers,
+            memberMapper,
+            ctx,
+            throttler,
+            conflicts.concat(updateMembers),
+          )
         }
       }
     } else {

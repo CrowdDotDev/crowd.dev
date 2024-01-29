@@ -60,13 +60,17 @@ const handler: ProcessIntegrationSyncHandler = async <T>(
       )
 
       if (toCreate.length > 0) {
-        membersCreatedInHubspot = await batchCreateMembers(
+        const batchCreateResult = await batchCreateMembers(
           nangoId,
           toCreate as IMember[],
           memberMapper,
           integrationContext,
           throttler,
         )
+        membersCreatedInHubspot = batchCreateResult.members
+        if (batchCreateResult.conflicts.length > 0) {
+          ;(toUpdate as IMember[]).push(...batchCreateResult.conflicts)
+        }
       }
 
       if (toUpdate.length > 0) {

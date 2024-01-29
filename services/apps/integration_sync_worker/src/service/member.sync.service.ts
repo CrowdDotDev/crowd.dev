@@ -113,6 +113,7 @@ export class MemberSyncService extends LoggerBase {
 
       if (updated.length > 0) {
         const memberUpdated = updated[0] as IBatchUpdateMembersResult
+        await this.memberRepo.setSyncRemoteSourceId(syncRemoteId, memberUpdated.sourceId)
         await this.memberRepo.setLastSyncedAtBySyncRemoteId(
           syncRemoteId,
           memberUpdated.lastSyncedPayload,
@@ -258,6 +259,11 @@ export class MemberSyncService extends LoggerBase {
         }
 
         for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setIntegrationSourceId(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.sourceId,
+          )
           await this.memberRepo.setLastSyncedAt(
             updatedMember.memberId,
             integration.id,
@@ -473,6 +479,11 @@ export class MemberSyncService extends LoggerBase {
           }
 
           for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+            await this.memberRepo.setIntegrationSourceId(
+              updatedMember.memberId,
+              integration.id,
+              updatedMember.sourceId,
+            )
             await this.memberRepo.setLastSyncedAt(
               updatedMember.memberId,
               integration.id,
@@ -624,6 +635,11 @@ export class MemberSyncService extends LoggerBase {
         }
 
         for (const updatedMember of updated as IBatchUpdateMembersResult[]) {
+          await this.memberRepo.setIntegrationSourceId(
+            updatedMember.memberId,
+            integration.id,
+            updatedMember.sourceId,
+          )
           await this.memberRepo.setLastSyncedAt(
             updatedMember.memberId,
             integration.id,
