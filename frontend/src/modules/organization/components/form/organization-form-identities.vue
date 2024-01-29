@@ -83,7 +83,7 @@ watch(
     if (!previous) {
       const identities = organization.identities.map((i) => ({
         ...i,
-        username: i.url ? i.url.split('/').at(-1) : null,
+        username: i.url ? i.url.split('/').at(-1) : '',
       }));
       const platforms = [...new Set(organization.identities.map((i) => i.platform))];
       const noIdentity = Object.keys(identitiesForm)
@@ -94,6 +94,7 @@ watch(
           url: null,
           username: '',
         })));
+
       model.value = [
         ...identities,
         ...noIdentity,
@@ -108,10 +109,10 @@ watch(
   (value) => {
     // Parse username object
     const identities = value
-      .filter((i) => !!i.username?.trim() || !!i.name?.trim())
+      .filter((i) => !Object.keys(identitiesForm).includes(i.platform) || !!i.username?.trim().length)
       .map((i) => ({
         ...i,
-        name: i.username,
+        name: i.username || i.name,
         url: i.username?.length ? `https://${identitiesForm[i.platform]?.urlPrefix}${i.username}` : null,
       }));
 
@@ -133,7 +134,11 @@ function editingDisabled(platform) {
 }
 
 const removeUsername = (index) => {
-  model.value.splice(index, 1);
+  if (model.value.length > 1) {
+    model.value.splice(index, 1);
+  } else if (model.value.length > 0) {
+    model.value[0] = '';
+  }
 };
 </script>
 

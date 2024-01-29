@@ -1,7 +1,7 @@
 <template>
-  <el-divider v-if="emails.length" class="!my-8 border-gray-200" />
+  <el-divider class="!my-8 border-gray-200" />
 
-  <div v-if="emails.length" class="flex flex-col px-6">
+  <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
         Email(s)
@@ -51,12 +51,16 @@
       >
         Show {{ displayEmailsMore ? 'less' : 'more' }}
       </div>
+
+      <div v-if="emails.length === 0" class="text-2xs italic text-gray-500">
+        Organization does not have any emails
+      </div>
     </div>
   </div>
 
-  <el-divider v-if="phoneNumbers.length" class="!my-8" />
+  <el-divider class="!my-8" />
 
-  <div v-if="phoneNumbers.length" class="flex flex-col px-6">
+  <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
         Phone number(s)
@@ -104,6 +108,10 @@
         @click="displayPhoneNumbersMore = !displayPhoneNumbersMore"
       >
         Show {{ displayPhoneNumbersMore ? 'less' : 'more' }}
+      </div>
+
+      <div v-if="phoneNumbers.length === 0" class="text-2xs italic text-gray-500">
+        Organization does not have any phone numbers
       </div>
     </div>
   </div>

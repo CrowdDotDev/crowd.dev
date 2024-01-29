@@ -10,7 +10,7 @@
         <p class="text-sm font-medium text-gray-900 mb-2">
           Email address
         </p>
-        <app-member-form-emails v-model="memberModel" />
+        <app-member-form-emails v-model="memberModel" @update:model-value="hasFormChanged = true" />
       </div>
     </template>
     <template #footer>
@@ -43,7 +43,6 @@ import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
 import useVuelidate from '@vuelidate/core';
-import formChangeDetector from '@/shared/form/form-change';
 
 const store = useStore();
 const props = defineProps({
@@ -72,7 +71,7 @@ const loading = ref(false);
 
 const $v = useVuelidate({}, memberModel);
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(memberModel.value.emails);
+const hasFormChanged = ref(false);
 
 const handleCancel = () => {
   emit('update:modelValue', false);

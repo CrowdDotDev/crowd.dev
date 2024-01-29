@@ -86,7 +86,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   OrganizationService.update(props.organization.id, {
-    phoneNumbers: organizationModel.value.phoneNumbers,
+    phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
   }).then(() => {
     fetchOrganization(props.organization.id).then(() => {
       Message.success('Organization identities updated successfully');

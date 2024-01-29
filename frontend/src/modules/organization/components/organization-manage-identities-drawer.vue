@@ -84,14 +84,15 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   OrganizationService.update(props.organization.id, {
-    identities: organizationModel.value.identities
-      .filter((i) => i.username?.length > 0 || i.organizationId)
+    identities: [...organizationModel.value.identities
+      .filter((i) => i.username?.length > 0 || i.name?.length > 0 || i.organizationId)
       .map((i) => ({
         ...i,
         platform: i.platform,
         url: i.url,
         name: i.name,
       })),
+    ],
   }).then(() => {
     fetchOrganization(props.organization.id).then(() => {
       Message.success('Organization identities updated successfully');

@@ -3,9 +3,9 @@
     <!-- Emails editing -->
     <div>
       <app-organization-form-emails-item
-        v-for="(_, ei) of computedModelEmails"
+        v-for="(_, ei) of model"
         :key="ei"
-        v-model="computedModelEmails[ei]"
+        v-model="model[ei]"
         class="pb-3"
       >
         <template #actions>
@@ -28,7 +28,7 @@
 
 <script setup>
 import {
-  computed,
+  ref, watch,
 } from 'vue';
 import AppOrganizationFormEmailsItem from '@/modules/organization/components/form/organization-form-emails-item.vue';
 
@@ -41,34 +41,40 @@ const props = defineProps({
   },
 });
 
-const model = computed({
-  get() {
-    return props.modelValue;
-  },
-  set(contact) {
-    emit('update:modelValue', contact);
-  },
-});
+const model = ref([]);
 
-const computedModelEmails = computed({
-  get() {
-    return model.value.emails?.length > 0
-      ? model.value.emails
-      : [''];
+watch(
+  props.modelValue,
+  (organization, previous) => {
+    if (!previous) {
+      model.value = organization.emails?.length > 0
+        ? organization.emails
+        : [''];
+    }
   },
-  set(emails) {
-    model.value.emails = emails.filter((e) => !!e);
+  { deep: true, immediate: true },
+);
+
+watch(
+  model,
+  (value) => {
+    // Emit updated organization
+    emit('update:modelValue', {
+      ...props.modelValue,
+      emails: value.length ? value : [''],
+    });
   },
-});
+  { deep: true },
+);
 
 const addEmail = () => {
-  computedModelEmails.value.push('');
+  model.value.push('');
 };
 const removeEmail = (index) => {
-  if (computedModelEmails.value.length > 1) {
-    computedModelEmails.value.splice(index, 1);
-  } else if (computedModelEmails.value.length > 0) {
-    computedModelEmails.value[0] = '';
+  if (model.value.length > 1) {
+    model.value.splice(index, 1);
+  } else if (model.value.length > 0) {
+    model.value[0] = '';
   }
 };
 </script>

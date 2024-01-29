@@ -1,7 +1,7 @@
 <template>
-  <el-divider v-if="emails.length" class="!my-8 border-gray-200" />
+  <el-divider class="!my-8 border-gray-200" />
 
-  <div v-if="emails.length" class="flex flex-col px-6">
+  <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
         Email(s)
@@ -49,6 +49,9 @@
         @click="displayMore = !displayMore"
       >
         Show {{ displayMore ? 'less' : 'more' }}
+      </div>
+      <div v-if="emails.length === 0" class="text-2xs italic text-gray-500">
+        Contact does not have any emails
       </div>
     </div>
   </div>

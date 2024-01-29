@@ -401,7 +401,6 @@ async function onSubmit() {
       return acc;
     }, []),
     identities: formModel.value.identities
-      .filter((i) => i.username?.length > 0 || i.organizationId)
       .map((i) => ({
         ...i,
         platform: i.platform,
