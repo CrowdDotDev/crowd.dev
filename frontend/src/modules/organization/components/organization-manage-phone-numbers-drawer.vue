@@ -10,7 +10,10 @@
         <p class="text-sm font-medium text-gray-900 mb-2">
           Phone number
         </p>
-        <app-organization-form-phone-number v-model="organizationModel" />
+        <app-organization-form-phone-number
+          v-model="organizationModel"
+          @update:model-value="hasFormChanged = true"
+        />
       </div>
     </template>
     <template #footer>
@@ -38,13 +41,12 @@
 <script setup>
 import {
   ref,
-  computed, onMounted,
+  computed,
 } from 'vue';
 import Message from '@/shared/message/message';
 import cloneDeep from 'lodash/cloneDeep';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import useVuelidate from '@vuelidate/core';
-import formChangeDetector from '@/shared/form/form-change';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
 
@@ -77,7 +79,7 @@ const loading = ref(false);
 
 const $v = useVuelidate({}, organizationModel);
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(organizationModel.value.phoneNumbers);
+const hasFormChanged = ref(false);
 
 const handleCancel = () => {
   emit('update:modelValue', false);
@@ -98,10 +100,6 @@ const handleSubmit = async () => {
   });
   emit('update:modelValue', false);
 };
-
-onMounted(() => {
-  formSnapshot();
-});
 </script>
 
 <script>

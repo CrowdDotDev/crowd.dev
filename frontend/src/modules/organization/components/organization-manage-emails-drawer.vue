@@ -10,7 +10,10 @@
         <p class="text-sm font-medium text-gray-900 mb-2">
           Email address
         </p>
-        <app-organization-form-emails v-model="organizationModel" />
+        <app-organization-form-emails
+          v-model="organizationModel"
+          @update:model-value="hasFormChanged = true"
+        />
       </div>
     </template>
     <template #footer>
@@ -38,14 +41,13 @@
 <script setup>
 import {
   ref,
-  computed, onMounted,
+  computed,
 } from 'vue';
 import Message from '@/shared/message/message';
 import cloneDeep from 'lodash/cloneDeep';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
 import useVuelidate from '@vuelidate/core';
-import formChangeDetector from '@/shared/form/form-change';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const props = defineProps({
@@ -77,7 +79,7 @@ const loading = ref(false);
 
 const $v = useVuelidate({}, organizationModel);
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(organizationModel.value.emails);
+const hasFormChanged = ref(false);
 
 const handleCancel = () => {
   emit('update:modelValue', false);
@@ -98,10 +100,6 @@ const handleSubmit = async () => {
   });
   emit('update:modelValue', false);
 };
-
-onMounted(() => {
-  formSnapshot();
-});
 </script>
 
 <script>

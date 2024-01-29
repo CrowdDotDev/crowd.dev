@@ -3,9 +3,9 @@
     <!-- Emails editing -->
     <div>
       <app-organization-form-phone-number-item
-        v-for="(_, ei) of computedModelPhoneNumbers"
+        v-for="(_, ei) of model"
         :key="ei"
-        v-model="computedModelPhoneNumbers[ei]"
+        v-model="model[ei]"
         class="pb-3"
       >
         <template #actions>
@@ -28,7 +28,7 @@
 
 <script setup>
 import {
-  computed,
+  ref, watch,
 } from 'vue';
 import AppOrganizationFormPhoneNumberItem
   from '@/modules/organization/components/form/organization-form-phone-number-item.vue';
@@ -42,34 +42,40 @@ const props = defineProps({
   },
 });
 
-const model = computed({
-  get() {
-    return props.modelValue;
-  },
-  set(contact) {
-    emit('update:modelValue', contact);
-  },
-});
+const model = ref([]);
 
-const computedModelPhoneNumbers = computed({
-  get() {
-    return model.value.phoneNumbers?.length > 0
-      ? model.value.phoneNumbers
-      : [''];
+watch(
+  props.modelValue,
+  (organization, previous) => {
+    if (!previous) {
+      model.value = organization.phoneNumbers?.length > 0
+        ? organization.phoneNumbers
+        : [''];
+    }
   },
-  set(phoneNumbers) {
-    model.value.phoneNumbers = phoneNumbers.filter((e) => !!e);
+  { deep: true, immediate: true },
+);
+
+watch(
+  model,
+  (value) => {
+    // Emit updated organization
+    emit('update:modelValue', {
+      ...props.modelValue,
+      phoneNumbers: value.length ? value : [''],
+    });
   },
-});
+  { deep: true },
+);
 
 const addPhoneNumber = () => {
-  computedModelPhoneNumbers.value.push('');
+  model.value.push('');
 };
 const removePhoneNumber = (index) => {
-  if (computedModelPhoneNumbers.value.length > 1) {
-    computedModelPhoneNumbers.value.splice(index, 1);
-  } else if (computedModelPhoneNumbers.value.length > 0) {
-    computedModelPhoneNumbers.value[0] = '';
+  if (model.value.length > 1) {
+    model.value.splice(index, 1);
+  } else if (model.value.length > 0) {
+    model.value[0] = '';
   }
 };
 </script>
