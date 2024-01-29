@@ -55,6 +55,10 @@ export class RequestThrottler {
       } catch (error) {
         this.logger.warn({ error }, `Error while executing throttling function!`)
         if (error) {
+          // we don't need to retry conflict errors, as they'll never succeed on retry
+          if (error.response?.data?.category === 'CONFLICT') {
+            throw error
+          }
           this.logger.info(
             `Starting exponential backoff with: ${this.backoff} seconds and factor: ${this.backoffFactor}!`,
           )
