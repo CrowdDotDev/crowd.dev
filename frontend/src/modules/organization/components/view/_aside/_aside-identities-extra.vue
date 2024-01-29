@@ -53,7 +53,7 @@
       </div>
 
       <div v-if="emails.length === 0" class="text-2xs italic text-gray-500">
-        Organization does not have any emails
+        No email addresses
       </div>
     </div>
   </div>
@@ -111,7 +111,7 @@
       </div>
 
       <div v-if="phoneNumbers.length === 0" class="text-2xs italic text-gray-500">
-        Organization does not have any phone numbers
+        No phone numbers
       </div>
     </div>
   </div>

@@ -51,7 +51,7 @@
         Show {{ displayMore ? 'less' : 'more' }}
       </div>
       <div v-if="emails.length === 0" class="text-2xs italic text-gray-500">
-        Contact does not have any emails
+        No email addresses
       </div>
     </div>
   </div>
