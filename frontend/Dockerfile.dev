@@ -9,3 +9,4 @@ COPY .browserslistrc .eslintrc.js babel.config.js postcss.config.js tailwind.con
 COPY ./public ./public
 COPY ./src ./src
 COPY ./.tailwind ./.tailwind
+COPY ./config ./config
