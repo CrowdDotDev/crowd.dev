@@ -261,7 +261,6 @@ export default {
   components: { AppSvg, AppI18n },
   data() {
     return {
-      sending: false,
       rules: {
         firstName: fields.firstName.forFormRules(),
         lastName: fields.lastName.forFormRules(),
