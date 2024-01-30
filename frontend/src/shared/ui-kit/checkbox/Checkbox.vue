@@ -3,24 +3,32 @@
     class="c-checkbox"
     :class="[
       `c-checkbox--${props.size}`,
+      props.multiple && 'c-checkbox--multiple',
     ]"
   >
-    <input v-model="checked" type="checkbox" :value="props.value">
-    <span><slot /></span>
+    <input v-model="checked" type="checkbox" :value="props.value" :disabled="props.disabled">
+    <span class="flex flex-col">
+      <slot />
+      <p>This is desc</p>
+    </span>
   </label>
 </template>
 
 <script setup lang="ts">
 import { CheckboxSize } from '@/shared/ui-kit/checkbox/types/CheckboxSize';
-import { computed } from 'vue';
+import { computed, withDefaults } from 'vue';
 
 const props = withDefaults(defineProps<{
   size?: CheckboxSize,
   modelValue: string | boolean,
   value?: string | boolean,
+  disabled?: boolean,
+  multiple?: boolean,
 }>(), {
   size: 'medium',
   value: true,
+  disabled: false,
+  multiple: false,
 });
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string | boolean): any}>();
