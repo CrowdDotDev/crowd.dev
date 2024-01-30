@@ -27,7 +27,6 @@
       >
         <div class="flex flex-wrap -mx-2">
           <div class="w-full md:w-1/2 lg:w-1/2 px-2">
-
             <el-form-item
               :prop="fields.firstName.name"
               class="mb-0"
@@ -254,13 +253,12 @@ import config from '@/config';
 import { passwordConfirmRules } from '@/modules/auth/auth-helpers';
 import AppI18n from '@/shared/i18n/i18n.vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrCheckbox from '@/shared/ui-kit/checkbox/Checkbox.vue';
 
 const { fields } = UserModel;
 
 export default {
   name: 'AppSignupPage',
-  components: { CrCheckbox, AppSvg, AppI18n },
+  components: { AppSvg, AppI18n },
   data() {
     return {
       sending: false,
