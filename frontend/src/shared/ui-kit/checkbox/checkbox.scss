@@ -1,0 +1,40 @@
+.c-checkbox {
+  @apply flex flex-wrap relative;
+
+  input {
+    height: var(--cr-checkbox-size);
+    width: var(--cr-checkbox-size);
+
+    box-shadow: var(--shadow-s);
+    border: solid #{rem(1)} var(--color-gray-300);
+    border-radius: #{rem(4)};
+    background: var(--color-white);
+
+    @apply transition-all appearance-none p-0 m-0 inline-block;
+
+    &:checked{
+      background: var(--color-gray-900);
+      border-color: var(--color-gray-900);
+    }
+
+    &:before{
+      content: "\eb7b";
+      font-family: 'remixicon', serif;
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--color-white);
+      line-height: var(--cr-checkbox-size);
+      width: var(--cr-checkbox-size);
+      font-size:var(--cr-checkbox-size);
+    }
+  }
+
+  &--medium {
+    --cr-checkbox-size: #{rem(16)}
+  }
+
+  &--small {
+    --cr-checkbox-size: #{rem(14)}
+  }
+}
