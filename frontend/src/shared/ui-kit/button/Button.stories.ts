@@ -55,14 +55,6 @@ export default {
         type: null,
       },
     },
-
-    // Events
-    'disabled-click': {
-      description: 'Event triggered when button is disabled',
-      control: {
-        type: null,
-      },
-    },
   },
 };
 
