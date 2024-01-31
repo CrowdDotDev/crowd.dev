@@ -6,7 +6,7 @@
     :connect-url="connectUrl"
   />
   <slot
-    :connect="isTwitterEnabled ? connect : upgradePlan"
+    :connect="connect"
     :settings="settings"
     :has-settings="true"
     :has-integration="isTwitterEnabled"
