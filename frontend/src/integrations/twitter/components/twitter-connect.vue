@@ -7,8 +7,6 @@
   />
   <slot
     :connect="connect"
-    :settings="settings"
-    :has-settings="true"
     :has-integration="isTwitterEnabled"
   />
 </template>
