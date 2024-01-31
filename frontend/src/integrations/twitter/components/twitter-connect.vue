@@ -77,10 +77,10 @@ const upgradePlan = () => {
   router.push('/settings?activeTab=plans');
 };
 
-const settings = () => {
-  drawerVisible.value = true;
-};
-</script>
+// const settings = () => {
+//   drawerVisible.value = true;
+// };
+// </script>
 
 <script>
 export default {
