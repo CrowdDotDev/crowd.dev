@@ -13,17 +13,23 @@ import { DB_CONFIG } from '../conf'
 
 interface IOrgCacheToMerge {
   name: string
-  ids: string[]
+  data: {
+    id: string
+    website: string
+  }[]
 }
 
 async function getOrganizationsToFix(db: DbConnection): Promise<IOrgCacheToMerge[]> {
   const results = await db.any(
     `
-    select name, array_agg(id) as ids
-    from "organizationCacheIdentities" where website is null
+    select name,
+          json_agg(json_build_object(
+                  'id', id,
+                  'website', website
+                    )) as data
+    from "organizationCacheIdentities"
     group by name
-    having count(*) > 1
-    limit 100
+    having count(id) > 1;
 `,
   )
 
@@ -41,6 +47,17 @@ where id in ($(ids:csv))
   )
 
   return results
+}
+
+async function updateCacheIdentityWebsite(
+  db: DbTransaction,
+  id: string,
+  website: string,
+): Promise<void> {
+  await db.none(`update "organizationCacheIdentities" set website = $(website) where id = $(id)`, {
+    id,
+    website,
+  })
 }
 
 async function moveLinksToNewCacheId(
@@ -147,7 +164,7 @@ async function processOrgCache(
   dbInstance: DbInstance,
   result: IOrgCacheToMerge,
 ): Promise<void> {
-  const ids = result.ids
+  const ids = result.data.map((d) => d.id)
 
   const caches = await getOrganizationCaches(db, ids)
 
@@ -194,6 +211,20 @@ async function processOrgCache(
 
         await moveLinksToNewCacheId(tx, cacheIdsToRemove, data.id)
         await removeCacheIdentities(tx, cacheIdsToRemove)
+
+        // do we need to set the website?
+        const website = result.data
+          .filter((d) => d.id !== data.id)
+          .reduce((prev, curr) => {
+            if (!prev || prev === '') {
+              return curr.website
+            }
+          }, '')
+
+        if (website && website !== '') {
+          await updateCacheIdentityWebsite(tx, data.id, website)
+        }
+
         await removeCaches(tx, cacheIdsToRemove)
       })
     } catch (err) {
