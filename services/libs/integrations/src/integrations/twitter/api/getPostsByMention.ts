@@ -8,6 +8,8 @@ import {
 import { handleTwitterError } from './errorHandler'
 import { IProcessStreamContext } from '../../../types'
 
+const MAX_HISTORICAL_30_DAYS_IN_SECONDS = 2592000
+
 /**
  * Get paginated posts by mention
  * @param input Input parameters
@@ -32,6 +34,9 @@ const getPostsByMention = async (
       expansions: 'attachments.media_keys,author_id',
       ...(!ctx.onboarding && {
         start_time: new Date(Date.now() - maxRetrospectInSeconds * 1000).toISOString(),
+      }),
+      ...(ctx.onboarding && {
+        start_time: new Date(Date.now() - MAX_HISTORICAL_30_DAYS_IN_SECONDS * 1000).toISOString(),
       }),
     },
     headers: {

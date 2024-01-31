@@ -13,8 +13,8 @@
     </div>
     <div class="pl-3">
       <div class="flex items-center whitespace-nowrap">
-        <span class="ri-check-line text-lg text-darkgreen-900 mr-2" />
-        <span class="text-darkgreen-900 text-sm font-medium">App installed</span>
+        <span class="ri-check-line text-lg text-green-1000 mr-2" />
+        <span class="text-green-1000 text-sm font-medium">App installed</span>
       </div>
     </div>
   </div>
