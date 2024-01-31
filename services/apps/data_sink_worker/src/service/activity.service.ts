@@ -88,6 +88,8 @@ export default class ActivityService extends LoggerBase {
           channel: activity.channel,
           url: activity.url,
           organizationId: activity.organizationId,
+          objectMemberId: activity.objectMemberId,
+          objectMemberUsername: activity.objectMemberUsername,
         })
 
         return id
@@ -350,6 +352,13 @@ export default class ActivityService extends LoggerBase {
       tenantId,
       sourceId: activity.sourceId,
     })
+
+    if (
+      activity.type === 'pull_request-review-requested' ||
+      activity.type === 'pull_request-assigned'
+    ) {
+      this.log.info('Debugging processActivity', JSON.stringify(activity))
+    }
 
     try {
       this.log.debug('Processing activity.')
@@ -881,6 +890,30 @@ export default class ActivityService extends LoggerBase {
               activity.timestamp,
             )
 
+            if (
+              activity.type === 'pull_request-review-requested' ||
+              activity.type === 'pull_request-assigned'
+            ) {
+              this.log.info('processActivity just before activity create', {
+                type: activity.type,
+                platform,
+                timestamp: new Date(activity.timestamp),
+                sourceId: activity.sourceId,
+                isContribution: activity.isContribution,
+                score: activity.score,
+                sourceParentId: activity.sourceParentId,
+                memberId,
+                username,
+                objectMemberId,
+                objectMemberUsername,
+                attributes: activity.attributes || {},
+                body: activity.body,
+                title: activity.title,
+                channel: activity.channel,
+                url: activity.url,
+                organizationId,
+              })
+            }
             activityId = await txActivityService.create(
               tenantId,
               segmentId,
