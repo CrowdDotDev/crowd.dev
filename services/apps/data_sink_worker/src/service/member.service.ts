@@ -1,4 +1,9 @@
-import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import {
+  Client as TemporalClient,
+  Workflow,
+  WorkflowHandleWithFirstExecutionRunId,
+  WorkflowIdReusePolicy,
+} from '@crowd/temporal'
 import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
 import MemberRepository from '../repo/member.repo'
 import {
@@ -130,28 +135,37 @@ export default class MemberService extends LoggerBase {
         }
       })
 
-      const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
-        workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${id}`,
-        taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-        retry: {
-          maximumAttempts: 100,
-        },
-
-        args: [
-          {
-            tenantId,
-            memberId: id,
+      try {
+        const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
+          workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${id}`,
+          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: 100,
           },
-        ],
-        searchAttributes: {
-          TenantId: [tenantId],
-        },
-      })
-      this.log.info(
-        { workflowId: handle.workflowId },
-        'Started temporal workflow to process new member automation!',
-      )
+
+          args: [
+            {
+              tenantId,
+              memberId: id,
+            },
+          ],
+          searchAttributes: {
+            TenantId: [tenantId],
+          },
+        })
+
+        this.log.info(
+          { workflowId: handle.workflowId },
+          'Started temporal workflow to process new member automation!',
+        )
+      } catch (err) {
+        this.log.error(
+          err,
+          'Error while starting temporal workflow to process new member automation!',
+        )
+        throw err
+      }
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
