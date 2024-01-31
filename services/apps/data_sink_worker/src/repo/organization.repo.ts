@@ -114,7 +114,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     // insert org cache identity as well
     await this.db().none(
-      `insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))`,
+      `
+      insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))
+      on conflict (name)
+      do update
+      set website = coalesce("organizationCacheIdentities".website, EXCLUDED.website)
+      where "organizationCacheIdentities".website is null;
+      `,
       {
         id,
         name: data.name,
@@ -156,7 +162,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     if (nameToCreateIdentity) {
       result = await this.db().result(
-        `insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))`,
+        `
+        insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))
+        on conflict (name)
+        do update
+        set website = coalesce("organizationCacheIdentities".website, EXCLUDED.website)
+        where "organizationCacheIdentities".website is null;
+        `,
         {
           id,
           name: nameToCreateIdentity,

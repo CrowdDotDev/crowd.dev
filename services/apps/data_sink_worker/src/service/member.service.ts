@@ -1,9 +1,4 @@
-import {
-  Client as TemporalClient,
-  Workflow,
-  WorkflowHandleWithFirstExecutionRunId,
-  WorkflowIdReusePolicy,
-} from '@crowd/temporal'
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
 import MemberRepository from '../repo/member.repo'
 import {
