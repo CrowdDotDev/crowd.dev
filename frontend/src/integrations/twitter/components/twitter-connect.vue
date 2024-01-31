@@ -7,8 +7,6 @@
   />
   <slot
     :connect="isTwitterEnabled ? connect : upgradePlan"
-    :settings="settings"
-    :has-settings="true"
     :has-integration="isTwitterEnabled"
   />
 </template>
@@ -48,9 +46,7 @@ onMounted(() => {
 });
 
 onMounted(async () => {
-  isTwitterEnabled.value = FeatureFlag.isFlagEnabled(
-    FeatureFlag.flags.twitter,
-  );
+  isTwitterEnabled.value = FeatureFlag.isFlagEnabled(FeatureFlag.flags.twitter);
 });
 
 // Only render twitter drawer and settings button, if integration has settings
@@ -81,10 +77,10 @@ const upgradePlan = () => {
   router.push('/settings?activeTab=plans');
 };
 
-const settings = () => {
-  drawerVisible.value = true;
-};
-</script>
+// const settings = () => {
+//   drawerVisible.value = true;
+// };
+// </script>
 
 <script>
 export default {
