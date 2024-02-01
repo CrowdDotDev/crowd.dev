@@ -49,6 +49,8 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
 import useVuelidate from '@vuelidate/core';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   modelValue: {
@@ -64,6 +66,9 @@ const emit = defineEmits(['update:modelValue']);
 
 const organizationStore = useOrganizationStore();
 const { fetchOrganization } = organizationStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const drawerModel = computed({
   get() {
@@ -88,10 +93,10 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   OrganizationService.update(props.organization.id, {
-    emails: organizationModel.value.emails,
+    emails: organizationModel.value.emails.filter((e) => !!e.trim()),
   }).then(() => {
-    fetchOrganization(props.organization.id).then(() => {
-      Message.success('Organization identities updated successfully');
+    fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]).then(() => {
+      Message.success('Organization emails updated successfully');
     });
   }).catch((err) => {
     Message.error(err.response.data);

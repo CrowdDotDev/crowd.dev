@@ -47,6 +47,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   modelValue: {
@@ -62,6 +64,9 @@ const emit = defineEmits(['update:modelValue']);
 
 const organizationStore = useOrganizationStore();
 const { fetchOrganization } = organizationStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const drawerModel = computed({
   get() {
@@ -83,6 +88,7 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   loading.value = true;
+
   OrganizationService.update(props.organization.id, {
     identities: [...organizationModel.value.identities
       .filter((i) => i.username?.length > 0 || i.name?.length > 0 || i.organizationId)
@@ -94,7 +100,7 @@ const handleSubmit = async () => {
       })),
     ],
   }).then(() => {
-    fetchOrganization(props.organization.id).then(() => {
+    fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]).then(() => {
       Message.success('Organization identities updated successfully');
     });
   }).catch((err) => {

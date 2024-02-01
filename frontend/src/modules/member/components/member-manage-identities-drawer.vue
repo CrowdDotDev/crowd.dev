@@ -41,16 +41,11 @@
 import { useStore } from 'vuex';
 import {
   ref,
-  defineEmits,
-  defineProps,
   computed,
 } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
-import { MemberModel } from '@/modules/member/member-model';
-import { FormSchema } from '@/shared/form/form-schema';
-import isEqual from 'lodash/isEqual';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppMemberFormIdentities from './form/member-form-identities.vue';
@@ -112,9 +107,9 @@ const handleSubmit = async () => {
   }).catch((err) => {
     Message.error(err.response.data);
   }).finally(() => {
+    emit('update:modelValue', false);
     loading.value = false;
   });
-  emit('update:modelValue', false);
 };
 </script>
 

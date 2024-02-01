@@ -49,6 +49,8 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import useVuelidate from '@vuelidate/core';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   modelValue: {
@@ -64,6 +66,9 @@ const emit = defineEmits(['update:modelValue']);
 
 const organizationStore = useOrganizationStore();
 const { fetchOrganization } = organizationStore;
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const drawerModel = computed({
   get() {
@@ -90,8 +95,8 @@ const handleSubmit = async () => {
   OrganizationService.update(props.organization.id, {
     phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
   }).then(() => {
-    fetchOrganization(props.organization.id).then(() => {
-      Message.success('Organization identities updated successfully');
+    fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]).then(() => {
+      Message.success('Organization phone numbers updated successfully');
     });
   }).catch((err) => {
     Message.error(err.response.data);

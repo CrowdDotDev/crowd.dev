@@ -7,6 +7,7 @@
         @edit="identitiesDrawer = true"
         @edit-email="emailDrawer = true"
       />
+    </div>
 
     <div class="member-view-aside panel !px-0">
       <div class="px-6">

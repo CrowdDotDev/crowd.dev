@@ -37,12 +37,14 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
 import useVuelidate from '@vuelidate/core';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 
 const store = useStore();
 const props = defineProps({
@@ -56,6 +58,9 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(['update:modelValue']);
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const drawerModel = computed({
   get() {
@@ -79,23 +84,25 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   loading.value = true;
+
+  const segments = props.member.segments.map((s) => s.id);
+
   MemberService.update(props.member.id, {
-    emails: memberModel.value.emails,
-  }).then(() => {
-    store.dispatch('member/doFind', props.member.id).then(() => {
-      Message.success('Contact identities updated successfully');
+    emails: memberModel.value.emails.filter((e) => !!e.trim()),
+  }, segments).then(() => {
+    store.dispatch('member/doFind', {
+      id: props.member.id,
+      segments: [selectedProjectGroup.value?.id],
+    }).then(() => {
+      Message.success('Contributor identities updated successfully');
     });
   }).catch((err) => {
     Message.error(err.response.data);
   }).finally(() => {
+    emit('update:modelValue', false);
     loading.value = false;
   });
-  emit('update:modelValue', false);
 };
-
-onMounted(() => {
-  formSnapshot();
-});
 </script>
 
 <script>
