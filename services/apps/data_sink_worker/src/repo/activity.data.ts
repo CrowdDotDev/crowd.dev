@@ -45,6 +45,8 @@ export interface IDbActivityCreateData {
   channel?: string
   url?: string
   organizationId?: string
+  objectMemberId?: string
+  objectMemberUsername?: string
 }
 
 let insertActivityColumnSet: DbColumnSet
