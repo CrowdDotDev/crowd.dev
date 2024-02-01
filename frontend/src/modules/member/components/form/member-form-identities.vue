@@ -130,15 +130,11 @@ watch(
   (value) => {
     // Parse username object
     const username = Object.keys(identitiesForm).reduce((obj, platform) => {
-      // console.log(value[platform], platform)
       const usernames = (value[platform] || []).filter((username) => !!username.trim());
-      if (usernames.length) {
-        return {
-          ...obj,
-          [platform]: usernames,
-        };
-      }
-      return obj;
+      return {
+        ...obj,
+        [platform]: usernames,
+      };
     }, {});
 
     // Get platforms from usernames
@@ -156,13 +152,22 @@ watch(
       return urls;
     }, {});
 
+    const identities = {
+      ...props.modelValue.username,
+      ...username,
+    };
+
+    Object.keys(identities).forEach((platform) => {
+      identities[platform] = identities[platform].filter((i) => i.trim().length);
+      if (identities[platform].length === 0) {
+        delete identities[platform];
+      }
+    });
+
     // Emit updated member
     emit('update:modelValue', {
       ...props.modelValue,
-      username: {
-        ...props.modelValue.username,
-        ...username,
-      },
+      username: identities,
       platform: platform || props.modelValue.platform,
       identities: platforms,
       attributes: {
