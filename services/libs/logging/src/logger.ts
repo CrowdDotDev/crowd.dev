@@ -24,6 +24,10 @@ export const getServiceLogger = (): Logger => {
   }
 
   serviceLoggerInstance = Bunyan.createLogger(options)
+  if (!IS_DEV_ENV && !IS_TEST_ENV) {
+    delete serviceLoggerInstance.fields.hostname
+  }
+
   return serviceLoggerInstance
 }
 
