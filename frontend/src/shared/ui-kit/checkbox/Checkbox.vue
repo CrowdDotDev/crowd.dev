@@ -9,7 +9,6 @@
     <input v-model="checked" type="checkbox" :value="props.value" :disabled="props.disabled">
     <span class="flex flex-col">
       <slot />
-      <p>This is desc</p>
     </span>
   </label>
 </template>
