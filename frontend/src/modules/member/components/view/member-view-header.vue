@@ -21,10 +21,9 @@
       </div>
     </div>
     <div
-      v-if="member.attributes?.bio?.default"
       class="text-sm text-gray-600 py-6 border-b border-gray-200 mb-4 px-6"
     >
-      <app-member-bio :member="member" />
+      <app-member-bio v-if="member.attributes?.bio?.default" :member="member" />
     </div>
     <div class="grid grid-rows-2 grid-flow-col gap-4 px-6">
       <div>

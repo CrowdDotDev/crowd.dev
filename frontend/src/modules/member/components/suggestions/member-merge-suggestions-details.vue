@@ -138,7 +138,7 @@
             Organization
           </p>
           <div>
-            <app-member-organizations :member="member" :show-title="false" />
+            <app-member-organizations-vertical :member="member" />
           </div>
         </article>
         <article
@@ -201,7 +201,7 @@ import {
   computed, defineProps, onMounted, ref, defineExpose,
 } from 'vue';
 import moment from 'moment';
-import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
+import AppMemberOrganizationsVertical from '@/modules/member/components/member-organizations-vertical.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
