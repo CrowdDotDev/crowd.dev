@@ -1,5 +1,6 @@
 import { getServiceLogger } from '@crowd/logging'
 import cors from 'cors'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import express from 'express'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
@@ -24,6 +25,7 @@ setImmediate(async () => {
   const opensearch = new OpenSearchService(log, OPENSEARCH_CONFIG())
   const dbConnection = await getDbConnection(DB_CONFIG(), 5, 5000)
 
+  app.use(telemetryExpressMiddleware('search_sync_api.request.duration'))
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '5mb' }))
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
