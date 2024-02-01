@@ -7,9 +7,9 @@
   >
     <template #content>
       <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
-        <app-member-form-identities
-          v-model="memberModel"
-          :record="member"
+        <app-organization-form-identities
+          v-model="organizationModel"
+          :record="organization"
           :show-header="false"
           @update:model-value="hasFormChanged = true"
         />
@@ -38,30 +38,30 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
 import {
   ref,
-  defineEmits,
-  defineProps,
   computed,
 } from 'vue';
 import Message from '@/shared/message/message';
-import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
-import AppMemberFormIdentities from './form/member-form-identities.vue';
+import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
-const store = useStore();
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
-  member: {
+  organization: {
     type: Object,
     default: () => {},
   },
 });
 const emit = defineEmits(['update:modelValue']);
+
+const organizationStore = useOrganizationStore();
+const { fetchOrganization } = organizationStore;
 
 const drawerModel = computed({
   get() {
@@ -72,7 +72,7 @@ const drawerModel = computed({
   },
 });
 
-const memberModel = ref(cloneDeep(props.member));
+const organizationModel = ref(cloneDeep(props.organization));
 const loading = ref(false);
 
 const hasFormChanged = ref(false);
@@ -83,17 +83,19 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   loading.value = true;
-  MemberService.update(props.member.id, {
-    attributes: {
-      ...props.member.attributes,
-      ...memberModel.value.attributes,
-    },
-    username: memberModel.value.username,
-    platform: memberModel.value.platform,
-    identities: memberModel.value.identities,
+  OrganizationService.update(props.organization.id, {
+    identities: [...organizationModel.value.identities
+      .filter((i) => i.username?.length > 0 || i.name?.length > 0 || i.organizationId)
+      .map((i) => ({
+        ...i,
+        platform: i.platform,
+        url: i.url,
+        name: i.name,
+      })),
+    ],
   }).then(() => {
-    store.dispatch('member/doFind', props.member.id).then(() => {
-      Message.success('Contact identities updated successfully');
+    fetchOrganization(props.organization.id).then(() => {
+      Message.success('Organization identities updated successfully');
     });
   }).catch((err) => {
     Message.error(err.response.data);
@@ -106,7 +108,7 @@ const handleSubmit = async () => {
 
 <script>
 export default {
-  name: 'AppMemberManageIdentitiesDrawer',
+  name: 'AppOrganizationManageIdentitiesDrawer',
 };
 </script>
 

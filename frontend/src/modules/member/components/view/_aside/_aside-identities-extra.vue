@@ -1,7 +1,7 @@
 <template>
-  <el-divider v-if="emails.length" class="!my-8 border-gray-200" />
+  <el-divider class="!my-8 border-gray-200" />
 
-  <div v-if="emails.length" class="flex flex-col px-6">
+  <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
         Email(s)
@@ -9,7 +9,7 @@
       <el-button
         class="btn btn-link btn-link--primary"
         :disabled="isEditLockedForSampleData"
-        @click="emit('openDrawer')"
+        @click="emit('edit')"
       >
         <i class="ri-pencil-line" /><span>Edit</span>
       </el-button>
@@ -50,18 +50,21 @@
       >
         Show {{ displayMore ? 'less' : 'more' }}
       </div>
+      <div v-if="emails.length === 0" class="text-2xs italic text-gray-500">
+        No email addresses
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import {
-  computed, defineProps, ref,
+  computed, ref,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
-const emit = defineEmits(['openDrawer']);
+const emit = defineEmits(['edit']);
 const props = defineProps<{
   emails: {
     handle: string;

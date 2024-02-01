@@ -1,9 +1,18 @@
 <template>
-  <el-divider v-if="emails.length" class="!my-8 border-gray-200" />
+  <el-divider class="!my-8 border-gray-200" />
 
-  <div v-if="emails.length" class="flex flex-col px-6">
-    <div class="font-medium text-black">
-      Email(s)
+  <div class="flex flex-col px-6">
+    <div class="flex items-center justify-between">
+      <div class="font-medium text-black">
+        Email(s)
+      </div>
+      <el-button
+        class="btn btn-link btn-link--primary"
+        :disabled="isEditLockedForSampleData"
+        @click="emit('editEmail')"
+      >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
 
     <div class="flex flex-col gap-2 mt-6">
@@ -42,16 +51,28 @@
       >
         Show {{ displayEmailsMore ? 'less' : 'more' }}
       </div>
+
+      <div v-if="emails.length === 0" class="text-2xs italic text-gray-500">
+        No email addresses
+      </div>
     </div>
   </div>
 
-  <el-divider v-if="phoneNumbers.length" class="!my-8" />
+  <el-divider class="!my-8" />
 
-  <div v-if="phoneNumbers.length" class="flex flex-col px-6">
-    <div class="font-medium text-black">
-      Phone number(s)
+  <div class="flex flex-col px-6">
+    <div class="flex items-center justify-between">
+      <div class="font-medium text-black">
+        Phone number(s)
+      </div>
+      <el-button
+        class="btn btn-link btn-link--primary"
+        :disabled="isEditLockedForSampleData"
+        @click="emit('editPhoneNumber')"
+      >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
-
     <div class="flex flex-col gap-2 mt-6">
       <div
         v-for="(phoneNumberIdentity, index) in phoneNumbers"
@@ -88,14 +109,20 @@
       >
         Show {{ displayPhoneNumbersMore ? 'less' : 'more' }}
       </div>
+
+      <div v-if="phoneNumbers.length === 0" class="text-2xs italic text-gray-500">
+        No phone numbers
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import {
-  computed, defineProps, ref,
+  computed, ref,
 } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { OrganizationPermissions } from '@/modules/organization/organization-permissions';
 
 const props = defineProps<{
   emails: {
@@ -107,6 +134,15 @@ const props = defineProps<{
     link: string;
   }[],
 }>();
+
+const emit = defineEmits<{(e: 'editEmail'): void, (e: 'editPhoneNumber'): void, }>();
+
+const { currentTenant, currentUser } = mapGetters('auth');
+
+const isEditLockedForSampleData = computed(() => new OrganizationPermissions(
+  currentTenant.value,
+  currentUser.value,
+).editLockedForSampleData);
 
 const displayEmailsMore = ref(false);
 const displayPhoneNumbersMore = ref(false);
