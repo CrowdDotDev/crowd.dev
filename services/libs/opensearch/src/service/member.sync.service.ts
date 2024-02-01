@@ -111,7 +111,6 @@ export class MemberSyncService {
     )) as ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[]
 
     let processed = 0
-    const now = new Date()
 
     while (results.length > 0) {
       // check every member if they exists in the database and if not remove them from the index
@@ -125,20 +124,14 @@ export class MemberSyncService {
         .map((r) => r._id)
 
       if (toRemove.length > 0) {
-        // this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
+        this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
         for (const id of toRemove) {
           await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
         }
       }
 
       processed += results.length
-      const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-      this.log.warn(
-        { tenantId },
-        `Removing ${processed} members from index! Speed: ${Math.round(
-          processed / diffInSeconds,
-        )} members/second!`,
-      )
+      this.log.warn({ tenantId }, `Processed ${processed} members while cleaning up tenant!`)
 
       // use last joinedAt to get the next page
       lastJoinedAt = results[results.length - 1]._source.date_joinedAt
