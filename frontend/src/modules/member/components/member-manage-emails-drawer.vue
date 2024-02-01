@@ -1,18 +1,16 @@
 <template>
   <app-drawer
     v-model="drawerModel"
-    size="600px"
-    title="Edit identities"
-    custom-class="identities-drawer"
+    size="480px"
+    title="Edit emails"
+    custom-class="emails-drawer"
   >
     <template #content>
-      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
-        <app-member-form-identities
-          v-model="memberModel"
-          :record="member"
-          :show-header="false"
-          @update:model-value="hasFormChanged = true"
-        />
+      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6 pt-5">
+        <p class="text-sm font-medium text-gray-900 mb-2">
+          Email address
+        </p>
+        <app-member-form-emails v-model="memberModel" @update:model-value="hasFormChanged = true" />
       </div>
     </template>
     <template #footer>
@@ -25,7 +23,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="!hasFormChanged || loading"
+          :disabled="$v.$invalid || !hasFormChanged || loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -39,16 +37,12 @@
 
 <script setup>
 import { useStore } from 'vuex';
-import {
-  ref,
-  defineEmits,
-  defineProps,
-  computed,
-} from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
-import AppMemberFormIdentities from './form/member-form-identities.vue';
+import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
+import useVuelidate from '@vuelidate/core';
 
 const store = useStore();
 const props = defineProps({
@@ -75,6 +69,8 @@ const drawerModel = computed({
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
 
+const $v = useVuelidate({}, memberModel);
+
 const hasFormChanged = ref(false);
 
 const handleCancel = () => {
@@ -84,13 +80,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   MemberService.update(props.member.id, {
-    attributes: {
-      ...props.member.attributes,
-      ...memberModel.value.attributes,
-    },
-    username: memberModel.value.username,
-    platform: memberModel.value.platform,
-    identities: memberModel.value.identities,
+    emails: memberModel.value.emails,
   }).then(() => {
     store.dispatch('member/doFind', props.member.id).then(() => {
       Message.success('Contact identities updated successfully');
@@ -102,11 +92,15 @@ const handleSubmit = async () => {
   });
   emit('update:modelValue', false);
 };
+
+onMounted(() => {
+  formSnapshot();
+});
 </script>
 
 <script>
 export default {
-  name: 'AppMemberManageIdentitiesDrawer',
+  name: 'AppMemberManageEmailsDrawer',
 };
 </script>
 

@@ -1,16 +1,17 @@
 <template>
   <app-drawer
     v-model="drawerModel"
-    size="600px"
-    title="Edit identities"
-    custom-class="identities-drawer"
+    size="480px"
+    title="Edit phone numbers"
+    custom-class="emails-drawer"
   >
     <template #content>
-      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
-        <app-member-form-identities
-          v-model="memberModel"
-          :record="member"
-          :show-header="false"
+      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6 pt-5">
+        <p class="text-sm font-medium text-gray-900 mb-2">
+          Phone number
+        </p>
+        <app-organization-form-phone-number
+          v-model="organizationModel"
           @update:model-value="hasFormChanged = true"
         />
       </div>
@@ -25,7 +26,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="!hasFormChanged || loading"
+          :disabled="$v.$invalid || !hasFormChanged || loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -38,30 +39,31 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
 import {
   ref,
-  defineEmits,
-  defineProps,
   computed,
 } from 'vue';
 import Message from '@/shared/message/message';
-import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
-import AppMemberFormIdentities from './form/member-form-identities.vue';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import useVuelidate from '@vuelidate/core';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
 
-const store = useStore();
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
-  member: {
+  organization: {
     type: Object,
     default: () => {},
   },
 });
 const emit = defineEmits(['update:modelValue']);
+
+const organizationStore = useOrganizationStore();
+const { fetchOrganization } = organizationStore;
 
 const drawerModel = computed({
   get() {
@@ -72,8 +74,10 @@ const drawerModel = computed({
   },
 });
 
-const memberModel = ref(cloneDeep(props.member));
+const organizationModel = ref(cloneDeep(props.organization));
 const loading = ref(false);
+
+const $v = useVuelidate({}, organizationModel);
 
 const hasFormChanged = ref(false);
 
@@ -83,17 +87,11 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   loading.value = true;
-  MemberService.update(props.member.id, {
-    attributes: {
-      ...props.member.attributes,
-      ...memberModel.value.attributes,
-    },
-    username: memberModel.value.username,
-    platform: memberModel.value.platform,
-    identities: memberModel.value.identities,
+  OrganizationService.update(props.organization.id, {
+    phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
   }).then(() => {
-    store.dispatch('member/doFind', props.member.id).then(() => {
-      Message.success('Contact identities updated successfully');
+    fetchOrganization(props.organization.id).then(() => {
+      Message.success('Organization identities updated successfully');
     });
   }).catch((err) => {
     Message.error(err.response.data);
@@ -106,7 +104,7 @@ const handleSubmit = async () => {
 
 <script>
 export default {
-  name: 'AppMemberManageIdentitiesDrawer',
+  name: 'AppOrganizationManagePhoneNumbersDrawer',
 };
 </script>
 
