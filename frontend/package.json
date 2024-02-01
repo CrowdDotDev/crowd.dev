@@ -16,9 +16,10 @@
     "test:e2e:run": "npx cypress run --headed --browser chrome",
     "test:e2e:staging:open": "npx cypress open --config-file cypress.staging.config.js",
     "test:e2e:staging:run": "npx cypress run --config-file cypress.staging.config.js",
-    "tailwind:view": "tailwind-config-viewer -o",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "docs:tailwind": "tailwind-config-viewer -o",
+    "docs:storybook": "storybook dev -p 6006",
+    "docs:storybook:build": "storybook build",
+    "docs": "npm run docs:tailwind & npm run docs:storybook"
   },
   "dependencies": {
     "@auth0/auth0-spa-js": "^2.0.8",
