@@ -13,11 +13,16 @@ const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const options = [
   {
-    name: 'tenantIds',
-    alias: 't',
+    name: 'exclude',
+    alias: 'e',
     type: String,
-    description:
-      'Tenants to be excluded from the data purging process. IDs should be comma-separated list.',
+    description: 'Tenant IDs that should be excluded from the data purging process.',
+  },
+  {
+    name: 'include',
+    alias: 'i',
+    type: String,
+    description: 'Tenant IDs that should be included from the data purging process.',
   },
   {
     name: 'help',
@@ -47,38 +52,44 @@ const parameters = commandLineArgs(options)
 const log = getServiceLogger()
 
 async function purgeTenantsAndData(): Promise<void> {
-  // initialize database with 15 minutes query timeout
-  const prodDb = await databaseInit(1000 * 60 * 15, true)
+  // initialize database with 60 minutes query timeout
+  const prodDb = await databaseInit(1000 * 60 * 60, true)
 
   let count = 0
   let purgeableTenants
 
   log.info('Querying database for tenants where trialEndsAt exists and trial period is over.')
 
-  const doNotPurgeTenantIds = parameters.tenantIds.split(',')
+  const doNotPurgeTenantIds = parameters.exclude ? parameters.exclude.split(',') : []
+  const includeTenantIds = parameters.include ? parameters.include.split(',') : []
 
-  purgeableTenants = await prodDb.sequelize.query(
-    `
-      select id
-      from tenants
-      where "trialEndsAt" is not null and "trialEndsAt" < now()`,
-    {
-      type: QueryTypes.SELECT,
-    },
-  )
+  if (includeTenantIds) {
+    purgeableTenants = includeTenantIds.map((id) => ({ id }))
+  } else {
+    purgeableTenants = await prodDb.sequelize.query(
+      `
+        select id
+        from tenants
+        where "trialEndsAt" is not null and "trialEndsAt" < now()`,
+      {
+        type: QueryTypes.SELECT,
+      },
+    )
+  }
 
-  purgeableTenants = purgeableTenants.filter((t) => !doNotPurgeTenantIds.includes(t.id))
+  purgeableTenants = purgeableTenants.filter((tenant) => !doNotPurgeTenantIds.includes(tenant.id))
 
   log.info(`Found ${purgeableTenants.length} tenants to purge!`)
 
   const tables = [
+    'githubRepos',
+    'integrations',
+    'incomingWebhooks',
     'memberSegments',
     'organizationSegments',
     'microservices',
     'conversations',
     'activities',
-    'githubRepos',
-    'integrations',
     'reports',
     'settings',
     'widgets',
@@ -86,6 +97,8 @@ async function purgeTenantsAndData(): Promise<void> {
     'eagleEyeContents',
     'members',
     'memberAttributeSettings',
+    'tags',
+    'notes',
     'tasks',
     'organizationCacheLinks',
     'organizations',
@@ -95,6 +108,7 @@ async function purgeTenantsAndData(): Promise<void> {
     const transaction = await prodDb.sequelize.transaction()
     try {
       for (const table of tables) {
+        log.info(`Purging data from ${table} table for tenant: ${tenant.id}`)
         // The 'organizationCacheLinks' table has a foreign key constraint on 'organizations' table.
         // So, before deleting any record from 'organizations', we need to delete the corresponding records from 'organizationCacheLinks'.
         if (table === 'organizationCacheLinks') {
