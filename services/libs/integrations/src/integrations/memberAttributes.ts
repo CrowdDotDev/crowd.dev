@@ -65,4 +65,11 @@ export const DEFAULT_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
     canDelete: false,
     show: false,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.IS_DELETED].name,
+    label: MemberAttributes[MemberAttributeName.IS_DELETED].label,
+    type: MemberAttributeType.BOOLEAN,
+    canDelete: false,
+    show: false,
+  },
 ]

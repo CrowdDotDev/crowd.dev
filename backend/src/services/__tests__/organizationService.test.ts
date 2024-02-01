@@ -1,6 +1,5 @@
-import organizationCacheRepository from '../../database/repositories/organizationCacheRepository'
+import { TenantPlans } from '@crowd/types'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import Plans from '../../security/plans'
 import OrganizationService from '../organizationService'
 
 const db = null
@@ -19,7 +18,7 @@ describe('OrganizationService tests', () => {
     it('Should create organization', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
         db,
-        Plans.values.growth,
+        TenantPlans.Growth,
       )
       const service = new OrganizationService(mockIServiceOptions)
 
@@ -39,7 +38,7 @@ describe('OrganizationService tests', () => {
     it('Should throw an error when name is not sent', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
         db,
-        Plans.values.growth,
+        TenantPlans.Growth,
       )
       const service = new OrganizationService(mockIServiceOptions)
 

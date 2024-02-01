@@ -1,6 +1,4 @@
-import Plans from '../../security/plans'
-
-const plans = Plans.values
+import { TenantPlans } from '@crowd/types'
 
 export default (sequelize, DataTypes) => {
   const tenant = sequelize.define(
@@ -41,12 +39,20 @@ export default (sequelize, DataTypes) => {
       },
       plan: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
         validate: {
           notEmpty: true,
-          isIn: [[plans.essential, plans.growth, plans.eagleEye, plans.enterprise, plans.scale]],
+          isIn: [
+            [
+              TenantPlans.Essential,
+              TenantPlans.Growth,
+              TenantPlans.EagleEye,
+              TenantPlans.Enterprise,
+              TenantPlans.Scale,
+            ],
+          ],
         },
-        defaultValue: plans.essential,
+        defaultValue: TenantPlans.Essential,
       },
 
       onboardedAt: {

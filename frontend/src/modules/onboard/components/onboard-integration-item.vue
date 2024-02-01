@@ -48,7 +48,6 @@
 
         <app-integration-connect
           :integration="integration"
-          @invite-colleagues="emit('inviteColleagues')"
         >
           <template
             #default="{
@@ -105,7 +104,7 @@
 import { ref, computed } from 'vue';
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
 
-const emit = defineEmits(['allowRedirect', 'inviteColleagues']);
+const emit = defineEmits(['allowRedirect']);
 const props = defineProps({
   integration: {
     type: Object,

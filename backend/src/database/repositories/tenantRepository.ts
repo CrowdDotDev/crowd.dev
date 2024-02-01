@@ -1,14 +1,13 @@
+import { Error400, Error404, getCleanString } from '@crowd/common'
+import { Edition, TenantPlans } from '@crowd/types'
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { getCleanString, Error400, Error404 } from '@crowd/common'
-import { Edition } from '@crowd/types'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
+import { API_CONFIG } from '../../conf'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import Plans from '../../security/plans'
-import { API_CONFIG } from '../../conf'
+import AuditLogRepository from './auditLogRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 
@@ -17,7 +16,6 @@ const forbiddenTenantUrls = ['www']
 class TenantRepository {
   static async getPayingTenantIds(options: IRepositoryOptions): Promise<({ id: string } & {})[]> {
     const database = SequelizeRepository.getSequelize(options)
-    const plans = Plans.values
     const transaction = SequelizeRepository.getTransaction(options)
 
     const query = `
@@ -31,7 +29,7 @@ class TenantRepository {
       type: QueryTypes.SELECT,
       transaction,
       replacements: {
-        growth: plans.growth,
+        growth: TenantPlans.Growth,
       },
     })
   }
@@ -70,7 +68,7 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: API_CONFIG.edition === Edition.LFX ? Plans.values.enterprise : Plans.values.essential,
+        plan: API_CONFIG.edition === Edition.LFX ? TenantPlans.Enterprise : null,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -119,7 +117,7 @@ class TenantRepository {
     )
 
     if (checkTenantUrl.count > 0) {
-      cleanedTenantUrl += `-${checkTenantUrl.count}`
+      cleanedTenantUrl += `-${new Date().getTime()}`
     }
 
     return cleanedTenantUrl
@@ -173,6 +171,8 @@ class TenantRepository {
           'plan',
           'isTrialPlan',
           'trialEndsAt',
+          'stripeSubscriptionId',
+          'planSubscriptionEndsAt',
         ]),
         updatedById: currentUser.id,
       },

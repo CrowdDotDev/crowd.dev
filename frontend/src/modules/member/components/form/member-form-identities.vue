@@ -1,105 +1,53 @@
 <template>
-  <div class="grid gap-x-12 grid-cols-4">
-    <div v-if="showHeader">
-      <h6>
-        Identities <span class="text-brand-500">*</span>
-      </h6>
-      <p class="text-gray-500 text-2xs leading-normal mt-1">
-        Connect with contacts' external data sources or
-        profiles
-      </p>
-    </div>
-    <div
-      class="identities-form"
-      :class="showHeader ? 'col-span-3' : 'col-span-4'"
-    >
-      <div
-        v-for="[key, value] in Object.entries(
-          identitiesForm,
-        )"
+  <div>
+    <!-- Identities editing -->
+    <div>
+      <section
+        v-for="[key, value] in Object.entries(identitiesForm)"
         :key="key"
-        class="border-b border-gray-200 last:border-none"
+        class="border-b border-gray-200 last:border-none pt-5 pb-6"
       >
-        <div v-if="findPlatform(key)">
-          <el-form-item class="h-14 !flex items-center">
-            <div :class="value.imgContainerClass">
-              <img
-                :src="findPlatform(key).image"
-                :alt="findPlatform(key).name"
-                class="w-4 h-4"
-              />
-            </div>
-            <el-switch
-              v-model="value.enabled"
-              :inactive-text="findPlatform(key).name"
-              :disabled="editingDisabled(key)"
-              @change="
-                (newValue) => onSwitchChange(newValue, key)
-              "
+        <div v-if="findPlatform(key)" class="flex">
+          <div class="w-6 pt-2 mr-4">
+            <img
+              :src="findPlatform(key).image"
+              :alt="findPlatform(key).name"
+              class="w-6"
             />
-          </el-form-item>
-
-          <div v-if="value.enabled">
-            <div
-              v-for="(handle, ii) of model.username[key]"
+          </div>
+          <div class="flex-grow">
+            <article
+              v-for="(handle, ii) of model[key]"
               :key="ii"
-              class="flex flex-grow gap-2 mt-1 pb-3 last:!mb-6 last:pb-0"
+              class="flex flex-grow gap-2 pb-3 last:pb-0"
             >
-              <el-form-item
-                :prop="`username.${key}.${ii}`"
-                required
-                class="flex-grow"
+              <el-input
+                v-model="model[key][ii]"
+                placeholder="johndoe"
+                :disabled="editingDisabled(key) || key === 'linkedin'
+                  && handle.includes(
+                    'private-',
+                  )"
+                :type="key === 'linkedin'
+                  && handle.includes(
+                    'private-',
+                  ) ? 'password' : 'text'"
               >
-                <el-input
-                  v-model="model.username[key][ii]"
-                  placeholder="johndoe"
-                  :disabled="editingDisabled(key) || key === 'linkedin'
-                    && handle.includes(
-                      'private-',
-                    )"
-                  :type="key === 'linkedin'
-                    && handle.includes(
-                      'private-',
-                    ) ? 'password' : 'text'"
-                  @input="(newValue) =>
-                    onInputChange(newValue, key, value, ii)
-                  "
-                >
-                  <template #prepend>
-                    <span>{{ value.urlPrefix }}</span>
-                    <span class="text-brand-500">*</span>
-                  </template>
-                </el-input>
-                <template #error>
-                  <div class="el-form-item__error">
-                    Identity profile is required
-                  </div>
+                <template #prepend>
+                  <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
                 </template>
-              </el-form-item>
+              </el-input>
               <el-button
-                :disabled="editingDisabled(key)"
+                :disabled="model[key].length <= 1 || editingDisabled(key)"
                 class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeUsername(key, ii)"
               >
                 <i class="ri-delete-bin-line text-lg" />
               </el-button>
-            </div>
+            </article>
           </div>
         </div>
-      </div>
-      <div class="flex items-start justify-between mt-24">
-        <div class="flex items-center flex-1">
-          <app-platform platform="email" />
-          <div class="font-medium text-sm ml-3">
-            Email address
-          </div>
-        </div>
-        <app-string-array-input
-          v-model="computedModelEmails"
-          class="flex-1"
-          add-row-label="Add e-email address"
-        />
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -108,14 +56,13 @@
 import {
   defineEmits,
   defineProps,
-  reactive,
-  computed,
   watch,
+  ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import cloneDeep from 'lodash/cloneDeep';
 
 const emit = defineEmits(['update:modelValue']);
+
 const props = defineProps({
   modelValue: {
     type: Object,
@@ -125,125 +72,112 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
-  showHeader: {
-    type: Boolean,
-    default: true,
-  },
 });
 
-const model = computed({
-  get() {
-    return props.modelValue;
+// TODO: move this to identities config
+const identitiesForm = {
+  devto: {
+    urlPrefix: 'dev.to/',
   },
-  set(newModel) {
-    emit('update:modelValue', newModel);
+  discord: {
+    urlPrefix: 'discord.com/',
   },
-});
+  github: {
+    urlPrefix: 'github.com/',
+  },
+  slack: {
+    urlPrefix: 'slack.com/',
+  },
+  twitter: {
+    urlPrefix: 'twitter.com/',
+  },
+  linkedin: {
+    urlPrefix: 'linkedin.com/in/',
+  },
+  reddit: {
+    urlPrefix: 'reddit.com/user/',
+  },
+  hackernews: {
+    urlPrefix: 'news.ycombinator.com/user?id=',
+  },
+  stackoverflow: {
+    urlPrefix: 'stackoverflow.com/users/',
+  },
+};
 
-const computedModelEmails = computed({
-  get() {
-    return model.value.emails?.length > 0
-      ? model.value.emails
-      : [''];
-  },
-  set(emails) {
-    const nonEmptyEmails = emails.filter((e) => !!e);
+const defaultValue = Object.keys(identitiesForm).reduce((identities, key) => ({
+  ...identities,
+  [key]: [''],
+}), {});
 
-    model.value.emails = nonEmptyEmails;
-  },
-});
+const model = ref({ ...defaultValue });
 
 watch(
-  model.value,
-  (newValue) => {
-    // Handle platform value each time username object is updated
-    const platforms = Object.keys(newValue.username || {});
-
-    if (platforms.length) {
-      [model.value.platform] = platforms;
-    } else if (newValue.emails) {
-      model.value.platform = 'emails';
-    } else {
-      model.value.platform = null;
+  props.modelValue,
+  (contact, previous) => {
+    if (!previous) {
+      model.value = {
+        ...defaultValue,
+        ...(contact?.username || {}),
+      };
     }
+  },
+  { deep: true, immediate: true },
+);
+
+watch(
+  model,
+  (value) => {
+    // Parse username object
+    const username = Object.keys(identitiesForm).reduce((obj, platform) => {
+      const usernames = (value[platform] || []).filter((username) => !!username.trim());
+      return {
+        ...obj,
+        [platform]: usernames,
+      };
+    }, {});
+
+    // Get platforms from usernames
+    const platforms = Object.keys(username || {});
+    const platform = platforms.length ? platforms[0] : null;
+
+    // Get url object from usernames
+    const url = Object.keys(username).reduce((urls, p) => {
+      if (username[p]?.length) {
+        return {
+          ...urls,
+          [p]: CrowdIntegrations.getConfig(p)?.url({ username: model.value[p][0], attributes: model.value.attributes }),
+        };
+      }
+      return urls;
+    }, {});
+
+    const identities = {
+      ...props.modelValue.username,
+      ...username,
+    };
+
+    Object.keys(identities).forEach((platform) => {
+      identities[platform] = identities[platform].filter((i) => i.trim().length);
+      if (identities[platform].length === 0) {
+        delete identities[platform];
+      }
+    });
+
+    // Emit updated member
+    emit('update:modelValue', {
+      ...props.modelValue,
+      username: identities,
+      platform: platform || props.modelValue.platform,
+      identities: platforms,
+      attributes: {
+        ...props.modelValue.attributes,
+        url,
+      },
+    });
   },
   { deep: true },
 );
-
-const identitiesForm = reactive({
-  devto: {
-    enabled:
-      props.modelValue.username?.devto !== undefined
-      || false,
-    urlPrefix: 'dev.to/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
-  },
-  discord: {
-    enabled:
-      props.modelValue.username?.discord !== undefined
-      || false,
-    urlPrefix: 'discord.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto',
-  },
-  github: {
-    enabled:
-      props.modelValue.username?.github !== undefined
-      || false,
-    urlPrefix: 'github.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
-  },
-  slack: {
-    enabled:
-      props.modelValue.username?.slack !== undefined
-      || false,
-    urlPrefix: 'slack.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200',
-  },
-  twitter: {
-    enabled:
-      props.modelValue.username?.twitter !== undefined
-      || false,
-    urlPrefix: 'twitter.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter',
-  },
-  linkedin: {
-    enabled:
-      props.modelValue.username?.linkedin !== undefined
-      || false,
-    urlPrefix: 'linkedin.com/in/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
-  },
-  reddit: {
-    enabled:
-      props.modelValue.username?.reddit !== undefined
-      || false,
-    urlPrefix: 'reddit.com/user/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--reddit',
-  },
-  hackernews: {
-    enabled:
-      props.modelValue.username?.hackernews !== undefined
-      || false,
-    urlPrefix: 'news.ycombinator.com/user?id=',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--hackernews',
-  },
-  stackoverflow: {
-    enabled:
-      props.modelValue.username?.stackoverflow
-        !== undefined || false,
-    urlPrefix: 'stackoverflow.com/users/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--stackoverflow',
-  },
-});
 
 function findPlatform(platform) {
   return CrowdIntegrations.getConfig(platform);
@@ -255,57 +189,7 @@ function editingDisabled(platform) {
     : false;
 }
 
-function onSwitchChange(value, key) {
-  // Add platform to username object
-  if (
-    (model.value.username?.[key] === null
-      || model.value.username?.[key] === undefined)
-    && value
-  ) {
-    model.value.username[key] = props.record?.username?.[key]?.length ? cloneDeep(props.record.username[key]) : [''];
-    return;
-  }
-
-  // Remove platform from username object
-  if (!value) {
-    delete model.value.username[key];
-    delete model.value.attributes?.url?.[key];
-  }
-
-  // Handle platfom and attributes when username profiles are removed
-  if (!Object.keys(model.value.username || {}).length) {
-    delete model.value.platform;
-    delete model.value.attributes?.url;
-  }
-}
-
-function onInputChange(newValue, key, value, index) {
-  if (index === 0) {
-    model.value.attributes = {
-      ...props.modelValue.attributes,
-      url: {
-        ...props.modelValue.attributes?.url,
-        [key]: `https://${value.urlPrefix}${newValue}`,
-      },
-    };
-  }
-}
-
 const removeUsername = (platform, index) => {
-  model.value.username[platform].splice(index, 1);
-
-  if (!model.value.username[platform]?.length) {
-    delete model.value.username?.[platform];
-    delete model.value.attributes?.url?.[platform];
-    identitiesForm[platform].enabled = false;
-  } else {
-    model.value.attributes = {
-      ...props.modelValue.attributes,
-      url: {
-        ...props.modelValue.attributes?.url,
-        [platform]: CrowdIntegrations.getConfig(platform)?.url({ username: model.value.username[platform][0], attributes: model.value.attributes }),
-      },
-    };
-  }
+  model.value[platform].splice(index, 1);
 };
 </script>

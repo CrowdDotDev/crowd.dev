@@ -7,6 +7,7 @@ import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
+import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
 
 export default {
   async reset({ dispatch }) {
@@ -25,18 +26,33 @@ export default {
       period,
       platform,
     });
+    dispatch('getCubeData');
     dispatch('getConversations');
     dispatch('getActivities');
     dispatch('getMembers');
     dispatch('getOrganizations');
   },
+  // Fetch cube data
+  getCubeData({ state }) {
+    state.cubeData = null;
+    const { platform, period } = state.filters;
+    return DashboardApiService.fetchCubeData({
+      period: period.label,
+      platform: platform !== 'all' ? platform : undefined,
+    })
+      .then((data) => {
+        state.cubeData = data;
+        return Promise.resolve(data);
+      });
+  },
+
   // fetch conversations data
   async getConversations({ dispatch }) {
-    dispatch('getTrendingConversations');
+    dispatch('getRecentConversations');
     // dispatch('getConversationCount');
   },
-  // Fetch trending conversations
-  async getTrendingConversations({ commit, state }) {
+  // Fetch recent conversations
+  async getRecentConversations({ commit, state }) {
     state.conversations.loading = true;
     const { platform, period } = state.filters;
 
@@ -58,9 +74,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform: {
-                  eq: platform,
-                },
+                platform,
               },
             ]
             : []),
@@ -71,7 +85,7 @@ export default {
       offset: 0,
     })
       .then((data) => {
-        commit('SET_TRENDING_CONVERSATIONS', data);
+        commit('SET_RECENT_CONVERSATIONS', data);
         return Promise.resolve(data);
       })
       .finally(() => {
@@ -124,7 +138,7 @@ export default {
           ...(platform !== 'all'
             ? [
               {
-                platform,
+                platform: { eq: platform },
               },
             ]
             : []),
@@ -155,7 +169,7 @@ export default {
             ...(platform !== 'all'
               ? [
                 {
-                  platform,
+                  platform: { in: [platform] },
                 },
               ]
               : []),
@@ -298,36 +312,18 @@ export default {
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true;
     const { platform, period } = state.filters;
-    return OrganizationService.query({
-      filter: {
-        and: [
-          ...DEFAULT_ORGANIZATION_FILTERS,
-          {
-            lastActive: {
-              gte: moment()
-                .utc()
-                .startOf('day')
-                .subtract(
-                  period.value - 1,
-                  period.granularity,
-                )
-                .toISOString(),
-            },
-          },
-          ...(platform !== 'all'
-            ? [
-              {
-                activeOn: {
-                  contains: [platform],
-                },
-              },
-            ]
-            : []),
-        ],
-      },
-      orderBy: 'lastActive_DESC',
-      limit: 5,
+    return OrganizationService.listActive({
+      platform: platform !== 'all' ? [{ value: platform }] : [],
+      isTeamOrganization: false,
+      activityTimestampFrom: moment()
+        .utc()
+        .subtract(period.value - 1, period.granularity)
+        .startOf('day')
+        .toISOString(),
+      activityTimestampTo: moment().utc().endOf('day'),
+      orderBy: 'activityCount_DESC',
       offset: 0,
+      limit: 5,
     })
       .then((data) => {
         commit('SET_ACTIVE_ORGANIZATIONS', data);

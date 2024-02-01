@@ -159,7 +159,10 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
                   this.removeJob()
                 })
                 // if error is detected don't delete the message from the queue
-                .catch(() => this.removeJob())
+                .catch((err) => {
+                  this.log.error(err, 'Error processing message!')
+                  this.removeJob()
+                })
 
               if (this.deleteMessageImmediately) {
                 await this.deleteMessage(message.ReceiptHandle)
@@ -214,7 +217,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   }
 }
 
-export abstract class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueEmitter {
+export class SqsQueueEmitter extends SqsQueueBase implements ISqsQueueEmitter {
   constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, tracer: Tracer, parentLog: Logger) {
     super(sqsClient, queueConf, tracer, parentLog)
   }

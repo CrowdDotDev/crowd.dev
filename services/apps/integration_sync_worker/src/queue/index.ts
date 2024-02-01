@@ -1,19 +1,25 @@
-import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
-import { Logger } from '@crowd/logging'
 import { DbConnection, DbStore } from '@crowd/database'
-import { MemberSyncService } from '../service/member.sync.service'
-import { OpenSearchService } from '../service/opensearch.service'
-import { OrganizationSyncService } from '../service/organization.sync.service'
-import { INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient, SqsQueueReceiver } from '@crowd/sqs'
+import { Logger } from '@crowd/logging'
+import {
+  INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
+  SqsClient,
+  SqsPrioritizedQueueReciever,
+} from '@crowd/sqs'
+import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   AutomationSyncTrigger,
   IQueueMessage,
   IntegrationSyncWorkerQueueMessageType,
+  QueuePriorityLevel,
 } from '@crowd/types'
 import { Client } from '@opensearch-project/opensearch'
+import { MemberSyncService } from '../service/member.sync.service'
+import { OpenSearchService } from '../service/opensearch.service'
+import { OrganizationSyncService } from '../service/organization.sync.service'
 
-export class WorkerQueueReceiver extends SqsQueueReceiver {
+export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   constructor(
+    level: QueuePriorityLevel,
     client: SqsClient,
     private readonly dbConn: DbConnection,
     private readonly openSearchClient: Client,
@@ -22,6 +28,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     maxConcurrentProcessing: number,
   ) {
     super(
+      level,
       client,
       INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
       maxConcurrentProcessing,
@@ -42,7 +49,7 @@ export class WorkerQueueReceiver extends SqsQueueReceiver {
     return new OrganizationSyncService(new DbStore(this.log, this.dbConn), this.log)
   }
 
-  protected override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
+  public override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
     await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
       try {
         this.log.trace({ messageType: message.type }, 'Processing message!')

@@ -38,6 +38,7 @@ export async function authMiddleware(req, res, next) {
 
     next()
   } catch (error) {
+    req.log.error(error, 'Error while finding user')
     await req.responseHandler.error(req, res, new Error401())
   }
 }

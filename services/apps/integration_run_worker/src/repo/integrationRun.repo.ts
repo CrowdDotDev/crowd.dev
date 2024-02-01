@@ -18,7 +18,8 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
       `
       select r.id,
              r."tenantId",
-             i.platform as "integrationType"
+             i.platform as "integrationType",
+             r.onboarding
       from integration.runs r
       inner join integrations i on r."integrationId" = i.id
       where r.state = $(delayedState) and r."delayedUntil" < now()
@@ -413,10 +414,11 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     tenantId: string
     integrationId: string
     platform: string
+    onboarding: boolean
   } | null> {
     const result = await this.db().oneOrNone(
       `
-      select r.id, r.state, r."tenantId", r."integrationId", i.platform
+      select r.id, r.state, r."tenantId", r."integrationId", i.platform, r.onboarding
       from integration.runs r
       inner join integrations i on r."integrationId" = i.id
       where r.id = $(runId)

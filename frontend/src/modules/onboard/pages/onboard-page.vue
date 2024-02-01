@@ -54,7 +54,6 @@
         :is="stepConfig.component"
         v-model="form"
         @allow-redirect="onConnect"
-        @invite-colleagues="onInviteColleagues"
       />
     </main>
     <div v-if="stepConfig.sideInfo?.length" class="flex-1 pr-8 sticky top-21 h-full pt-10">
@@ -115,7 +114,7 @@ const loadingSubmitAction = ref(false);
 const allowRedirect = ref(false);
 const currentStep = ref(1);
 const form = reactive({
-  tenantName: currentTenant.value?.name,
+  tenantName: currentTenant.value?.name !== 'temporaryName' ? currentTenant.value?.name : '',
   activeIntegrations: 0,
   invitedUsers: [{
     emails: [],
@@ -157,7 +156,7 @@ watch(currentTenant, (tenant, oldTenant) => {
     return;
   }
 
-  if (tenant) {
+  if (tenant && tenant.name !== 'temporaryName') {
     form.tenantName = tenant.name;
     store.dispatch('integration/doFetch');
 
@@ -177,6 +176,19 @@ watch(activeIntegrations, (integrations) => {
   if (integrations.length && currentStep.value < 2) {
     currentStep.value = 2;
   }
+});
+
+watch(form, (updatedForm) => {
+  if (currentStep.value === 3) {
+    const parsedIntegrations = updatedForm.invitedUsers.map((u) => (u.emails.some((e) => !e) ? ({
+      ...u,
+      emails: [],
+    }) : u));
+
+    form.invitedUsers = parsedIntegrations;
+  }
+}, {
+  deep: true,
 });
 
 const $v = useVuelidate({}, form);
@@ -209,10 +221,6 @@ const onStepClick = (index: number) => {
 
 const onConnect = (val: boolean) => {
   allowRedirect.value = val;
-};
-
-const onInviteColleagues = () => {
-  currentStep.value = 3;
 };
 </script>
 

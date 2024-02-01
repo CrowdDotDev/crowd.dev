@@ -8,7 +8,7 @@
           <cr-menu-workspace-card class="h-14 px-3 hover:bg-gray-50" :tenant="tenant" @click="doSwitchTenant(tenant)">
             <i v-if="currentTenant.id === tenant.id" class="ri-check-line text-lg text-black" />
           </cr-menu-workspace-card>
-          <div v-if="currentTenant.id === tenant.id" class="pt-1 -mx-1">
+          <div v-if="!props.plain && currentTenant.id === tenant.id" class="pt-1 -mx-1">
             <cr-menu-links
               :collapsed="false"
               :links="tenantMenu"
@@ -26,6 +26,7 @@
 
       <!-- Add workspace -->
       <section
+        v-if="!props.plain"
         class="border-b border-gray-100 px-2 pb-3"
       >
         <div
@@ -39,7 +40,7 @@
     </div>
 
     <!-- User settings -->
-    <section class="px-2 pb-2 pt-1">
+    <section v-if="!props.plain" class="px-2 pb-2 pt-1">
       <!-- User details -->
       <div class="p-3 flex items-center">
         <app-avatar
@@ -105,6 +106,10 @@ import { useUserStore } from '@/modules/user/store/pinia';
 import { storeToRefs } from 'pinia';
 import { FeatureFlag } from '@/utils/featureFlag';
 import { SettingsPermissions } from '@/modules/settings/settings-permissions';
+
+const props = defineProps<{
+  plain?: boolean
+}>();
 
 const emit = defineEmits<{(e:'add'): any, (e: 'edit', value: TenantModel): any}>();
 

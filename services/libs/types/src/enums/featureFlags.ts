@@ -7,13 +7,17 @@ export enum FeatureFlag {
   MEMBER_ENRICHMENT = 'member-enrichment',
   ORGANIZATION_ENRICHMENT = 'organization-enrichment',
   SEGMENTS = 'segments',
+  PRIORITIZED_QUEUES = 'prioritized-queues',
   FIND_GITHUB = 'find-github',
 
   // opensearch
   SYNCHRONOUS_OPENSEARCH_UPDATES = 'synchronous-opensearch-updates',
 
   // temporal
-  TEMPORAL_AUTOMATIONS = 'temporal-automations',
+  TEMPORAL_MEMBERS_ENRICHMENT = 'temporal-members-enrichment',
+  TEMPORAL_MEMBER_MERGE_SUGGESTIONS = 'temporal-member-merge-suggestions',
+  TEMPORAL_ORGANIZATION_ENRICHMENT = 'temporal-organization-enrichment',
+  SERVE_PROFILES_OPENSEARCH = 'serve-profiles-opensearch',
 }
 
 export enum FeatureFlagRedisKey {

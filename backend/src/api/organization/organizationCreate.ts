@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = await new OrganizationService(req).createOrUpdate(req.body)
 
-  track('Organization Manually Created', { ...payload }, { ...req })
+  track('Organization Manually Created', { ...req.body }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

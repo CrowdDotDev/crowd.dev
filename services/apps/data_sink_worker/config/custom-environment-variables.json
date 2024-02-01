@@ -39,5 +39,8 @@
   },
   "searchSyncApi": {
     "baseUrl": "CROWD_SEARCH_SYNC_API_URL"
+  },
+  "worker": {
+    "queuePriorityLevel": "QUEUE_PRIORITY_LEVEL"
   }
 }

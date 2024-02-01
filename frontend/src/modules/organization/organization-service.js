@@ -133,13 +133,14 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async fetchMergeSuggestions(limit, offset) {
+  static async fetchMergeSuggestions(limit, offset, query) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const params = {
       limit,
       offset,
+      ...query,
     };
 
     return authAxios.get(
@@ -152,5 +153,47 @@ export class OrganizationService {
       },
     )
       .then(({ data }) => Promise.resolve(data));
+  }
+
+  static async listActive({
+    platform,
+    isTeamOrganization,
+    activityTimestampFrom,
+    activityTimestampTo,
+    orderBy,
+    offset,
+    limit,
+  }) {
+    const params = {
+      ...(platform.length && {
+        'filter[platforms]': platform
+          .map((p) => p.value)
+          .join(','),
+      }),
+      ...(isTeamOrganization === false && {
+        'filter[isTeamOrganization]': isTeamOrganization,
+      }),
+      'filter[activityTimestampFrom]':
+        activityTimestampFrom,
+      'filter[activityTimestampTo]': activityTimestampTo,
+      orderBy,
+      offset,
+      limit,
+    };
+
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/organization/active`,
+      {
+        params,
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
   }
 }

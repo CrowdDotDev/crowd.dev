@@ -1,6 +1,7 @@
 import TenantRepository from '../tenantRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Plans from '../../../security/plans'
+import { TenantPlans } from '@crowd/types'
 
 const db = null
 
@@ -20,12 +21,12 @@ describe('TenantRepository tests', () => {
       const ToCreatePLanForEssentialPlanTenantOnTrial = {
         name: 'essential tenant name',
         url: 'an-essential-tenant-name',
-        plan: Plans.values.essential,
+        plan: TenantPlans.Essential,
       }
       const ToCreatPlanForGrowthTenantOnTrial = {
         name: 'growth tenant name',
         url: 'a-growth-tenant-name',
-        plan: Plans.values.growth,
+        plan: TenantPlans.Growth,
       }
       const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await options.database.tenant.create(ToCreatePLanForEssentialPlanTenantOnTrial)
@@ -34,37 +35,6 @@ describe('TenantRepository tests', () => {
 
       expect(tenantIds).toHaveLength(1)
       expect(growthTenant.id).toStrictEqual(tenantIds[0].id)
-    })
-  })
-
-  describe('generateTenantUrl method', () => {
-    it('Should generate a url from name - 0 existing tenants with same url', async () => {
-      const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantName = 'some tenant Name with !@#_% non-alphanumeric characters'
-
-      const generatedUrl = await TenantRepository.generateTenantUrl(tenantName, options)
-      const expectedGeneratedUrl = 'some-tenant-name-with-non-alphanumeric-characters'
-
-      expect(generatedUrl).toStrictEqual(expectedGeneratedUrl)
-    })
-
-    it('Should generate a url from name - with existing tenant that has the same url', async () => {
-      const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const tenantName = 'a tenant name'
-
-      // create a tenant with url 'a-tenant-name'
-      await options.database.tenant.create({
-        name: tenantName,
-        url: 'a-tenant-name',
-        plan: Plans.values.essential,
-      })
-
-      // now generate function should return 'a-tenant-name-1' because it already exists
-      const generatedUrl = await TenantRepository.generateTenantUrl(tenantName, options)
-
-      const expectedGeneratedUrl = 'a-tenant-name-1'
-
-      expect(generatedUrl).toStrictEqual(expectedGeneratedUrl)
     })
   })
 })

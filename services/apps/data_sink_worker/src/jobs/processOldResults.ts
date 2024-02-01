@@ -3,10 +3,14 @@ import { DbConnection, DbStore } from '@crowd/database'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter, DataSinkWorkerEmitter } from '@crowd/sqs'
 import { Client as TemporalClient } from '@crowd/temporal'
 import DataSinkRepository from '../repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
+import {
+  DataSinkWorkerEmitter,
+  NodejsWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 
 const MAX_CONCURRENT_PROMISES = 2
 const MAX_RESULTS_TO_LOAD = 10

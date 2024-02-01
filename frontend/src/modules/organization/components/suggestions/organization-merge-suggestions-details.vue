@@ -26,7 +26,13 @@
       <!-- primary member -->
       <div class="h-13 flex justify-between items-start">
         <div
-          v-if="props.isPrimary"
+          v-if="props.isPreview"
+          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+        >
+          Preview
+        </div>
+        <div
+          v-else-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
           Primary organization
@@ -43,8 +49,27 @@
         </button>
         <slot name="action" />
       </div>
-      <div class="pb-4">
+      <div class="pb-6">
+        <router-link
+          v-if="!isPreview"
+          :to="{
+            name: 'organizationView',
+            params: {
+              id: props.organization.id,
+            },
+          }"
+          target="_blank"
+        >
+          <app-avatar
+            :entity="{
+              avatar: props.organization.logo,
+              displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
+            }"
+            class="mr-4 mb-4"
+          />
+        </router-link>
         <app-avatar
+          v-else
           :entity="{
             avatar: props.organization.logo,
             displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
@@ -52,21 +77,37 @@
           class="mr-4 mb-4"
         />
         <div>
+          <router-link
+            v-if="!isPreview"
+            :to="{
+              name: 'organizationView',
+              params: {
+                id: props.organization.id,
+              },
+            }"
+            target="_blank"
+          >
+            <h6
+              class="text-base text-black hover:text-brand-500 font-semibold leading-6"
+              v-html="$sanitize(props.organization.displayName || props.organization.name)"
+            />
+          </router-link>
           <h6
-            class="text-base text-black font-semibold"
+            v-else
+            class="text-base text-black font-semibold leading-6"
             v-html="$sanitize(props.organization.displayName || props.organization.name)"
           />
           <div
             v-if="props.organization.description"
             ref="bio"
-            class="text-gray-600 leading-5 !text-xs merge-member-bio"
+            class="text-gray-600 leading-5 !text-xs merge-member-bio mt-2"
             :class="{ 'line-clamp-2': !more }"
             v-html="$sanitize(props.organization.description)"
           />
           <div
             v-else-if="compareOrganization?.description"
             ref="bio"
-            class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
+            class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2 mt-2"
             v-html="$sanitize(compareOrganization?.description)"
           />
 
@@ -87,16 +128,16 @@
             props.organization.website
               || props.compareOrganization?.website
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Website
           </p>
           <a
             :href="withHttp(props.organization.website)"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-gray-900 text-right"
+            class="text-xs text-gray-900 whitespace-normal inline-block leading"
           >{{ props.organization.website || '-' }}</a>
         </article>
         <article
@@ -104,12 +145,12 @@
             props.organization.location
               || props.compareOrganization?.location
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200 truncate"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.location || '-' }}
           </p>
         </article>
@@ -118,12 +159,12 @@
             props.organization.employees
               || props.compareOrganization?.employees
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Number of employees
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.employees || '-' }}
           </p>
         </article>
@@ -132,12 +173,12 @@
             props.organization.revenueRange
               || props.compareOrganization?.revenueRange
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Annual Revenue
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ revenueRange.displayValue(
               props.organization.revenueRange,
             ) || '-' }}
@@ -148,12 +189,12 @@
             props.organization.industry
               || props.compareOrganization?.industry
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Industry
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+          <p class="text-xs text-gray-900 first-letter:uppercase whitespace-normal">
             {{ props.organization.industry || '-' }}
           </p>
         </article>
@@ -162,12 +203,12 @@
             props.organization.type
               || props.compareOrganization?.type
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Type
           </p>
-          <p class="text-xs text-gray-900 text-right first-letter:uppercase">
+          <p class="text-xs text-gray-900 first-letter:uppercase whitespace-normal">
             {{ props.organization.type || '-' }}
           </p>
         </article>
@@ -176,12 +217,12 @@
             props.organization.founded
               || props.compareOrganization?.founded
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Founded
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.founded || '-' }}
           </p>
         </article>
@@ -190,12 +231,12 @@
             props.organization.joinedAt
               || props.compareOrganization?.joinedAt
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Joined date
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ formatDateToTimeAgo(props.organization.joinedAt) || '-' }}
           </p>
         </article>
@@ -204,12 +245,12 @@
             props.organization.memberCount
               || props.compareOrganization?.memberCount
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             # of contacts
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.memberCount || '-' }}
           </p>
         </article>
@@ -218,74 +259,26 @@
             props.organization.activityCount
               || props.compareOrganization?.activityCount
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             # of Activities
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.activityCount || '-' }}
           </p>
         </article>
       </div>
-      <div class="pt-5">
-        <template v-if="props.organization.identities && props.organization.identities.length > 0">
-          <a
-            v-for="(identity, ii) of props.organization.identities"
-            :key="ii"
-            class="py-2 flex items-center relative text-gray-900 transition-colors"
-            :class="getIdentityLink(identity) ? 'hover:text-brand-500 cursor-pointer' : ''"
-            :href="getIdentityLink(identity)"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div class="flex gap-3 items-center">
-              <app-platform :platform="identity.platform" />
-              <span class="text-xs">
-                {{ getPlatformDetails(identity.platform)?.organization.handle(identity)
-                  ?? getPlatformDetails(identity.platform)?.name
-                  ?? identity.platform }}</span>
-            </div>
-            <i
-              v-if="identity.url"
-              class="ri-external-link-line text-gray-300 pl-2"
-            />
-          </a>
-        </template>
-        <a
-          v-for="email of props.organization.emails"
-          :key="email"
-          class="py-2 flex items-center relative hover:text-brand-500 transition-colors cursor-pointer text-gray-900"
-          :href="`mailto:${email}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="email" />
-            <span class="text-xs">
-              {{ email }}</span>
-          </div>
-          <i
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
-        <a
-          v-for="phone of props.organization.phoneNumbers"
-          :key="phone"
-          class="py-2 flex items-center relative hover:text-brand-500 transition-colors cursor-pointer text-gray-900"
-          :href="`tel:${phone}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="phone" />
-            <span class="text-xs">
-              {{ phone }}</span>
-          </div>
-          <i
-            class="ri-external-link-line text-gray-300 pl-2"
-          />
-        </a>
+      <div class="pt-4">
+        <h6 class="text-sm font-semibold pb-3">
+          Identities
+        </h6>
+        <app-identities-vertical-list-organizations
+          :organization="organization"
+          :include-emails="true"
+          :include-phone-numbers="true"
+          :order="organizationOrder.suggestions"
+        />
       </div>
     </div>
   </section>
@@ -302,8 +295,8 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
-import AppPlatform from '@/shared/platform/platform.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/components/identities-vertical-list-organizations.vue';
+import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 
 const props = defineProps({
   organization: {
@@ -316,6 +309,11 @@ const props = defineProps({
     default: () => null,
   },
   isPrimary: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isPreview: {
     type: Boolean,
     required: false,
     default: false,
@@ -344,15 +342,6 @@ const isEditLockedForSampleData = computed(
 const bio = ref(null);
 const displayShowMore = ref(null);
 const more = ref(null);
-
-const getPlatformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-
-const getIdentityLink = (identity) => {
-  if (identity.url) {
-    return withHttp(identity.url);
-  }
-  return null;
-};
 
 onMounted(() => {
   setTimeout(() => {

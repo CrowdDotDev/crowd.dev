@@ -1,6 +1,7 @@
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
-import { SegmentData, SegmentStatus } from '@crowd/types'
+import { SegmentData, SegmentStatus, TenantPlans } from '@crowd/types'
 import { Error400, Error404 } from '@crowd/common'
+import moment from 'moment/moment'
 import { TENANT_MODE } from '../conf/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
@@ -27,6 +28,7 @@ import SegmentService from './segmentService'
 import OrganizationService from './organizationService'
 import { defaultCustomViews } from '@/types/customView'
 import CustomViewRepository from '@/database/repositories/customViewRepository'
+import StripeService from '@/services/stripeService'
 
 export default class TenantService {
   options: IServiceOptions
@@ -388,7 +390,7 @@ export default class TenantService {
   }
 
   async updatePlanToFree(planStripeCustomerId) {
-    return this.updatePlanStatus(planStripeCustomerId, Plans.values.essential, 'active')
+    return this.updatePlanStatus(planStripeCustomerId, TenantPlans.Essential, 'active')
   }
 
   async updatePlanStatus(planStripeCustomerId, plan, planStatus) {
@@ -587,5 +589,33 @@ export default class TenantService {
   async findOrganizationsToMerge(args) {
     const organizationService = new OrganizationService(this.options)
     return organizationService.findOrganizationsWithMergeSuggestions(args)
+  }
+
+  async confirmPayment(tenantId: string, args) {
+    const { sessionId } = args
+    const session = await StripeService.retreiveSession(sessionId)
+    const subscription = await StripeService.retreiveSubscription(
+      (session.subscription as any)?.id ?? session.subscription,
+    )
+
+    const productId = (subscription as any).plan.product
+
+    const trialEnd = subscription.trial_end
+
+    const subscriptionEndsAt = subscription.current_period_end
+
+    const productPlan = StripeService.getPlanFromProductId(productId)
+
+    if (!productPlan) {
+      throw new Error404()
+    }
+
+    return this.update(tenantId, {
+      plan: productPlan,
+      isTrialPlan: !!trialEnd,
+      trialEndsAt: trialEnd ? moment(trialEnd, 'X').toISOString() : null,
+      stripeSubscriptionId: subscription.id,
+      planSubscriptionEndsAt: moment(subscriptionEndsAt, 'X').toISOString(),
+    })
   }
 }

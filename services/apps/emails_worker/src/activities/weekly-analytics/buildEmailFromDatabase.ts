@@ -10,7 +10,7 @@ import {
   PlatformType,
   SegmentRawData,
 } from '@crowd/types'
-import { ActivityDisplayService } from '@crowd/integrations'
+import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 
 import { svc } from '../../main'
 
@@ -195,7 +195,10 @@ export async function getTopActivityTypes(
         platform: a.platform,
         type: a.type,
       },
-      input.segments.reduce((acc, s) => lodash.merge(acc, s.customActivityTypes), {}),
+      {
+        default: DEFAULT_ACTIVITY_TYPE_SETTINGS,
+        custom: input.segments.reduce((acc, s) => lodash.merge(acc, s.customActivityTypes), {}),
+      },
       [ActivityDisplayVariant.SHORT],
     )
     const prettyName: string = displayOptions.short
@@ -278,7 +281,13 @@ export async function getConversations(input: InputAnalyticsWithSegments): Promi
 
           const displayOptions = ActivityDisplayService.getDisplayOptions(
             conversationStarterActivity,
-            input.segments.reduce((acc, s) => lodash.merge(acc, s.customActivityTypes), {}),
+            {
+              default: DEFAULT_ACTIVITY_TYPE_SETTINGS,
+              custom: input.segments.reduce(
+                (acc, s) => lodash.merge(acc, s.customActivityTypes),
+                {},
+              ),
+            },
             [ActivityDisplayVariant.SHORT],
           )
 

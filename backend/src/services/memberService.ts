@@ -4,6 +4,7 @@ import { SERVICE, Error400, isDomainExcluded } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
+  ExportableEntity,
   FeatureFlag,
   IOrganization,
   ISearchSyncOptions,
@@ -14,7 +15,8 @@ import {
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { TEMPORAL_CONFIG } from '@/conf'
+import { getOpensearchClient } from '@crowd/opensearch'
+import { OPENSEARCH_CONFIG, TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -30,11 +32,6 @@ import {
 } from '../database/repositories/types/memberTypes'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import telemetryTrack from '../segment/telemetryTrack'
-import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
-import {
-  sendExportCSVNodeSQSMessage,
-  sendNewMemberNodeSQSMessage,
-} from '../serverless/utils/nodeWorkerSQS'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
@@ -43,6 +40,7 @@ import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
 import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { ServiceType } from '@/conf/configTypes'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
 
 export default class MemberService extends LoggerBase {
@@ -463,34 +461,28 @@ export default class MemberService extends LoggerBase {
 
       if (!existing && fireCrowdWebhooks) {
         try {
-          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-          if (await isFeatureEnabled(FeatureFlag.TEMPORAL_AUTOMATIONS, this.options)) {
-            const handle = await this.options.temporal.workflow.start(
-              'processNewMemberAutomation',
-              {
-                workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
-                taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-                workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-                retry: {
-                  maximumAttempts: 100,
-                },
+          const handle = await this.options.temporal.workflow.start('processNewMemberAutomation', {
+            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
+            taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+            retry: {
+              maximumAttempts: 100,
+            },
 
-                args: [
-                  {
-                    tenantId: this.options.currentTenant.id,
-                    memberId: record.id,
-                  },
-                ],
+            args: [
+              {
+                tenantId: this.options.currentTenant.id,
+                memberId: record.id,
               },
-            )
-            this.log.info(
-              { workflowId: handle.workflowId },
-              'Started temporal workflow to process new member automation!',
-            )
-          } else {
-            await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id, segment.id)
-          }
+            ],
+            searchAttributes: {
+              TenantId: [this.options.currentTenant.id],
+            },
+          })
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new member automation!',
+          )
         } catch (err) {
           logger.error(err, `Error triggering new member automation - ${record.id}!`)
         }
@@ -675,9 +667,6 @@ export default class MemberService extends LoggerBase {
       const memberOrganizationService = new MemberOrganizationService(repoOptions)
       await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
-      // update activities to belong to the originalId member
-      await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
-
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
@@ -688,10 +677,19 @@ export default class MemberService extends LoggerBase {
         currentSegments: secondMemberSegments,
       })
 
-      // Delete toMerge member
-      await MemberRepository.destroy(toMergeId, repoOptions, true)
-
       await SequelizeRepository.commitTransaction(tx)
+
+      await this.options.temporal.workflow.start('finishMemberMerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishMemberMerging/${originalId}/${toMergeId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [originalId, toMergeId, this.options.currentTenant.id],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       if (syncOptions.doSync) {
         try {
@@ -800,6 +798,8 @@ export default class MemberService extends LoggerBase {
 
         return toKeep
       },
+      attributes: (oldAttributes, newAttributes) =>
+        MemberService.safeMerge(oldAttributes, newAttributes),
     })
   }
 
@@ -1001,6 +1001,24 @@ export default class MemberService extends LoggerBase {
       const record = await MemberRepository.update(id, data, repoOptions)
 
       await SequelizeRepository.commitTransaction(transaction)
+      await this.options.temporal.workflow.start('memberUpdate', {
+        taskQueue: 'profiles',
+        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${id}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          {
+            member: {
+              id,
+            },
+          },
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       if (syncToOpensearch) {
         try {
@@ -1138,6 +1156,10 @@ export default class MemberService extends LoggerBase {
     )
   }
 
+  async findByIdOpensearch(id: string, segmentId?: string) {
+    return MemberRepository.findByIdOpensearch(id, this.options, segmentId)
+  }
+
   async queryV2(data) {
     if (await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)) {
       if (data.segments.length !== 1) {
@@ -1189,11 +1211,25 @@ export default class MemberService extends LoggerBase {
   }
 
   async queryForCsv(data) {
-    data.limit = 10000000000000
-    const found = await this.query(data, true)
+    const transformed = {
+      filter: data.filter,
+      limit: data.limit || 200,
+      offset: data.offset || 0,
+      orderBy: data.orderBy,
+      countOnly: false,
+      segments: this.options.currentSegments.map((s) => s.id) || [],
+      attributesSettings: (
+        await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+      ).rows,
+    }
+
+    const found = await MemberRepository.findAndCountAllOpensearch(transformed, {
+      ...this.options,
+      opensearch: getOpensearchClient(OPENSEARCH_CONFIG),
+    })
 
     const relations = [
-      { relation: 'organizations', attributes: ['name'] },
+      { relation: 'organizations', attributes: ['displayName', 'website', 'logo'] },
       { relation: 'notes', attributes: ['body'] },
       { relation: 'tags', attributes: ['name'] },
     ]
@@ -1210,14 +1246,15 @@ export default class MemberService extends LoggerBase {
   }
 
   async export(data) {
-    const result = await sendExportCSVNodeSQSMessage(
+    const emitter = await getNodejsWorkerEmitter()
+    await emitter.exportCSV(
       this.options.currentTenant.id,
       this.options.currentUser.id,
       ExportableEntity.MEMBERS,
       SequelizeRepository.getSegmentIds(this.options),
       data,
     )
-    return result
+    return {}
   }
 
   async findMembersWithMergeSuggestions(args) {
@@ -1269,5 +1306,35 @@ export default class MemberService extends LoggerBase {
     // Total is the sum of all attributes
     out.total = lodash.sum(Object.values(out))
     return out
+  }
+
+  /**
+   * Merges two objects, preserving non-null values in the original object.
+   *
+   * @param originalObject - The original object
+   * @param newObject - The object to merge into the original
+   * @returns The merged object
+   */
+  static safeMerge(originalObject: any, newObject: any) {
+    const mergeCustomizer = (originalValue, newValue) => {
+      // Merge arrays, removing duplicates
+      if (lodash.isArray(originalValue)) {
+        return lodash.unionWith(originalValue, newValue, lodash.isEqual)
+      }
+
+      // Recursively merge nested objects
+      if (lodash.isPlainObject(originalValue)) {
+        return lodash.mergeWith({}, originalValue, newValue, mergeCustomizer)
+      }
+
+      // Preserve original non-null or non-empty values
+      if (newValue === null || (originalValue !== null && originalValue !== '')) {
+        return originalValue
+      }
+
+      return undefined
+    }
+
+    return lodash.mergeWith({}, originalObject, newObject, mergeCustomizer)
   }
 }

@@ -1,108 +1,53 @@
 <template>
-  <div class="grid gap-x-12 grid-cols-3">
-    <h6>Identities</h6>
-    <div class="col-span-2 organization-identities-form">
-      <div
-        v-for="[key, value] in Object.entries(
-          identitiesForm,
-        )"
-        :key="key"
-        class="border-b border-gray-200 last:border-none"
-      >
-        <div v-if="findPlatform(key)">
-          <el-form-item class="h-14 !flex items-center w-full mb-0">
-            <div :class="value.imgContainerClass">
-              <img
-                :src="findPlatform(key).image"
-                :alt="findPlatform(key).name"
-                class="w-4"
-              />
-            </div>
-            <el-switch
-              v-model="value.enabled"
-              :inactive-text="findPlatform(key).name"
-              @change="
-                (newValue) => onSwitchChange(newValue, key)
-              "
-            />
-          </el-form-item>
-          <template v-for="(identity, ii) of model.identities" :key="`${identity}${ii}`">
-            <div v-if="value.enabled && identity.platform === key">
-              <div
-                class="flex flex-grow gap-2 mt-1 pb-3 last:!mb-6 last:pb-0"
+  <div>
+    <section
+      v-for="[key, value] in Object.entries(identitiesForm)"
+      :key="key"
+      class="border-b border-gray-200 last:border-none pt-5 pb-6"
+    >
+      <div v-if="findPlatform(key)" class="flex">
+        <div class="w-6 pt-2 mr-4">
+          <img
+            :src="findPlatform(key).image"
+            :alt="findPlatform(key).name"
+            class="w-6"
+          />
+        </div>
+        <div class="flex-grow">
+          <template v-for="(identity, ii) of model" :key="ii">
+            <article
+              v-if="identity.platform === key"
+              class="flex flex-grow gap-2 pb-3 last:pb-0"
+            >
+              <el-input
+                v-model="model[ii].username"
+                :placeholder="identity.name.length ? identity.name : 'johndoe'"
               >
-                <el-form-item
-                  :prop="`identities.${ii}.username`"
-                  required
-                  class="flex-grow"
-                >
-                  <el-input
-                    v-model="model.identities[ii].username"
-                    :placeholder="identity.name.length ? identity.name : 'johndoe'"
-                    @input="(newValue) =>
-                      onInputChange(newValue, key, value, ii)
-                    "
-                  >
-                    <template #prepend>
-                      <span>{{ value.urlPrefix }}</span>
-                      <span class="text-brand-500">*</span>
-                    </template>
-                  </el-input>
-                  <template #error>
-                    <div class="el-form-item__error">
-                      Identity profile is required
-                    </div>
-                  </template>
-                </el-form-item>
-
-                <el-button
-                  class="btn btn--md btn--transparent w-10 h-10"
-                  @click="removeUsername(ii)"
-                >
-                  <i class="ri-delete-bin-line text-lg" />
-                </el-button>
-              </div>
-            </div>
+                <template #prepend>
+                  <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
+                </template>
+              </el-input>
+              <el-button
+                :disabled="editingDisabled(key)"
+                class="btn btn--md btn--transparent w-10 h-10"
+                @click="removeUsername(ii)"
+              >
+                <i class="ri-delete-bin-line text-lg" />
+              </el-button>
+            </article>
           </template>
         </div>
       </div>
-      <div class="flex items-start justify-between mt-16">
-        <div class="flex items-center">
-          <app-platform platform="email" />
-          <div class="font-medium text-sm ml-3">
-            Email address
-          </div>
-        </div>
-        <app-string-array-input
-          v-model="model.emails"
-          class="w-64"
-          add-row-label="Add e-email address"
-        />
-      </div>
-      <div class="flex items-start justify-between mt-16">
-        <div class="flex items-center">
-          <app-platform platform="phone" />
-          <div class="font-medium text-sm ml-3">
-            Phone number
-          </div>
-        </div>
-        <app-string-array-input
-          v-model="model.phoneNumbers"
-          class="w-64"
-          add-row-label="Add phone number"
-        />
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import {
-  computed, defineEmits, defineProps, reactive,
-} from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['update:modelValue']);
+
 const props = defineProps({
   modelValue: {
     type: Object,
@@ -112,131 +57,93 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
-  showHeader: {
-    type: Boolean,
-    default: true,
-  },
-});
-const model = computed({
-  get() {
-    return props.modelValue;
-  },
-  set(newModel) {
-    emit('update:modelValue', newModel);
-  },
 });
 
-const identitiesForm = reactive({
+// TODO: move this to identities config
+const identitiesForm = {
   github: {
-    label: 'GitHub',
-    enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'github')
-      || false,
     urlPrefix: 'github.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200',
   },
   linkedin: {
-    label: 'LinkedIn',
-    enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'linkedin')
-      || false,
     urlPrefix: 'linkedin.com/company/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--linkedin',
   },
   twitter: {
-    label: 'X/Twitter',
-    enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'twitter')
-      || false,
     urlPrefix: 'twitter.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter',
   },
   crunchbase: {
-    label: 'Crunchbase',
-    enabled:
-      props.modelValue.identities?.some((el) => el.platform === 'crunchbase')
-      || false,
     urlPrefix: 'crunchbase.com/organization/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base platform-logo--crunchbase',
   },
-});
+};
+
+const model = ref([]);
+
+watch(
+  props.modelValue,
+  (organization, previous) => {
+    if (!previous) {
+      const identities = organization.identities.map((i) => ({
+        ...i,
+        username: i.url ? i.url.split('/').at(-1) : '',
+      }));
+      const platforms = [...new Set(organization.identities.map((i) => i.platform))];
+      const noIdentity = Object.keys(identitiesForm)
+        .filter((platform) => !platforms.includes(platform))
+        .map((platform) => (reactive({
+          name: '',
+          platform,
+          url: null,
+          username: '',
+        })));
+
+      model.value = [
+        ...identities,
+        ...noIdentity,
+      ];
+    }
+  },
+  { deep: true, immediate: true },
+);
+
+watch(
+  model,
+  (value) => {
+    // Parse username object
+    const identities = value
+      .filter((i) => !Object.keys(identitiesForm).includes(i.platform) || !!i.username?.trim().length)
+      .map((i) => ({
+        ...i,
+        name: i.username || i.name,
+        url: i.username?.length ? `https://${identitiesForm[i.platform]?.urlPrefix}${i.username}` : null,
+      }));
+
+    // Emit updated member
+    emit('update:modelValue', {
+      ...props.modelValue,
+      identities,
+    });
+  },
+  { deep: true },
+);
 
 function findPlatform(platform) {
   return CrowdIntegrations.getConfig(platform);
 }
 
-function onInputChange(newValue, key, value, index) {
-  model.value.identities[index] = {
-    ...props.modelValue.identities[index],
-    name: newValue,
-    url: newValue.length ? `https://${value.urlPrefix}${newValue}` : null,
-  };
-}
-
-function platformInIdentities(platform) {
-  return props.modelValue.identities.filter((i) => i.platform === platform);
-}
-
-function onSwitchChange(value, key) {
-  // Add platform to identities array
-  if (
-    (platformInIdentities(key).length === 0)
-    && value
-  ) {
-    model.value.identities.push({
-      name: '',
-      platform: key,
-    });
-    return;
-  }
-
-  // Remove platform from identities array
-  if (!value) {
-    model.value.identities = model.value.identities.filter((i) => i.platform !== key);
-  }
+function editingDisabled(platform) {
+  return model.value.filter((i) => i.platform === platform).length < 2;
 }
 
 const removeUsername = (index) => {
-  const element = model.value.identities[index];
-  model.value.identities.splice(index, 1);
-
-  if (platformInIdentities(element.platform).length === 0) {
-    identitiesForm[element.platform].enabled = false;
+  if (model.value.length > 1) {
+    model.value.splice(index, 1);
+  } else if (model.value.length > 0) {
+    model.value[0] = '';
   }
 };
-
 </script>
 
-<style lang="scss">
-.organization-identities-form {
-  .platform {
-    @apply flex items-center justify-between w-full mb-3 text-sm flex-wrap gap-2;
-    &-logo {
-      @apply h-8 w-8 rounded flex items-center justify-center text-base;
-      &--github {
-        @apply bg-gray-100 border border-gray-200;
-      }
-
-      &--twitter {
-        background: rgba(29, 155, 240, 0.15);
-      }
-
-      &--crunchbase {
-        background: rgba(20, 106, 255, 0.15);
-      }
-
-      &--linkedin {
-        @apply bg-white border border-gray-200;
-      }
-
-      &--email {
-        @apply leading-none cursor-pointer bg-white text-gray-600 border border-gray-200;
-      }
-    }
-  }
-}
-</style>
+<script>
+export default {
+  name: 'AppOrganizationFormIdentities',
+};
+</script>

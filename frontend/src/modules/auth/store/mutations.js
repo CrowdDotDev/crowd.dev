@@ -1,5 +1,7 @@
 import formbricks, { setupFormbricks } from '@/plugins/formbricks';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { isTrialExpired } from '@/utils/date';
+import config from '@/config';
 
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {
@@ -18,6 +20,14 @@ export default {
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
+    if (state.currentTenant && isTrialExpired(state.currentTenant)) {
+      if (!window.location.href.includes('/onboard/plans')
+        && !window.location.href.includes('/onboard/payment')
+        && !window.location.href.includes('/auth/verify-email')) {
+        window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
+      }
+      return;
+    }
     state.loading = false;
 
     if (state.currentUser) {
@@ -111,6 +121,14 @@ export default {
     state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
       payload.currentUser,
     );
+    if (state.currentTenant && isTrialExpired(state.currentTenant)) {
+      if (!window.location.href.includes('/onboard/plans')
+        && !window.location.href.includes('/onboard/payment')
+        && !window.location.href.includes('/auth/verify-email')) {
+        window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
+      }
+      return;
+    }
     if (state.currentUser) {
       // initialize Formbricks
       setupFormbricks(state.currentUser);

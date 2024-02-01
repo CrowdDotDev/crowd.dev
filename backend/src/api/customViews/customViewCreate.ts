@@ -23,7 +23,7 @@ export default async (req, res) => {
 
   const payload = await new CustomViewService(req).create(req.body)
 
-  track('Custom view Manually Created', { ...payload }, { ...req })
+  track('Custom view Manually Created', { ...req.body }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

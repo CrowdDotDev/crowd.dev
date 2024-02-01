@@ -1,4 +1,4 @@
-import { PlatformType } from '@crowd/types'
+import { PlatformType, TenantPlans } from '@crowd/types'
 import { Error403 } from '@crowd/common'
 import SequelizeTestUtils from '../../../database/utils/sequelizeTestUtils'
 import Plans from '../../../security/plans'
@@ -18,8 +18,11 @@ describe('PermissionChecker tests', () => {
 
   describe('Integration protected fields', () => {
     it('Should throw an error when limitCount is passed', async () => {
-      for (const plan of Object.values(Plans.values)) {
-        const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
+      for (const plan of Object.values(TenantPlans)) {
+        const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
+          db,
+          plan as TenantPlans,
+        )
         const permissionChecker = new PermissionChecker(mockIServiceOptions)
         const data = {
           limitCount: 1,
@@ -33,8 +36,11 @@ describe('PermissionChecker tests', () => {
     })
 
     it('Should throw an error when limitCount is passed as 0', async () => {
-      for (const plan of Object.values(Plans.values)) {
-        const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
+      for (const plan of Object.values(TenantPlans)) {
+        const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
+          db,
+          plan as TenantPlans,
+        )
         const permissionChecker = new PermissionChecker(mockIServiceOptions)
         const data = {
           limitCount: 0,

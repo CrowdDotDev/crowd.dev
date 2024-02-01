@@ -1,5 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { store } from '@/store';
+import moment from 'moment';
 
 export class ActivityService {
   static async update(id, data) {
@@ -20,12 +22,9 @@ export class ActivityService {
 
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.delete(
-      `/tenant/${tenantId}/activity`,
-      {
-        params,
-      },
-    );
+    const response = await authAxios.delete(`/tenant/${tenantId}/activity`, {
+      params,
+    });
 
     return response.data;
   }
@@ -41,17 +40,21 @@ export class ActivityService {
     return response.data;
   }
 
-  static async query(
-    body,
-  ) {
+  static async query(body, countOnly = false) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const currentTenant = store.getters['auth/currentTenant'];
 
+    const isTenantNew = moment(currentTenant.createdAt).add(1, 'months').isAfter(moment());
+
+    // If tenant is less than a month old, use old query
+    // Else use new query
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity/query`,
-      body,
+      { ...body, countOnly },
       {
         headers: {
+          ...(isTenantNew ? {} : { 'x-crowd-api-version': '1' }),
           Authorization: sampleTenant?.token,
         },
       },
@@ -64,14 +67,11 @@ export class ActivityService {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/activity/type`,
-      {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
+    const response = await authAxios.get(`/tenant/${tenantId}/activity/type`, {
+      headers: {
+        Authorization: sampleTenant?.token,
       },
-    );
+    });
 
     return response.data;
   }

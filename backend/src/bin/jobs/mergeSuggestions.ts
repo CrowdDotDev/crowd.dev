@@ -1,23 +1,20 @@
+import { timeout, IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 import cronGenerator from 'cron-time-generator'
-import { timeout } from '@crowd/common'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import TenantService from '../../services/tenantService'
 import { CrowdJob } from '../../types/jobTypes'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
-import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 
 const job: CrowdJob = {
   name: 'Merge suggestions',
   // every 12 hours
-  cronTime: cronGenerator.every(12).hours(),
+  cronTime:
+    IS_DEV_ENV || IS_TEST_ENV ? cronGenerator.every(2).minutes() : cronGenerator.every(12).hours(),
   onTrigger: async () => {
     const tenants = await TenantService._findAndCountAllForEveryUser({})
+    const emitter = await getNodejsWorkerEmitter()
+
     for (const tenant of tenants.rows) {
-      await sendNodeWorkerMessage(tenant.id, {
-        type: NodeWorkerMessageType.NODE_MICROSERVICE,
-        tenant: tenant.id,
-        service: 'merge-suggestions',
-      } as NodeWorkerMessageBase)
+      await emitter.mergeSuggestions(tenant.id)
 
       await timeout(300)
     }

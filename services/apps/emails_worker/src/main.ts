@@ -38,6 +38,9 @@ const options: Options = {
   postgres: {
     enabled: true,
   },
+  opensearch: {
+    enabled: false,
+  },
 }
 
 export const svc = new ServiceWorker(config, options)

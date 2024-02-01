@@ -25,28 +25,26 @@
               New activities
             </h6>
             <app-dashboard-count
-              :loading="activities.loading"
-              :query="activitiesCount"
+              :loading="!cube"
+              :current-total="cube?.activity.total"
+              :previous-total="cube?.activity.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <div
-              v-if="activities.loading"
-              v-loading="activities.loading"
+              v-if="!cube"
+              v-loading="!cube"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             />
 
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets"
-              :query="activitiesChart"
+              :data="cube?.activity.timeseries"
             />
           </div>
         </div>
         <div class="pt-10">
-          <h6 class="text-sm leading-5 font-semibold mb-4">
-            Overall sentiment
-          </h6>
           <app-dashboard-activity-sentiment />
         </div>
       </section>
@@ -61,14 +59,14 @@
     <div class="dashboard-tabs">
       <el-tabs v-model="tab">
         <el-tab-pane
-          label="Trending conversations"
-          name="trending"
+          label="Recent conversations"
+          name="recentConversations"
         >
           <app-dashboard-conversation-list />
         </el-tab-pane>
         <el-tab-pane
           label="Recent activities"
-          name="recent"
+          name="recentActivities"
         >
           <app-dashboard-activity-list />
         </el-tab-pane>
@@ -77,14 +75,8 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-import {
-  activitiesChart,
-  activitiesCount,
-} from '@/modules/dashboard/dashboard.cube';
+<script lang="ts" setup>
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
@@ -92,49 +84,38 @@ import AppDashboardActivityList from '@/modules/dashboard/components/activity/da
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import { computed, ref } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 
+const {
+  cubeData, activities,
+} = mapGetters('dashboard');
+
+const cube = computed<DashboardCubeData>(() => cubeData.value);
+
+const tab = ref('recentConversations');
+
+const datasets = [{
+  name: 'new activities',
+  borderColor: '#E94F2E',
+  measure: 'Activities.count',
+  granularity: 'day',
+}];
+
+const allActivitiesFilter = ({
+  search: '',
+  relation: 'and',
+  order: {
+    prop: 'timestamp',
+    order: 'descending',
+  },
+});
+</script>
+
+<script lang="ts">
 export default {
   name: 'AppDashboardActivities',
-  components: {
-    AppDashboardWidgetChart,
-    AppDashboardWidgetHeader,
-    AppDashboardActivityTypes,
-    AppDashboardCount,
-    AppDashboardActivitySentiment,
-    AppDashboardActivityList,
-    AppDashboardConversationList,
-  },
-  data() {
-    return {
-      tab: 'trending',
-      activitiesChart,
-      activitiesCount,
-      filterQueryService,
-    };
-  },
-  computed: {
-    ...mapGetters('dashboard', ['activities']),
-    datasets() {
-      return [
-        {
-          name: 'new activities',
-          borderColor: '#E94F2E',
-          measure: 'Activities.count',
-          granularity: DAILY_GRANULARITY_FILTER.value,
-        },
-      ];
-    },
-    allActivitiesFilter() {
-      return {
-        search: '',
-        relation: 'and',
-        order: {
-          prop: 'timestamp',
-          order: 'descending',
-        },
-      };
-    },
-  },
 };
 </script>
 

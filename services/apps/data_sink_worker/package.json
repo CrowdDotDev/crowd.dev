@@ -18,6 +18,7 @@
     "script:restart-result": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/restart-result.ts",
     "script:process-results": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/process-results.ts",
     "script:map-tenant-members-to-org": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/map-tenant-members-to-org.ts",
+    "script:fix-org-cache-identities-duplicates": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/fix-org-cache-identities-duplicates.ts",
     "script:map-member-to-org": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/map-member-to-org.ts"
   },
   "dependencies": {
@@ -34,6 +35,7 @@
     "@crowd/types": "file:../../libs/types",
     "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/temporal": "file:../../libs/temporal",
+    "@crowd/common_services": "file:../../libs/common_services",
     "@crowd/telemetry": "file:../../libs/telemetry",
     "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
@@ -42,6 +44,8 @@
     "lodash.isequal": "^4.5.0",
     "lodash.mergewith": "^4.6.2",
     "lodash.uniqby": "^4.7.0",
+    "moment": "2.29.4",
+    "moment-timezone": "^0.5.34",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4"

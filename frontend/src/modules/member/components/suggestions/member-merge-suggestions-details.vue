@@ -26,7 +26,13 @@
       <!-- primary member -->
       <div class="h-13 flex justify-between items-start">
         <div
-          v-if="props.isPrimary"
+          v-if="props.isPreview"
+          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+        >
+          Preview
+        </div>
+        <div
+          v-else-if="props.isPrimary"
           class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
         >
           Primary contact
@@ -43,23 +49,51 @@
         </button>
         <slot name="action" />
       </div>
-      <app-avatar :entity="member" class="mb-3" />
-      <div class="pb-4">
+      <router-link
+        v-if="!isPreview"
+        :to="{
+          name: 'memberView',
+          params: {
+            id: member.id,
+          },
+        }"
+        target="_blank"
+      >
+        <app-avatar :entity="member" class="mb-3" />
+      </router-link>
+      <app-avatar v-else :entity="member" class="mb-3" />
+      <div class="pb-6">
+        <router-link
+          v-if="!isPreview"
+          :to="{
+            name: 'memberView',
+            params: {
+              id: member.id,
+            },
+          }"
+          target="_blank"
+        >
+          <h6
+            class="text-base text-black hover:text-brand-500 font-semibold leading-6"
+            v-html="$sanitize(member.displayName)"
+          />
+        </router-link>
         <h6
-          class="text-base text-black font-semibold"
+          v-else
+          class="text-base text-black font-semibold leading-6"
           v-html="$sanitize(member.displayName)"
         />
         <div
           v-if="member.attributes.bio?.default"
           ref="bio"
-          class="text-gray-600 leading-5 !text-xs merge-member-bio"
+          class="text-gray-600 leading-5 !text-xs merge-member-bio mt-2"
           :class="{ 'line-clamp-2': !more }"
           v-html="$sanitize(member.attributes.bio.default)"
         />
         <div
           v-else-if="compareMember?.attributes.bio?.default"
           ref="bio"
-          class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2"
+          class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2 mt-2"
           v-html="$sanitize(compareMember?.attributes.bio.default)"
         />
 
@@ -74,10 +108,8 @@
       </div>
 
       <div>
-        <article
-          class="flex items-center justify-between h-12 border-b border-gray-200"
-        >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+        <article class="pb-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Engagement level
           </p>
           <app-community-engagement-level :member="member" />
@@ -87,12 +119,12 @@
             member.attributes.location?.default
               || compareMember?.attributes.location?.default
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Location
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ member.attributes.location?.default || '-' }}
           </p>
         </article>
@@ -100,43 +132,45 @@
           v-if="
             member.organizations.length || compareMember?.organizations.length
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Organization
           </p>
-          <app-member-organizations :member="member" :show-title="false" />
+          <div>
+            <app-member-organizations :member="member" :show-title="false" />
+          </div>
         </article>
         <article
           v-if="
             member.attributes.jobTitle?.default
               || compareMember?.attributes.jobTitle?.default
           "
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Title
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ member.attributes.jobTitle?.default || '-' }}
           </p>
         </article>
         <article
           v-if="member.joinedAt || compareMember?.joinedAt"
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Contact since
           </p>
-          <p class="text-xs text-gray-900 text-right">
+          <p class="text-xs text-gray-900 whitespace-normal">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
           </p>
         </article>
         <article
           v-if="member.tags.length > 0 || compareMember?.tags.length > 0"
-          class="flex items-center justify-between h-12 border-b border-gray-200"
+          class="pb-4"
         >
-          <p class="text-2xs font-medium text-gray-500 pr-4">
+          <p class="text-2xs font-medium text-gray-500 pb-1">
             Tags
           </p>
           <app-tags
@@ -148,70 +182,15 @@
           <span v-else>-</span>
         </article>
       </div>
-      <div class="pt-5">
-        <div
-          v-for="(usernameHandles, platform) in member.username"
-          :key="platform"
-        >
-          <a
-            v-for="handle in usernameHandles"
-            :key="handle"
-            :href="identityUrl(platform, handle, member.attributes)"
-            class="pb-2 pt-3 flex items-center text-gray-900 hover:text-gray-900"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              v-if="platformDetails(platform)"
-              :src="platformDetails(platform).image"
-              class="h-5 w-5 mr-4"
-              :alt="platform"
-            >
-            <el-tooltip v-else :content="platform" placement="top">
-              <i class="ri-user-3-fill text-gray-500 text-lg mr-4" />
-            </el-tooltip>
-            <div
-              v-if="
-                platform === 'linkedin'
-                  && handle.includes(
-                    'private-',
-                  )
-              "
-              class="text-gray-900 text-xs"
-            >
-              *********
-              <el-tooltip
-                placement="top"
-                content="Private profile"
-              >
-                <i
-                  class="ri-lock-line text-gray-400 ml-2"
-                />
-              </el-tooltip>
-            </div>
-            <span
-              v-else
-              class="text-xs leading-5"
-              :class="{ 'underline hover:text-brand-500': identityUrl(platform, handle, member.attributes) }"
-              v-html="$sanitize(handle)"
-            />
-          </a>
-        </div>
-        <a
-          v-for="email of member.emails?.filter((e) => e && e.length)"
-          :key="email"
-          :href="`mailto:${email}`"
-          class="pb-2 pt-3 flex items-center text-gray-900"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span
-            class="ri-mail-line text-lg text-gray-600 mr-4 h-5 flex items-center"
-          />
-          <span class="text-xs leading-5 underline hover:text-brand-500">{{
-            email
-          }}</span>
-        </a>
+      <div class="pt-4">
+        <h6 class="text-sm font-semibold pb-3">
+          Identities
+        </h6>
+        <app-identities-vertical-list-members
+          :member="member"
+          :order="memberOrder.suggestions"
+          :include-emails="true"
+        />
       </div>
     </div>
   </section>
@@ -227,9 +206,10 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
+import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 
 const props = defineProps({
   member: {
@@ -242,6 +222,11 @@ const props = defineProps({
     default: () => null,
   },
   isPrimary: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isPreview: {
     type: Boolean,
     required: false,
     default: false,
@@ -270,15 +255,6 @@ const isEditLockedForSampleData = computed(
 const bio = ref(null);
 const displayShowMore = ref(null);
 const more = ref(null);
-
-const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
-const identityUrl = (platform, username, attributes) => {
-  if (platform === 'discord' || platform === 'slack') {
-    return null;
-  }
-
-  return CrowdIntegrations.getConfig(platform)?.url({ username, attributes });
-};
 
 onMounted(() => {
   setTimeout(() => {

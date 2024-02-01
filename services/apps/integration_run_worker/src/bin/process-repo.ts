@@ -1,8 +1,8 @@
-import { DB_CONFIG, SQS_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { IntegrationRunWorkerEmitter, getSqsClient } from '@crowd/sqs'
+import { getSqsClient } from '@crowd/sqs'
 import IntegrationRunRepository from '../repo/integrationRun.repo'
 import { IntegrationState } from '@crowd/types'
 import {
@@ -10,6 +10,13 @@ import {
   GithubManualIntegrationSettings,
   GithubManualStreamType,
 } from '@crowd/integrations'
+import {
+  IntegrationRunWorkerEmitter,
+  PriorityLevelContextRepository,
+  QueuePriorityContextLoader,
+} from '@crowd/common_services'
+import { getUnleashClient } from '@crowd/feature-flags'
+import { getRedisClient } from '@crowd/redis'
 
 const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
   switch (stream) {
@@ -34,13 +41,16 @@ const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
 // example call
 // pnpm run script:process-repo 5f8b1a3a-0b0a-4c0a-8b0a-4c0a8b0a4c0a  CrowdDotDev/crowd.dev stars
 
+// example call for all repos
+// pnpm run script:process-repo 5f8b1a3a-0b0a-4c0a-8b0a-4c0a8b0a4c0a all forks -- this will trigger forks streams for all repos in settings
+
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
 const integrationId = processArguments[0]
-const repoFullName = processArguments[1] // it should be in format of owner/repo
+const repoFullNames = processArguments[1] ? processArguments[1].split(',') : [] // it should be in format of owner/repo
 
 // this is optional, if not provided we will trigger all streams
 // if provided we will trigger only this stream type
@@ -48,16 +58,14 @@ const repoFullName = processArguments[1] // it should be in format of owner/repo
 const streamString = processArguments.length > 2 ? processArguments[2] : null
 const streamType = streamString ? mapStreamTypeToEnum(streamString) : GithubManualStreamType.ALL
 
-const repoURL = `https://github.com/${repoFullName}`
-
 setImmediate(async () => {
   if (!integrationId) {
     log.error(`Integration id is required!`)
     process.exit(1)
   }
 
-  if (!repoFullName) {
-    log.error(`Repo full name is required!`)
+  if (!repoFullNames.length) {
+    log.error(`At least one repo full name is required!`)
     process.exit(1)
   }
 
@@ -66,12 +74,18 @@ setImmediate(async () => {
     process.exit(1)
   }
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, tracer, log)
-  await emitter.init()
-
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+  const unleash = await getUnleashClient(UNLEASH_CONFIG())
+  const redis = await getRedisClient(REDIS_CONFIG())
+
+  const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    priorityLevelRepo.loadPriorityLevelContext(tenantId)
+
+  const sqsClient = getSqsClient(SQS_CONFIG())
+  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  await emitter.init()
 
   const repo = new IntegrationRunRepository(store, log)
 
@@ -100,16 +114,28 @@ setImmediate(async () => {
       integrationId,
     )) as GithubIntegrationSettings
 
-    // let's check if requested repo exists in current settings
-    const repoExists = currentSettings.repos.find((r) => r.url === repoURL)
+    let repos = []
+    if (repoFullNames[0] === 'all' && currentSettings.repos) {
+      repos = currentSettings.repos
+    } else {
+      for (const repoFullName of repoFullNames) {
+        const repoURL = `https://github.com/${repoFullName}`
+        const repoExists = currentSettings.repos.find((r) => r.url === repoURL)
+        if (!repoExists) {
+          log.error(`Repo ${repoURL} is not configured in integration settings, skipping!`)
+          continue
+        }
+        repos.push(repoExists)
+      }
+    }
 
-    if (!repoExists) {
-      log.error(`Repo ${repoURL} is not configured in integration settings, skiping!`)
+    if (!repos.length) {
+      log.error(`No valid repos found, exiting!`)
       process.exit(1)
     }
 
     const settings: GithubManualIntegrationSettings = {
-      repos: [repoExists],
+      repos,
       unavailableRepos: [],
       streamType,
     }

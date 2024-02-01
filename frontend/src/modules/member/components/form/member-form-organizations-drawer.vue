@@ -5,23 +5,24 @@
     size="480px"
   >
     <template #content>
-      <div class="border-t border-gray-200 p-6 -mx-6 -mt-5">
+      <div class="border-t border-gray-200 px-6 py-5 -mx-6 -mt-5">
         <article v-for="(organization, oi) in organizations" :key="organization.id" class="flex items-center justify-between w-full pb-5">
           <div class="flex">
-            <div class="h-6 w-6 border border-gray-200 rounded flex items-center justify-center mr-2.5">
+            <div class="h-8 w-8 border border-gray-200 rounded flex items-center justify-center mr-3">
               <app-avatar
                 :entity="{
                   displayName: organization.displayName || organization.name,
                   avatar: organization.logo,
                 }"
-                size="xxxs"
+                size="xs"
+                class="scale-75"
               />
             </div>
             <div>
-              <h6 class="text-xs leading-5 font-medium">
+              <h6 class="text-sm leading-5 font-medium mb-1">
                 {{ organization.displayName || organization.name }}
               </h6>
-              <p class="text-2xs leading-5 text-gray-500">
+              <p class="text-xs leading-5 text-gray-500">
                 <span v-if="organization.memberOrganizations.title">{{ organization.memberOrganizations.title }}</span>
                 <span v-if="organization.memberOrganizations.title" class="mx-1">•</span>
                 <span>
@@ -48,8 +49,8 @@
             </div>
           </div>
         </article>
-        <div class="flex justify-start pt-5">
-          <el-button class="btn btn-link btn-link--primary" @click="isOrganizationFormModalOpen = true">
+        <div class="flex justify-start">
+          <el-button class="btn btn-link btn-link--primary text-xs" @click="isOrganizationFormModalOpen = true">
             + Add organization
           </el-button>
         </div>
@@ -121,6 +122,10 @@ const save = () => {
           source: 'ui',
         }),
       ),
+    },
+    messageOptions: {
+      title: 'Contact\'s organizations were updated successfully',
+      message: 'Activities will soon be affiliated to organizations in the background.',
     },
   });
 };

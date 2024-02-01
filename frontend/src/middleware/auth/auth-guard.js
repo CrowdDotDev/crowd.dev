@@ -1,6 +1,7 @@
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import config from '@/config';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import { isTrialExpired } from '@/utils/date';
 
 function isGoingToIntegrationsPage(to) {
   return to.name === 'integration';
@@ -50,6 +51,19 @@ export default async function ({
     return;
   }
 
+  if (!currentUser.acceptedTermsAndPrivacy) {
+    router.push({ path: '/auth/terms-and-privacy' });
+    return;
+  }
+
+  if (store.getters['auth/currentTenant'] && isTrialExpired(store.getters['auth/currentTenant'])) {
+    if (!window.location.href.includes('/onboard/plans')
+      && !window.location.href.includes('/onboard/payment')) {
+      window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}/onboard/plans`;
+    }
+    return;
+  }
+
   // Temporary fix
   if (
     to.meta.permission
@@ -59,11 +73,6 @@ export default async function ({
       ))
   ) {
     router.push('/403');
-    return;
-  }
-
-  if (!currentUser.acceptedTermsAndPrivacy) {
-    router.push({ path: '/auth/terms-and-privacy' });
     return;
   }
 

@@ -15,20 +15,20 @@ import {
   PlatformType,
   OrganizationSource,
   IOrganizationIdSource,
-  FeatureFlag,
   TemporalWorkflowId,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
+import moment from 'moment-timezone'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/sqs'
 import IntegrationRepository from '../repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
-import { Unleash, isFeatureEnabled } from '@crowd/feature-flags'
+import { Unleash } from '@crowd/feature-flags'
 import { TEMPORAL_CONFIG } from '../conf'
 import { RedisClient } from '@crowd/redis'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 
 export default class MemberService extends LoggerBase {
   constructor(
@@ -45,6 +45,7 @@ export default class MemberService extends LoggerBase {
 
   public async create(
     tenantId: string,
+    onboarding: boolean,
     segmentId: string,
     integrationId: string,
     data: IMemberCreateData,
@@ -129,20 +130,7 @@ export default class MemberService extends LoggerBase {
         }
       })
 
-      if (
-        await isFeatureEnabled(
-          FeatureFlag.TEMPORAL_AUTOMATIONS,
-          async () => {
-            return {
-              tenantId,
-            }
-          },
-          this.unleash,
-          this.redisClient,
-          60,
-          tenantId,
-        )
-      ) {
+      try {
         const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
           workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${id}`,
           taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
@@ -157,21 +145,29 @@ export default class MemberService extends LoggerBase {
               memberId: id,
             },
           ],
+          searchAttributes: {
+            TenantId: [tenantId],
+          },
         })
+
         this.log.info(
           { workflowId: handle.workflowId },
           'Started temporal workflow to process new member automation!',
         )
-      } else {
-        await this.nodejsWorkerEmitter.processAutomationForNewMember(tenantId, id)
+      } catch (err) {
+        this.log.error(
+          err,
+          'Error while starting temporal workflow to process new member automation!',
+        )
+        throw err
       }
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
       }
 
       return id
@@ -184,6 +180,7 @@ export default class MemberService extends LoggerBase {
   public async update(
     id: string,
     tenantId: string,
+    onboarding: boolean,
     segmentId: string,
     integrationId: string,
     data: IMemberUpdateData,
@@ -290,11 +287,11 @@ export default class MemberService extends LoggerBase {
       })
 
       if (updated && fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
@@ -416,6 +413,7 @@ export default class MemberService extends LoggerBase {
           await txService.update(
             dbMember.id,
             tenantId,
+            false,
             segmentId,
             integrationId,
             {
@@ -486,6 +484,7 @@ export default class MemberService extends LoggerBase {
           await txService.update(
             dbMember.id,
             tenantId,
+            false,
             segmentId,
             integrationId,
             {
@@ -557,6 +556,15 @@ export default class MemberService extends LoggerBase {
     if (member.joinedAt) {
       const newDate = member.joinedAt
       const oldDate = new Date(dbMember.joinedAt)
+      // If either the new or the old date are earlier than 1970
+      // it means they come from an activity without timestamp
+      // and we want to keep the other one
+      if (moment(oldDate).subtract(5, 'days').unix() < 0) {
+        joinedAt = newDate.toISOString()
+      }
+      if (moment(newDate).unix() < 0) {
+        joinedAt = undefined
+      }
 
       if (oldDate <= newDate) {
         // we already have the oldest date in the db, so we don't need to update it
