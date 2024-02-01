@@ -44,6 +44,13 @@
     v-if="isMergeDialogOpen"
     v-model="isMergeDialogOpen"
   />
+  <app-member-merge-suggestions-dialog
+    v-if="isMergeSuggestionsDialogOpen"
+    v-model="isMergeSuggestionsDialogOpen"
+    :query="{
+      memberId: props.member?.id,
+    }"
+  />
 </template>
 
 <script setup>
@@ -57,6 +64,7 @@ import { useRouter } from 'vue-router';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { MemberService } from '@/modules/member/member-service';
+import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 
 const props = defineProps({
   member: {
@@ -69,6 +77,7 @@ const router = useRouter();
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const isMergeDialogOpen = ref(null);
+const isMergeSuggestionsDialogOpen = ref(false);
 const isFindGithubDrawerOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
 
@@ -101,12 +110,7 @@ const mergeSuggestions = () => {
   if (isEditLockedForSampleData.value) {
     return;
   }
-  router.push({
-    name: 'memberMergeSuggestions',
-    query: {
-      memberId: props.member.id,
-    },
-  });
+  isMergeSuggestionsDialogOpen.value = true;
 };
 
 const merge = () => {

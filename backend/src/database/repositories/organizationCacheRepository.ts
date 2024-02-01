@@ -73,7 +73,13 @@ class OrganizationCacheRepository {
     )
 
     await seq.query(
-      `insert into "organizationCacheIdentities"(id, name, website) values(:id, :name, :website)`,
+      `
+      insert into "organizationCacheIdentities"(id, name, website) values(:id, :name, :website)
+      on conflict (name)
+      do update
+      set website = coalesce("organizationCacheIdentities".website, EXCLUDED.website)
+      where "organizationCacheIdentities".website is null;
+      `,
       {
         replacements: {
           id: record.id,
@@ -151,7 +157,13 @@ class OrganizationCacheRepository {
 
     if (nameToCreateIdentity) {
       await seq.query(
-        `insert into "organizationCacheIdentities" (id, name, website) values (:id, :name, :website)`,
+        `
+        insert into "organizationCacheIdentities" (id, name, website) values (:id, :name, :website)
+        on conflict (name)
+        do update
+        set website = coalesce("organizationCacheIdentities".website, EXCLUDED.website)
+        where "organizationCacheIdentities".website is null;
+        `,
         {
           replacements: {
             id,

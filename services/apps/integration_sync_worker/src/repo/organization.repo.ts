@@ -223,7 +223,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         and coalesce((org.attributes -> 'syncRemote' -> '${platform}')::boolean, false) = false 
         and org."tenantId" = $(tenantId)
         and ${filterString}
-        order by org.name desc
+        order by org.id desc
         limit $(limit) offset $(offset);
     `
 

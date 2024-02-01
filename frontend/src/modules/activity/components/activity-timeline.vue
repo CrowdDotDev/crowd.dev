@@ -244,7 +244,7 @@ const fetchActivities = async (reload = false) => {
   }
 
   const filterToApply = {
-    platform: platform.value ?? undefined,
+    platform: platform.value ? { eq: platform.value } : undefined,
   };
 
   if (props.entityType === 'member') {

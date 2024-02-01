@@ -6,7 +6,7 @@
     >
       <div v-if="value.length">
         <div
-          class="flex gap-3 items-start relative min-h-5"
+          class="flex gap-3 items-start relative min-h-4"
           :class="{
             [`px-${xPadding}`]: !!xPadding,
           }"
@@ -15,6 +15,7 @@
             :platform="platform"
             :as-link="false"
             size="large"
+            class="mt-1"
             :show-platform-tooltip="true"
           />
 

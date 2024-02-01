@@ -311,7 +311,11 @@ export default {
           const formattedDate = moment(x).format(
             'MMM DD',
           );
-          x = x === '∅' ? 'not active' : x;
+
+          if (x === '∅') {
+            x = this.query.dimensions?.[0]?.includes('location') ? 'unknown' : 'not active';
+          }
+
           return [
             moment(x).isValid()
               && ((this.query.dimensions[0]
@@ -358,7 +362,11 @@ export default {
             const formattedDate = moment(x).format(
               this.getDateFormatForGranularity(granularity),
             );
-            x = x === '∅' ? 'not active' : x;
+
+            if (x === '∅') {
+              x = this.query.dimensions?.[0]?.includes('location') ? 'unknown' : 'not active';
+            }
+
             return [
               moment(x).isValid()
               && ((this.query.dimensions[0]
@@ -389,9 +397,12 @@ export default {
     tableData(resultSet) {
       // For tables
       return resultSet.tablePivot().map((r) => Object.keys(r).reduce((acc, item) => {
-        acc[i18n(`widget.cubejs.${item}`)] = r[item]
-          ? r[item]
-          : 'not active';
+        if (r[item]) {
+          acc[i18n(`widget.cubejs.${item}`)] = r[item];
+        } else {
+          acc[i18n(`widget.cubejs.${item}`)] = this.query.dimensions?.[0]?.includes('location') ? 'unknown' : 'not active';
+        }
+
         return acc;
       }, {}));
     },
@@ -422,10 +433,8 @@ export default {
       let dimension;
       if (label.split(',').length > 1) {
         [dimension] = label.split(',');
-      } else {
-        dimension = this.query.dimensions.length
-          ? 'not active'
-          : undefined;
+      } else if (this.query.dimensions.length) {
+        dimension = this.query.dimensions?.[0]?.includes('location') ? 'unknown' : 'not active';
       }
       const cube = dimension && dimension !== 'unknown'
         ? label.split(',')[1].split('.')[0]

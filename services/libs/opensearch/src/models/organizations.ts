@@ -133,7 +133,7 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     identities: {
       type: OpensearchFieldType.NESTED,
       customTranslation: {
-        toOpensearch: 'nested_identities.string_name',
+        toOpensearch: 'nested_identities.string_platform',
         fromOpensearch: 'nested_identities',
       },
     },

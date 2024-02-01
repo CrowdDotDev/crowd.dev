@@ -223,6 +223,7 @@ export class InitService {
         {
           id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',
           logo: 'https://placehold.co/400',
+          website: 'https://example.com',
           displayName: 'Test Organization',
           memberOrganizations: {
             title: 'blabla',

@@ -14,6 +14,7 @@ export enum CubeDimension {
   CONVERSATION_FIRST_ACTIVITY_TIME = 'Conversations.firstActivityTime',
   ORGANIZATIONS_JOINED_AT = 'Organizations.joinedAt',
   ORGANIZATIONS_JOINED_AT_DAY = 'Organizations.joinedAt.day',
+  ORGANIZATION_IDENTITIES_PLATFORM = 'OrganizationIdentities.platform',
   SEGMENTS_ID = 'Segments.id',
 }
 

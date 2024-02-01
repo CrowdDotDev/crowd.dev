@@ -36,7 +36,7 @@ export default async (
 
   if (filter.platform) {
     filters.push({
-      member: CubeDimension.ACTIVITY_PLATFORM,
+      member: CubeDimension.ORGANIZATION_IDENTITIES_PLATFORM,
       operator: 'equals',
       values: [filter.platform],
     })
