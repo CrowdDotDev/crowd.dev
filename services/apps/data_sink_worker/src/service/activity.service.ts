@@ -88,6 +88,8 @@ export default class ActivityService extends LoggerBase {
           channel: activity.channel,
           url: activity.url,
           organizationId: activity.organizationId,
+          objectMemberId: activity.objectMemberId,
+          objectMemberUsername: activity.objectMemberUsername,
         })
 
         return id
