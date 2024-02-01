@@ -4,6 +4,7 @@ import allContacts from './views/all-contacts';
 import bot from './settings/bot/config';
 import teamMember from './settings/teamMember/config';
 import organization from './settings/organization/config';
+import deleted from './settings/deleted/config';
 
 export const memberSavedViews: SavedViewsConfig = {
   defaultView: allContacts,
@@ -11,6 +12,7 @@ export const memberSavedViews: SavedViewsConfig = {
     teamMember,
     bot,
     organization,
+    deleted,
   },
   sorting: {
     displayName: 'Contact',

@@ -30,6 +30,7 @@ export async function getMergeSuggestions(
     svc.postgres.writer.connection(),
     svc.log,
   )
+
   const identitiesPartialQuery: any = {
     should: [
       {
@@ -43,6 +44,12 @@ export async function getMergeSuggestions(
       {
         term: {
           uuid_memberId: member.uuid_memberId,
+        },
+      },
+      {
+        // exclude deleted members
+        term: {
+          'obj_attributes.obj_isDeleted.bool_default': true,
         },
       },
     ],
@@ -224,7 +231,7 @@ export async function updateMemberMergeSuggestionsLastGeneratedAt(tenantId: stri
 
 export async function getMembers(
   tenantId: string,
-  batchSize: number = 100,
+  batchSize = 100,
   afterMemberId?: string,
   lastGeneratedAt?: string,
 ): Promise<IMemberPartialAggregatesOpensearch[]> {

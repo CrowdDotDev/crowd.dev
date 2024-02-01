@@ -1,18 +1,19 @@
 <template>
   <app-drawer
     v-model="drawerModel"
-    size="35%"
+    size="600px"
     title="Edit identities"
     custom-class="identities-drawer"
   >
     <template #content>
-      <el-form :model="memberModel">
+      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
         <app-member-form-identities
           v-model="memberModel"
           :record="member"
           :show-header="false"
+          @update:model-value="hasFormChanged = true"
         />
-      </el-form>
+      </div>
     </template>
     <template #footer>
       <div style="flex: auto">
@@ -24,7 +25,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="isSubmitBtnDisabled || loading"
+          :disabled="!hasFormChanged || loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -43,14 +44,10 @@ import {
   defineEmits,
   defineProps,
   computed,
-  reactive,
 } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
-import { MemberModel } from '@/modules/member/member-model';
-import { FormSchema } from '@/shared/form/form-schema';
-import isEqual from 'lodash/isEqual';
 import AppMemberFormIdentities from './form/member-form-identities.vue';
 
 const store = useStore();
@@ -75,20 +72,10 @@ const drawerModel = computed({
   },
 });
 
-const memberModel = reactive(cloneDeep(props.member));
+const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
 
-const { fields } = MemberModel;
-const formSchema = computed(
-  () => new FormSchema([
-    fields.username,
-  ]),
-);
-const isFormValid = computed(() => formSchema.value.isValidSync(memberModel));
-const hasFormChanged = computed(() => !isEqual(cloneDeep(props.member), memberModel));
-const isSubmitBtnDisabled = computed(
-  () => !isFormValid.value || !hasFormChanged.value,
-);
+const hasFormChanged = ref(false);
 
 const handleCancel = () => {
   emit('update:modelValue', false);
@@ -97,9 +84,13 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   MemberService.update(props.member.id, {
-    attributes: memberModel.attributes,
-    username: memberModel.username,
-    emails: memberModel.emails,
+    attributes: {
+      ...props.member.attributes,
+      ...memberModel.value.attributes,
+    },
+    username: memberModel.value.username,
+    platform: memberModel.value.platform,
+    identities: memberModel.value.identities,
   }).then(() => {
     store.dispatch('member/doFind', props.member.id).then(() => {
       Message.success('Contact identities updated successfully');

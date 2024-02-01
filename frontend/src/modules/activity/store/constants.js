@@ -6,5 +6,8 @@ export const DEFAULT_ACTIVITY_FILTERS = {
     isBot: {
       not: true,
     },
+    isDeleted: {
+      not: true,
+    },
   },
 };

@@ -4,6 +4,7 @@
 @tailwind utilities;
 
 /* You can add global styles to this file, and also import other style files */
+@import 'helpers';
 @import 'layout';
 @import 'typography';
 @import 'filter';
@@ -31,3 +32,6 @@
 @import 'form/input';
 @import 'form/checkbox';
 @import 'form/switch';
+
+@import '../../../config/styles';
+@import '../../shared/ui-kit';

@@ -4,6 +4,8 @@
       :content="platformName"
       placement="top"
       :disabled="!platformName || !showPlatformTooltip"
+      popper-class="-mb-2"
+      :hide-after="0"
     >
       <component
         :is="asLink ? 'a' : 'span'"

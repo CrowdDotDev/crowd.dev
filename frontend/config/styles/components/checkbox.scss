@@ -1,0 +1,54 @@
+:root {
+  /* ---------------------------------- *\
+           Checkbox style
+  \* ---------------------------------- */
+
+  // General style
+  --cr-checkbox-shadow: var(--shadow-s);
+  --cr-checkbox-border-radius: #{rem(4)};
+
+  // Text style
+  --cr-checkbox-text-font-weight: var(--font-medium);
+  --cr-checkbox-text-color: var(--color-gray-900);
+
+  // Description style
+  --cr-checkbox-description-font-size: #{rem(12)};
+  --cr-checkbox-description-line-height: #{rem(15)};
+  --cr-checkbox-description-font-weight: var(--font-normal);
+  --cr-checkbox-description-color: var(--color-gray-500);
+  --cr-checkbox-description-spacing: #{rem(4)};
+
+  // Unchecked
+  --cr-checkbox-unchecked-border: var(--color-gray-300);
+  --cr-checkbox-unchecked-background: var(--color-white);
+  --cr-checkbox-unchecked-icon: var(--color-white);
+
+  // Checked
+  --cr-checkbox-checked-border: var(--color-gray-900);
+  --cr-checkbox-checked-background: var(--color-gray-900);
+  --cr-checkbox-checked-icon: var(--color-white);
+
+  // Disabled Unchecked
+  --cr-checkbox-disabled-unchecked-border: var(--color-gray-200);
+  --cr-checkbox-disabled-unchecked-background: var(--color-white);
+  --cr-checkbox-disabled-unchecked-icon: var(--color-white);
+
+  // Disabled Checked
+  --cr-checkbox-disabled-checked-border: var(--color-gray-400);
+  --cr-checkbox-disabled-checked-background: var(--color-gray-400);
+  --cr-checkbox-disabled-checked-icon: var(--color-white);
+
+  /* ---------------------------------- *\
+           Checkbox sizes
+  \* ---------------------------------- */
+
+  /* Small */
+  --cr-checkbox-small-size: #{rem(14)};
+  --cr-checkbox-small-font-size: #{rem(13)};
+  --cr-checkbox-small-line-height: 1.25;
+
+  /* Medium */
+  --cr-checkbox-medium-size: #{rem(16)};
+  --cr-checkbox-medium-font-size: #{rem(14)};
+  --cr-checkbox-medium-line-height: 1.25;
+}

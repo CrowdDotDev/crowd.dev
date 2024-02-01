@@ -458,7 +458,8 @@ const en = {
       Members: {
         count: '[Contacts] Count',
         cumulativeCount: '[Contacts] Cumulative Count',
-        score: '[Contacts] Engagement Level',
+        score: '[Contacts] Engagement Level Score',
+        engagementLevel: '[Contacts] Engagement Level',
         location: '[Contacts] Location',
         organization: '[Contacts] Organization',
         joinedAt: '[Contacts] Joined Date',

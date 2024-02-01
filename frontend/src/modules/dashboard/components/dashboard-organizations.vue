@@ -211,7 +211,7 @@ const cube = computed<DashboardCubeData>(() => cubeData.value);
 const periodRange = computed(() => [
   moment()
     .utc()
-    .subtract(period.value - 1, 'day')
+    .subtract(period.value.value - 1, 'day')
     .format('YYYY-MM-DD'),
   moment()
     .utc()

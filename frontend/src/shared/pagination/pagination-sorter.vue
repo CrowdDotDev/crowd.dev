@@ -188,6 +188,7 @@ const doExport = async () => {
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
+      badgeContent: pluralize('contact', props.total, true),
     });
 
     await props.export();
