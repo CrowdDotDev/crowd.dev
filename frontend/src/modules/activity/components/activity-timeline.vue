@@ -156,7 +156,8 @@
           <p
             class="text-xs leading-5 text-center italic text-gray-400"
           >
-            This {{ entityType === 'member' ? 'contact' : 'organization' }} has no activities in {{ getPlatformDetails(platform)?.name || 'custom platforms' }}
+            This {{ entityType === 'member'
+              ? 'contact' : 'organization' }} has no activities in {{ getPlatformDetails(platform)?.name || 'custom platforms' }}
           </p>
         </div>
       </el-timeline>

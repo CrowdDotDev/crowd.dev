@@ -20,7 +20,8 @@
       </div>
       <div class="max-w-full">
         <p
-          class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
+          class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed
+          decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
         >
           {{ organization.displayName || organization.name || "-" }}
         </p>
@@ -58,7 +59,8 @@
           </div>
           <div class="max-w-full">
             <p
-              class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-2 decoration-dashed decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
+              class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-2
+              decoration-dashed decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
             >
               {{ organization.displayName || organization.name || "-" }}
             </p>
