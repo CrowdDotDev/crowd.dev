@@ -33,7 +33,7 @@
         <template #default="{ identities }">
           <app-aside-identities-extra
             :emails="identities.getEmails()"
-            @open-drawer="emit('edit')"
+            @edit="emit('editEmail')"
           />
         </template>
       </app-identities-vertical-list-members>
@@ -56,7 +56,7 @@ defineProps<{
   member: Member
 }>();
 
-const emit = defineEmits(['edit']);
+const emit = defineEmits(['edit', 'editEmail']);
 
 const { currentTenant, currentUser } = mapGetters('auth');
 

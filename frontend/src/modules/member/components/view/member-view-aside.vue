@@ -2,7 +2,11 @@
   <div class="flex flex-col gap-6">
     <app-member-aside-enrichment :member="member" @edit="identitiesDrawer = true" />
     <div class="member-view-aside panel !px-0">
-      <app-member-aside-identities :member="member" @edit="identitiesDrawer = true" />
+      <app-member-aside-identities
+        :member="member"
+        @edit="identitiesDrawer = true"
+        @edit-email="emailDrawer = true"
+      />
     </div>
 
     <div class="member-view-aside panel !px-0">
@@ -37,6 +41,11 @@
     v-model="identitiesDrawer"
     :member="member"
   />
+  <app-member-manage-emails-drawer
+    v-if="emailDrawer"
+    v-model="emailDrawer"
+    :member="member"
+  />
 </template>
 
 <script setup>
@@ -44,6 +53,7 @@ import AppLfMemberAsideSubProjects from '@/modules/lf/member/components/view/lf-
 import AppMemberManageIdentitiesDrawer from '@/modules/member/components/member-manage-identities-drawer.vue';
 import { ref } from 'vue';
 import AppMemberAsideEnrichment from '@/modules/member/components/view/_aside/_aside-enrichment.vue';
+import AppMemberManageEmailsDrawer from '@/modules/member/components/member-manage-emails-drawer.vue';
 import AppMemberAsideCustomAttributes from './_aside/_aside-custom-attributes.vue';
 import AppMemberAsideIdentities from './_aside/_aside-identities.vue';
 import AppMemberAsideEnriched from './_aside/_aside-enriched.vue';
@@ -57,6 +67,7 @@ defineProps({
 });
 
 const identitiesDrawer = ref(false);
+const emailDrawer = ref(false);
 </script>
 
 <script>

@@ -8,3 +8,5 @@ RUN npm ci
 COPY .browserslistrc .eslintrc.js babel.config.js postcss.config.js tailwind.config.js vite.config.js tsconfig.json index.html ./
 COPY ./public ./public
 COPY ./src ./src
+COPY ./.tailwind ./.tailwind
+COPY ./config ./config
