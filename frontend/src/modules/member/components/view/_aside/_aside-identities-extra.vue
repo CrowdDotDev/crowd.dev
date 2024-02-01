@@ -42,9 +42,8 @@
           </div>
         </el-tooltip>
       </div>
-
       <div
-        v-if="Object.keys(emails).length > 5"
+        v-if="props.emails.length > 5"
         class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
         @click="displayMore = !displayMore"
       >
