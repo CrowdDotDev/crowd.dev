@@ -21,7 +21,9 @@ async function getMemberIdentityFromUsername(
     `
       select "memberId", "username"
       from "memberIdentities"
-      where "tenantId" = $(tenantId) and username = $(username)
+      where "tenantId" = $(tenantId) 
+      and username = $(username)
+      and platform = 'github'
       `,
     { tenantId, username },
   )
@@ -108,6 +110,7 @@ async function fixActivitiesWithoutObjectMemberData(
 
       if (!memberIdentity) {
         log.info({ tenantId, activityId: activity.id, username }, 'no objectMember for activity')
+        continue // skip this activity
       }
 
       await updateActivity(
