@@ -97,7 +97,7 @@ export function normalizeUrl(url: string) {
   let result
 
   // replace uuids with placeholders
-  result = url.replace(/\/[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}\//g, '/:id/')
+  result = url.replace(/[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}/g, ':id')
   // remove query string
   result = result.replace(/\?.*$/, '')
 
