@@ -21,7 +21,9 @@ async function getMemberIdentityFromUsername(
     `
       select "memberId", "username"
       from "memberIdentities"
-      where "tenantId" = $(tenantId) and username = $(username)
+      where "tenantId" = $(tenantId) 
+      and username = $(username)
+      and platform = 'github'
       `,
     { tenantId, username },
   )
