@@ -110,6 +110,7 @@ async function fixActivitiesWithoutObjectMemberData(
 
       if (!memberIdentity) {
         log.info({ tenantId, activityId: activity.id, username }, 'no objectMember for activity')
+        continue // skip this activity
       }
 
       await updateActivity(
