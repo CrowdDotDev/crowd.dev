@@ -95,10 +95,39 @@
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <app-member-form-identities
-              v-model="formModel"
-              :record="record"
+            <div class="grid gap-x-12 grid-cols-4">
+              <div>
+                <h6>
+                  Identities <span class="text-brand-500">*</span>
+                </h6>
+                <p class="text-gray-500 text-2xs leading-normal mt-1">
+                  Connect with contacts' external data sources or
+                  profiles
+                </p>
+              </div>
+              <div class="col-span-3 -mt-5">
+                <app-member-form-identities
+                  v-model="formModel"
+                  :record="record"
+                />
+              </div>
+            </div>
+            <el-divider
+              class="!mb-6 !mt-8 !border-gray-200"
             />
+            <div class="grid gap-x-12 grid-cols-4">
+              <div>
+                <h6>
+                  Email address
+                </h6>
+              </div>
+              <div class="col-span-3">
+                <app-member-form-emails
+                  v-model="formModel"
+                />
+              </div>
+            </div>
+
             <el-divider
               class="!mb-6 !mt-16 !border-gray-200"
             />
@@ -162,6 +191,7 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';

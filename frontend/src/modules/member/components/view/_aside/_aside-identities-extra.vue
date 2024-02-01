@@ -9,7 +9,7 @@
       <el-button
         class="btn btn-link btn-link--linux"
         :disabled="isEditLockedForSampleData"
-        @click="emit('openDrawer')"
+        @click="emit('edit')"
       >
         <i class="ri-pencil-line text-lg" />
       </el-button>
@@ -50,6 +50,9 @@
       >
         Show {{ displayMore ? 'less' : 'more' }}
       </div>
+      <div v-if="emails.length === 0" class="text-2xs italic text-gray-500">
+        No email addresses
+      </div>
     </div>
 
     <div v-else class="text-xs text-gray-400 italic mt-6">
@@ -60,12 +63,12 @@
 
 <script setup lang="ts">
 import {
-  computed, defineProps, ref,
+  computed, ref,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
-const emit = defineEmits(['openDrawer']);
+const emit = defineEmits(['edit']);
 const props = defineProps<{
   emails: {
     handle: string;

@@ -2,11 +2,19 @@
   <el-divider class="!my-8 border-gray-200" />
 
   <div class="flex flex-col px-6">
-    <div class="font-medium text-black">
-      Email(s)
+    <div class="flex items-center justify-between">
+      <div class="font-medium text-black">
+        Email(s)
+      </div>
+      <el-button
+        class="btn btn-link btn-link--primary"
+        @click="emit('editEmail')"
+      >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
 
-    <div v-if="emails.length" class="flex flex-col gap-2 mt-6">
+    <div class="flex flex-col gap-2 mt-6">
       <div
         v-for="(emailIdentity, index) in emails"
         :key="emailIdentity.handle"
@@ -42,21 +50,28 @@
       >
         Show {{ displayEmailsMore ? 'less' : 'more' }}
       </div>
-    </div>
 
-    <div v-else class="text-xs text-gray-400 italic mt-6">
-      No email addresses
+      <div v-if="emails.length === 0" class="text-xs italic text-gray-400">
+        No email addresses
+      </div>
     </div>
   </div>
 
   <el-divider class="!my-8" />
 
   <div class="flex flex-col px-6">
-    <div class="font-medium text-black">
-      Phone number(s)
+    <div class="flex items-center justify-between">
+      <div class="font-medium text-black">
+        Phone number(s)
+      </div>
+      <el-button
+        class="btn btn-link btn-link--primary"
+        @click="emit('editPhoneNumber')"
+      >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
-
-    <div v-if="phoneNumbers.length" class="flex flex-col gap-2 mt-6">
+    <div class="flex flex-col gap-2 mt-6">
       <div
         v-for="(phoneNumberIdentity, index) in phoneNumbers"
         :key="phoneNumberIdentity.handle"
@@ -92,17 +107,17 @@
       >
         Show {{ displayPhoneNumbersMore ? 'less' : 'more' }}
       </div>
-    </div>
 
-    <div v-else class="text-xs text-gray-400 italic mt-6">
-      No phone numbers
+      <div v-if="phoneNumbers.length === 0" class="text-xs text-gray-400 italic mt-6">
+        No phone numbers
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import {
-  computed, defineProps, ref,
+  computed, ref,
 } from 'vue';
 
 const props = defineProps<{
@@ -115,6 +130,8 @@ const props = defineProps<{
     link: string;
   }[],
 }>();
+
+const emit = defineEmits<{(e: 'editEmail'): void, (e: 'editPhoneNumber'): void, }>();
 
 const displayEmailsMore = ref(false);
 const displayPhoneNumbersMore = ref(false);

@@ -15,6 +15,12 @@
           </span>
         </el-tooltip>
       </div>
+      <el-button
+        class="btn btn-link btn-link--primary"
+        @click="identitiesDrawer = true"
+      >
+        <i class="ri-pencil-line" /><span>Edit</span>
+      </el-button>
     </div>
     <div class="-mx-6 mt-6">
       <app-identities-vertical-list-organizations
@@ -45,16 +51,33 @@
           <app-aside-identities-extra
             :emails="identities.getEmails()"
             :phone-numbers="identities.getPhoneNumbers()"
+            @edit-email="emailsDrawer = true"
+            @edit-phone-number="phoneNumberDrawer = true"
           />
         </template>
       </app-identities-vertical-list-organizations>
     </div>
   </div>
+  <app-organization-manage-identities-drawer
+    v-if="identitiesDrawer"
+    v-model="identitiesDrawer"
+    :organization="organization"
+  />
+  <app-organization-manage-emails-drawer
+    v-if="emailsDrawer"
+    v-model="emailsDrawer"
+    :organization="organization"
+  />
+  <app-organization-manage-phone-numbers-drawer
+    v-if="phoneNumberDrawer"
+    v-model="phoneNumberDrawer"
+    :organization="organization"
+  />
 </template>
 
 <script setup lang="ts">
 import {
-  defineProps,
+  ref,
 } from 'vue';
 import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/components/identities-vertical-list-organizations.vue';
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
@@ -62,6 +85,11 @@ import { Organization } from '@/modules/organization/types/Organization';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppOrganizationManageIdentitiesDrawer
+  from '@/modules/organization/components/organization-manage-identities-drawer.vue';
+import AppOrganizationManageEmailsDrawer from '@/modules/organization/components/organization-manage-emails-drawer.vue';
+import AppOrganizationManagePhoneNumbersDrawer
+  from '@/modules/organization/components/organization-manage-phone-numbers-drawer.vue';
 import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 
 defineProps<{
@@ -72,4 +100,8 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const route = useRoute();
+
+const identitiesDrawer = ref<boolean>(false);
+const emailsDrawer = ref<boolean>(false);
+const phoneNumberDrawer = ref<boolean>(false);
 </script>
