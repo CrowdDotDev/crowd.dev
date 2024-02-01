@@ -31,10 +31,11 @@ async function getMemberIdentityFromUsername(
 async function getFilteredActivities(
   db: DbConnection,
   tenantId: string,
+  { offset = 0, countOnly = false },
 ): Promise<{ rows: IDbActivity[]; count: number }> {
-  const results = await db.any(
+  const countResult = await db.one(
     `
-      select *
+      select count(*)
       from activities
       where "tenantId" = $(tenantId) 
       and type in ('pull_request-review-requested', 'pull_request-assigned') 
@@ -43,7 +44,25 @@ async function getFilteredActivities(
       `,
     { tenantId },
   )
-  return { rows: results, count: results.length }
+
+  if (countOnly) {
+    return { rows: [], count: countResult.count }
+  }
+
+  const results = await db.any(
+    `
+      select *
+      from activities
+      where "tenantId" = $(tenantId) 
+      and type in ('pull_request-review-requested', 'pull_request-assigned') 
+      and "objectMemberId" is null 
+      and "objectMemberUsername" is null
+      limit 100 offset $(offset)
+      `,
+    { tenantId, offset },
+  )
+
+  return { rows: results, count: countResult.count }
 }
 
 async function updateActivity(
@@ -63,23 +82,25 @@ async function updateActivity(
   )
 }
 
-setImmediate(async () => {
-  const db = await getDbConnection(DB_CONFIG())
-  const tenantIds = await getTenantIds(db)
+async function fixActivitiesWithoutObjectMemberData(
+  db: DbConnection,
+  tenantId: string,
+): Promise<void> {
+  const BATCH_SIZE = 100
 
-  const totalTenants = tenantIds.length
-  let processedTenants = 0
+  let offset
+  let fixableActivities
+  let processedActivities = 0
 
-  log.info('Started fixing activities without objectMemberId and objectMemberUsername!')
+  const totalActivities = (await getFilteredActivities(db, tenantId, { countOnly: true })).count
+  log.info({ tenantId }, `Found ${totalActivities} activities!`)
 
-  for (const tenantId of tenantIds) {
-    const activities = await getFilteredActivities(db, tenantId)
-    const totalActivities = activities.count
-    let processedActivities = 0
+  do {
+    offset = fixableActivities ? offset + BATCH_SIZE : 0
+    const result = await getFilteredActivities(db, tenantId, { offset })
+    fixableActivities = result.rows
 
-    log.info({ tenantId }, `Found ${totalActivities} activities!`)
-
-    for (const activity of activities.rows) {
+    for (const activity of fixableActivities) {
       const parts = activity.sourceId.split('_')
       const username = parts[parts.length - 2] // objectMemberUsername is always the second last element
 
@@ -98,12 +119,24 @@ setImmediate(async () => {
       )
 
       processedActivities += 1
-
       log.info(`Processed ${processedActivities}/${totalActivities} activities`)
     }
+  } while (fixableActivities.length > 0)
+}
 
+setImmediate(async () => {
+  const db = await getDbConnection(DB_CONFIG())
+  const tenantIds = await getTenantIds(db)
+
+  const totalTenants = tenantIds.length
+  let processedTenants = 0
+
+  log.info('Started fixing activities without objectMemberId and objectMemberUsername!')
+
+  for (const tenantId of tenantIds) {
+    await fixActivitiesWithoutObjectMemberData(db, tenantId)
     processedTenants += 1
-    log.info({ tenantId }, `Finished processing tenant ${processedTenants}/${totalTenants}`)
+    log.info({ tenantId }, `Finished processing ${processedTenants}/${totalTenants} tenants`)
   }
 
   log.info('Done processing all tenants!')
