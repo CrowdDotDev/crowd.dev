@@ -28,7 +28,8 @@
         class="mt-20"
         icon="ri-folder-5-line"
         title="No project groups yet"
-        description="Create your first project group and start integrating your projects"
+        :description="`${!hasPermissionToCreate
+          ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
         :cta-btn="hasPermissionToCreate ? 'Add project group' : null"
         @cta-click="onAddProjectGroup"
       />

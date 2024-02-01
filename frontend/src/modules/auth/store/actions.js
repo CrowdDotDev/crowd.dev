@@ -16,11 +16,14 @@ import {
 import { Auth0Service } from '@/shared/services/auth0.service';
 
 export default {
-  async doInit({ commit, dispatch, state }) {
+  async doInit({ commit, dispatch, state }, auth0Token) {
     try {
-      const token = AuthToken.get();
+      const token = auth0Token || AuthToken.get();
+
       if (token) {
-        connectSocket(token);
+        if (AuthToken.get()) {
+          connectSocket(AuthToken.get());
+        }
         const currentUser = await AuthService.fetchMe();
         commit('AUTH_INIT_SUCCESS', { currentUser });
 
@@ -42,14 +45,18 @@ export default {
     }
   },
 
+  doAuthenticate({ commit }) {
+    commit('AUTHENTICATE');
+  },
+
   doWaitUntilInit({ getters }) {
-    if (!getters.loadingInit) {
+    if (getters.isAuthenticated) {
       return Promise.resolve();
     }
 
     return new Promise((resolve) => {
       const waitUntilInitInterval = setInterval(() => {
-        if (!getters.loadingInit) {
+        if (getters.isAuthenticated) {
           clearInterval(waitUntilInitInterval);
           resolve({});
         }
@@ -104,11 +111,12 @@ export default {
 
   doSigninWithAuth0(
     { commit, dispatch },
-    token,
+    { token, appState },
   ) {
     commit('AUTH_START');
     return AuthService.ssoGetToken(token)
       .then((token) => {
+        connectSocket(token);
         AuthToken.set(token, true);
         return AuthService.fetchMe();
       })
@@ -116,9 +124,14 @@ export default {
         commit('AUTH_SUCCESS', {
           currentUser: currentUser || null,
         });
-        router.push('/');
+
+        window.history.replaceState(null, '', appState?.targetUrl ?? '/');
+        window.history.pushState(null, '', appState?.targetUrl ?? '/');
+
+        router.push(appState?.targetUrl ?? '/');
       })
       .catch((error) => {
+        disconnectSocket();
         AuthService.signout();
         Errors.handle(error);
         commit('AUTH_ERROR');

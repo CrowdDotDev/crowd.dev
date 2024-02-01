@@ -49,7 +49,7 @@
             :key="id"
             class="relative w-6 h-6 flex items-center justify-center"
           >
-            <app-platform-svg-icon
+            <app-platform-svg
               :platform="platform"
             />
             <i
@@ -104,18 +104,19 @@
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" width="268" class-name="table-columns">
+    <el-table-column fixed="right" width="288" class-name="table-columns">
       <template #header>
         <span class="h-10 block" />
         <div class="flex justify-end mb-4">
           <app-lf-projects-dropdown
+            :id="project.id"
             @on-edit-project="emit('onEditProject', project.id)"
             @on-add-sub-project="emit('onAddSubProject', project.slug)"
           />
         </div>
       </template>
       <template #default="{ row }">
-        <div class="h-10 items-center flex justify-end gap-3">
+        <div v-if="hasAccessToSegmentId(row.id)" class="h-10 items-center flex justify-end gap-3">
           <router-link
             :to="{
               name: 'integration',
@@ -130,13 +131,14 @@
             </el-button>
           </router-link>
           <app-lf-sub-projects-dropdown
+            :id="row.id"
             @on-edit-sub-project="emit('onEditSubProject', row.id)"
           />
         </div>
       </template>
     </el-table-column>
 
-    <template v-if="project.subprojects?.length && hasPermissionToCreateSubProject" #append>
+    <template v-if="project.subprojects?.length && (hasPermissionToCreateSubProject && hasAccessToSegmentId(project.id))" #append>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project
@@ -144,7 +146,7 @@
       </div>
     </template>
 
-    <template v-if="hasPermissionToCreateSubProject" #empty>
+    <template v-if="(hasPermissionToCreateSubProject && hasAccessToSegmentId(project.id))" #empty>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project
@@ -158,11 +160,12 @@
 import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-dropdown.vue';
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
-import AppPlatformSvgIcon from '@/shared/platform/platform-svg-icon.vue';
 import { useRoute } from 'vue-router';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
+import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
+import { hasAccessToSegmentId } from '@/utils/segments';
 
 const route = useRoute();
 

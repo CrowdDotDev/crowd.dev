@@ -1,12 +1,14 @@
 <template>
-  <div class="organization-view-header panel relative">
-    <div class="flex justify-between">
+  <div class="organization-view-header panel !px-0 relative">
+    <div class="flex justify-between px-6">
       <div class="flex items-center">
         <app-avatar
           :entity="{
+            ...organization,
             avatar: organization.logo,
             displayName: (organization.displayName || organization.name)?.replace('@', ''),
           }"
+          entity-name="organization"
           size="xl"
           class="mr-4"
         />
@@ -50,24 +52,23 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center">
-        <app-organization-dropdown
-          :organization="organization"
-          @merge="isMergeDialogOpen = organization"
-        />
-      </div>
     </div>
-    <div
-      class="py-6 border-b border-gray-200 mb-4"
-    >
-      <div v-if="organization.description || organization.headline" class="flex items-center">
+    <div v-if="organization.description || organization.headline" class="px-6 mt-6">
+      <div
+        class="flex items-center"
+      >
         <p class="text-gray-400 font-medium text-2xs mr-2">
           Headline
         </p>
-        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+        <el-tooltip
+          content="Source: Enrichment"
+          placement="top"
+          trigger="hover"
+        >
           <app-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
+
       <app-organization-headline :organization="organization" />
 
       <div
@@ -86,7 +87,9 @@
       </div>
     </div>
 
-    <div class="grid grid-rows-2 grid-flow-col gap-4">
+    <el-divider class="!mb-4 !mt-6 border-gray-200" />
+
+    <div class="grid grid-rows-2 grid-flow-col gap-4 px-6">
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           # of contributors
@@ -113,25 +116,40 @@
           }}
         </p>
       </div>
-      <div>
-        <div class="flex items-center">
-          <p class="text-gray-400 font-medium text-2xs mr-2">
-            Headcount
-          </p>
-          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
+      <cr-enrichment-sneak-peak type="contact">
+        <template #default="{ enabled }">
+          <div>
+            <div class="flex items-center">
+              <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
+                Headcount
+              </p>
+              <el-tooltip
+                v-if="organization.size || organization.employees"
+                content="Source: Enrichment"
+                placement="top"
+                trigger="hover"
+                :disabled="!enabled"
+              >
+                <app-svg name="source" class="h-3 w-3" />
+              </el-tooltip>
+            </div>
 
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              organization.size,
-              'string',
-            )
-          }}
-        </p>
-      </div>
+            <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+              {{
+                formattedInformation(
+                  organization.size || organization.employees,
+                  'string',
+                )
+              }}
+            </p>
+            <div v-else class="w-full mt-2">
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                11-50
+              </div>
+            </div>
+          </div>
+        </template>
+      </cr-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Joined date
@@ -145,23 +163,38 @@
           }}
         </p>
       </div>
-      <div>
-        <div class="flex items-center">
-          <p class="text-gray-400 font-medium text-2xs mr-2">
-            Annual Revenue
-          </p>
-          <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-            <app-svg name="source" class="h-3 w-3" />
-          </el-tooltip>
-        </div>
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            revenueRange.displayValue(
-              organization.revenueRange,
-            )
-          }}
-        </p>
-      </div>
+      <cr-enrichment-sneak-peak type="contact">
+        <template #default="{ enabled }">
+          <div>
+            <div class="flex items-center">
+              <p class="text-gray-400 font-medium text-2xs mr-2" :class="{ 'text-purple-400': !enabled }">
+                Annual Revenue
+              </p>
+              <el-tooltip
+                v-if="organization.revenueRange"
+                content="Source: Enrichment"
+                placement="top"
+                trigger="hover"
+                :disabled="!enabled"
+              >
+                <app-svg name="source" class="h-3 w-3" />
+              </el-tooltip>
+            </div>
+            <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
+              {{
+                revenueRange.displayValue(
+                  organization.revenueRange,
+                )
+              }}
+            </p>
+            <div v-else class="w-full mt-2">
+              <div class="blur-[6px] text-gray-900 text-xs select-none">
+                $1M-$10M
+              </div>
+            </div>
+          </div>
+        </template>
+      </cr-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Last active
@@ -176,8 +209,6 @@
         </p>
       </div>
     </div>
-
-    <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
 
@@ -194,10 +225,9 @@ import {
 } from '@/utils/number';
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
-import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
-import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import AppSvg from '@/shared/svg/svg.vue';
+import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({
@@ -209,7 +239,6 @@ const props = defineProps({
 
 const showMore = ref(false);
 const descriptionRef = ref(null);
-const isMergeDialogOpen = ref(null);
 const displayShowMore = computed(() => {
   if (!props.organization.description) {
     return false;

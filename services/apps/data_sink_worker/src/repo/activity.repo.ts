@@ -1,5 +1,5 @@
 import { generateUUIDv1 } from '@crowd/common'
-import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
+import { DbColumnSet, DbStore, RepositoryBase, eqOrNull } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
   IDbActivity,
@@ -47,6 +47,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       and "sourceId" = $(sourceId)
       and platform = $(platform)
       and type = $(type)
+      and channel $(channel)
     limit 1;
   `
   public async findExisting(
@@ -55,6 +56,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     sourceId: string,
     platform: string,
     type: string,
+    channel: string | null | undefined,
   ): Promise<IDbActivity | null> {
     const result = await this.db().oneOrNone(this.findExistingActivityQuery, {
       tenantId,
@@ -62,7 +64,55 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       sourceId,
       platform,
       type,
+      channel: eqOrNull(channel),
     })
+
+    return result
+  }
+
+  public async findExistingBySourceIdAndChannel(
+    tenantId: string,
+    segmentId: string,
+    sourceId: string,
+    channel: string,
+  ): Promise<IDbActivity | null> {
+    const result = await this.db().oneOrNone(
+      `
+      select  id,
+              type,
+              platform,
+              timestamp,
+              "isContribution",
+              score,
+              "sourceId",
+              "sourceParentId",
+              "parentId",
+              "memberId",
+              username,
+              "objectMemberId",
+              "objectMemberUsername",
+              attributes,
+              body,
+              title,
+              channel,
+              url,
+              sentiment,
+              "deletedAt"
+      from activities
+      where "tenantId" = $(tenantId)
+        and "segmentId" = $(segmentId)
+        and "sourceId" = $(sourceId)
+        and channel = $(channel)
+        and "deletedAt" IS NULL
+      limit 1;
+    `,
+      {
+        tenantId,
+        segmentId,
+        sourceId,
+        channel,
+      },
+    )
 
     return result
   }

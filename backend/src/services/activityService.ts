@@ -129,7 +129,12 @@ export default class ActivityService extends LoggerBase {
           data.sentiment = sentiment
         }
 
-        if (!data.username && data.platform === PlatformType.OTHER) {
+        if (
+          !data.username &&
+          (data.platform === PlatformType.OTHER ||
+            // we have some custom platform types in db that are not in enum
+            !Object.values(PlatformType).includes(data.platform))
+        ) {
           const { displayName } = await MemberRepository.findById(data.member, repositoryOptions)
           // Get the first key of the username object as a string
           data.username = displayName
@@ -777,6 +782,18 @@ export default class ActivityService extends LoggerBase {
 
   async findAndCountAll(args) {
     return ActivityRepository.findAndCountAll(args, this.options)
+  }
+
+  async queryV2(data) {
+    const filter = data.filter
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    const limit = data.limit
+    const offset = data.offset
+    const countOnly = data.countOnly ?? false
+    return ActivityRepository.findAndCountAllv2(
+      { filter, orderBy, limit, offset, countOnly },
+      this.options,
+    )
   }
 
   async query(data) {

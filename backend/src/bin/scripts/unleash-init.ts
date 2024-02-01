@@ -1,11 +1,9 @@
-import Sequelize, { QueryTypes } from 'sequelize'
-import { getServiceLogger } from '@crowd/logging'
 import { generateUUIDv1 } from '@crowd/common'
-import { FeatureFlag } from '@crowd/types'
-import { UnleashContextField } from '../../types/unleashContext'
+import { getServiceLogger } from '@crowd/logging'
+import { FeatureFlag, PLAN_LIMITS, TenantPlans } from '@crowd/types'
+import Sequelize, { QueryTypes } from 'sequelize'
 import { UNLEASH_CONFIG } from '../../conf'
-import Plans from '../../security/plans'
-import { PLAN_LIMITS } from '../../feature-flags/isFeatureEnabled'
+import { UnleashContextField } from '../../types/unleashContext'
 
 /* eslint-disable no-console */
 
@@ -15,14 +13,14 @@ const constaintConfiguration = {
   [FeatureFlag.AUTOMATIONS]: [
     [
       {
-        values: [Plans.values.scale],
+        values: [TenantPlans.Scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.AUTOMATIONS].toString(),
+        value: PLAN_LIMITS[TenantPlans.Scale][FeatureFlag.AUTOMATIONS].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -32,14 +30,14 @@ const constaintConfiguration = {
     ],
     [
       {
-        values: [Plans.values.growth],
+        values: [TenantPlans.Growth],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.growth][FeatureFlag.AUTOMATIONS].toString(),
+        value: PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.AUTOMATIONS].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -49,14 +47,14 @@ const constaintConfiguration = {
     ],
     [
       {
-        values: [Plans.values.essential],
+        values: [TenantPlans.Essential],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.essential][FeatureFlag.AUTOMATIONS].toString(),
+        value: PLAN_LIMITS[TenantPlans.Essential][FeatureFlag.AUTOMATIONS].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -68,14 +66,14 @@ const constaintConfiguration = {
   [FeatureFlag.CSV_EXPORT]: [
     [
       {
-        values: [Plans.values.scale],
+        values: [TenantPlans.Scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.CSV_EXPORT].toString(),
+        value: PLAN_LIMITS[TenantPlans.Scale][FeatureFlag.CSV_EXPORT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -85,14 +83,14 @@ const constaintConfiguration = {
     ],
     [
       {
-        values: [Plans.values.growth],
+        values: [TenantPlans.Growth],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.growth][FeatureFlag.CSV_EXPORT].toString(),
+        value: PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.CSV_EXPORT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -102,14 +100,14 @@ const constaintConfiguration = {
     ],
     [
       {
-        values: [Plans.values.essential],
+        values: [TenantPlans.Essential],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.essential][FeatureFlag.CSV_EXPORT].toString(),
+        value: PLAN_LIMITS[TenantPlans.Essential][FeatureFlag.CSV_EXPORT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -121,7 +119,7 @@ const constaintConfiguration = {
   [FeatureFlag.EAGLE_EYE]: [
     [
       {
-        values: [Plans.values.growth, Plans.values.eagleEye, Plans.values.scale],
+        values: [TenantPlans.Growth, TenantPlans.EagleEye, TenantPlans.Scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
@@ -133,7 +131,7 @@ const constaintConfiguration = {
   [FeatureFlag.LINKEDIN]: [
     [
       {
-        values: [Plans.values.growth, Plans.values.scale],
+        values: [TenantPlans.Growth, TenantPlans.Scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
@@ -144,7 +142,7 @@ const constaintConfiguration = {
   [FeatureFlag.HUBSPOT]: [
     [
       {
-        values: [Plans.values.scale],
+        values: [TenantPlans.Scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
@@ -155,14 +153,14 @@ const constaintConfiguration = {
   [FeatureFlag.MEMBER_ENRICHMENT]: [
     [
       {
-        values: [Plans.values.scale],
+        values: [TenantPlans.Scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.MEMBER_ENRICHMENT].toString(),
+        value: PLAN_LIMITS[TenantPlans.Scale][FeatureFlag.MEMBER_ENRICHMENT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -172,14 +170,14 @@ const constaintConfiguration = {
     ],
     [
       {
-        values: [Plans.values.growth],
+        values: [TenantPlans.Growth],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.growth][FeatureFlag.MEMBER_ENRICHMENT].toString(),
+        value: PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.MEMBER_ENRICHMENT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -191,14 +189,14 @@ const constaintConfiguration = {
   [FeatureFlag.ORGANIZATION_ENRICHMENT]: [
     [
       {
-        values: [Plans.values.scale],
+        values: [TenantPlans.Scale],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.scale][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
+        value: PLAN_LIMITS[TenantPlans.Scale][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -208,14 +206,14 @@ const constaintConfiguration = {
     ],
     [
       {
-        values: [Plans.values.growth],
+        values: [TenantPlans.Growth],
         inverted: false,
         operator: 'IN',
         contextName: 'plan',
         caseInsensitive: false,
       },
       {
-        value: PLAN_LIMITS[Plans.values.growth][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
+        value: PLAN_LIMITS[TenantPlans.Growth][FeatureFlag.ORGANIZATION_ENRICHMENT].toString(),
         values: [],
         inverted: false,
         operator: 'NUM_LT',
@@ -226,15 +224,80 @@ const constaintConfiguration = {
   ],
   [FeatureFlag.SEGMENTS]: [],
 
+  // temporal
+  [FeatureFlag.TEMPORAL_MEMBERS_ENRICHMENT]: [
+    [
+      {
+        values: [TenantPlans.Scale, TenantPlans.Enterprise],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
+  [FeatureFlag.TEMPORAL_MEMBER_MERGE_SUGGESTIONS]: [
+    [
+      {
+        values: [
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+          TenantPlans.Scale,
+          TenantPlans.Enterprise,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
   [FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES]: [
     [
       {
         values: [
-          Plans.values.scale,
-          Plans.values.eagleEye,
-          Plans.values.enterprise,
-          Plans.values.essential,
-          Plans.values.growth,
+          TenantPlans.Scale,
+          TenantPlans.EagleEye,
+          TenantPlans.Enterprise,
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+
+  [FeatureFlag.SERVE_PROFILES_OPENSEARCH]: [
+    [
+      {
+        values: [
+          TenantPlans.Scale,
+          TenantPlans.EagleEye,
+          TenantPlans.Enterprise,
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+        ],
+        inverted: false,
+        operator: 'IN',
+        contextName: 'plan',
+        caseInsensitive: false,
+      },
+    ],
+  ],
+  [FeatureFlag.TEMPORAL_ORGANIZATION_ENRICHMENT]: [
+    [
+      {
+        values: [
+          TenantPlans.Scale,
+          TenantPlans.EagleEye,
+          TenantPlans.Enterprise,
+          TenantPlans.Essential,
+          TenantPlans.Growth,
         ],
         inverted: false,
         operator: 'IN',

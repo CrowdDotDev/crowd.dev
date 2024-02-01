@@ -10,7 +10,7 @@
       <div class="text-xs text-gray-900">
         <span class="text-base">🧐</span> Missing something?
         <a
-          href="https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+"
+          href="https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54"
           class="hover:underline"
         >Open an issue</a>
       </div>
@@ -58,15 +58,9 @@
             integrations with connectivity issues. If this
             problem persists, contact us via
             <a
-              href="mailto:help@crowd.dev"
+              href="https://app.slack.com/client/T02H1G4T9/C0DMD0214"
               class="font-semibold"
-            >email</a>
-            or engage within our
-            <a
-              href="https://crowd.dev/discord"
-              class="font-semibold"
-            >
-              Discord community</a>.
+            >Slack</a>.
           </template>
         </app-alert>
         <app-alert v-if="integrationsWithNoData.length > 0">
@@ -82,15 +76,9 @@
             they are set up correctly. If the setup is
             correct, contact us via
             <a
-              href="mailto:help@crowd.dev"
+              href="https://app.slack.com/client/T02H1G4T9/C0DMD0214"
               class="font-semibold"
-            >email</a>
-            or engage within our
-            <a
-              href="https://crowd.dev/discord"
-              class="font-semibold hover:underline"
-            >
-              Discord community</a>.
+            >Slack</a>.
           </template>
         </app-alert>
       </div>

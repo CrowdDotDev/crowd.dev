@@ -1,65 +1,86 @@
 <template>
   <div class="activity-timeline">
     <div class="my-6">
-      <el-input
-        v-model="query"
-        placeholder="Search activities"
-        :prefix-icon="SearchIcon"
-        clearable
-        class="activity-timeline-search"
-      >
-        <template #append>
-          <el-select
-            v-model="platform"
-            clearable
-            placeholder="All platforms"
-            class="w-40"
-            @clear="reloadActivities"
-          >
-            <template
-              v-if="
-                platform && getPlatformDetails(platform)
-              "
-              #prefix
+      <div class="flex gap-2">
+        <el-input
+          v-model="query"
+          placeholder="Search activities"
+          :prefix-icon="SearchIcon"
+          clearable
+          class="activity-timeline-search"
+        >
+          <template #append>
+            <el-select
+              v-model="platform"
+              clearable
+              filterable
+              no-match-text="Platform not found"
+              placeholder="All platforms"
+              class="w-40"
+              @clear="reloadActivities"
             >
-              <img
-                v-if="getPlatformDetails(platform)"
-                :alt="getPlatformDetails(platform).name"
-                :src="getPlatformDetails(platform).image"
-                class="w-4 h-4"
-              />
-              <i
-                v-else
-                class="ri-radar-line text-base text-gray-400"
-              />
-            </template>
-            <el-option
-              v-for="integration of activeIntegrations"
-              :key="integration.id"
-              :value="integration.platform"
-              :label="integration.label"
-              @mouseleave="onSelectMouseLeave"
-            >
-              <img
-                :alt="integration.name"
-                :src="integration.image"
-                class="w-4 h-4 mr-2"
-              />
-              {{ integration.label }}
-            </el-option>
-            <el-option
-              value="other"
-              label="Other"
-              @mouseleave="onSelectMouseLeave"
-            >
-              <i
-                class="ri-radar-line text-base text-gray-400 mr-2"
-              />
-              Other
-            </el-option>
-          </el-select>
-        </template>
-      </el-input>
+              <template
+                v-if="
+                  platform && getPlatformDetails(platform)
+                "
+                #prefix
+              >
+                <img
+                  v-if="getPlatformDetails(platform)"
+                  :alt="getPlatformDetails(platform).name"
+                  :src="getPlatformDetails(platform).image"
+                  class="w-4 h-4"
+                />
+                <i
+                  v-else
+                  class="ri-radar-line text-base text-gray-400"
+                />
+              </template>
+              <el-option
+                v-for="enabledPlatform of enabledPlatforms"
+                :key="enabledPlatform.id"
+                :value="enabledPlatform.platform"
+                :label="enabledPlatform.label"
+                @mouseleave="onSelectMouseLeave"
+              >
+                <img
+                  :alt="enabledPlatform.name"
+                  :src="enabledPlatform.image"
+                  class="w-4 h-4 mr-2"
+                />
+                {{ enabledPlatform.label }}
+              </el-option>
+              <el-option
+                value="other"
+                label="Other"
+                @mouseleave="onSelectMouseLeave"
+              >
+                <i
+                  class="ri-radar-line text-base text-gray-400 mr-2"
+                />
+                Other
+              </el-option>
+            </el-select>
+          </template>
+        </el-input>
+        <el-select
+          v-model="selectedSegment"
+          clearable
+          filterable
+          no-match-text="Sub-project not found"
+          placeholder="All sub-projects"
+          class="w-52"
+          @change="fetchActivities({ reset: true })"
+        >
+          <el-option
+            v-for="segment of segments"
+            :key="segment.id"
+            :value="segment.id"
+            :label="segment.name"
+            @mouseleave="onSelectMouseLeave"
+          />
+        </el-select>
+      </div>
     </div>
     <div>
       <el-timeline>
@@ -225,15 +246,17 @@ import debounce from 'lodash/debounce';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { onSelectMouseLeave } from '@/utils/select';
-import authAxios from '@/shared/axios/auth-axios';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
   'i', // type
@@ -257,15 +280,20 @@ const props = defineProps({
   },
 });
 
+const lsSegmentsStore = useLfSegmentsStore();
+const { projectGroups, selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
 const conversationId = ref(null);
 
-const activeIntegrations = computed(() => {
-  const activeIntegrationList = store.getters['integration/activeList'];
-  return Object.keys(activeIntegrationList).map((i) => ({
-    ...activeIntegrationList[i],
-    label: CrowdIntegrations.getConfig(i).name,
-  }));
-});
+const enabledPlatforms = computed(() => CrowdIntegrations.enabledConfigs.concat(Object.entries(CrowdIntegrations.customIntegrations).map(
+  ([key, config]) => ({
+    ...config,
+    platform: key,
+  }),
+)).map((i) => ({
+  ...i,
+  label: i.name,
+})));
 
 const loading = ref(true);
 const platform = ref(null);
@@ -274,28 +302,48 @@ const activities = ref([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
+const selectedSegment = ref(null);
 
 let filter = {};
 
 const isMemberEntity = computed(() => props.entityType === 'member');
 
-const segments = computed(() => props.entity.segments?.map((s) => {
-  if (typeof s === 'string') {
-    return s;
+const subprojects = computed(() => projectGroups.value.list.reduce((acc, projectGroup) => {
+  projectGroup.projects.forEach((project) => {
+    project.subprojects.forEach((subproject) => {
+      acc[subproject.id] = {
+        id: subproject.id,
+        name: subproject.name,
+      };
+    });
+  });
+
+  return acc;
+}, {}));
+
+const segments = computed(() => {
+  if (!props.entity.segments) {
+    return getSegmentsFromProjectGroup(selectedProjectGroup.value)?.map((s) => subprojects.value[s]) || [];
   }
 
-  return s.id;
-}) || []);
+  return props.entity.segments?.map((s) => {
+    if (typeof s === 'string') {
+      return subprojects.value[s];
+    }
+
+    return s;
+  }) || [];
+});
 
 const fetchActivities = async ({ reset } = { reset: false }) => {
   const filterToApply = {
-    platform: platform.value ?? undefined,
+    platform: platform.value ? { in: [platform.value] } : undefined,
   };
 
   if (props.entityType === 'member') {
-    filterToApply.memberId = props.entity.id;
+    filterToApply.memberId = { in: [props.entity.id] };
   } else {
-    filterToApply[`${props.entityType}s`] = [props.entity.id];
+    filterToApply.organizationId = { in: [props.entity.id] };
   }
 
   if (props.entity.id) {
@@ -347,25 +395,13 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   loading.value = true;
 
-  const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-  const tenantId = sampleTenant?.id
-    || store.getters['auth/currentTenant'].id;
-
-  const { data } = await authAxios.post(
-    `/tenant/${tenantId}/activity/query`,
-    {
-      filter: filterToApply,
-      orderBy: 'timestamp_DESC',
-      limit: limit.value,
-      offset: offset.value,
-      segments: segments.value,
-    },
-    {
-      headers: {
-        Authorization: sampleTenant?.token,
-      },
-    },
-  );
+  const data = await ActivityService.query({
+    filter: filterToApply,
+    orderBy: 'timestamp_DESC',
+    limit: limit.value,
+    offset: offset.value,
+    segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
+  });
 
   filter = { ...filterToApply };
   loading.value = false;
@@ -404,7 +440,7 @@ watch(platform, async (newValue, oldValue) => {
 });
 
 onMounted(async () => {
-  await store.dispatch('integration/doFetch', segments.value);
+  await store.dispatch('integration/doFetch', segments.value.map((s) => s.id));
   await fetchActivities();
 });
 </script>

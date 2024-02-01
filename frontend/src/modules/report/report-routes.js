@@ -39,6 +39,7 @@ export default [
         component: ReportTemplatePage,
         meta: {
           auth: true,
+          title: 'Report',
           permission: Permissions.values.reportRead,
         },
         props: true,
@@ -49,6 +50,7 @@ export default [
         component: ReportFormPage,
         meta: {
           auth: true,
+          title: 'Report',
           permission: Permissions.values.reportEdit,
         },
         props: true,
@@ -59,6 +61,7 @@ export default [
         component: ReportViewPage,
         meta: {
           auth: true,
+          title: 'Report',
           permission: Permissions.values.reportRead,
         },
         props: true,

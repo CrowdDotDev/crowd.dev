@@ -38,5 +38,8 @@ export class MemberPermissions {
     this.destroyLockedForSampleData = permissionChecker.lockedForSampleData(
       Permissions.values.memberDestroy,
     );
+    this.mergeMembers = permissionChecker.match(
+      Permissions.values.mergeMembers,
+    );
   }
 }

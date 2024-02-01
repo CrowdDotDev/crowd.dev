@@ -6,11 +6,7 @@ module.exports = {
     es2022: true,
   },
 
-  extends: [
-    'plugin:vue/vue3-recommended',
-    '@vue/airbnb',
-    '@vue/typescript',
-  ],
+  extends: ['plugin:vue/vue3-recommended', '@vue/airbnb', '@vue/typescript', 'plugin:storybook/recommended'],
 
   parserOptions: {
     ecmaVersion: 2020,

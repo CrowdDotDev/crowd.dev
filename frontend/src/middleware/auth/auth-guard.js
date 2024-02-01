@@ -1,6 +1,7 @@
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import config from '@/config';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
+import { Auth0Service } from '@/shared/services/auth0.service';
 
 function isGoingToIntegrationsPage(to) {
   return to.name === 'integration';
@@ -28,6 +29,11 @@ export default async function ({
   if (!to.meta || !to.meta.auth) {
     return;
   }
+
+  if (!store.getters['auth/isAuthenticated']) {
+    await Auth0Service.init();
+  }
+
   await store.dispatch('auth/doWaitUntilInit');
 
   const currentUser = store.getters['auth/currentUser'];
@@ -36,11 +42,6 @@ export default async function ({
     store.getters['auth/currentTenant'],
     currentUser,
   );
-
-  if (!permissionChecker.isAuthenticated) {
-    router.push({ path: '/auth/signin' });
-    return;
-  }
 
   // Temporary fix
   if (
@@ -61,6 +62,12 @@ export default async function ({
   ) {
     router.push({
       path: '/auth/empty-permissions',
+    });
+  }
+
+  if (to.meta.notEmptyPermissions && !permissionChecker.isEmptyPermissions) {
+    router.push({
+      path: '/',
     });
   }
 }

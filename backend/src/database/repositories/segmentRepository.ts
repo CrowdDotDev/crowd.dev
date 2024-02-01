@@ -541,6 +541,7 @@ class SegmentRepository extends RepositoryBase<
    */
   async queryProjectGroups(criteria: QueryData): Promise<PageData<SegmentData>> {
     let searchQuery = 'WHERE 1=1'
+    let segmentsSearchQuery = ''
 
     const replacements = {
       tenantId: this.currentTenant.id,
@@ -562,7 +563,7 @@ class SegmentRepository extends RepositoryBase<
       if (adminSegments.length === 0) {
         return { count: 0, rows: [], limit: criteria.limit, offset: criteria.offset }
       }
-      searchQuery += `AND s.id IN (:adminSegments)`
+      segmentsSearchQuery += `AND sp.id IN (:adminSegments)`
       replacements.adminSegments = adminSegments
     }
 
@@ -601,6 +602,7 @@ class SegmentRepository extends RepositoryBase<
                              AND sp."tenantId" = f."tenantId"
                   WHERE f."parentSlug" IS NULL
                     AND f."tenantId" = :tenantId
+                    ${segmentsSearchQuery}
                   GROUP BY f."id", p.id
               )
           SELECT
@@ -851,12 +853,12 @@ class SegmentRepository extends RepositoryBase<
     const segments = await seq.query(
       `
         SELECT
-          id
-        FROM segments
-        WHERE "tenantId" = :tenantId
-          AND "sourceId" IN (:sourceIds)
-          AND "parentSlug" IS NOT NULL
-          AND "grandparentSlug" IS NOT NULL
+            DISTINCT UNNEST(ARRAY[s.id, s1.id, s2.id]) AS id
+        FROM segments s
+        JOIN segments s1 ON s1."parentSlug" = s.slug
+        JOIN segments s2 ON s2."parentSlug" = s1.slug
+        WHERE s."tenantId" = :tenantId
+          AND s."sourceId" IN (:sourceIds)
       `,
       {
         replacements: { sourceIds, tenantId: this.options.currentTenant.id },

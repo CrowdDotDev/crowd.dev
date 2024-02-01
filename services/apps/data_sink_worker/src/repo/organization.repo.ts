@@ -1,5 +1,12 @@
+import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import {
+  IOrganization,
+  IOrganizationIdSource,
+  IOrganizationIdentity,
+  SyncStatus,
+} from '@crowd/types'
 import {
   IDbCacheOrganization,
   IDbInsertOrganizationCacheData,
@@ -9,62 +16,84 @@ import {
   IDbUpdateOrganizationData,
   getInsertCacheOrganizationColumnSet,
   getInsertOrganizationColumnSet,
-  getUpdateCacheOrganizationColumnSet,
-  getUpdateOrganizationColumnSet,
 } from './organization.data'
-import { generateUUIDv1 } from '@crowd/common'
-import {
-  IOrganizationIdentity,
-  SyncStatus,
-  IOrganization,
-  IOrganizationIdSource,
-} from '@crowd/types'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertCacheOrganizationColumnSet: DbColumnSet
-  private readonly updateCacheOrganizationColumnSet: DbColumnSet
 
   private readonly insertOrganizationColumnSet: DbColumnSet
-  private readonly updateOrganizationColumnSet: DbColumnSet
 
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
 
     this.insertCacheOrganizationColumnSet = getInsertCacheOrganizationColumnSet(this.dbInstance)
-    this.updateCacheOrganizationColumnSet = getUpdateCacheOrganizationColumnSet(this.dbInstance)
-
     this.insertOrganizationColumnSet = getInsertOrganizationColumnSet(this.dbInstance)
-    this.updateOrganizationColumnSet = getUpdateOrganizationColumnSet(this.dbInstance)
+  }
+
+  private static findCacheQuery = `
+  with identities as (
+    select oci.id, 
+           array_agg(oci.name) as names,
+           max(oci.website) as website
+    from "organizationCacheIdentities" oci
+    group by oci.id
+  )
+  select  oc.id,
+          oc.url,
+          oc.description,
+          oc.emails,
+          oc.logo,
+          oc.tags,
+          oc.github,
+          oc.twitter,
+          oc.linkedin,
+          oc.crunchbase,
+          oc.employees,
+          oc.location,
+          oc.type,
+          oc.size,
+          oc.headline,
+          oc.industry,
+          oc.founded,
+          i.names,
+          i.website
+    from "organizationCacheIdentities" oci 
+    inner join "organizationCaches" oc on oci.id = oc.id
+    inner join identities i on oci.id = i.id
+  `
+
+  public async findCacheByWebsite(website: string): Promise<IDbCacheOrganization | null> {
+    // limit 1 because multiple rows can have the same website in organizationCacheIdentities
+    const result = await this.db().oneOrNone(
+      `${OrganizationRepository.findCacheQuery} where oci.website = $(website) limit 1`,
+      { website },
+    )
+
+    return result
   }
 
   public async findCacheByName(name: string): Promise<IDbCacheOrganization | null> {
+    // limit is not needed since only 1 row can have the same name in organizationCacheIdentities
     const result = await this.db().oneOrNone(
-      `
-      select  id,
-              name,
-              url,
-              description,
-              emails,
-              logo,
-              tags,
-              github,
-              twitter,
-              linkedin,
-              crunchbase,
-              employees,
-              location,
-              website,
-              type,
-              size,
-              headline,
-              industry,
-              founded
-      from "organizationCaches"
-      where name = $(name);`,
+      `${OrganizationRepository.findCacheQuery} where oci.name = $(name)`,
       { name },
     )
 
     return result
+  }
+
+  public async linkCacheAndOrganization(cacheId: string, organizationId: string): Promise<void> {
+    await this.db().none(
+      `
+      insert into "organizationCacheLinks"("organizationCacheId", "organizationId")
+      values ($(cacheId), $(organizationId))
+      on conflict do nothing;
+      `,
+      {
+        cacheId,
+        organizationId,
+      },
+    )
   }
 
   public async insertCache(data: IDbInsertOrganizationCacheData): Promise<string> {
@@ -82,14 +111,32 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     const query = this.dbInstance.helpers.insert(prepared, this.insertCacheOrganizationColumnSet)
     await this.db().none(query)
+
+    // insert org cache identity as well
+    await this.db().none(
+      `
+      insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))
+      on conflict (name)
+      do update
+      set website = coalesce("organizationCacheIdentities".website, EXCLUDED.website)
+      where "organizationCacheIdentities".website is null;
+      `,
+      {
+        id,
+        name: data.name,
+        website: data.website,
+      },
+    )
+
     return id
   }
 
   public async updateCache(
     id: string,
     data: Partial<IDbUpdateOrganizationCacheData>,
+    nameToCreateIdentity?: string,
   ): Promise<void> {
-    const keys = Object.keys(data)
+    const keys = Object.keys(data).filter((k) => k !== 'website' && k !== 'name')
     keys.push('updatedAt')
     // construct custom column set
     const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
@@ -109,9 +156,38 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
     const condition = this.format('where id = $(id)', { id })
 
-    const result = await this.db().result(`${query} ${condition}`)
+    let result = await this.db().result(`${query} ${condition}`)
 
     this.checkUpdateRowCount(result.rowCount, 1)
+
+    if (nameToCreateIdentity) {
+      result = await this.db().result(
+        `
+        insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))
+        on conflict (name)
+        do update
+        set website = coalesce("organizationCacheIdentities".website, EXCLUDED.website)
+        where "organizationCacheIdentities".website is null;
+        `,
+        {
+          id,
+          name: nameToCreateIdentity,
+          website: data.website,
+        },
+      )
+    }
+
+    if (data.website) {
+      result = await this.db().result(
+        `
+        update "organizationCacheIdentities" set website = $(website) where id = $(id) and website is null
+      `,
+        {
+          id,
+          website: data.website,
+        },
+      )
+    }
   }
 
   public async getIdentities(

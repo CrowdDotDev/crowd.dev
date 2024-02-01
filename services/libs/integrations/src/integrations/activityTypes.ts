@@ -24,6 +24,7 @@ import { DISCOURSE_GRID } from './discourse/grid'
 import { Groupsio_GRID } from './groupsio/grid'
 import { GroupsioActivityType } from './groupsio/types'
 import { ConfluenceActivityType } from './confluence/types'
+import { GerritActivityType } from './gerrit/types'
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
@@ -41,6 +42,10 @@ const defaultGithubChannelFormatter = (channel) => {
 }
 
 const defaultConfluenceChannelFormatter = (channel) => {
+  return `<a href="${channel}" target="_blank">${channel}</a>`
+}
+
+const defaultGerritChannelFormatter = (channel) => {
   return `<a href="${channel}" target="_blank">${channel}</a>`
 }
 
@@ -764,16 +769,183 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
   },
   [PlatformType.CONFLUENCE]: {
-    [ConfluenceActivityType.PAGE]: {
+    [ConfluenceActivityType.PAGE_CREATED]: {
       display: {
-        default: 'added a confluence page in {channel}',
-        short: 'added a page',
+        default: 'created a confluence page in {channel}',
+        short: 'created a page',
         channel: '{channel}',
         formatter: {
           channel: defaultConfluenceChannelFormatter,
           self: (activity) => {
             const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" target="_blank">xxx ${prNumberAndTitle}</a>`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [ConfluenceActivityType.PAGE_UPDATED]: {
+      display: {
+        default: 'updated a confluence page in {channel}',
+        short: 'updated a page',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultConfluenceChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [ConfluenceActivityType.COMMENT_CREATED]: {
+      display: {
+        default: 'added a comment to a confluence page in {channel}',
+        short: 'added a comment',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultConfluenceChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: false,
+    },
+    [ConfluenceActivityType.ATTACHMENT_CREATED]: {
+      display: {
+        default: 'added an attachment to a confluence page in {channel}',
+        short: 'added an attachment',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultConfluenceChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+  },
+  [PlatformType.GERRIT]: {
+    [GerritActivityType.CHANGESET_CREATED]: {
+      display: {
+        default: 'Created a gerrit changeset in {channel}',
+        short: 'created a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_MERGED]: {
+      display: {
+        default: 'Merged a gerrit changeset in {channel}',
+        short: 'merged a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_CLOSED]: {
+      display: {
+        default: 'Closed a gerrit changeset in {channel}',
+        short: 'closed a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_ABANDONED]: {
+      display: {
+        default: 'Abandoned a gerrit changeset in {channel}',
+        short: 'abandoned a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.CHANGESET_COMMENT_CREATED]: {
+      display: {
+        default: 'added a comment to gerrit changeset in {channel}',
+        short: 'added a comment to changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.PATCHSET_CREATED]: {
+      display: {
+        default: 'created a gerrit patchset in {channel}',
+        short: 'created a patchset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.PATCHSET_COMMENT_CREATED]: {
+      display: {
+        default: 'added a comment to gerrit patchset in {channel}',
+        short: 'added a changeset',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [GerritActivityType.PATCHSET_APPROVAL_CREATED]: {
+      display: {
+        default: 'created a gerrit patchset approval in {channel}',
+        short: 'created a patchset approval',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGerritChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
           },
         },
       },

@@ -4,32 +4,74 @@
     :container-class="'col-start-1 col-span-12'"
   >
     <div class="member-form-page">
-      <el-button
-        key="members"
-        link
-        :icon="ArrowPrevIcon"
-        class="text-gray-600 btn-link--md btn-link--secondary p-0"
-        @click="onCancel"
-      >
-        Contributors
-      </el-button>
-      <div class="flex items-center gap-4 mt-4 mb-6">
-        <h4>
-          {{ isEditPage ? 'Edit contributor' : 'New contributor' }}
-        </h4>
-        <div
-          v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
-          class="badge badge--gray-light badge--xs"
-        >
-          {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+      <div class="sticky -top-5 z-20 bg-white -mx-2 px-2 -mt-6 pt-6 block">
+        <div class="border-b border-gray-200">
+          <el-button
+            key="members"
+            link
+            :icon="ArrowPrevIcon"
+            class="text-gray-600 btn-link--md btn-link--secondary p-0"
+            @click="onCancel"
+          >
+            Contributors
+          </el-button>
+          <div class="flex justify-between">
+            <div class="flex items-center gap-4 mt-4 mb-6">
+              <h4>
+                {{ isEditPage ? 'Edit contributor' : 'New contributor' }}
+              </h4>
+              <div
+                v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
+                class="badge badge--gray-light badge--xs"
+              >
+                {{ selectedSegments.subproject.name }} ({{ selectedSegments.project.name }})
+              </div>
+            </div>
+            <div class="flex items-center">
+              <el-button
+                v-if="isEditPage && hasFormChanged"
+                class="btn btn-link btn-link--primary !px-3"
+                :disabled="isFormSubmitting"
+                @click="onReset"
+              >
+                <i class="ri-arrow-go-back-line" />
+                <span>Reset changes</span>
+              </el-button>
+              <div
+                v-if="isEditPage && hasFormChanged"
+                class="mx-4 border-x border-gray-200 h-10"
+              />
+              <div class="flex gap-4">
+                <el-button
+                  :disabled="isFormSubmitting"
+                  class="btn btn--md btn--bordered"
+                  @click="onCancel"
+                >
+                  Cancel
+                </el-button>
+                <el-button
+                  :disabled="isSubmitBtnDisabled"
+                  :loading="isFormSubmitting"
+                  :loading-icon="LoaderIcon"
+                  class="btn btn--md btn--primary"
+                  @click="onSubmit"
+                >
+                  {{
+                    isEditPage ? 'Update contributor' : 'Add contributor'
+                  }}
+                </el-button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
       <el-container
         v-if="!isPageLoading"
-        class="bg-white rounded-lg shadow shadow-black/15 flex-col"
+        class="bg-white rounded-lg flex-col"
       >
-        <div v-if="!isEditPage" class="grid gap-x-12 grid-cols-3 bg-gray-50 p-6">
-          <div class="col-span-2 col-start-2 relative">
+        <div v-if="!isEditPage" class="grid gap-x-12 grid-cols-4 bg-gray-50 p-6">
+          <div class="col-span-3 col-start-2 relative">
             <app-lf-sub-projects-list-dropdown
               :selected-subproject="selectedSegments.subproject"
               :selected-subproject-parent="selectedSegments.project"
@@ -53,10 +95,39 @@
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <app-member-form-identities
-              v-model="formModel"
-              :record="record"
+            <div class="grid gap-x-12 grid-cols-4">
+              <div>
+                <h6>
+                  Identities <span class="text-brand-500">*</span>
+                </h6>
+                <p class="text-gray-500 text-2xs leading-normal mt-1">
+                  Connect with contacts' external data sources or
+                  profiles
+                </p>
+              </div>
+              <div class="col-span-3 -mt-5">
+                <app-member-form-identities
+                  v-model="formModel"
+                  :record="record"
+                />
+              </div>
+            </div>
+            <el-divider
+              class="!mb-6 !mt-8 !border-gray-200"
             />
+            <div class="grid gap-x-12 grid-cols-4">
+              <div>
+                <h6>
+                  Email address
+                </h6>
+              </div>
+              <div class="col-span-3">
+                <app-member-form-emails
+                  v-model="formModel"
+                />
+              </div>
+            </div>
+
             <el-divider
               class="!mb-6 !mt-16 !border-gray-200"
             />
@@ -83,44 +154,6 @@
             </div>
           </el-form>
         </el-main>
-        <el-footer
-          class="bg-gray-50 flex items-center p-6 h-fit rounded-b-lg"
-          :class="
-            isEditPage && hasFormChanged
-              ? 'justify-between'
-              : 'justify-end'
-          "
-        >
-          <el-button
-            v-if="isEditPage && hasFormChanged"
-            class="btn btn-link btn-link--primary"
-            :disabled="isFormSubmitting"
-            @click="onReset"
-          >
-            <i class="ri-arrow-go-back-line" />
-            <span>Reset changes</span>
-          </el-button>
-          <div class="flex gap-4">
-            <el-button
-              :disabled="isFormSubmitting"
-              class="btn btn--md btn--secondary"
-              @click="onCancel"
-            >
-              Cancel
-            </el-button>
-            <el-button
-              :disabled="isSubmitBtnDisabled"
-              :loading="isFormSubmitting"
-              :loading-icon="LoaderIcon"
-              class="btn btn--md btn--primary"
-              @click="onSubmit"
-            >
-              {{
-                isEditPage ? 'Update contributor' : 'Add contributor'
-              }}
-            </el-button>
-          </div>
-        </el-footer>
       </el-container>
       <el-container v-else>
         <div
@@ -158,6 +191,7 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
@@ -403,7 +437,13 @@ async function onReset() {
 }
 
 async function onCancel() {
-  router.push({ name: 'member' });
+  router.push({
+    name: 'memberView',
+    params: {
+      id: record.value.id,
+    },
+    query: { projectGroup: selectedProjectGroup?.id },
+  });
 }
 
 async function onSubmit() {

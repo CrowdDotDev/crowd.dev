@@ -11,11 +11,11 @@ import {
   PlatformType,
   SyncMode,
 } from '@crowd/types'
+import { renameKeys } from '@crowd/common'
+import { EnrichmentParams, IEnrichmentResponse } from '../../../types/enrichmentTypes'
 import { REDIS_CONFIG } from '../../../conf'
 import OrganizationRepository from '../../../database/repositories/organizationRepository'
-import { renameKeys } from '../../../utils/renameKeys'
 import { IServiceOptions } from '../../IServiceOptions'
-import { EnrichmentParams, IEnrichmentResponse } from './types/organizationEnrichmentTypes'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import SearchSyncService from '@/services/searchSyncService'
 
@@ -304,6 +304,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
   ): IOrganization {
     let data = <IEnrichableOrganization>renameKeys(pdlData, {
       summary: 'description',
+      display_name: 'displayName',
       employee_count_by_country: 'employeeCountByCountry',
       employee_count: 'employees',
       location: 'address',

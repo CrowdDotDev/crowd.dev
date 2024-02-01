@@ -4,6 +4,7 @@
       <div v-if="!props.datepickerType || props.datepickerType === 'date'">
         <el-select
           v-model="timePicker"
+          value-key="id"
           placeholder="Select property"
           class="w-full"
           placement="bottom-end"
@@ -14,12 +15,16 @@
           </template>
           <el-option
             v-for="time of dateFilterTimePickerOptions"
-            :key="time.value"
-            :value="time.value"
+            :key="time.id"
+            :value="time"
             :label="time.label"
           />
           <el-option
-            value="custom"
+            key="custom"
+            :value="{
+              id: 'custom',
+              value: 'custom',
+            }"
             label="Custom"
           />
         </el-select>
@@ -70,6 +75,7 @@ import {
   dateFilterTimePickerOptions,
   FilterDateOperator,
 } from '@/shared/modules/filters/config/constants/date.constants';
+import { FilterTimeOptions } from '../../types/FilterTimeOptions';
 
 const props = defineProps<{
   modelValue: DateFilterValue,
@@ -103,17 +109,23 @@ const timePickerOptionValues = dateFilterTimePickerOptions.map((v) => v.value);
 
 const timePicker = computed({
   get() {
-    if (typeof form.value.value === 'string' && timePickerOptionValues.includes(form.value.value)) {
-      return form.value.value;
+    const option = dateFilterTimePickerOptions.find((o) => o.value === form.value.value && o.operator === form.value.operator);
+    if (typeof form.value.value === 'string' && option) {
+      return option;
     }
-    return 'custom';
+
+    return {
+      id: 'custom',
+      value: '',
+      label: 'Custom',
+      operator: FilterDateOperator.EQ,
+    };
   },
-  set(value: string) {
-    if (timePickerOptionValues.includes(value)) {
-      form.value = {
-        value,
-        operator: FilterDateOperator.GT,
-      };
+  set(optionValue: Partial<FilterTimeOptions>) {
+    const option = dateFilterTimePickerOptions.find((o) => o.value === optionValue.value && o.operator === optionValue.operator);
+
+    if (option) {
+      form.value = option;
     } else {
       form.value = {
         value: '',

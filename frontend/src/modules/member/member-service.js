@@ -243,7 +243,7 @@ export class MemberService {
     return response.data;
   }
 
-  static async fetchMergeSuggestions(limit, offset, segments) {
+  static async fetchMergeSuggestions(limit, offset, query, segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
@@ -251,6 +251,7 @@ export class MemberService {
       limit,
       offset,
       segments,
+      ...query,
     };
 
     return authAxios.get(

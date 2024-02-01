@@ -68,7 +68,8 @@
       border: 1px solid #E6E6E6;
       @apply bg-gray-200 text-brand-500 border-solid;
     }
-    &[disabled] {
+    &[disabled],
+    &:disabled {
       background: linear-gradient(180deg, #FFF 0%, #F3F4F6 100%);
       @apply cursor-not-allowed text-gray-400 border border-gray-100 border-solid;
     }
@@ -121,6 +122,19 @@
         @apply cursor-not-allowed text-gray-400 bg-transparent;
       }
     }
+
+    &--linux {
+      @apply text-gray-300;
+
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-brand-500 bg-transparent;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed text-gray-200 bg-transparent;
+      }
+    }
   }
 
   &--link {
@@ -150,7 +164,7 @@
   }
 
   &[disabled] {
-    opacity: 0.75;
+    opacity: 0.5;
     cursor: default;
     pointer-events: none;
   }
@@ -170,59 +184,6 @@
 
 .btn-group > .btn:not(:last-child) {
   @apply -mr-0.5;
-}
-
-// Identities
-.btn {
-  &--twitter,
-  &--twitter:hover {
-    @apply bg-white border border-gray-200;
-  }
-
-  &--discord,
-  &--discord:hover {
-    background-color: rgba(88, 101, 242, 0.15);
-  }
-
-  &--crunchbase,
-  &--crunchbase:hover {
-    background: rgba(20, 106, 255, 0.15);
-  }
-
-  &--hackernews,
-  &--hackernews:hover {
-    background-color: rgba(255, 102, 0, 0.15);
-    color: #ff6600;
-  }
-
-  &--email,
-  &--email:hover,
-  &--phone,
-  &--phone:hover,
-  &--custom-platform,
-  &--custom-platform:hover,
-  &--facebook,
-  &--facebook:hover {
-    @apply leading-none cursor-pointer bg-white text-gray-600 border border-gray-200;
-  }
-
-  &--github,
-  &--github:hover,
-  &--devto,
-  &--devto:hover {
-    @apply bg-gray-100 border border-gray-200;
-  }
-
-  &--slack,
-  &--slack:hover,
-  &--linkedin,
-  &--linkedin:hover,
-  &--stackoverflow,
-  &--stackoverflow:hover,
-  &--git,
-  &--git:hover {
-    @apply bg-white border border-gray-200;
-  }
 }
 
 .el-button {

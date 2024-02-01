@@ -74,7 +74,7 @@
             />
 
             <div
-              class="-mx-6 -mt-6"
+              class="-mx-6 -mt-6 relative"
               @mouseover="onTableMouseover"
               @mouseleave="onTableMouseLeft"
             >
@@ -88,6 +88,8 @@
                 :row-class-name="rowClass"
                 @sort-change="doChangeSort"
                 @selection-change="selectedOrganizations = $event"
+                @cell-mouse-enter="handleCellMouseEnter"
+                @cell-mouse-leave="handleCellMouseLeave"
               >
                 <!-- Checkbox -->
                 <el-table-column
@@ -100,7 +102,7 @@
                 <el-table-column
                   label="Organization"
                   prop="displayName"
-                  width="240"
+                  width="300"
                   fixed
                   sortable
                 >
@@ -125,7 +127,10 @@
                 </el-table-column>
 
                 <!-- Website -->
-                <el-table-column label="Website" width="180">
+                <el-table-column
+                  label="Website"
+                  width="260"
+                >
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -139,7 +144,8 @@
                       >
                         <a
                           v-if="scope.row.website"
-                          class="text-gray-500 hover:!text-brand-500"
+                          class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4
+          hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
                           :href="withHttp(scope.row.website)"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -158,16 +164,16 @@
                 <el-table-column
                   label="Headline"
                   prop="headline"
-                  width="300"
+                  width="420"
                 >
                   <template #header>
                     <div class="flex items-center">
-                      <div class="mr-2">
-                        Headline
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Headline
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -185,9 +191,9 @@
                       <div class="mr-4">
                         <span
                           v-if="scope.row.headline || scope.row.description"
-                          class="text-sm h-full flex items-center text-gray-900"
+                          class="text-sm h-full flex items-center text-gray-900 line-clamp-3"
                         >
-                          {{ truncateText((scope.row.headline || scope.row.description), 150, '...') }}
+                          {{ scope.row.headline || scope.row.description }}
                         </span>
                         <span
                           v-else
@@ -201,16 +207,15 @@
                 <!-- Identities -->
                 <el-table-column
                   label="Identities"
-                  width="240"
+                  width="300"
                 >
                   <template #header>
-                    <span>Identities</span>
                     <el-tooltip placement="top">
                       <template #content>
                         Identities can be profiles on social platforms, emails,<br>
                         or unique identifiers from internal sources.
                       </template>
-                      <i class="ri-information-line text-xs ml-1" />
+                      <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Identities</span>
                     </el-tooltip>
                   </template>
                   <template #default="scope">
@@ -226,14 +231,10 @@
                       class="block"
                     >
                       <div class="h-full flex items-center">
-                        <app-organization-identities
-                          v-if="scope.row.identities.length > 0"
+                        <app-identities-horizontal-list-organizations
                           :organization="scope.row"
+                          :limit="5"
                         />
-                        <span
-                          v-else
-                          class="text-gray-900"
-                        >-</span>
                       </div>
                     </router-link>
                   </template>
@@ -241,8 +242,8 @@
 
                 <!-- Number of members -->
                 <el-table-column
-                  label="# Contributors"
-                  width="150"
+                  label="# of Contributors"
+                  width="220"
                   prop="memberCount"
                   sortable
                 >
@@ -273,8 +274,8 @@
 
                 <!-- Number of activities -->
                 <el-table-column
-                  label="# Activities"
-                  width="150"
+                  label="# of Activities"
+                  width="200"
                   prop="activityCount"
                   sortable
                 >
@@ -303,11 +304,11 @@
                   </template>
                 </el-table-column>
 
-                <!-- TBD: Last active -->
+                <!-- Last active -->
                 <el-table-column
                   label="Last active"
                   prop="lastActive"
-                  width="150"
+                  width="180"
                   sortable="lastActive"
                 >
                   <template #default="scope">
@@ -340,7 +341,7 @@
                 <!-- Joined Date -->
                 <el-table-column
                   label="Joined Date"
-                  width="200"
+                  width="180"
                   prop="joinedAt"
                   sortable
                 >
@@ -377,17 +378,17 @@
                 <!-- Location -->
                 <el-table-column
                   label="Location"
-                  width="150"
+                  width="260"
                   prop="location"
                 >
                   <template #header>
                     <div class="flex items-center">
-                      <div class="mr-2">
-                        Location
-                      </div>
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Location
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
@@ -419,21 +420,27 @@
                 <!-- Industry -->
                 <el-table-column
                   label="Industry"
-                  width="150"
+                  width="220"
                   prop="industry"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Industry
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, 'industry')"
+                      class="flex items-center"
+                      @mouseover="() => onColumnHeaderMouseOver('industry')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Industry
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
                     <router-link
+                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-industry`)"
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -442,9 +449,10 @@
                           segmentId: scope.row.segmentId,
                         },
                       }"
-                      class="block"
+                      class="block h-full"
                     >
                       <div
+                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.industry" class="text-gray-900">
@@ -454,6 +462,11 @@
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          Software
+                        </div>
+                      </div>
                     </router-link>
                   </template>
                 </el-table-column>
@@ -461,21 +474,27 @@
                 <!-- Headcount -->
                 <el-table-column
                   label="Headcount"
-                  width="150"
+                  width="180"
                   prop="size"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Headcount
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, 'size')"
+                      class="flex items-center"
+                      @mouseover="() => onColumnHeaderMouseOver('size')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Headcount
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
                     <router-link
+                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-size`)"
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -484,17 +503,23 @@
                           segmentId: scope.row.segmentId,
                         },
                       }"
-                      class="block"
+                      class="block h-full"
                     >
                       <div
+                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
-                        <span v-if="scope.row.size" class="text-gray-900">
+                        <span v-if="scope.row.size || scope.row.employees" class="text-gray-900">
                           {{
-                            scope.row.size
+                            scope.row.size || scope.row.employees
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
+                      </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          11-50
+                        </div>
                       </div>
                     </router-link>
                   </template>
@@ -503,20 +528,27 @@
                 <!-- Inferred Revenue -->
                 <el-table-column
                   label="Annual Revenue"
-                  width="150"
+                  prop="revenueRange"
+                  width="220"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Annual Revenue
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, 'revenueRange')"
+                      class="flex items-center"
+                      @mouseover="() => onColumnHeaderMouseOver('revenueRange')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Annual Revenue
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
                     <router-link
+                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-revenueRange`)"
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -525,9 +557,10 @@
                           segmentId: scope.row.segmentId,
                         },
                       }"
-                      class="block"
+                      class="block h-full"
                     >
                       <div
+                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.revenueRange" class="text-gray-900">
@@ -537,6 +570,11 @@
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          $1M-$10M
+                        </div>
+                      </div>
                     </router-link>
                   </template>
                 </el-table-column>
@@ -544,24 +582,30 @@
                 <!-- Founded -->
                 <el-table-column
                   label="Founded"
-                  width="150"
+                  width="160"
                   prop="founded"
                   sortable
                 >
                   <template #header>
-                    <div class="inline-block">
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, 'founded')"
+                      class="inline-block"
+                      @mouseover="() => onColumnHeaderMouseOver('founded')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
                       <div class="flex items-center">
-                        <div class="mr-2">
-                          Founded
-                        </div>
-                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                           <app-svg name="source" class="h-3 w-3" />
                         </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Founded
+                        </div>
                       </div>
                     </div>
                   </template>
                   <template #default="scope">
                     <router-link
+                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-founded`)"
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -570,9 +614,11 @@
                           segmentId: scope.row.segmentId,
                         },
                       }"
-                      class="block"
+                      class="block h-full"
                     >
                       <div
+
+                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.founded" class="text-gray-900">
@@ -582,34 +628,47 @@
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          2021
+                        </div>
+                      </div>
                     </router-link>
                   </template>
                 </el-table-column>
 
                 <!-- Employee Growth Rate -->
                 <el-table-column
-                  label="Ann. Employee Growth Rate"
-                  width="250"
+                  label="Ann. Employee Growth"
+                  prop="employeeGrowthRate"
+                  width="280"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Ann. Employee Growth Rate
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, 'employeeGrowthRate')"
+                      class="flex items-center"
+                      @mouseover="() => onColumnHeaderMouseOver('employeeGrowthRate')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Ann. Employee Growth Rate
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
                     <router-link
+                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-employeeGrowthRate`)"
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
                       }"
-                      class="block"
+                      class="block h-full"
                     >
                       <div
+                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
@@ -619,6 +678,11 @@
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          10.25%
+                        </div>
+                      </div>
                     </router-link>
                   </template>
                 </el-table-column>
@@ -626,35 +690,52 @@
                 <!-- Tags -->
                 <el-table-column
                   label="Smart tags"
-                  :width="tagsColumnWidth"
+                  prop="tags"
+                  width="280"
                 >
                   <template #header>
-                    <div class="flex items-center">
-                      <div class="mr-2">
-                        Smart Tags
-                      </div>
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, 'tags')"
+                      class="flex items-center"
+                      @mouseover="() => onColumnHeaderMouseOver('tags')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
                         <app-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Smart Tags
+                      </div>
                     </div>
                   </template>
                   <template #default="scope">
                     <router-link
+                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-tags`)"
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
                       }"
-                      class="block"
+                      class="block h-full"
                     >
-                      <app-tag-list
-                        v-if="scope.row.tags?.length"
-                        :member="{
-                          ...scope.row,
-                          tags: scope.row.tags.map((t) => ({ id: t, name: t })),
-                        }"
-                        :editable="false"
-                      />
-                      <span v-else class="text-gray-500">-</span>
+                      <div v-if="isEnrichEnabled">
+                        <app-shared-tag-list
+                          v-if="scope.row.tags?.length"
+                          :list="scope.row.tags"
+                          :slice-size="5"
+                        >
+                          <template #itemSlot="{ item }">
+                            <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
+                              {{ item }}
+                            </span>
+                          </template>
+                        </app-shared-tag-list>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          Software
+                        </div>
+                      </div>
                     </router-link>
                   </template>
                 </el-table-column>
@@ -689,6 +770,18 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <div
+                v-if="isTableLoading"
+                class="absolute w-full top-0 left-0 bottom-[64px] bg-white opacity-60 z-20 flex items-center justify-center"
+              >
+                <div
+                  class="h-16 !relative !min-h-5 flex justify-center items-center"
+                >
+                  <div class="animate-spin w-fit">
+                    <div class="custom-spinner" />
+                  </div>
+                </div>
+              </div>
 
               <div
                 v-if="showBottomPagination"
@@ -712,15 +805,14 @@
         </div>
       </div>
     </div>
+    <!-- Actions dropdown popover -->
     <el-popover
-      ref="OrganizationDropdownPopover"
       placement="bottom-end"
       popper-class="popover-dropdown"
       :virtual-ref="actionBtnRefs[selectedActionOrganization?.id]"
       trigger="click"
       :visible="showOrganizationDropdownPopover"
       virtual-triggering
-      @hide="onHide"
     >
       <div v-click-outside="onClickOutside">
         <app-organization-dropdown-content
@@ -731,6 +823,21 @@
         />
       </div>
     </el-popover>
+
+    <!-- Enrichment popover -->
+    <el-popover
+      v-if="!isEnrichEnabled"
+      placement="top"
+      popper-class="!p-0 !mb-[-12px] !w-60"
+      :virtual-ref="enrichmentRefs[selectedEnrichmentAttribute]"
+      trigger="hover"
+      :visible="showEnrichmentPopover"
+      virtual-triggering
+      @hide="onHide"
+    >
+      <cr-enrichment-sneak-peak-content id="popover-content" type="organization" @mouseleave="closeEnrichmentPopover" />
+    </el-popover>
+
     <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
@@ -745,17 +852,20 @@ import {
 import { useRouter } from 'vue-router';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
-import { withHttp, toSentenceCase, truncateText } from '@/utils/string';
+import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
-import AppTagList from '@/modules/tag/components/tag-list.vue';
+import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import AppSvg from '@/shared/svg/svg.vue';
-import AppOrganizationIdentities from '../organization-identities.vue';
+import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import Plans from '@/security/plans';
+import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
@@ -770,6 +880,10 @@ const props = defineProps({
   isPageLoading: {
     type: Boolean,
     default: () => true,
+  },
+  isTableLoading: {
+    type: Boolean,
+    default: () => false,
   },
   pagination: {
     type: Object,
@@ -800,9 +914,16 @@ const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
 const showOrganizationDropdownPopover = ref(false);
-const OrganizationDropdownPopover = ref(null);
 const actionBtnRefs = ref({});
 const selectedActionOrganization = ref(null);
+
+const showEnrichmentPopover = ref(false);
+const enrichmentRefs = ref({});
+const selectedEnrichmentAttribute = ref(null);
+
+const { currentTenant } = mapGetters('auth');
+
+const isEnrichEnabled = computed(() => currentTenant.value?.plan !== Plans.values.essential);
 
 const pagination = computed({
   get() {
@@ -825,24 +946,6 @@ const showBottomPagination = computed(() => (
     ) > 1
 ));
 const isLoading = computed(() => props.isPageLoading);
-
-const tagsColumnWidth = computed(() => {
-  let maxTabWidth = 0;
-
-  organizations.value.forEach((row) => {
-    if (row.tags) {
-      const tabWidth = row.tags
-        .map((tag) => tag.length * 20)
-        .reduce((a, b) => a + b, 0);
-
-      if (tabWidth > maxTabWidth) {
-        maxTabWidth = tabWidth;
-      }
-    }
-  });
-
-  return Math.min(maxTabWidth + 150, 500);
-});
 
 document.onmouseup = () => {
   // As soon as mouse is released, set scrollbar visibility
@@ -867,6 +970,44 @@ const onActionBtnClick = (organization) => {
   } else {
     showOrganizationDropdownPopover.value = true;
     selectedActionOrganization.value = organization;
+  }
+};
+
+const setEnrichmentAttributesRef = (el, id) => {
+  if (el) {
+    enrichmentRefs.value[id] = el;
+  }
+};
+
+const handleCellMouseEnter = (row, column) => {
+  const validValues = ['industry', 'size', 'revenueRange', 'founded', 'employeeGrowthRate', 'tags'];
+
+  if (validValues.includes(column.property)) {
+    showEnrichmentPopover.value = true;
+    selectedEnrichmentAttribute.value = `${row.id}-${column.property}`;
+  }
+};
+
+const onColumnHeaderMouseOver = (id) => {
+  showEnrichmentPopover.value = true;
+  selectedEnrichmentAttribute.value = id;
+};
+
+const handleCellMouseLeave = (_row, column) => {
+  const validValues = ['industry', 'size', 'revenueRange', 'founded', 'employeeGrowthRate', 'tags'];
+
+  if (!validValues.includes(column.property)) {
+    closeEnrichmentPopover();
+  }
+};
+
+const closeEnrichmentPopover = (ev) => {
+  if (ev?.toElement?.id !== 'popover-content') {
+    showEnrichmentPopover.value = false;
+
+    setTimeout(() => {
+      selectedEnrichmentAttribute.value = null;
+    }, 100);
   }
 };
 

@@ -21,21 +21,30 @@
           Export to CSV
         </el-dropdown-item>
 
-        <el-dropdown-item
+        <el-tooltip
           v-if="selectedOrganizations.length === 2"
-          :command="{
-            action: 'mergeOrganizations',
-          }"
-          :disabled="
-            isPermissionReadOnly
-              || isEditLockedForSampleData
-          "
+          content="Coming soon"
+          placement="top"
+          :disabled="hasPermissionsToMerge"
         >
-          <i
-            class="ri-lg mr-1 ri-shuffle-line"
-          />
-          Merge organizations
-        </el-dropdown-item>
+          <span>
+            <el-dropdown-item
+              :command="{
+                action: 'mergeOrganizations',
+              }"
+              :disabled="
+                isPermissionReadOnly
+                  || isEditLockedForSampleData
+                  || !hasPermissionsToMerge
+              "
+            >
+              <i
+                class="ri-lg mr-1 ri-shuffle-line"
+              />
+              Merge organizations
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
 
         <el-dropdown-item
           v-if="markAsTeamOrganizationOptions"
@@ -92,6 +101,7 @@ import { storeToRefs } from 'pinia';
 import Errors from '@/shared/error/errors';
 import { Excel } from '@/shared/excel/excel';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
+import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
@@ -157,6 +167,11 @@ const markAsTeamOrganizationOptions = computed(() => {
   };
 });
 
+const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
+  currentTenant.value,
+  currentUser.value,
+)?.mergeOrganizations);
+
 const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
   title: 'Delete organizations',
@@ -175,23 +190,19 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
 const handleMergeOrganizations = async () => {
   const [firstOrganization, secondOrganization] = selectedOrganizations.value;
 
-  Message.info(
-    null,
-    {
-      title: 'Organizations are being merged',
-    },
-  );
+  const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
 
   OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
     .then(() => {
-      Message.closeAll();
-      Message.success('Organizations merged successfuly');
+      organizationStore
+        .addMergedOrganizations(firstOrganization.id, secondOrganization.id);
+
+      loadingMessage();
 
       fetchOrganizations({ reload: true });
     })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('There was an error merging organizations');
+    .catch((error) => {
+      apiErrorMessage({ error });
     });
 };
 

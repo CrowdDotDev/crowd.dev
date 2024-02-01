@@ -6,31 +6,42 @@
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 mt-6 group">
-      <div
-        v-for="(segment, i) in member.segments"
-        :key="segment.id"
-        class="flex flex-col gap-4"
+    <div v-if="member.segments.length" class="flex flex-col gap-4 mt-6 group">
+      <app-entities
+        :entities="member.segments"
+        :limit="3"
       >
-        <div class="text-xs text-gray-900">
-          {{ segment.name }}
-        </div>
-        <el-divider v-if="i !== member.segments.length - 1" class="!my-0 border-gray-200" />
-      </div>
+        <template #default="{ slicedEntities }">
+          <div
+            v-for="(segment, i) of slicedEntities"
+            :key="segment.id"
+            class="flex flex-col gap-4"
+          >
+            <div class="text-xs text-gray-900 flex items-center gap-3">
+              <i class="ri-stack-line text-lg" />
+              <span>{{ segment.name }}</span>
+            </div>
+            <el-divider v-if="i !== slicedEntities.length - 1" class="!my-0 border-gray-200" />
+          </div>
+        </template>
+      </app-entities>
+    </div>
+    <div v-else class="text-gray-400 mt-6 text-xs italic">
+      No sub-projects
     </div>
   </div>
 </template>
 
-<script setup>
-defineProps({
-  member: {
-    type: Object,
-    default: () => {},
-  },
-});
+<script setup lang="ts">
+import { Member } from '@/modules/member/types/Member';
+import AppEntities from '@/shared/modules/entities/Entities.vue';
+
+defineProps<{
+  member: Member
+}>();
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppLfMemberAsideSubProjects',
 };

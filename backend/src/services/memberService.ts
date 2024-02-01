@@ -666,9 +666,6 @@ export default class MemberService extends LoggerBase {
       const memberOrganizationService = new MemberOrganizationService(repoOptions)
       await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
-      // update activities to belong to the originalId member
-      await MemberRepository.moveActivitiesBetweenMembers(toMergeId, originalId, repoOptions)
-
       // Remove toMerge from original member
       await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
@@ -679,27 +676,47 @@ export default class MemberService extends LoggerBase {
         currentSegments: secondMemberSegments,
       })
 
-      // Delete toMerge member
-      await MemberRepository.destroy(toMergeId, repoOptions, true)
-
       await SequelizeRepository.commitTransaction(tx)
 
-      if (syncOptions.doSync) {
-        try {
-          const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
+      await this.options.temporal.workflow.start('finishMemberMerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishMemberMerging/${originalId}/${toMergeId}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [originalId, toMergeId, this.options.currentTenant.id],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
-          await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
-          await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
-        } catch (emitError) {
-          this.log.error(
-            emitError,
-            {
-              tenantId: this.options.currentTenant.id,
-              originalId,
-              toMergeId,
-            },
-            'Error while triggering member sync changes!',
-          )
+      if (syncOptions.doSync) {
+        let attempts = 0
+        const maxAttempts = 5
+        while (attempts < maxAttempts) {
+          try {
+            const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
+            await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
+            await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
+            break
+          } catch (emitError) {
+            attempts++
+            if (attempts === maxAttempts) {
+              throw new Error('Failed to trigger member sync changes after 5 attempts')
+            }
+            this.log.error(
+              emitError,
+              {
+                tenantId: this.options.currentTenant.id,
+                originalId,
+                toMergeId,
+              },
+              'Error while triggering member sync changes!',
+            )
+            await new Promise((resolve) => {
+              setTimeout(resolve, 1000)
+            })
+          }
         }
       }
 
@@ -1129,6 +1146,10 @@ export default class MemberService extends LoggerBase {
       { ...args, attributesSettings: memberAttributeSettings },
       this.options,
     )
+  }
+
+  async findByIdOpensearch(id: string, segmentId?: string) {
+    return MemberRepository.findByIdOpensearch(id, this.options, segmentId)
   }
 
   async queryV2(data) {
