@@ -45,7 +45,7 @@
       </div>
 
       <div
-        v-if="Object.keys(emails).length > 5"
+        v-if="props.emails.length > 5"
         class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
         @click="displayEmailsMore = !displayEmailsMore"
       >
@@ -103,7 +103,7 @@
       </div>
 
       <div
-        v-if="Object.keys(phoneNumbers).length > 5"
+        v-if="props.phoneNumbers.length > 5"
         class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
         @click="displayPhoneNumbersMore = !displayPhoneNumbersMore"
       >

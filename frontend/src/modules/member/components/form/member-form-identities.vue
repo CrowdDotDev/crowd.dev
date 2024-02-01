@@ -159,7 +159,10 @@ watch(
     // Emit updated member
     emit('update:modelValue', {
       ...props.modelValue,
-      username,
+      username: {
+        ...props.modelValue.username,
+        ...username,
+      },
       platform: platform || props.modelValue.platform,
       identities: platforms,
       attributes: {
