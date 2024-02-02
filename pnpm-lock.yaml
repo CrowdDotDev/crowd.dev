@@ -1484,6 +1484,9 @@ importers:
       '@crowd/redis':
         specifier: file:../../libs/redis
         version: file:services/libs/redis
+      '@crowd/telemetry':
+        specifier: file:../../libs/telemetry
+        version: file:services/libs/telemetry
       '@crowd/types':
         specifier: file:../../libs/types
         version: file:services/libs/types
