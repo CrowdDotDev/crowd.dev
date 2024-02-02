@@ -40,7 +40,7 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
     isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].isContribution,
     attributes: {
       userStatus: memberData.user_status,
-    }
+    },
   }
 
   await ctx.publishActivity(activity)
