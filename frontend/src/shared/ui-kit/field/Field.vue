@@ -1,7 +1,7 @@
 <template>
   <div class="c-field" v-bind="$attrs">
-    <div class="flex justify-between">
-      <slot name="label">
+    <div class="flex justify-between c-field__header">
+      <slot name="label" :label-text="props.labelText">
         <label v-if="props.labelText" :for="props.for" class="c-field__label">
           {{ props.labelText }} <span v-if="props.required" class="c-field__required">*</span>
         </label>

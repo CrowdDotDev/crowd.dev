@@ -1,4 +1,6 @@
 import CrField from './Field.vue';
+import CrInput from '../input/Input.vue';
+
 export default {
   title: 'Crowd.dev/Field',
   component: CrField,
@@ -52,4 +54,13 @@ export const Primary = {
     for: '',
     default: '',
   },
+  render: (args: any) => ({
+    components: { CrField, CrInput },
+    setup() {
+      return { args };
+    },
+    template: `<cr-field :label-text="args.labelText" :required="args.required">
+      <cr-input model-value="" placeholder="placeholder"></cr-input>
+    </cr-field>`,
+  }),
 };

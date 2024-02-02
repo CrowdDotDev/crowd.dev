@@ -10,6 +10,11 @@
   &__required{
     color: var(--cr-field-required-color);
   }
+
+  // Required sign
+  &__header{
+    margin-bottom: var(--cr-field-spacing);
+  }
 }
 
 

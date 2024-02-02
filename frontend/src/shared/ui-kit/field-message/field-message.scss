@@ -1,0 +1,25 @@
+.c-field-message {
+  @apply mt-1 flex items-center text-xs;
+
+  &__icon{
+    @apply text-lg mr-1;
+  }
+
+  &--error {
+    @apply text-red-600;
+  }
+
+  &--info {
+    @apply text-blue-600;
+  }
+
+  &--warning {
+    @apply text-yellow-600;
+  }
+
+  &--hint {
+    @apply text-gray-400;
+  }
+}
+
+
