@@ -752,18 +752,20 @@ class MemberRepository {
               platformsToDelete.push(identity.platform)
               usernamesToDelete.push(identity.username)
             } else {
-              await seq.query(query, {
-                replacements: {
-                  memberId: record.id,
-                  platform,
-                  username: identity.username,
-                  sourceId: identity.sourceId || null,
-                  integrationId: identity.integrationId || null,
-                  tenantId: currentTenant.id,
-                },
-                type: QueryTypes.INSERT,
-                transaction,
-              })
+              if (identity.username && identity.username !== '') {
+                await seq.query(query, {
+                  replacements: {
+                    memberId: record.id,
+                    platform,
+                    username: identity.username,
+                    sourceId: identity.sourceId || null,
+                    integrationId: identity.integrationId || null,
+                    tenantId: currentTenant.id,
+                  },
+                  type: QueryTypes.INSERT,
+                  transaction,
+                })
+              }
             }
           }
         }
