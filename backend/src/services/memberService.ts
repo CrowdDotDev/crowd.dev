@@ -1120,8 +1120,10 @@ export default class MemberService extends LoggerBase {
     )
   }
 
-  async findAllAutocomplete(search, limit) {
-    return MemberRepository.findAllAutocomplete(search, limit, this.options)
+  async findAllAutocomplete(data) {
+    this.log.info('search and limit', JSON.stringify(data))
+    // return MemberRepository.findAllAutocomplete(search, limit, this.options)
+    return MemberRepository.findAndCountAllOpensearch({ filter: data.filter, offset: data.offset, orderBy: data.orderBy, limit: data.limit, segments: data.segments }, this.options)
   }
 
   async findAndCountActive(
@@ -1170,6 +1172,8 @@ export default class MemberService extends LoggerBase {
     } else {
       data.segments = [(await new SegmentRepository(this.options).getDefaultSegment()).id]
     }
+
+    this.log.info('memberQueryV2', JSON.stringify(data))
 
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
