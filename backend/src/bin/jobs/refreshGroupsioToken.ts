@@ -21,6 +21,7 @@ const job: CrowdJob = {
       token: string
       groups: string[]
       password: string
+      tokenError: string
       tokenExpiry: string
       updateMemberAttributes: boolean
     }
@@ -28,29 +29,32 @@ const job: CrowdJob = {
     const expiredGroupsIOTokens = await dbOptions.database.sequelize.query(
       `select id, settings from integrations 
                 where  platform = 'groupsio' 
+                and "deletedAt" is null        
                 and DATE_PART('day', to_date( settings ->> 'tokenExpiry', 'YYYY-MM-DD') - now() ) < 2`,
     )
 
     for (const integration of expiredGroupsIOTokens[0]) {
-      // update groups io token
       const thisSetting: SetttingsObj = integration.settings
-      const decryptedPassword = decryptData(thisSetting.password)
+      thisSetting.tokenError = ''
 
-      const config: AxiosRequestConfig = {
-        method: 'post',
-        url: 'https://groups.io/api/v1/login',
-        params: {
-          email: thisSetting.email,
-          password: decryptedPassword,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+      log.info('Refreshing token for groups: ', thisSetting.groups)
 
-      let response: AxiosResponse
       try {
-        response = await axios(config)
+        const decryptedPassword = decryptData(thisSetting.password)
+
+        const config: AxiosRequestConfig = {
+          method: 'post',
+          url: 'https://groups.io/api/v1/login',
+          params: {
+            email: thisSetting.email,
+            password: decryptedPassword,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+
+        const response: AxiosResponse = await axios(config)
 
         // we need to get cookie from the response  and it's expiry
         const cookie = response.headers['set-cookie'][0].split(';')[0]
@@ -62,16 +66,14 @@ const job: CrowdJob = {
         thisSetting.token = cookie
         thisSetting.tokenExpiry = cookieExpiry
       } catch (err) {
-        if ('two_factor_required' in response.data) {
-          throw new Error('errors.groupsio.twoFactorRequired')
-        }
-        throw new Error('errors.groupsio.invalidCredentials')
+        thisSetting.tokenError = err.message
+        log.error(err.message)
+      } finally {
+        await dbOptions.database.integration.update(
+          { settings: thisSetting },
+          { where: { id: integration.id } },
+        )
       }
-
-      await dbOptions.database.integration.update(
-        { settings: thisSetting },
-        { where: { id: integration.id } },
-      )
     }
   },
 }
