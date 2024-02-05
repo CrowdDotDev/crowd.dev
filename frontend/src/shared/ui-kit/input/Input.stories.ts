@@ -55,6 +55,9 @@ export const Regular = {
   args: {
     placeholder: 'Placeholder',
     modelValue: '',
+    disabled: false,
+    invalid: false,
+    type: 'text',
   },
 };
 
@@ -64,6 +67,8 @@ export const Disabled = {
     placeholder: 'Placeholder',
     modelValue: '',
     disabled: true,
+    invalid: false,
+    type: 'text',
   },
 };
 
@@ -72,7 +77,9 @@ export const Invalid = {
   args: {
     placeholder: 'Placeholder',
     modelValue: 'Invalid value',
+    disabled: false,
     invalid: true,
+    type: 'text',
   },
 };
 
@@ -82,6 +89,9 @@ export const Prefix = {
     placeholder: 'Your name',
     modelValue: 'John Doe',
     prefix: 'prefix',
+    disabled: false,
+    invalid: false,
+    type: 'text',
   },
 };
 
@@ -91,5 +101,8 @@ export const Suffix = {
     placeholder: 'Your name',
     modelValue: 'John Doe',
     suffix: 'suffix',
+    disabled: false,
+    invalid: false,
+    type: 'text',
   },
 };

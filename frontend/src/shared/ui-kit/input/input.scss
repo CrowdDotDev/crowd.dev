@@ -1,33 +1,37 @@
 .c-input {
-  @apply pl-1 pr-1 bg-white border border-gray-200 rounded-lg shadow-sm;
-  @apply flex items-center transition-all;
+  background: var(--cr-input-background);
+  border-color: var(--cr-input-border);
+  border-radius: var(--cr-input-border-radius);
+  box-shadow: var(--cr-input-shadow);
+  @apply border px-1 flex items-center transition-all;
 
   &:focus-within {
-    @apply border-gray-900;
+    --cr-input-border: var(--cr-input-focus-border)
   }
 
   &.is-disabled{
-     @apply cursor-not-allowed border-gray-200 bg-gray-50;
+    --cr-input-background: var(--cr-input-disabled-background);
+    --cr-input-border: var(--cr-input-disabled-border);
+     @apply cursor-not-allowed;
   }
 
   &.is-invalid{
-     @apply border-red-600;
+    --cr-input-border: var(--cr-input-invalid-border)
   }
 
   input{
-    @apply p-2 text-sm font-normal leading-6 text-gray-900 outline-none appearance-none flex-grow block w-full transition-all bg-transparent;
+    color: var(--cr-input-color);
+    @apply text-sm leading-6 font-normal p-2 outline-none appearance-none flex-grow block w-full transition-all bg-transparent;
 
     &::placeholder, &:-ms-input-placeholder, &::-ms-input-placeholder {
-      color: var(--color-gray-400);
-      opacity: 1;
+      color: var(--cr-input-placeholder-color);
+      @apply opacity-100;
     }
 
     &:disabled{
-      @apply cursor-not-allowed text-gray-400;
-
-      &::placeholder, &:-ms-input-placeholder, &::-ms-input-placeholder {
-        color: var(--color-gray-300);
-      }
+      --cr-input-color: var(--cr-input-disabled-color);
+      --cr-input-placeholder-color: var(--cr-input-disabled-placeholder-color);
+      @apply cursor-not-allowed;
     }
   }
 
