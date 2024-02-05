@@ -34,9 +34,11 @@ const job: CrowdJob = {
 
     for (const integration of expiredGroupsIOTokens[0]) {
       const thisSetting: SetttingsObj = integration.settings
-      log.info('Refreshing token for groups: ', thisSetting.groups )
+      log.info('Refreshing token for groups: ', thisSetting.groups)
 
-      try {   
+      let isError: boolean = false
+
+      try {
         const decryptedPassword = decryptData(thisSetting.password)
 
         const config: AxiosRequestConfig = {
@@ -51,9 +53,7 @@ const job: CrowdJob = {
           },
         }
 
-        let response: AxiosResponse
-      
-        response = await axios(config)
+        const response: AxiosResponse = await axios(config)
 
         // we need to get cookie from the response  and it's expiry
         const cookie = response.headers['set-cookie'][0].split(';')[0]
@@ -65,15 +65,16 @@ const job: CrowdJob = {
         thisSetting.token = cookie
         thisSetting.tokenExpiry = cookieExpiry
       } catch (err) {
-        log.error( err.message)
-        
-        continue
-      }   
+        log.error(err.message)
+        isError = true
+      }
 
-      await dbOptions.database.integration.update(
-        { settings: thisSetting },
-        { where: { id: integration.id } },
-      )
+      if (!isError) {
+        await dbOptions.database.integration.update(
+          { settings: thisSetting },
+          { where: { id: integration.id } },
+        )
+      }
     }
   },
 }
