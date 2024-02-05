@@ -21,6 +21,7 @@ const job: CrowdJob = {
       token: string
       groups: string[]
       password: string
+      tokenError: string
       tokenExpiry: string
       updateMemberAttributes: boolean
     }
@@ -28,15 +29,15 @@ const job: CrowdJob = {
     const expiredGroupsIOTokens = await dbOptions.database.sequelize.query(
       `select id, settings from integrations 
                 where  platform = 'groupsio' 
-                and "deletedAt" is null
+                and "deletedAt" is null        
                 and DATE_PART('day', to_date( settings ->> 'tokenExpiry', 'YYYY-MM-DD') - now() ) < 2`,
     )
 
     for (const integration of expiredGroupsIOTokens[0]) {
       const thisSetting: SetttingsObj = integration.settings
-      log.info('Refreshing token for groups: ', thisSetting.groups)
+      thisSetting.tokenError = ''
 
-      let isError: boolean = false
+      log.info('Refreshing token for groups: ', thisSetting.groups)
 
       try {
         const decryptedPassword = decryptData(thisSetting.password)
@@ -65,11 +66,9 @@ const job: CrowdJob = {
         thisSetting.token = cookie
         thisSetting.tokenExpiry = cookieExpiry
       } catch (err) {
+        thisSetting.tokenError = err.message
         log.error(err.message)
-        isError = true
-      }
-
-      if (!isError) {
+      } finally {
         await dbOptions.database.integration.update(
           { settings: thisSetting },
           { where: { id: integration.id } },
