@@ -28,28 +28,31 @@ const job: CrowdJob = {
     const expiredGroupsIOTokens = await dbOptions.database.sequelize.query(
       `select id, settings from integrations 
                 where  platform = 'groupsio' 
+                and "deletedAt" is null
                 and DATE_PART('day', to_date( settings ->> 'tokenExpiry', 'YYYY-MM-DD') - now() ) < 2`,
     )
 
     for (const integration of expiredGroupsIOTokens[0]) {
-      // update groups io token
       const thisSetting: SetttingsObj = integration.settings
-      const decryptedPassword = decryptData(thisSetting.password)
+      log.info('Refreshing token for groups: ', thisSetting.groups )
 
-      const config: AxiosRequestConfig = {
-        method: 'post',
-        url: 'https://groups.io/api/v1/login',
-        params: {
-          email: thisSetting.email,
-          password: decryptedPassword,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+      try {   
+        const decryptedPassword = decryptData(thisSetting.password)
 
-      let response: AxiosResponse
-      try {
+        const config: AxiosRequestConfig = {
+          method: 'post',
+          url: 'https://groups.io/api/v1/login',
+          params: {
+            email: thisSetting.email,
+            password: decryptedPassword,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+
+        let response: AxiosResponse
+      
         response = await axios(config)
 
         // we need to get cookie from the response  and it's expiry
@@ -62,11 +65,10 @@ const job: CrowdJob = {
         thisSetting.token = cookie
         thisSetting.tokenExpiry = cookieExpiry
       } catch (err) {
-        if ('two_factor_required' in response.data) {
-          throw new Error('errors.groupsio.twoFactorRequired')
-        }
-        throw new Error('errors.groupsio.invalidCredentials')
-      }
+        log.error( err.message)
+        
+        continue
+      }   
 
       await dbOptions.database.integration.update(
         { settings: thisSetting },
