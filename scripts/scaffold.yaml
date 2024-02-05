@@ -38,6 +38,11 @@ services:
 
   open-search:
     image: opensearchproject/opensearch:2.7.0
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 800M
     restart: always
     environment:
       - discovery.type=single-node
@@ -57,6 +62,7 @@ services:
       - 9600:9600
     volumes:
       - opensearch-dev:/usr/share/opensearch/data
+      - ./scaffold/opensearch/jvm.options:/usr/share/opensearch/config/jvm.options
     networks:
       - crowd-bridge
 
