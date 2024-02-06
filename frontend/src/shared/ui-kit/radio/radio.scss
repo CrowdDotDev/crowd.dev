@@ -1,0 +1,69 @@
+.c-radio {
+  font-size: var(--cr-radio-font-size);
+  line-height: var(--cr-radio-line-height);
+  font-weight: var(--cr-radio-text-font-weight);
+  color: var(--cr-radio-text-color);
+  @apply flex flex-wrap relative;
+
+  input {
+    height: var(--cr-radio-size);
+    width: var(--cr-radio-size);
+    border: rem(1) solid var(--cr-radio-border);
+    background: var(--cr-radio-background);
+    box-shadow: var(--cr-radio-shadow);
+
+    --cr-radio-border: var(--cr-radio-unchecked-border);
+    --cr-radio-background: var(--cr-radio-unchecked-background);
+
+    @apply transition-all appearance-none rounded-full p-0 my-0 ml-0 inline-block mr-2 cursor-pointer;
+
+    // Text
+    & + span{
+      @apply cursor-pointer;
+    }
+
+    // Checked
+    &:checked{
+      --cr-radio-border: var(--cr-radio-checked-border);
+      --cr-radio-background: var(--cr-radio-checked-background);
+      border-width: rem(5);
+    }
+
+    // Disabled
+    &:disabled {
+      --cr-radio-border: var(--cr-radio-disabled-unchecked-border);
+      --cr-radio-background: var(--cr-radio-disabled-unchecked-background);
+      @apply cursor-not-allowed;
+
+      &:checked {
+        --cr-radio-border: var(--cr-radio-disabled-checked-border);
+        --cr-radio-background: var(--cr-radio-disabled-checked-background);
+      }
+
+      & + span{
+        @apply cursor-not-allowed;
+      }
+    }
+  }
+
+  // Checkbox sizes
+  &--small {
+    --cr-radio-size: var(--cr-radio-small-size);
+    --cr-radio-font-size: var(--cr-radio-small-font-size);
+    --cr-radio-line-height: var(--cr-radio-small-line-height);
+  }
+
+  &--medium {
+    --cr-radio-size: var(--cr-radio-medium-size);
+    --cr-radio-font-size: var(--cr-radio-medium-font-size);
+    --cr-radio-line-height: var(--cr-radio-medium-line-height);
+  }
+
+  p{
+    font-size: var(--cr-radio-description-font-size);
+    line-height: var(--cr-radio-description-line-height);
+    font-weight: var(--cr-radio-description-font-weight);
+    color: var(--cr-radio-description-color);
+    margin-top: var(--cr-radio-description-spacing);
+  }
+}

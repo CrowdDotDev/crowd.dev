@@ -1,12 +1,11 @@
 <template>
   <label
-    class="c-checkbox"
+    class="c-radio"
     :class="[
-      `c-checkbox--${props.size}`,
-      props.multiple && 'c-checkbox--multiple',
+      `c-radio--${props.size}`,
     ]"
   >
-    <input v-model="checked" type="checkbox" :value="props.value" :disabled="props.disabled">
+    <input v-model="checked" type="radio" :value="props.value" :disabled="props.disabled">
     <span class="flex flex-col">
       <slot />
     </span>
@@ -14,20 +13,18 @@
 </template>
 
 <script setup lang="ts">
-import { CheckboxSize } from '@/shared/ui-kit/checkbox/types/CheckboxSize';
+import { RadioSize } from '@/shared/ui-kit/radio/types/RadioSize';
 import { computed, withDefaults } from 'vue';
 
 const props = withDefaults(defineProps<{
-  size?: CheckboxSize,
-  modelValue: string | boolean,
-  value?: string | boolean,
+  size?: RadioSize,
+  modelValue: string,
+  value?: string,
   disabled?: boolean,
-  multiple?: boolean,
 }>(), {
   size: 'medium',
-  value: true,
+  value: '',
   disabled: false,
-  multiple: false,
 });
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string | boolean): any}>();
@@ -44,6 +41,6 @@ const checked = computed<string | boolean>({
 
 <script lang="ts">
 export default {
-  name: 'CrCheckbox',
+  name: 'CrRadio',
 };
 </script>
