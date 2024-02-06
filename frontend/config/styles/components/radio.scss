@@ -1,0 +1,49 @@
+:root {
+  /* ---------------------------------- *\
+           Radio style
+  \* ---------------------------------- */
+
+  // General style
+  --cr-radio-shadow: var(--shadow-s);
+
+  // Text style
+  --cr-radio-text-font-weight: var(--font-medium);
+  --cr-radio-text-color: var(--color-gray-900);
+
+  // Description style
+  --cr-radio-description-font-size: #{rem(12)};
+  --cr-radio-description-line-height: #{rem(15)};
+  --cr-radio-description-font-weight: var(--font-normal);
+  --cr-radio-description-color: var(--color-gray-500);
+  --cr-radio-description-spacing: #{rem(4)};
+
+  // Unchecked
+  --cr-radio-unchecked-border: var(--color-gray-300);
+  --cr-radio-unchecked-background: var(--color-white);
+
+  // Checked
+  --cr-radio-checked-border: var(--color-gray-900);
+  --cr-radio-checked-background: var(--color-white);
+
+  // Disabled Unchecked
+  --cr-radio-disabled-unchecked-border: var(--color-gray-200);
+  --cr-radio-disabled-unchecked-background: var(--color-gray-50);
+
+  // Disabled Checked
+  --cr-radio-disabled-checked-border: var(--color-gray-400);
+  --cr-radio-disabled-checked-background: var(--color-white);
+
+  /* ---------------------------------- *\
+           Checkbox sizes
+  \* ---------------------------------- */
+
+  /* Small */
+  --cr-radio-small-size: #{rem(14)};
+  --cr-radio-small-font-size: #{rem(13)};
+  --cr-radio-small-line-height: 1.25;
+
+  /* Medium */
+  --cr-radio-medium-size: #{rem(16)};
+  --cr-radio-medium-font-size: #{rem(14)};
+  --cr-radio-medium-line-height: 1.25;
+}
