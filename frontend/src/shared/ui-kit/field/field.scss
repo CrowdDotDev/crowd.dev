@@ -1,0 +1,20 @@
+.c-field {
+  // Field label
+  &__label{
+    font-size: var(--cr-field-label-font-size);
+    font-weight: var(--cr-field-label-font-weight);
+    color: var(--cr-field-label-color);
+  }
+
+  // Required sign
+  &__required{
+    color: var(--cr-field-required-color);
+  }
+
+  // Required sign
+  &__header{
+    margin-bottom: var(--cr-field-spacing);
+  }
+}
+
+

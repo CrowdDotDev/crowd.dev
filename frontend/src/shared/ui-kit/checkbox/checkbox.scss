@@ -20,7 +20,7 @@
 
     // Text
     & + span{
-      @apply cursor-pointer;
+      @apply cursor-pointer select-none;
     }
 
     // Icon
