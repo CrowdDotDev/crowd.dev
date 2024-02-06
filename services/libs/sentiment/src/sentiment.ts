@@ -1,9 +1,9 @@
-import { getServiceChildLogger } from '@crowd/logging'
+//import { getServiceChildLogger } from '@crowd/logging'
 import vader from 'crowd-sentiment'
 import { ISentimentAnalysisResult } from './types'
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
 
-const log = getServiceChildLogger('sentiment')
+//const log = getServiceChildLogger('sentiment')
 
 export const getSentiment = async (text: string): Promise<ISentimentAnalysisResult | undefined> => {
   const preparedText = prepareText(text)
