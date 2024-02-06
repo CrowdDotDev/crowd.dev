@@ -12,12 +12,12 @@
     background: var(--cr-switch-background);
     border-radius: var(--cr-switch-height);
 
-    @apply transition-all appearance-none relative p-0 my-0 ml-0 inline-block mr-3 cursor-pointer;
+    @apply transition-all appearance-none relative p-0 my-0 ml-0 inline-block mr-0 cursor-pointer;
 
     // Text
     & + span{
       margin-top: calc((var(--cr-switch-height) - var(--cr-switch-line-height)) / 2);
-      @apply cursor-pointer;
+      @apply cursor-pointer ml-3;
     }
 
     &:before{

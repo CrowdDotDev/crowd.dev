@@ -49,11 +49,20 @@ export default {
   },
 };
 
-export const Primary = {
+export const Regular = {
   label: 'Primary',
   args: {
     size: 'medium',
     disabled: false,
     default: 'Switch text',
+  },
+};
+export const Disabled = {
+  label: 'Primary',
+  args: {
+    size: 'medium',
+    disabled: true,
+    modelValue: true,
+    default: 'Disabled',
   },
 };
