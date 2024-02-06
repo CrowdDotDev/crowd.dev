@@ -1,0 +1,48 @@
+:root {
+  /* ---------------------------------- *\
+           Switch style
+  \* ---------------------------------- */
+
+  // Text style
+  --cr-switch-text-font-weight: var(--font-medium);
+  --cr-switch-text-color: var(--color-gray-900);
+
+  // Description style
+  --cr-switch-description-font-size: #{rem(12)};
+  --cr-switch-description-line-height: #{rem(15)};
+  --cr-switch-description-font-weight: var(--font-normal);
+  --cr-switch-description-color: var(--color-gray-500);
+  --cr-switch-description-spacing: #{rem(4)};
+
+  // Unchecked
+  --cr-switch-background: var(--color-gray-200);
+  --cr-switch-handle: var(--color-white);
+
+  // Checked
+  --cr-switch-checked-background: var(--color-gray-900);
+  --cr-switch-checked-handle: var(--color-white);
+
+  // Disabled Unchecked
+  --cr-switch-disabled-unchecked-background: var(--color-gray-100);
+  --cr-switch-disabled-unchecked-handle: var(--color-white);
+
+  // Disabled Checked
+  --cr-switch-disabled-checked-background: var(--color-gray-400);
+  --cr-switch-disabled-checked-handle: var(--color-white);
+
+  /* ---------------------------------- *\
+           Switch sizes
+  \* ---------------------------------- */
+
+  /* Small */
+  --cr-switch-small-height: #{rem(20)};
+  --cr-switch-small-width: #{rem(36)};
+  --cr-switch-small-font-size: #{rem(13)};
+  --cr-switch-small-line-height: #{rem(16.25)};
+
+  /* Medium */
+  --cr-switch-medium-height: #{rem(24)};
+  --cr-switch-medium-width: #{rem(44)};
+  --cr-switch-medium-font-size: #{rem(14)};
+  --cr-switch-medium-line-height: #{rem(17.5)};
+}
