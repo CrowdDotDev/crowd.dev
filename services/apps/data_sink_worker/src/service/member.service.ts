@@ -6,6 +6,7 @@ import {
   isObjectEmpty,
   singleOrDefault,
   isDomainExcluded,
+  isEmail,
 } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -71,6 +72,11 @@ export default class MemberService extends LoggerBase {
             tenantId,
             attributes,
           )
+        }
+
+        // validate emails
+        if (data.emails) {
+          data.emails = this.validateEmails(data.emails)
         }
 
         // check if any weak identities are actually strong
@@ -199,6 +205,11 @@ export default class MemberService extends LoggerBase {
             tenantId,
             data.attributes,
           )
+        }
+
+        // validate emails
+        if (data.emails) {
+          data.emails = this.validateEmails(data.emails)
         }
 
         // check if any weak identities are actually strong
@@ -545,6 +556,18 @@ export default class MemberService extends LoggerBase {
         }
       }
     }
+  }
+
+  private validateEmails(emails: string[]): string[] {
+    let newEmails = emails.filter((email) => isEmail(email))
+    if (newEmails.length > 0) {
+      const emailSet = new Set(newEmails)
+      newEmails = Array.from(emailSet)
+    } else {
+      newEmails = []
+    }
+
+    return newEmails
   }
 
   private static mergeData(
