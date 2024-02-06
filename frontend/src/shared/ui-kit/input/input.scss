@@ -1,0 +1,45 @@
+.c-input {
+  background: var(--cr-input-background);
+  border-color: var(--cr-input-border);
+  border-radius: var(--cr-input-border-radius);
+  box-shadow: var(--cr-input-shadow);
+  @apply border px-1 flex items-center transition-all;
+
+  &:focus-within {
+    --cr-input-border: var(--cr-input-focus-border)
+  }
+
+  &.is-disabled{
+    --cr-input-background: var(--cr-input-disabled-background);
+    --cr-input-border: var(--cr-input-disabled-border);
+     @apply cursor-not-allowed;
+  }
+
+  &.is-invalid{
+    --cr-input-border: var(--cr-input-invalid-border)
+  }
+
+  input{
+    color: var(--cr-input-color);
+    @apply text-sm leading-6 font-normal p-2 outline-none appearance-none flex-grow block w-full transition-all bg-transparent;
+
+    &::placeholder, &:-ms-input-placeholder, &::-ms-input-placeholder {
+      color: var(--cr-input-placeholder-color);
+      @apply opacity-100;
+    }
+
+    &:disabled{
+      --cr-input-color: var(--cr-input-disabled-color);
+      --cr-input-placeholder-color: var(--cr-input-disabled-placeholder-color);
+      @apply cursor-not-allowed;
+    }
+  }
+
+  &__prefix {
+    @apply pl-2 text-sm leading-6 text-gray-400;
+  }
+
+  &__suffix {
+    @apply pr-2 text-sm leading-6 text-gray-400;
+  }
+}

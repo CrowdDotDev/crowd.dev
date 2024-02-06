@@ -751,7 +751,7 @@ class MemberRepository {
             if (identity.delete) {
               platformsToDelete.push(identity.platform)
               usernamesToDelete.push(identity.username)
-            } else {
+            } else if (identity.username && identity.username !== '') {
               await seq.query(query, {
                 replacements: {
                   memberId: record.id,
