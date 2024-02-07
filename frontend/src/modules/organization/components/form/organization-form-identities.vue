@@ -43,7 +43,9 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue';
+import {
+  computed, reactive, ref, watch,
+} from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['update:modelValue']);
@@ -104,17 +106,26 @@ watch(
   { deep: true, immediate: true },
 );
 
+const existingIdentities = computed(() => (props.record?.identities || []).map((i) => ({
+  ...i,
+  username: i.url ? i.url.split('/').at(-1) : '',
+})));
+
 watch(
   model,
   (value) => {
     // Parse username object
+
     const identities = value
       .filter((i) => !Object.keys(identitiesForm).includes(i.platform) || !!i.username?.trim().length)
-      .map((i) => ({
-        ...i,
-        name: i.username || i.name,
-        url: i.username?.length ? `https://${identitiesForm[i.platform]?.urlPrefix}${i.username}` : null,
-      }));
+      .map((i) => {
+        const existingOne = existingIdentities.value.find((id) => id.platform === i.platform);
+        return {
+          ...i,
+          name: !existingOne || existingOne.username !== i.username ? i.username || i.name : i.name,
+          url: i.username?.length ? `https://${identitiesForm[i.platform]?.urlPrefix}${i.username}` : null,
+        };
+      });
 
     // Emit updated member
     emit('update:modelValue', {
