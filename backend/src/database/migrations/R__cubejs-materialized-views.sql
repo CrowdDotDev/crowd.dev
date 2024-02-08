@@ -63,10 +63,9 @@ SELECT
     o.id,
     o."tenantId",
     o."createdAt",
-    MIN(m."joinedAt") AS "earliestJoinedAt"
+    MIN(a.timestamp) FILTER (WHERE a.timestamp <> '1970-01-01T00:00:00.000Z') AS "earliestJoinedAt"
 FROM organizations o
-JOIN "memberOrganizations" mo ON o.id = mo."organizationId"
-JOIN members m ON mo."memberId" = m.id
+JOIN activities a ON o.id = a."organizationId"
 GROUP BY o.id
 ;
 
