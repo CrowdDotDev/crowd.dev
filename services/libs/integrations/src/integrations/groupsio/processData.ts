@@ -38,6 +38,9 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
     sourceId: `join-${memberData.user_id}-${memberData.group_id}-${data.joinedAt}`,
     score: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].score,
     isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].isContribution,
+    attributes: {
+      userStatus: memberData.user_status,
+    }
   }
 
   await ctx.publishActivity(activity)
