@@ -11,7 +11,6 @@ import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import {
   DB_CONFIG,
-  SENTIMENT_CONFIG,
   SQS_CONFIG,
   REDIS_CONFIG,
   UNLEASH_CONFIG,
@@ -19,7 +18,6 @@ import {
   WORKER_SETTINGS,
 } from './conf'
 import { WorkerQueueReceiver } from './queue'
-import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getRedisClient } from '@crowd/redis'
 import { processOldResultsJob } from './jobs/processOldResults'
 import { getUnleashClient } from '@crowd/feature-flags'
@@ -47,10 +45,6 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
-
-  if (SENTIMENT_CONFIG()) {
-    initializeSentimentAnalysis(SENTIMENT_CONFIG())
-  }
 
   const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
