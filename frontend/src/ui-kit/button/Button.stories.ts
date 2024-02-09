@@ -1,6 +1,6 @@
-import { buttonTypes } from '@/shared/ui-kit/button/types/ButtonType';
-import { buttonSizes } from '@/shared/ui-kit/button/types/ButtonSize';
-import { buttonNativeTypes } from '@/shared/ui-kit/button/types/ButtonNativeType';
+import { buttonTypes } from '@/ui-kit/button/types/ButtonType';
+import { buttonSizes } from '@/ui-kit/button/types/ButtonSize';
+import { buttonNativeTypes } from '@/ui-kit/button/types/ButtonNativeType';
 import CrButton from './Button.vue';
 
 export default {
