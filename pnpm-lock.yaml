@@ -2485,6 +2485,9 @@ importers:
       '@crowd/logging':
         specifier: file:../logging
         version: file:services/libs/logging
+      crowd-sentiment:
+        specifier: ^1.1.7
+        version: 1.1.7
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -17433,6 +17436,7 @@ packages:
       '@aws-sdk/client-comprehend': 3.462.0
       '@crowd/common': file:services/libs/common
       '@crowd/logging': file:services/libs/logging
+      crowd-sentiment: 1.1.7
     transitivePeerDependencies:
       - aws-crt
       - debug
