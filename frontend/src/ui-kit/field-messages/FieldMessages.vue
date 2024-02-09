@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import CrFieldMessage from '@/shared/ui-kit/field-message/FieldMessage.vue';
+import CrFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 
 const props = withDefaults(defineProps<{
   validation: any,

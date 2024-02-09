@@ -1,4 +1,4 @@
-import { switchSizes } from '@/shared/ui-kit/switch/types/SwitchSize';
+import { switchSizes } from '@/ui-kit/switch/types/SwitchSize';
 import CrSwitch from './Switch.vue';
 
 export default {
