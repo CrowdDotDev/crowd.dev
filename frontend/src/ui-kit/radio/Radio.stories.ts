@@ -1,4 +1,4 @@
-import { radioSizes } from '@/shared/ui-kit/radio/types/RadioSize';
+import { radioSizes } from '@/ui-kit/radio/types/RadioSize';
 import { reactive } from 'vue';
 import CrRadio from './Radio.vue';
 

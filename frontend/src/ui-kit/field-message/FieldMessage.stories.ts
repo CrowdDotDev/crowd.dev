@@ -1,4 +1,4 @@
-import { fieldMessageTypes } from '@/shared/ui-kit/field-message/types/FieldMessageType';
+import { fieldMessageTypes } from '@/ui-kit/field-message/types/FieldMessageType';
 import CrFieldMessage from './FieldMessage.vue';
 import CrInput from '../input/Input.vue';
 import CrField from '../field/Field.vue';

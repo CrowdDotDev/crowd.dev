@@ -1,5 +1,5 @@
-import CrField from '@/shared/ui-kit/field/Field.vue';
-import CrInput from '@/shared/ui-kit/input/Input.vue';
+import CrField from '@/ui-kit/field/Field.vue';
+import CrInput from '@/ui-kit/input/Input.vue';
 import { reactive } from 'vue';
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';

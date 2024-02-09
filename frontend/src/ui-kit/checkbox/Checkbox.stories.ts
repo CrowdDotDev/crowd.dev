@@ -1,4 +1,4 @@
-import { checkboxSizes } from '@/shared/ui-kit/checkbox/types/CheckboxSize';
+import { checkboxSizes } from '@/ui-kit/checkbox/types/CheckboxSize';
 import CrCheckbox from './Checkbox.vue';
 
 export default {

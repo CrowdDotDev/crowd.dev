@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { CheckboxSize } from '@/shared/ui-kit/checkbox/types/CheckboxSize';
+import { CheckboxSize } from '@/ui-kit/checkbox/types/CheckboxSize';
 import { computed, withDefaults } from 'vue';
 
 const props = withDefaults(defineProps<{

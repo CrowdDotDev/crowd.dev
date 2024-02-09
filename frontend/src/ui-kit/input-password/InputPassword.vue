@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import CrInput from '@/shared/ui-kit/input/Input.vue';
+import CrInput from '@/ui-kit/input/Input.vue';
 
 const props = defineProps<{
   modelValue: string,
