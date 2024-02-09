@@ -1,0 +1,41 @@
+.c-badge {
+  background: var(--cr-badge-background);
+  border: rem(1) solid var(--cr-badge-border);
+  color: var(--cr-badge-text);
+
+  font-size: var(--cr-badge-font-size);
+  height: var(--cr-badge-height);
+  line-height: calc(var(--cr-badge-height) - rem(2));
+
+  @apply px-2 rounded-md inline-block font-medium;
+
+  /* Badge types */
+  &--default{
+    --cr-badge-background: var(--cr-badge-default-background);
+    --cr-badge-border: var(--cr-badge-default-border);
+    --cr-badge-text: var(--cr-badge-default-text);
+  }
+
+  &--white{
+    --cr-badge-background: var(--cr-badge-white-background);
+    --cr-badge-border: var(--cr-badge-white-border);
+    --cr-badge-text: var(--cr-badge-white-text);
+  }
+
+  &--brand{
+    --cr-badge-background: var(--cr-badge-brand-background);
+    --cr-badge-border: var(--cr-badge-brand-border);
+    --cr-badge-text: var(--cr-badge-brand-text);
+  }
+
+  /* Badge sizes */
+  &--small{
+    --cr-badge-font-size: var(--cr-badge-small-font-size);
+    --cr-badge-height: var(--cr-badge-small-height);
+  }
+
+  &--medium{
+    --cr-badge-font-size: var(--cr-badge-medium-font-size);
+    --cr-badge-height: var(--cr-badge-medium-height);
+  }
+}
