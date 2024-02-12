@@ -1,7 +1,5 @@
 {
   "name": "@crowd/data-sink-worker",
-  "version": "1.0.0",
-  "private": true,
   "scripts": {
     "start": "SERVICE=data-sink-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=data-sink-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9233 -r tsconfig-paths/register -r ts-node/register src/main.ts",

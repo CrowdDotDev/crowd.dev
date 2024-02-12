@@ -1,7 +1,5 @@
 {
   "name": "@crowd/integration-data-worker",
-  "version": "1.0.0",
-  "private": true,
   "scripts": {
     "start": "SERVICE=integration-data-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
     "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=integration-data-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
