@@ -1,4 +1,4 @@
-import { checkboxSizes } from '@/shared/ui-kit/checkbox/types/CheckboxSize';
+import { checkboxSizes } from '@/ui-kit/checkbox/types/CheckboxSize';
 import CrCheckbox from './Checkbox.vue';
 
 export default {
@@ -58,8 +58,42 @@ export const Primary = {
   label: 'Primary',
   args: {
     size: 'medium',
+    modelValue: false,
     disabled: false,
     multiple: false,
+    default: 'Checkbox text',
+  },
+};
+
+export const Checked = {
+  label: 'Primary',
+  args: {
+    size: 'medium',
+    modelValue: true,
+    disabled: false,
+    multiple: false,
+    default: 'Checkbox text',
+  },
+};
+
+export const Disabled = {
+  label: 'Primary',
+  args: {
+    size: 'medium',
+    modelValue: true,
+    disabled: true,
+    multiple: false,
+    default: 'Checkbox text',
+  },
+};
+
+export const Multiple = {
+  label: 'Primary',
+  args: {
+    size: 'medium',
+    modelValue: true,
+    disabled: false,
+    multiple: true,
     default: 'Checkbox text',
   },
 };

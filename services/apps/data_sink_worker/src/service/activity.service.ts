@@ -88,6 +88,8 @@ export default class ActivityService extends LoggerBase {
           channel: activity.channel,
           url: activity.url,
           organizationId: activity.organizationId,
+          objectMemberId: activity.objectMemberId,
+          objectMemberUsername: activity.objectMemberUsername,
         })
 
         return id
@@ -197,6 +199,8 @@ export default class ActivityService extends LoggerBase {
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
             organizationId: toUpdate.organizationId || original.organizationId,
+            objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
+            objectMemberUsername: toUpdate.objectMemberUsername || original.objectMemberUsername,
             platform: toUpdate.platform || (original.platform as PlatformType),
           })
 

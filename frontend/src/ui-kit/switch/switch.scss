@@ -1,0 +1,79 @@
+.c-switch {
+  font-size: var(--cr-switch-font-size);
+  line-height: var(--cr-switch-line-height);
+  font-weight: var(--cr-switch-text-font-weight);
+  color: var(--cr-switch-text-color);
+  @apply flex flex-wrap relative;
+
+  input {
+    height: var(--cr-switch-height);
+    width: var(--cr-switch-width);
+    border: rem(2) solid var(--cr-switch-background);
+    background: var(--cr-switch-background);
+    border-radius: var(--cr-switch-height);
+
+    @apply transition-all appearance-none relative p-0 my-0 ml-0 inline-block mr-0 cursor-pointer;
+
+    // Text
+    & + span{
+      margin-top: calc((var(--cr-switch-height) - var(--cr-switch-line-height)) / 2);
+      @apply cursor-pointer ml-3;
+    }
+
+    &:before{
+      content: '';
+      background: var(--cr-switch-handle);
+      margin-left: 0;
+      @apply relative h-full w-1/2 rounded-full block transition-all;
+    }
+
+    // Checked
+    &:checked{
+      --cr-switch-handle: var(--cr-switch-checked-handle);
+      --cr-switch-background: var(--cr-switch-checked-background);
+
+      &:before{
+        margin-left: 50%;
+      }
+    }
+
+    // Disabled
+    &:disabled {
+      --cr-switch-handle: var(--cr-switch-disabled-unchecked-handle);
+      --cr-switch-background: var(--cr-switch-disabled-unchecked-background);
+      @apply cursor-not-allowed;
+
+      &:checked {
+        --cr-switch-handle: var(--cr-switch-disabled-checked-handle);
+        --cr-switch-background: var(--cr-switch-disabled-checked-background);
+      }
+
+      & + span{
+        @apply cursor-not-allowed;
+      }
+    }
+  }
+
+  // Checkbox sizes
+  &--small {
+    --cr-switch-height: var(--cr-switch-small-height);
+    --cr-switch-width: var(--cr-switch-small-width);
+    --cr-switch-font-size: var(--cr-switch-small-font-size);
+    --cr-switch-line-height: var(--cr-switch-small-line-height);
+  }
+
+  &--medium {
+    --cr-switch-height: var(--cr-switch-medium-height);
+    --cr-switch-width: var(--cr-switch-medium-width);
+    --cr-switch-font-size: var(--cr-switch-medium-font-size);
+    --cr-switch-line-height: var(--cr-switch-medium-line-height);
+  }
+
+  p{
+    font-size: var(--cr-switch-description-font-size);
+    line-height: var(--cr-switch-description-line-height);
+    font-weight: var(--cr-switch-description-font-weight);
+    color: var(--cr-switch-description-color);
+    margin-top: var(--cr-switch-description-spacing);
+  }
+}
