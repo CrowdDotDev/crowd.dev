@@ -469,9 +469,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/integrations':
         specifier: workspace:*
         version: link:../../libs/integrations
@@ -527,9 +527,9 @@ importers:
       '@crowd/cubejs':
         specifier: workspace:*
         version: link:../../libs/cubejs
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -573,9 +573,9 @@ importers:
       '@crowd/conversations':
         specifier: workspace:*
         version: link:../../libs/conversations
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -710,6 +710,9 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -741,9 +744,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -796,9 +799,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -851,9 +854,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -900,9 +903,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/integrations':
         specifier: workspace:*
         version: link:../../libs/integrations
@@ -955,9 +958,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -1001,9 +1004,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../../libs/database
+        version: link:../../../libs/data-access-layer
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../../libs/opensearch
@@ -1105,6 +1108,9 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
@@ -1130,9 +1136,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
@@ -1182,9 +1188,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
@@ -1309,9 +1315,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -1574,6 +1580,39 @@ importers:
         specifier: ^5.0.4
         version: 5.3.3
 
+  services/libs/data-access-layer:
+    dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../database
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../integrations
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../redis
+      '@crowd/sentiment':
+        specifier: workspace:*
+        version: link:../sentiment
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../types
+      lodash.clonedeep:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
+
   services/libs/database:
     dependencies:
       '@crowd/common':
@@ -1623,9 +1662,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../database
+        version: link:../data-access-layer
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
@@ -16097,6 +16136,7 @@ packages:
     name: '@crowd/integrations'
     dependencies:
       '@crowd/common': link:services/libs/common
+      '@crowd/data-access-layer': link:services/libs/data-access-layer
       '@crowd/database': link:services/libs/database
       '@crowd/logging': link:services/libs/logging
       '@crowd/telemetry': link:services/libs/telemetry
