@@ -119,7 +119,11 @@ watch(
     const identities = value
       .filter((i) => !Object.keys(identitiesForm).includes(i.platform) || !!i.username?.trim().length)
       .map((i) => {
-        const existingOne = existingIdentities.value.find((id) => id.platform === i.platform);
+        const existingOnes = existingIdentities.value.filter((id) => id.platform === i.platform);
+        const index = value
+          .filter((id) => id.platform === i.platform)
+          .findIndex((id) => id.username === i.username);
+        const existingOne = index >= 0 ? existingOnes[index] : null;
         return {
           ...i,
           name: !existingOne || existingOne.username !== i.username ? i.username || i.name : i.name,
