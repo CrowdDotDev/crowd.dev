@@ -1,7 +1,5 @@
 {
   "name": "@crowd/types",
-  "version": "1.0.0",
-  "private": true,
   "main": "./src",
   "scripts": {
     "lint": "eslint --ext .ts src --max-warnings=0",

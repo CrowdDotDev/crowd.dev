@@ -1,7 +1,5 @@
 {
   "name": "@crowd/telemetry",
-  "version": "1.0.0",
-  "private": true,
   "scripts": {
     "lint": "eslint --ext .ts src --max-warnings=0",
     "format": "prettier --write \"src/**/*.ts\"",
