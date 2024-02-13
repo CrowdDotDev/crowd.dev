@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
-    "@crowd/database": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/logging": "workspace:*",
