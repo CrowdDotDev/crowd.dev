@@ -14,11 +14,14 @@ export interface IUpdateTenantOrganizationInput {
 }
 
 export async function updateTenantOrganization(input: IUpdateTenantOrganizationInput) {
-  await aCtx.updateTenantOrganization(
+  const updated = await aCtx.updateTenantOrganization(
     input.tenantId,
     input.organizationId,
     input.organizationCacheId,
   )
-  await aCtx.syncToOpensearch(input.tenantId, input.organizationId)
-  await aCtx.incrementTenantCredits(input.tenantId, input.plan)
+
+  if (updated) {
+    await aCtx.syncToOpensearch(input.tenantId, input.organizationId)
+    await aCtx.incrementTenantCredits(input.tenantId, input.plan)
+  }
 }

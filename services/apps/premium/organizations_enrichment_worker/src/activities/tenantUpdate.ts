@@ -138,7 +138,7 @@ export async function updateTenantOrganization(
   tenantId: string,
   organizationId: string,
   organizationCacheId: string,
-): Promise<void> {
+): Promise<boolean> {
   const log = getChildLogger(updateTenantOrganization.name, svc.log, {
     tenantId,
     organizationId,
@@ -150,47 +150,53 @@ export async function updateTenantOrganization(
   const cacheData = await repo.getOrganizationCacheData(organizationCacheId)
   const orgData = await repo.getOrganizationData(organizationId)
 
-  const preparedData = processCacheData(cacheData, orgData.identities)
-  preparedData.weakIdentities = orgData.weakIdentities
-  await prepareIdentities(orgData.tenantId, orgData.id, preparedData, repo)
+  if (orgData) {
+    const preparedData = processCacheData(cacheData, orgData.identities)
+    preparedData.weakIdentities = orgData.weakIdentities
+    await prepareIdentities(orgData.tenantId, orgData.id, preparedData, repo)
 
-  let website: string | undefined
-  let checkIfWebsiteIsTaken = false
-  if (orgData.website && preparedData.website && orgData.website !== preparedData.website) {
-    log.debug('Website changed!')
-    website = preparedData.website
-    checkIfWebsiteIsTaken = true
-  } else if (orgData.website) {
-    website = orgData.website
-  } else if (preparedData.website) {
-    log.debug('Website found!')
-    website = preparedData.website
-    checkIfWebsiteIsTaken = true
-  }
-
-  if (
-    checkIfWebsiteIsTaken &&
-    repo.anyOtherOrganizationWithTheSameWebsite(orgData.id, orgData.tenantId, orgData.website)
-  ) {
-    log.debug('Website is already taken!')
-    // we can't set this website in the database due to unique constraint but we can generate merge suggestions based on it
-    preparedData.website = undefined
-  }
-
-  await repo.transactionally(async (t) => {
-    await t.updateIdentities(
-      orgData.id,
-      orgData.tenantId,
-      orgData.identities,
-      preparedData.identities,
-    )
-    await t.updateOrganizationWithEnrichedData(orgData, preparedData)
-
-    if (website) {
-      log.debug({ website }, 'Generating merge suggestions!')
-      await t.generateMergeSuggestions(orgData.id, orgData.tenantId, website)
+    let website: string | undefined
+    let checkIfWebsiteIsTaken = false
+    if (orgData.website && preparedData.website && orgData.website !== preparedData.website) {
+      log.debug('Website changed!')
+      website = preparedData.website
+      checkIfWebsiteIsTaken = true
+    } else if (orgData.website) {
+      website = orgData.website
+    } else if (preparedData.website) {
+      log.debug('Website found!')
+      website = preparedData.website
+      checkIfWebsiteIsTaken = true
     }
-  })
+
+    if (
+      checkIfWebsiteIsTaken &&
+      repo.anyOtherOrganizationWithTheSameWebsite(orgData.id, orgData.tenantId, orgData.website)
+    ) {
+      log.debug('Website is already taken!')
+      // we can't set this website in the database due to unique constraint but we can generate merge suggestions based on it
+      preparedData.website = undefined
+    }
+
+    await repo.transactionally(async (t) => {
+      await t.updateIdentities(
+        orgData.id,
+        orgData.tenantId,
+        orgData.identities,
+        preparedData.identities,
+      )
+      await t.updateOrganizationWithEnrichedData(orgData, preparedData)
+
+      if (website) {
+        log.debug({ website }, 'Generating merge suggestions!')
+        await t.generateMergeSuggestions(orgData.id, orgData.tenantId, website)
+      }
+    })
+
+    return true
+  }
+
+  return false
 }
 
 function processCacheData(
