@@ -79,20 +79,39 @@ const computedMemberToMerge = computed({
 });
 
 const fetchFn = async (query, limit) => {
-  const options = await MemberService.listAutocomplete(
-    query,
+  const { rows } = await MemberService.listAutocomplete({
+    filter: {
+      and: [
+        {
+          displayName: {
+            textContains: query,
+          },
+        },
+        {
+          isOrganization: {
+            not: true,
+          },
+        },
+      ],
+    },
+    orderBy: 'displayName_ASC',
+    offset: 0,
     limit,
-  );
+  });
 
   // Remove primary member from members that can be merged with
-  const filteredOptions = options.filter((m) => m.id !== props.id);
+  const filteredOptions = rows.filter((m) => m.id !== props.id);
 
-  // If the primary member was removed, add an empty object in replacement
-  if (options.length !== filteredOptions.length) {
-    filteredOptions.push({});
-  }
-
-  return filteredOptions;
+  return filteredOptions.map((member) => ({
+    id: member.id,
+    label: member.displayName,
+    email: member.emails.length > 0 ? member.emails[0] : null,
+    avatar: member.attributes?.avatarUrl?.default || null,
+    organizations: member.organizations.map((organization) => ({
+      id: organization.id,
+      name: organization.displayName,
+    })),
+  }));
 };
 </script>
 
