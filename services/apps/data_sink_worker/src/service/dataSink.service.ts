@@ -1,4 +1,4 @@
-import { DbStore } from '@crowd/database'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
@@ -9,13 +9,13 @@ import {
   IntegrationResultType,
   PlatformType,
 } from '@crowd/types'
-import DataSinkRepository from '../repo/dataSink.repo'
+import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
-import { IResultData } from '../repo/dataSink.data'
+import { IResultData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
 import { addSeconds } from '@crowd/common'
 import { WORKER_SETTINGS } from '../conf'
 import {
