@@ -23,8 +23,7 @@
     "@temporalio/workflow": "~1.8.6",
     "axios": "~1.5.1",
     "moment": "~2.29.4",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.7.1",
     "typescript": "^5.2.2",
     "uuid": "~9.0.1"
   },

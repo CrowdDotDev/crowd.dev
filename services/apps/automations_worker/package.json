@@ -26,8 +26,7 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.2",
     "superagent": "^8.1.2",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.7.1",
     "typescript": "^5.2.2"
   },
   "devDependencies": {

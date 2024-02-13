@@ -11,8 +11,7 @@
     "@temporalio/client": "~1.8.6",
     "config": "^3.3.9",
     "kafkajs": "~2.2.4",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0"
+    "tsx": "^4.7.1"
   },
   "devDependencies": {
     "@types/config": "^3.3.1",

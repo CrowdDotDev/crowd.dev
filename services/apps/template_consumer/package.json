@@ -15,8 +15,7 @@
     "@crowd/archetype-consumer": "file:../../archetypes/consumer",
     "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@types/node": "^20.8.2",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.7.1",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
