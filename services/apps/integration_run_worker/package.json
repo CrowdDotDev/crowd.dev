@@ -20,6 +20,7 @@
     "@crowd/common": "file:../../libs/common",
     "@crowd/database": "file:../../libs/database",
     "@crowd/integrations": "file:../../libs/integrations",
+    "@crowd/opensearch": "file:../../libs/opensearch",
     "@crowd/logging": "file:../../libs/logging",
     "@crowd/redis": "file:../../libs/redis",
     "@crowd/sqs": "file:../../libs/sqs",

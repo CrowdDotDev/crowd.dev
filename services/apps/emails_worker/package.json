@@ -15,6 +15,7 @@
     "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@crowd/archetype-worker": "file:../../archetypes/worker",
     "@crowd/common": "file:../../libs/common",
+    "@crowd/integrations": "file:../../libs/integrations",
     "@crowd/cubejs": "file:../../libs/cubejs",
     "@crowd/types": "file:../../libs/types",
     "@sendgrid/mail": "~8.1.0",

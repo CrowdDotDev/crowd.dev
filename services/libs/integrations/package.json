@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@crowd/common": "file:../common",
+    "@crowd/database": "file:../database",
     "@crowd/logging": "file:../logging",
     "@crowd/types": "file:../types",
     "@crowd/telemetry": "file:../telemetry",
