@@ -1674,6 +1674,10 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
     return MemberRepository.findAndCountAllOpensearch(
       {
         filter: data.filter,
@@ -1681,6 +1685,7 @@ export default class MemberService extends LoggerBase {
         orderBy: data.orderBy,
         limit: data.limit,
         segments: data.segments,
+        attributesSettings: memberAttributeSettings,
       },
       this.options,
     )

@@ -6,6 +6,7 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import { MemberService } from '@/modules/member/member-service';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
+import { Member } from '@/modules/member/types/Member';
 
 const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
@@ -14,11 +15,28 @@ const member: MultiSelectAsyncFilterConfig = {
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
     remoteMethod: (query) => MemberService.listAutocomplete({
-      query,
+      filter: {
+        and: [
+          {
+            displayName: {
+              textContains: query,
+            },
+          },
+          {
+            isOrganization: {
+              not: true,
+            },
+          },
+        ],
+      },
+      orderBy: 'displayName_ASC',
+      offset: 0,
       limit: 10,
     })
-      .then((data: any[]) => data.map((member) => ({
-        label: member.label,
+      .then((data: {
+        rows: Member[]
+      }) => data.rows.map((member) => ({
+        label: member.displayName,
         value: member.id,
       }))),
     remotePopulateItems: (ids: string[]) => MemberService.listMembers({
