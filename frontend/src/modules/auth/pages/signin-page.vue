@@ -1,26 +1,23 @@
 <template>
   <div class="flex items-center bg-white h-full w-full justify-center">
-    <div
-      v-loading="true"
-      class="app-page-spinner h-20 w-20 !relative !min-h-20 custom"
-    />
+    <cr-spinner size="12rem" />
   </div>
 </template>
 
-<script>
-import { Auth0Service } from '@/shared/services/auth0.service';
+<script setup lang="ts">
+import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import { onMounted } from 'vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
-export default {
-  name: 'AppSigninPage',
-  async created() {
-    await Auth0Service.loginWithRedirect();
-  },
-};
+const { signin } = useAuthStore();
+
+onMounted(() => {
+  signin();
+});
 </script>
 
-<style lang="scss">
-.app-page-spinner.custom .el-loading-spinner .circular {
-  height: 12rem;
-  width: 12rem;
-}
-</style>
+<script lang="ts">
+export default {
+  name: 'AuthSigninPage',
+};
+</script>

@@ -1,9 +1,9 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthToken } from '@/modules/auth/auth-token';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import AuthInvitationToken from '@/modules/auth/auth-invitation-token';
+import { AuthToken } from '@/modules/auth-old/auth-token';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import AuthInvitationToken from '@/modules/auth-old/auth-invitation-token';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import { Auth0Service } from '@/shared/services/auth0.service';
+import { Auth0Service } from '@/modules/auth/services/auth0.service';
 
 export class AuthService {
   static sendEmailVerification() {

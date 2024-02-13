@@ -28,7 +28,7 @@
 
 <script>
 import Message from '@/shared/message/message';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 
 export default {
   name: 'AppReportTemplateDropdown',

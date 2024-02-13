@@ -25,7 +25,7 @@ import Nango from '@nangohq/frontend';
 import { useStore } from 'vuex';
 import { useThrottleFn } from '@vueuse/core';
 import config from '@/config';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import { FeatureFlag } from '@/utils/featureFlag';
 import AppLinkedinSettingsDrawer from '@/integrations/linkedin/components/linkedin-settings-drawer.vue';
 

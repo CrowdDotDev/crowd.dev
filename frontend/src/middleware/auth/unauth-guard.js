@@ -1,5 +1,5 @@
-import { AuthToken } from '@/modules/auth/auth-token';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthToken } from '@/modules/auth-old/auth-token';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 
 /**
  * Unauth Guard

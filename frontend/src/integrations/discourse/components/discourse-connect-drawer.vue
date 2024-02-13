@@ -210,7 +210,7 @@ import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 
 const tenantId = AuthCurrentTenant.get();
 

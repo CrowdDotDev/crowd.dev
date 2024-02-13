@@ -84,7 +84,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import Message from '@/shared/message/message';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { ReportService } from '@/modules/report/report-service';

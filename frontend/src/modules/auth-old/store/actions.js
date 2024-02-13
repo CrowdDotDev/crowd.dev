@@ -1,19 +1,19 @@
-import { AuthToken } from '@/modules/auth/auth-token';
-import { AuthService } from '@/modules/auth/auth-service';
+import { AuthToken } from '@/modules/auth-old/auth-token';
+import { AuthService } from '@/modules/auth-old/auth-service';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import { buildInitialState, store } from '@/store';
 import {
   connectSocket,
   disconnectSocket,
-} from '@/modules/auth/auth-socket';
-import { Auth0Service } from '@/shared/services/auth0.service';
+} from '@/modules/auth-old/auth-socket';
+import { Auth0Service } from '@/modules/auth/services/auth0.service';
 
 export default {
   async doInit({ commit, dispatch, state }, auth0Token) {

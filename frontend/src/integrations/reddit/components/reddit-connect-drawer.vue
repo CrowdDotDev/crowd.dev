@@ -125,7 +125,7 @@ import { useStore } from 'vuex';
 import Nango from '@nangohq/frontend';
 import isEqual from 'lodash/isEqual';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 

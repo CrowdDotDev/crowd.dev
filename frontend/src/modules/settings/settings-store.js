@@ -3,7 +3,7 @@ import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 
 export default {
   namespaced: true,

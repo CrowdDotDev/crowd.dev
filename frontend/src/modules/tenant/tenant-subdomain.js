@@ -1,5 +1,5 @@
 import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
+import { AuthToken } from '@/modules/auth-old/auth-token';
 
 export const tenantSubdomain = {
   get isEnabled() {

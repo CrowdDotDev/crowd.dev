@@ -1,5 +1,5 @@
 import _get from 'lodash/get';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
 
 export default {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import authAxios from '@/shared/axios/auth-axios';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import config from '@/config';
 
 export class ReportService {

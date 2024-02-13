@@ -74,7 +74,7 @@ import {
   defineEmits,
 } from 'vue';
 import Message from '@/shared/message/message';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { ReportPermissions } from '../report-permissions';
 

@@ -1,6 +1,9 @@
 <template>
   <div class="flex items-center h-screen">
-    <cr-spinner />
+    <div
+      v-loading="true"
+      class="app-page-spinner h-14"
+    />
   </div>
 </template>
 
@@ -8,18 +11,16 @@
 import { onMounted } from 'vue';
 import { Auth0Service } from '@/modules/auth/services/auth0.service';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 
 const { doSigninWithAuth0 } = mapActions('auth');
 
 onMounted(() => {
   Auth0Service.handleAuth()
-    .then(({ appState }) => Promise.all([
-      Auth0Service.authData(),
-      Promise.resolve(appState),
-    ]))
-    .then(([token, appState]) => {
-      doSigninWithAuth0({ token, appState });
+    .then(({ appState }) => {
+      Auth0Service.authData().then((token) => {
+        doSigninWithAuth0({ token, appState }).then(() => {
+        });
+      });
     })
     .catch(() => {
       Auth0Service.logout();

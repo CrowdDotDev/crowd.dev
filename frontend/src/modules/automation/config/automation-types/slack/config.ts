@@ -1,6 +1,6 @@
 import { AutomationTypeConfig } from '@/modules/automation/config/automation-types';
 import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
+import { AuthToken } from '@/modules/auth-old/auth-token';
 import AutomationsSlackAction from './slack-action.vue';
 import AutomationsTriggerMemberActivity from '../shared/trigger-member-activity.vue';
 

@@ -1,5 +1,5 @@
 import shared from '@/shared/shared-module';
-import auth from '@/modules/auth/auth-module';
+import auth from '@/modules/auth-old/auth-module';
 import layout from '@/modules/layout/layout-module';
 import dashboard from '@/modules/dashboard/dashboard-module';
 import tenant from '@/modules/tenant/tenant-module';

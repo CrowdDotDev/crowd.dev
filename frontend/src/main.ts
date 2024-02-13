@@ -16,8 +16,8 @@ import config from '@/config';
 
 import { init as i18nInit } from '@/i18n';
 
-import { AuthService } from '@/modules/auth/auth-service';
-import { AuthToken } from '@/modules/auth/auth-token';
+import { AuthService } from '@/modules/auth-old/auth-service';
+import { AuthToken } from '@/modules/auth-old/auth-token';
 import 'v-network-graph/lib/style.css';
 
 import App from '@/app.vue';

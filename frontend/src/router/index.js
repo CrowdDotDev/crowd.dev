@@ -9,7 +9,7 @@ import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s

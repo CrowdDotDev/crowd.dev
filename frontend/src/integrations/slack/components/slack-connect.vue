@@ -6,7 +6,7 @@
 import { useStore } from 'vuex';
 import { defineProps, computed } from 'vue';
 import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
+import { AuthToken } from '@/modules/auth-old/auth-token';
 import { useRoute } from 'vue-router';
 
 const store = useStore();

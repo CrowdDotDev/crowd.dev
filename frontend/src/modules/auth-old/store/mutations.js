@@ -1,4 +1,4 @@
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 
 export default {
   CURRENT_USER_REFRESH_SUCCESS(state, payload) {

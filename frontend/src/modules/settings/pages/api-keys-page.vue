@@ -77,8 +77,8 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import { AuthToken } from '@/modules/auth/auth-token';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthToken } from '@/modules/auth-old/auth-token';
 import Message from '@/shared/message/message';
 
 const inputRef = ref();

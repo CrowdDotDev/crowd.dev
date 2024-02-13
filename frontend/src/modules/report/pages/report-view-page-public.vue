@@ -177,7 +177,7 @@
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';

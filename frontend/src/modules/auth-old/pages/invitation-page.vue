@@ -40,7 +40,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import AuthInvitationToken from '@/modules/auth/auth-invitation-token';
+import AuthInvitationToken from '@/modules/auth-old/auth-invitation-token';
 import { router } from '@/router';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import Errors from '@/shared/error/errors';

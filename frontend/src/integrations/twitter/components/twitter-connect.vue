@@ -20,7 +20,7 @@ import {
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
+import { AuthToken } from '@/modules/auth-old/auth-token';
 import Message from '@/shared/message/message';
 import AppTwitterConnectDrawer from '@/integrations/twitter/components/twitter-connect-drawer.vue';
 import { FeatureFlag } from '@/utils/featureFlag';

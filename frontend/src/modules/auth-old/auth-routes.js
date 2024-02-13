@@ -1,12 +1,12 @@
-import AuthLayout from '@/modules/auth/layouts/auth-layout.vue';
+import AuthLayout from '@/modules/auth-old/layouts/auth-layout.vue';
 
-const SigninPage = () => import('@/modules/auth/pages/signin-page.vue');
+const SigninPage = () => import('@/modules/auth-old/pages/signin-page.vue');
 
-const InvitationPage = () => import('@/modules/auth/pages/invitation-page.vue');
-const TermsAndPrivacyPage = () => import('@/modules/auth/pages/terms-and-privacy.vue');
-const EmptyPermissionsPage = () => import('@/modules/auth/pages/empty-permissions-page.vue');
-const AuthCallback = () => import('@/modules/auth/pages/callback.vue');
-const AuthLogout = () => import('@/modules/auth/pages/logout.vue');
+const InvitationPage = () => import('@/modules/auth-old/pages/invitation-page.vue');
+const TermsAndPrivacyPage = () => import('@/modules/auth-old/pages/terms-and-privacy.vue');
+const EmptyPermissionsPage = () => import('@/modules/auth-old/pages/empty-permissions-page.vue');
+const AuthCallback = () => import('@/modules/auth-old/pages/callback.vue');
+const AuthLogout = () => import('@/modules/auth-old/pages/logout.vue');
 
 export default [
   {
