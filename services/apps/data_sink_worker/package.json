@@ -45,8 +45,7 @@
     "lodash.uniqby": "^4.7.0",
     "moment": "2.29.4",
     "moment-timezone": "^0.5.34",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.7.1",
     "typescript": "^5.0.4"
   },
   "devDependencies": {
