@@ -1,7 +1,7 @@
 import express from 'express'
 import { ActivitySyncService } from '@crowd/opensearch'
 import { ApiRequest } from '../middleware/index'
-import { asyncWrap } from 'middleware/error'
+import { asyncWrap } from '../middleware/error'
 
 const router = express.Router()
 

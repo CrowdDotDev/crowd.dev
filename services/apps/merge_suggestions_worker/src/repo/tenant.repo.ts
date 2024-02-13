@@ -1,6 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { ITenant } from 'types'
+import { ITenant } from '../types'
 
 class TenantRepository {
   constructor(
