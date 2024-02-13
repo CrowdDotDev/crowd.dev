@@ -17,6 +17,19 @@ import { svc } from '../../main'
 import { UserTenant } from '../../types/user'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
 
+import {
+  fetchMostActiveMembers,
+  fetchSegments,
+  fetchTenantUsers,
+  fetchMostActiveOrganizations,
+  fetchTopActivityTypes,
+  fetchConversations,
+  fetchConversation,
+  fetchFirstActivity,
+  fetchRemainingActivities,
+  fetchActiveIntegrations,
+} from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
+
 interface ActivityType {
   totalCount: number
   count: number
@@ -30,6 +43,8 @@ const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
 }-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
+const db = svc.postgres.reader
+
 /*
 getSegments is a Temporal activity that returns the tenant's segments.
 */
@@ -37,16 +52,7 @@ export async function getSegments(input: InputAnalyticsWithTimes): Promise<Segme
   let rows: SegmentRawData[]
 
   try {
-    rows = await svc.postgres.reader.connection().query(
-      `SELECT
-      s.*
-    FROM segments s
-    WHERE s."grandparentSlug" IS NOT NULL
-      AND s."parentSlug" IS NOT NULL
-      AND s."tenantId" = $1
-    ORDER BY s.name;`,
-      [input.tenantId],
-    )
+    rows = await fetchSegments(db, input.tenantId)
   } catch (err) {
     throw new Error(err)
   }
@@ -61,17 +67,7 @@ export async function getTenantUsers(input: InputAnalyticsWithTimes): Promise<Us
   let rows: UserTenant[]
 
   try {
-    rows = await svc.postgres.reader.connection().query(
-      `SELECT tu."tenantId", tu."userId", u.email, u."firstName"
-    FROM "tenantUsers" tu
-    INNER JOIN users u ON tu."userId" = u.id
-    WHERE tu."tenantId" = $1
-      AND tu."status" = 'active'
-      AND tu."deletedAt" IS NULL
-      AND u."emailVerified" IS TRUE
-      AND u."deletedAt" IS NULL;`,
-      [input.tenantId],
-    )
+    rows = await fetchTenantUsers(db, input.tenantId)
   } catch (err) {
     throw new Error(err)
   }
@@ -87,21 +83,11 @@ export async function getMostActiveMembers(input: InputAnalyticsWithSegments): P
   let members: IMember[]
 
   try {
-    members = await svc.postgres.reader.connection().query(
-      `select 
-    count(a.id) as "activityCount",
-    m."displayName" as name,
-    m.attributes->'avatarUrl'->>'default' as "avatarUrl"
-    from members m
-    inner join activities a on m.id = a."memberId"
-    where m."tenantId" = $1
-    and a.timestamp between $2 and $3
-    and coalesce(m.attributes->'isTeamMember'->>'default', 'false')::boolean is false
-    and coalesce(m.attributes->'isBot'->>'default', 'false')::boolean is false
-    group by m.id
-    order by count(a.id) desc
-    limit 5;`,
-      [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
+    members = await fetchMostActiveMembers(
+      db,
+      input.tenantId,
+      input.dateTimeStartThisWeek,
+      input.dateTimeEndThisWeek,
     )
   } catch (err) {
     throw new Error(err)
@@ -128,24 +114,11 @@ export async function getMostActiveOrganizations(
   let orgs: IOrganization[]
 
   try {
-    orgs = await svc.postgres.reader.connection().query(
-      `select count(a.id) as "activityCount",
-      o."displayName" as name,
-      o.logo as "avatarUrl"
-    from organizations o
-    inner join "memberOrganizations" mo
-      on o.id = mo."organizationId"
-      and mo."deletedAt" is null
-    inner join members m on mo."memberId" = m.id
-    inner join activities a on m.id = a."memberId"
-    where m."tenantId" = $1
-    and a.timestamp between $2 and $3
-    and coalesce(m.attributes->'isTeamMember'->>'default', 'false')::boolean is false
-    and coalesce(m.attributes->'isBot'->>'default', 'false')::boolean is false
-    group by o.id
-    order by count(a.id) desc
-    limit 5;`,
-      [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
+    orgs = await fetchMostActiveOrganizations(
+      db,
+      input.tenantId,
+      input.dateTimeStartThisWeek,
+      input.dateTimeEndThisWeek,
     )
   } catch (err) {
     throw new Error(err)
@@ -172,18 +145,11 @@ export async function getTopActivityTypes(
   let types: ActivityType[]
 
   try {
-    types = await svc.postgres.reader.connection().query(
-      `select sum(count(*)) OVER () as "totalCount",
-      count(*) as count,
-      a.type,
-      a.platform
-    from activities a
-    where a."tenantId" = $1
-    and a.timestamp between $2 and $3
-    group by a.type, a.platform
-    order by count(*) desc
-    limit 5;`,
-      [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
+    types = await fetchTopActivityTypes(
+      db,
+      input.tenantId,
+      input.dateTimeStartThisWeek,
+      input.dateTimeEndThisWeek,
     )
   } catch (err) {
     throw new Error(err)
@@ -221,50 +187,24 @@ export async function getConversations(input: InputAnalyticsWithSegments): Promi
   try {
     convs = await Promise.all(
       (
-        await svc.postgres.reader.connection().query(
-          `select
-      c.id
-    from conversations c
-      join activities a on a."conversationId" = c.id
-    where a."tenantId" = $1
-    and a.timestamp between $2 and $3
-    group by c.id
-    order by count(a.id) desc
-    limit 3;`,
-          [input.tenantId, input.dateTimeStartThisWeek, input.dateTimeEndThisWeek],
+        await fetchConversations(
+          db,
+          input.tenantId,
+          input.dateTimeStartThisWeek,
+          input.dateTimeEndThisWeek,
         )
       ).map(async (c) => {
-        const conversationLazyLoaded = await svc.postgres.reader.connection().query(
-          `SELECT * FROM conversations
-          WHERE id = $1 AND "tenantId" = $2 AND "segmentId" = $3
-          LIMIT 1;
-        `,
-          [c.id, c.tenantId, c.segmentId],
-        )
+        const conversationLazyLoaded = await fetchConversation(db, c.id, c.tenantId, c.segmentId)
 
         // Populate with the first activity with parent = null.
-        const firstActivity = await svc.postgres.reader.connection().query(
-          `SELECT activities.*, members."displayName" AS "memberDisplayName"
-          FROM activities
-          INNER JOIN members ON activities."memberId" = members.id
-          WHERE activities."conversationId" = $1
-          AND activities."tenantId" = $2
-          AND activities."segmentId" = $3
-          AND activities."parentId" IS NULL
-          ORDER BY activities."timestamp" ASC, activities."createdAt" ASC
-          LIMIT 1;`,
-          [c.id, c.tenantId, c.segmentId],
-        )
+        const firstActivity = await fetchFirstActivity(db, c.id, c.tenantId, c.segmentId)
 
         // Fetch remaining activities with parent != null.
-        const remainingActivities = await svc.postgres.reader.connection().query(
-          `SELECT * FROM activities
-          WHERE "conversationId" = $1
-          AND "tenantId" = $2
-          AND "segmentId" = $3
-          AND "parentId" IS NOT NULL
-          ORDER BY "timestamp" ASC, "createdAt" ASC;`,
-          [c.id, c.tenantId, c.segmentId],
+        const remainingActivities = await fetchRemainingActivities(
+          db,
+          c.id,
+          c.tenantId,
+          c.segmentId,
         )
 
         conversationLazyLoaded.activities = [...firstActivity, ...remainingActivities]
@@ -343,14 +283,7 @@ export async function getActiveTenantIntegrations(
   let integrations: object[]
 
   try {
-    integrations = await svc.postgres.reader.connection().query(
-      `select * from integrations i
-    where i."tenantId" = $1
-    and i.status = 'done'
-    and i."deletedAt" is null
-    limit 1;`,
-      [input.tenantId],
-    )
+    integrations = await fetchActiveIntegrations(db, input.tenantId)
   } catch (err) {
     throw new Error(err)
   }
