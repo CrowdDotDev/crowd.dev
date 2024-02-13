@@ -1,7 +1,7 @@
 import { proxyActivities } from '@temporalio/workflow'
 
 import { IMember } from '@crowd/types'
-import { EnrichmentAPIMember } from '@crowd/types/premium'
+import { EnrichmentAPIMember } from '@crowd/types/src/premium'
 
 import * as activities from '../activities'
 import { EnrichingMember } from '../types/enrichment'
