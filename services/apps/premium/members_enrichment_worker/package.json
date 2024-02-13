@@ -18,7 +18,6 @@
     "@crowd/opensearch": "file:../../../libs/opensearch",
     "@crowd/database": "file:../../../libs/database",
     "@crowd/types": "file:../../../libs/types",
-    "@temporalio/activity": "~1.8.6",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",
     "axios": "~1.6.2",

@@ -21,13 +21,13 @@
     "@crowd/opensearch": "file:../../libs/opensearch",
     "@crowd/integrations": "file:../../libs/integrations",
     "@opensearch-project/opensearch": "^1.2.0",
-    "@types/config": "^3.3.0",
-    "@types/node": "^18.16.3",
     "config": "^3.3.9",
     "tsx": "^4.7.1",
     "typescript": "^5.0.4"
   },
   "devDependencies": {
+    "@types/config": "^3.3.0",
+    "@types/node": "^18.16.3",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
     "eslint": "^8.39.0",

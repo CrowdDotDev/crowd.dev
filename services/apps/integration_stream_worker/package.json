@@ -31,14 +31,13 @@
     "@crowd/types": "file:../../libs/types",
     "@crowd/feature-flags": "file:../../libs/feature-flags",
     "@crowd/common_services": "file:../../libs/common_services",
-    "@types/config": "^3.3.0",
-    "@types/node": "^18.16.3",
     "config": "^3.3.9",
     "tsx": "^4.7.1",
-    "typescript": "^5.0.4",
-    "uuid": "^9.0.0"
+    "typescript": "^5.0.4"
   },
   "devDependencies": {
+    "@types/config": "^3.3.0",
+    "@types/node": "^18.16.3",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
     "eslint": "^8.39.0",
