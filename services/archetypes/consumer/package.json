@@ -9,10 +9,7 @@
   },
   "dependencies": {
     "@crowd/archetype-standard": "file:../../archetypes/standard",
-    "@temporalio/client": "~1.8.6",
-    "config": "^3.3.9",
-    "kafkajs": "~2.2.4",
-    "tsx": "^4.7.1"
+    "kafkajs": "~2.2.4"
   },
   "devDependencies": {
     "@types/config": "^3.3.1",

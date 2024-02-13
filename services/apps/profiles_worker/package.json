@@ -14,7 +14,6 @@
   "dependencies": {
     "@crowd/archetype-standard": "file:../../archetypes/standard",
     "@crowd/archetype-worker": "file:../../archetypes/worker",
-    "@crowd/types": "file:../../libs/types",
     "@temporalio/workflow": "~1.8.6",
     "tsx": "^4.7.1",
     "typescript": "^5.2.2"

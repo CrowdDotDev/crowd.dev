@@ -8,6 +8,7 @@
     "tsc-check": "tsc --noEmit"
   },
   "devDependencies": {
+    "@aws-sdk/types": "^3.329.0",
     "@types/node": "^18.16.3",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
@@ -19,7 +20,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.332.0",
-    "@aws-sdk/types": "^3.329.0",
     "@crowd/common": "file:../common",
     "@crowd/logging": "file:../logging",
     "@crowd/tracing": "file:../tracing",

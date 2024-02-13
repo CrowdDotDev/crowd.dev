@@ -14,12 +14,7 @@
     "@crowd/common": "file:../../libs/common",
     "@crowd/opensearch": "file:../../libs/opensearch",
     "@crowd/sqs": "file:../../libs/sqs",
-    "@opensearch-project/opensearch": "^1.2.0",
-    "@temporalio/client": "~1.8.6",
-    "@temporalio/worker": "~1.8.6",
-    "@temporalio/workflow": "~1.8.6",
-    "config": "^3.3.9",
-    "tsx": "^4.7.1"
+    "@temporalio/worker": "~1.8.6"
   },
   "devDependencies": {
     "@types/config": "^3.3.1",
