@@ -216,10 +216,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o."immediateParent",
             o."weakIdentities",
             o."manuallyChangedFields",
-            i.identities
+            coalesce(i.identities, json_build_array()) as identities
       from organizations o
-              inner join identities i on o.id = i."organizationId"
-      where o.id = $(organizationId);
+              left join identities i on o.id = i."organizationId"
+      where o.id = $(organizationId) and o."deletedAt" is null;
       `,
       {
         organizationId,
