@@ -1,6 +1,7 @@
 import { IMember } from '@crowd/types'
 
 import { svc } from '../main'
+import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 
 /*
 getMembers is a Temporal activity that retrieves all members available for
@@ -13,37 +14,8 @@ export async function getMembers(): Promise<IMember[]> {
   let rows: IMember[] = []
 
   try {
-    rows = await svc.postgres.reader.connection().query(
-      `SELECT
-        members."id",
-        members."displayName",
-        members."attributes",
-        members."emails",
-        members."contributions",
-        members."score",
-        members."reach",
-        members."tenantId",
-        jsonb_object_agg(mi.platform, mi.username) as username,
-        COUNT(activities."memberId") AS activity_count
-      FROM members
-      INNER JOIN tenants ON tenants.id = members."tenantId"
-      INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
-      INNER JOIN activities ON activities."memberId" = members.id
-      WHERE tenants.plan IN ('Growth', 'Scale', 'Enterprise')
-      AND (
-        members."lastEnriched" < NOW() - INTERVAL '90 days'
-        OR members."lastEnriched" IS NULL
-      )
-      AND (
-        mi.platform = 'github'
-        OR array_length(members.emails, 1) > 0
-      )
-      AND tenants."deletedAt" IS NULL
-      AND members."deletedAt" IS NULL
-      GROUP BY members.id
-      ORDER BY activity_count DESC
-      LIMIT 10;`,
-    )
+    const db = svc.postgres.reader
+    rows = await fetchMembersForEnrichment(db)
   } catch (err) {
     throw new Error(err)
   }
