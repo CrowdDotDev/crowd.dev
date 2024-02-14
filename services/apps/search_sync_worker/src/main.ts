@@ -1,5 +1,5 @@
 import { OpenSearchService, InitService } from '@crowd/opensearch'
-import { getDbConnection } from '@crowd/database'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'

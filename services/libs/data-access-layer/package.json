@@ -13,6 +13,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/database": "workspace:*",
+    "@crowd/redis": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/sentiment": "workspace:*",
     "lodash.clonedeep": "^4.5.0",
