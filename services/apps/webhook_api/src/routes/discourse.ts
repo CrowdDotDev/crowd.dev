@@ -3,7 +3,7 @@ import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'
 import { verifyWebhookSignature } from '../utils/crypto'
 import { asyncWrap } from '../middleware/error'
-import { WebhooksRepository } from '../repos/webhooks.repo'
+import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
 
 export const installDiscourseRoutes = async (app: express.Express) => {
   app.post(
