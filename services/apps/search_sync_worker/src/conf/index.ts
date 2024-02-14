@@ -1,4 +1,4 @@
-import { IDatabaseConfig } from '@crowd/database'
+import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'
 import { QueuePriorityLevel } from '@crowd/types'
