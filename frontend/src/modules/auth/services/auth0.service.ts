@@ -6,7 +6,7 @@ import { router } from '@/router';
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
 
-class AuthApiServiceClass {
+class Auth0ServiceClass {
   private readonly webAuth: Auth0Client;
 
   public constructor() {
@@ -22,51 +22,23 @@ class AuthApiServiceClass {
     });
   }
 
-  async loginWithRedirect() {
+  loginWithRedirect() {
     return this.webAuth.loginWithRedirect();
   }
 
-  async handleAuth() {
+  handleAuth() {
     return this.webAuth.handleRedirectCallback();
   }
 
-  async init() {
-    return this.webAuth.isAuthenticated().then(async (isAuthenticated) => {
-      const currentUser = store.getters['auth/currentUser'];
-      if (!isAuthenticated) {
-        return this.webAuth.getTokenSilently().then(async (token) => {
-          if (!currentUser) {
-            await store.dispatch('auth/doInit', token);
-          }
-
-          store.dispatch('auth/doAuthenticate');
-
-          return Promise.resolve();
-        }).catch((error) => {
-          if (error.error === 'login_required' || error.error === 'consent_required' || error.error
-=== 'missing_refresh_token') {
-            return this.webAuth.loginWithRedirect({
-              appState: {
-                targetUrl: router.currentRoute.value.fullPath,
-              },
-            });
-          }
-
-          return Promise.reject(error);
-        });
-      }
-
-      if (!currentUser) {
-        await store.dispatch('auth/doInit');
-      }
-
-      store.dispatch('auth/doAuthenticate');
-
-      return Promise.resolve();
-    });
+  isAuthenticated() {
+    return this.webAuth.isAuthenticated();
   }
 
-  public authData() {
+  getTokenSilently() {
+    return this.webAuth.getTokenSilently();
+  }
+
+  authData() {
     return this.webAuth.getIdTokenClaims()
       .then((idToken) => {
         if (idToken) {
@@ -78,13 +50,12 @@ class AuthApiServiceClass {
       });
   }
 
-  public static localLogout() {
-    localStorage.removeItem('jwt');
+  public logout() {
+    return this.webAuth.logout();
   }
 
-  public logout() {
-    Auth0ServiceClass.localLogout();
-    this.webAuth.logout();
+  public checkSession() {
+    return this.webAuth.checkSession();
   }
 
   public getUser() {

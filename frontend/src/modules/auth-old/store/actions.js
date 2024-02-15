@@ -114,28 +114,28 @@ export default {
     { token, appState },
   ) {
     commit('AUTH_START');
-    return AuthService.ssoGetToken(token)
-      .then((token) => {
-        connectSocket(token);
-        AuthToken.set(token, true);
-        return AuthService.fetchMe();
-      })
-      .then((currentUser) => {
-        commit('AUTH_SUCCESS', {
-          currentUser: currentUser || null,
-        });
-
-        window.history.replaceState(null, '', appState?.targetUrl ?? '/');
-        window.history.pushState(null, '', appState?.targetUrl ?? '/');
-
-        router.push(appState?.targetUrl ?? '/');
-      })
-      .catch((error) => {
-        disconnectSocket();
-        AuthService.signout();
-        Errors.handle(error);
-        commit('AUTH_ERROR');
-      });
+    // return AuthService.ssoGetToken(token)
+    //   .then((token) => {
+    //     connectSocket(token);
+    //     AuthToken.set(token, true);
+    //     return AuthService.fetchMe();
+    //   })
+    //   .then((currentUser) => {
+    //     commit('AUTH_SUCCESS', {
+    //       currentUser: currentUser || null,
+    //     });
+    //
+    //     window.history.replaceState(null, '', appState?.targetUrl ?? '/');
+    //     window.history.pushState(null, '', appState?.targetUrl ?? '/');
+    //
+    //     router.push(appState?.targetUrl ?? '/');
+    //   })
+    //   .catch((error) => {
+    //     disconnectSocket();
+    //     AuthService.signout();
+    //     Errors.handle(error);
+    //     commit('AUTH_ERROR');
+    //   });
   },
 
   async doSignout({ commit }) {

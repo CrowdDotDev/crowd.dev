@@ -53,7 +53,7 @@ export default class AuthCurrentTenant {
   }
 
   static get() {
-    const tenantASString = localStorage.getItem('currentTenant');
+    const tenantASString = localStorage.getItem('tenantId');
     return tenantASString ?? null;
   }
 
@@ -97,7 +97,7 @@ export default class AuthCurrentTenant {
       return this.clear();
     }
 
-    localStorage.setItem('currentTenant', tenant.id);
+    localStorage.setItem('tenantId', tenant.id);
     localStorage.setItem('tenant', JSON.stringify(tenant));
 
     return null;

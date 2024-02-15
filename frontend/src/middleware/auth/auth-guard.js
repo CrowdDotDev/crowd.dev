@@ -30,10 +30,6 @@ export default async function ({
     return;
   }
 
-  if (!store.getters['auth/isAuthenticated']) {
-    await Auth0Service.init();
-  }
-
   await store.dispatch('auth/doWaitUntilInit');
 
   const currentUser = store.getters['auth/currentUser'];

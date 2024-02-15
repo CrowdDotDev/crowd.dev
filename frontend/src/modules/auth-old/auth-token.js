@@ -9,11 +9,11 @@ export class AuthToken {
 
   static set(token, rememberMe) {
     inMemoryToken = token;
-    if (rememberMe) {
-      localStorage.setItem('jwt', token || '');
-    } else {
-      localStorage.removeItem('jwt');
-    }
+    // if (rememberMe) {
+    //   localStorage.setItem('jwt', token || '');
+    // } else {
+    //   localStorage.removeItem('jwt');
+    // }
   }
 
   static applyFromLocationUrlIfExists() {

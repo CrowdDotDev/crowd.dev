@@ -2,13 +2,7 @@
   <div id="app">
     <div class="sm:hidden md:block lg:block xl:block">
       <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
-      <div v-if="loading" class="flex items-center bg-white h-screen w-screen justify-center">
-        <div
-          v-loading="true"
-          class="app-page-spinner h-20 w-20 !relative !min-h-20 custom"
-        />
-      </div>
-      <router-view v-show="!loading" v-slot="{ Component }">
+      <router-view v-slot="{ Component }">
         <transition>
           <div>
             <component :is="Component" />
@@ -37,6 +31,7 @@ import { mapActions as piniaMapActions } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { TenantService } from '@/modules/tenant/tenant-service';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 export default {
   name: 'App',
@@ -45,12 +40,12 @@ export default {
     AppResizePage,
   },
 
+  setup() {
+    const { init } = useAuthStore();
+    return { init };
+  },
+
   computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      isAuthenticated: 'auth/isAuthenticated',
-      currentUser: 'auth/currentUser',
-    }),
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
     }),
@@ -108,6 +103,7 @@ export default {
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
+    this.init();
   },
 
   unmounted() {

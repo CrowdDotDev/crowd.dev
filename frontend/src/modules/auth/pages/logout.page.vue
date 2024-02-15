@@ -1,6 +1,6 @@
 <template>
-  <div class="flex items-center h-screen">
-    <cr-spinner size="3.5rem" />
+  <div class="flex items-center justify-center h-screen">
+    <cr-spinner size="5rem" />
   </div>
 </template>
 
