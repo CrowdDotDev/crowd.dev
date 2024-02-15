@@ -24,7 +24,7 @@ export interface IMemberIdentity {
   username: string
   integrationId?: string
   sourceId?: string
-  createdAt: string
+  createdAt?: string
 }
 
 export const mapSingleUsernameToIdentity = (usernameOrIdentity: any): any => {

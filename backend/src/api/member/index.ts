@@ -32,6 +32,9 @@ export default (app) => {
     safeWrap(require('./memberFindGithub').default),
   )
   app.put(`/tenant/:tenantId/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
+
+  app.post(`/tenant/:tenantId/member/:memberId/unmerge/preview`, safeWrap(require('./memberUnmergePreview').default))
+
   app.put(
     `/tenant/:tenantId/member/:memberId/no-merge`,
     safeWrap(require('./memberNotMerge').default),

@@ -1,24 +1,13 @@
 import { QueryTypes } from 'sequelize'
+import {
+  IMemberIdentity,
+  IMergeAction,
+  IUnmergeBackup,
+  MergeActionState,
+  MergeActionType,
+} from '@crowd/types'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
-
-enum MergeActionType {
-  ORG = 'org',
-  MEMBER = 'member',
-}
-
-enum MergeActionState {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in-progress',
-  DONE = 'done',
-  FINISHING = 'finishing',
-  ERROR = 'error',
-}
-
-interface IUnmergeBackup {
-  primary: unknown
-  secondary: unknown
-}
 
 class MergeActionsRepository {
   static async add(
@@ -90,6 +79,43 @@ class MergeActionsRepository {
 
     return rowCount > 0
   }
+
+  static async findMergeBackup(
+    primaryMemberId: string,
+    identity: IMemberIdentity,
+    options: IRepositoryOptions,
+  ): Promise<IMergeAction> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const records = await options.database.sequelize.query(
+      `
+      select *
+      from "mergeActions" ma
+      where ma."primaryId" = :primaryMemberId
+        and exists(
+              select 1
+              from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
+              where identities ->> 'username' = :secondaryMemberIdentityUsername
+                and identities ->> 'platform' = :secondaryMemberIdentityPlatform
+          );
+      `,
+      {
+        replacements: {
+          primaryMemberId,
+          secondaryMemberIdentityUsername: identity.username,
+          secondaryMemberIdentityPlatform: identity.platform,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return records[0]
+  }
 }
 
-export { MergeActionsRepository, MergeActionType, MergeActionState }
+export { MergeActionsRepository }

@@ -1,6 +1,7 @@
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import { QueryTypes } from 'sequelize'
+import { MergeActionType } from '@crowd/types'
 import * as fs from 'fs'
 import path from 'path'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
@@ -10,7 +11,6 @@ import getUserContext from '@/database/utils/getUserContext'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import {
   MergeActionState,
-  MergeActionType,
   MergeActionsRepository,
 } from '@/database/repositories/mergeActionsRepository'
 

@@ -171,3 +171,16 @@ export const MemberEnrichmentAttributes = {
     label: 'Expertise',
   },
 }
+
+export enum MergeActionType {
+  ORG = 'org',
+  MEMBER = 'member',
+}
+
+export enum MergeActionState {
+  PENDING = 'pending',
+  IN_PROGRESS = 'in-progress',
+  DONE = 'done',
+  FINISHING = 'finishing',
+  ERROR = 'error',
+}
