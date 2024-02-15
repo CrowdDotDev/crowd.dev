@@ -18,10 +18,10 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
-    "@crowd/types": "file:../types",
-    "@crowd/redis": "file:../redis",
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "@crowd/redis": "workspace:*",
     "unleash-client": "^3.18.1"
   }
 }

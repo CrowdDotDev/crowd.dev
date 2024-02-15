@@ -18,9 +18,9 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/types": "file:../types",
-    "@crowd/logging": "file:../logging",
+    "@crowd/common": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "redis": "^4.6.6"
   }
 }

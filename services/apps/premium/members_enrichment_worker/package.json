@@ -12,12 +12,12 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/archetype-standard": "file:../../../archetypes/standard",
-    "@crowd/archetype-worker": "file:../../../archetypes/worker",
-    "@crowd/common": "file:../../../libs/common",
-    "@crowd/opensearch": "file:../../../libs/opensearch",
-    "@crowd/database": "file:../../../libs/database",
-    "@crowd/types": "file:../../../libs/types",
+    "@crowd/archetype-standard": "workspace:*",
+    "@crowd/archetype-worker": "workspace:*",
+    "@crowd/common": "workspace:*",
+    "@crowd/opensearch": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/types": "workspace:*",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",
     "axios": "~1.6.2",

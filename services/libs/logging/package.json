@@ -20,8 +20,8 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/tracing": "file:../tracing",
+    "@crowd/common": "workspace:*",
+    "@crowd/tracing": "workspace:*",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1"
   }

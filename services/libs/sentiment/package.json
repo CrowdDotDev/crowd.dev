@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.335.0",
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "crowd-sentiment": "^1.1.7"
   }
 }

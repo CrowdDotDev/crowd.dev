@@ -8,7 +8,7 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/logging": "file:../logging",
+    "@crowd/logging": "workspace:*",
     "axios": "^1.4.0"
   },
   "devDependencies": {

@@ -12,12 +12,12 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/common": "file:../../libs/common",
-    "@crowd/opensearch": "file:../../libs/opensearch",
-    "@crowd/database": "file:../../libs/database",
-    "@crowd/redis": "file:../../libs/redis",
-    "@crowd/logging": "file:../../libs/logging",
-    "@crowd/telemetry": "file:../../libs/telemetry",
+    "@crowd/common": "workspace:*",
+    "@crowd/opensearch": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/redis": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/telemetry": "workspace:*",
     "bunyan-middleware": "^1.0.2",
     "config": "^3.3.9",
     "cors": "^2.8.5",

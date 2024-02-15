@@ -18,11 +18,11 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/database": "file:../database",
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
-    "@crowd/redis": "file:../redis",
-    "@crowd/types": "file:../types",
+    "@crowd/database": "workspace:*",
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/redis": "workspace:*",
+    "@crowd/types": "workspace:*",
     "@opensearch-project/opensearch": "^1.2.0",
     "axios": "^1.6.0"
   }

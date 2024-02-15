@@ -8,8 +8,8 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "@cubejs-client/core": "~0.34.9",
     "jsonwebtoken": "~9.0.2",
     "moment": "~2.29.4"

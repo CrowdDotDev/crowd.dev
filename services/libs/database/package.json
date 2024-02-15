@@ -18,8 +18,8 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "pg-promise": "^11.4.3"
   }
 }
