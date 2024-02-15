@@ -40,6 +40,7 @@ import {
   Repo,
   Repos,
   INDIRECT_FORK,
+  GithubBotMember,
 } from './types'
 import { GithubTokenRotator } from './tokenRotator'
 
@@ -223,6 +224,20 @@ export const prepareMember = async (
     email,
     orgs,
     memberFromApi,
+  }
+}
+
+export const prepareBotMember = (bot: GithubBotMember): GithubPrepareMemberOutput => {
+  return {
+    email: '',
+    orgs: [],
+    memberFromApi: {
+      login: bot.login,
+      avatarUrl: bot.avatarUrl,
+      url: bot.url,
+      id: bot.id,
+      isBot: true,
+    },
   }
 }
 
@@ -432,14 +447,19 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
     getTokenRotator(ctx),
   )
 
-  // filter out activities without authors (such as bots)
-  result.data = result.data.filter((i) => (i as any).author?.login)
-
   // handle next page
   await publishNextPageStream(ctx, result)
 
   for (const pull of result.data) {
-    const member = await prepareMember(pull.author, ctx)
+    let member: GithubPrepareMemberOutput
+    if (pull.author?.login) {
+      member = await prepareMember(pull.author, ctx)
+    } else if (pull.authorBot?.login) {
+      member = prepareBotMember(pull.authorBot)
+    } else {
+      ctx.log.warn('Pull request author is not found. This pull request will not be parsed.')
+      continue
+    }
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -613,14 +633,24 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
     },
     getTokenRotator(ctx),
   )
-  result.data = result.data.filter((i) => (i as any).author?.login)
+  // result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
   await publishNextPageStream(ctx, result)
 
   // get member info for each comment
   for (const record of result.data) {
-    const member = await prepareMember(record.author, ctx)
+    let member: GithubPrepareMemberOutput
+    if (record.author?.login) {
+      member = await prepareMember(record.author, ctx)
+    } else if (record.authorBot?.login) {
+      member = prepareBotMember(record.authorBot)
+    } else {
+      ctx.log.warn(
+        'Pull request comment author is not found. This pull request comment will not be parsed.',
+      )
+      continue
+    }
 
     // publish data
     await ctx.publishData<GithubApiData>({
@@ -686,14 +716,24 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
   )
 
   // filter out activities without authors (such as bots)
-  result.data = result.data.filter((i) => (i as any).author?.login)
+  // result.data = result.data.filter((i) => (i as any).author?.login)
 
   // handle next page
   await publishNextPageStream(ctx, result)
 
   // get additional member info for each comment
   for (const record of result.data) {
-    const member = await prepareMember(record.author, ctx)
+    let member: GithubPrepareMemberOutput
+    if (record.author?.login) {
+      member = await prepareMember(record.author, ctx)
+    } else if (record.authorBot?.login) {
+      member = prepareBotMember(record.authorBot)
+    } else {
+      ctx.log.warn(
+        'Pull request review thread comment author is not found. This pull request review thread comment will not be parsed.',
+      )
+      continue
+    }
 
     // publish data
     await ctx.publishData<GithubApiData>({

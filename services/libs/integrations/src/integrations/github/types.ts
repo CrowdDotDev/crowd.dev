@@ -220,6 +220,13 @@ export interface GithubPrepareMemberOutput {
   memberFromApi: any
 }
 
+export interface GithubBotMember {
+  login: string
+  avatarUrl: string
+  id: string
+  url: string
+}
+
 export interface GithubPrepareOrgMemberOutput {
   orgFromApi: any
 }

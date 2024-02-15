@@ -14,6 +14,9 @@ class IssuesQuery extends BaseQuery {
                     author {
                         ... on User ${BaseQuery.USER_SELECT}
                     }
+                    authorBot: author {
+                        ... on Bot ${BaseQuery.BOT_SELECT}
+                    }
                     bodyText
                     state
                     id
@@ -28,6 +31,9 @@ class IssuesQuery extends BaseQuery {
                           id
                           actor {
                             ... on User ${BaseQuery.USER_SELECT}
+                          }
+                          actorBot: actor {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
                           }
                           createdAt
                         }
