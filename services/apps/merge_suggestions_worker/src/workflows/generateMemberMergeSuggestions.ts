@@ -41,8 +41,9 @@ export async function generateMemberMergeSuggestions(
       activity.getMergeSuggestions(args.tenantId, member),
     )
 
-    const mergeSuggestionsResults: IMemberMergeSuggestion[][] =
-      await Promise.all(mergeSuggestionsPromises)
+    const mergeSuggestionsResults: IMemberMergeSuggestion[][] = await Promise.all(
+      mergeSuggestionsPromises,
+    )
     allMergeSuggestions.push(...mergeSuggestionsResults.flat())
   }
 
