@@ -337,7 +337,6 @@ async function onCancel() {
 }
 
 async function onSubmit() {
-  console.log({ model: formModel.value });
   const formattedAttributes = getParsedAttributes(
     computedAttributes.value,
     formModel.value,
