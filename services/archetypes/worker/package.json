@@ -8,12 +8,12 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/archetype-standard": "file:../../archetypes/standard",
-    "@crowd/database": "file:../../libs/database",
-    "@crowd/temporal": "file:../../libs/temporal",
-    "@crowd/common": "file:../../libs/common",
-    "@crowd/opensearch": "file:../../libs/opensearch",
-    "@crowd/sqs": "file:../../libs/sqs",
+    "@crowd/archetype-standard": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/temporal": "workspace:*",
+    "@crowd/common": "workspace:*",
+    "@crowd/opensearch": "workspace:*",
+    "@crowd/sqs": "workspace:*",
     "@temporalio/worker": "~1.8.6"
   },
   "devDependencies": {

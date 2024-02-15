@@ -12,12 +12,12 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/archetype-standard": "file:../../archetypes/standard",
-    "@crowd/archetype-worker": "file:../../archetypes/worker",
-    "@crowd/common": "file:../../libs/common",
-    "@crowd/integrations": "file:../../libs/integrations",
-    "@crowd/cubejs": "file:../../libs/cubejs",
-    "@crowd/types": "file:../../libs/types",
+    "@crowd/archetype-standard": "workspace:*",
+    "@crowd/archetype-worker": "workspace:*",
+    "@crowd/common": "workspace:*",
+    "@crowd/integrations": "workspace:*",
+    "@crowd/cubejs": "workspace:*",
+    "@crowd/types": "workspace:*",
     "@sendgrid/mail": "~8.1.0",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",

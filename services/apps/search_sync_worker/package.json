@@ -36,14 +36,14 @@
     "script:get-index-info": "SERVICE=script tsx src/bin/get-index-info.ts"
   },
   "dependencies": {
-    "@crowd/common": "file:../../libs/common",
-    "@crowd/database": "file:../../libs/database",
-    "@crowd/logging": "file:../../libs/logging",
-    "@crowd/redis": "file:../../libs/redis",
-    "@crowd/sqs": "file:../../libs/sqs",
-    "@crowd/tracing": "file:../../libs/tracing",
-    "@crowd/types": "file:../../libs/types",
-    "@crowd/opensearch": "file:../../libs/opensearch",
+    "@crowd/common": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/redis": "workspace:*",
+    "@crowd/sqs": "workspace:*",
+    "@crowd/tracing": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "@crowd/opensearch": "workspace:*",
     "config": "^3.3.9",
     "tsx": "^4.7.1",
     "typescript": "^5.0.4"

@@ -12,8 +12,8 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/archetype-consumer": "file:../../archetypes/consumer",
-    "@crowd/archetype-standard": "file:../../archetypes/standard",
+    "@crowd/archetype-consumer": "workspace:*",
+    "@crowd/archetype-standard": "workspace:*",
     "tsx": "^4.7.1",
     "typescript": "^5.2.2"
   },

@@ -20,10 +20,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.332.0",
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
-    "@crowd/tracing": "file:../tracing",
-    "@crowd/types": "file:../types",
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/tracing": "workspace:*",
+    "@crowd/types": "workspace:*",
     "@smithy/util-retry": "^2.0.1"
   }
 }

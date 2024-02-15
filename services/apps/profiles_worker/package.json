@@ -12,8 +12,8 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/archetype-standard": "file:../../archetypes/standard",
-    "@crowd/archetype-worker": "file:../../archetypes/worker",
+    "@crowd/archetype-standard": "workspace:*",
+    "@crowd/archetype-worker": "workspace:*",
     "@temporalio/workflow": "~1.8.6",
     "tsx": "^4.7.1",
     "typescript": "^5.2.2"

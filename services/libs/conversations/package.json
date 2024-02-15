@@ -8,10 +8,10 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/database": "file:../database",
-    "@crowd/logging": "file:../logging",
-    "@crowd/types": "file:../types",
+    "@crowd/common": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/types": "workspace:*",
     "html-to-text": "^9.0.5"
   },
   "devDependencies": {

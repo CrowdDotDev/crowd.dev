@@ -8,7 +8,7 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/logging": "file:../logging",
+    "@crowd/logging": "workspace:*",
     "@temporalio/client": "~1.8.6",
     "@temporalio/common": "^1.8.6",
     "@temporalio/proto": "~1.8.6"

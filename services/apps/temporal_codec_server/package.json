@@ -12,8 +12,8 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/archetype-standard": "file:../../archetypes/standard",
-    "@crowd/temporal": "file:../../libs/temporal",
+    "@crowd/archetype-standard": "workspace:*",
+    "@crowd/temporal": "workspace:*",
     "@temporalio/proto": "~1.8.6",
     "cors": "~2.8.5",
     "express": "~4.18.2",

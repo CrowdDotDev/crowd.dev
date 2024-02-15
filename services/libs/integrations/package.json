@@ -20,11 +20,11 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/database": "file:../database",
-    "@crowd/logging": "file:../logging",
-    "@crowd/types": "file:../types",
-    "@crowd/telemetry": "file:../telemetry",
+    "@crowd/common": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "@crowd/telemetry": "workspace:*",
     "@octokit/auth-app": "^4.0.13",
     "@octokit/graphql": "^5.0.6",
     "axios": "^1.4.0",

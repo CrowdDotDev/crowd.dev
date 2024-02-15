@@ -18,13 +18,13 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@crowd/common": "file:../common",
-    "@crowd/logging": "file:../logging",
-    "@crowd/types": "file:../types",
-    "@crowd/database": "file:../database",
-    "@crowd/feature-flags": "file:../feature-flags",
-    "@crowd/redis": "file:../redis",
-    "@crowd/tracing": "file:../tracing",
-    "@crowd/sqs": "file:../sqs"
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/feature-flags": "workspace:*",
+    "@crowd/redis": "workspace:*",
+    "@crowd/tracing": "workspace:*",
+    "@crowd/sqs": "workspace:*"
   }
 }
