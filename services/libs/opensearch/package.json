@@ -2,9 +2,9 @@
   "name": "@crowd/opensearch",
   "main": "src/index.ts",
   "scripts": {
-    "lint": "eslint --ext .ts src --max-warnings=0",
-    "format": "prettier --write .",
-    "format-check": "prettier --check .",
+    "lint": "npx eslint --ext .ts src --max-warnings=0",
+    "format": "npx prettier --write .",
+    "format-check": "npx prettier --check .",
     "tsc-check": "tsc --noEmit"
   },
   "devDependencies": {

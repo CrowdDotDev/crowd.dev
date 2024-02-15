@@ -6,9 +6,9 @@
     "start:debug": "SERVICE=integration-data-worker LOG_LEVEL=trace tsx --inspect=0.0.0.0:9232 src/main.ts",
     "dev:local": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
     "dev": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
-    "lint": "eslint --ext .ts src --max-warnings=0",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format-check": "prettier --check .",
+    "lint": "npx eslint --ext .ts src --max-warnings=0",
+    "format": "npx prettier --write \"src/**/*.ts\"",
+    "format-check": "npx prettier --check .",
     "tsc-check": "tsc --noEmit",
     "script:process-data": "SERVICE=script tsx src/bin/process-data.ts",
     "script:process-data-for-tenant": "SERVICE=script tsx src/bin/process-data-for-tenant.ts"
