@@ -7,6 +7,10 @@ class AuthServiceClass {
     localStorage.setItem('tenantId', tenantId);
   }
 
+  getTenantId() {
+    return localStorage.getItem('tenantId');
+  }
+
   logout() {
     localStorage.removeItem('jwt');
     localStorage.removeItem('tenantId');

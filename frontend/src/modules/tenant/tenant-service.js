@@ -1,6 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import config from '@/config';
 
 export class TenantService {
@@ -34,7 +34,7 @@ export class TenantService {
       }
     }
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
     if (tenantId && !tenantUrl) {
       try {
         currentTenant = await this.find(tenantId);
@@ -83,14 +83,14 @@ export class TenantService {
   }
 
   static async viewOrganizations() {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
     const response = await authAxios.post(`/tenant/${tenantId}/viewOrganizations`);
 
     return response.data;
   }
 
   static async viewContacts() {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
     const response = await authAxios.post(`/tenant/${tenantId}/viewContacts`);
 
     return response.data;

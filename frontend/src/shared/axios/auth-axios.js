@@ -1,7 +1,6 @@
 import Axios from 'axios';
 import { stringify } from 'qs';
 import moment from 'moment';
-import { AuthToken } from '@/modules/auth-old/auth-token';
 import config from '@/config';
 import { getLanguageCode } from '@/i18n';
 import { storeToRefs } from 'pinia';

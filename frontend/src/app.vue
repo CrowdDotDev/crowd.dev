@@ -20,11 +20,10 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapState } from 'vuex';
+import { mapActions, mapState } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
-import { AuthToken } from '@/modules/auth-old/auth-token';
 import { Auth0Service } from '@/modules/auth/services/auth0.service';
 import identify from '@/shared/monitoring/identify';
 import { mapActions as piniaMapActions } from 'pinia';

@@ -2,8 +2,6 @@ import { useLogRocket } from '@/utils/logRocket';
 import { i18n, i18nExists } from '@/i18n';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
-import { AuthService } from '@/modules/auth-old/auth-service';
-import config from '@/config';
 
 const DEFAULT_ERROR_MESSAGE = i18n('errors.defaultErrorMessage');
 

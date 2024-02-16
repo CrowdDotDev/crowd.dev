@@ -1,5 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class ConversationService {
   static async destroyAll(ids, segments) {
@@ -8,7 +8,7 @@ export class ConversationService {
       segments,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/conversation`,
@@ -20,7 +20,7 @@ export class ConversationService {
 
   static async find(id, segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = sampleTenant?.id || AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/conversation/${id}`,
@@ -39,7 +39,7 @@ export class ConversationService {
 
   static async query(body) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = sampleTenant?.id || AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation/query`,

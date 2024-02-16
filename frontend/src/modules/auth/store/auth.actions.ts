@@ -1,11 +1,9 @@
-import { connectSocket, disconnectSocket } from '@/modules/auth-old/auth-socket';
-import { router } from '@/router';
-import Errors from '@/shared/error/errors';
 import { Auth0Service } from '@/modules/auth/services/auth0.service';
 import { AuthApiService } from '@/modules/auth/services/auth.api.service';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import { User } from '@/modules/auth/types/User.type';
-import { store } from '@/store';
+import Errors from '@/shared/error/errors';
+import { disconnectSocket, connectSocket } from '@/modules/auth/auth.socket';
 
 export default {
   init() {
@@ -31,7 +29,7 @@ export default {
       });
   },
   getUser(token: string) {
-    // connectSocket(token);
+    connectSocket(token);
     AuthService.setToken(token);
     return AuthApiService.fetchMe()
       .then((currentUser) => {
@@ -44,10 +42,10 @@ export default {
         return Promise.resolve(currentUser);
       })
       .catch((error) => {
-        // disconnectSocket();
+        disconnectSocket();
         AuthService.logout();
         Auth0Service.logout();
-        // Errors.handle(error);
+        Errors.handle(error);
         return Promise.reject(error);
       });
   },

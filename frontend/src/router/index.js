@@ -9,7 +9,7 @@ import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import auth from '@/modules/auth';
 
 /**
@@ -112,7 +112,7 @@ export const createRouter = () => {
             return;
           }
 
-          if (!selectedProjectGroup.value && AuthCurrentTenant.get()) {
+          if (!selectedProjectGroup.value && AuthService.getTenantId()) {
             try {
               await listProjectGroups({
                 limit: null,

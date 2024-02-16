@@ -81,7 +81,7 @@ import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import moment from 'moment';
 import config from '@/config';
-import { AuthToken } from '@/modules/auth-old/auth-token';
+
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps({

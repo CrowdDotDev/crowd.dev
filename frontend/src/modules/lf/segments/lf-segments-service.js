@@ -1,11 +1,11 @@
 import authAxios from '@/shared/axios/auth-axios';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class LfService {
   // Segments
 
   static async findSegment(id) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/segment/${id}`,
@@ -20,7 +20,7 @@ export class LfService {
   }
 
   static async updateSegment(id, data) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/segment/${id}`,
@@ -36,7 +36,7 @@ export class LfService {
   // Project Groups
 
   static async queryProjectGroups(body) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/projectGroup/query`,
@@ -50,7 +50,7 @@ export class LfService {
   }
 
   static async createProjectGroup(body) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/projectGroup`,
@@ -66,7 +66,7 @@ export class LfService {
   // Projects
 
   static async queryProjects(body) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/project/query`,
@@ -80,7 +80,7 @@ export class LfService {
   }
 
   static async createProject(body) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/project`,
@@ -93,7 +93,7 @@ export class LfService {
   // Sub-projects
 
   static async createSubProject(body) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/subproject`,

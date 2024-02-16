@@ -210,9 +210,9 @@ import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
-const tenantId = AuthCurrentTenant.get();
+const tenantId = AuthService.getTenantId();
 
 const inputRef = ref();
 const showToken = ref(false);

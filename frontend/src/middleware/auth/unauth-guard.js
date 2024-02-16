@@ -1,5 +1,5 @@
-import { AuthToken } from '@/modules/auth-old/auth-token';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 /**
  * Unauth Guard
@@ -19,7 +19,7 @@ export default async function ({ to, router }) {
   }
 
   const token = AuthToken.get();
-  const tenantId = AuthCurrentTenant.get();
+  const tenantId = AuthService.getTenantId();
 
   if (token && tenantId) {
     // `window.history.replaceState` to replace the current URL with the root URL

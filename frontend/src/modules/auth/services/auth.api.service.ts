@@ -1,6 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import { User } from '@/modules/auth/types/User.type';
 
 class AuthApiServiceClass {
@@ -9,7 +9,7 @@ class AuthApiServiceClass {
       .post('/auth/sso/callback', {
         idToken,
         tenantId: tenantSubdomain.isSubdomain
-          ? AuthCurrentTenant.get()
+          ? AuthService.getTenantId()
           : undefined,
       })
       .then((response) => {

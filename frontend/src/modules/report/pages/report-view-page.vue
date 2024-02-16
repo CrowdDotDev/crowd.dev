@@ -69,7 +69,7 @@
 
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import ReportShareButton from '@/modules/report/components/report-share-button.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';

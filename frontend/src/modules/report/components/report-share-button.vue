@@ -74,7 +74,7 @@ import {
   defineEmits,
 } from 'vue';
 import Message from '@/shared/message/message';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { ReportPermissions } from '../report-permissions';
 
@@ -110,7 +110,7 @@ const model = computed({
 });
 
 const computedPublicLink = computed(() => {
-  const tenantId = AuthCurrentTenant.get();
+  const tenantId = AuthService.getTenantId();
 
   return `${window.location.origin}/tenant/${tenantId}/reports/${props.segmentId}/${props.id}/public`;
 });

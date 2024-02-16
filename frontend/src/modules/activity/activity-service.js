@@ -1,11 +1,11 @@
 import authAxios from '@/shared/axios/auth-axios';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import { store } from '@/store';
 import moment from 'moment';
 
 export class ActivityService {
   static async update(id, data, segments) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/activity/${id}`,
@@ -24,7 +24,7 @@ export class ActivityService {
       segments,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.delete(`/tenant/${tenantId}/activity`, {
       params,
@@ -34,7 +34,7 @@ export class ActivityService {
   }
 
   static async create(data, segments) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity`,
@@ -49,7 +49,7 @@ export class ActivityService {
 
   static async query(body, countOnly = false) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = sampleTenant?.id || AuthService.getTenantId();
     const currentTenant = store.getters['auth/currentTenant'];
 
     const isTenantNew = moment(currentTenant.createdAt).add(1, 'months').isAfter(moment());
@@ -72,7 +72,7 @@ export class ActivityService {
 
   static async listActivityTypes(segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = sampleTenant?.id || AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/activity/type`,
@@ -91,7 +91,7 @@ export class ActivityService {
 
   static async listActivityChannels(segments) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = sampleTenant?.id || AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/activity/channel`,

@@ -84,7 +84,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import Message from '@/shared/message/message';
-import AuthCurrentTenant from '@/modules/auth-old/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { ReportService } from '@/modules/report/report-service';
@@ -185,7 +185,7 @@ export default {
       });
     },
     async copyToClipboard() {
-      const tenantId = AuthCurrentTenant.get();
+      const tenantId = AuthService.getTenantId();
       const url = `${window.location.origin}/tenant/${tenantId}/reports/${this.report.segmentId}/${this.report.id}/public`;
       await navigator.clipboard.writeText(url);
       Message.success(
