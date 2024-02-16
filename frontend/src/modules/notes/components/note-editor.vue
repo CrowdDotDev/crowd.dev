@@ -11,7 +11,7 @@
       <div class="relative">
         <app-editor
           ref="editor"
-          v-model="note"
+          v-model="noteText"
           :placeholder="
             props.note ? 'Note...' : 'Add note...'
           "
@@ -122,7 +122,7 @@ const props = defineProps({
 
 const emit = defineEmits(['created', 'updated', 'cancel']);
 
-const note = ref('');
+const noteText = ref('');
 const editor = ref('');
 const noteEditorFocused = ref(false);
 
@@ -135,12 +135,12 @@ const computedAvatarEntity = computed(() => ({
 
 onMounted(() => {
   if (props.note) {
-    note.value = props.note.body;
+    noteText.value = props.note.body;
   }
 });
 
 const clear = () => {
-  note.value = '';
+  noteText.value = '';
   editor.value.clear();
 };
 
@@ -157,13 +157,13 @@ const submit = () => {
   if (props.note) {
     NoteService.update(props.note.id, {
       members: props.note.members.map((m) => m.id),
-      body: note.value,
+      body: noteText.value,
     }).then(() => {
       emit('updated');
     });
   } else {
     NoteService.create({
-      body: note.value,
+      body: noteText.value,
       ...props.properties,
     }).then(() => {
       clear();

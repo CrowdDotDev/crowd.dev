@@ -12,9 +12,7 @@ class AuthApiServiceClass {
           ? AuthService.getTenantId()
           : undefined,
       })
-      .then((response) => {
-        return response.data;
-      });
+      .then((response) => response.data);
   }
 
   fetchMe(): Promise<User> {
@@ -23,9 +21,7 @@ class AuthApiServiceClass {
         params: {
           excludeSegments: true,
         },
-      }).then((response) => {
-        return response.data;
-      });
+      }).then((response) => response.data);
   }
 }
 

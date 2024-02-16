@@ -1,4 +1,3 @@
-
 import { AuthService } from '@/modules/auth/services/auth.service';
 
 /**
@@ -18,7 +17,7 @@ export default async function ({ to, router }) {
     return;
   }
 
-  const token = AuthToken.get();
+  const token = AuthService.getToken();
   const tenantId = AuthService.getTenantId();
 
   if (token && tenantId) {

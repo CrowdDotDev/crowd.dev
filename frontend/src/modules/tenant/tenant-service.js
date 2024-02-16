@@ -11,7 +11,6 @@ export class TenantService {
       tenantSubdomain.isEnabled
       && tenantSubdomain.isRootDomain
     ) {
-      AuthCurrentTenant.clear();
       return;
     }
 
@@ -26,8 +25,6 @@ export class TenantService {
         console.error(error);
       }
 
-      AuthCurrentTenant.set(currentTenant);
-
       if (!currentTenant) {
         window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
         return;
@@ -38,8 +35,6 @@ export class TenantService {
     if (tenantId && !tenantUrl) {
       try {
         currentTenant = await this.find(tenantId);
-
-        AuthCurrentTenant.set(currentTenant);
       } catch (error) {
         console.error(error);
       }

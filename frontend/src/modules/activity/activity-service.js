@@ -48,8 +48,7 @@ export class ActivityService {
   }
 
   static async query(body, countOnly = false) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
     const currentTenant = store.getters['auth/currentTenant'];
 
     const isTenantNew = moment(currentTenant.createdAt).add(1, 'months').isAfter(moment());
@@ -62,7 +61,6 @@ export class ActivityService {
       {
         headers: {
           ...(isTenantNew ? {} : { 'x-crowd-api-version': '1' }),
-          Authorization: sampleTenant?.token,
         },
       },
     );
@@ -71,15 +69,11 @@ export class ActivityService {
   }
 
   static async listActivityTypes(segments) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/activity/type`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           segments,
         },
@@ -90,15 +84,11 @@ export class ActivityService {
   }
 
   static async listActivityChannels(segments) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/activity/channel`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           segments,
         },

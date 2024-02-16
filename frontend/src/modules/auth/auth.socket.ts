@@ -1,5 +1,4 @@
 import io from 'socket.io-client';
-import { computed, h } from 'vue';
 import pluralize from 'pluralize';
 import config from '@/config';
 import { store } from '@/store';
@@ -9,9 +8,10 @@ import {
   getEnrichmentMax,
 } from '@/modules/member/member-enrichment';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { router } from '@/router';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 let socketIoClient;
 
@@ -25,15 +25,11 @@ const SocketEvents = {
 };
 
 export const connectSocket = (token) => {
+  const authStore = useAuthStore();
+  const { user, tenant } = storeToRefs(authStore);
   if (socketIoClient && socketIoClient.connected) {
     socketIoClient.disconnect();
   }
-  const currentTenant = computed(
-    () => store.getters['auth/currentTenant'],
-  );
-  const currentUser = computed(
-    () => store.getters['auth/currentUser'],
-  );
 
   const path = config.env === 'production' || config.env === 'staging'
     ? '/api/socket.io'
@@ -92,7 +88,7 @@ export const connectSocket = (token) => {
 
     await store.dispatch('auth/doRefreshCurrentUser');
 
-    const updatedTenant = currentUser.value.tenants.find(
+    const updatedTenant = user.value.tenants.find(
       (tenant) => tenant.tenantId === parsed.tenantId,
     );
 
@@ -121,7 +117,7 @@ export const connectSocket = (token) => {
       });
 
       // Update members list if tenant hasn't changed
-      if (currentTenant.value.id === parsed.tenantId) {
+      if (tenant.value.id === parsed.tenantId) {
         // Refresh list page
         const { fetchMembers } = useMemberStore();
         await fetchMembers({ reload: true });
@@ -135,12 +131,11 @@ export const connectSocket = (token) => {
       tenantId,
       userId,
       primaryOrgId,
-      secondaryOrgId,
       original,
       toMerge,
     } = JSON.parse(payload);
 
-    if (currentTenant.value.id !== tenantId && currentUser.value.id !== userId) {
+    if (tenant.value.id !== tenantId && user.value.id !== userId) {
       return;
     }
 

@@ -50,15 +50,11 @@ export class WidgetService {
   }
 
   static async find(id) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget/${id}`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           excludeSegments: true,
         },
@@ -77,16 +73,12 @@ export class WidgetService {
       excludeSegments: true,
     };
 
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget`,
       {
         params,
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
       },
     );
 
@@ -122,15 +114,11 @@ export class WidgetService {
       segments = [router.currentRoute.value.params.segmentId];
     }
 
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/cubejs/auth`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           segments,
         },

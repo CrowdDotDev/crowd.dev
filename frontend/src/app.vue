@@ -4,9 +4,7 @@
       <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
-          <div>
-            <component :is="Component" />
-          </div>
+          <component :is="Component" v-if="Component" />
         </transition>
       </router-view>
 

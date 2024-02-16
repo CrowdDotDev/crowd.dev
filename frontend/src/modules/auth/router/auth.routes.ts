@@ -1,5 +1,3 @@
-import AuthLayout from '@/modules/auth/layouts/auth.layout.vue';
-
 export default [
   {
     name: 'signin',

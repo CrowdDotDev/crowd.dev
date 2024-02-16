@@ -1,7 +1,5 @@
 import config from '@/config';
 import { Auth0Client } from '@auth0/auth0-spa-js';
-import { store } from '@/store';
-import { router } from '@/router';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;

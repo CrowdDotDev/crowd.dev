@@ -3,6 +3,10 @@ class AuthServiceClass {
     localStorage.setItem('jwt', token);
   }
 
+  getToken() {
+    return localStorage.getItem('jwt');
+  }
+
   setTenant(tenantId: string) {
     localStorage.setItem('tenantId', tenantId);
   }

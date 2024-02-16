@@ -24,7 +24,7 @@ onMounted(() => {
     .then((token) => authCallback(token))
     .then(() => {
       router.push(auth0State.value?.targetUrl ?? '/');
-    })
+    });
 });
 </script>
 

@@ -6,6 +6,7 @@ import { getLanguageCode } from '@/i18n';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 const authAxios = Axios.create({
   baseURL: config.backendUrl,
@@ -94,7 +95,7 @@ authAxios.interceptors.request.use(
       Object.assign(setOptions, { url: encodedUrl });
     }
 
-    const token = setOptions.headers?.Authorization || AuthToken.get();
+    const token = setOptions.headers?.Authorization || AuthService.getToken();
 
     if (token) {
       setOptions.headers.Authorization = `Bearer ${token}`;

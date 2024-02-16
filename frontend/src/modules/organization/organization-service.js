@@ -88,15 +88,11 @@ export class OrganizationService {
   }
 
   static async find(id, segments) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/${id}`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           segmentId: segments[0],
           // The parameter id on this one is sematically different, so we are excluding the logic to add segments as an array
@@ -111,17 +107,11 @@ export class OrganizationService {
   static async query(
     body,
   ) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/query`,
       body,
-      {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
-      },
     );
 
     return response.data;
@@ -151,8 +141,7 @@ export class OrganizationService {
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const params = {
       limit,
@@ -164,9 +153,6 @@ export class OrganizationService {
       `/tenant/${tenantId}/organizationsToMerge`,
       {
         params,
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
       },
     )
       .then(({ data }) => Promise.resolve(data));
@@ -200,16 +186,12 @@ export class OrganizationService {
       segments,
     };
 
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/active`,
       {
         params,
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
       },
     );
 

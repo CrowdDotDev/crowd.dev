@@ -19,15 +19,11 @@ export class ConversationService {
   }
 
   static async find(id, segments) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/conversation/${id}`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           segments,
         },
@@ -38,17 +34,11 @@ export class ConversationService {
   }
 
   static async query(body) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthService.getTenantId();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation/query`,
       body,
-      {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
-      },
     );
 
     return response.data;
