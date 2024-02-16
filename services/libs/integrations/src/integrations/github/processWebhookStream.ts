@@ -17,7 +17,7 @@ import {
 } from './types'
 import verifyGithubWebhook from 'verify-github-webhook'
 import getMember from './api/graphql/members'
-import { prepareMember } from './processStream'
+import { prepareMember, prepareBotMember } from './processStream'
 import TeamsQuery from './api/graphql/teams'
 import { GithubWebhookTeam } from './api/graphql/types'
 import {
@@ -27,6 +27,17 @@ import {
 } from './processStream'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
+
+const handleWebhookSender = async (
+  sender: any,
+  ctx: IProcessWebhookStreamContext,
+): Promise<GithubPrepareMemberOutput> => {
+  if (sender.type === 'Bot') {
+    return prepareBotMember(sender)
+  } else if (sender.type === 'User') {
+    return prepareWebhookMember(sender.login, ctx)
+  }
+}
 
 const prepareWebhookMember = async (
   login: string,
