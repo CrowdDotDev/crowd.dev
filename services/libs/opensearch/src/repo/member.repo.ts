@@ -589,9 +589,9 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
   public async getMemberSegmentCouples(ids): Promise<IMemberSegmentMatrix> {
     const results = await this.db().any(
       `
-      select distinct a."segmentId", a."memberId"
-      from activities a
-      where a."memberId" in ($(ids:csv));
+      select distinct ms."segmentId", ms."memberId"
+      from "memberSegments" ms
+      where ms."memberId" in ($(ids:csv));
       `,
       {
         ids,
