@@ -12,7 +12,7 @@
       <template #reference>
         <cr-menu-workspace-card
           class="h-14 pl-4 pr-3.5 hover:bg-gray-50"
-          :tenant="currentTenant"
+          :tenant="tenant"
           :class="isDropdownOpen ? '!bg-gray-50' : ''"
         >
           <i class="ri-settings-3-line text-lg text-gray-300 transform -translate-x-0.5 block mr-1.5" />
@@ -48,14 +48,17 @@ import {
 import CrMenuWorkspaceCard from '@/modules/layout/components/menu/workspace/menu-workspace-card.vue';
 import CrMenuWorkspacePopover from '@/modules/layout/components/menu/workspace/menu-workspace-popover.vue';
 
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppTenantNewForm from '@/modules/tenant/components/tenant-new-form.vue';
 import AppTenantCreatedModal from '@/modules/tenant/components/tenant-created-modal.vue';
 import { TenantModel } from '@/modules/tenant/types/TenantModel';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const isDropdownOpen = ref(false);
 const { doFetch } = mapActions('tenant');
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
 const editWorkspace = ref<TenantModel | null>(null);
 const addWorkspace = ref<boolean>(false);

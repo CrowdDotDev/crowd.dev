@@ -37,7 +37,6 @@ const routes = [
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
 
-console.log(routes);
 // eslint-disable-next-line import/no-mutable-exports
 let router;
 

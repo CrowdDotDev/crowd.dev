@@ -863,9 +863,9 @@ import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
@@ -921,9 +921,10 @@ const showEnrichmentPopover = ref(false);
 const enrichmentRefs = ref({});
 const selectedEnrichmentAttribute = ref(null);
 
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
-const isEnrichEnabled = computed(() => currentTenant.value?.plan !== Plans.values.essential);
+const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
 
 const pagination = computed({
   get() {

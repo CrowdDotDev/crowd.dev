@@ -39,13 +39,6 @@ i18nInit();
 
   app.use(pinia);
 
-  const isSocialOnboardRequested = AuthService.isSocialOnboardRequested();
-
-  AuthToken.applyFromLocationUrlIfExists();
-  if (isSocialOnboardRequested) {
-    await AuthService.socialOnboard();
-  }
-
   app.use(VueGridLayout);
   app.use(Vue3Sanitize, vueSanitizeOptions);
   app.use(VueClickAway);

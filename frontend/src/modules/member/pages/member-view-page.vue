@@ -77,8 +77,8 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppMemberViewContributionsCta from '@/modules/member/components/view/member-view-contributions-cta.vue';
 import Plans from '@/security/plans';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const store = useStore();
 const props = defineProps({
@@ -95,10 +95,11 @@ const { getMemberCustomAttributes } = memberStore;
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
 const member = computed(() => store.getters['member/find'](props.id) || {});
-const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
+const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
 
 const loading = ref(true);
 const tab = ref('activities');
