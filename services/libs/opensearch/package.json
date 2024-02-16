@@ -20,10 +20,13 @@
   },
   "dependencies": {
     "@crowd/database": "file:../database",
+    "@crowd/feature-flags": "file:../feature-flags",
+    "@crowd/integrations": "file:../integrations",
     "@crowd/logging": "file:../logging",
     "@crowd/redis": "file:../redis",
     "@crowd/types": "file:../types",
     "@opensearch-project/opensearch": "^1.2.0",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "lodash.merge": "^4.6.2"
   }
 }

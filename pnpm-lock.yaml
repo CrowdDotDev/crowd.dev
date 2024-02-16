@@ -47,7 +47,7 @@ importers:
         version: 3.1.0
       ts-node:
         specifier: ^10.9.1
-        version: 10.9.1(@types/node@20.10.7)(typescript@5.3.2)
+        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2)
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
@@ -865,6 +865,97 @@ importers:
         specifier: ^3.0.3
         version: 3.1.0
 
+  services/apps/exports_worker:
+    dependencies:
+      '@aws-sdk/hash-node':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/protocol-http':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.229.0
+        version: 3.462.0
+      '@aws-sdk/url-parser':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/util-format-url':
+        specifier: ^3.226.0
+        version: 3.460.0
+      '@crowd/archetype-standard':
+        specifier: file:../../archetypes/standard
+        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2)
+      '@crowd/archetype-worker':
+        specifier: file:../../archetypes/worker
+        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2)
+      '@crowd/common':
+        specifier: file:../../libs/common
+        version: file:services/libs/common
+      '@crowd/opensearch':
+        specifier: file:../../libs/opensearch
+        version: file:services/libs/opensearch
+      '@crowd/redis':
+        specifier: file:../../libs/redis
+        version: file:services/libs/redis
+      '@crowd/types':
+        specifier: file:../../libs/types
+        version: file:services/libs/types
+      '@sendgrid/mail':
+        specifier: ~8.1.0
+        version: 8.1.0
+      '@temporalio/workflow':
+        specifier: ~1.8.6
+        version: 1.8.6
+      aws-sdk:
+        specifier: 2.814.0
+        version: 2.814.0
+      json2csv:
+        specifier: ^5.0.7
+        version: 5.0.7
+      lodash.pick:
+        specifier: ~4.4.0
+        version: 4.4.0
+      moment:
+        specifier: ~2.30.1
+        version: 2.30.1
+      ts-node:
+        specifier: ^10.9.1
+        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2)
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.7
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.7
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.7.4
+        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.7.4
+        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
+      eslint:
+        specifier: ^8.50.0
+        version: 8.54.0
+      eslint-config-prettier:
+        specifier: ^9.0.0
+        version: 9.0.0(eslint@8.54.0)
+      eslint-plugin-prettier:
+        specifier: ^5.0.0
+        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.0.1
+      prettier:
+        specifier: ^3.0.3
+        version: 3.1.0
+
   services/apps/integration_data_worker:
     dependencies:
       '@crowd/alerting':
@@ -1618,6 +1709,12 @@ importers:
       '@crowd/archetype-standard':
         specifier: file:../../archetypes/standard
         version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      '@crowd/common':
+        specifier: file:../../libs/common
+        version: file:services/libs/common
+      '@crowd/types':
+        specifier: file:../../libs/types
+        version: file:services/libs/types
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
@@ -1631,6 +1728,9 @@ importers:
         specifier: ^5.2.2
         version: 5.3.2
     devDependencies:
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.7
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.7.4
         version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
@@ -1661,12 +1761,15 @@ importers:
       '@crowd/archetype-worker':
         specifier: file:../../archetypes/worker
         version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      '@crowd/common':
+        specifier: file:../../libs/common
+        version: file:services/libs/common
+      '@crowd/types':
+        specifier: file:../../libs/types
+        version: file:services/libs/types
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.10.1
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
@@ -1677,6 +1780,12 @@ importers:
         specifier: ^5.2.2
         version: 5.3.2
     devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.1
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.7
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.7.4
         version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
@@ -2440,6 +2549,12 @@ importers:
       '@crowd/database':
         specifier: file:../database
         version: file:services/libs/database
+      '@crowd/feature-flags':
+        specifier: file:../feature-flags
+        version: file:services/libs/feature-flags
+      '@crowd/integrations':
+        specifier: file:../integrations
+        version: file:services/libs/integrations
       '@crowd/logging':
         specifier: file:../logging
         version: file:services/libs/logging
@@ -2455,6 +2570,9 @@ importers:
       axios:
         specifier: ^1.6.0
         version: 1.6.2
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -6811,7 +6929,6 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-darwin-x64@1.3.100:
@@ -6820,7 +6937,6 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-linux-arm64-gnu@1.3.100:
@@ -6829,7 +6945,6 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-linux-arm64-musl@1.3.100:
@@ -6838,7 +6953,6 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-linux-x64-gnu@1.3.100:
@@ -6847,7 +6961,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-linux-x64-musl@1.3.100:
@@ -6856,7 +6969,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-win32-arm64-msvc@1.3.100:
@@ -6865,7 +6977,6 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-win32-ia32-msvc@1.3.100:
@@ -6874,7 +6985,6 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core-win32-x64-msvc@1.3.100:
@@ -6883,7 +6993,6 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@swc/core@1.3.100:
@@ -6908,15 +7017,12 @@ packages:
       '@swc/core-win32-arm64-msvc': 1.3.100
       '@swc/core-win32-ia32-msvc': 1.3.100
       '@swc/core-win32-x64-msvc': 1.3.100
-    dev: false
 
   /@swc/counter@0.1.2:
     resolution: {integrity: sha512-9F4ys4C74eSTEUNndnER3VJ15oru2NumfQxS8geE+f3eB5xvfxpWyqE5XlVnxb/R14uoXi6SLbBwwiDSkv+XEw==}
-    dev: false
 
   /@swc/types@0.1.5:
     resolution: {integrity: sha512-myfUej5naTBWnqOCc/MdVOLVjXUXtIA+NpDrDBKJtLLg2shUjBu3cZmB/85RyitKc55+lUUyl7oRfLOvkr2hsw==}
-    dev: false
 
   /@szmarczak/http-timer@1.1.2:
     resolution: {integrity: sha512-XIB2XbzHTN6ieIjfIMV9hlVcfPU26s2vafYWQcZHWXHOxiaRZYEDKEwdl129Zyg50+foYV2jCgtrqSA6qNuNSA==}
@@ -12933,6 +13039,10 @@ packages:
     resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
     dev: false
 
+  /moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
+    dev: false
+
   /moo@0.5.2:
     resolution: {integrity: sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q==}
     dev: false
@@ -15779,6 +15889,37 @@ packages:
       yn: 3.1.1
     dev: false
 
+  /ts-node@10.9.1(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2):
+    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@swc/core': 1.3.100
+      '@tsconfig/node10': 1.0.9
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 20.10.7
+      acorn: 8.11.2
+      acorn-walk: 8.3.0
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.3.2
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+
   /ts-node@10.9.1(@types/node@18.18.14)(typescript@5.3.2):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
@@ -15809,37 +15950,6 @@ packages:
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
     dev: false
-
-  /ts-node@10.9.1(@types/node@20.10.7)(typescript@5.3.2):
-    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
-    hasBin: true
-    peerDependencies:
-      '@swc/core': '>=1.2.50'
-      '@swc/wasm': '>=1.2.50'
-      '@types/node': '*'
-      typescript: '>=2.7'
-    peerDependenciesMeta:
-      '@swc/core':
-        optional: true
-      '@swc/wasm':
-        optional: true
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      '@tsconfig/node10': 1.0.9
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 20.10.7
-      acorn: 8.11.2
-      acorn-walk: 8.3.0
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      typescript: 5.3.2
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
-    dev: true
 
   /tsconfig-paths@3.14.2:
     resolution: {integrity: sha512-o/9iXgCYc5L/JxCHPe3Hvh8Q/2xm5Z+p18PESBU6Ff33695QnCHBEjcytY2q19ua7Mbl/DavtBOLq+oG0RCL+g==}
@@ -16643,7 +16753,7 @@ packages:
     id: file:services/archetypes/consumer
     name: '@crowd/archetype-consumer'
     dependencies:
-      '@crowd/archetype-standard': file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      '@crowd/archetype-standard': file:services/archetypes/standard(@types/node@20.10.1)(typescript@5.3.2)
       '@temporalio/client': 1.8.6
       config: 3.3.9
       kafkajs: 2.2.4
@@ -16688,6 +16798,62 @@ packages:
       - typescript
     dev: false
 
+  file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2):
+    resolution: {directory: services/archetypes/standard, type: directory}
+    id: file:services/archetypes/standard
+    name: '@crowd/archetype-standard'
+    dependencies:
+      '@crowd/feature-flags': file:services/libs/feature-flags
+      '@crowd/integrations': file:services/libs/integrations
+      '@crowd/logging': file:services/libs/logging
+      '@crowd/redis': file:services/libs/redis
+      '@crowd/temporal': file:services/libs/temporal
+      '@crowd/tracing': file:services/libs/tracing
+      '@crowd/types': file:services/libs/types
+      '@temporalio/client': 1.8.6
+      config: 3.3.9
+      kafkajs: 2.2.4
+      ts-node: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2)
+      tsconfig-paths: 4.2.0
+    transitivePeerDependencies:
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/node'
+      - bluebird
+      - debug
+      - encoding
+      - supports-color
+      - typescript
+    dev: false
+
+  file:services/archetypes/standard(@types/node@20.10.1)(typescript@5.3.2):
+    resolution: {directory: services/archetypes/standard, type: directory}
+    id: file:services/archetypes/standard
+    name: '@crowd/archetype-standard'
+    dependencies:
+      '@crowd/feature-flags': file:services/libs/feature-flags
+      '@crowd/integrations': file:services/libs/integrations
+      '@crowd/logging': file:services/libs/logging
+      '@crowd/redis': file:services/libs/redis
+      '@crowd/temporal': file:services/libs/temporal
+      '@crowd/tracing': file:services/libs/tracing
+      '@crowd/types': file:services/libs/types
+      '@temporalio/client': 1.8.6
+      config: 3.3.9
+      kafkajs: 2.2.4
+      ts-node: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      tsconfig-paths: 4.2.0
+    transitivePeerDependencies:
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/node'
+      - bluebird
+      - debug
+      - encoding
+      - supports-color
+      - typescript
+    dev: false
+
   file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2):
     resolution: {directory: services/archetypes/worker, type: directory}
     id: file:services/archetypes/worker
@@ -16704,6 +16870,40 @@ packages:
       '@temporalio/workflow': 1.8.6
       config: 3.3.9
       ts-node: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+      tsconfig-paths: 4.2.0
+    transitivePeerDependencies:
+      - '@swc/core'
+      - '@swc/helpers'
+      - '@swc/wasm'
+      - '@types/node'
+      - aws-crt
+      - bluebird
+      - debug
+      - encoding
+      - esbuild
+      - pg-native
+      - supports-color
+      - typescript
+      - uglify-js
+      - webpack-cli
+    dev: false
+
+  file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2):
+    resolution: {directory: services/archetypes/worker, type: directory}
+    id: file:services/archetypes/worker
+    name: '@crowd/archetype-worker'
+    dependencies:
+      '@crowd/archetype-standard': file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2)
+      '@crowd/common': file:services/libs/common
+      '@crowd/database': file:services/libs/database
+      '@crowd/sqs': file:services/libs/sqs
+      '@crowd/temporal': file:services/libs/temporal
+      '@opensearch-project/opensearch': 1.2.0
+      '@temporalio/client': 1.8.6
+      '@temporalio/worker': 1.8.6
+      '@temporalio/workflow': 1.8.6
+      config: 3.3.9
+      ts-node: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.7)(typescript@5.3.2)
       tsconfig-paths: 4.2.0
     transitivePeerDependencies:
       - '@swc/core'
@@ -16872,13 +17072,18 @@ packages:
     name: '@crowd/opensearch'
     dependencies:
       '@crowd/database': file:services/libs/database
+      '@crowd/feature-flags': file:services/libs/feature-flags
+      '@crowd/integrations': file:services/libs/integrations
       '@crowd/logging': file:services/libs/logging
       '@crowd/redis': file:services/libs/redis
       '@crowd/types': file:services/libs/types
       '@opensearch-project/opensearch': 1.2.0
       axios: 1.6.2
+      lodash.merge: 4.6.2
     transitivePeerDependencies:
+      - bluebird
       - debug
+      - encoding
       - pg-native
       - supports-color
     dev: false

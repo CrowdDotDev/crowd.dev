@@ -16,12 +16,16 @@
   "dependencies": {
     "@crowd/archetype-consumer": "file:../../archetypes/consumer",
     "@crowd/archetype-standard": "file:../../archetypes/standard",
+    "@crowd/common": "file:../../libs/common",
+    "@crowd/types": "file:../../libs/types",
     "@types/node": "^20.8.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "@types/node": "^20.8.2",
+    "@types/uuid": "~9.0.6",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "eslint": "^8.50.0",
