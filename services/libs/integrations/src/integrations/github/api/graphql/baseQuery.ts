@@ -51,6 +51,13 @@ class BaseQuery {
         startCursor
     }`
 
+  static BOT_SELECT = `{
+    login
+    avatarUrl
+    id
+    url
+  }`
+
   graphQL
 
   query

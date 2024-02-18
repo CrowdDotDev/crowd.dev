@@ -15,10 +15,16 @@ class PullRequestReviewThreadCommentsQuery extends BaseQuery {
               author {
                 ... on User ${BaseQuery.USER_SELECT}
               }
+               authorBot: author {
+                  ... on Bot ${BaseQuery.BOT_SELECT}
+              }
               pullRequestReview {
                 submittedAt
                 author {
                   ... on User ${BaseQuery.USER_SELECT}
+                }
+                 authorBot: author {
+                  ... on Bot ${BaseQuery.BOT_SELECT}
                 }
               }
               bodyText
