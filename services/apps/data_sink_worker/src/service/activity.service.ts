@@ -88,32 +88,42 @@ export default class ActivityService extends LoggerBase {
           channel: activity.channel,
           url: activity.url,
           organizationId: activity.organizationId,
+          objectMemberId: activity.objectMemberId,
+          objectMemberUsername: activity.objectMemberUsername,
         })
 
         return id
       })
 
-      const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-        workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
-        taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-        retry: {
-          maximumAttempts: 100,
-        },
-        args: [
-          {
-            tenantId,
-            activityId: id,
+      try {
+        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+          workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
+          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: 100,
           },
-        ],
-        searchAttributes: {
-          TenantId: [tenantId],
-        },
-      })
-      this.log.info(
-        { workflowId: handle.workflowId },
-        'Started temporal workflow to process new activity automation!',
-      )
+          args: [
+            {
+              tenantId,
+              activityId: id,
+            },
+          ],
+          searchAttributes: {
+            TenantId: [tenantId],
+          },
+        })
+        this.log.info(
+          { workflowId: handle.workflowId },
+          'Started temporal workflow to process new activity automation!',
+        )
+      } catch (err) {
+        this.log.error(
+          err,
+          'Error while starting temporal workflow to process new activity automation!',
+        )
+        throw err
+      }
 
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
 
@@ -189,6 +199,8 @@ export default class ActivityService extends LoggerBase {
             channel: toUpdate.channel || original.channel,
             url: toUpdate.url || original.url,
             organizationId: toUpdate.organizationId || original.organizationId,
+            objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
+            objectMemberUsername: toUpdate.objectMemberUsername || original.objectMemberUsername,
             platform: toUpdate.platform || (original.platform as PlatformType),
           })
 

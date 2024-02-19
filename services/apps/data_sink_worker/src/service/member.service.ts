@@ -6,6 +6,7 @@ import {
   isObjectEmpty,
   singleOrDefault,
   isDomainExcluded,
+  isEmail,
 } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -73,6 +74,11 @@ export default class MemberService extends LoggerBase {
           )
         }
 
+        // validate emails
+        if (data.emails) {
+          data.emails = this.validateEmails(data.emails)
+        }
+
         // check if any weak identities are actually strong
         await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
 
@@ -130,28 +136,37 @@ export default class MemberService extends LoggerBase {
         }
       })
 
-      const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
-        workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${id}`,
-        taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-        retry: {
-          maximumAttempts: 100,
-        },
-
-        args: [
-          {
-            tenantId,
-            memberId: id,
+      try {
+        const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
+          workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${id}`,
+          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+          retry: {
+            maximumAttempts: 100,
           },
-        ],
-        searchAttributes: {
-          TenantId: [tenantId],
-        },
-      })
-      this.log.info(
-        { workflowId: handle.workflowId },
-        'Started temporal workflow to process new member automation!',
-      )
+
+          args: [
+            {
+              tenantId,
+              memberId: id,
+            },
+          ],
+          searchAttributes: {
+            TenantId: [tenantId],
+          },
+        })
+
+        this.log.info(
+          { workflowId: handle.workflowId },
+          'Started temporal workflow to process new member automation!',
+        )
+      } catch (err) {
+        this.log.error(
+          err,
+          'Error while starting temporal workflow to process new member automation!',
+        )
+        throw err
+      }
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
@@ -190,6 +205,11 @@ export default class MemberService extends LoggerBase {
             tenantId,
             data.attributes,
           )
+        }
+
+        // validate emails
+        if (data.emails) {
+          data.emails = this.validateEmails(data.emails)
         }
 
         // check if any weak identities are actually strong
@@ -536,6 +556,18 @@ export default class MemberService extends LoggerBase {
         }
       }
     }
+  }
+
+  private validateEmails(emails: string[]): string[] {
+    let newEmails = emails.filter((email) => isEmail(email))
+    if (newEmails.length > 0) {
+      const emailSet = new Set(newEmails)
+      newEmails = Array.from(emailSet)
+    } else {
+      newEmails = []
+    }
+
+    return newEmails
   }
 
   private static mergeData(

@@ -1,8 +1,6 @@
 import { LoggerBase } from '@crowd/logging'
 import { IServiceOptions } from '../services/IServiceOptions'
 
-const io = require('@pm2/io')
-
 /* eslint-disable class-methods-use-this */
 export default class ApiResponseHandler extends LoggerBase {
   public constructor(options: IServiceOptions) {
@@ -36,7 +34,7 @@ export default class ApiResponseHandler extends LoggerBase {
         },
         'Database error while processing REST API request!',
       )
-      io.notifyError(error)
+
       res.status(500).send('Internal Server Error')
     } else if (error && [400, 401, 403, 404].includes(error.code)) {
       req.log.error(
@@ -54,7 +52,7 @@ export default class ApiResponseHandler extends LoggerBase {
         { code: error.code, url: req.url, method: req.method, query: req.query, body: req.body },
         'Error while processing REST API request!',
       )
-      io.notifyError(error)
+
       res.status(error.code).send(error.message)
     }
   }

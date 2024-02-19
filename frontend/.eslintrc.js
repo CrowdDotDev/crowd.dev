@@ -6,11 +6,7 @@ module.exports = {
     es2022: true,
   },
 
-  extends: [
-    'plugin:vue/vue3-recommended',
-    '@vue/airbnb',
-    '@vue/typescript',
-  ],
+  extends: ['plugin:vue/vue3-recommended', '@vue/airbnb', '@vue/typescript', 'plugin:storybook/recommended'],
 
   parserOptions: {
     ecmaVersion: 2020,
@@ -49,6 +45,7 @@ module.exports = {
     'no-shadow': 'off',
     'vuejs-accessibility/mouse-events-have-key-events': 'off',
     'vuejs-accessibility/click-events-have-key-events': 'off',
+    'vuejs-accessibility/form-control-has-label': 'off',
     'func-names': 'off',
     'import/no-cycle': 'off',
     'vue/max-len': [

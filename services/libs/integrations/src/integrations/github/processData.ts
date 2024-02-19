@@ -30,8 +30,40 @@ import { generateSourceIdHash } from '../../helpers'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
+const parseBotMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITHUB,
+        username: memberData.memberFromApi.login,
+      },
+    ],
+    displayName: memberData.memberFromApi.login,
+    attributes: {
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.url || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.avatarUrl || '',
+      },
+      [MemberAttributeName.SOURCE_ID]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.id?.toString() || '',
+      },
+      [MemberAttributeName.IS_BOT]: {
+        [PlatformType.GITHUB]: true,
+      },
+    },
+  }
+
+  return member
+}
+
 const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
   const { email, orgs, memberFromApi } = memberData
+
+  if (memberFromApi.isBot) {
+    return parseBotMember(memberData)
+  }
 
   const member: IMemberData = {
     identities: [
