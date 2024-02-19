@@ -50,7 +50,26 @@
         <slot name="action" />
       </div>
       <div class="pb-6">
+        <router-link
+          v-if="!isPreview"
+          :to="{
+            name: 'organizationView',
+            params: {
+              id: props.organization.id,
+            },
+          }"
+          target="_blank"
+        >
+          <app-avatar
+            :entity="{
+              avatar: props.organization.logo,
+              displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
+            }"
+            class="mr-4 mb-4"
+          />
+        </router-link>
         <app-avatar
+          v-else
           :entity="{
             avatar: props.organization.logo,
             displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
@@ -58,7 +77,23 @@
           class="mr-4 mb-4"
         />
         <div>
+          <router-link
+            v-if="!isPreview"
+            :to="{
+              name: 'organizationView',
+              params: {
+                id: props.organization.id,
+              },
+            }"
+            target="_blank"
+          >
+            <h6
+              class="text-base text-black hover:text-brand-500 font-semibold leading-6"
+              v-html="$sanitize(props.organization.displayName || props.organization.name)"
+            />
+          </router-link>
           <h6
+            v-else
             class="text-base text-black font-semibold leading-6"
             v-html="$sanitize(props.organization.displayName || props.organization.name)"
           />

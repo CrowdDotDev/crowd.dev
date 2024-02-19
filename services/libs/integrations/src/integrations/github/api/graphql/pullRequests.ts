@@ -14,6 +14,9 @@ class PullRequestsQuery extends BaseQuery {
                     author {
                         ... on User ${BaseQuery.USER_SELECT}
                     }
+                    authorBot: author {
+                        ... on Bot ${BaseQuery.BOT_SELECT}
+                    }
                     bodyText
                     state
                     title
@@ -42,8 +45,14 @@ class PullRequestsQuery extends BaseQuery {
                           actor {
                             ... on User ${BaseQuery.USER_SELECT}
                           }
+                          actorBot: actor {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
+                          }
                           requestedReviewer {
                             ... on User ${BaseQuery.USER_SELECT}
+                          }
+                          requestedReviewerBot: requestedReviewer {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
                           }
                         }
                         ... on PullRequestReview {
@@ -55,6 +64,9 @@ class PullRequestsQuery extends BaseQuery {
                           author {
                             ... on User ${BaseQuery.USER_SELECT}
                           }
+                          authorBot: author {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
+                          }
                         }
                         ... on AssignedEvent {
                           __typename
@@ -62,8 +74,14 @@ class PullRequestsQuery extends BaseQuery {
                           assignee {
                             ... on User ${BaseQuery.USER_SELECT}
                           }
+                          assigneeBot: assignee {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
+                          }
                           actor {
                             ... on User ${BaseQuery.USER_SELECT}
+                          }
+                          actorBot: actor {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
                           }
                           createdAt
                         }
@@ -74,6 +92,9 @@ class PullRequestsQuery extends BaseQuery {
                           actor {
                             ... on User ${BaseQuery.USER_SELECT}
                           }
+                          actorBot: actor {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
+                          }
                           createdAt
                         }
                         ... on ClosedEvent{
@@ -81,6 +102,9 @@ class PullRequestsQuery extends BaseQuery {
                           id
                           actor {
                             ... on User ${BaseQuery.USER_SELECT}
+                          }
+                          actorBot: actor {
+                            ... on Bot ${BaseQuery.BOT_SELECT}
                           }
                           createdAt
                         }

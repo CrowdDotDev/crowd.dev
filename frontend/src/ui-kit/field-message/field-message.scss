@@ -1,0 +1,30 @@
+.c-field-message {
+  font-size: var(--cr-field-message-font-size);
+  line-height: var(--cr-field-message-line-height);
+  margin-top: var(--cr-field-message-spacing);
+  color: var(--cr-field-message-color);
+  @apply flex items-center;
+
+  &__icon{
+    font-size: var(--cr-field-message-icon-size);
+    margin-right: var(--cr-field-message-icon-spacing);
+  }
+
+  &--error {
+    --cr-field-message-color: var(--cr-field-message-error-color);
+  }
+
+  &--info {
+    --cr-field-message-color: var(--cr-field-message-info-color);
+  }
+
+  &--warning {
+    --cr-field-message-color: var(--cr-field-message-warning-color);
+  }
+
+  &--hint {
+    --cr-field-message-color: var(--cr-field-message-hint-color);
+  }
+}
+
+

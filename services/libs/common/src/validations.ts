@@ -7,6 +7,15 @@ const URL_REGEXP = new RegExp(
     '(\\#[-a-z\\d_]*)?$',
   'i',
 )
+
+const EMAIL_REGEXP = new RegExp(
+  "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+)
+
 export const isUrl = (value: string): boolean => {
   return URL_REGEXP.test(value)
+}
+
+export const isEmail = (value: string): boolean => {
+  return EMAIL_REGEXP.test(value)
 }
