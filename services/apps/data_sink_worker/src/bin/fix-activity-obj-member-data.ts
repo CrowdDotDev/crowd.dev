@@ -1,7 +1,7 @@
 import { DbConnection, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG } from '../conf'
-import { IDbActivity } from 'repo/activity.data'
+import { IDbActivity } from '../repo/activity.data'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

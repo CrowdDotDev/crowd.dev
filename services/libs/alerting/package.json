@@ -1,22 +1,18 @@
 {
   "name": "@crowd/alerting",
-  "version": "1.0.0",
-  "private": true,
+  "main": "src/index.ts",
   "scripts": {
-    "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
-    "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
-    "format-check": "./node_modules/.bin/prettier --check .",
-    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+    "lint": "npx eslint --ext .ts src --max-warnings=0",
+    "format": "npx prettier --write \"src/**/*.ts\"",
+    "format-check": "npx prettier --check .",
+    "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@crowd/logging": "workspace:*",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
     "@types/node": "^20.3.1",
-    "@typescript-eslint/eslint-plugin": "^5.59.11",
-    "@typescript-eslint/parser": "^5.59.11",
-    "axios": "^1.4.0",
-    "eslint": "^8.42.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.8.8",
     "typescript": "^5.1.3"
   }
 }

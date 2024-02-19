@@ -1,6 +1,6 @@
 import { OpenSearchService, OpenSearchIndex } from '@crowd/opensearch'
 import { getServiceLogger } from '@crowd/logging'
-import { OPENSEARCH_CONFIG } from 'conf'
+import { OPENSEARCH_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
