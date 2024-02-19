@@ -14,9 +14,11 @@ import {
   GithubStreamType,
   Repo,
   GithubBasicStream,
+  GithubPrepareOrgMemberOutput,
 } from './types'
 import verifyGithubWebhook from 'verify-github-webhook'
 import getMember from './api/graphql/members'
+import getOrganization from './api/graphql/organizations'
 import { prepareMember, prepareBotMember } from './processStream'
 import TeamsQuery from './api/graphql/teams'
 import { GithubWebhookTeam } from './api/graphql/types'
@@ -36,6 +38,31 @@ const handleWebhookSender = async (
     return prepareBotMember(sender)
   } else if (sender.type === 'User') {
     return prepareWebhookMember(sender.login, ctx)
+  } else {
+    ctx.log.error('Sender type is not supported in handleWebhookSender')
+    throw new Error('Sender type is not supported in handleWebhookSender')
+  }
+}
+
+const handleWebhookOrgSender = async (
+  sender: any,
+  ctx: IProcessWebhookStreamContext,
+): Promise<GithubPrepareOrgMemberOutput> => {
+  if (sender.type !== 'Organization') {
+    ctx.log.error('Sender is not an organization in handleWebhookOrgSender')
+    throw new Error('Sender is not an organization in handleWebhookOrgSender')
+  }
+  const token = await getGithubToken(ctx as IProcessStreamContext)
+  const orgFromApi = await getOrganization(sender.login, token)
+  if (!orgFromApi) {
+    ctx.log.warn(
+      { org: sender.login },
+      `Organization ${sender.login} not found in GitHub while fetching it from webhook data, skipping!`,
+    )
+    return null
+  }
+  return {
+    orgFromApi,
   }
 }
 
@@ -99,7 +126,7 @@ async function verifyWebhookSignature(
 }
 
 const parseWebhookIssue = async (payload: any, ctx: IProcessWebhookStreamContext) => {
-  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
+  const member = await handleWebhookSender(payload?.sender, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -113,7 +140,7 @@ const parseWebhookIssue = async (payload: any, ctx: IProcessWebhookStreamContext
 const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamContext) => {
   let member: GithubPrepareMemberOutput | undefined
   if (payload.action === 'answered') {
-    member = await prepareWebhookMember(payload?.sender?.login, ctx)
+    member = await handleWebhookSender(payload?.sender, ctx)
 
     if (member) {
       await ctx.publishData<GithubWebhookData>({
@@ -130,7 +157,7 @@ const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamCo
   }
 
   const discussion = payload.discussion
-  member = await prepareWebhookMember(discussion?.user?.login, ctx)
+  member = await handleWebhookSender(discussion?.user, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -146,7 +173,7 @@ const parseWebhookPullRequestEvents = async (
   payload: any,
   ctx: IProcessWebhookStreamContext,
 ): Promise<void> => {
-  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
+  const member = await handleWebhookSender(payload?.sender, ctx)
   let objectMember: GithubPrepareMemberOutput | undefined
 
   const GITHUB_CONFIG = ctx.platformSettings as GithubPlatformSettings
@@ -169,7 +196,7 @@ const parseWebhookPullRequestEvents = async (
     }
     case 'assigned':
     case 'review_requested': {
-      objectMember = await prepareWebhookMember(payload?.requested_reviewer?.login, ctx)
+      objectMember = await handleWebhookSender(payload?.requested_reviewer, ctx)
 
       if (member && objectMember) {
         await ctx.publishData<GithubWebhookData>({
@@ -249,7 +276,7 @@ const parseWebhookPullRequestReview = async (
       return
     }
 
-    const member = await prepareWebhookMember(payload?.sender?.login, ctx)
+    const member = await handleWebhookSender(payload?.sender, ctx)
 
     if (member) {
       await ctx.publishData<GithubWebhookData>({
@@ -263,7 +290,7 @@ const parseWebhookPullRequestReview = async (
 
 const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext, date: string) => {
   if (payload.action === 'created' || payload.action === 'deleted') {
-    const member = await prepareWebhookMember(payload?.sender?.login, ctx)
+    const member = await handleWebhookSender(payload?.sender, ctx)
 
     if (member) {
       await ctx.publishData<GithubWebhookData>({
@@ -277,7 +304,20 @@ const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext,
 }
 
 const parseWebhookFork = async (payload: any, ctx: IProcessWebhookStreamContext) => {
-  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
+  if (payload?.sender?.type === 'Organization') {
+    const member = await handleWebhookOrgSender(payload?.sender, ctx)
+
+    if (member) {
+      await ctx.publishData<GithubWebhookData>({
+        webhookType: GithubWehookEvent.FORK,
+        data: payload,
+        orgMember: member,
+      })
+    }
+    return
+  }
+
+  const member = await handleWebhookSender(payload?.sender, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -334,7 +374,7 @@ const parseWebhookComment = async (
     }
   }
 
-  const member = await prepareWebhookMember(payload?.sender?.login, ctx)
+  const member = await handleWebhookSender(payload?.sender, ctx)
 
   if (member) {
     await ctx.publishData<GithubWebhookData>({
@@ -351,7 +391,7 @@ const parseWebhookPullRequestReviewComment = async (
   ctx: IProcessWebhookStreamContext,
 ) => {
   if (payload.action === 'created') {
-    const member = await prepareWebhookMember(payload?.comment?.user?.login, ctx)
+    const member = await handleWebhookSender(payload?.comment?.user, ctx)
 
     if (member) {
       await ctx.publishData<GithubWebhookData>({
