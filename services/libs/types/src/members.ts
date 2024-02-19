@@ -3,8 +3,8 @@ import { MemberAttributeType, MergeActionState, MergeActionType } from './enums/
 import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITag, ITagOpensearch } from './tags'
 import { PlatformType } from './enums/platforms'
-import { ITask } from 'tasks'
-import { INote } from 'notes'
+import { ITask } from './tasks'
+import { INote } from './notes'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
