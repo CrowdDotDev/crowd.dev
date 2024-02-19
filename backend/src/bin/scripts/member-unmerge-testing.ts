@@ -14,7 +14,6 @@ import axios from 'axios'
 
 import { databaseInit } from '@/database/databaseConnection'
 
-
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
 const options = [
