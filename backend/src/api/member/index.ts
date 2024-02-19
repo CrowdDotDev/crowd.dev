@@ -33,9 +33,15 @@ export default (app) => {
   )
   app.put(`/tenant/:tenantId/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
 
-  app.post(`/tenant/:tenantId/member/:memberId/unmerge/preview`, safeWrap(require('./memberUnmergePreview').default))
+  app.post(
+    `/tenant/:tenantId/member/:memberId/unmerge/preview`,
+    safeWrap(require('./memberUnmergePreview').default),
+  )
 
-  app.post(`/tenant/:tenantId/member/:memberId/unmerge`, safeWrap(require('./memberUnmerge').default))
+  app.post(
+    `/tenant/:tenantId/member/:memberId/unmerge`,
+    safeWrap(require('./memberUnmerge').default),
+  )
 
   app.put(
     `/tenant/:tenantId/member/:memberId/no-merge`,

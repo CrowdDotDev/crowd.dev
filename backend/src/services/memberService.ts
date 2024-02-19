@@ -583,6 +583,16 @@ export default class MemberService extends LoggerBase {
     return existing
   }
 
+  /**
+   * Unmerges two members given a preview payload.
+   * Payload is returned from unmerge/preview endpoint, and confirmed by the user
+   * Payload.primary has the primary member's unmerged data, current member will be updated using these fields.
+   * Payload.secondary has the member that'll be unmerged/extracted from the primary member. This member will be created
+   * Activity moving, syncing to opensearch, recalculating activity.organizationIds and notifying frontend via websockets
+   * is done asynchronously, via entity-merge temporal worker finishMemberUnmerging workflow.
+   * @param memberId memberId of the primary member
+   * @param payload unmerge preview payload
+   */
   async unmerge(
     memberId: string,
     payload: IUnmergePreviewResult<IMemberUnmergePreviewResult>,
@@ -717,6 +727,7 @@ export default class MemberService extends LoggerBase {
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
+      // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
         taskQueue: 'entity-merging',
         workflowId: `finishMemberUnmerging/${member.id}/${secondaryMember.id}`,
@@ -728,7 +739,7 @@ export default class MemberService extends LoggerBase {
           secondaryMember.id,
           payload.secondary.identities,
           member.displayName,
-          secondaryMember.displayName, 
+          secondaryMember.displayName,
           this.options.currentTenant.id,
           this.options.currentUser.id,
         ],
@@ -736,7 +747,6 @@ export default class MemberService extends LoggerBase {
           TenantId: [this.options.currentTenant.id],
         },
       })
-
     } catch (err) {
       if (tx) {
         await SequelizeRepository.rollbackTransaction(tx)
@@ -873,6 +883,13 @@ export default class MemberService extends LoggerBase {
                 ) {
                   delete member.reach[reachKey]
                 }
+              }
+              // check if there are any keys other than total, if yes recalculate total, else set total to -1
+              if (Object.keys(member.reach).length > 1) {
+                delete member.reach.total
+                member.reach.total = lodash.sum(Object.values(member.reach))
+              } else {
+                member.reach.total = -1
               }
             } else if (key === 'contributions') {
               // check secondary member has any contributions to extract from current member

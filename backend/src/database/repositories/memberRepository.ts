@@ -4326,7 +4326,6 @@ class MemberRepository {
     }
   }
 
-
   static async removeIdentitiesFromMember(
     memberId: string,
     identities: IMemberIdentity[],

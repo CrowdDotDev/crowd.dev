@@ -13,9 +13,7 @@ import { isEqual } from 'lodash'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
-import {
-  MergeActionsRepository,
-} from '../database/repositories/mergeActionsRepository'
+import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
