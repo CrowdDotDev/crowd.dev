@@ -89,6 +89,7 @@ class MemberRepository {
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
+          'id',
           'displayName',
           'attributes',
           'emails',
@@ -4147,6 +4148,209 @@ class MemberRepository {
       type: QueryTypes.UPDATE,
       transaction,
     })
+  }
+
+  static async moveSelectedAffiliationsBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    memberSegmentAffiliationIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+      memberSegmentAffiliationIds,
+    }
+
+    const updateQuery = `
+      update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId
+      and "id" in (:memberSegmentAffiliationIds);
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async addTagsToMember(
+    memberId: string,
+    tagIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      insert into "memberTags" ("memberId", "tagId", "createdAt", "updatedAt") values (:memberId, :tagId, now(), now());
+    `
+    for (const tagId of tagIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          tagId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
+  }
+
+  static async removeTagsFromMember(
+    memberId: string,
+    tagIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberTags" where "memberId" = :memberId and "tagId" = :tagId;
+    `
+    for (const tagId of tagIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          tagId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
+  }
+
+  static async addNotesToMember(
+    memberId: string,
+    noteIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      insert into "memberNotes" ("memberId", "noteId", "createdAt", "updatedAt") values (:memberId, :noteId, now(), now());
+    `
+
+    for (const noteId of noteIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          noteId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
+  }
+
+  static async removeNotesFromMember(
+    memberId: string,
+    noteIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberNotes" where "memberId" = :memberId and "noteId" = :noteId;
+    `
+
+    for (const noteId of noteIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          noteId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
+  }
+
+  static async addTasksToMember(
+    memberId: string,
+    taskIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      insert into "memberTasks" ("memberId", "taskId", "createdAt", "updatedAt") values (:memberId, :taskId, now(), now());
+    `
+
+    for (const taskId of taskIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          taskId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
+  }
+
+  static async removeTasksFromMember(
+    memberId: string,
+    taskIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberTasks" where "memberId" = :memberId and "taskId" = :taskId;
+    `
+
+    for (const taskId of taskIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          taskId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
+  }
+
+
+  static async removeIdentitiesFromMember(
+    memberId: string,
+    identities: IMemberIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberIdentities" where "memberId" = :memberId and platform = :platform and username = :username;
+    `
+
+    for (const identity of identities) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          username: identity.username,
+          platform: identity.platform,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
   }
 }
 

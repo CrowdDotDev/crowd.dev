@@ -45,7 +45,7 @@
     "script:get-organization-enrichment-data": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/get-organization-enrichment-data.ts",
     "script:refresh-materialized-views": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/refresh-materialized-views.ts",
     "script:unmerge-members": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/unmerge-members.ts",
-    "script:soft-unmerge-members": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/soft-unmerge-members.ts",
+    "script:member-unmerge-testing": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/member-unmerge-testing.ts",
     "script:merge-similar-organizations": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/merge-similar-organizations.ts",
     "script:cache-dashboard": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/cache-dashboard.ts",
     "script:purge-tenants-and-data": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/bin/scripts/purge-tenants-and-data.ts"
@@ -168,6 +168,7 @@
     "@typescript-eslint/parser": "^5.17.0",
     "copyfiles": "2.4.1",
     "cross-env": "7.0.2",
+    "deep-object-diff": "^1.1.9",
     "eslint": "^8.12.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^16.1.4",

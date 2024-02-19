@@ -180,7 +180,8 @@ export enum MergeActionType {
 export enum MergeActionState {
   PENDING = 'pending',
   IN_PROGRESS = 'in-progress',
-  DONE = 'done',
+  MERGED = 'merged',
+  UNMERGED = 'unmerged',
   FINISHING = 'finishing',
   ERROR = 'error',
 }

@@ -1,6 +1,7 @@
 import { QueryTypes } from 'sequelize'
 import {
   IMemberIdentity,
+  IMemberUnmergeBackup,
   IMergeAction,
   IUnmergeBackup,
   MergeActionState,
@@ -16,7 +17,7 @@ class MergeActionsRepository {
     secondaryId: string,
     options: IRepositoryOptions,
     state: MergeActionState = MergeActionState.PENDING,
-    backup: IUnmergeBackup = undefined,
+    backup: IUnmergeBackup<IMemberUnmergeBackup> = undefined,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
     const tenantId = options.currentTenant.id
@@ -26,7 +27,7 @@ class MergeActionsRepository {
         INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, "unmergeBackup")
         VALUES (:tenantId, :type, :primaryId, :secondaryId, :state, :backup)
         ON CONFLICT ("tenantId", "type", "primaryId", "secondaryId")
-        DO UPDATE SET state = :state
+        DO UPDATE SET state = :state, "unmergeBackup" = :backup
       `,
       {
         replacements: {

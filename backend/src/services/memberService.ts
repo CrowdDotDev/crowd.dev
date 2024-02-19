@@ -583,6 +583,168 @@ export default class MemberService extends LoggerBase {
     return existing
   }
 
+  async unmerge(
+    memberId: string,
+    payload: IUnmergePreviewResult<IMemberUnmergePreviewResult>,
+  ): Promise<void> {
+    let tx
+
+    try {
+      const member = await MemberRepository.findById(memberId, this.options)
+
+      const repoOptions: IRepositoryOptions =
+        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+      tx = repoOptions.transaction
+
+      // remove identities in secondary member from primary member
+      await MemberRepository.removeIdentitiesFromMember(
+        memberId,
+        payload.secondary.identities,
+        repoOptions,
+      )
+
+      // create the secondary member
+      const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
+
+      // move affiliations
+      if (payload.secondary.affiliations.length > 0) {
+        await MemberRepository.moveSelectedAffiliationsBetweenMembers(
+          memberId,
+          secondaryMember.id,
+          payload.secondary.affiliations.map((a) => a.id),
+          repoOptions,
+        )
+      }
+
+      // move tags
+      if (payload.secondary.tags.length > 0) {
+        await MemberRepository.addTagsToMember(
+          secondaryMember.id,
+          payload.secondary.tags.map((t) => t.id),
+          repoOptions,
+        )
+        // check if anything to delete in primary
+        const tagsToDelete = member.tags.filter(
+          (t) => !payload.primary.tags.some((pt) => pt.id === t.id),
+        )
+        if (tagsToDelete.length > 0) {
+          await MemberRepository.removeTagsFromMember(
+            memberId,
+            tagsToDelete.map((t) => t.id),
+            repoOptions,
+          )
+        }
+      }
+
+      // move tasks
+      if (payload.secondary.tasks.length > 0) {
+        await MemberRepository.addTasksToMember(
+          secondaryMember.id,
+          payload.secondary.tasks.map((t) => t.id),
+          repoOptions,
+        )
+        // check if anything to delete in primary
+        const tasksToDelete = member.tasks.filter(
+          (t) => !payload.primary.tasks.some((pt) => pt.id === t.id),
+        )
+        if (tasksToDelete.length > 0) {
+          await MemberRepository.removeTasksFromMember(
+            memberId,
+            tasksToDelete.map((t) => t.id),
+            repoOptions,
+          )
+        }
+      }
+
+      // move notes
+      if (payload.secondary.notes.length > 0) {
+        await MemberRepository.addNotesToMember(
+          secondaryMember.id,
+          payload.secondary.notes.map((n) => n.id),
+          repoOptions,
+        )
+        // check if anything to delete in primary
+        const notesToDelete = member.notes.filter(
+          (n) => !payload.primary.notes.some((pn) => pn.id === n.id),
+        )
+        if (notesToDelete.length > 0) {
+          await MemberRepository.removeNotesFromMember(
+            memberId,
+            notesToDelete.map((n) => n.id),
+            repoOptions,
+          )
+        }
+      }
+
+      // move memberOrganizations
+      if (payload.secondary.memberOrganizations.length > 0) {
+        for (const role of payload.secondary.memberOrganizations) {
+          await MemberOrganizationRepository.addMemberRole(
+            { ...role, memberId: secondaryMember.id },
+            repoOptions,
+          )
+        }
+
+        const memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
+          member.id,
+          repoOptions,
+        )
+        // check if anything to delete in primary
+        const rolesToDelete = memberOrganizations.filter(
+          (r) =>
+            r.source !== 'ui' &&
+            !payload.primary.memberOrganizations.some(
+              (pr) =>
+                pr.organizationId === r.organizationId &&
+                pr.title === r.title &&
+                pr.dateStart === r.dateStart &&
+                pr.dateEnd === r.dateEnd,
+            ),
+        )
+
+        for (const role of rolesToDelete) {
+          await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
+        }
+      }
+
+      // delete identity related stuff, we already moved these
+      delete payload.primary.identities
+      delete payload.primary.username
+
+      // update rest of the primary member fields
+      await MemberRepository.update(memberId, payload.primary, repoOptions, false, false)
+
+      // trigger entity-merging-worker to move activities in the background
+      await SequelizeRepository.commitTransaction(tx)
+
+      await this.options.temporal.workflow.start('finishMemberUnmerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishMemberUnmerging/${member.id}/${secondaryMember.id}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          member.id,
+          secondaryMember.id,
+          payload.secondary.identities,
+          member.displayName,
+          secondaryMember.displayName, 
+          this.options.currentTenant.id,
+          this.options.currentUser.id,
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
+
+    } catch (err) {
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
+      throw err
+    }
+  }
+
   /**
    * Returns a preview of primary and secondary members after a possible unmerge operation
    * Preview is built using the identity sent. First we try to find the corresponding mergeAction.unmergeBackup
@@ -636,13 +798,13 @@ export default class MemberService extends LoggerBase {
         for (const key of MemberService.MEMBER_MERGE_FIELDS) {
           // delay relationships for later
           if (!(key in relationships) && !member.manuallyChangedFields.includes(key)) {
-            // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
-            // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
-            // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
-            // 4) if both backups doesn't have the value, but current member does, keep the current value
-
-            // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
             if (key === 'attributes') {
+              // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
+              // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
+              // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
+              // 4) if both backups doesn't have the value, but current member does, keep the current value
+              // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
+
               // loop through current member attributes
               for (const attributeKey of Object.keys(member.attributes)) {
                 if (!member.manuallyChangedFields.some((f) => f === `attributes.${key}`)) {
@@ -861,7 +1023,7 @@ export default class MemberService extends LoggerBase {
           affiliations: [],
           contributions: [],
           manuallyCreated: true,
-          manuallyChangedFields: [], 
+          manuallyChangedFields: [],
           activityCount: secondaryActivityCount,
           numberOfOpenSourceContributions: 0,
         },

@@ -1,1 +1,5 @@
-export { finishMemberMerging, finishOrganizationMerging } from './workflows/all'
+export {
+  finishMemberMerging,
+  finishOrganizationMerging,
+  finishMemberUnmerging,
+} from './workflows/all'

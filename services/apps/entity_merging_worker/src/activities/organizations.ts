@@ -49,24 +49,6 @@ export async function moveActivitiesBetweenOrgs(
   return result.rowCount > 0
 }
 
-export async function markMergeActionDone(
-  primaryId: string,
-  secondaryId: string,
-  tenantId: string,
-): Promise<void> {
-  await svc.postgres.writer.connection().query(
-    `
-      UPDATE "mergeActions"
-      SET state = $4
-      WHERE "tenantId" = $3
-        AND "primaryId" = $1
-        AND "secondaryId" = $2
-        AND state != $4
-    `,
-    [primaryId, secondaryId, tenantId, 'done'],
-  )
-}
-
 export async function notifyFrontend(
   primaryOrgId: string,
   secondaryOrgId: string,
