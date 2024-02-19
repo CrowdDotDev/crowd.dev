@@ -50,9 +50,13 @@ export default {
     // Both are already loaded
     return Promise.resolve();
   },
-  getUser(token: string) {
-    connectSocket(token);
-    AuthService.setToken(token);
+  getUser(token?: string) {
+    const t = token || AuthService.getToken();
+    if (!t) {
+      return Promise.reject();
+    }
+    connectSocket(t);
+    AuthService.setToken(t);
     return AuthApiService.fetchMe()
       .then((user) => {
         this.user = user;
