@@ -1782,6 +1782,12 @@ importers:
       '@crowd/database':
         specifier: workspace:*
         version: link:../database
+      '@crowd/feature-flags':
+        specifier: workspace:*
+        version: link:../feature-flags
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
@@ -16114,8 +16120,8 @@ packages:
     dependencies:
       '@crowd/common': link:services/libs/common
       '@crowd/database': link:services/libs/database
-      '@crowd/feature-flags': file:services/libs/feature-flags
-      '@crowd/integrations': file:services/libs/integrations
+      '@crowd/feature-flags': link:services/libs/feature-flags
+      '@crowd/integrations': link:services/libs/integrations
       '@crowd/logging': link:services/libs/logging
       '@crowd/redis': link:services/libs/redis
       '@crowd/types': link:services/libs/types
