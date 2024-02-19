@@ -1,17 +1,15 @@
 {
   "name": "@crowd/exports-worker",
-  "version": "1.0.0",
-  "private": true,
   "scripts": {
-    "start": "CROWD_TEMPORAL_TASKQUEUE=exports SERVICE=exports-worker TS_NODE_TRANSPILE_ONLY=true node -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=exports SERVICE=exports-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "start:debug": "CROWD_TEMPORAL_TASKQUEUE=exports SERVICE=exports-worker TS_NODE_TRANSPILE_ONLY=true LOG_LEVEL=trace node --inspect=0.0.0.0:9232 -r tsconfig-paths/register -r ts-node/register src/main.ts",
-    "dev:local": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
-    "dev": "./node_modules/.bin/nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
-    "lint": "./node_modules/.bin/eslint --ext .ts src --max-warnings=0",
-    "format": "./node_modules/.bin/prettier --write \"src/**/*.ts\"",
-    "format-check": "./node_modules/.bin/prettier --check .",
-    "tsc-check": "./node_modules/.bin/tsc --noEmit"
+    "start": "CROWD_TEMPORAL_TASKQUEUE=exports SERVICE=exports-worker tsx src/main.ts",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=exports SERVICE=exports-worker LOG_LEVEL=trace tsx --inspect=0.0.0.0:9232 src/main.ts",
+    "start:debug": "CROWD_TEMPORAL_TASKQUEUE=exports SERVICE=exports-worker LOG_LEVEL=trace tsx --inspect=0.0.0.0:9232 src/main.ts",
+    "dev:local": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
+    "dev": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
+    "lint": "npx eslint --ext .ts src --max-warnings=0",
+    "format": "npx prettier --write \"src/**/*.ts\"",
+    "format-check": "npx prettier --check .",
+    "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/hash-node": "^3.226.0",
@@ -38,12 +36,6 @@
   "devDependencies": {
     "@types/node": "^20.8.2",
     "@types/uuid": "~9.0.6",
-    "@typescript-eslint/eslint-plugin": "^6.7.4",
-    "@typescript-eslint/parser": "^6.7.4",
-    "eslint": "^8.50.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "nodemon": "^3.0.1",
-    "prettier": "^3.0.3"
+    "nodemon": "^3.0.1"
   }
 }

@@ -16,7 +16,7 @@ import {
   EnrichmentAPIWorkExperience,
   EnrichmentAPIEducation,
   EnrichmentAPICertification,
-} from '@crowd/types/premium'
+} from '@crowd/types/src/premium'
 import { DbTransaction } from '@crowd/database'
 import { generateUUIDv4 } from '@crowd/common'
 

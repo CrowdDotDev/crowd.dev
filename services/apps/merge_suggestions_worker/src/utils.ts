@@ -5,7 +5,7 @@ import {
   IMemberIdentityOpensearch,
   IMemberPartialAggregatesOpensearch,
   ISimilarMember,
-} from 'types'
+} from './types'
 
 export const prefixLength = (string: string) => {
   if (string.length > 5 && string.length < 8) {

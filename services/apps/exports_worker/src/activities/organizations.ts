@@ -69,6 +69,12 @@ export async function buildAndUploadOrganizationsCSV(
     ],
   }
 
+  data.rows.forEach((row) => {
+    if (Number.isNaN(row.employees)) {
+      row.employees = null
+    }
+  })
+
   const csv = await parseAsync(data.rows, opts)
 
   const entity = ExportableEntity.ORGANIZATIONS
