@@ -6,9 +6,9 @@
         <div v-if="ti > 0" class="my-1 border-b border-gray-200" />
         <div class="p-2">
           <cr-menu-workspace-card class="h-14 px-3 hover:bg-gray-50" :tenant="tenant" @click="doSwitchTenant(tenant)">
-            <i v-if="currentTenant.id === tenant.id" class="ri-check-line text-lg text-black" />
+            <i v-if="tenant.id === tenant.id" class="ri-check-line text-lg text-black" />
           </cr-menu-workspace-card>
-          <div v-if="currentTenant.id === tenant.id" class="pt-1 -mx-1">
+          <div v-if="tenant.id === tenant.id" class="pt-1 -mx-1">
             <cr-menu-links
               :collapsed="false"
               :links="tenantMenu"
@@ -42,15 +42,8 @@
     <section class="px-2 pb-2 pt-1">
       <!-- User details -->
       <div class="p-3 flex items-center">
-        <app-avatar
-          :entity="{
-            avatar: currentUserAvatar,
-            displayName: currentUser.email,
-          }"
-          size="xxs"
-        />
-        <div class="pl-3 font-medium leading-5 text-2xs">
-          {{ currentUser.email }}
+        <div class="font-medium leading-5 text-2xs">
+          {{ user.email }}
         </div>
       </div>
 
@@ -105,11 +98,14 @@ import { useUserStore } from '@/modules/user/store/pinia';
 import { storeToRefs } from 'pinia';
 import { FeatureFlag } from '@/utils/featureFlag';
 import { SettingsPermissions } from '@/modules/settings/settings-permissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const emit = defineEmits<{(e:'add'): any, (e: 'edit', value: TenantModel): any}>();
 
 const { rows } = mapGetters('tenant');
-const { currentTenant, currentUser, currentUserAvatar } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
+
 const { doSelectTenant, doSignout } = mapActions('auth');
 
 const userStore = useUserStore();
@@ -119,8 +115,8 @@ const { updateDeveloperMode } = userStore;
 const hasPermissionsForSettings = computed(
   () => {
     const settingsPermissions = new SettingsPermissions(
-      currentTenant.value,
-      currentUser.value,
+      tenant.value,
+      user.value,
     );
 
     return settingsPermissions.edit || settingsPermissions.lockedForCurrentPlan;
@@ -128,10 +124,10 @@ const hasPermissionsForSettings = computed(
 );
 
 const tenants = computed<TenantModel[]>(() => {
-  const currentTenantId = currentTenant.value.id;
+  const currentTenantId = tenant.value.id;
   const restTenants = rows.value.filter((ten: TenantModel) => ten.id !== currentTenantId)
     .sort((a: TenantModel, b: TenantModel) => a.name.localeCompare(b.name));
-  return [currentTenant.value, ...restTenants];
+  return [tenant.value, ...restTenants];
 });
 
 const doSwitchTenant = (tenant: TenantModel) => {

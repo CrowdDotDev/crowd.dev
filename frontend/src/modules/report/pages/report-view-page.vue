@@ -74,6 +74,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import ReportGridLayout from '../components/report-grid-layout.vue';
 import ReportDropdown from '../components/report-dropdown.vue';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
   name: 'AppReportViewPage',
@@ -135,7 +136,7 @@ export default {
     await this.getCubeToken();
 
     if (this.tenantId) {
-      await AuthCurrentTenant.set({ id: this.tenantId });
+      AuthService.setTenant(this.tenantId)
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,

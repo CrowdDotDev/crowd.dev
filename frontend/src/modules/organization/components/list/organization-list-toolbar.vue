@@ -104,6 +104,7 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   pagination: {
@@ -115,7 +116,8 @@ const props = defineProps({
   },
 });
 
-const { currentUser, currentTenant } = mapGetters('auth');
+  const authStore = useAuthStore();
+  const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 const {
@@ -126,21 +128,21 @@ const { fetchOrganizations } = organizationStore;
 
 const isPermissionReadOnly = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).edit === false,
 );
 
 const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).editLockedForSampleData,
 );
 const isDeleteLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).destroyLockedForSampleData,
 );
 
@@ -168,8 +170,8 @@ const markAsTeamOrganizationOptions = computed(() => {
 });
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeOrganizations);
 
 const handleDoDestroyAllWithConfirm = () => ConfirmDialog({

@@ -114,10 +114,13 @@ import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationPermissions } from '../organization-permissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const router = useRouter();
 
-const { currentUser, currentTenant } = mapGetters('auth');
+
+  const authStore = useAuthStore();
+  const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
@@ -135,27 +138,27 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const hasPermissionToCreate = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).create,
 );
 const isCreateLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).createLockedForSampleData,
 );
 
 const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).editLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeOrganizations);
 
 const pagination = ref({

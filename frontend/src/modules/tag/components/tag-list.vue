@@ -29,6 +29,8 @@
 <script>
 import { mapGetters } from 'vuex';
 import { MemberPermissions } from '@/modules/member/member-permissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 export default {
   name: 'AppTags',
@@ -51,6 +53,11 @@ export default {
     },
   },
   emits: ['tags-updated', 'edit'],
+  setup() {
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
+    return { user, tenant };
+  },
   data() {
     return {
       model: null,
@@ -59,10 +66,6 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-    }),
     computedTags() {
       const max = this.long ? 8 : 3;
       const tags = this.member.tags || [];
@@ -78,8 +81,8 @@ export default {
     },
     isEditLockedForSampleData() {
       return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser,
+        this.tenant,
+        this.user,
       ).editLockedForSampleData;
     },
   },

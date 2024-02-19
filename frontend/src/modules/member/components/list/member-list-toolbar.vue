@@ -108,8 +108,10 @@ import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-e
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 const { doRefreshCurrentUser } = mapActions('auth');
 
 const memberStore = useMemberStore();
@@ -124,22 +126,22 @@ const bulkAttributesUpdateVisible = ref(false);
 
 const isReadOnly = computed(() => (
   new MemberPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).edit === false
 ));
 
 const isEditLockedForSampleData = computed(() => (
   new MemberPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).editLockedForSampleData
 ));
 
 const isDeleteLockedForSampleData = computed(() => (
   new MemberPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).destroyLockedForSampleData
 ));
 
@@ -167,8 +169,8 @@ const markAsTeamMemberOptions = computed(() => {
 });
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeMembers);
 
 const handleMergeMembers = async () => {
@@ -218,9 +220,9 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = currentTenant.value.csvExportCount;
+    const tenantCsvExportCount = tenant.value.csvExportCount;
     const planExportCountMax = getExportMax(
-      currentTenant.value.plan,
+      tenant.value.plan,
     );
 
     await showExportDialog({
@@ -246,7 +248,7 @@ const handleDoExport = async () => {
 
     if (error.response?.status === 403) {
       const planExportCountMax = getExportMax(
-        currentTenant.value.plan,
+        tenant.value.plan,
       );
 
       showExportLimitDialog({ planExportCountMax });

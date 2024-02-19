@@ -8,8 +8,8 @@ import SegmentGuard from '@/middleware/auth/segment-guard';
 
 /* Temporarly disabling guards, only AuthGuard has been working before and other caused too much issues when enabled */
 export default [
-  // AuthGuard,
-  // UnauthGuard,
+  AuthGuard,
+  UnauthGuard,
   SegmentGuard,
   // EmailAlreadyVerifiedGuard,
   // PermissionGuard,

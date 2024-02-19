@@ -4,6 +4,8 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 import { User } from '@/modules/auth/types/User.type';
 import Errors from '@/shared/error/errors';
 import { disconnectSocket, connectSocket } from '@/modules/auth/auth.socket';
+import identify from '@/shared/monitoring/identify';
+import { watch } from 'vue';
 
 export default {
   init() {
@@ -28,18 +30,39 @@ export default {
         }
       });
   },
+  ensureLoaded(): Promise<void> {
+    if (!this.user || !this.tenant) {
+      return new Promise((resolve) => {
+        const stopWatcher = watch(
+          () => [this.user, this.tenant],
+          ([newUser, newTenant]) => {
+            if (newUser && newTenant) {
+              resolve();
+              stopWatcher();
+            }
+          },
+          {
+            immediate: true,
+          },
+        );
+      });
+    }
+    // Both are already loaded
+    return Promise.resolve();
+  },
   getUser(token: string) {
     connectSocket(token);
     AuthService.setToken(token);
     return AuthApiService.fetchMe()
-      .then((currentUser) => {
-        this.user = currentUser;
-        const [tenantUser] = currentUser.tenants;
+      .then((user) => {
+        this.user = user;
+        identify(user);
+        const [tenantUser] = user.tenants;
         if (tenantUser && tenantUser.tenant) {
           this.tenant = tenantUser.tenant;
           AuthService.setTenant(tenantUser.tenantId);
         }
-        return Promise.resolve(currentUser);
+        return Promise.resolve(user);
       })
       .catch((error) => {
         disconnectSocket();

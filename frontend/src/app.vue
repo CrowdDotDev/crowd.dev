@@ -24,11 +24,12 @@ import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { Auth0Service } from '@/modules/auth/services/auth0.service';
 import identify from '@/shared/monitoring/identify';
-import { mapActions as piniaMapActions } from 'pinia';
+import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
   name: 'App',
@@ -38,8 +39,10 @@ export default {
   },
 
   setup() {
-    const { init } = useAuthStore();
-    return { init };
+    const authStore = useAuthStore();
+    const { init } = authStore;
+    const { tenant } = storeToRefs(authStore);
+    return { init, tenant };
   },
 
   computed: {
@@ -48,7 +51,7 @@ export default {
     }),
     loading() {
       return (
-        !((this.isAuthenticated && !!AuthToken.get())
+        !((this.isAuthenticated && !!AuthService.getToken())
         || (!this.featureFlag.isReady
           && !this.featureFlag.hasError
           && !config.isCommunityVersion))
@@ -78,14 +81,7 @@ export default {
         }
       },
     },
-    currentUser: {
-      handler(user, oldUser) {
-        if (user?.id && user.id !== oldUser?.id) {
-          identify(user);
-        }
-      },
-    },
-    currentTenant: {
+    tenant: {
       handler(tenant, oldTenant) {
         if (tenant?.id && tenant.id !== oldTenant?.id) {
           this.fetchActivityTypes();
@@ -96,7 +92,7 @@ export default {
   },
 
   async created() {
-    FeatureFlag.init(this.currentTenant);
+    FeatureFlag.init(this.tenant);
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();

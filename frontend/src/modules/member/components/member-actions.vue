@@ -82,6 +82,8 @@ import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-g
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   member: {
@@ -91,7 +93,8 @@ const props = defineProps({
 });
 const router = useRouter();
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const isMergeDialogOpen = ref(null);
 const isMergeSuggestionsDialogOpen = ref(false);
@@ -99,13 +102,13 @@ const isFindGithubDrawerOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeMembers);
 
 const fetchMembersToMergeCount = () => {

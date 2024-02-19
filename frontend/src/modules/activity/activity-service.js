@@ -2,6 +2,8 @@ import authAxios from '@/shared/axios/auth-axios';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import { store } from '@/store';
 import moment from 'moment';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 export class ActivityService {
   static async update(id, data, segments) {
@@ -49,9 +51,10 @@ export class ActivityService {
 
   static async query(body, countOnly = false) {
     const tenantId = AuthService.getTenantId();
-    const currentTenant = store.getters['auth/currentTenant'];
+    const authStore = useAuthStore();
+    const { tenant } = storeToRefs(authStore);
 
-    const isTenantNew = moment(currentTenant.createdAt).add(1, 'months').isAfter(moment());
+    const isTenantNew = moment(tenant.value.createdAt).add(1, 'months').isAfter(moment());
 
     // If tenant is less than a month old, use old query
     // Else use new query

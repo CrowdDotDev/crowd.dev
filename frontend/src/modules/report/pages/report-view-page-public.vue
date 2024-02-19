@@ -19,10 +19,10 @@
         >
           <div class="mb-6 mt-4 w-full">
             <div
-              v-if="currentTenant.name"
+              v-if="tenant.name"
               class="font-medium text-brand-500 text-sm mb-2"
             >
-              {{ currentTenant.name }}
+              {{ tenant.name }}
             </div>
             <div class="flex items-center justify-between">
               <h1 class="text-lg font-semibold">
@@ -186,6 +186,7 @@ import ACTIVITIES_REPORT from '@/modules/report/templates/config/activities';
 import templates from '@/modules/report/templates/config';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 const platformField = new ActivityPlatformField(
   'activeOn',
@@ -225,7 +226,7 @@ export default {
   data() {
     return {
       loading: false,
-      currentTenant: null,
+      tenant: null,
       platform: initialPlatformValue,
       teamMembers: false,
       teamActivities: false,
@@ -286,14 +287,14 @@ export default {
   async created() {
     this.loading = true;
     if (this.tenantId) {
-      await AuthCurrentTenant.set({ id: this.tenantId });
+      AuthService.setTenant(this.tenantId)
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
         excludeSegments: !this.segmentId,
         segments: [this.segmentId],
       });
-      this.currentTenant = await TenantService.findName(
+      this.tenant = await TenantService.findName(
         this.tenantId,
       );
     } else {

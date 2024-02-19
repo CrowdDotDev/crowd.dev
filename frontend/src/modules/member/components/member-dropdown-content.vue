@@ -210,6 +210,8 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { Member } from '../types/Member';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 enum Actions {
   DELETE_CONTACT = 'deleteContact',
@@ -232,24 +234,25 @@ const props = defineProps<{
 const store = useStore();
 const route = useRoute();
 
-const { currentUser, currentTenant } = mapGetters('auth');
+  const authStore = useAuthStore();
+  const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
 
 const memberStore = useMemberStore();
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 
 const isDeleteLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .destroyLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeMembers);
 
 const isSyncingWithHubspot = computed(

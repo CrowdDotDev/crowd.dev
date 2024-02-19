@@ -18,6 +18,8 @@ import {
   showExportDialog,
 } from '@/modules/member/member-export-limit';
 import { MemberModel } from '../member-model';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 export default {
   ...sharedActions('member', MemberService),
@@ -187,9 +189,10 @@ export default {
 
   async doEnrich({ commit, dispatch, rootGetters }, id, segments) {
     try {
-      const currentTenant = rootGetters['auth/currentTenant'];
+        const authStore = useAuthStore();
+        const { tenant } = storeToRefs(authStore);
 
-      const planEnrichmentCountMax = getEnrichmentMax(currentTenant.plan);
+      const planEnrichmentCountMax = getEnrichmentMax(tenant.value.plan);
 
       // Start member enrichment
       commit('UPDATE_STARTED');
@@ -205,13 +208,13 @@ export default {
         root: true,
       });
 
-      const updatedTenant = rootGetters['auth/currentTenant'];
+      const updatedTenant = tenant.value;
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
         memberEnrichmentCount: updatedTenant.memberEnrichmentCount,
         planEnrichmentCountMax,
-        plan: currentTenant.plan,
+        plan: tenant.value.plan,
         isBulk: false,
       });
 

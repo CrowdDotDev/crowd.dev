@@ -33,6 +33,8 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import { OrganizationPermissions } from '../organization-permissions';
 import AppOrganizationDropdownContent from './organization-dropdown-content.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 defineProps({
   organization: {
@@ -54,14 +56,15 @@ const emit = defineEmits([
   'closeDropdown',
 ]);
 
-const { currentUser, currentTenant } = mapGetters('auth');
+  const authStore = useAuthStore();
+  const { user, tenant } = storeToRefs(authStore);
 
 const dropdown = ref();
 
 const isReadOnly = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).edit === false,
 );
 

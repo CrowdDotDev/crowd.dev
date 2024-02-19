@@ -3,7 +3,7 @@
  *
  * This middleware runs before rendering any route that has meta.notEmptyPermissions = true
  *
- * It checks if currentUser has roles set (if not, redirects to /)
+ * It checks if user has roles set (if not, redirects to /)
  *
  * @param to
  * @param store
@@ -14,8 +14,6 @@ export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.notEmptyPermissions) {
     return;
   }
-
-  await store.dispatch('auth/doWaitUntilInit');
 
   if (
     store.getters['auth/signedIn']

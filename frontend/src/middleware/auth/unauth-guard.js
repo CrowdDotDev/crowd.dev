@@ -5,7 +5,7 @@ import { AuthService } from '@/modules/auth/services/auth.service';
  *
  * This middleware runs before rendering any route that has meta.unauth = true
  *
- * It checks if currentUser is undefined (if not, redirects to /)
+ * It checks if user is undefined (if not, redirects to /)
  *
  * @param to
  * @param store

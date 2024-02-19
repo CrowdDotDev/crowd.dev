@@ -88,6 +88,8 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { ReportService } from '@/modules/report/report-service';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 export default {
   name: 'AppReportDropdown',
@@ -113,16 +115,17 @@ export default {
       default: true,
     },
   },
+  setup() {
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
+    return { user, tenant };
+  },
   computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-    }),
     isReadOnly() {
       return (
         new ReportPermissions(
-          this.currentTenant,
-          this.currentUser,
+          this.tenant,
+          this.user,
         ).edit === false
       );
     },

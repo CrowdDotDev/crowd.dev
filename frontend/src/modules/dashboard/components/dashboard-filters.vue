@@ -77,6 +77,7 @@ import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 export default {
   name: 'AppDashboardFilters',
@@ -91,9 +92,6 @@ export default {
   },
   computed: {
     ...mapGetters('dashboard', ['period', 'platform', 'segments']),
-    ...mapGetters('auth', {
-      currentTenant: 'currentTenant',
-    }),
     ...mapGetters('integration', {
       activeIntegrations: 'activeList',
     }),

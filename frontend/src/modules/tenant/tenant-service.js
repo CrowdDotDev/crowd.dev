@@ -17,15 +17,15 @@ export class TenantService {
     // If there is a subdomain with the tenant url,
     // it must fetch the settings form that subdomain no matter
     // which one is on local storage
-    let currentTenant;
+    let tenant;
     if (tenantUrl) {
       try {
-        currentTenant = await this.findByUrl(tenantUrl);
+        tenant = await this.findByUrl(tenantUrl);
       } catch (error) {
         console.error(error);
       }
 
-      if (!currentTenant) {
+      if (!tenant) {
         window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
         return;
       }
@@ -34,13 +34,13 @@ export class TenantService {
     const tenantId = AuthService.getTenantId();
     if (tenantId && !tenantUrl) {
       try {
-        currentTenant = await this.find(tenantId);
+        tenant = await this.find(tenantId);
       } catch (error) {
         console.error(error);
       }
     }
     // eslint-disable-next-line consistent-return
-    return currentTenant;
+    return tenant;
   }
 
   static async update(id, data) {

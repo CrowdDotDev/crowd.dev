@@ -168,6 +168,9 @@ import { useStore } from 'vuex';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 import { Organization } from '../types/Organization';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
+import { tenantMenu } from '@/modules/layout/config/menu';
 
 enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',
@@ -189,22 +192,23 @@ defineProps<{
 
 const store = useStore();
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 
 const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
+  () => new OrganizationPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
+  () => new OrganizationPermissions(tenant.value, user.value)
     .destroyLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  currentTenant.value,
-  currentUser.value,
+    tenant.value,
+    user.value,
 )?.mergeOrganizations);
 
 const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;

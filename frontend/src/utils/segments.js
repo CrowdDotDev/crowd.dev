@@ -28,7 +28,7 @@ export const hasAccessToProjectGroup = (segmentId) => {
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);
 
-  const permissionChecker = new PermissionChecker(tenant, user);
+  const permissionChecker = new PermissionChecker(tenant.value, user.value);
 
   const isAdmin = permissionChecker.currentUserRolesIds.includes(
     Roles.values.admin,
@@ -57,7 +57,7 @@ export const hasAccessToSegmentId = (segmentId) => {
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);
 
-  const permissionChecker = new PermissionChecker(tenant, user);
+  const permissionChecker = new PermissionChecker(tenant.value, user.value);
 
   const isAdmin = permissionChecker.currentUserRolesIds.includes(
     Roles.values.admin,
@@ -66,8 +66,7 @@ export const hasAccessToSegmentId = (segmentId) => {
   if (isAdmin) {
     return true;
   }
-
-  const tenantUser = user.value.tenants.find((t) => t.tenantId === tenant.value.id);
+  const tenantUser = user.value?.tenants.find((t) => t.tenantId === tenant.value.id);
   const { adminSegments = [] } = tenantUser;
 
   if (!adminSegments.length) {

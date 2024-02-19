@@ -172,6 +172,7 @@ import config from '@/config';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ConversationPermissions } from '../conversation-permissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 export default {
   name: 'AppConversationDetails',
@@ -201,6 +202,11 @@ export default {
     },
   },
   emits: ['edit-title'],
+  setup() {
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
+    return { user, tenant };
+  },
   data() {
     return {
       sorter: 'all',
@@ -209,10 +215,6 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
-    }),
     ...mapState(useActivityTypeStore, {
       types: 'types',
     }),
@@ -238,8 +240,8 @@ export default {
     },
     isEditLockedForSampleData() {
       return new ConversationPermissions(
-        this.currentTenant,
-        this.currentUser,
+        this.tenant,
+        this.user,
       ).editLockedForSampleData;
     },
     conversationTypes() {
