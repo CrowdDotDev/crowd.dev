@@ -62,6 +62,8 @@ export class OrganizationSearchService {
       }
     }
 
+    parsed.from = offset || 0
+
     const response = await this.openSearchService.client.search({
       index: OpenSearchIndex.ORGANIZATIONS,
       body: parsed,
