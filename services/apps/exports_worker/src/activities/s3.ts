@@ -17,8 +17,8 @@ export async function getPresignedUrl(input: ResultS3Upload): Promise<ResultS3Up
 
     const presigner = new S3RequestPresigner({
       credentials: {
-        accessKeyId: process.env['AWS_ACCESS_KEY_ID'],
-        secretAccessKey: process.env['AWS_SECRET_ACCESS_KEY'],
+        accessKeyId: process.env['CROWD_S3_AWS_ACCESS_KEY_ID'],
+        secretAccessKey: process.env['CROWD_S3_AWS_SECRET_ACCESS_KEY'],
       },
       region: process.env['CROWD_S3_AWS_REGION'],
       sha256: Hash.bind(null, 'sha256'),

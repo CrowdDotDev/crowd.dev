@@ -7,7 +7,7 @@ import { ResultS3Upload } from 'types/s3'
 
 // Configure timeouts and retry policies related to CSV and S3.
 const { buildAndUploadMembersCSV, getPresignedUrl } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '25 seconds',
+  startToCloseTimeout: '60 seconds',
   retry: {
     maximumAttempts: 5,
   },
