@@ -1,6 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IDashboardCacheLastRefreshedAt, ISegment } from 'types'
+import { IDashboardCacheLastRefreshedAt, ISegment } from '../types'
 
 class SegmentRepository {
   constructor(

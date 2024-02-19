@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios'
 
 import { PlatformType } from '@crowd/types'
-import { EnrichmentAPIResponse, EnrichmentAPIMember } from '@crowd/types/premium'
+import { EnrichmentAPIResponse, EnrichmentAPIMember } from '@crowd/types/src/premium'
 
 import { EnrichingMember } from '../types/enrichment'
 

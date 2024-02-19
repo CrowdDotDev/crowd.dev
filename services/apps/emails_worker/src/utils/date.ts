@@ -35,7 +35,7 @@ export function switchDate(date: string, offset = 0) {
 export function nextEmailAt(settings: EagleEyeEmailDigestSettings): string {
   const now = moment()
 
-  let nextEmailAt: string = ''
+  let nextEmailAt = ''
   const [hour, minute] = settings.time.split(':')
   const startOfWeek = moment()
     .startOf('isoWeek')
