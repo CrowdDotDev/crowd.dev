@@ -127,6 +127,113 @@ export default class MemberOrganizationService extends LoggerBase {
     }
   }
 
+  static roleExistsInArray(role: IMemberOrganization, roles: IMemberOrganization[]): boolean {
+    return roles.some(
+      (r) =>
+        r.organizationId === role.organizationId &&
+        r.title === role.title &&
+        r.dateStart === role.dateStart &&
+        r.dateEnd === role.dateEnd,
+    )
+  }
+
+  static rolesIntersects(roleA: IMemberOrganization, roleB: IMemberOrganization): boolean {
+    const startA = new Date(roleA.dateStart).getTime()
+    const endA = new Date(roleA.dateEnd).getTime()
+    const startB = new Date(roleB.dateStart).getTime()
+    const endB = new Date(roleB.dateEnd).getTime()
+
+    return (
+      (roleA.organizationId === roleB.organizationId &&
+        roleA.title === roleB.title &&
+        startA < startB &&
+        endA > startB) ||
+      (startB < startA && endB > startA) ||
+      (startA < startB && endA > endB) ||
+      (startB < startA && endB > endA)
+    )
+  }
+
+  /**
+   * Unmerges secondaryBackupRoles from mergedRoles using backups
+   * @param mergedRoles
+   * @param primaryBackupRoles
+   * @param secondaryBackupRoles
+   * @returns unmerged roles for current member
+   */
+  static unmergeRoles(
+    mergedRoles: IMemberOrganization[],
+    primaryBackupRoles: IMemberOrganization[],
+    secondaryBackupRoles: IMemberOrganization[],
+  ): IMemberOrganization[] {
+    // end result must contain existing roles that have source === UI
+    // also we shouldn't touch roles that doesn't have a common organizationId with secondaryBackupRoles
+    const unmergedRoles: IMemberOrganization[] = mergedRoles.filter(
+      (role) =>
+        role.source === 'ui' ||
+        !secondaryBackupRoles.some((r) => r.organizationId === role.organizationId),
+    )
+
+    // we should only manipulate roles that doesn't have source === UI because these were manually created/edited by user and shared organization roles with secondaryBackupRoles
+    const editableRoles = mergedRoles.filter(
+      (role) =>
+        role.source !== 'ui' &&
+        secondaryBackupRoles.some((r) => r.organizationId === role.organizationId),
+    )
+
+    for (const secondaryBackupRole of secondaryBackupRoles) {
+      if (secondaryBackupRole.dateStart === null && secondaryBackupRole.dateEnd === null) {
+        if (
+          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, editableRoles) &&
+          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, primaryBackupRoles)
+        ) {
+          // add it to unmergedRoles
+          unmergedRoles.push(secondaryBackupRole)
+        }
+      } else if (secondaryBackupRole.dateStart !== null && secondaryBackupRole.dateEnd === null) {
+        // it's a current role, add the current role found in primary backup to unmergedRoles, if primary backup doesn't have it we don't need to add it to unmergedRoles
+        const currentRoleFromPrimaryBackup = primaryBackupRoles.find(
+          (r) =>
+            r.organizationId === secondaryBackupRole.organizationId &&
+            r.title === secondaryBackupRole.title &&
+            r.dateStart !== null &&
+            r.dateEnd === null,
+        )
+        if (currentRoleFromPrimaryBackup) {
+          unmergedRoles.push(currentRoleFromPrimaryBackup)
+        }
+      } else if (secondaryBackupRole.dateStart !== null && secondaryBackupRole.dateEnd !== null) {
+        // if it exists both in primary backup and current member, add it
+        if (
+          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, editableRoles) &&
+          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, primaryBackupRoles)
+        ) {
+          // add it to unmergedRoles
+          unmergedRoles.push(secondaryBackupRole)
+        } else {
+          // it could be a merged-role using both roles in primary & secondary
+          // check if it intersects with any of the roles in editableRoles
+          const intersectingRoleInCurrentMember = editableRoles.find((r) =>
+            MemberOrganizationService.rolesIntersects(secondaryBackupRole, r),
+          )
+
+          if (intersectingRoleInCurrentMember) {
+            // find intersecting role in primary backup, and add it to unmergedRoles
+            const intersectingRoleInPrimaryBackup = primaryBackupRoles.find((r) =>
+              MemberOrganizationService.rolesIntersects(secondaryBackupRole, r),
+            )
+
+            if (intersectingRoleInPrimaryBackup) {
+              unmergedRoles.push(intersectingRoleInPrimaryBackup)
+            }
+          }
+        }
+      }
+    }
+
+    return unmergedRoles
+  }
+
   async mergeRoles(
     primaryRoles: IMemberOrganization[],
     secondaryRoles: IMemberOrganization[],
