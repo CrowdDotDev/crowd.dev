@@ -1,4 +1,6 @@
+import { FeatureFlag } from '@crowd/types'
 import { safeWrap } from '../../middlewares/errorMiddleware'
+import { featureFlagMiddleware } from '../../middlewares/featureFlagMiddleware'
 
 export default (app) => {
   app.post(`/tenant/:tenantId/organization`, safeWrap(require('./organizationCreate').default))
@@ -28,5 +30,11 @@ export default (app) => {
   app.put(
     `/tenant/:tenantId/organization/:organizationId/no-merge`,
     safeWrap(require('./organizationNotMerge').default),
+  )
+
+  app.post(
+    `/tenant/:tenantId/organization/export`,
+    featureFlagMiddleware(FeatureFlag.CSV_EXPORT, 'errors.csvExport.planLimitExceeded'),
+    safeWrap(require('./organizationExport').default),
   )
 }

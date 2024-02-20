@@ -13,6 +13,12 @@ export interface IMemberAttribute {
   options?: string[]
 }
 
+export interface IMemberAttributeData extends IMemberAttribute {
+  id: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface IMemberIdentity {
   sourceId?: string
   platform: string

@@ -871,6 +871,79 @@ importers:
         specifier: ^3.0.3
         version: 3.1.0
 
+  services/apps/exports_worker:
+    dependencies:
+      '@aws-sdk/hash-node':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/protocol-http':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.229.0
+        version: 3.462.0
+      '@aws-sdk/url-parser':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/util-format-url':
+        specifier: ^3.226.0
+        version: 3.460.0
+      '@crowd/archetype-standard':
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      '@crowd/archetype-worker':
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../../libs/redis
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../../libs/types
+      '@sendgrid/mail':
+        specifier: ~8.1.0
+        version: 8.1.1
+      '@temporalio/workflow':
+        specifier: ~1.8.6
+        version: 1.8.6
+      aws-sdk:
+        specifier: 2.814.0
+        version: 2.814.0
+      json2csv:
+        specifier: ^5.0.7
+        version: 5.0.7
+      lodash.pick:
+        specifier: ~4.4.0
+        version: 4.4.0
+      moment:
+        specifier: ~2.30.1
+        version: 2.30.1
+      ts-node:
+        specifier: ^10.9.1
+        version: 10.9.1(@types/node@20.10.7)(typescript@5.3.2)
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.7
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.7
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.0.1
+
   services/apps/integration_data_worker:
     dependencies:
       '@crowd/alerting':
@@ -2446,24 +2519,36 @@ importers:
 
   services/libs/opensearch:
     dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
       '@crowd/database':
-        specifier: file:../database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../database
+      '@crowd/feature-flags':
+        specifier: workspace:*
+        version: link:../feature-flags
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/redis':
-        specifier: file:../redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../redis
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       '@opensearch-project/opensearch':
         specifier: ^1.2.0
         version: 1.2.0
       axios:
         specifier: ^1.6.0
         version: 1.6.2
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -6358,6 +6443,16 @@ packages:
       - debug
     dev: false
 
+  /@sendgrid/client@8.1.1:
+    resolution: {integrity: sha512-pg0gYhAdyQil3Aga7/xHVcZFpvDAjAQMNBgMy5njTSkjACoWHmpSi1nWBZM7nIH/ptcRNMpnBbm9B5EvQ8fX2w==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@sendgrid/helpers': 8.0.0
+      axios: 1.6.7
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /@sendgrid/eventwebhook@7.7.0:
     resolution: {integrity: sha512-L2C6nzZgG6YZ/jfXCEqn5l8K8+6oxvhaQ9v/cIM6aXxRHwmTAia9s20snafgTLa27w//vcs+W+MDEm8x4sN+xg==}
     engines: {node: 6.* || 8.* || >=10.*}
@@ -6368,6 +6463,13 @@ packages:
   /@sendgrid/helpers@7.7.0:
     resolution: {integrity: sha512-3AsAxfN3GDBcXoZ/y1mzAAbKzTtUZ5+ZrHOmWQ279AuaFXUNCh9bPnRpN504bgveTqoW+11IzPg3I0WVgDINpw==}
     engines: {node: '>= 6.0.0'}
+    dependencies:
+      deepmerge: 4.3.1
+    dev: false
+
+  /@sendgrid/helpers@8.0.0:
+    resolution: {integrity: sha512-Ze7WuW2Xzy5GT5WRx+yEv89fsg/pgy3T1E3FS0QEx0/VvRmigMZ5qyVGhJz4SxomegDkzXv/i0aFPpHKN8qdAA==}
+    engines: {node: '>= 12.0.0'}
     dependencies:
       deepmerge: 4.3.1
     dev: false
@@ -6388,6 +6490,16 @@ packages:
     dependencies:
       '@sendgrid/client': 7.7.0
       '@sendgrid/helpers': 7.7.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@sendgrid/mail@8.1.1:
+    resolution: {integrity: sha512-tNtmgWLtBA7ZxKtPuEGOaIdEZP1vZSXsj5zg9iuoDBPVj/fNz+7LWzndvTcKumHk5eaDrS0UPXJqBm61m3+H1A==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@sendgrid/client': 8.1.1
+      '@sendgrid/helpers': 8.0.0
     transitivePeerDependencies:
       - debug
     dev: false
@@ -8349,6 +8461,16 @@ packages:
       - debug
     dev: false
 
+  /axios@1.6.7:
+    resolution: {integrity: sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==}
+    dependencies:
+      follow-redirects: 1.15.5
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /babel-jest@29.7.0(@babel/core@7.23.5):
     resolution: {integrity: sha512-BrvGY3xZSwEcCzKvKsCi2GgHqDqsYkOP4/by5xCgIwGXQxIEh+8ew3gmrE1y7XRR6LHZIj6yLYnUi/mm2KXKBg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -8695,7 +8817,7 @@ packages:
     resolution: {integrity: sha512-xq+q3SRMOxGivLhBNaUdC64hDTQwejJ+H0T/NB1XMtTVEwNTrfFF3gAxiyW0Bu/xWEGhjVKgUcMhCrUy2+uCWg==}
     dependencies:
       base64-js: 1.5.1
-      ieee754: 1.1.13
+      ieee754: 1.2.1
       isarray: 1.0.0
     dev: false
 
@@ -10796,6 +10918,16 @@ packages:
         optional: true
     dependencies:
       debug: 4.3.4
+    dev: false
+
+  /follow-redirects@1.15.5:
+    resolution: {integrity: sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
     dev: false
 
   /for-each@0.3.3:
@@ -13290,6 +13422,10 @@ packages:
 
   /moment@2.29.4:
     resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
+    dev: false
+
+  /moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
     dev: false
 
   /moo@0.5.2:
@@ -16415,7 +16551,6 @@ packages:
       typescript: 5.3.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
-    dev: true
 
   /tsconfig-paths@3.14.2:
     resolution: {integrity: sha512-o/9iXgCYc5L/JxCHPe3Hvh8Q/2xm5Z+p18PESBU6Ff33695QnCHBEjcytY2q19ua7Mbl/DavtBOLq+oG0RCL+g==}
@@ -17130,7 +17265,7 @@ packages:
   /xml2js@0.4.19:
     resolution: {integrity: sha512-esZnJZJOiJR9wWKMyuvSE1y6Dq5LCuJanqhxslH2bxM6duahNZ+HMpCLhBQGZkbX6xRf8x1Y2eJlgt2q3qo49Q==}
     dependencies:
-      sax: 1.2.1
+      sax: 1.3.0
       xmlbuilder: 9.0.7
     dev: false
 
@@ -17520,15 +17655,18 @@ packages:
     resolution: {directory: services/libs/opensearch, type: directory}
     name: '@crowd/opensearch'
     dependencies:
-      '@crowd/database': file:services/libs/database
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/redis': file:services/libs/redis
-      '@crowd/types': file:services/libs/types
+      '@crowd/common': link:services/libs/common
+      '@crowd/database': link:services/libs/database
+      '@crowd/feature-flags': link:services/libs/feature-flags
+      '@crowd/integrations': link:services/libs/integrations
+      '@crowd/logging': link:services/libs/logging
+      '@crowd/redis': link:services/libs/redis
+      '@crowd/types': link:services/libs/types
       '@opensearch-project/opensearch': 1.2.0
       axios: 1.6.2
+      lodash.merge: 4.6.2
     transitivePeerDependencies:
       - debug
-      - pg-native
       - supports-color
     dev: false
 
