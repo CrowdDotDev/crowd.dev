@@ -4,6 +4,8 @@ import {
   IOrganization,
   IOrganizationIdentity,
   ISearchSyncOptions,
+  MergeActionState,
+  MergeActionType,
   OrganizationMergeSuggestionType,
   SyncMode,
 } from '@crowd/types'
@@ -11,11 +13,7 @@ import { isEqual } from 'lodash'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
-import {
-  MergeActionState,
-  MergeActionType,
-  MergeActionsRepository,
-} from '../database/repositories/mergeActionsRepository'
+import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
