@@ -9,9 +9,7 @@ import TenantService from '@/services/tenantService'
 import OrganizationService from '@/services/organizationService'
 import getUserContext from '@/database/utils/getUserContext'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import {
-  MergeActionsRepository,
-} from '@/database/repositories/mergeActionsRepository'
+import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 
 /* eslint-disable no-console */
 
