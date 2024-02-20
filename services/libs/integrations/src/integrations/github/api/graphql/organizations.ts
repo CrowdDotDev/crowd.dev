@@ -76,6 +76,13 @@ const getOrganization = async (
         logger.info('Trying token rotation in getOrganization')
         organization = await getOrganizationWithTokenRotation(name, tokenRotator, err, limiter)
       }
+    } else if (
+      err?.message
+        ?.toLowerCase()
+        .includes('although you appear to have the correct authorization credentials')
+    ) {
+      logger.info('Token is not valid in getOrganization')
+      organization = null
     } else {
       throw BaseQuery.processGraphQLError(err)
     }
@@ -146,6 +153,13 @@ const getOrganizationWithTokenRotation = async (
       const remaining = parseInt(err1.headers['x-ratelimit-remaining'])
       const reset = parseInt(err1.headers['x-ratelimit-reset'])
       await tokenRotator.updateTokenInfo(token, remaining, reset)
+    } else if (
+      err?.message
+        ?.toLowerCase()
+        .includes('although you appear to have the correct authorization credentials')
+    ) {
+      logger.info('Token is not valid in getOrganization')
+      organization = null
     } else {
       logger.info('Other error detected in getOrganizationWithTokenRotation')
       await tokenRotator.updateRateLimitInfoFromApi(token)
