@@ -46,6 +46,12 @@ import { GithubTokenRotator } from './tokenRotator'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
+const containsHrefAttribute = (htmlSnippet: string) => {
+  // Constructing the regex using RegExp
+  const hrefRegex = new RegExp('href\\s*=\\s*["\'][^"\']*["\']', 'i')
+  return hrefRegex.test(htmlSnippet)
+}
+
 let githubAuthenticator: AuthInterface | undefined = undefined
 let concurrentRequestLimiter: IConcurrentRequestLimiter | undefined = undefined
 let tokenRotator: GithubTokenRotator | undefined = undefined
@@ -214,9 +220,15 @@ export const prepareMember = async (
     if (IS_TEST_ENV) {
       orgs = [{ name: 'crowd.dev' }]
     } else {
-      const company = memberFromApi.company.replace('@', '').trim()
-      const fromAPI = await getOrganizationData(ctx, company)
-      orgs = fromAPI
+      const companyHTML = memberFromApi?.companyHTML
+      // if company is matched againts github org it's html will contain href attribute
+      if (companyHTML && containsHrefAttribute(companyHTML)) {
+        const company = memberFromApi.company.replace('@', '').trim()
+        const fromAPI = await getOrganizationData(ctx, company)
+        orgs = fromAPI
+      } else {
+        orgs = null
+      }
     }
   }
 
@@ -233,7 +245,7 @@ export const prepareBotMember = (bot: GithubBotMember): GithubPrepareMemberOutpu
     orgs: [],
     memberFromApi: {
       login: bot.login,
-      avatarUrl: bot.avatarUrl,
+      avatarUrl: bot?.avatarUrl || bot?.avatar_url || '',
       url: bot.url,
       id: bot.id,
       isBot: true,
