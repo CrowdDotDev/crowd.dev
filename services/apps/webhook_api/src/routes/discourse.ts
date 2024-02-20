@@ -1,7 +1,7 @@
 import { Error400BadRequest } from '@crowd/common'
 import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'
-import { verifyWebhookSignature } from 'utils/crypto'
+import { verifyWebhookSignature } from '../utils/crypto'
 import { asyncWrap } from '../middleware/error'
 import { WebhooksRepository } from '../repos/webhooks.repo'
 
