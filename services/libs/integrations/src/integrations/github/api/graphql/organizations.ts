@@ -30,24 +30,24 @@ const getOrganization = async (
     const sanitizedName = name.replaceAll('\\', '').replaceAll('"', '')
 
     const organizationsQuery = `{
-      search(query: "type:org ${sanitizedName}", type: USER, first: 10) {
-        nodes {
-          ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
-          }
-        }
-        rateLimit {
-            limit
-            cost
-            remaining
-            resetAt
-        }
+      organization(login: "${sanitizedName}") {
+        ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
+      }
+      rateLimit {
+          limit
+          cost
+          remaining
+          resetAt
+      }
       }`
 
     const process = async () => {
       organization = (await graphqlWithAuth(organizationsQuery)) as any
 
       organization =
-        (organization as any).search.nodes.length > 0 ? (organization as any).search.nodes[0] : null
+        (organization as any).organization && (organization as any).organization.login
+          ? (organization as any).organization
+          : null
     }
 
     if (limiter) {
@@ -76,6 +76,13 @@ const getOrganization = async (
         logger.info('Trying token rotation in getOrganization')
         organization = await getOrganizationWithTokenRotation(name, tokenRotator, err, limiter)
       }
+    } else if (
+      err?.message
+        ?.toLowerCase()
+        .includes('although you appear to have the correct authorization credentials')
+    ) {
+      logger.info('Token is not valid in getOrganization')
+      organization = null
     } else {
       throw BaseQuery.processGraphQLError(err)
     }
@@ -103,25 +110,24 @@ const getOrganizationWithTokenRotation = async (
     const sanitizedName = name.replaceAll('\\', '').replaceAll('"', '')
 
     const organizationsQuery = `{
-      search(query: "type:org ${sanitizedName}", type: USER, first: 10) {
-        nodes {
-          ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
-          }
-        }
-        rateLimit {
-            limit
-            cost
-            remaining
-            resetAt
-        }
+      organization(login: "${sanitizedName}") {
+        ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
+      }
+      rateLimit {
+          limit
+          cost
+          remaining
+          resetAt
+      }
       }`
 
     const process = async () => {
       organization = (await graphqlWithTokenRotation(organizationsQuery)) as any
 
-      return (organization as any).search.nodes.length > 0
-        ? (organization as any).search.nodes[0]
-        : null
+      organization =
+        (organization as any).organization && (organization as any).organization.login
+          ? (organization as any).organization
+          : null
     }
 
     if (limiter) {
@@ -147,6 +153,13 @@ const getOrganizationWithTokenRotation = async (
       const remaining = parseInt(err1.headers['x-ratelimit-remaining'])
       const reset = parseInt(err1.headers['x-ratelimit-reset'])
       await tokenRotator.updateTokenInfo(token, remaining, reset)
+    } else if (
+      err?.message
+        ?.toLowerCase()
+        .includes('although you appear to have the correct authorization credentials')
+    ) {
+      logger.info('Token is not valid in getOrganization')
+      organization = null
     } else {
       logger.info('Other error detected in getOrganizationWithTokenRotation')
       await tokenRotator.updateRateLimitInfoFromApi(token)
