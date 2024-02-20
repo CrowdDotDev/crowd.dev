@@ -3,7 +3,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import { ITriggerCSVExport } from '@crowd/types'
 
 import * as activities from '../activities'
-import { ResultS3Upload } from 'types/s3'
+import { ResultS3Upload } from '../types/s3'
 
 // Configure timeouts and retry policies related to CSV and S3.
 const { buildAndUploadOrganizationsCSV, getPresignedUrl } = proxyActivities<typeof activities>({
