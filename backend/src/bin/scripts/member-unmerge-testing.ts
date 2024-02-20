@@ -100,8 +100,7 @@ if (parameters.help || !parameters.primaryId || !parameters.secondaryId) {
 
     const tenantId = secondaryMemberIdentities[0].tenantId
 
-    const apiBearerToken =
-      ''
+    const apiBearerToken = ''
 
     // make put axios request to http://localhost:8080/tenant/{{tenantId}}/member/${parameters.primaryId}/merge
     // with body { memberToMerge: parameters.secondaryId }
