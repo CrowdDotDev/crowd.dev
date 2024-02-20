@@ -52,7 +52,7 @@ export default {
   actions: {
     async doInit({ commit, rootGetters }) {
       if (
-        !rootGetters['auth/signedIn']
+        !AuthService.getToken()
         || !AuthService.getTenantId()
       ) {
         return;

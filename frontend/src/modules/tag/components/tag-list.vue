@@ -27,7 +27,6 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';

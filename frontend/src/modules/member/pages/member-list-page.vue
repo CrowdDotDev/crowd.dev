@@ -117,9 +117,9 @@ import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const router = useRouter();
 
@@ -135,8 +135,8 @@ const membersToMergeCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
 const { listByPlatform } = mapGetters('integration');
-  const authStore = useAuthStore();
-  const { user, tenant } = storeToRefs(authStore);
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const memberFilter = ref<CrFilter | null>(null);
 

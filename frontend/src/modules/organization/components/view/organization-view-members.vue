@@ -83,7 +83,6 @@
 
 <script setup>
 import isEqual from 'lodash/isEqual';
-import { useStore } from 'vuex';
 import {
   reactive,
   ref,
@@ -107,7 +106,6 @@ const SearchIcon = h(
   [],
 );
 
-const store = useStore();
 const route = useRoute();
 
 const lsSegmentsStore = useLfSegmentsStore();

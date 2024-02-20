@@ -76,7 +76,6 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRouter } from 'vue-router';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';

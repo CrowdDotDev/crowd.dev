@@ -72,9 +72,9 @@ import { mapState, mapGetters, mapActions } from 'vuex';
 import ReportShareButton from '@/modules/report/components/report-share-button.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import ReportGridLayout from '../components/report-grid-layout.vue';
 import ReportDropdown from '../components/report-dropdown.vue';
-import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
   name: 'AppReportViewPage',
@@ -136,7 +136,7 @@ export default {
     await this.getCubeToken();
 
     if (this.tenantId) {
-      AuthService.setTenant(this.tenantId)
+      AuthService.setTenant(this.tenantId);
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,

@@ -98,7 +98,6 @@ import { computed, ref } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
@@ -112,7 +111,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
-const { doRefreshCurrentUser } = mapActions('auth');
+const { getUser } = authStore;
 
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
@@ -238,7 +237,7 @@ const handleDoExport = async () => {
       offset: null,
     });
 
-    await doRefreshCurrentUser(null);
+    await getUser();
 
     Message.success(
       'CSV download link will be sent to your e-mail',

@@ -193,7 +193,7 @@
 </template>
 
 <script setup lang="ts">
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
@@ -209,9 +209,9 @@ import {
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
-import { Member } from '../types/Member';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { Member } from '../types/Member';
 
 enum Actions {
   DELETE_CONTACT = 'deleteContact',
@@ -234,8 +234,8 @@ const props = defineProps<{
 const store = useStore();
 const route = useRoute();
 
-  const authStore = useAuthStore();
-  const { user, tenant } = storeToRefs(authStore);
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
 
 const memberStore = useMemberStore();

@@ -65,7 +65,6 @@
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRoute, useRouter } from 'vue-router';
 import { OrganizationPermissions } from '@/modules/organization/organization-permissions';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';

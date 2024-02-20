@@ -32,7 +32,7 @@ export default async function ({
     return;
   }
   const authStore = useAuthStore();
-  const {ensureLoaded} = authStore;
+  const { ensureLoaded } = authStore;
   const { user, tenant } = storeToRefs(authStore);
   await ensureLoaded();
 
@@ -41,7 +41,6 @@ export default async function ({
     user.value,
   );
 
-  // Temporary fix
   if (
     to.meta.permission
     && (!permissionChecker.match(to.meta.permission))

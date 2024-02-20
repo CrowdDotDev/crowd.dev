@@ -155,7 +155,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -165,12 +164,11 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 import { Organization } from '../types/Organization';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { tenantMenu } from '@/modules/layout/config/menu';
 
 enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',
@@ -207,8 +205,8 @@ const isDeleteLockedForSampleData = computed(
 );
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-    tenant.value,
-    user.value,
+  tenant.value,
+  user.value,
 )?.mergeOrganizations);
 
 const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;

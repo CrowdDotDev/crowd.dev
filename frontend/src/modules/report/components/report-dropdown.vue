@@ -82,7 +82,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions } from 'vuex';
 import Message from '@/shared/message/message';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import { ReportPermissions } from '@/modules/report/report-permissions';

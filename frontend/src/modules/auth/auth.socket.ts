@@ -27,6 +27,7 @@ const SocketEvents = {
 export const connectSocket = (token) => {
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);
+  const { getUser } = authStore;
   if (socketIoClient && socketIoClient.connected) {
     socketIoClient.disconnect();
   }
@@ -72,7 +73,7 @@ export const connectSocket = (token) => {
         parsed = JSON.parse(data);
       }
 
-      await store.dispatch('auth/doRefreshCurrentUser');
+      await getUser();
 
       Message.success(
         `Successfully upgraded to ${parsed.plan} plan`,
@@ -86,7 +87,7 @@ export const connectSocket = (token) => {
       parsed = JSON.parse(parsed);
     }
 
-    await store.dispatch('auth/doRefreshCurrentUser');
+    await getUser();
 
     const updatedTenant = user.value.tenants.find(
       (tenant) => tenant.tenantId === parsed.tenantId,

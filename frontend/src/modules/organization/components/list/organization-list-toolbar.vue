@@ -91,9 +91,6 @@
 <script setup>
 import pluralize from 'pluralize';
 import { computed } from 'vue';
-import {
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -102,9 +99,9 @@ import Errors from '@/shared/error/errors';
 import { Excel } from '@/shared/excel/excel';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   pagination: {
@@ -116,8 +113,8 @@ const props = defineProps({
   },
 });
 
-  const authStore = useAuthStore();
-  const { user, tenant } = storeToRefs(authStore);
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 const {

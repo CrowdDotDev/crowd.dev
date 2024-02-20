@@ -198,7 +198,6 @@ import AppDrawer from '@/shared/drawer/drawer.vue';
 import Message from '@/shared/message/message';
 import {
   mapActions,
-  mapGetters,
   mapState,
 } from '@/shared/vuex/vuex.helpers';
 import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms-drawers.vue';

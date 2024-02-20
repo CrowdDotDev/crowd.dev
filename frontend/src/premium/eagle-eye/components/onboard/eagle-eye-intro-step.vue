@@ -41,7 +41,6 @@
 import { defineEmits, computed } from 'vue';
 import { pageContent } from '@/modules/layout/layout-page-content';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 

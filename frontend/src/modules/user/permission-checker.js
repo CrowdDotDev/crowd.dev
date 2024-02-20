@@ -76,9 +76,7 @@ export class PermissionChecker {
         return false;
       }
 
-      return arg.some((role) => {
-        return this.currentUserRolesIds.includes(role)
-      });
+      return arg.some((role) => this.currentUserRolesIds.includes(role));
     }
 
     return this.currentUserRolesIds.includes(arg);

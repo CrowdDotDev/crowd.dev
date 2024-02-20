@@ -28,13 +28,10 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import {
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
-import { OrganizationPermissions } from '../organization-permissions';
-import AppOrganizationDropdownContent from './organization-dropdown-content.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { OrganizationPermissions } from '../organization-permissions';
+import AppOrganizationDropdownContent from './organization-dropdown-content.vue';
 
 defineProps({
   organization: {
@@ -56,8 +53,8 @@ const emit = defineEmits([
   'closeDropdown',
 ]);
 
-  const authStore = useAuthStore();
-  const { user, tenant } = storeToRefs(authStore);
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const dropdown = ref();
 

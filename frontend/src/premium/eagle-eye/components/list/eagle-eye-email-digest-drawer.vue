@@ -246,7 +246,6 @@ import moment from 'moment';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import {
   mapActions,
-  mapGetters,
   mapState,
 } from '@/shared/vuex/vuex.helpers';
 import Message from '@/shared/message/message';

@@ -14,7 +14,6 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
 import {
   defineProps, computed, ref, onMounted,
 } from 'vue';
@@ -38,7 +37,6 @@ const props = defineProps({
     default: () => {},
   },
 });
-const store = useStore();
 const drawerVisible = ref(false);
 
 onMounted(() => {

@@ -61,6 +61,8 @@ import Errors from '@/shared/error/errors';
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const emit = defineEmits(['onUpdate', 'edit']);
 const props = defineProps({

@@ -287,7 +287,7 @@ export default {
   async created() {
     this.loading = true;
     if (this.tenantId) {
-      AuthService.setTenant(this.tenantId)
+      AuthService.setTenant(this.tenantId);
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,

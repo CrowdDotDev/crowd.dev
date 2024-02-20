@@ -21,7 +21,7 @@ export default {
     { keepPagination = false, resetStorage = false },
   ) {
     const authStore = useAuthStore();
-    const {user, tenant} = storeToRefs(authStore);
+    const { user, tenant } = storeToRefs(authStore);
     const activeView = getters.activeView.id;
     let list = [];
     let count = 0;
@@ -244,7 +244,7 @@ export default {
 
     // Update posts with new actions in local storage
     const authStore = useAuthStore();
-    const {user, tenant} = storeToRefs(authStore);
+    const { user, tenant } = storeToRefs(authStore);
 
     setResultsInStorage({
       posts: state.views.feed.list.posts,
@@ -290,7 +290,7 @@ export default {
 
     // Update posts with new actions in local storage
     const authStore = useAuthStore();
-    const {user, tenant} = storeToRefs(authStore);
+    const { user, tenant } = storeToRefs(authStore);
 
     setResultsInStorage({
       posts: state.views.feed.list.posts,
@@ -333,7 +333,7 @@ export default {
         }).then((response) => {
           const activeView = getters.activeView.id;
           const authStore = useAuthStore();
-          const {user, tenant} = storeToRefs(authStore);
+          const { user, tenant } = storeToRefs(authStore);
 
           commit('UPDATE_POST', {
             activeView,
@@ -365,11 +365,10 @@ export default {
     { data, fetchNewResults = true },
   ) {
     commit('UPDATE_EAGLE_EYE_SETTINGS_STARTED');
+    const { getUser } = useAuthStore();
     return EagleEyeService.updateSettings(data)
       .then(() => {
-        dispatch('auth/doRefreshCurrentUser', null, {
-          root: true,
-        }).then(() => {
+        getUser().then(() => {
           commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS');
 
           if (fetchNewResults) {

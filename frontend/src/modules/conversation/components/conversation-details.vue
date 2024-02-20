@@ -155,7 +155,6 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
 import { mapState, storeToRefs } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
@@ -171,8 +170,8 @@ import Message from '@/shared/message/message';
 import config from '@/config';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { ConversationPermissions } from '../conversation-permissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
   name: 'AppConversationDetails',

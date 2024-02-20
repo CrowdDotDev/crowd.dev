@@ -370,11 +370,10 @@ import moment from 'moment';
 import { formatDateToTimeAgo } from '@/utils/date';
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
 import { withHttp } from '@/utils/string';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
-import { EagleEyeService } from '../../eagle-eye-service';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({
   result: {

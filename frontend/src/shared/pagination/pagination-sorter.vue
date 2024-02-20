@@ -44,7 +44,6 @@ import { computed, defineProps, defineEmits } from 'vue';
 import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
 import Message from '@/shared/message/message';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 
@@ -95,7 +94,7 @@ const props = defineProps({
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
-const { doRefreshCurrentUser } = mapActions('auth');
+const { getUser } = authStore;
 
 const model = computed({
   get() {
@@ -195,7 +194,7 @@ const doExport = async () => {
 
     await props.export();
 
-    await doRefreshCurrentUser(null);
+    await getUser();
 
     Message.success(
       'CSV download link will be sent to your e-mail',

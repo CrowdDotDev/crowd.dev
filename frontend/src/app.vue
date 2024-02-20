@@ -23,7 +23,6 @@ import AppResizePage from '@/modules/layout/pages/resize-page.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
 import { Auth0Service } from '@/modules/auth/services/auth0.service';
-import identify from '@/shared/monitoring/identify';
 import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';

@@ -130,7 +130,6 @@ import { ref, computed } from 'vue';
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
 import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-card.vue';
 import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
