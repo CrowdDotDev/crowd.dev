@@ -7,10 +7,7 @@ export class TagService {
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/tag/${id}`,
-      {
-        ...data,
-        excludeSegments: true,
-      },
+      data,
     );
 
     return response.data;
@@ -19,7 +16,6 @@ export class TagService {
   static async destroyAll(ids) {
     const params = {
       ids,
-      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
@@ -39,10 +35,7 @@ export class TagService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/tag`,
-      {
-        ...data,
-        excludeSegments: true,
-      },
+      data,
     );
 
     return response.data;
@@ -53,11 +46,6 @@ export class TagService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag/${id}`,
-      {
-        params: {
-          excludeSegments: true,
-        },
-      },
     );
 
     return response.data;
@@ -95,7 +83,6 @@ export class TagService {
     const params = {
       query,
       limit,
-      excludeSegments: true,
     };
 
     const tenantId = AuthCurrentTenant.get();
