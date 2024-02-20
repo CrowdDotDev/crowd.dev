@@ -9,6 +9,8 @@ import {
   IOrganization,
   IOrganizationIdentity,
   IOrganizationMergeSuggestion,
+  MergeActionState,
+  MergeActionType,
   OpenSearchIndex,
   SegmentData,
   SegmentProjectGroupNestedData,
@@ -25,7 +27,6 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import SegmentRepository from './segmentRepository'
-import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 
 const { Op } = Sequelize

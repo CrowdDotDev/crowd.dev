@@ -325,6 +325,8 @@ export class MemberSyncService {
     const allMemberIds = Object.keys(memberSegmentCouples)
     const totalMemberIds = allMemberIds.length
 
+    const successfullySyncedMembers = []
+
     const processSegmentsStream = async (databaseStream): Promise<void> => {
       const results = await Promise.all(databaseStream.map((s) => s.promise))
 
@@ -440,10 +442,13 @@ export class MemberSyncService {
             documentsIndexed += syncStream.length
           }
         }
+        successfullySyncedMembers.push(memberId)
       }
     }
 
-    await this.memberRepo.markSynced(memberIds)
+    if (successfullySyncedMembers.length > 0) {
+      await this.memberRepo.markSynced(successfullySyncedMembers)
+    }
 
     return {
       membersSynced: memberIds.length,
