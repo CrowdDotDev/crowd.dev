@@ -8,20 +8,20 @@ import track from '../../segment/track'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/member/export
- * @summary Export members as CSV
- * @tag Members
+ * POST /tenant/{tenantId}/organization/export
+ * @summary Export organizations as CSV
+ * @tag Organizations
  * @security Bearer
- * @description Export members. It accepts filters, sorting options and pagination.
+ * @description Export organizations. It accepts filters, sorting options and pagination.
  * @pathParam {string} tenantId - Your workspace/tenant ID
- * @bodyContent {MemberQuery} application/json
+ * @bodyContent {OrganizationQuery} application/json
  * @response 200 - Ok
  * @response 401 - Unauthorized
  * @response 404 - Not found
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.memberRead)
+  new PermissionChecker(req).validateHas(Permissions.values.organizationRead)
 
   const csvCountCache = new RedisCache(FeatureFlagRedisKey.CSV_EXPORT_COUNT, req.redis, req.log)
 
@@ -42,9 +42,9 @@ export default async (req, res) => {
     )
   }
 
-  await req.temporal.workflow.start('exportMembersToCSV', {
+  await req.temporal.workflow.start('exportOrganizationsToCSV', {
     taskQueue: 'exports',
-    workflowId: `${TemporalWorkflowId.MEMBERS_CSV_EXPORTS}/${
+    workflowId: `${TemporalWorkflowId.ORGANIZATIONS_CSV_EXPORTS}/${
       req.currentTenant.id
     }/${generateUUIDv4()}`,
     retry: {
@@ -65,7 +65,7 @@ export default async (req, res) => {
 
   identifyTenant(req)
 
-  track('Member CSV Export', {}, { ...req.body }, req.currentUser.id)
+  track('Organization CSV Export', {}, { ...req.body }, req.currentUser.id)
 
   await req.responseHandler.success(req, res, {})
 }
