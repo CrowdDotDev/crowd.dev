@@ -101,7 +101,7 @@ if (parameters.help || !parameters.primaryId || !parameters.secondaryId) {
     const tenantId = secondaryMemberIdentities[0].tenantId
 
     const apiBearerToken =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1NThlYmNmLWMxYjQtNGFiMC05OTBhLTYyZDgzZDFjNjU4NiIsImlhdCI6MTcwNzg5ODkxMSwiZXhwIjo0ODYzNjU4OTExfQ.SudDCdndE1lXN_laDQVpPvTAW7fFnxERTBMN0G5Dczg'
+      ''
 
     // make put axios request to http://localhost:8080/tenant/{{tenantId}}/member/${parameters.primaryId}/merge
     // with body { memberToMerge: parameters.secondaryId }

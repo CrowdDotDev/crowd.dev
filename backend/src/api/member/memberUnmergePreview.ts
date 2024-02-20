@@ -7,7 +7,5 @@ export default async (req, res) => {
 
   const payload = await new MemberService(req).unmergePreview(req.params.memberId, req.body)
 
-  // const status = payload.status || 200
-
   await req.responseHandler.success(req, res, payload, 200)
 }
