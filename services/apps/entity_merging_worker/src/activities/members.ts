@@ -111,7 +111,6 @@ export async function recalculateActivityAffiliations(
 }
 
 export async function syncMember(memberId: string): Promise<void> {
-  console.log('In sync member!')
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })

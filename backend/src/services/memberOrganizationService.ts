@@ -1,4 +1,3 @@
-/* eslint-disable no-continue */
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
