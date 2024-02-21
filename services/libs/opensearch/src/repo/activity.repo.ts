@@ -72,7 +72,7 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
       `
       select id from activities a
       left join indexed_entities ie on 
-        a.id = ie.entity_id and ie.tenant_id = a."tenantId"
+        a.id = ie.entity_id
       where a."tenantId" = $(tenantId) and a."deletedAt" is null and ie.entity_id is null
       limit ${perPage}
       `,
