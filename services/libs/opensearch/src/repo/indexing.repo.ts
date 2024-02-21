@@ -20,19 +20,18 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
     attemptId: string,
     tenantId: string,
   ): Promise<void> {
-    const objects = ids.map((id) => {
-      return {
-        entity_id: id,
-        tenant_id: tenantId,
-        attempt_id: attemptId,
-      }
-    })
+    if (ids.length > 0) {
+      const values = ids.map((id) => `('${id}', '${attemptId}', '${tenantId}')`)
+      const query = `
+        insert into indexed_entities(id, attempt_id, tenant_id)
+        ${values.join(',\n')}
+        on conflict (entity_id, attempt_id, tenant_id)
+        do update set indexed_at = now()
+      `
 
-    const prepared = RepositoryBase.prepareBatch(objects, this.indexedEntitiesColumnSet)
-    const query = this.dbInstance.helpers.update(prepared, this.indexedEntitiesColumnSet)
+      console.log('QUERY', query)
 
-    console.log('QUERY', query)
-
-    await this.db().none(query)
+      await this.db().none(query)
+    }
   }
 }
