@@ -706,6 +706,7 @@
           @find-github="isFindGithubDrawerOpen = selectedActionMember"
           @merge="isMergeDialogOpen = selectedActionMember"
           @close-dropdown="closeDropdown"
+          :hide-unmerge="true"
         />
       </div>
     </el-popover>

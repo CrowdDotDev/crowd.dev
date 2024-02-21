@@ -1,5 +1,5 @@
 <template>
-  <template v-if="identities.length > 1">
+  <template v-if="identities.length > 1 && !props.hideUnmerge">
     <button
         class="h-10 el-dropdown-menu__item w-full"
         :disabled="isEditLockedForSampleData"
@@ -234,6 +234,7 @@ const props = defineProps<{
   member: Member;
   hideMerge: boolean;
   hideEdit: boolean;
+  hideUnmerge: boolean;
 }>();
 
 const store = useStore();
