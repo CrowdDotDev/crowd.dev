@@ -142,18 +142,10 @@ export class ActivitySyncService {
     let count = 0
     const now = new Date()
 
-    let activityIds = await logExecutionTimeV2(
-      async () => this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize),
-      this.log,
-      'getTenantActivitiesForSync',
-    )
+    let activityIds = await this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize)
 
     while (activityIds.length > 0) {
-      count += await logExecutionTimeV2(
-        async () => this.syncActivities(activityIds),
-        this.log,
-        'syncActivities',
-      )
+      count += await this.syncActivities(activityIds)
 
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
       this.log.info(
@@ -163,11 +155,7 @@ export class ActivitySyncService {
         )} activities/second!`,
       )
 
-      activityIds = await logExecutionTimeV2(
-        async () => this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize),
-        this.log,
-        'getTenantActivitiesForSync',
-      )
+      activityIds = await this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize)
     }
 
     this.log.info({ tenantId }, `Synced total of ${count} activities!`)
@@ -218,41 +206,26 @@ export class ActivitySyncService {
   public async syncActivities(activityIds: string[]): Promise<number> {
     this.log.debug({ activityIds }, 'Syncing activities!')
 
-    const activities = await logExecutionTimeV2(
-      async () => this.activityRepo.getActivityData(activityIds),
-      this.log,
-      'getActivityData',
-    )
+    const activities = await this.activityRepo.getActivityData(activityIds)
 
     if (activities.length > 0) {
-      await logExecutionTimeV2(
-        async () =>
-          this.openSearchService.bulkIndex(
-            OpenSearchIndex.ACTIVITIES,
-            activities.map((m) => {
-              return {
-                id: m.id,
-                body: ActivitySyncService.prefixData(m),
-              }
-            }),
-          ),
-        this.log,
-        'bulkIndex',
-      )
-
-      await logExecutionTimeV2(
-        async () =>
-          this.indexingRepo.markEntitiesIndexed(
-            activities.map((a) => {
-              return {
-                id: a.id,
-                tenantId: a.tenantId,
-              }
-            }),
-          ),
-        this.log,
-        'markEntitiesIndexed',
-      )
+      await this.openSearchService.bulkIndex(
+        OpenSearchIndex.ACTIVITIES,
+        activities.map((m) => {
+          return {
+            id: m.id,
+            body: ActivitySyncService.prefixData(m),
+          }
+        }),
+      ),
+        await this.indexingRepo.markEntitiesIndexed(
+          activities.map((a) => {
+            return {
+              id: a.id,
+              tenantId: a.tenantId,
+            }
+          }),
+        )
     }
 
     return activities.length
