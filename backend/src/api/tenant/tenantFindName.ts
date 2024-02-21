@@ -4,7 +4,7 @@ import TenantService from '../../services/tenantService'
 
 export default async (req, res) => {
   // This endpoint is unauthenticated on purpose, but public reprots.
-  const payload = await new TenantService(req).findById(req.params.id)
+  const payload = await new TenantService(req).findById(req.params.tenantId)
 
   if (payload) {
     if (req.currentUser) {
