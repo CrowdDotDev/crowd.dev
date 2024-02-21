@@ -13,7 +13,7 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
       const query = `
         insert into indexed_entities(type, entity_id, tenant_id)
         values ${values.join(',\n')}
-        on conflict
+        on conflict (type, entity_id)
         do update set indexed_at = now()
       `
       await this.db().none(query)
