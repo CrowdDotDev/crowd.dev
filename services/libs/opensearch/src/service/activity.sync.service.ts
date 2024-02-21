@@ -1,12 +1,13 @@
+import { trimUtf8ToMaxByteLength } from '@crowd/common'
+import { DbStore } from '@crowd/database'
+import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import { IDbActivitySyncData } from '../repo/activity.data'
 import { ActivityRepository } from '../repo/activity.repo'
+import { IndexingRepository } from '../repo/indexing.repo'
 import { OpenSearchIndex } from '../types'
-import { generateUUIDv1, trimUtf8ToMaxByteLength } from '@crowd/common'
-import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
-import { IndexingRepository } from '../repo/indexing.repo'
+import { IndexedEntityType } from '../repo/indexing.data'
 
 export class ActivitySyncService {
   private static MAX_BYTE_LENGTH = 25000
@@ -219,6 +220,7 @@ export class ActivitySyncService {
         }),
       ),
         await this.indexingRepo.markEntitiesIndexed(
+          IndexedEntityType.ACTIVITY,
           activities.map((a) => {
             return {
               id: a.id,
