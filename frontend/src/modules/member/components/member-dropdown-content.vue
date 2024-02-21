@@ -232,9 +232,9 @@ enum Actions {
 const emit = defineEmits<{(e: 'merge'): void, (e: 'unmerge'): void, (e: 'closeDropdown'): void, (e: 'findGithub'): void }>();
 const props = defineProps<{
   member: Member;
-  hideMerge: boolean;
-  hideEdit: boolean;
-  hideUnmerge: boolean;
+  hideMerge?: boolean;
+  hideEdit?: boolean;
+  hideUnmerge?: boolean;
 }>();
 
 const store = useStore();
