@@ -19,24 +19,28 @@ export const logExecutionTime = async <T>(
 }
 
 export const logExecutionTimeV2 = async <T>(
-  process: () => Promise<T>,
+  toExecute: () => Promise<T>,
   log: Logger,
   name: string,
 ): Promise<T> => {
-  const start = performance.now()
+  if (process.env['LOG_EXEC_TIME_ENABLED']) {
+    const start = performance.now()
 
-  const end = () => {
-    const end = performance.now()
-    const duration = end - start
-    const durationInSeconds = duration / 1000
-    return durationInSeconds.toFixed(2)
-  }
-  try {
-    const result = await process()
-    log.info(`Process ${name} took ${end()} seconds!`)
-    return result
-  } catch (e) {
-    log.info(`Process ${name} failed after ${end()} seconds!`)
-    throw e
+    const end = () => {
+      const end = performance.now()
+      const duration = end - start
+      const durationInSeconds = duration / 1000
+      return durationInSeconds.toFixed(2)
+    }
+    try {
+      const result = await toExecute()
+      log.info(`Process ${name} took ${end()} seconds!`)
+      return result
+    } catch (e) {
+      log.info(`Process ${name} failed after ${end()} seconds!`)
+      throw e
+    }
+  } else {
+    return toExecute()
   }
 }
