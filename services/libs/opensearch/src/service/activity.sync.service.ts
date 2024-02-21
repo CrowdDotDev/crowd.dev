@@ -3,7 +3,7 @@ import { ActivityRepository } from '../repo/activity.repo'
 import { OpenSearchIndex } from '../types'
 import { generateUUIDv1, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -148,36 +148,41 @@ export class ActivitySyncService {
     let count = 0
     const now = new Date()
 
-    await logExecutionTime(
-      async () => {
-        let activityIds = await this.activityRepo.getTenantActivitiesForSync(
-          actualAttemptId,
-          tenantId,
-          batchSize,
-        )
-
-        while (activityIds.length > 0) {
-          count += await this.syncActivities(activityIds)
-          await this.indexingRepo.markEntitiesIndexed(activityIds, actualAttemptId, tenantId)
-
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { tenantId },
-            `Synced ${count} activities! Speed: ${Math.round(
-              count / diffInSeconds,
-            )} activities/second!`,
-          )
-
-          activityIds = await this.activityRepo.getTenantActivitiesForSync(
-            actualAttemptId,
-            tenantId,
-            batchSize,
-          )
-        }
-      },
+    let activityIds = await logExecutionTimeV2(
+      async () =>
+        this.activityRepo.getTenantActivitiesForSync(actualAttemptId, tenantId, batchSize),
       this.log,
-      'sync-tenant-activities',
+      'getTenantActivitiesForSync',
     )
+
+    while (activityIds.length > 0) {
+      count += await logExecutionTimeV2(
+        async () => this.syncActivities(activityIds),
+        this.log,
+        'syncActivities',
+      )
+
+      await logExecutionTimeV2(
+        async () => this.indexingRepo.markEntitiesIndexed(activityIds, actualAttemptId, tenantId),
+        this.log,
+        'markEntitiesIndexed',
+      )
+
+      const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+      this.log.info(
+        { tenantId },
+        `Synced ${count} activities! Speed: ${Math.round(
+          count / diffInSeconds,
+        )} activities/second!`,
+      )
+
+      activityIds = await logExecutionTimeV2(
+        async () =>
+          this.activityRepo.getTenantActivitiesForSync(actualAttemptId, tenantId, batchSize),
+        this.log,
+        'getTenantActivitiesForSync',
+      )
+    }
 
     this.log.info({ tenantId }, `Synced total of ${count} activities!`)
   }
@@ -227,20 +232,33 @@ export class ActivitySyncService {
   public async syncActivities(activityIds: string[]): Promise<number> {
     this.log.debug({ activityIds }, 'Syncing activities!')
 
-    const activities = await this.activityRepo.getActivityData(activityIds)
+    const activities = await logExecutionTimeV2(
+      async () => this.activityRepo.getActivityData(activityIds),
+      this.log,
+      'getActivityData',
+    )
 
     if (activities.length > 0) {
-      await this.openSearchService.bulkIndex(
-        OpenSearchIndex.ACTIVITIES,
-        activities.map((m) => {
-          return {
-            id: m.id,
-            body: ActivitySyncService.prefixData(m),
-          }
-        }),
+      await logExecutionTimeV2(
+        async () =>
+          this.openSearchService.bulkIndex(
+            OpenSearchIndex.ACTIVITIES,
+            activities.map((m) => {
+              return {
+                id: m.id,
+                body: ActivitySyncService.prefixData(m),
+              }
+            }),
+          ),
+        this.log,
+        'bulkIndex',
       )
 
-      await this.activityRepo.markSynced(activities.map((m) => m.id))
+      await logExecutionTimeV2(
+        async () => this.activityRepo.markSynced(activities.map((m) => m.id)),
+        this.log,
+        'markSynced',
+      )
     }
 
     return activities.length
