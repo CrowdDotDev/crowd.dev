@@ -26,6 +26,7 @@
         :member="props.member"
         :hide-merge="true"
         :hide-edit="true"
+        @unmerge="unmerge()"
         @find-github="isFindGithubDrawerOpen = member"
       >
         <template #trigger>
@@ -43,6 +44,10 @@
   <app-member-merge-dialog
     v-if="isMergeDialogOpen"
     v-model="isMergeDialogOpen"
+  />
+  <app-member-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
   />
   <app-member-merge-suggestions-dialog
     v-if="isMergeSuggestionsDialogOpen"
@@ -65,6 +70,7 @@ import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-g
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
+import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 
 const props = defineProps({
   member: {
@@ -77,6 +83,7 @@ const router = useRouter();
 const { currentUser, currentTenant } = mapGetters('auth');
 
 const isMergeDialogOpen = ref(null);
+const isUnmergeDialogOpen = ref(null);
 const isMergeSuggestionsDialogOpen = ref(false);
 const isFindGithubDrawerOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
@@ -111,6 +118,13 @@ const mergeSuggestions = () => {
     return;
   }
   isMergeSuggestionsDialogOpen.value = true;
+};
+
+const unmerge = () => {
+  if (isEditLockedForSampleData.value) {
+    return;
+  }
+  isUnmergeDialogOpen.value = props.member;
 };
 
 const merge = () => {

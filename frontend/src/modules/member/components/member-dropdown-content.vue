@@ -1,4 +1,18 @@
 <template>
+  <button
+      class="h-10 el-dropdown-menu__item w-full"
+      :disabled="isEditLockedForSampleData"
+      type="button"
+      @click="
+      handleCommand({
+        action: Actions.UNMERGE_IDENTITY,
+        member,
+      })
+    "
+  >
+    <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+  </button>
+  <el-divider class="border-gray-200" />
   <router-link
     v-if="!props.hideEdit"
     :to="{
@@ -210,10 +224,11 @@ enum Actions {
   MARK_CONTACT_AS_BOT = 'markContactAsBot',
   UNMARK_CONTACT_AS_BOT = 'unmarkContactAsBot',
   MERGE_CONTACT = 'mergeContact',
+  UNMERGE_IDENTITY = 'unmergeIdentity',
   FIND_GITHUB = 'findGithub'
 }
 
-const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void, (e: 'findGithub'): void }>();
+const emit = defineEmits<{(e: 'merge'): void, (e: 'unmerge'): void, (e: 'closeDropdown'): void, (e: 'findGithub'): void }>();
 const props = defineProps<{
   member: Member;
   hideMerge: boolean;
@@ -421,6 +436,14 @@ const handleCommand = async (command: {
   if (command.action === Actions.MERGE_CONTACT) {
     emit('closeDropdown');
     emit('merge');
+
+    return;
+  }
+
+  // Merge contact
+  if (command.action === Actions.UNMERGE_IDENTITY) {
+    emit('closeDropdown');
+    emit('unmerge');
 
     return;
   }
