@@ -28,9 +28,6 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
         on conflict (entity_id, attempt_id, tenant_id)
         do update set indexed_at = now()
       `
-
-      console.log('QUERY', query)
-
       await this.db().none(query)
     }
   }
