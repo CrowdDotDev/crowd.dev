@@ -31,6 +31,8 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
     const prepared = RepositoryBase.prepareBatch(objects, this.indexedEntitiesColumnSet)
     const query = this.dbInstance.helpers.update(prepared, this.indexedEntitiesColumnSet)
 
+    console.log('QUERY', query)
+
     await this.db().none(query)
   }
 }
