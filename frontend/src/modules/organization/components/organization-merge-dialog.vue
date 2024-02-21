@@ -94,7 +94,7 @@ const organizationStore = useOrganizationStore();
 const originalOrganizationPrimary = ref(true);
 const sendingMerge = ref(false);
 
-const organizationToMerge = ref();
+const organizationToMerge = ref(null);
 
 const isModalOpen = computed({
   get() {
