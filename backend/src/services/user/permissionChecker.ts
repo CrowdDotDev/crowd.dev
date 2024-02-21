@@ -89,18 +89,23 @@ export default class PermissionChecker {
     assert(permission, 'permission is required')
 
     if (!this.currentUser) {
-      return false
+      throw new Error403(this.language, 'no currentUser')
     }
 
     if (!this.isEmailVerified) {
-      return false
+      throw new Error403(this.language, 'email not verified')
     }
 
     if (!this.hasPlanPermission(permission)) {
-      return false
+      throw new Error403(this.language, 'not allowed on this plan')
     }
 
-    return this.hasRolePermission(permission)
+    const allowedRoles = this.findAllowedRoles(permission)
+    if (lodash.isEqual(allowedRoles, [roles.projectAdmin])) {
+      this.validateSegmentPermission()
+    }
+
+    return true
   }
 
   /**
@@ -112,21 +117,33 @@ export default class PermissionChecker {
   }
 
   /**
-   * Checks if the current user roles allows the permission.
+   * Checks if the user has any of the allowed roles for the permission.
    */
-  private hasRolePermission(permission) {
-    return this.currentUserRolesIds.some((role) => {
-      if (!permission.allowedRoles.some((allowedRole) => allowedRole === role)) {
-        // First, make sure the role is even allowed
-        return false
-      }
-      if (role !== roles.projectAdmin) {
-        // Second, if the role is not project admin, we don't have to do extra checks
-        return true
-      }
-      // Third, for project admin, we need to check if the user is admin of at least one segment
-      return this.currentSegments.some((segment) => this.adminSegments.includes(segment.id))
-    })
+  private findAllowedRoles(permission) {
+    const allowedRoles = this.currentUserRolesIds.filter((role) =>
+      permission.allowedRoles.some((allowedRole) => allowedRole === role),
+    )
+
+    if (allowedRoles.length === 0) {
+      throw new Error403(
+        this.language,
+        `not allowed by role. Current: ${this.currentUserRolesIds}. Allowed: ${permission.allowedRoles}`,
+      )
+    }
+
+    return allowedRoles
+  }
+
+  private validateSegmentPermission() {
+    const allowed = this.currentSegments.some((segment) => this.adminSegments.includes(segment.id))
+    if (!allowed) {
+      throw new Error403(
+        this.language,
+        'not allowed by segment. ' +
+          `Request segments: ${this.currentSegments.map((s) => s.id)}. ` +
+          `User admin segments: ${this.adminSegments}`,
+      )
+    }
   }
 
   /**
