@@ -27,23 +27,23 @@
       <slot name="header">
         <div class="h-13 flex justify-between items-start">
           <div
-              v-if="props.isPreview"
-              class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+            v-if="props.isPreview"
+            class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
           >
             Preview
           </div>
           <div
-              v-else-if="props.isPrimary"
-              class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+            v-else-if="props.isPrimary"
+            class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
           >
             Primary contact
           </div>
           <button
-              v-else
-              :disabled="isEditLockedForSampleData"
-              type="button"
-              class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
-              @click="emit('makePrimary')"
+            v-else
+            :disabled="isEditLockedForSampleData"
+            type="button"
+            class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+            @click="emit('makePrimary')"
           >
             <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
             <span>Make primary</span>
@@ -115,7 +115,8 @@
           <p class="text-2xs font-medium text-gray-500 pb-1">
             Engagement level
           </p>
-          <app-community-engagement-level :member="member" />
+          <app-community-engagement-level v-if="member.reach?.total >= 0" :member="member" />
+          <span v-else class="text-2xs">-</span>
         </article>
         <article
           v-if="
@@ -133,7 +134,7 @@
         </article>
         <article
           v-if="
-            member.organizations.length || compareMember?.organizations.length
+            member.organizations?.length || compareMember?.organizations?.length
           "
           class="pb-4"
         >

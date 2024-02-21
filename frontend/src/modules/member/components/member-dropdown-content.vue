@@ -1,18 +1,19 @@
 <template>
-  <button
-      class="h-10 el-dropdown-menu__item w-full"
-      :disabled="isEditLockedForSampleData"
-      type="button"
-      @click="
-      handleCommand({
-        action: Actions.UNMERGE_IDENTITY,
-        member,
-      })
-    "
-  >
-    <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
-  </button>
-  <el-divider class="border-gray-200" />
+  <template v-if="identities.length > 1">
+    <button
+        class="h-10 el-dropdown-menu__item w-full"
+        :disabled="isEditLockedForSampleData"
+        type="button"
+        @click="handleCommand({
+          action: Actions.UNMERGE_IDENTITY,
+          member,
+        })"
+    >
+      <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+    </button>
+    <el-divider class="border-gray-200" />
+  </template>
+
   <router-link
     v-if="!props.hideEdit"
     :to="{
@@ -457,6 +458,8 @@ const handleCommand = async (command: {
 
   emit('closeDropdown');
 };
+
+const identities = computed(() => Object.values(props.member.username).flat());
 </script>
 
 <style lang="scss" scoped>

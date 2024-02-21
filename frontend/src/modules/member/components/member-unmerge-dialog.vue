@@ -16,6 +16,9 @@
         </el-button>
         <el-button
             class="btn btn--primary btn--md"
+            :disabled="!selectedIdentity || !preview"
+            @click="unmerge()"
+            :loading="unmerging"
         >
           Unmerge identity
         </el-button>
@@ -25,6 +28,7 @@
       <div class="p-6 relative border-t">
         <div class="flex -mx-3">
           <div class="w-1/2 px-3">
+            <!-- Loading preview -->
             <app-member-suggestions-details
               v-if="!preview && props.modelValue"
               :member="props.modelValue"
@@ -69,7 +73,45 @@
                   :member="preview.secondary"
                   :compare-member="props.modelValue"
               >
-                <template #action>
+                <template #header>
+                  <div class="h-13">
+                    <div class="flex justify-between items-start">
+                      <div
+                          class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
+                      >
+                        <i class="ri-link-unlink-m mr-1" />Unmerged contributor
+                      </div>
+                      <el-dropdown
+                          placement="bottom-end"
+                          trigger="click"
+                      >
+                        <button
+                            class="btn btn--link"
+                            type="button"
+                            @click.stop
+                        >
+                          Change identity
+                        </button>
+                        <template #dropdown>
+                          <template v-for="i of identities"
+                                    :key="`${i.platform}:${i.username}`">
+                            <el-dropdown-item
+                                v-if="`${i.platform}:${i.username}` !== selectedIdentity"
+                                :value="`${i.platform}:${i.username}`"
+                                :label="i.username"
+                                @click="fetchPreview(`${i.platform}:${i.username}`)"
+                            >
+                              <img class="h-5 w-5 mr-2"
+                                   v-if="platformDetails(i.platform)" :alt="platformDetails(i.platform)?.name" :src="platformDetails(i.platform)?.image" />
+                              <span>{{i.username}}</span>
+                            </el-dropdown-item>
+                          </template>
+
+                        </template>
+                      </el-dropdown>
+                    </div>
+                  </div>
+
                 </template>
               </app-member-suggestions-details>
             </div>
@@ -131,8 +173,10 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 
+const unmerging = ref(false);
 const fetchingPreview = ref(false);
 const preview = ref(null);
+const selectedIdentity = ref(null)
 
 const isModalOpen = computed({
   get() {
@@ -141,6 +185,7 @@ const isModalOpen = computed({
   set() {
     emit('update:modelValue', null);
     fetchingPreview.value = false;
+    selectedIdentity.value = null;
     preview.value = null;
   },
 });
@@ -164,9 +209,9 @@ const fetchPreview = (identity) => {
     return;
   }
 
+  selectedIdentity.value=identity;
   fetchingPreview.value = true;
 
-  console.log(identity);
   const [platform, username] = identity.split(':');
   MemberService.unmergePreview( props.modelValue?.id, platform, username)
     .then((res) => {
@@ -178,6 +223,31 @@ const fetchPreview = (identity) => {
     .finally(() => {
       fetchingPreview.value = false;
     });
+};
+
+const unmerge = () => {
+  if (unmerging.value) {
+    return;
+  }
+
+  unmerging.value = true;
+
+  MemberService.unmerge(props.modelValue?.id, preview.value)
+      .then(() => {
+        Message.info(
+            "We’re syncing all activities of the unmerged contributor. We will let you know once the process is completed.",
+            {
+              title: 'Contributors unmerging in progress',
+            },
+        );
+        emit('update:modelValue', null);
+      })
+      .catch((error) => {
+          Message.error('There was an error unmerging contact');
+      })
+      .finally(() => {
+        unmerging.value = false;
+      });
 };
 
 </script>

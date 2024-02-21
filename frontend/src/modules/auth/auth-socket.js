@@ -21,6 +21,7 @@ const SocketEvents = {
   tenantPlanUpgraded: 'tenant-plan-upgraded',
   bulkEnrichment: 'bulk-enrichment',
   orgMerge: 'org-merge',
+  memberUnmerge: 'member-unmerge',
 };
 
 export const connectSocket = (token) => {
@@ -61,6 +62,50 @@ export const connectSocket = (token) => {
       'integration/doFind',
       JSON.parse(data).integrationId,
     );
+  });
+
+  socketIoClient.on(SocketEvents.memberUnmerge, (data) => {
+    if(!data.success){
+      return;
+    }
+    console.info('Member unmerge done', data);
+    const {primaryDisplayName, secondaryDisplayName, primaryId, secondaryId} = data;
+
+    const primaryMember = h(
+      'router-link',
+      {
+        to: {
+          name: 'memberView',
+          params: { id: primaryId },
+        },
+        class: 'underlined',
+      },
+      primaryDisplayName,
+    );
+    const secondaryMember = h(
+      'router-link',
+      {
+        to: {
+          name: 'memberView',
+          params: { id: secondaryId },
+        },
+        class: 'underlined',
+      },
+      secondaryDisplayName,
+    );
+    const between = h(
+      'span',
+      {},
+      ' unmerged from ',
+    );
+    Message.closeAll();
+    Message.success(h(
+      'div',
+      {},
+      [secondaryMember, between, primaryMember],
+    ), {
+      title: `Contributors merged successfully`,
+    });
   });
 
   socketIoClient.on(
