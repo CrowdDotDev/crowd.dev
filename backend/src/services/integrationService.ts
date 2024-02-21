@@ -154,6 +154,31 @@ export default class IntegrationService {
 
     try {
       for (const id of ids) {
+        let integration
+        try {
+          integration = await this.findById(id)
+        } catch (err) {
+          throw new Error404()
+        }
+        // remove github remotes from git integration
+        if (integration.platform === PlatformType.GITHUB) {
+          let shouldUpdateGit: boolean
+          try {
+            await this.findByPlatform(PlatformType.GIT)
+            shouldUpdateGit = true
+          } catch (err) {
+            shouldUpdateGit = false
+          }
+
+          if (shouldUpdateGit) {
+            const gitRemotes = await this.gitGetRemotes()
+            await this.gitConnectOrUpdate({
+              remotes: gitRemotes.filter(
+                (remote) => !integration.settings.repos.map((r) => r.url).includes(remote),
+              ),
+            })
+          }
+        }
         await IntegrationRepository.destroy(id, {
           ...this.options,
           transaction,
@@ -320,21 +345,24 @@ export default class IntegrationService {
       const repos = await getInstalledRepositories(installToken)
       const githubOwner = IntegrationService.extractOwner(repos, this.options)
 
-      // TODO: I will do this later. For now they can add it manually.
-      // // If the git integration is configured, we add the repos to the git config
-      // let isGitintegrationConfigured
-      // try {
-      //   await this.findByPlatform(PlatformType.GIT)
-      //   isGitintegrationConfigured = true
-      // } catch (err) {
-      //   isGitintegrationConfigured = false
-      // }
-      // if (isGitintegrationConfigured) {
-      //   const gitRemotes = await this.gitGetRemotes()
-      //   await this.gitConnectOrUpdate({
-      //     remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
-      //   })
-      // }
+      // add the repos to the git integration
+      let isGitintegrationConfigured
+      try {
+        await this.findByPlatform(PlatformType.GIT)
+        isGitintegrationConfigured = true
+      } catch (err) {
+        isGitintegrationConfigured = false
+      }
+      if (isGitintegrationConfigured) {
+        const gitRemotes = await this.gitGetRemotes()
+        await this.gitConnectOrUpdate({
+          remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
+        })
+      } else {
+        await this.gitConnectOrUpdate({
+          remotes: repos.map((repo) => repo.cloneUrl),
+        })
+      }
       let orgAvatar
       try {
         const response = await request('GET /users/{user}', {
