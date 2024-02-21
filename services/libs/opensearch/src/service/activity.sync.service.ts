@@ -137,20 +137,13 @@ export class ActivitySyncService {
     this.log.warn({ tenantId }, `Processed total of ${processed} members while cleaning up tenant!`)
   }
 
-  public async syncTenantActivities(
-    tenantId: string,
-    attemptId?: string,
-    batchSize = 200,
-  ): Promise<void> {
-    const actualAttemptId = attemptId ? attemptId : generateUUIDv1()
-
+  public async syncTenantActivities(tenantId: string, batchSize = 200): Promise<void> {
     this.log.debug({ tenantId }, 'Syncing all tenant activities!')
     let count = 0
     const now = new Date()
 
     let activityIds = await logExecutionTimeV2(
-      async () =>
-        this.activityRepo.getTenantActivitiesForSync(actualAttemptId, tenantId, batchSize),
+      async () => this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize),
       this.log,
       'getTenantActivitiesForSync',
     )
@@ -162,12 +155,6 @@ export class ActivitySyncService {
         'syncActivities',
       )
 
-      await logExecutionTimeV2(
-        async () => this.indexingRepo.markEntitiesIndexed(activityIds, actualAttemptId, tenantId),
-        this.log,
-        'markEntitiesIndexed',
-      )
-
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
       this.log.info(
         { tenantId },
@@ -177,8 +164,7 @@ export class ActivitySyncService {
       )
 
       activityIds = await logExecutionTimeV2(
-        async () =>
-          this.activityRepo.getTenantActivitiesForSync(actualAttemptId, tenantId, batchSize),
+        async () => this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize),
         this.log,
         'getTenantActivitiesForSync',
       )
@@ -255,9 +241,17 @@ export class ActivitySyncService {
       )
 
       await logExecutionTimeV2(
-        async () => this.activityRepo.markSynced(activities.map((m) => m.id)),
+        async () =>
+          this.indexingRepo.markEntitiesIndexed(
+            activities.map((a) => {
+              return {
+                id: a.id,
+                tenantId: a.tenantId,
+              }
+            }),
+          ),
         this.log,
-        'markSynced',
+        'markEntitiesIndexed',
       )
     }
 

@@ -21,9 +21,7 @@ setImmediate(async () => {
 
   const service = new ActivitySyncService(store, openSearchService, log)
 
-  const attemptId = generateUUIDv1()
-
-  log.info({ attemptId }, 'Starting indexing attempt!')
+  log.info('Starting indexing attempt!')
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {
@@ -33,19 +31,19 @@ setImmediate(async () => {
       await timeout(1000)
     }
 
-    log.info({ attemptId }, `Processing tenant ${i + 1}/${tenantIds.length}`)
+    log.info(`Processing tenant ${i + 1}/${tenantIds.length}`)
     current += 1
     service
-      .syncTenantActivities(tenantId, attemptId, 500)
+      .syncTenantActivities(tenantId, 500)
       .then(() => {
         current--
-        log.info({ attemptId }, `Processed tenant ${i + 1}/${tenantIds.length}`)
+        log.info(`Processed tenant ${i + 1}/${tenantIds.length}`)
       })
       .catch((err) => {
         current--
         log.error(
           err,
-          { attemptId, tenantId },
+          { tenantId },
           `Error syncing activities for tenant ${i + 1}/${tenantIds.length}!`,
         )
       })
