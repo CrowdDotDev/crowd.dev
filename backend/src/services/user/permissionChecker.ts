@@ -104,16 +104,6 @@ export default class PermissionChecker {
   }
 
   /**
-   * Validates if the user has access to a storage
-   * and throws a Error403 if it doesn't.
-   */
-  validateHasStorage(storageId) {
-    if (!this.hasStorage(storageId)) {
-      throw new Error403(this.language)
-    }
-  }
-
-  /**
    * Validates if the user has access to a storage.
    */
   hasStorage(storageId: string) {
