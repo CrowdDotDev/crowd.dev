@@ -24,7 +24,7 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
       const values = ids.map((id) => `('${id}', '${attemptId}', '${tenantId}')`)
       const query = `
         insert into indexed_entities(entity_id, attempt_id, tenant_id)
-        ${values.join(',\n')}
+        values ${values.join(',\n')}
         on conflict (entity_id, attempt_id, tenant_id)
         do update set indexed_at = now()
       `
