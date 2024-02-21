@@ -67,39 +67,24 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
   }
 
   public async getTenantActivitiesForSync(
+    attemptId: string,
     tenantId: string,
     perPage: number,
-    lastId?: string,
   ): Promise<string[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let results: any[]
-
-    if (lastId) {
-      results = await this.db().any(
-        `
-      select id from activities 
-      where "tenantId" = $(tenantId) and "deletedAt" is null and id > $(lastId)
-      order by id
-      limit ${perPage};
+    const results = await this.db().any(
+      `
+      select id from activities a
+      left join indexed_entities ie on 
+        a.id = ie.entity_id and ie.tenant_id = a."tenantId" and ie.attempt_id = $(attemptId)
+      where a."tenantId" = $(tenantId) and a."deletedAt" is null and ie.entity_id is null
+      limit ${perPage}
       `,
-        {
-          tenantId,
-          lastId,
-        },
-      )
-    } else {
-      results = await this.db().any(
-        `
-      select id from activities 
-      where "tenantId" = $(tenantId) and "deletedAt" is null
-      order by id
-      limit ${perPage};
-      `,
-        {
-          tenantId,
-        },
-      )
-    }
+      {
+        attemptId,
+        tenantId,
+      },
+    )
 
     return results.map((r) => r.id)
   }

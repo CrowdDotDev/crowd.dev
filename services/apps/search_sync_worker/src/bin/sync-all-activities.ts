@@ -1,7 +1,7 @@
 import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { ActivityRepository } from '../repo/activity.repo'
-import { timeout } from '@crowd/common'
+import { generateUUIDv1, timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 
@@ -21,6 +21,10 @@ setImmediate(async () => {
 
   const service = new ActivitySyncService(store, openSearchService, log)
 
+  const attemptId = generateUUIDv1()
+
+  log.info({ attemptId }, 'Starting indexing attempt!')
+
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {
     const tenantId = tenantIds[i]
@@ -29,19 +33,19 @@ setImmediate(async () => {
       await timeout(1000)
     }
 
-    log.info(`Processing tenant ${i + 1}/${tenantIds.length}`)
+    log.info({ attemptId }, `Processing tenant ${i + 1}/${tenantIds.length}`)
     current += 1
     service
-      .syncTenantActivities(tenantId, 500)
+      .syncTenantActivities(tenantId, attemptId, 500)
       .then(() => {
         current--
-        log.info(`Processed tenant ${i + 1}/${tenantIds.length}`)
+        log.info({ attemptId }, `Processed tenant ${i + 1}/${tenantIds.length}`)
       })
       .catch((err) => {
         current--
         log.error(
           err,
-          { tenantId },
+          { attemptId, tenantId },
           `Error syncing activities for tenant ${i + 1}/${tenantIds.length}!`,
         )
       })

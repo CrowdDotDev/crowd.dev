@@ -1,16 +1,18 @@
 import { IDbActivitySyncData } from '../repo/activity.data'
 import { ActivityRepository } from '../repo/activity.repo'
 import { OpenSearchIndex } from '../types'
-import { trimUtf8ToMaxByteLength } from '@crowd/common'
+import { generateUUIDv1, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
+import { IndexingRepository } from '../repo/indexing.repo'
 
 export class ActivitySyncService {
   private static MAX_BYTE_LENGTH = 25000
   private log: Logger
   private readonly activityRepo: ActivityRepository
+  private readonly indexingRepo: IndexingRepository
 
   constructor(
     store: DbStore,
@@ -20,6 +22,7 @@ export class ActivitySyncService {
     this.log = getChildLogger('activity-sync-service', parentLog)
 
     this.activityRepo = new ActivityRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -134,18 +137,28 @@ export class ActivitySyncService {
     this.log.warn({ tenantId }, `Processed total of ${processed} members while cleaning up tenant!`)
   }
 
-  public async syncTenantActivities(tenantId: string, batchSize = 200): Promise<void> {
+  public async syncTenantActivities(
+    tenantId: string,
+    attemptId?: string,
+    batchSize = 200,
+  ): Promise<void> {
+    const actualAttemptId = attemptId ? attemptId : generateUUIDv1()
+
     this.log.debug({ tenantId }, 'Syncing all tenant activities!')
     let count = 0
     const now = new Date()
-    const cutoffDate = now.toISOString()
 
     await logExecutionTime(
       async () => {
-        let activityIds = await this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize)
+        let activityIds = await this.activityRepo.getTenantActivitiesForSync(
+          actualAttemptId,
+          tenantId,
+          batchSize,
+        )
 
         while (activityIds.length > 0) {
           count += await this.syncActivities(activityIds)
+          await this.indexingRepo.markEntitiesIndexed(activityIds, actualAttemptId, tenantId)
 
           const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
           this.log.info(
@@ -156,35 +169,9 @@ export class ActivitySyncService {
           )
 
           activityIds = await this.activityRepo.getTenantActivitiesForSync(
+            actualAttemptId,
             tenantId,
             batchSize,
-            activityIds[activityIds.length - 1],
-          )
-        }
-
-        activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
-          tenantId,
-          1,
-          batchSize,
-          cutoffDate,
-        )
-
-        while (activityIds.length > 0) {
-          count += await this.syncActivities(activityIds)
-
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { tenantId },
-            `Synced ${count} activities! Speed: ${Math.round(
-              count / diffInSeconds,
-            )} activities/second!`,
-          )
-
-          activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
           )
         }
       },
