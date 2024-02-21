@@ -36,7 +36,7 @@ export default class PermissionChecker {
    * Validates if the user has a specific permission
    * and throws a Error403 if it doesn't.
    */
-  validateHas(permission) {
+  public validateHas(permission) {
     if (!this.has(permission)) {
       throw new Error403(this.language)
     }
@@ -46,7 +46,7 @@ export default class PermissionChecker {
    * Validates if the user has any permission among specified
    * and throws Error403 if it doesn't
    */
-  validateHasAny(permissions) {
+  public validateHasAny(permissions) {
     const hasOne = permissions.some((p) => this.has(p))
 
     if (!hasOne) {
@@ -59,7 +59,7 @@ export default class PermissionChecker {
    * fields in an integration.
    * @param data Data sent to the integration write service
    */
-  validateIntegrationsProtectedFields(data) {
+  public validateIntegrationsProtectedFields(data) {
     if (data.limitCount !== undefined) {
       this.validateHas(Permissions.values.integrationControlLimit)
     }
@@ -70,7 +70,7 @@ export default class PermissionChecker {
    * fields in a microservice.
    * @param data Data sent to the microservice write service
    */
-  validateMicroservicesProtectedFields(data) {
+  public validateMicroservicesProtectedFields(data) {
     if (data.variant !== undefined) {
       if (data.variant === 'default') {
         this.validateHas(Permissions.values.microserviceVariantFree)
@@ -85,7 +85,7 @@ export default class PermissionChecker {
   /**
    * Checks if the user has a specific permission.
    */
-  has(permission) {
+  private has(permission) {
     assert(permission, 'permission is required')
 
     if (!this.currentUser) {
@@ -106,7 +106,7 @@ export default class PermissionChecker {
   /**
    * Validates if the user has access to a storage.
    */
-  hasStorage(storageId: string) {
+  private hasStorage(storageId: string) {
     assert(storageId, 'storageId is required')
     return this.allowedStorageIds().includes(storageId)
   }
@@ -114,7 +114,7 @@ export default class PermissionChecker {
   /**
    * Checks if the current user roles allows the permission.
    */
-  hasRolePermission(permission) {
+  private hasRolePermission(permission) {
     return this.currentUserRolesIds.some((role) => {
       if (!permission.allowedRoles.some((allowedRole) => allowedRole === role)) {
         // First, make sure the role is even allowed
@@ -132,13 +132,13 @@ export default class PermissionChecker {
   /**
    * Checks if the current company plan allows the permission.
    */
-  hasPlanPermission(permission) {
+  private hasPlanPermission(permission) {
     assert(permission, 'permission is required')
 
     return permission.allowedPlans.includes(this.currentTenantPlan)
   }
 
-  get isEmailVerified() {
+  private get isEmailVerified() {
     // Only checks if the email is verified
     // if the email system is on
     if (!EmailSender.isConfigured) {
@@ -151,7 +151,7 @@ export default class PermissionChecker {
   /**
    * Returns the Current User Roles.
    */
-  get currentUserRolesIds() {
+  private get currentUserRolesIds() {
     if (!this.currentUser || !this.currentUser.tenants) {
       return []
     }
@@ -176,7 +176,7 @@ export default class PermissionChecker {
    * Return the current tenant plan,
    * check also if it's not expired.
    */
-  get currentTenantPlan() {
+  private get currentTenantPlan() {
     if (!this.currentTenant || !this.currentTenant.plan) {
       return TenantPlans.Essential
     }
@@ -187,7 +187,7 @@ export default class PermissionChecker {
   /**
    * Returns the allowed storage ids for the user.
    */
-  allowedStorageIds() {
+  private allowedStorageIds() {
     let allowedStorageIds: Array<string> = []
 
     Permissions.asArray.forEach((permission) => {
