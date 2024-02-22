@@ -1,29 +1,17 @@
 import { RedisPubSubEmitter } from '@crowd/redis'
 import { svc } from '../main'
 import { ApiWebsocketMessage } from '@crowd/types'
+import {
+  deleteOrganizationById,
+  deleteOrganizationCacheLinks,
+  deleteOrganizationSegments,
+  moveActivitiesToNewOrg,
+} from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 
 export async function deleteOrganization(organizationId: string): Promise<void> {
-  await svc.postgres.writer.connection().query(
-    `
-      DELETE FROM "organizationCacheLinks"
-      WHERE "organizationId" = $1
-    `,
-    [organizationId],
-  )
-  await svc.postgres.writer.connection().query(
-    `
-      DELETE FROM "organizationSegments"
-      WHERE "organizationId" = $1
-    `,
-    [organizationId],
-  )
-  await svc.postgres.writer.connection().query(
-    `
-      DELETE FROM organizations
-      WHERE id = $1
-    `,
-    [organizationId],
-  )
+  await deleteOrganizationCacheLinks(svc.postgres.writer, organizationId)
+  await deleteOrganizationSegments(svc.postgres.writer, organizationId)
+  await deleteOrganizationById(svc.postgres.writer, organizationId)
 }
 
 export async function moveActivitiesBetweenOrgs(
@@ -31,41 +19,9 @@ export async function moveActivitiesBetweenOrgs(
   secondaryId: string,
   tenantId: string,
 ): Promise<boolean> {
-  const result = await svc.postgres.writer.connection().result(
-    `
-      UPDATE "activities"
-      SET "organizationId" = $1
-      WHERE id IN (
-        SELECT id
-        FROM "activities"
-        WHERE "tenantId" = $3
-          AND "organizationId" = $2
-        LIMIT 5000
-      )
-    `,
-    [primaryId, secondaryId, tenantId],
-  )
+  const result = await moveActivitiesToNewOrg(svc.postgres.writer, primaryId, secondaryId, tenantId)
 
   return result.rowCount > 0
-}
-
-export async function markMergeActionDone(
-  primaryId: string,
-  secondaryId: string,
-  tenantId: string,
-): Promise<void> {
-  await svc.postgres.writer.connection().query(
-    `
-      UPDATE "mergeActions"
-      SET state = $4
-      WHERE "tenantId" = $3
-        AND type = $5
-        AND "primaryId" = $1
-        AND "secondaryId" = $2
-        AND state != $4
-    `,
-    [primaryId, secondaryId, tenantId, 'done', 'org'],
-  )
 }
 
 export async function notifyFrontend(

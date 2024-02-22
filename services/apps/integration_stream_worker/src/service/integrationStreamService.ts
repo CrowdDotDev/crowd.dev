@@ -1,5 +1,5 @@
 import { addSeconds, singleOrDefault } from '@crowd/common'
-import { DbConnection, DbStore, DbTransaction } from '@crowd/database'
+import { DbConnection, DbStore, DbTransaction } from '@crowd/data-access-layer/src/database'
 import {
   INTEGRATION_SERVICES,
   IProcessStreamContext,
@@ -15,9 +15,9 @@ import {
   WebhookType,
 } from '@crowd/types'
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
-import IntegrationStreamRepository from '../repo/integrationStream.repo'
-import { IStreamData } from '../repo/integrationStream.data'
-import IncomingWebhookRepository from '../repo/incomingWebhook.repo'
+import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
+import { IStreamData } from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.data'
+import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
 import {
   IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,

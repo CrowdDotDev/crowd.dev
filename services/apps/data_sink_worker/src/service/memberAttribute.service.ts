@@ -1,5 +1,5 @@
-import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
-import { DbStore } from '@crowd/database'
+import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/memberAttributeSettings.repo'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { MemberAttributeType } from '@crowd/types'
 
