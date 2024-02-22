@@ -12,7 +12,7 @@ import { IMemberSyncResult } from './member.sync.data'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IndexingRepository } from '../repo/indexing.repo'
-import { IndexedEntityType } from 'repo/indexing.data'
+import { IndexedEntityType } from '../repo/indexing.data'
 
 export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
