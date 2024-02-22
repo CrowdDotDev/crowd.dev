@@ -4,7 +4,7 @@ import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
 import { distinct } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
@@ -206,29 +206,32 @@ export class OrganizationSyncService {
     let docCount = 0
     let organizationCount = 0
 
-    await logExecutionTime(
-      async () => {
-        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
-
-        while (organizationIds.length > 0) {
-          const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
-            organizationIds,
-            tenantId,
-          )
-
-          organizationCount += organizationsSynced
-          docCount += documentsIndexed
-
-          this.log.info(
-            { tenantId },
-            `Synced ${organizationCount} organizations with ${docCount} documents!`,
-          )
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
-        }
-      },
+    let organizationIds = await logExecutionTimeV2(
+      async () => this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize),
       this.log,
-      'sync-tenant-organizations',
+      'getTenantORganizationsForSync',
     )
+
+    while (organizationIds.length > 0) {
+      const { organizationsSynced, documentsIndexed } = await logExecutionTimeV2(
+        async () => this.syncOrganizations(organizationIds, tenantId),
+        this.log,
+        'syncOrganizations',
+      )
+
+      organizationCount += organizationsSynced
+      docCount += documentsIndexed
+
+      this.log.info(
+        { tenantId },
+        `Synced ${organizationCount} organizations with ${docCount} documents!`,
+      )
+      organizationIds = await logExecutionTimeV2(
+        async () => this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize),
+        this.log,
+        'getTenantORganizationsForSync',
+      )
+    }
 
     this.log.info(
       { tenantId },
