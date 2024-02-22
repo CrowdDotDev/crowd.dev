@@ -1262,7 +1262,9 @@ export default class IntegrationService {
    * Get all remotes for the Git integration, by segment
    * @returns Remotes for the Git integration
    */
-  async gitGetRemotes(): Promise<{ [segmentId: string]: { remotes: string[], integrationId: string } }> {
+  async gitGetRemotes(): Promise<{
+    [segmentId: string]: { remotes: string[]; integrationId: string }
+  }> {
     try {
       const integrations = await this.findAllByPlatform(PlatformType.GIT)
       return integrations.reduce((acc, integration) => {
