@@ -28,6 +28,7 @@ class BaseQuery {
         email
         bio
         company
+        companyHTML
         location
         followers {
           totalCount
@@ -50,6 +51,13 @@ class BaseQuery {
         hasPreviousPage
         startCursor
     }`
+
+  static BOT_SELECT = `{
+    login
+    avatarUrl
+    id
+    url
+  }`
 
   graphQL
 

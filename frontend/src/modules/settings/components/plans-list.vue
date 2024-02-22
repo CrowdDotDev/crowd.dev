@@ -1,23 +1,5 @@
 <template>
   <div>
-    <div class="flex justify-center">
-      <div
-        class="h-8 border-solid border-gray-200 border-r border-y first:border-l flex items-center
-       justify-center transition hover:bg-gray-50 cursor-pointer first:rounded-l-md last:rounded-r-md px-4 text-sm"
-        :class="!monthlyPayment ? 'bg-gray-100 font-medium text-gray-900' : 'bg-white'"
-        @click="monthlyPayment = false"
-      >
-        Yearly payment
-      </div>
-      <div
-        class="h-8 border-solid border-gray-200 border-r border-y first:border-l flex items-center
-       justify-center transition hover:bg-gray-50 cursor-pointer first:rounded-l-md last:rounded-r-md px-4 text-sm"
-        :class="monthlyPayment ? 'bg-gray-100 font-medium text-gray-900' : 'bg-white'"
-        @click="monthlyPayment = true"
-      >
-        Monthly payment
-      </div>
-    </div>
     <div class="flex gap-4">
       <div
         v-for="plan in plansList"
@@ -146,7 +128,7 @@ const { doRefreshCurrentUser } = mapActions('auth');
 const store = useStore();
 
 const isCalDialogOpen = ref(false);
-const monthlyPayment = ref(false);
+const monthlyPayment = ref(true);
 
 const currentTenant = computed(
   () => store.getters['auth/currentTenant'],

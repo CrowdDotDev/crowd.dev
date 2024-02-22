@@ -30,8 +30,40 @@ import { generateSourceIdHash } from '../../helpers'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
+const parseBotMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITHUB,
+        username: memberData.memberFromApi.login,
+      },
+    ],
+    displayName: memberData.memberFromApi.login,
+    attributes: {
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.url || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.avatarUrl || '',
+      },
+      [MemberAttributeName.SOURCE_ID]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.id?.toString() || '',
+      },
+      [MemberAttributeName.IS_BOT]: {
+        [PlatformType.GITHUB]: true,
+      },
+    },
+  }
+
+  return member
+}
+
 const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
   const { email, orgs, memberFromApi } = memberData
+
+  if (memberFromApi.isBot) {
+    return parseBotMember(memberData)
+  }
 
   const member: IMemberData = {
     identities: [
@@ -1122,23 +1154,45 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
 const parseWebhookFork = async (ctx: IProcessDataContext) => {
   const data = ctx.data as GithubWebhookData
   const payload = data.data
-  const memberData = data.member
 
-  const member = parseMember(memberData)
+  // this is org member
+  if (data.orgMember && !data.member) {
+    const orgMember = parseOrgMember(data.orgMember)
+    if (orgMember) {
+      const activity: IActivityData = {
+        member: orgMember,
+        type: GithubActivityType.FORK,
+        timestamp: new Date(payload.forkee.created_at).toISOString(),
+        sourceId: payload.forkee.node_id.toString(),
+        sourceParentId: null,
+        channel: payload.repository.html_url,
+        score: GITHUB_GRID.fork.score,
+        isContribution: GITHUB_GRID.fork.isContribution,
+      }
 
-  if (member) {
-    const activity: IActivityData = {
-      member,
-      type: GithubActivityType.FORK,
-      timestamp: new Date(payload.forkee.created_at).toISOString(),
-      sourceId: payload.forkee.node_id.toString(),
-      sourceParentId: null,
-      channel: payload.repository.html_url,
-      score: GITHUB_GRID.fork.score,
-      isContribution: GITHUB_GRID.fork.isContribution,
+      await ctx.publishActivity(activity)
     }
+    // this is member
+  } else if (data.member && !data.orgMember) {
+    const member = parseMember(data.member)
+    if (member) {
+      const activity: IActivityData = {
+        member,
+        type: GithubActivityType.FORK,
+        timestamp: new Date(payload.forkee.created_at).toISOString(),
+        sourceId: payload.forkee.node_id.toString(),
+        sourceParentId: null,
+        channel: payload.repository.html_url,
+        score: GITHUB_GRID.fork.score,
+        isContribution: GITHUB_GRID.fork.isContribution,
+      }
 
-    await ctx.publishActivity(activity)
+      await ctx.publishActivity(activity)
+    } else if (data.member && data.orgMember) {
+      throw new Error('Both member and orgMember are present in webhook fork data')
+    } else if (!data.member && !data.orgMember) {
+      throw new Error('Both member and orgMember are missing in webhook fork data')
+    }
   }
 }
 

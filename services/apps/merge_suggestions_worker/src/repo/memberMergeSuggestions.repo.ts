@@ -1,8 +1,8 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberMergeSuggestion } from '@crowd/types'
-import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from 'types'
-import { chunkArray, removeDuplicateSuggestions } from 'utils'
+import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from '../types'
+import { chunkArray, removeDuplicateSuggestions } from '../utils'
 
 class MemberMergeSuggestionsRepository {
   constructor(

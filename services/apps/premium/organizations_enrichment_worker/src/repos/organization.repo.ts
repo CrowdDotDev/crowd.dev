@@ -1,8 +1,15 @@
 import { EDITION, singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { Edition } from '@crowd/types'
-import { ENRICHMENT_PLATFORM_PRIORITY } from '../types/common'
+import { Edition, TenantPlans } from '@crowd/types'
+import {
+  ENRICHMENT_PLATFORM_PRIORITY,
+  IEnrichableOrganizationCache,
+  IOrganizationCacheData,
+  IOrganizationData,
+  IOrganizationIdentity,
+  IPremiumTenantInfo,
+} from '../types/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -11,19 +18,48 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     super(dbStore, parentLog)
   }
 
-  public async getTenantOrganizationsToEnrich(
-    tenantId: string,
+  async getPremiumTenants(): Promise<IPremiumTenantInfo[]> {
+    return await this.db().any(
+      `
+      select  t.id,
+              t.plan,
+              json_agg(
+                      json_build_object(
+                              'lastEnrichedAt', oc."lastEnrichedAt",
+                              'organizationCacheId', oc.id,
+                              'organizationId', sub."organizationId"
+                      )
+              )                           as "orgData"
+        from tenants t
+                inner join (select o."tenantId",
+                                    o.id                                                                            as "organizationId",
+                                    ocl."organizationCacheId",
+                                    row_number() over (partition by o."tenantId" order by oc."lastEnrichedAt" desc) as rn
+                            from organizations o
+                                      inner join "organizationCacheLinks" ocl on ocl."organizationId" = o.id
+                                      inner join "organizationCaches" oc on ocl."organizationCacheId" = oc.id
+                            where o."deletedAt" is null
+                              and oc."deletedAt" is null
+                              and oc."lastEnrichedAt" is not null
+                              and (o."lastEnrichedAt" is null or o."lastEnrichedAt" < oc."lastEnrichedAt")) sub
+                            on sub."tenantId" = t.id and sub.rn <= 100
+                inner join "organizationCaches" oc on sub."organizationCacheId" = oc.id
+        where t.plan in ($(plans:csv))
+        group by t.id, t.plan;
+      `,
+      {
+        plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
+      },
+    )
+  }
+
+  public async getOrganizationCachesToEnrich(
     perPage: number,
     page: number,
-  ): Promise<string[]> {
-    const parameters: Record<string, unknown> = {
-      tenantId,
-    }
-
-    const conditions = [
-      'o."tenantId" = $(tenantId)',
-      'o."deletedAt" is null',
-      `(o."lastEnrichedAt" is null or o."lastEnrichedAt" < now() - interval '3 months')`,
+  ): Promise<IEnrichableOrganizationCache[]> {
+    const conditions: string[] = [
+      `(oc."lastEnrichedAt" is null or oc."lastEnrichedAt" < now() - interval '3 months')`,
+      ENRICHMENT_PLATFORM_PRIORITY.map((p) => `(oc.${p} -> 'handle') is not null`).join(' or '),
     ]
 
     if (EDITION === Edition.LFX) {
@@ -40,32 +76,85 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                                   count(id)      as "activityCount",
                                   max(timestamp) as "lastActive"
                           from activities
-                          where "tenantId" = $(tenantId)
-                            and "deletedAt" is null
-                          group by "organizationId"),
-            identities as (select oi."organizationId",
-                                  json_agg(json_build_object(
-                                          'platform', oi.platform,
-                                          'name', oi.name,
-                                          'url', oi.url
-                                            )) as "identities"
-                            from "organizationIdentities" oi
-                            where oi."tenantId" = $(tenantId) and oi.platform in (${ENRICHMENT_PLATFORM_PRIORITY.map(
-                              (p) => `'${p}'`,
-                            ).join(', ')})
-                group by oi."organizationId")
-    select o.id
-    from organizations o
-            inner join activity_data ad on ad."organizationId" = o.id
-            inner join identities i on i."organizationId" = o.id
+                          where "deletedAt" is null
+                          group by "organizationId")
+    select oc.id, json_agg(json_build_object('id', t.id, 'plan', t.plan, 'name', t.name)) as tenants
+    from "organizationCaches" oc
+            inner join "organizationCacheLinks" ocl on oc.id = ocl."organizationCacheId"
+            inner join organizations o on ocl."organizationId" = o.id and o."deletedAt" is null
+            inner join activity_data ad on ad."organizationId" = o.id and ad."activityCount" >= 3
+            inner join tenants t on t.id = o."tenantId" and t.plan in ($(plans:csv))
     where ${conditions.join(' and ')}
+    group by oc.id, ad."activityCount"
     order by ad."activityCount" desc
     limit ${perPage} offset ${(page - 1) * perPage};
     `
 
-    const results = await this.db().any(query, parameters)
+    const results = await this.db().any(query, {
+      plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
+    })
+    return results
+  }
 
-    return results.map((r) => r.id)
+  public async getOrganizationCacheData(cacheId: string): Promise<IOrganizationCacheData | null> {
+    return await this.db().oneOrNone(
+      `
+    with identities as (select  oi.id,
+                                json_agg(json_build_object(
+                                        'name', oi.name,
+                                        'website', oi.website
+                                          )) as identities
+                          from "organizationCacheIdentities" oi
+                          where oi.id = $(cacheId)
+                          group by oi.id)
+      select oc.id,
+            oc.description,
+            oc.emails,
+            oc."phoneNumbers",
+            oc.logo,
+            oc.tags,
+            oc.twitter,
+            oc.linkedin,
+            oc.crunchbase,
+            oc.employees,
+            oc."revenueRange",
+            oc.location,
+            oc.github,
+            oc."employeeCountByCountry",
+            oc.type,
+            oc."geoLocation",
+            oc.size,
+            oc.ticker,
+            oc.headline,
+            oc.profiles,
+            oc.naics,
+            oc.address,
+            oc.industry,
+            oc."affiliatedProfiles",
+            oc."allSubsidiaries",
+            oc."alternativeDomains",
+            oc."alternativeNames",
+            oc."averageEmployeeTenure",
+            oc."averageTenureByLevel",
+            oc."averageTenureByRole",
+            oc."directSubsidiaries",
+            oc."employeeChurnRate",
+            oc."employeeCountByMonth",
+            oc."employeeGrowthRate",
+            oc."employeeCountByMonthByLevel",
+            oc."employeeCountByMonthByRole",
+            oc."ultimateParent",
+            oc."immediateParent",
+            i.identities
+      from "organizationCaches" oc
+              inner join identities i on oc.id = i.id
+      where oc.id = $(cacheId)
+        and oc."deletedAt" is null;
+    `,
+      {
+        cacheId,
+      },
+    )
   }
 
   public async getOrganizationData(organizationId: string): Promise<IOrganizationData | null> {
@@ -127,10 +216,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o."immediateParent",
             o."weakIdentities",
             o."manuallyChangedFields",
-            i.identities
+            coalesce(i.identities, json_build_array()) as identities
       from organizations o
-              inner join identities i on o.id = i."organizationId"
-      where o.id = $(organizationId);
+              left join identities i on o.id = i."organizationId"
+      where o.id = $(organizationId) and o."deletedAt" is null;
       `,
       {
         organizationId,
@@ -138,7 +227,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async markEnriched(organizationId: string): Promise<void> {
+  public async markOrganizationEnriched(organizationId: string): Promise<void> {
     await this.db().none(
       `
       update organizations
@@ -147,6 +236,19 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `,
       {
         organizationId,
+      },
+    )
+  }
+
+  public async markOrganizationCacheEnriched(cacheId: string): Promise<void> {
+    await this.db().none(
+      `
+      update "organizationCaches"
+      set "lastEnrichedAt" = now()
+      where id = $(cacheId)
+      `,
+      {
+        cacheId,
       },
     )
   }
@@ -382,7 +484,83 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
       this.checkUpdateRowCount(result.rowCount, 1)
     } else {
-      await this.markEnriched(originalData.id)
+      await this.markOrganizationEnriched(originalData.id)
+    }
+  }
+
+  public async updateOrganizationCacheWithEnrichedData(
+    originalData: IOrganizationCacheData,
+    enrichedData: any,
+  ): Promise<void> {
+    this.ensureTransactional()
+
+    const toUpdate: Record<string, unknown> = {}
+
+    const name = enrichedData.displayName
+
+    if (name && originalData.identities.find((i) => i.name === name.trim()) === undefined) {
+      await this.db().none(
+        `insert into "organizationCacheIdentities"(id, name) values($(id), $(name))`,
+        {
+          id: originalData.id,
+          name: name.trim(),
+        },
+      )
+    }
+
+    for (const field of OrganizationRepository.ENRICHABLE_ORGANIZATION_FIELDS) {
+      if (field in enrichedData) {
+        const enrichedValue = enrichedData[field]
+
+        // ignore null/undefined/empty string values
+        if (
+          enrichedValue === null ||
+          enrichedValue === undefined ||
+          (typeof enrichedValue === 'string' && enrichedValue.trim() === '')
+        ) {
+          continue
+        }
+
+        const existingValue = originalData[field]
+
+        if (typeof enrichedValue === 'object') {
+          // compare stringified objects
+          if (JSON.stringify(enrichedValue) === JSON.stringify(existingValue)) {
+            continue
+          }
+        } else if (enrichedValue === existingValue) {
+          continue
+        }
+
+        toUpdate[field] = enrichedValue
+      }
+    }
+
+    const keysToUpdate = Object.keys(toUpdate).filter((k) => !['website'].includes(k))
+    if (keysToUpdate.length > 0) {
+      this.log.debug(
+        { organizationId: originalData.id },
+        `Updating organization cache with enriched data! With ${keysToUpdate.length} fields`,
+      )
+
+      if (toUpdate.naics) {
+        toUpdate.naics = JSON.stringify(toUpdate.naics)
+      }
+
+      // set lastEnrichedAt to now
+      keysToUpdate.push('lastEnrichedAt')
+      toUpdate.lastEnrichedAt = new Date()
+
+      const query = this.dbInstance.helpers.update(toUpdate, keysToUpdate, 'organizationCaches')
+
+      const result = await this.db().result(`${query} where id = $(id)`, {
+        ...toUpdate,
+        id: originalData.id,
+      })
+
+      this.checkUpdateRowCount(result.rowCount, 1)
+    } else {
+      await this.markOrganizationCacheEnriched(originalData.id)
     }
   }
 
@@ -450,61 +628,4 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       },
     )
   }
-}
-
-export interface IOrganizationIdentity {
-  platform: string
-  name: string
-  url: string | null
-}
-
-export interface IOrganizationData {
-  id: string
-  tenantId: string
-  description: string | null
-  emails: string[] | null
-  phoneNumbers: string[] | null
-  logo: string | null
-  tags: string[] | null
-  twitter: unknown | null
-  linkedin: unknown | null
-  crunchbase: unknown | null
-  employees: number | null
-  revenueRange: unknown | null
-  location: string | null
-  github: unknown | null
-  website: string | null
-  employeeCountByCountry: unknown | null
-  type: string | null
-  geoLocation: string | null
-  size: string | null
-  ticker: string | null
-  headline: string | null
-  profiles: string[] | null
-  naics: unknown[] | null
-  address: unknown | null
-  industry: string | null
-  founded: number | null
-  displayName: string | null
-  affiliatedProfiles: string[] | null
-  allSubsidiaries: string[] | null
-  alternativeDomains: string[] | null
-  alternativeNames: string[] | null
-  averageEmployeeTenure: number | null
-  averageTenureByLevel: unknown | null
-  averageTenureByRole: unknown | null
-  directSubsidiaries: string[] | null
-  employeeChurnRate: unknown | null
-  employeeCountByMonth: unknown | null
-  employeeGrowthRate: unknown | null
-  employeeCountByMonthByLevel: unknown | null
-  employeeCountByMonthByRole: unknown | null
-  gicsSector: string | null
-  grossAdditionsByMonth: unknown | null
-  grossDeparturesByMonth: unknown | null
-  ultimateParent: string | null
-  immediateParent: string | null
-  manuallyChangedFields: string[]
-  identities: IOrganizationIdentity[]
-  weakIdentities: IOrganizationIdentity[]
 }

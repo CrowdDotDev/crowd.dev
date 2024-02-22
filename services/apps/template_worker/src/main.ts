@@ -23,7 +23,7 @@ const options: Options = {
   },
 }
 
-const svc = new ServiceWorker(config, options)
+export const svc = new ServiceWorker(config, options)
 
 setImmediate(async () => {
   await svc.init()

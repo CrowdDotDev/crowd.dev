@@ -67,6 +67,11 @@ export interface IMemberOrganization {
   deletedAt?: string
 }
 
+export interface IMemberRoleWithOrganization extends IMemberOrganization {
+  organizationName: string
+  organizationLogo: string
+}
+
 export interface IOrganizationCache {
   id?: string
   url?: string

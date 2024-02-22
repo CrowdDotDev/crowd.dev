@@ -33,7 +33,7 @@
                     'private-',
                   ) ? 'password' : 'text'"
               >
-                <template #prepend>
+                <template v-if="value.urlPrefix?.length" #prepend>
                   <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
                 </template>
               </el-input>
@@ -137,10 +137,6 @@ watch(
       };
     }, {});
 
-    // Get platforms from usernames
-    const platforms = Object.keys(username || {});
-    const platform = platforms.length ? platforms[0] : null;
-
     // Get url object from usernames
     const url = Object.keys(username).reduce((urls, p) => {
       if (username[p]?.length) {
@@ -163,6 +159,10 @@ watch(
         delete identities[platform];
       }
     });
+
+    // Get platforms from usernames
+    const platforms = Object.keys(identities || {});
+    const platform = platforms.length ? platforms[0] : null;
 
     // Emit updated member
     emit('update:modelValue', {
