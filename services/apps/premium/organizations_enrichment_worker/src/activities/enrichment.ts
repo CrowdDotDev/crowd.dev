@@ -2,8 +2,11 @@ import { EDITION, IS_DEV_ENV, IS_TEST_ENV, renameKeys } from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { Edition, IEnrichableOrganization, PlatformType } from '@crowd/types'
 import { svc } from '../main'
-import { OrganizationRepository } from '../repos/organization.repo'
-import { ENRICHMENT_PLATFORM_PRIORITY, IEnrichableOrganizationCache } from '../types/common'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/organization.repo'
+import {
+  ENRICHMENT_PLATFORM_PRIORITY,
+  IEnrichableOrganizationCache,
+} from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

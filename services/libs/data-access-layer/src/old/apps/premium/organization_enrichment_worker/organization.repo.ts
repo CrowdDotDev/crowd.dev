@@ -9,7 +9,7 @@ import {
   IOrganizationData,
   IOrganizationIdentity,
   IPremiumTenantInfo,
-} from '../types/common'
+} from './types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

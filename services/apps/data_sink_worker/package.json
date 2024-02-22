@@ -23,7 +23,7 @@
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/conversations": "workspace:*",
-    "@crowd/database": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",

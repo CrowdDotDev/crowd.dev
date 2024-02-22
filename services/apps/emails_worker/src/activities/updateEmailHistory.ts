@@ -1,7 +1,7 @@
-import { v4 as uuid } from 'uuid'
-
 import { svc } from '../main'
 import { UserTenantWithEmailSent } from '../types/user'
+
+import { updateRecurringEmailsHistory } from '@crowd/data-access-layer/src/old/apps/emails_worker/emails'
 
 /*
 updateEmailHistory is a Temporal activity that inserts a new row in the database
@@ -9,18 +9,13 @@ informing a new recurring email has been sent to the user.
 */
 export async function updateEmailHistory(emailSent: UserTenantWithEmailSent): Promise<void> {
   try {
-    await svc.postgres.writer.connection().query(
-      `INSERT INTO "recurringEmailsHistory" ("id", "type", "tenantId", "emailSentAt", "emailSentTo", "weekOfYear")
-        VALUES ($1, $2, $3, $4, $5, $6);`,
-      [
-        uuid(),
-        emailSent.type,
-        emailSent.tenantId,
-        emailSent.sentAt,
-        emailSent.emails,
-        emailSent.weekOfYear || null,
-      ],
-    )
+    const db = svc.postgres.writer
+    const type = emailSent.type
+    const tenantId = emailSent.tenantId
+    const sentAt = emailSent.sentAt
+    const emails = emailSent.emails
+    const weekOfYear = emailSent.weekOfYear || null
+    await updateRecurringEmailsHistory(db, type, tenantId, sentAt, emails, weekOfYear)
   } catch (err) {
     throw new Error(err)
   }

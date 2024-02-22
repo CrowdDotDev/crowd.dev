@@ -1,4 +1,4 @@
-import { IDatabaseConfig } from '@crowd/database'
+import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { ISqsClientConfig } from '@crowd/sqs'
 import { IOpenSearchConfig, QueuePriorityLevel } from '@crowd/types'
 import config from 'config'

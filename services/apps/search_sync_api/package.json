@@ -14,7 +14,7 @@
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/opensearch": "workspace:*",
-    "@crowd/database": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/telemetry": "workspace:*",

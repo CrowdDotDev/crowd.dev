@@ -1,7 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { WORKER_CONFIG } from '../conf'
 import {
   IGenerateStreamsData,
   IPendingDelayedRun,
@@ -374,7 +373,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     return map
   }
 
-  public async getErrorStreamsPendingRetry(runId: string): Promise<number> {
+  public async getErrorStreamsPendingRetry(runId: string, maxRetries: number): Promise<number> {
     const result = await this.db().one(
       `
       select count(id) as count
@@ -386,7 +385,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
       {
         runId,
         errorState: IntegrationStreamState.ERROR,
-        maxRetries: WORKER_CONFIG().maxRetries,
+        maxRetries,
       },
     )
 
