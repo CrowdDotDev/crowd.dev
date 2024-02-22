@@ -65,11 +65,13 @@ export const connectSocket = (token) => {
   });
 
   socketIoClient.on(SocketEvents.memberUnmerge, (data) => {
-    if(!data.success){
+    if (!data.success) {
       return;
     }
     console.info('Member unmerge done', data);
-    const {primaryDisplayName, secondaryDisplayName, primaryId, secondaryId} = data;
+    const {
+      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId,
+    } = data;
 
     const primaryMember = h(
       'router-link',
@@ -104,7 +106,7 @@ export const connectSocket = (token) => {
       {},
       [secondaryMember, between, primaryMember],
     ), {
-      title: `Contributors merged successfully`,
+      title: 'Contributors merged successfully',
     });
   });
 
