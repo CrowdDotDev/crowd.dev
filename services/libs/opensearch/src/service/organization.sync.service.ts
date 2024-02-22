@@ -209,7 +209,7 @@ export class OrganizationSyncService {
     let organizationIds = await logExecutionTimeV2(
       async () => this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize),
       this.log,
-      'getTenantORganizationsForSync',
+      'getTenantOrganizationsForSync',
     )
 
     while (organizationIds.length > 0) {
@@ -229,7 +229,7 @@ export class OrganizationSyncService {
       organizationIds = await logExecutionTimeV2(
         async () => this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize),
         this.log,
-        'getTenantORganizationsForSync',
+        'getTenantOrganizationsForSync',
       )
     }
 
