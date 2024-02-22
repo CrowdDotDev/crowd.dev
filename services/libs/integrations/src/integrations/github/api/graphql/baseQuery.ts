@@ -28,6 +28,7 @@ class BaseQuery {
         email
         bio
         company
+        companyHTML
         location
         followers {
           totalCount

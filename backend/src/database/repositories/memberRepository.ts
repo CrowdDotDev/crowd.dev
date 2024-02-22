@@ -47,7 +47,6 @@ import {
 } from './types/memberTypes'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
-import MemberAffiliationRepository from './memberAffiliationRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
@@ -752,7 +751,7 @@ class MemberRepository {
             if (identity.delete) {
               platformsToDelete.push(identity.platform)
               usernamesToDelete.push(identity.username)
-            } else {
+            } else if (identity.username && identity.username !== '') {
               await seq.query(query, {
                 replacements: {
                   memberId: record.id,
@@ -961,7 +960,6 @@ class MemberRepository {
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
     await affiliationRepository.setForMember(memberId, data)
-    await MemberAffiliationRepository.update(memberId, options)
   }
 
   static async getAffiliations(
@@ -3494,15 +3492,7 @@ class MemberRepository {
   }
 
   static async createOrUpdateWorkExperience(
-    {
-      memberId,
-      organizationId,
-      source,
-      title = null,
-      dateStart = null,
-      dateEnd = null,
-      updateAffiliation = true,
-    },
+    { memberId, organizationId, source, title = null, dateStart = null, dateEnd = null },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
@@ -3585,10 +3575,6 @@ class MemberRepository {
         transaction,
       },
     )
-
-    if (updateAffiliation) {
-      await MemberAffiliationRepository.update(memberId, options)
-    }
   }
 
   static async deleteWorkExperience(id, options: IRepositoryOptions) {

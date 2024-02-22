@@ -13,7 +13,7 @@ import {
   INewMembersTimeseriesResult,
   INewOrganizationsTimeseriesResult,
   ITimeframe,
-} from 'types'
+} from '../types'
 import moment from 'moment'
 import { DashboardTimeframe } from '../enums'
 

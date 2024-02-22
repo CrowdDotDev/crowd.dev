@@ -134,9 +134,8 @@ export default class PermissionChecker {
         // Second, if the role is not project admin, we don't have to do extra checks
         return true
       }
-
-      // Third, for project admin, we need to check if the user is admin of all segments
-      return this.currentSegments.every((segment) => this.adminSegments.includes(segment.id))
+      // Third, for project admin, we need to check if the user is admin of at least one segment
+      return this.currentSegments.some((segment) => this.adminSegments.includes(segment.id))
     })
   }
 

@@ -1,7 +1,7 @@
-import { ISegment, ITenant } from 'types'
+import { ISegment, ITenant } from '../types'
 import { svc } from '../main'
-import TenantRepository from 'repo/tenant.repo'
-import SegmentRepository from 'repo/segment.repo'
+import TenantRepository from '../repo/tenant.repo'
+import SegmentRepository from '../repo/segment.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { FeatureFlag } from '@crowd/types'
 
