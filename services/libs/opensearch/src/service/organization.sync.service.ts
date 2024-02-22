@@ -201,14 +201,8 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncTenantOrganizations(
-    tenantId: string,
-    batchSize = 100,
-    syncCutoffTime?: string,
-  ): Promise<void> {
-    const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
-
-    this.log.warn({ tenantId, cutoffDate }, 'Syncing all tenant organizations!')
+  public async syncTenantOrganizations(tenantId: string, batchSize = 100): Promise<void> {
+    this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
     let docCount = 0
     let organizationCount = 0
 
