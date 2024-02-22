@@ -217,6 +217,7 @@ export class OrganizationSyncService {
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
             organizationIds,
+            tenantId,
           )
 
           organizationCount += organizationsSynced
@@ -249,7 +250,10 @@ export class OrganizationSyncService {
    * @param organizationIds organizationIds to be synced to opensearch
    * @returns
    */
-  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
+  public async syncOrganizations(
+    organizationIds: string[],
+    tenantId?: string,
+  ): Promise<IOrganizationSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 25
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
@@ -261,7 +265,14 @@ export class OrganizationSyncService {
     let documentsIndexed = 0
     const allOrgIds = Object.keys(orgSegmentCouples)
     const totalOrgIds = allOrgIds.length
-    const indexedOrgIds = []
+    const indexedOrgIds = tenantId
+      ? organizationIds.map((id) => {
+          return {
+            id,
+            tenantId,
+          }
+        })
+      : []
 
     const processSegmentsStream = async (databaseStream): Promise<void> => {
       const results = await Promise.all(databaseStream.map((s) => s.promise))
@@ -279,6 +290,7 @@ export class OrganizationSyncService {
         targetSegment.data = result
 
         if (
+          tenantId === undefined &&
           indexedOrgIds.find((d) => d.id === orgId && d.tenantId === result.tenantId) === undefined
         ) {
           indexedOrgIds.push({

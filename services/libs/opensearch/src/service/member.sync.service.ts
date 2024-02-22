@@ -213,7 +213,7 @@ export class MemberSyncService {
         let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
 
         while (memberIds.length > 0) {
-          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds, tenantId)
 
           docCount += documentsIndexed
           memberCount += membersSynced
@@ -282,7 +282,7 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
+  public async syncMembers(memberIds: string[], tenantId?: string): Promise<IMemberSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 25
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
@@ -295,7 +295,14 @@ export class MemberSyncService {
     const allMemberIds = Object.keys(memberSegmentCouples)
     const totalMemberIds = allMemberIds.length
 
-    const indexedMemberIds = []
+    const indexedMemberIds = tenantId
+      ? memberIds.map((id) => {
+          return {
+            id,
+            tenantId,
+          }
+        })
+      : []
 
     const processSegmentsStream = async (databaseStream): Promise<void> => {
       const results = await Promise.all(databaseStream.map((s) => s.promise))
@@ -313,8 +320,9 @@ export class MemberSyncService {
         targetSegment.data = result
 
         if (
+          tenantId === undefined &&
           indexedMemberIds.find((d) => d.id === memberId && d.tenantId === result.tenantId) ===
-          undefined
+            undefined
         ) {
           indexedMemberIds.push({
             id: memberId,

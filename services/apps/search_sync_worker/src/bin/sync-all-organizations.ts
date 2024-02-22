@@ -7,7 +7,7 @@ import { timeout } from '@crowd/common'
 
 const log = getServiceLogger()
 
-const MAX_CONCURRENT = 3
+const MAX_CONCURRENT = 1
 
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
