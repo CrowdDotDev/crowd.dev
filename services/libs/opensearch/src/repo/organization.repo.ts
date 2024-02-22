@@ -303,11 +303,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async getTenantOrganizationsForSync(
-    tenantId: string,
-    page: number,
-    perPage: number,
-  ): Promise<string[]> {
+  public async getTenantOrganizationsForSync(tenantId: string, perPage: number): Promise<string[]> {
     const results = await this.db().any(
       `
         select o.id
@@ -316,7 +312,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         where o."tenantId" = $(tenantId) and 
               o."deletedAt" is null and
               ie.entity_id is null
-        limit ${perPage} offset ${(page - 1) * perPage};`,
+        limit ${perPage}`,
       {
         tenantId,
       },
