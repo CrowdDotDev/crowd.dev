@@ -171,7 +171,9 @@ export default class IntegrationService {
           }
 
           if (shouldUpdateGit) {
-            const gitRemotes = await this.gitGetRemotes()
+            const gitInfo = await this.gitGetRemotes()
+            const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+            const gitRemotes = gitInfo[segment.id].remotes
             await this.gitConnectOrUpdate({
               remotes: gitRemotes.filter(
                 (remote) => !integration.settings.repos.map((r) => r.url).includes(remote),
@@ -354,7 +356,9 @@ export default class IntegrationService {
         isGitintegrationConfigured = false
       }
       if (isGitintegrationConfigured) {
-        const gitRemotes = await this.gitGetRemotes()
+        const gitInfo = await this.gitGetRemotes()
+        const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+        const gitRemotes = gitInfo[segment.id].remotes
         await this.gitConnectOrUpdate({
           remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
         })
@@ -1258,7 +1262,7 @@ export default class IntegrationService {
    * Get all remotes for the Git integration, by segment
    * @returns Remotes for the Git integration
    */
-  async gitGetRemotes() {
+  async gitGetRemotes(): Promise<{ [segmentId: string]: { remotes: string[], integrationId: string } }> {
     try {
       const integrations = await this.findAllByPlatform(PlatformType.GIT)
       return integrations.reduce((acc, integration) => {
