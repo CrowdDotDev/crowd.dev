@@ -1,7 +1,7 @@
 import { DbConnection, getDbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG } from '../conf'
-import { IDbActivity } from '../repo/activity.data'
+import { IDbActivity } from 'repo/activity.data'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -21,7 +21,9 @@ async function getMemberIdentityFromUsername(
     `
       select "memberId", "username"
       from "memberIdentities"
-      where "tenantId" = $(tenantId) and username = $(username)
+      where "tenantId" = $(tenantId) 
+      and username = $(username)
+      and platform = 'github'
       `,
     { tenantId, username },
   )
@@ -108,6 +110,7 @@ async function fixActivitiesWithoutObjectMemberData(
 
       if (!memberIdentity) {
         log.info({ tenantId, activityId: activity.id, username }, 'no objectMember for activity')
+        continue // skip this activity
       }
 
       await updateActivity(
