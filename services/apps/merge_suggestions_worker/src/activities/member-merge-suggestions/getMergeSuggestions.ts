@@ -224,7 +224,7 @@ export async function updateMemberMergeSuggestionsLastGeneratedAt(tenantId: stri
 
 export async function getMembers(
   tenantId: string,
-  batchSize: number = 100,
+  batchSize: number,
   afterMemberId?: string,
   lastGeneratedAt?: string,
 ): Promise<IMemberPartialAggregatesOpensearch[]> {
