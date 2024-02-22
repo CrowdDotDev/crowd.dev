@@ -6,6 +6,16 @@ import { IMember, IOrganizationIdentity, OrganizationSource, PlatformType } from
 import { svc } from '../main'
 import { normalize } from '../utils/normalize'
 import { EnrichingMember } from '../types/enrichment'
+import {
+  addMemberToMerge,
+  deleteMemberOrg,
+  findExistingMember,
+  findExistingOrganization,
+  findMemberOrgs,
+  insertOrgIdentity,
+  insertWorkExperience,
+  upsertOrganization,
+} from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 
 /*
 normalizeEnrichedMember is a Temporal activity that, given a member and enriched
@@ -77,23 +87,16 @@ export async function updateMergeSuggestions(input: EnrichingMember): Promise<IM
             }
 
             // Check if a member with this username already exists.
-            const existingMember = await svc.postgres.reader.connection().query(
-              `SELECT mi."memberId"
-              FROM "memberIdentities" mi
-              WHERE mi."tenantId" = $1 AND
-                    mi.platform = $2 AND
-                    mi.username in ($3) AND
-                    EXISTS (SELECT 1 FROM "memberSegments" ms WHERE ms."memberId" = mi."memberId")`,
-              [input.member.tenantId, platform, usernames],
+            const existingMember = await findExistingMember(
+              svc.postgres.reader,
+              input.member.tenantId,
+              platform,
+              usernames,
             )
 
             // Add the member to merge suggestions.
             if (existingMember) {
-              await tx.query(
-                `INSERT INTO "memberToMerge" ("memberId", "toMergeId", similarity)
-                VALUES ($1, $2, $3);"`,
-                [input.member.id, existingMember.id, 0.9],
-              )
+              await addMemberToMerge(tx, input.member.id, existingMember.id)
 
               // Filter out the identity that belongs to another member from the normalized payload
               if (Array.isArray(input.member.username[platform])) {
@@ -135,12 +138,10 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
           // to upsert it. We first need a select to find occurence via displayed
           // name.
           let orgId: string
-          const existing = await svc.postgres.reader.connection().query(
-            `SELECT id FROM organizations
-            WHERE "displayName" ILIKE $1
-            AND "tenantId" = $2
-            AND "deletedAt" IS NULL;`,
-            [workExperience.company, input.member.tenantId],
+          const existing = await findExistingOrganization(
+            svc.postgres.reader,
+            workExperience.company,
+            input.member.tenantId,
           )
 
           if (existing && existing[0]) {
@@ -148,29 +149,14 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
           } else {
             orgId = generateUUIDv4()
 
-            const upserted = await tx.query(
-              `INSERT INTO organizations (id, "tenantId", "displayName", website, linkedin, location, "createdAt", "updatedAt")
-              VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-              ON CONFLICT (website, "tenantId")
-                WHERE website IS NOT NULL
-                DO UPDATE SET
-                  linkedin = EXCLUDED.linkedin,
-                  location = EXCLUDED.location,
-                  "updatedAt" = NOW()
-              RETURNING id;`,
-              [
-                orgId,
-                input.member.tenantId,
-                workExperience.company,
-                workExperience.companyUrl,
-                workExperience.companyLinkedInUrl
-                  ? {
-                      url: workExperience.companyLinkedInUrl,
-                      handle: workExperience.companyLinkedInUrl.split('/').pop(),
-                    }
-                  : null,
-                workExperience.location,
-              ],
+            const upserted = await upsertOrganization(
+              tx,
+              orgId,
+              input.member.tenantId,
+              workExperience.company,
+              workExperience.companyUrl,
+              workExperience.companyLinkedInUrl,
+              workExperience.location,
             )
 
             if (upserted) {
@@ -199,18 +185,13 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
           }
 
           for (const orgIdentity of organizationIdentities) {
-            await tx.query(
-              `INSERT INTO "organizationIdentities" ("organizationId", "tenantId", name, platform, url)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT ON CONSTRAINT "organizationIdentities_platform_name_tenantId_key"
-            DO UPDATE SET name = EXCLUDED.name, url = EXCLUDED.url;`,
-              [
-                orgId,
-                input.member.tenantId,
-                orgIdentity.name,
-                orgIdentity.platform,
-                orgIdentity.url,
-              ],
+            await insertOrgIdentity(
+              tx,
+              orgId,
+              input.member.tenantId,
+              orgIdentity.name,
+              orgIdentity.platform,
+              orgIdentity.url,
             )
           }
 
@@ -229,26 +210,9 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
 
           // Clean up organizations without dates if we're getting ones with dates.
           if (data.dateStart) {
-            await tx.query(
-              `UPDATE "memberOrganizations"
-                SET "deletedAt" = NOW()
-                WHERE "memberId" = $1
-                AND "organizationId" = $2
-                AND "dateStart" IS NULL
-                AND "dateEnd" IS NULL
-              `,
-              [input.member.id, orgId],
-            )
+            await deleteMemberOrg(tx, input.member.id, orgId)
           } else {
-            const rows = await svc.postgres.reader.connection().query(
-              `SELECT COUNT(*) AS count FROM "memberOrganizations"
-                WHERE "memberId" = $1
-                AND "organizationId" = $2
-                AND "dateStart" IS NOT NULL
-                AND "deletedAt" IS NULL
-              `,
-              [input.member.id, orgId],
-            )
+            const rows = await findMemberOrgs(svc.postgres.reader, input.member.id, orgId)
             const row = rows[0]
 
             // If we're getting organization without dates, but there's already
@@ -258,26 +222,14 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
             }
           }
 
-          let conflictCondition = `("memberId", "organizationId", "dateStart", "dateEnd")`
-          if (!dateEnd) {
-            conflictCondition = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
-          }
-          if (!data.dateStart) {
-            conflictCondition = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
-          }
-
-          const onConflict =
-            data.source === OrganizationSource.UI
-              ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = $3, "dateStart" = $4, "dateEnd" = $5, "deletedAt" = NULL, "source" = $6`
-              : 'ON CONFLICT DO NOTHING'
-
-          await tx.query(
-            `
-              INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
-              VALUES ($1, $2, NOW(), NOW(), $3, $4, $5, $6)
-              ${onConflict};
-            `,
-            [input.member.id, orgId, data.title, data.dateStart, data.dateEnd, data.source],
+          await insertWorkExperience(
+            tx,
+            input.member.id,
+            orgId,
+            data.title,
+            data.dateStart,
+            data.dateEnd,
+            data.source,
           )
         }
       })

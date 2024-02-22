@@ -1,30 +1,27 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IPlatforms } from '../types'
+import { IPlatforms } from './types'
 
-class ActivityRepository {
+class IntegrationRepository {
   constructor(
     private readonly connection: DbConnection | DbTransaction,
     private readonly log: Logger,
   ) {}
 
-  async findNewActivityPlatforms(
-    dashboardLastRefreshedAt: string,
-    leafSegmentIds: string[],
-  ): Promise<string[]> {
+  async findActivePlatforms(leafSegmentIds: string[]): Promise<string[]> {
     let result: IPlatforms
     try {
       result = await this.connection.oneOrNone(
         `
       select 
-        array_agg(distinct a.platform) as platforms 
-      from mv_activities_cube a
-      where a."segmentId" in ($(leafSegmentIds:csv))
-        and a."createdAt" > $(dashboardLastRefreshedAt)
+        array_agg(distinct i.platform) as platforms 
+      from integrations i
+      where i."segmentId" in ($(leafSegmentIds:csv))
+        and i."deletedAt" is null
+        and i.status in ('done', 'in-progress');
       `,
         {
           leafSegmentIds,
-          dashboardLastRefreshedAt,
         },
       )
     } catch (err) {
@@ -33,8 +30,8 @@ class ActivityRepository {
       throw new Error(err)
     }
 
-    return result.platforms
+    return result.platforms || []
   }
 }
 
-export default ActivityRepository
+export default IntegrationRepository
