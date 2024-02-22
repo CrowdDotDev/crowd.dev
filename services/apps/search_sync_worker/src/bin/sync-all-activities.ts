@@ -1,8 +1,8 @@
 import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
-import { ActivityRepository } from '../repo/activity.repo'
+import { ActivityRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/activity.repo'
 import { timeout } from '@crowd/common'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 
 const log = getServiceLogger()

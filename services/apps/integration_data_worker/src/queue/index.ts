@@ -1,4 +1,4 @@
-import { DbConnection, DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {

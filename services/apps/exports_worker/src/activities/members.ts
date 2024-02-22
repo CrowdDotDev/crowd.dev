@@ -7,6 +7,7 @@ import pick from 'lodash.pick'
 import { svc } from '../main'
 import { uploadToS3 } from '../utils/s3'
 import { ResultS3Upload } from '../types/s3'
+import { fetchMemberAttributeSettings } from '@crowd/data-access-layer/src/old/apps/exports_worker'
 
 const search = new MemberSearchService(svc.redis, svc.postgres.reader, svc.opensearch, svc.log)
 
@@ -23,11 +24,7 @@ by uploading the result as JSON in S3, and use the private object URL of the
 said JSON to then create the CSV and upload it.
 */
 export async function buildAndUploadMembersCSV(input: ITriggerCSVExport): Promise<ResultS3Upload> {
-  const attributesSettings = await svc.postgres.reader.connection().query(
-    `SELECT id, type, "canDelete", show, label, name, options
-      FROM "memberAttributeSettings" WHERE "tenantId" = $1;`,
-    input.tenantId,
-  )
+  const attributesSettings = await fetchMemberAttributeSettings(svc.postgres.reader, input.tenantId)
 
   const transformed = {
     filter: input.criteria ? input.criteria.filter : {},
