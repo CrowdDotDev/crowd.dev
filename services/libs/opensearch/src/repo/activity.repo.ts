@@ -67,7 +67,6 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
   }
 
   public async getTenantActivitiesForSync(tenantId: string, perPage: number): Promise<string[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results = await this.db().any(
       `
       select id from activities a

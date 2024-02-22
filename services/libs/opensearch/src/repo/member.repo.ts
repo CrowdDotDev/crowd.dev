@@ -38,53 +38,25 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getTenantMembersForSync(
-    tenantId: string,
-    perPage: number,
-    lastId?: string,
-  ): Promise<string[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let results: any[]
-
-    if (lastId) {
-      results = await this.db().any(
-        `
-          select m.id
-          from members m
-          where m."tenantId" = $(tenantId) and 
-                m."deletedAt" is null and
-                m.id > $(lastId) and
-                (
-                  exists (select 1 from activities where "memberId" = m.id) or
-                  m."manuallyCreated"
-                ) and
-                exists (select 1 from "memberIdentities" where "memberId" = m.id)
-          order by m.id
-          limit ${perPage};`,
-        {
-          tenantId,
-          lastId,
-        },
-      )
-    } else {
-      results = await this.db().any(
-        `
-          select m.id
-          from members m
-          where m."tenantId" = $(tenantId) and 
-                m."deletedAt" is null and
-                (
-                  exists (select 1 from activities where "memberId" = m.id) or
-                  m."manuallyCreated"
-                ) and
-                exists (select 1 from "memberIdentities" where "memberId" = m.id)
-          order by m.id
-          limit ${perPage};`,
-        {
-          tenantId,
-        },
-      )
-    }
+  public async getTenantMembersForSync(tenantId: string, perPage: number): Promise<string[]> {
+    const results = await this.db().any(
+      `
+        select m.id
+        from members m
+        left join indexed_entities ie on m.id = ie.entity_id
+        where m."tenantId" = $(tenantId) and 
+              m."deletedAt" is null and
+              ie.entity_id is null and
+              (
+                exists (select 1 from activities where "memberId" = m.id) or
+                m."manuallyCreated"
+              ) and
+              exists (select 1 from "memberIdentities" where "memberId" = m.id)
+        limit ${perPage};`,
+      {
+        tenantId,
+      },
+    )
 
     return results.map((r) => r.id)
   }

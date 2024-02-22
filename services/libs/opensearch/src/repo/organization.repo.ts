@@ -307,22 +307,18 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     tenantId: string,
     page: number,
     perPage: number,
-    cutoffDate: string,
   ): Promise<string[]> {
     const results = await this.db().any(
       `
         select o.id
         from organizations o
+        left join indexed_entities ie on o.id = ie.entity_id
         where o."tenantId" = $(tenantId) and 
               o."deletedAt" is null and
-              (
-                  o."searchSyncedAt" is null or 
-                  o."searchSyncedAt" < $(cutoffDate)
-              ) 
+              ie.entity_id is null
         limit ${perPage} offset ${(page - 1) * perPage};`,
       {
         tenantId,
-        cutoffDate,
       },
     )
 

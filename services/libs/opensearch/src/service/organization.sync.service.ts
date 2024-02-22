@@ -10,12 +10,15 @@ import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
 import { IServiceConfig } from '@crowd/types'
+import { IndexedEntityType } from '../repo/indexing.data'
+import { IndexingRepository } from '../repo/indexing.repo'
 
 export class OrganizationSyncService {
   private log: Logger
   private readonly orgRepo: OrganizationRepository
   private readonly segmentRepo: SegmentRepository
   private readonly serviceConfig: IServiceConfig
+  private readonly indexingRepo: IndexingRepository
 
   constructor(
     store: DbStore,
@@ -28,6 +31,7 @@ export class OrganizationSyncService {
 
     this.orgRepo = new OrganizationRepository(store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -214,7 +218,6 @@ export class OrganizationSyncService {
           tenantId,
           1,
           batchSize,
-          cutoffDate,
         )
 
         while (organizationIds.length > 0) {
@@ -229,12 +232,7 @@ export class OrganizationSyncService {
             { tenantId },
             `Synced ${organizationCount} organizations with ${docCount} documents!`,
           )
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
-          )
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, 1, batchSize)
         }
       },
       this.log,
@@ -269,6 +267,7 @@ export class OrganizationSyncService {
     let documentsIndexed = 0
     const allOrgIds = Object.keys(orgSegmentCouples)
     const totalOrgIds = allOrgIds.length
+    const indexedOrgIds = []
 
     const processSegmentsStream = async (databaseStream): Promise<void> => {
       const results = await Promise.all(databaseStream.map((s) => s.promise))
@@ -284,6 +283,15 @@ export class OrganizationSyncService {
         const targetSegment = orgSegments.find((s) => s.segmentId === segmentId)
         targetSegment.processed = true
         targetSegment.data = result
+
+        if (
+          indexedOrgIds.find((d) => d.id === orgId && d.tenantId === result.tenantId) === undefined
+        ) {
+          indexedOrgIds.push({
+            id: orgId,
+            tenantId: result.tenantId,
+          })
+        }
 
         // Check if all segments for the organization have been processed
         const allSegmentsOfOrgIsProcessed = orgSegments.every((s) => s.processed)
@@ -386,7 +394,7 @@ export class OrganizationSyncService {
       }
     }
 
-    await this.orgRepo.markSynced(organizationIds)
+    await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.ORGANIZATION, indexedOrgIds)
 
     return {
       organizationsSynced: organizationIds.length,
