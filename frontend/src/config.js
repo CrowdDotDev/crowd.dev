@@ -66,6 +66,12 @@ const defaultConfig = {
   isConfluenceEnabled: import.meta.env.VUE_APP_IS_CONFLUENCE_ENABLED,
   isGerritEnabled: import.meta.env.VUE_APP_IS_GERRIT_ENABLED,
   isTwitterEnabled: import.meta.env.VUE_APP_IS_TWITTER_ENABLED,
+  datadog: {
+    rum: {
+      applicationId: import.meta.env.VUE_APP_DATADOG_RUM_APPLICATION_ID,
+      clientToken: import.meta.env.VUE_APP_DATADOG_RUM_CLIENT_TOKEN,
+    },
+  },
 };
 
 const composedConfig = {
@@ -124,6 +130,12 @@ const composedConfig = {
   isTwitterEnabled: 'CROWD_VUE_APP_IS_TWITTER_ENABLED',
   isConfluenceEnabled: 'CROWD_VUE_APP_IS_CONFLUENCE_ENABLED',
   isGerritEnabled: 'CROWD_VUE_APP_IS_GERRIT_ENABLED',
+  datadog: {
+    rum: {
+      applicationId: 'CROWD_VUE_APP_DATADOG_RUM_APPLICATION_ID',
+      clientToken: 'CROWD_VUE_APP_DATADOG_RUM_CLIENT_TOKEN',
+    },
+  },
 };
 
 const config = defaultConfig.backendUrl
