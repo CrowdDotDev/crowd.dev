@@ -1,9 +1,12 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import IntegrationRepository from '../repo/integration.repo'
-import { IDbCacheOrganization, IDbInsertOrganizationCacheData } from '../repo/organization.data'
-import { OrganizationRepository } from '../repo/organization.repo'
-import { DbStore } from '@crowd/database'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
+import {
+  IDbCacheOrganization,
+  IDbInsertOrganizationCacheData,
+} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.data'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.repo'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'

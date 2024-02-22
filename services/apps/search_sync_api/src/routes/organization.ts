@@ -1,8 +1,8 @@
 import express from 'express'
 import { OrganizationSyncService } from '@crowd/opensearch'
-import { ApiRequest } from 'middleware'
-import { asyncWrap } from 'middleware/error'
-import { SERVICE_CONFIG } from 'conf'
+import { ApiRequest } from '../middleware'
+import { asyncWrap } from '../middleware/error'
+import { SERVICE_CONFIG } from '../conf'
 
 const router = express.Router()
 const serviceConfig = SERVICE_CONFIG()

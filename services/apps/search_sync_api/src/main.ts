@@ -9,12 +9,12 @@ import { InitService, OpenSearchService } from '@crowd/opensearch'
 import memberRoutes from './routes/member'
 import activityRoutes from './routes/activity'
 import organizationRoutes from './routes/organization'
-import { getDbConnection } from '@crowd/database'
-import { opensearchMiddleware } from 'middleware/opensearch'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
+import { opensearchMiddleware } from './middleware/opensearch'
 import { getRedisClient } from '@crowd/redis'
-import { redisMiddleware } from 'middleware/redis'
+import { redisMiddleware } from './middleware/redis'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG } from './conf'
-import { ApiRequest } from 'middleware'
+import { ApiRequest } from './middleware'
 
 const log = getServiceLogger()
 const config = SEARCH_SYNC_API_CONFIG()

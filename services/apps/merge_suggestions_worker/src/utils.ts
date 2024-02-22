@@ -1,11 +1,10 @@
-import { IMemberMergeSuggestion } from '@crowd/types'
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 
 import {
   IMemberIdentityOpensearch,
   IMemberPartialAggregatesOpensearch,
   ISimilarMember,
-} from 'types'
+} from './types'
 
 export const prefixLength = (string: string) => {
   if (string.length > 5 && string.length < 8) {
@@ -76,26 +75,6 @@ export const calculateSimilarity = (
   }
 
   return Math.floor(((identityLength - smallestEditDistance) / identityLength) * 100) / 100
-}
-
-export function removeDuplicateSuggestions(
-  suggestions: IMemberMergeSuggestion[],
-): IMemberMergeSuggestion[] {
-  const seen = new Set<string>()
-
-  return suggestions.filter((suggestion) => {
-    // Sort members and convert them to string for comparison
-    const membersString = suggestion.members.slice().sort().join()
-
-    if (seen.has(membersString)) {
-      // We have seen this pair of members before, filter it out
-      return false
-    } else {
-      // This is a new pair of members, add it to the set
-      seen.add(membersString)
-      return true
-    }
-  })
 }
 
 export function chunkArray<T>(array: T[], chunkSize: number): T[][] {

@@ -16,9 +16,15 @@ import {
   EnrichmentAPIWorkExperience,
   EnrichmentAPIEducation,
   EnrichmentAPICertification,
-} from '@crowd/types/premium'
-import { DbTransaction } from '@crowd/database'
-import { generateUUIDv4 } from '@crowd/common'
+} from '@crowd/types/src/premium'
+import { DbTransaction } from '@crowd/data-access-layer/src/database'
+import { updateMember } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import {
+  insertMemberAttributeSettings,
+  insertMemberEnrichmentCache,
+  insertMemberIdentity,
+  setMemberAttributeSettings,
+} from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker/normalize'
 
 const attributeSettings = {
   [MemberAttributeName.AVATAR_URL]: {
@@ -203,33 +209,27 @@ const fillPlatformData = async (
       member.attributes.url.twitter || `https://twitter.com/${enriched.twitter_handle}`
   }
 
-  // We are updating the displayName only if the existing one has one word only
-  // And we are using an update here instead of the upsert because
-  // upsert always takes the existing displayName
-  let stmtDisplayName = ''
-  if (!/\W/.test(member.displayName)) {
-    if (enriched.first_name && enriched.last_name) {
-      member.displayName = `${enriched.first_name} ${enriched.last_name}`
-      stmtDisplayName = `"displayName" = $1,`
-    }
-  }
-
   try {
-    await tx.query(
-      `UPDATE members SET ${stmtDisplayName}
-      emails = $2,
-      attributes = $3,
-      contributions = $4,
-      "lastEnriched" = NOW()
-    WHERE id = $5 AND "tenantId" = $6;`,
-      [
-        member.displayName,
-        member.emails,
-        member.attributes,
-        JSON.stringify(member.contributions),
-        member.id,
-        member.tenantId,
-      ],
+    // We are updating the displayName only if the existing one has one word only
+    // And we are using an update here instead of the upsert because
+    // upsert always takes the existing displayName
+    let updateDisplayName = false
+    if (!/\W/.test(member.displayName)) {
+      if (enriched.first_name && enriched.last_name) {
+        member.displayName = `${enriched.first_name} ${enriched.last_name}`
+        updateDisplayName = true
+      }
+    }
+
+    await updateMember(
+      tx,
+      member.tenantId,
+      member.id,
+      member.displayName,
+      updateDisplayName,
+      member.emails,
+      member.attributes,
+      member.contributions,
     )
   } catch (err) {
     throw new Error(err)
@@ -237,12 +237,12 @@ const fillPlatformData = async (
 
   for (const platform in member.username) {
     try {
-      await tx.query(
-        `INSERT INTO "memberIdentities" ("memberId", "tenantId", platform, username)
-          VALUES ($1, $2, $3, $4)
-          ON CONFLICT ON CONSTRAINT "memberIdentities_platform_username_tenantId_key" DO UPDATE
-          SET username = EXCLUDED.username, "updatedAt" = NOW();`,
-        [member.id, member.tenantId, platform, member.username[platform]],
+      await insertMemberIdentity(
+        tx,
+        platform,
+        member.id,
+        member.tenantId,
+        member.username[platform],
       )
     } catch (err) {
       throw new Error(err)
@@ -250,13 +250,7 @@ const fillPlatformData = async (
   }
 
   try {
-    await tx.query(
-      `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt")
-      VALUES ($1, $2, NOW(), NOW())
-      ON CONFLICT ("memberId") DO UPDATE
-      SET data = EXCLUDED.data, "updatedAt" = NOW();`,
-      [member.id, JSON.stringify(enriched)],
-    )
+    await insertMemberEnrichmentCache(tx, enriched, member.id)
   } catch (err) {
     throw new Error(err)
   }
@@ -385,12 +379,7 @@ const createAttributeAndUpdateOptions = async (
     options = lodash.uniq([...options, ...value])
 
     try {
-      await tx.query(
-        `UPDATE "memberAttributeSettings"
-        SET options = $1
-        WHERE id = $2 AND "tenantId" = $3;`,
-        [options, attributeSettings.id, member.tenantId],
-      )
+      await setMemberAttributeSettings(tx, options, attributeSettings.id, member.tenantId)
     } catch (err) {
       throw new Error(err)
     }
@@ -400,25 +389,17 @@ const createAttributeAndUpdateOptions = async (
   if (!(lodash.find(member.attributes, { name: attributeName }) || attribute.default)) {
     // Create new attribute if it does not exist
     try {
-      await tx.query(
-        `INSERT INTO "memberAttributeSettings" (id, "tenantId", name, label, type, show, "canDelete", options, "createdAt", "updatedAt")
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
-        ON CONFLICT (name,"tenantId") DO UPDATE
-        SET options = EXCLUDED.options, "updatedAt" = $9;`,
-        [
-          generateUUIDv4(),
-          member.tenantId,
-          attributeName,
-          MemberEnrichmentAttributes[attributeName]?.label || MemberAttributes[attributeName].label,
-          attribute?.type ||
-            MemberEnrichmentAttributes[attributeName]?.type ||
-            MemberAttributes[attributeName].type ||
-            MemberAttributeType.STRING,
-          attributeName !== MemberEnrichmentAttributeName.EMAILS,
-          false,
-          attribute.type === MemberAttributeType.MULTI_SELECT ? attribute.options : [],
-          new Date(Date.now()),
-        ],
+      await insertMemberAttributeSettings(
+        tx,
+        attributeName,
+        member.tenantId,
+        MemberEnrichmentAttributes[attributeName]?.label || MemberAttributes[attributeName].label,
+        attribute?.type ||
+          MemberEnrichmentAttributes[attributeName]?.type ||
+          MemberAttributes[attributeName].type ||
+          MemberAttributeType.STRING,
+        attributeName !== MemberEnrichmentAttributeName.EMAILS,
+        attribute.type === MemberAttributeType.MULTI_SELECT ? attribute.options : [],
       )
     } catch (err) {
       throw new Error(err)

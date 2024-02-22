@@ -1,12 +1,13 @@
 import { svc } from '../../main'
-import { ICubeQueryParams, IDashboardData, ISegment } from 'types'
-import SegmentRepository from 'repo/segment.repo'
+import { ICubeQueryParams, IDashboardData } from '../../types'
+import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
+import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
 import { CubeJsRepository, CubeJsService } from '@crowd/cubejs'
 import { RedisCache } from '@crowd/redis'
 import { DashboardTimeframe } from '@crowd/types'
 import moment from 'moment'
-import IntegrationRepository from 'repo/integration.repo'
-import ActivityRepository from 'repo/activity.repo'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
+import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
 
 export async function getDashboardCacheLastRefreshedAt(segmentId: string): Promise<string> {
   const segmentRepo = new SegmentRepository(svc.postgres.writer.connection(), svc.log)
