@@ -586,7 +586,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async getMemberSegmentCouples(ids): Promise<IMemberSegmentMatrix> {
-    const results = await this.db().any(
+    let results = await this.db().any(
       `
       select distinct a."segmentId", a."memberId"
       from activities a
@@ -596,6 +596,25 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         ids,
       },
     )
+
+    // Manually created members don't have any activities,
+    // filter out those memberIds that are not in the results
+    const manuallyCreatedIds = ids.filter((id) => !results.some((r) => r.memberId === id))
+
+    // memberSegments aren't maintained well, so use as a fallback for manuallyCreated members
+    if (manuallyCreatedIds.length > 0) {
+      const missingResults = await this.db().any(
+        `
+        select distinct ms."segmentId", ms."memberId"
+        from "memberSegments" ms
+        where ms."memberId" in ($(manuallyCreatedIds:csv));
+        `,
+        {
+          manuallyCreatedIds,
+        },
+      )
+      results = [...results, ...missingResults]
+    }
 
     const matrix = {}
 
