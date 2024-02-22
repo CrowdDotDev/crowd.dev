@@ -42,7 +42,7 @@ const replaceHeadline = (text) => {
   return text
 }
 
-const truncateText = (text: string, characters: number = 60): string => {
+const truncateText = (text: string, characters = 60): string => {
   if (text.length > characters) {
     return `${text.substring(0, characters)}...`
   }

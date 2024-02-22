@@ -1,5 +1,5 @@
 import { IMember } from '@crowd/types'
-import { EnrichmentAPIMember } from '@crowd/types/premium'
+import { EnrichmentAPIMember } from '@crowd/types/src/premium'
 
 export interface EnrichingMember {
   member: IMember
