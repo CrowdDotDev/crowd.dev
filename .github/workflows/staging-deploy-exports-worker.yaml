@@ -1,4 +1,4 @@
-name: Staging Deploy Emails Worker
+name: Staging Deploy Exports Worker
 
 on:
   push:

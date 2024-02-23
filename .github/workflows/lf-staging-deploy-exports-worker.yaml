@@ -1,4 +1,4 @@
-name: LF Staging Deploy Emails Worker
+name: LF Staging Deploy Exports Worker
 
 on:
   push:
