@@ -32,6 +32,7 @@ SELECT
     a."isContribution",
     a."tenantId",
     a."memberId",
+    a."username",
     (a.platform)::VARCHAR(24),
     (a.channel)::VARCHAR(256),
     a.timestamp,
