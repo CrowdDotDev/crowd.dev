@@ -779,7 +779,6 @@ export default class MemberService extends LoggerBase {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
     try {
-      console.log('Finding member...')
       const member = await MemberRepository.findById(memberId, this.options)
 
       member.memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
@@ -787,7 +786,6 @@ export default class MemberService extends LoggerBase {
         this.options,
       )
 
-      console.log('Getting raw identities...')
       // check member has the sent identity
       const memberIdentities = await MemberRepository.getRawMemberIdentities(memberId, this.options)
 
