@@ -76,7 +76,7 @@ export const connectSocket = (token) => {
     } = parsedData;
 
     const primaryMember = h(
-      'router-link',
+      'a',
       {
         href: `${window.location.origin}/members/${primaryId}`,
         class: 'underline',
@@ -84,7 +84,7 @@ export const connectSocket = (token) => {
       primaryDisplayName,
     );
     const secondaryMember = h(
-      'router-link',
+      'a',
       {
         href: `${window.location.origin}/members/${secondaryId}`,
         class: 'underline',
