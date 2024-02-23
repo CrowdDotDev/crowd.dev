@@ -1181,7 +1181,7 @@ class MemberRepository {
 
     let query = `
     SELECT count(*) as count
-        FROM "activities"
+        FROM "mv_activities_cube"
         WHERE "memberId" = :memberId AND`
 
     const replacements = {
@@ -1203,13 +1203,13 @@ class MemberRepository {
       replacements[replacementKey('username', i)] = identities[i].username
     }
 
-    const activityCount = await seq.query(query, {
+    const result = await seq.query(query, {
       replacements,
       type: QueryTypes.SELECT,
       transaction,
     })
 
-    return (activityCount[0] as any).count as number
+    return (result[0] as any).count as number
   }
 
   static async findById(
