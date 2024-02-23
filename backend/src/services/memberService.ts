@@ -777,7 +777,7 @@ export default class MemberService extends LoggerBase {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
     try {
-      console.log("Finding member...")
+      console.log('Finding member...')
       const member = await MemberRepository.findById(memberId, this.options)
 
       member.memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
@@ -785,7 +785,7 @@ export default class MemberService extends LoggerBase {
         this.options,
       )
 
-      console.log("Getting raw identities...")
+      console.log('Getting raw identities...')
       // check member has the sent identity
       const memberIdentities = await MemberRepository.getRawMemberIdentities(memberId, this.options)
 
@@ -798,8 +798,8 @@ export default class MemberService extends LoggerBase {
       }
 
       member.identities = memberIdentities
-      
-      console.log("Finding merge backup...")
+
+      console.log('Finding merge backup...')
       const mergeAction = await MergeActionsRepository.findMergeBackup(
         memberId,
         identity,
@@ -1013,25 +1013,27 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Original member only has one identity, cannot extract it!`)
       }
 
-      console.log("Finding secondary member activity count...")
+      console.log('Finding secondary member activity count...')
       const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
         member.id,
         secondaryIdentities,
         this.options,
       )
 
-      console.log("Finding primary member activity count...")
+      console.log('Finding primary member activity count...')
       const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
         member.id,
         primaryIdentities,
         this.options,
       )
 
+      console.log('Finding member roles...')
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
         member.id,
         this.options,
       )
 
+      console.log('Returning preview...')
       return {
         primary: {
           ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
