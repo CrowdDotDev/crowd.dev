@@ -388,8 +388,6 @@ class IntegrationRepository {
     { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    console.log('filter before going fruther!', limit, offset)
-
     const include = []
 
     // If the advanced filter is empty, we construct it from the query parameter filter
