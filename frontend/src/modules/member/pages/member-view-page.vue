@@ -18,7 +18,7 @@
           </template>
         </app-back-link>
 
-        <app-member-actions :member="member" />
+        <app-member-actions :member="member" @unmerge="unmerge" />
       </div>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header
@@ -26,7 +26,10 @@
           class="col-span-2"
         />
         <div class="row-span-4">
-          <app-member-view-aside :member="member" />
+          <app-member-view-aside
+            :member="member"
+            @unmerge="unmerge"
+          />
         </div>
         <app-member-view-contributions-cta
           v-if="!isEnrichmentEnabled"
@@ -56,6 +59,11 @@
       </div>
     </div>
   </app-page-wrapper>
+  <app-member-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
+    :selected-identity="selectedIdentity"
+  />
 </template>
 
 <script setup>
@@ -79,6 +87,8 @@ import AppMemberViewContributionsCta from '@/modules/member/components/view/memb
 import Plans from '@/security/plans';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
+import AppMemberActions from '@/modules/member/components/member-actions.vue';
+import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 
 const store = useStore();
 const props = defineProps({
@@ -99,6 +109,19 @@ const { currentTenant } = mapGetters('auth');
 
 const member = computed(() => store.getters['member/find'](props.id) || {});
 const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
+
+// Unmerge
+const isUnmergeDialogOpen = ref(null);
+const selectedIdentity = ref(null);
+
+const unmerge = (identity) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = member.value;
+};
+
+const tasksTab = ref(null);
 
 const loading = ref(true);
 const tab = ref('activities');

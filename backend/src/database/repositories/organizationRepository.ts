@@ -6,6 +6,8 @@ import { Error400, Error404, Error409, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
+  IMemberRenderFriendlyRole,
+  IMemberRoleWithOrganization,
   IOrganization,
   IOrganizationIdentity,
   IOrganizationMergeSuggestion,
@@ -2975,6 +2977,23 @@ class OrganizationRepository {
       delete rec.segmentIds
       return rec
     })
+  }
+
+  static calculateRenderFriendlyOrganizations(
+    memberOrganizations: IMemberRoleWithOrganization[],
+  ): IMemberRenderFriendlyRole[] {
+    const organizations: IMemberRenderFriendlyRole[] = []
+
+    for (const role of memberOrganizations) {
+      organizations.push({
+        id: role.organizationId,
+        displayName: role.organizationName,
+        logo: role.organizationLogo,
+        memberOrganizations: role,
+      })
+    }
+
+    return organizations
   }
 }
 

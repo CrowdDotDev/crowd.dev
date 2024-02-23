@@ -697,6 +697,7 @@
         <app-member-dropdown-content
           v-if="selectedActionMember"
           :member="selectedActionMember"
+          :hide-unmerge="true"
           @find-github="isFindGithubDrawerOpen = selectedActionMember"
           @merge="isMergeDialogOpen = selectedActionMember"
           @close-dropdown="closeDropdown"
