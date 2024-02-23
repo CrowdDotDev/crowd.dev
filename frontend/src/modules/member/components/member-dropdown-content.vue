@@ -1,13 +1,13 @@
 <template>
   <template v-if="identities.length > 1 && !props.hideUnmerge">
     <button
-        class="h-10 el-dropdown-menu__item w-full"
-        :disabled="isEditLockedForSampleData"
-        type="button"
-        @click="handleCommand({
-          action: Actions.UNMERGE_IDENTITY,
-          member,
-        })"
+      class="h-10 el-dropdown-menu__item w-full"
+      :disabled="isEditLockedForSampleData"
+      type="button"
+      @click="handleCommand({
+        action: Actions.UNMERGE_IDENTITY,
+        member,
+      })"
     >
       <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
     </button>
