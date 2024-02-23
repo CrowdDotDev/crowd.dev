@@ -107,7 +107,7 @@
           </div>
           <div class="w-1/2 px-3">
             <!-- Loading preview -->
-            <div v-if="fetchingPreview" class="flex items-center justify-center h-full w-full">
+            <div v-if="fetchingPreview" class="flex items-center justify-center pt-40 w-full">
               <cr-spinner />
             </div>
             <!-- Unmerge preview -->
@@ -122,14 +122,14 @@
                       <div
                         class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
                       >
-                        <i class="ri-link-unlink-m mr-1" />Unmerged contributor
+                        <i class="ri-link-unlink-m mr-1" />Unmerged contact
                       </div>
                       <el-dropdown
                         placement="bottom-end"
                         trigger="click"
                       >
                         <button
-                          class="btn btn--link"
+                          class="btn btn--link !text-brand-500"
                           type="button"
                           @click.stop
                         >
@@ -199,7 +199,7 @@
                 <div class="ri-fingerprint-line text-5xl text-gray-200" />
               </div>
               <p class="text-center text-xs leading-5 text-gray-500">
-                Select the contributor identity you want to unmerge
+                Select the contact identity you want to unmerge
               </p>
               <div class="pt-4">
                 <el-select
@@ -314,9 +314,9 @@ const unmerge = () => {
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
       Message.info(
-        'We’re syncing all activities of the unmerged contributor. We will let you know once the process is completed.',
+        'We’re syncing all activities of the unmerged contact. We will let you know once the process is completed.',
         {
-          title: 'Contributors unmerging in progress',
+          title: 'Contacts unmerging in progress',
         },
       );
       emit('update:modelValue', null);
