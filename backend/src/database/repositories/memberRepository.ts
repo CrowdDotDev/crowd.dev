@@ -1198,8 +1198,7 @@ class MemberRepository {
       )}) `
       if (i !== identities.length - 1) {
         query += ' OR '
-      }
-      else {
+      } else {
         query += ')'
       }
 
