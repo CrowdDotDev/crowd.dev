@@ -1181,7 +1181,7 @@ class MemberRepository {
 
     let query = `
     SELECT count(*) as count
-        FROM "activities"
+        FROM "mv_activities_cube"
         WHERE "memberId" = :memberId AND`
 
     const replacements = {
