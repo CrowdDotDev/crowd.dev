@@ -115,8 +115,10 @@
           <p class="text-2xs font-medium text-gray-500 pb-1">
             Engagement level
           </p>
-          <app-community-engagement-level v-if="member.reach?.total >= 0" :member="member" />
-          <span v-else class="text-2xs">-</span>
+          <slot name="engagementLevel">
+            <app-community-engagement-level v-if="member.reach?.total >= 0" :member="member" />
+            <span v-else class="text-2xs">-</span>
+          </slot>
         </article>
         <article
           v-if="
@@ -185,9 +187,10 @@
           />
           <span v-else>-</span>
         </article>
+        <slot name="property" />
       </div>
       <div class="pt-4">
-        <h6 class="text-sm font-semibold pb-3">
+        <h6 class="text-sm font-semibold text-black pb-3">
           Identities
         </h6>
         <app-identities-vertical-list-members
@@ -196,6 +199,7 @@
           :include-emails="true"
         />
       </div>
+      <slot name="below" />
     </div>
   </section>
 </template>
