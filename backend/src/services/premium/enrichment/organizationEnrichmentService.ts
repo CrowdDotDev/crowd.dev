@@ -92,7 +92,7 @@ export default class OrganizationEnrichmentService extends LoggerBase {
 
     // Check for organization enrichment API key
     if (!this.apiKey) {
-      throw new Error('Organization enrichment API Key is not set!')
+      throw new Error('Organization enrichment API key is not set!')
     }
 
     const enrichmentPlatformPriority = [

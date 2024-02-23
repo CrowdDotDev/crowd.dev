@@ -231,7 +231,7 @@ export default class MemberEnrichmentService extends LoggerBase {
   async enrichOne(memberId, syncMode = SyncMode.ASYNCHRONOUS) {
     // Check for contact enrichment envs
     if (!ENRICHMENT_CONFIG.apiKey || !ENRICHMENT_CONFIG.url) {
-      throw new Error('Contact enrichment API envs are missing!')
+      throw new Error('Contact enrichment API env variables not set!')
     }
     
     const transaction = await SequelizeRepository.createTransaction(this.options)
