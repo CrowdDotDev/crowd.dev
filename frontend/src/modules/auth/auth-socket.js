@@ -66,13 +66,14 @@ export const connectSocket = (token) => {
   });
 
   socketIoClient.on(SocketEvents.memberUnmerge, (data) => {
-    if (!data.success) {
+    console.info('Member unmerge done', data);
+    const parsedData = JSON.parse(data);
+    if (!parsedData.success) {
       return;
     }
-    console.info('Member unmerge done', data);
     const {
       primaryDisplayName, secondaryDisplayName, primaryId, secondaryId,
-    } = data;
+    } = parsedData;
 
     const primaryMember = h(
       'router-link',
