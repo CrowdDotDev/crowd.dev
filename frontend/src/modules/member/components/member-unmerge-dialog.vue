@@ -59,7 +59,7 @@
                 </article>
               </template>
               <template #below>
-                <div v-if="props.modelValue?.organizations?.length" class="pt-3">
+                <div v-if="props.modelValue?.organizations?.length" class="pt-8">
                   <h6 class="text-sm font-semibold text-black pb-4">
                     Organizations
                   </h6>
@@ -96,7 +96,7 @@
                 </article>
               </template>
               <template #below>
-                <div v-if="preview.primary?.organizations?.length" class="pt-3">
+                <div v-if="preview.primary?.organizations?.length" class="pt-8">
                   <h6 class="text-sm font-semibold text-black pb-4">
                     Organizations
                   </h6>
@@ -184,7 +184,7 @@
                   </article>
                 </template>
                 <template #below>
-                  <div v-if="preview.secondary?.organizations?.length" class="pt-3">
+                  <div v-if="preview.secondary?.organizations?.length" class="pt-8">
                     <h6 class="text-sm font-semibold text-black pb-4">
                       Organizations
                     </h6>
@@ -232,14 +232,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import moment from 'moment/moment';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
@@ -247,6 +246,11 @@ const props = defineProps({
   modelValue: {
     type: Object,
     required: true,
+  },
+  selectedIdentity: {
+    type: Object,
+    required: false,
+    default: () => null,
   },
 });
 
@@ -324,6 +328,12 @@ const unmerge = () => {
       unmerging.value = false;
     });
 };
+
+onMounted(() => {
+  if (props.selectedIdentity) {
+    fetchPreview(`${props.selectedIdentity.platform}:${props.selectedIdentity.username}`);
+  }
+});
 
 </script>
 
