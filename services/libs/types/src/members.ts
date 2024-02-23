@@ -1,6 +1,11 @@
 import { IAttributes } from './attributes'
 import { MemberAttributeType, MergeActionState, MergeActionType } from './enums/members'
-import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
+import {
+  IMemberOrganization,
+  IOrganization,
+  IOrganizationOpensearch,
+  IMemberRoleWithOrganization,
+} from './organizations'
 import { ITag, ITagOpensearch } from './tags'
 import { PlatformType } from './enums/platforms'
 import { ITask } from './tasks'
@@ -150,7 +155,7 @@ export interface IMemberUnmergeBackup {
   affiliations: IMemberAffiliation[]
   manuallyCreated: boolean
   manuallyChangedFields: string[]
-  memberOrganizations: IMemberOrganization[]
+  memberOrganizations: IMemberRoleWithOrganization[]
   contributions: IMemberContribution[]
 }
 
@@ -171,9 +176,17 @@ export interface IMemberUnmergePreviewResult {
   manuallyCreated: boolean
   manuallyChangedFields: string[]
   identities: IMemberIdentity[]
-  memberOrganizations: IMemberOrganization[]
+  memberOrganizations: IMemberRoleWithOrganization[]
+  organizations: IMemberRenderFriendlyRole[]
   activityCount: number
   numberOfOpenSourceContributions: number
+}
+
+export interface IMemberRenderFriendlyRole {
+  id: string
+  logo: string
+  displayName: string
+  memberOrganizations: IMemberOrganization
 }
 
 export interface IUnmergeBackup<T> {
