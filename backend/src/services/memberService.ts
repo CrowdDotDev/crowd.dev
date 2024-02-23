@@ -717,13 +717,15 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      // delete identity related stuff, we already moved these
+      // delete relations from payload, since we already handled those
       delete payload.primary.identities
       delete payload.primary.username
-
-      // delete memberOrganizations and organizations, these are also processed
       delete payload.primary.memberOrganizations
       delete payload.primary.organizations
+      delete payload.primary.tags
+      delete payload.primary.notes
+      delete payload.primary.tasks
+      delete payload.primary.affiliations
 
       // update rest of the primary member fields
       await MemberRepository.update(memberId, payload.primary, repoOptions, false, false)
