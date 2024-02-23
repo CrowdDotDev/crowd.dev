@@ -152,7 +152,7 @@
             Engagement level
           </p>
           <slot name="engagementLevel">
-            <app-community-engagement-level v-if="member.reach?.total >= 0" :member="member" />
+            <app-community-engagement-level v-if="member.reach?.total >= 0 && member.score" :member="member" />
             <span v-else class="text-2xs">-</span>
           </slot>
         </article>
