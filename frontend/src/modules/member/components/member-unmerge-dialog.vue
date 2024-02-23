@@ -4,7 +4,7 @@
     v-model="isModalOpen"
     title="Unmerge identity"
     size="2extra-large"
-    custom-class="p-0"
+    custom-class="p-0 !mt-5"
   >
     <template #header>
       <h3 class="text-lg font-semibold">
@@ -34,7 +34,6 @@
             <app-member-suggestions-details
               v-if="!preview && props.modelValue"
               :member="props.modelValue"
-              :compare-member="preview"
               :is-primary="true"
             >
               <template #header>
@@ -44,6 +43,27 @@
                   >
                     Current contact
                   </div>
+                </div>
+              </template>
+              <template #property>
+                <article
+                  v-if="props.modelValue.activityCount"
+                  class="pb-4"
+                >
+                  <p class="text-2xs font-medium text-gray-500 pb-1">
+                    Activity count
+                  </p>
+                  <p class="text-xs text-gray-900 whitespace-normal">
+                    {{ props.modelValue.activityCount || '-' }}
+                  </p>
+                </article>
+              </template>
+              <template #below>
+                <div v-if="props.modelValue?.organizations?.length" class="pt-3">
+                  <h6 class="text-sm font-semibold text-black pb-4">
+                    Organizations
+                  </h6>
+                  <app-member-organization-list :member="props.modelValue" />
                 </div>
               </template>
             </app-member-suggestions-details>
@@ -60,6 +80,27 @@
                   >
                     Updated contact
                   </div>
+                </div>
+              </template>
+              <template #property>
+                <article
+                  v-if="preview.primary.activityCount || preview.secondary.activityCount"
+                  class="pb-4"
+                >
+                  <p class="text-2xs font-medium text-gray-500 pb-1">
+                    Activity count
+                  </p>
+                  <p class="text-xs text-gray-900 whitespace-normal">
+                    {{ preview.primary.activityCount || '-' }}
+                  </p>
+                </article>
+              </template>
+              <template #below>
+                <div v-if="preview.primary?.organizations?.length" class="pt-3">
+                  <h6 class="text-sm font-semibold text-black pb-4">
+                    Organizations
+                  </h6>
+                  <app-member-organization-list :member="preview.primary" />
                 </div>
               </template>
             </app-member-suggestions-details>
@@ -119,6 +160,37 @@
                     </div>
                   </div>
                 </template>
+                <template #engagementLevel>
+                  <div class="flex items-center">
+                    <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
+                      Unknown
+                    </div>
+                    <el-tooltip content="Calculated after contact is unmerged" placement="top">
+                      <div class="ri-question-line text-base text-gray-400" />
+                    </el-tooltip>
+                  </div>
+                </template>
+                <template #property>
+                  <article
+                    v-if="preview.primary.activityCount || preview.secondary.activityCount"
+                    class="pb-4"
+                  >
+                    <p class="text-2xs font-medium text-gray-500 pb-1">
+                      Activity count
+                    </p>
+                    <p class="text-xs text-gray-900 whitespace-normal">
+                      {{ preview.primary.activityCount || '-' }}
+                    </p>
+                  </article>
+                </template>
+                <template #below>
+                  <div v-if="preview.secondary?.organizations?.length" class="pt-3">
+                    <h6 class="text-sm font-semibold text-black pb-4">
+                      Organizations
+                    </h6>
+                    <app-member-organization-list :member="preview.secondary" />
+                  </div>
+                </template>
               </app-member-suggestions-details>
             </div>
             <!-- Identity selection -->
@@ -167,6 +239,8 @@ import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import moment from 'moment/moment';
+import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
