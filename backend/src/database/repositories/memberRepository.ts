@@ -1177,7 +1177,7 @@ class MemberRepository {
     let query = `
     SELECT count(*) as count
         FROM "mv_activities_cube"
-        WHERE "memberId" = :memberId AND`
+        WHERE "memberId" = :memberId AND (`
 
     const replacements = {
       memberId,
@@ -1186,12 +1186,15 @@ class MemberRepository {
     const replacementKey = (key: string, index: number) => `${key}${index}`
 
     for (let i = 0; i < identities.length; i++) {
-      query += `  (platform = :${replacementKey('platform', i)} and username = :${replacementKey(
+      query += `(platform = :${replacementKey('platform', i)} and username = :${replacementKey(
         'username',
         i,
       )}) `
       if (i !== identities.length - 1) {
         query += ' OR '
+      }
+      else {
+        query += ')'
       }
 
       replacements[replacementKey('platform', i)] = identities[i].platform
