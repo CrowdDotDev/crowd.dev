@@ -78,22 +78,16 @@ export const connectSocket = (token) => {
     const primaryMember = h(
       'router-link',
       {
-        to: {
-          name: 'memberView',
-          params: { id: primaryId },
-        },
-        class: 'underlined',
+        href: `${window.location.origin}/members/${primaryId}`,
+        class: 'underline',
       },
       primaryDisplayName,
     );
     const secondaryMember = h(
       'router-link',
       {
-        to: {
-          name: 'memberView',
-          params: { id: secondaryId },
-        },
-        class: 'underlined',
+        href: `${window.location.origin}/members/${secondaryId}`,
+        class: 'underline',
       },
       secondaryDisplayName,
     );
