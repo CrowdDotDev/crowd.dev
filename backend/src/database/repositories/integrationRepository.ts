@@ -388,6 +388,9 @@ class IntegrationRepository {
     { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
+
+    console.log('filter before going fruther!', limit, offset)
+
     const include = []
 
     // If the advanced filter is empty, we construct it from the query parameter filter
@@ -502,8 +505,8 @@ class IntegrationRepository {
       ...(parsed.where ? { where: parsed.where } : {}),
       ...(parsed.having ? { having: parsed.having } : {}),
       order: parsed.order,
-      limit: parsed.limit,
-      offset: parsed.offset,
+      limit: limit ? parsed.limit : undefined,
+      offset: offset ? parsed.offset : undefined,  
       include,
       transaction: SequelizeRepository.getTransaction(options),
     })
