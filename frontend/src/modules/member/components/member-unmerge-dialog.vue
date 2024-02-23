@@ -95,6 +95,16 @@
                   </p>
                 </article>
               </template>
+              <template #engagementLevel>
+                <div class="flex items-center">
+                  <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
+                    Unknown
+                  </div>
+                  <el-tooltip content="Calculated after contact is unmerged" placement="top">
+                    <div class="ri-question-line text-base text-gray-400" />
+                  </el-tooltip>
+                </div>
+              </template>
               <template #below>
                 <div v-if="preview.primary?.organizations?.length" class="pt-8">
                   <h6 class="text-sm font-semibold text-black pb-4">
