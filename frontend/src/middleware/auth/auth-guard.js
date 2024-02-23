@@ -2,6 +2,7 @@ import { PermissionChecker } from '@/modules/user/permission-checker';
 import config from '@/config';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
 import { Auth0Service } from '@/shared/services/auth0.service';
+import { AuthToken } from '@/modules/auth/auth-token';
 
 function isGoingToIntegrationsPage(to) {
   return to.name === 'integration';
@@ -23,6 +24,27 @@ function isGoingToIntegrationsPage(to) {
  * @param router
  * @returns {Promise<*>}
  */
+
+async function handleAuth(store) {
+  const storedToken = AuthToken.get();
+  if (storedToken) {
+    await store.dispatch('auth/doInit', storedToken);
+    await store.dispatch('auth/doAuthenticate');
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const myJwt = params.get('my-jwt');
+  if (myJwt) {
+    AuthToken.set(myJwt, true);
+    await store.dispatch('auth/doInit', myJwt);
+    await store.dispatch('auth/doAuthenticate');
+    return;
+  }
+
+  await Auth0Service.init();
+}
+
 export default async function ({
   to, from, store, router,
 }) {
@@ -31,7 +53,11 @@ export default async function ({
   }
 
   if (!store.getters['auth/isAuthenticated']) {
-    await Auth0Service.init();
+    if (config.env === 'production') {
+      await Auth0Service.init();
+    } else {
+      await handleAuth(store);
+    }
   }
 
   await store.dispatch('auth/doWaitUntilInit');
@@ -47,9 +73,7 @@ export default async function ({
   if (
     to.meta.permission
     && (!permissionChecker.match(to.meta.permission)
-      || permissionChecker.lockedForSampleData(
-        to.meta.permission,
-      ))
+      || permissionChecker.lockedForSampleData(to.meta.permission))
   ) {
     router.push('/403');
     return;
@@ -57,8 +81,8 @@ export default async function ({
 
   if (
     to.path !== '/auth/empty-permissions'
-      && permissionChecker.isEmailVerified
-      && permissionChecker.isEmptyPermissions
+    && permissionChecker.isEmailVerified
+    && permissionChecker.isEmptyPermissions
   ) {
     router.push({
       path: '/auth/empty-permissions',
