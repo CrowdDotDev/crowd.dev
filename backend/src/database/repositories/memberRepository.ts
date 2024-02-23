@@ -268,7 +268,8 @@ class MemberRepository {
             mtm."activityEstimate"
         FROM "memberToMerge" mtm
         JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-        WHERE ms."segmentId" IN (:segmentIds)
+        JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
           ${memberFilter}
           ${similarityFilter}
         ORDER BY ${order}
