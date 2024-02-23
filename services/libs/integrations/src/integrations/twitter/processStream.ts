@@ -12,43 +12,11 @@ import getProfiles from './api/getProfiles'
 import { PlatformType, RateLimitError } from '@crowd/types'
 import { processPaginated } from '@crowd/common'
 import { generateUUIDv4 } from '@crowd/common'
-import { DbConnection, DbTransaction } from '@crowd/database'
+import { fetchIntegrationMembersPaginated } from '@crowd/data-access-layer/src/old/lib/integrations/members'
 
 interface ReachSelection {
   id: string
   username: string
-}
-
-const fetchIntegrationMembersPaginated = async (
-  db: DbConnection | DbTransaction,
-  integrationId: string,
-  platform: PlatformType,
-  page: number,
-  perPage: number,
-) => {
-  const result = await db.any(
-    `
-          SELECT
-            m."memberId" as id,
-            m.username as username
-          FROM
-            "memberIdentities" m
-          WHERE
-            m."tenantId"= (select "tenantId" from integrations where id = $(integrationId) )
-            and m.platform = $(platform)
-          ORDER BY
-            m."memberId"
-          LIMIT $(perPage)
-          OFFSET $(offset)
-        `,
-    {
-      integrationId,
-      platform,
-      perPage,
-      offset: (page - 1) * perPage,
-    },
-  )
-  return result
 }
 
 const processMentionsStream: ProcessStreamHandler = async (ctx) => {

@@ -72,14 +72,14 @@ services:
   #   networks:
   #     - crowd-bridge
 
-  # s3:
-  #   image: scireum/s3-ninja:8.0.0
-  #   ports:
-  #     - 9000:9000
-  #   volumes:
-  #     - s3-dev:/home/sirius/data
-  #   networks:
-  #     - crowd-bridge
+  s3:
+    image: scireum/s3-ninja:8.0.0
+    ports:
+      - 9000:9000
+    volumes:
+      - s3-dev:/home/sirius/data
+    networks:
+      - crowd-bridge
 
   sqs:
     build:

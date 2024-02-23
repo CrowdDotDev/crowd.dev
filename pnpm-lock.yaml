@@ -391,6 +391,9 @@ importers:
       cross-env:
         specifier: 7.0.2
         version: 7.0.2
+      deep-object-diff:
+        specifier: ^1.1.9
+        version: 1.1.9
       eslint:
         specifier: ^8.12.0
         version: 8.56.0
@@ -411,7 +414,7 @@ importers:
         version: 0.0.4
       jest:
         specifier: ^29.5.0
-        version: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+        version: 29.7.0(@types/node@18.0.6)
       node-mocks-http:
         specifier: 1.9.0
         version: 1.9.0
@@ -430,9 +433,9 @@ importers:
       ts-jest:
         specifier: ^29.1.0
         version: 29.1.2(@babel/core@7.23.9)(jest@29.7.0)(typescript@5.3.3)
-      ts-node:
-        specifier: 10.6.0
-        version: 10.6.0(@types/node@18.0.6)(typescript@5.3.3)
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.3
@@ -469,9 +472,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/integrations':
         specifier: workspace:*
         version: link:../../libs/integrations
@@ -527,9 +530,9 @@ importers:
       '@crowd/cubejs':
         specifier: workspace:*
         version: link:../../libs/cubejs
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -573,9 +576,9 @@ importers:
       '@crowd/conversations':
         specifier: workspace:*
         version: link:../../libs/conversations
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -655,6 +658,9 @@ importers:
       '@crowd/cubejs':
         specifier: workspace:*
         version: link:../../libs/cubejs
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/integrations':
         specifier: workspace:*
         version: link:../../libs/integrations
@@ -710,6 +716,12 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -733,6 +745,79 @@ importers:
         specifier: ^3.0.1
         version: 3.0.3
 
+  services/apps/exports_worker:
+    dependencies:
+      '@aws-sdk/hash-node':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/protocol-http':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.229.0
+        version: 3.514.0
+      '@aws-sdk/url-parser':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/util-format-url':
+        specifier: ^3.226.0
+        version: 3.511.0
+      '@crowd/archetype-standard':
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      '@crowd/archetype-worker':
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../../libs/redis
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../../libs/types
+      '@sendgrid/mail':
+        specifier: ~8.1.0
+        version: 8.1.1
+      '@temporalio/workflow':
+        specifier: ~1.8.6
+        version: 1.8.6
+      aws-sdk:
+        specifier: 2.814.0
+        version: 2.814.0
+      json2csv:
+        specifier: ^5.0.7
+        version: 5.0.7
+      lodash.pick:
+        specifier: ~4.4.0
+        version: 4.4.0
+      moment:
+        specifier: ~2.30.1
+        version: 2.30.1
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.11.18
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.8
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.0.3
+
   services/apps/integration_data_worker:
     dependencies:
       '@crowd/common':
@@ -741,9 +826,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -796,9 +881,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -851,9 +936,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -900,9 +985,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/integrations':
         specifier: workspace:*
         version: link:../../libs/integrations
@@ -955,9 +1040,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -1001,9 +1086,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../../libs/database
+        version: link:../../../libs/data-access-layer
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../../libs/opensearch
@@ -1056,9 +1141,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../../libs/database
+        version: link:../../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../../libs/feature-flags
@@ -1105,6 +1190,9 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
@@ -1130,9 +1218,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
@@ -1182,9 +1270,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
@@ -1309,9 +1397,9 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../../libs/common_services
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../../libs/database
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -1574,6 +1662,39 @@ importers:
         specifier: ^5.0.4
         version: 5.3.3
 
+  services/libs/data-access-layer:
+    dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../database
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../integrations
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../redis
+      '@crowd/sentiment':
+        specifier: workspace:*
+        version: link:../sentiment
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../types
+      lodash.clonedeep:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
+
   services/libs/database:
     dependencies:
       '@crowd/common':
@@ -1623,9 +1744,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../common
-      '@crowd/database':
+      '@crowd/data-access-layer':
         specifier: workspace:*
-        version: link:../database
+        version: link:../data-access-layer
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
@@ -1709,6 +1830,12 @@ importers:
       '@crowd/database':
         specifier: workspace:*
         version: link:../database
+      '@crowd/feature-flags':
+        specifier: workspace:*
+        version: link:../feature-flags
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
@@ -1724,6 +1851,9 @@ importers:
       axios:
         specifier: ^1.6.0
         version: 1.6.7
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -3805,18 +3935,6 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@cspotcode/source-map-consumer@0.8.0:
-    resolution: {integrity: sha512-41qniHzTU8yAGbCp04ohlmSrZf8bkf/iJsl3V0dRGsQN/5GFfx+LbCSsCpp2gqrqjTVg/K6O8ycoV35JIwAzAg==}
-    engines: {node: '>= 12'}
-    dev: true
-
-  /@cspotcode/source-map-support@0.7.0:
-    resolution: {integrity: sha512-X4xqRHqN8ACt2aHVe51OxeA2HjbcL4MqFqXkrmQszJ1NOUuUu5u6Vqx/0lZSVNku7velL5FC/s5uEAj1lsBMhA==}
-    engines: {node: '>=12'}
-    dependencies:
-      '@cspotcode/source-map-consumer': 0.8.0
-    dev: true
-
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
@@ -3973,7 +4091,6 @@ packages:
     cpu: [ppc64]
     os: [aix]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-arm64@0.19.12:
@@ -3982,7 +4099,6 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-arm@0.19.12:
@@ -3991,7 +4107,6 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-x64@0.19.12:
@@ -4000,7 +4115,6 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-arm64@0.19.12:
@@ -4009,7 +4123,6 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-x64@0.19.12:
@@ -4018,7 +4131,6 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-arm64@0.19.12:
@@ -4027,7 +4139,6 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-x64@0.19.12:
@@ -4036,7 +4147,6 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm64@0.19.12:
@@ -4045,7 +4155,6 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm@0.19.12:
@@ -4054,7 +4163,6 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ia32@0.19.12:
@@ -4063,7 +4171,6 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-loong64@0.19.12:
@@ -4072,7 +4179,6 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-mips64el@0.19.12:
@@ -4081,7 +4187,6 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ppc64@0.19.12:
@@ -4090,7 +4195,6 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-riscv64@0.19.12:
@@ -4099,7 +4203,6 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-s390x@0.19.12:
@@ -4108,7 +4211,6 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-x64@0.19.12:
@@ -4117,7 +4219,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/netbsd-x64@0.19.12:
@@ -4126,7 +4227,6 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/openbsd-x64@0.19.12:
@@ -4135,7 +4235,6 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/sunos-x64@0.19.12:
@@ -4144,7 +4243,6 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-arm64@0.19.12:
@@ -4153,7 +4251,6 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-ia32@0.19.12:
@@ -4162,7 +4259,6 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-x64@0.19.12:
@@ -4171,7 +4267,6 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.56.0):
@@ -4380,7 +4475,7 @@ packages:
       slash: 3.0.0
     dev: true
 
-  /@jest/core@29.7.0(ts-node@10.6.0):
+  /@jest/core@29.7.0:
     resolution: {integrity: sha512-n7aeXWKMnGtDA48y8TLWJPJmLmmZ642Ceo78cYWEpiD7FzDgmNDV/GCVRorPABdXLJZ/9wzzgZAlHjXjxDHGsg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -4401,7 +4496,7 @@ packages:
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@20.11.18)(ts-node@10.6.0)
+      jest-config: 29.7.0(@types/node@20.11.18)
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -7936,7 +8031,7 @@ packages:
     resolution: {integrity: sha512-xq+q3SRMOxGivLhBNaUdC64hDTQwejJ+H0T/NB1XMtTVEwNTrfFF3gAxiyW0Bu/xWEGhjVKgUcMhCrUy2+uCWg==}
     dependencies:
       base64-js: 1.5.1
-      ieee754: 1.1.13
+      ieee754: 1.2.1
       isarray: 1.0.0
     dev: false
 
@@ -8499,7 +8594,7 @@ packages:
     resolution: {integrity: sha512-n/Q4aSCtYuuDneEW5Q+nd0IIZwbwmX/oF6wKcDUhXGJNwhmp2WHEoWKz7X+/H7rBtjimInW7f0ceouxU0SmuzQ==}
     dev: false
 
-  /create-jest@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /create-jest@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -8508,7 +8603,7 @@ packages:
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest-config: 29.7.0(@types/node@18.0.6)
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -8719,6 +8814,10 @@ packages:
 
   /deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
+    dev: true
+
+  /deep-object-diff@1.1.9:
+    resolution: {integrity: sha512-Rn+RuwkmkDwCi2/oXOFS9Gsr5lJZu/yTGpK7wAaAIE75CC+LCGEZHpY6VQJa/RoJcrmaA/docWJZvYohlNkWPA==}
     dev: true
 
   /deepmerge@4.3.1:
@@ -9303,7 +9402,6 @@ packages:
       '@esbuild/win32-arm64': 0.19.12
       '@esbuild/win32-ia32': 0.19.12
       '@esbuild/win32-x64': 0.19.12
-    dev: false
 
   /escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
@@ -10204,7 +10302,6 @@ packages:
     resolution: {integrity: sha512-wuMsz4leaj5hbGgg4IvDU0bqJagpftG5l5cXIAvo8uZrqn0NJqwtfupTN00VnkQJPcIRrxYrm1Ue24btpCha2A==}
     dependencies:
       resolve-pkg-maps: 1.0.0
-    dev: false
 
   /glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -10622,6 +10719,7 @@ packages:
   /iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
     engines: {node: '>=0.10.0'}
+    requiresBuild: true
     dependencies:
       safer-buffer: 2.1.2
     dev: false
@@ -11189,7 +11287,7 @@ packages:
       - supports-color
     dev: true
 
-  /jest-cli@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /jest-cli@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-OVVobw2IubN/GSYsxETi+gOe7Ka59EFMR/twOU3Jb2GnKKeMGJB5SGUUrEz3SFVmJASUdZUzy83sLNNQ2gZslg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -11199,14 +11297,14 @@ packages:
       node-notifier:
         optional: true
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.6.0)
+      '@jest/core': 29.7.0
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
-      create-jest: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      create-jest: 29.7.0(@types/node@18.0.6)
       exit: 0.1.2
       import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest-config: 29.7.0(@types/node@18.0.6)
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -11217,7 +11315,7 @@ packages:
       - ts-node
     dev: true
 
-  /jest-config@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /jest-config@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-uXbpfeQ7R6TZBqI3/TxCU4q4ttk3u0PJeC+E0zbfSoSjq6bJ7buBPxzQPL0ifrkY4DNu4JUdk0ImlBUYi840eQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -11252,13 +11350,12 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.6.0(@types/node@18.0.6)(typescript@5.3.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
     dev: true
 
-  /jest-config@29.7.0(@types/node@20.11.18)(ts-node@10.6.0):
+  /jest-config@29.7.0(@types/node@20.11.18):
     resolution: {integrity: sha512-uXbpfeQ7R6TZBqI3/TxCU4q4ttk3u0PJeC+E0zbfSoSjq6bJ7buBPxzQPL0ifrkY4DNu4JUdk0ImlBUYi840eQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -11293,7 +11390,6 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.6.0(@types/node@18.0.6)(typescript@5.3.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -11590,7 +11686,7 @@ packages:
       supports-color: 8.1.1
     dev: true
 
-  /jest@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /jest@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-NIy3oAFp9shda19hy4HK0HRTWKtPJmGdnvywu01nOqNC2vZg+Z+fvJDxpMQA88eb2I9EcafcdjYgsDthnYTvGw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -11600,10 +11696,10 @@ packages:
       node-notifier:
         optional: true
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.6.0)
+      '@jest/core': 29.7.0
       '@jest/types': 29.6.3
       import-local: 3.1.0
-      jest-cli: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest-cli: 29.7.0(@types/node@18.0.6)
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -11986,6 +12082,10 @@ packages:
 
   /lodash.once@4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
+    dev: false
+
+  /lodash.pick@4.4.0:
+    resolution: {integrity: sha512-hXt6Ul/5yWjfklSGvLQl8vM//l3FtyHZeuelpzK6mm99pNvN9yTDruNZPEJZD1oWrqo+izBmB7oUfWgcCX7s4Q==}
     dev: false
 
   /lodash.snakecase@4.1.1:
@@ -12377,6 +12477,10 @@ packages:
 
   /moment@2.29.4:
     resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
+    dev: false
+
+  /moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
     dev: false
 
   /moo@0.5.2:
@@ -13971,7 +14075,6 @@ packages:
 
   /resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
-    dev: false
 
   /resolve.exports@2.0.2:
     resolution: {integrity: sha512-X2UW6Nw3n/aMgDVy+0rSqgHlv39WZAlZrXCdnbyEiKm17DSqHX4MmQMaST3FbeWR5FTuRcUwYAziZajji0Y7mg==}
@@ -14099,6 +14202,7 @@ packages:
 
   /safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
+    requiresBuild: true
     dev: false
 
   /sanitize-html@2.11.0:
@@ -15142,7 +15246,7 @@ packages:
       '@babel/core': 7.23.9
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest: 29.7.0(@types/node@18.0.6)
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -15155,37 +15259,6 @@ packages:
   /ts-mixer@6.0.3:
     resolution: {integrity: sha512-k43M7uCG1AkTyxgnmI5MPwKoUvS/bRvLvUb7+Pgpdlmok8AoqmUaZxUUw8zKM5B1lqZrt41GjYgnvAi0fppqgQ==}
     dev: false
-
-  /ts-node@10.6.0(@types/node@18.0.6)(typescript@5.3.3):
-    resolution: {integrity: sha512-CJen6+dfOXolxudBQXnVjRVvYTmTWbyz7cn+xq2XTsvnaXbHqr4gXSCNbS2Jj8yTZMuGwUoBESLaOkLascVVvg==}
-    hasBin: true
-    peerDependencies:
-      '@swc/core': '>=1.2.50'
-      '@swc/wasm': '>=1.2.50'
-      '@types/node': '*'
-      typescript: '>=2.7'
-    peerDependenciesMeta:
-      '@swc/core':
-        optional: true
-      '@swc/wasm':
-        optional: true
-    dependencies:
-      '@cspotcode/source-map-support': 0.7.0
-      '@tsconfig/node10': 1.0.9
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 18.0.6
-      acorn: 8.11.3
-      acorn-walk: 8.3.2
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      typescript: 5.3.3
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
-    dev: true
 
   /ts-node@10.9.2(@types/node@20.11.18)(typescript@5.3.3):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
@@ -15261,7 +15334,6 @@ packages:
       get-tsconfig: 4.7.2
     optionalDependencies:
       fsevents: 2.3.3
-    dev: false
 
   /tunnel@0.0.6:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
@@ -15881,7 +15953,7 @@ packages:
   /xml2js@0.4.19:
     resolution: {integrity: sha512-esZnJZJOiJR9wWKMyuvSE1y6Dq5LCuJanqhxslH2bxM6duahNZ+HMpCLhBQGZkbX6xRf8x1Y2eJlgt2q3qo49Q==}
     dependencies:
-      sax: 1.2.1
+      sax: 1.3.0
       xmlbuilder: 9.0.7
     dev: false
 
@@ -16097,6 +16169,7 @@ packages:
     name: '@crowd/integrations'
     dependencies:
       '@crowd/common': link:services/libs/common
+      '@crowd/data-access-layer': link:services/libs/data-access-layer
       '@crowd/database': link:services/libs/database
       '@crowd/logging': link:services/libs/logging
       '@crowd/telemetry': link:services/libs/telemetry
@@ -16130,11 +16203,14 @@ packages:
     dependencies:
       '@crowd/common': link:services/libs/common
       '@crowd/database': link:services/libs/database
+      '@crowd/feature-flags': link:services/libs/feature-flags
+      '@crowd/integrations': link:services/libs/integrations
       '@crowd/logging': link:services/libs/logging
       '@crowd/redis': link:services/libs/redis
       '@crowd/types': link:services/libs/types
       '@opensearch-project/opensearch': 1.2.0
       axios: 1.6.7
+      lodash.merge: 4.6.2
     transitivePeerDependencies:
       - debug
       - supports-color

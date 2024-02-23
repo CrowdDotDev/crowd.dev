@@ -15,6 +15,7 @@
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/common": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/cubejs": "workspace:*",
     "@crowd/types": "workspace:*",

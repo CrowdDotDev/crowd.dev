@@ -6,9 +6,13 @@ import { Error400, Error404, Error409, PageData } from '@crowd/common'
 import {
   FeatureFlag,
   IEnrichableOrganization,
+  IMemberRenderFriendlyRole,
+  IMemberRoleWithOrganization,
   IOrganization,
   IOrganizationIdentity,
   IOrganizationMergeSuggestion,
+  MergeActionState,
+  MergeActionType,
   OpenSearchIndex,
   SegmentData,
   SegmentProjectGroupNestedData,
@@ -25,7 +29,6 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import SegmentRepository from './segmentRepository'
-import { MergeActionType, MergeActionState } from './mergeActionsRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 
 const { Op } = Sequelize
@@ -2998,6 +3001,23 @@ class OrganizationRepository {
       delete rec.segmentIds
       return rec
     })
+  }
+
+  static calculateRenderFriendlyOrganizations(
+    memberOrganizations: IMemberRoleWithOrganization[],
+  ): IMemberRenderFriendlyRole[] {
+    const organizations: IMemberRenderFriendlyRole[] = []
+
+    for (const role of memberOrganizations) {
+      organizations.push({
+        id: role.organizationId,
+        displayName: role.organizationName,
+        logo: role.organizationLogo,
+        memberOrganizations: role,
+      })
+    }
+
+    return organizations
   }
 }
 

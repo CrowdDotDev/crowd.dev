@@ -17,7 +17,7 @@
     <div class="flex items-center">
       <!-- TODO: Need to refactor this -->
       <button
-        v-if="module === 'contact'"
+        v-if="['contact', 'organization'].includes(module)"
         type="button"
         class="btn btn--transparent btn--md mr-3"
         @click="doExport"
@@ -188,7 +188,7 @@ const doExport = async () => {
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
-      badgeContent: pluralize('contact', props.total, true),
+      badgeContent: pluralize(props.module, props.total, true),
     });
 
     await props.export();

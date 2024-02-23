@@ -138,7 +138,8 @@ export interface GithubWebhookData {
   subType?: string
   data: any[] | any
   relatedData?: any | any[]
-  member: GithubPrepareMemberOutput
+  member?: GithubPrepareMemberOutput
+  orgMember?: GithubPrepareOrgMemberOutput
   objectMember?: GithubPrepareMemberOutput
   sourceParentId?: string
   date?: string
@@ -223,6 +224,7 @@ export interface GithubPrepareMemberOutput {
 export interface GithubBotMember {
   login: string
   avatarUrl: string
+  avatar_url?: string
   id: string
   url: string
 }

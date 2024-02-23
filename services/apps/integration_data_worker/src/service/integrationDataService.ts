@@ -1,13 +1,13 @@
 import { addSeconds, singleOrDefault } from '@crowd/common'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/common_services'
-import { DbStore } from '@crowd/database'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
 import { IActivityData, IntegrationResultType, IntegrationRunState } from '@crowd/types'
 import { PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
-import IntegrationDataRepository from '../repo/integrationData.repo'
+import IntegrationDataRepository from '@crowd/data-access-layer/src/old/apps/integration_data_worker/integrationData.repo'
 
 export default class IntegrationDataService extends LoggerBase {
   private readonly repo: IntegrationDataRepository

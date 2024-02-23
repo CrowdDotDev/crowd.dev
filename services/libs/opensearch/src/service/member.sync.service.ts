@@ -312,18 +312,20 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
+  public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 25
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all memberId-segmentId couples
     const memberSegmentCouples: IMemberSegmentMatrix =
-      await this.memberRepo.getMemberSegmentCouples(memberIds)
+      await this.memberRepo.getMemberSegmentCouples(memberIds, segmentIds)
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
     const allMemberIds = Object.keys(memberSegmentCouples)
     const totalMemberIds = allMemberIds.length
+
+    const successfullySyncedMembers = []
 
     const processSegmentsStream = async (databaseStream): Promise<void> => {
       const results = await Promise.all(databaseStream.map((s) => s.promise))
@@ -440,10 +442,13 @@ export class MemberSyncService {
             documentsIndexed += syncStream.length
           }
         }
+        successfullySyncedMembers.push(memberId)
       }
     }
 
-    await this.memberRepo.markSynced(memberIds)
+    if (successfullySyncedMembers.length > 0) {
+      await this.memberRepo.markSynced(successfullySyncedMembers)
+    }
 
     return {
       membersSynced: memberIds.length,

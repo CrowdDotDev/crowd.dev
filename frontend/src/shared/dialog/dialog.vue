@@ -47,19 +47,21 @@
             <slot name="description" />
           </div>
         </slot>
-        <div class="flex gap-3 items-center">
-          <slot name="actionBtn" />
-          <div class="ml-3">
-            <el-button
-              class="btn btn--transparent btn--xs w-8 !h-8"
-              @click="close"
-            >
-              <i
-                class="ri-close-line text-lg text-gray-400"
-              />
-            </el-button>
+        <slot name="headerActions">
+          <div class="flex gap-3 items-center">
+            <slot name="actionBtn" />
+            <div class="ml-3">
+              <el-button
+                class="btn btn--transparent btn--xs w-8 !h-8"
+                @click="close"
+              >
+                <i
+                  class="ri-close-line text-lg text-gray-400"
+                />
+              </el-button>
+            </div>
           </div>
-        </div>
+        </slot>
       </div>
     </template>
     <slot name="content" />
