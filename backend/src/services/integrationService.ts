@@ -3,8 +3,8 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { PlatformType } from '@crowd/types'
-import { Error400, Error404, Error542 } from '@crowd/common'
+import { PlatformType, Edition } from '@crowd/types'
+import { Error400, Error404, Error542, EDITION } from '@crowd/common'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -153,38 +153,48 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      for (const id of ids) {
-        let integration
-        try {
-          integration = await this.findById(id)
-        } catch (err) {
-          throw new Error404()
-        }
-        // remove github remotes from git integration
-        if (integration.platform === PlatformType.GITHUB) {
-          let shouldUpdateGit: boolean
+      if (EDITION === Edition.LFX) {
+        for (const id of ids) {
+          let integration
           try {
-            await this.findByPlatform(PlatformType.GIT)
-            shouldUpdateGit = true
+            integration = await this.findById(id)
           } catch (err) {
-            shouldUpdateGit = false
+            throw new Error404()
+          }
+          // remove github remotes from git integration
+          if (integration.platform === PlatformType.GITHUB) {
+            let shouldUpdateGit: boolean
+            try {
+              await this.findByPlatform(PlatformType.GIT)
+              shouldUpdateGit = true
+            } catch (err) {
+              shouldUpdateGit = false
+            }
+
+            if (shouldUpdateGit) {
+              const gitInfo = await this.gitGetRemotes()
+              const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+              const gitRemotes = gitInfo[segment.id].remotes
+              await this.gitConnectOrUpdate({
+                remotes: gitRemotes.filter(
+                  (remote) => !integration.settings.repos.map((r) => r.url).includes(remote),
+                ),
+              })
+            }
           }
 
-          if (shouldUpdateGit) {
-            const gitInfo = await this.gitGetRemotes()
-            const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-            const gitRemotes = gitInfo[segment.id].remotes
-            await this.gitConnectOrUpdate({
-              remotes: gitRemotes.filter(
-                (remote) => !integration.settings.repos.map((r) => r.url).includes(remote),
-              ),
-            })
-          }
+          await IntegrationRepository.destroy(id, {
+            ...this.options,
+            transaction,
+          })
         }
-        await IntegrationRepository.destroy(id, {
-          ...this.options,
-          transaction,
-        })
+      } else {
+        for (const id of ids) {
+          await IntegrationRepository.destroy(id, {
+            ...this.options,
+            transaction,
+          })
+        }
       }
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -348,24 +358,26 @@ export default class IntegrationService {
       const githubOwner = IntegrationService.extractOwner(repos, this.options)
 
       // add the repos to the git integration
-      let isGitintegrationConfigured
-      try {
-        await this.findByPlatform(PlatformType.GIT)
-        isGitintegrationConfigured = true
-      } catch (err) {
-        isGitintegrationConfigured = false
-      }
-      if (isGitintegrationConfigured) {
-        const gitInfo = await this.gitGetRemotes()
-        const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-        const gitRemotes = gitInfo[segment.id].remotes
-        await this.gitConnectOrUpdate({
-          remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
-        })
-      } else {
-        await this.gitConnectOrUpdate({
-          remotes: repos.map((repo) => repo.cloneUrl),
-        })
+      if (EDITION === Edition.LFX) {
+        let isGitintegrationConfigured
+        try {
+          await this.findByPlatform(PlatformType.GIT)
+          isGitintegrationConfigured = true
+        } catch (err) {
+          isGitintegrationConfigured = false
+        }
+        if (isGitintegrationConfigured) {
+          const gitInfo = await this.gitGetRemotes()
+          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+          const gitRemotes = gitInfo[segment.id].remotes
+          await this.gitConnectOrUpdate({
+            remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
+          })
+        } else {
+          await this.gitConnectOrUpdate({
+            remotes: repos.map((repo) => repo.cloneUrl),
+          })
+        }
       }
       let orgAvatar
       try {
