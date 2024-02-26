@@ -12,12 +12,13 @@ import { getSqsClient } from '@crowd/sqs'
 import { getServiceTracer } from '@crowd/tracing'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WORKER_SETTINGS } from './conf'
 import { WorkerQueueReceiver } from './queue'
+import { processOldDataJob } from './jobs/processOldData'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 3
-// const PROCESSING_INTERVAL_MINUTES = 5
+const PROCESSING_INTERVAL_MINUTES = 5
 
 setImmediate(async () => {
   log.info('Starting integration data worker...')
@@ -66,25 +67,25 @@ setImmediate(async () => {
     await streamWorkerEmitter.init()
     await dataSinkWorkerEmitter.init()
 
-    // let processing = false
-    // setInterval(async () => {
-    //   try {
-    //     if (!processing) {
-    //       processing = true
-    //       await processOldDataJob(
-    //         dbConnection,
-    //         redisClient,
-    //         streamWorkerEmitter,
-    //         dataSinkWorkerEmitter,
-    //         log,
-    //       )
-    //     }
-    //   } catch (err) {
-    //     log.error(err, 'Failed to process old data!')
-    //   } finally {
-    //     processing = false
-    //   }
-    // }, PROCESSING_INTERVAL_MINUTES * 60 * 1000)
+    let processing = false
+    setInterval(async () => {
+      try {
+        if (!processing) {
+          processing = true
+          await processOldDataJob(
+            dbConnection,
+            redisClient,
+            streamWorkerEmitter,
+            dataSinkWorkerEmitter,
+            log,
+          )
+        }
+      } catch (err) {
+        log.error(err, 'Failed to process old data!')
+      } finally {
+        processing = false
+      }
+    }, PROCESSING_INTERVAL_MINUTES * 60 * 1000)
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')
