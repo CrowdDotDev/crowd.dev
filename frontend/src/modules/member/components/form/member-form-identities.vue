@@ -38,18 +38,18 @@
                 </template>
               </el-input>
               <el-tooltip
-                v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 "
-                :disabled="staticModel[key][ii] === model[key][ii]"
+                v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 && staticIdentities.length > 1"
+                :disabled="staticModel?.[key]?.[ii] === model[key][ii]"
                 content="Not possible to unmerge an unsaved identity"
                 placement="top"
               >
                 <div>
                   <el-button
                     class="btn btn--md btn--transparent block w-8 !h-8 p-0"
-                    :disabled="!staticModel[key][ii] || staticModel[key][ii] !== model[key][ii]"
+                    :disabled="!staticModel?.[key]?.[ii] || staticModel?.[key]?.[ii] !== model[key][ii]"
                     @click="emit('unmerge', {
                       platform: key,
-                      username: staticModel[key][ii],
+                      username: staticModel?.[key]?.[ii],
                     })"
                   >
                     <i class="ri-link-unlink-m text-lg" />
@@ -77,7 +77,7 @@ import {
   defineEmits,
   defineProps,
   watch,
-  ref, onMounted,
+  ref, onMounted, computed,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
@@ -210,7 +210,7 @@ function findPlatform(platform) {
 
 function editingDisabled(platform) {
   return props.record
-    ? props.record.activeOn.includes(platform)
+    ? props.record.activeOn?.includes(platform)
     : false;
 }
 
@@ -218,9 +218,10 @@ const removeUsername = (platform, index) => {
   model.value[platform].splice(index, 1);
 };
 
+const staticIdentities = computed(() => Object.values(staticModel.value).flat());
+
 onMounted(() => {
   staticModel.value = {
-    ...defaultValue,
     ...props.record.username,
   };
 });
