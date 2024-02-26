@@ -189,7 +189,7 @@
                       Activity count
                     </p>
                     <p class="text-xs text-gray-900 whitespace-normal">
-                      {{ preview.primary.activityCount || '-' }}
+                      {{ preview.secondary.activityCount || '-' }}
                     </p>
                   </article>
                 </template>

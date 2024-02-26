@@ -79,7 +79,7 @@ export const connectSocket = (token) => {
       'a',
       {
         href: `${window.location.origin}/members/${primaryId}`,
-        class: 'underline',
+        class: 'underline text-gray-600',
       },
       primaryDisplayName,
     );
@@ -87,7 +87,7 @@ export const connectSocket = (token) => {
       'a',
       {
         href: `${window.location.origin}/members/${secondaryId}`,
-        class: 'underline',
+        class: 'underline text-gray-600',
       },
       secondaryDisplayName,
     );
