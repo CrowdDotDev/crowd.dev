@@ -1100,6 +1100,7 @@ const doExport = () => OrganizationService.export({
   orderBy: savedFilterBody.value.orderBy,
   limit: totalOrganizations.value,
   offset: null,
+  segments: [selectedProjectGroup.value?.id],
 });
 
 watch(table, (newValue) => {
