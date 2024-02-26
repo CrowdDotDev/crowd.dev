@@ -100,13 +100,17 @@ import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
-import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
+import { getExportMax, showExportDialog } from '@/modules/member/member-export-limit';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
 const { currentUser, currentTenant } = mapGetters('auth');
 const { doRefreshCurrentUser } = mapActions('auth');
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const organizationStore = useOrganizationStore();
 const {
@@ -225,6 +229,7 @@ const handleDoExport = async () => {
       filter,
       limit: selectedOrganizations.value.length,
       offset: null,
+      segments: [selectedProjectGroup.value?.id],
     });
 
     await doRefreshCurrentUser(null);
