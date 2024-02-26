@@ -221,12 +221,14 @@ export class OrganizationService {
     orderBy,
     limit,
     offset,
+    segments = [],
   }) {
     const body = {
       filter,
       orderBy,
       limit,
       offset,
+      segments,
     };
 
     const tenantId = AuthCurrentTenant.get();
