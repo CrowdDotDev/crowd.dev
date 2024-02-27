@@ -30,42 +30,42 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     this.insertOrganizationColumnSet = getInsertOrganizationColumnSet(this.dbInstance)
   }
 
-  private static findCacheQuery = `
-  with identities as (
-    select oci.id, 
-           array_agg(oci.name) as names,
-           max(oci.website) as website
-    from "organizationCacheIdentities" oci
-    group by oci.id
-  )
-  select  oc.id,
-          oc.url,
-          oc.description,
-          oc.emails,
-          oc.logo,
-          oc.tags,
-          oc.github,
-          oc.twitter,
-          oc.linkedin,
-          oc.crunchbase,
-          oc.employees,
-          oc.location,
-          oc.type,
-          oc.size,
-          oc.headline,
-          oc.industry,
-          oc.founded,
-          i.names,
-          i.website
-    from "organizationCacheIdentities" oci 
-    inner join "organizationCaches" oc on oci.id = oc.id
-    inner join identities i on oci.id = i.id
-  `
-
   public async findCacheByWebsite(website: string): Promise<IDbCacheOrganization | null> {
     // limit 1 because multiple rows can have the same website in organizationCacheIdentities
     const result = await this.db().oneOrNone(
-      `${OrganizationRepository.findCacheQuery} where oci.website = $(website) limit 1`,
+      `
+      with applicable_cache as (select id
+              from "organizationCacheIdentities"
+              where website = $(website) limit 1),
+      identities as (select oci.id,
+              array_agg(oci.name) as names,
+              max(oci.website)    as website
+        from "organizationCacheIdentities" oci
+                inner join applicable_cache ac on ac.id = oci.id
+        group by oci.id)
+      select oc.id,
+      oc.url,
+      oc.description,
+      oc.emails,
+      oc.logo,
+      oc.tags,
+      oc.github,
+      oc.twitter,
+      oc.linkedin,
+      oc.crunchbase,
+      oc.employees,
+      oc.location,
+      oc.type,
+      oc.size,
+      oc.headline,
+      oc.industry,
+      oc.founded,
+      i.names,
+      i.website
+      from applicable_cache ac
+      inner join "organizationCaches" oc on ac.id = oc.id
+      inner join identities i on ac.id = i.id;
+      `,
       { website },
     )
 
@@ -75,7 +75,34 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async findCacheByName(name: string): Promise<IDbCacheOrganization | null> {
     // limit is not needed since only 1 row can have the same name in organizationCacheIdentities
     const result = await this.db().oneOrNone(
-      `${OrganizationRepository.findCacheQuery} where oci.name = $(name)`,
+      `with identities as (select oci.id,
+                                  array_agg(oci.name) as names,
+                                  max(oci.website)    as website
+                          from "organizationCacheIdentities" oci
+                          group by oci.id)
+      select  oc.id,
+              oc.url,
+              oc.description,
+              oc.emails,
+              oc.logo,
+              oc.tags,
+              oc.github,
+              oc.twitter,
+              oc.linkedin,
+              oc.crunchbase,
+              oc.employees,
+              oc.location,
+              oc.type,
+              oc.size,
+              oc.headline,
+              oc.industry,
+              oc.founded,
+              i.names,
+              i.website
+      from "organizationCacheIdentities" oci
+      inner join "organizationCaches" oc on oci.id = oc.id
+      inner join identities i on oci.id = i.id
+      where oci.name = $(name)`,
       { name },
     )
 
