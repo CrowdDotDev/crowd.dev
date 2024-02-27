@@ -10,6 +10,8 @@ import {
   findMemberById,
   moveActivitiesToNewMember,
   moveIdentityActivitiesToNewMember,
+  findMemberSegments,
+  markMemberAsManuallyCreated,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 
 export async function deleteMember(memberId: string): Promise<void> {
@@ -78,12 +80,29 @@ export async function recalculateActivityAffiliations(
   })
 }
 
-export async function syncMember(memberId: string): Promise<void> {
+export async function syncMember(memberId: string, secondaryMemberId: string): Promise<void> {
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId)
+  // check if member has any activities
+  const result = await findMemberSegments(svc.postgres.writer, memberId)
+
+  if (result.segmentIds) {
+    // segment information can be deduced from activities, no need to send segmentIds explicitly on merging
+    await syncApi.triggerMemberSync(memberId)
+    return
+  }
+
+  // check if secondary member has any activities
+  const secondaryResult = await findMemberSegments(svc.postgres.writer, secondaryMemberId)
+
+  if (secondaryResult.segmentIds) {
+    // mark member as manually created
+    await markMemberAsManuallyCreated(svc.postgres.writer, memberId)
+    // member doesn't have any activity to deduce segmentIds for syncing, use the secondary member's activity segments
+    await syncApi.triggerMemberSync(memberId, secondaryResult.segmentIds)
+  }
 }
 
 export async function notifyFrontendMemberUnmergeSuccessful(
