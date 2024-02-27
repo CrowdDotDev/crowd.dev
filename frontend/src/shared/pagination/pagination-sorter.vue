@@ -17,7 +17,7 @@
     <div class="flex items-center">
       <!-- TODO: Need to refactor this -->
       <button
-        v-if="module === 'contact'"
+        v-if="['member', 'organization'].includes(module)"
         type="button"
         class="btn btn-link btn-link--md btn-link--primary mr-3"
         @click="doExport"
@@ -184,10 +184,10 @@ const doExport = async () => {
     const planExportCountMax = getExportMax(
       currentTenant.value.plan,
     );
-
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
+      badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
     });
 
     await props.export();

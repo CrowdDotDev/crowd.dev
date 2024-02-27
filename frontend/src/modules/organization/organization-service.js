@@ -215,4 +215,29 @@ export class OrganizationService {
 
     return response.data;
   }
+
+  static async export({
+    filter,
+    orderBy,
+    limit,
+    offset,
+    segments = [],
+  }) {
+    const body = {
+      filter,
+      orderBy,
+      limit,
+      offset,
+      segments,
+    };
+
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/export`,
+      body,
+    );
+
+    return response.data;
+  }
 }
