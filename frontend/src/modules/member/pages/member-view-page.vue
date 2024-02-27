@@ -87,7 +87,6 @@ import AppMemberViewContributionsCta from '@/modules/member/components/view/memb
 import Plans from '@/security/plans';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
-import AppMemberActions from '@/modules/member/components/member-actions.vue';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 
 const store = useStore();
@@ -120,8 +119,6 @@ const unmerge = (identity) => {
   }
   isUnmergeDialogOpen.value = member.value;
 };
-
-const tasksTab = ref(null);
 
 const loading = ref(true);
 const tab = ref('activities');
