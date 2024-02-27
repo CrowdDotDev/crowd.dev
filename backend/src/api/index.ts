@@ -217,14 +217,26 @@ setImmediate(async () => {
     try {
       const [osPingRes, redisPingRes, dbPingRes, temporalPingRes] = await Promise.all([
         // ping opensearch
-        opensearch.ping().then((res) => res.body),
+        opensearch.ping().then((res) => {
+          console.log('Pinged opensearch!')
+          return res.body
+        }),
         // ping redis,
-        redis.ping().then((res) => res === 'PONG'),
+        redis.ping().then((res) => {
+          console.log('Pinged redis!')
+          return res === 'PONG'
+        }),
         // ping database
-        seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+        seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => {
+          console.log('Pinged database!')
+          return rows.length === 1
+        }),
         // ping temporal
         req.temporal
-          ? (req.temporal as TemporalClient).workflowService.getSystemInfo({}).then(() => true)
+          ? (req.temporal as TemporalClient).workflowService.getSystemInfo({}).then(() => {
+              console.log('Pinged temporal!')
+              return true
+            })
           : Promise.resolve(true),
       ])
 
