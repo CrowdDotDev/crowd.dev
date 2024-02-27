@@ -1030,6 +1030,7 @@ const doExport = () => MemberService.export({
   orderBy: savedFilterBody.value.orderBy,
   limit: 0,
   offset: null,
+  segments: [selectedProjectGroup.value?.id],
 });
 
 onMounted(async () => {
