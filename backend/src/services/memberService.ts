@@ -49,6 +49,7 @@ import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -716,9 +717,15 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      // delete identity related stuff, we already moved these
+      // delete relations from payload, since we already handled those
       delete payload.primary.identities
       delete payload.primary.username
+      delete payload.primary.memberOrganizations
+      delete payload.primary.organizations
+      delete payload.primary.tags
+      delete payload.primary.notes
+      delete payload.primary.tasks
+      delete payload.primary.affiliations
 
       // update rest of the primary member fields
       await MemberRepository.update(memberId, payload.primary, repoOptions, false, false)
@@ -975,12 +982,18 @@ export default class MemberService extends LoggerBase {
             ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
             identities: member.identities,
             memberOrganizations: member.memberOrganizations,
+            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+              member.memberOrganizations,
+            ),
             username: MemberRepository.getUsernameFromIdentities(member.identities),
             activityCount: primaryActivityCount,
             numberOfOpenSourceContributions: member.contributions?.length || 0,
           },
           secondary: {
             ...secondaryBackup,
+            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+              secondaryBackup.memberOrganizations,
+            ),
             activityCount: secondaryActivityCount,
             numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
           },
@@ -1010,14 +1023,18 @@ export default class MemberService extends LoggerBase {
         this.options,
       )
 
+      const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
+        member.id,
+        this.options,
+      )
+
       return {
         primary: {
           ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
           identities: primaryIdentities,
-          memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
-            member.id,
-            this.options,
-          ),
+          memberOrganizations: primaryMemberRoles,
+          organizations:
+            OrganizationRepository.calculateRenderFriendlyOrganizations(primaryMemberRoles),
           username: MemberRepository.getUsernameFromIdentities(primaryIdentities),
           activityCount: primaryActivityCount,
           numberOfOpenSourceContributions: member.contributions?.length || 0,
@@ -1029,6 +1046,7 @@ export default class MemberService extends LoggerBase {
           displayName: identity.username,
           identities: secondaryIdentities,
           memberOrganizations: [],
+          organizations: [],
           tags: [],
           notes: [],
           tasks: [],

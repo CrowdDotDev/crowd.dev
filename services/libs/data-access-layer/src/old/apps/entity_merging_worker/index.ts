@@ -1,5 +1,6 @@
 import { DbStore } from '@crowd/database'
 import { MergeActionState } from '@crowd/types'
+import { ISegmentIds } from './types'
 
 export async function deleteMemberSegments(db: DbStore, memberId: string) {
   return db.connection().query(
@@ -88,5 +89,27 @@ export async function moveIdentityActivitiesToNewMember(
           AND platform = $5;
       `,
     [toId, fromId, tenantId, username, platform],
+  )
+}
+
+export async function findMemberSegments(db: DbStore, memberId: string): Promise<ISegmentIds> {
+  const result = await db.connection().one(
+    `
+      SELECT array_agg(distinct "segmentId") as "segmentIds"
+      FROM activities
+      WHERE "memberId" = $1
+    `,
+    [memberId],
+  )
+  return result as ISegmentIds
+}
+
+export async function markMemberAsManuallyCreated(db: DbStore, memberId: string): Promise<void> {
+  return db.connection().query(
+    `
+      UPDATE members set "manuallyCreated" = true
+      WHERE "id" = $1
+    `,
+    [memberId],
   )
 }

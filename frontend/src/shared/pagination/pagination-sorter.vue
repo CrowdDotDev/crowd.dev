@@ -15,17 +15,17 @@
      </span>
       {{ computedLabel }}</span>
     <div class="flex items-center">
-      <!-- TODO: Need to refactor this -->
-      <button
-        v-if="module === 'contact'"
-        type="button"
-        class="btn btn-link btn-link--md btn-link--primary mr-3"
-        @click="doExport"
-      >
-        <i
-          class="ri-file-download-line ri-lg mr-1 flex items-center"
-        />Export to CSV
-      </button>
+      <!-- TODO: Enable when backend fixed -->
+<!--      <button-->
+<!--        v-if="['member', 'organization'].includes(module)"-->
+<!--        type="button"-->
+<!--        class="btn btn-link btn-link&#45;&#45;md btn-link&#45;&#45;primary mr-3"-->
+<!--        @click="doExport"-->
+<!--      >-->
+<!--        <i-->
+<!--          class="ri-file-download-line ri-lg mr-1 flex items-center"-->
+<!--        />Export to CSV-->
+<!--      </button>-->
       <app-inline-select-input
         v-if="sorter"
         v-model="model"
@@ -184,10 +184,10 @@ const doExport = async () => {
     const planExportCountMax = getExportMax(
       currentTenant.value.plan,
     );
-
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
+      badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
     });
 
     await props.export();

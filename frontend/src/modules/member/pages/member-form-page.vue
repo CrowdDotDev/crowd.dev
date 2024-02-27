@@ -109,6 +109,7 @@
                 <app-member-form-identities
                   v-model="formModel"
                   :record="record"
+                  :show-unmerge="false"
                 />
               </div>
             </div>
