@@ -799,6 +799,36 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution: true,
     },
+    [ConfluenceActivityType.BLOGPOST_CREATED]: {
+      display: {
+        default: 'created a confluence blogpost in {channel}',
+        short: 'created a page',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultConfluenceChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [ConfluenceActivityType.BLOGPOST_UPDATED]: {
+      display: {
+        default: 'updated a confluence blogpost in {channel}',
+        short: 'updated a page',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultConfluenceChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
     [ConfluenceActivityType.COMMENT_CREATED]: {
       display: {
         default: 'added a comment to a confluence page in {channel}',
