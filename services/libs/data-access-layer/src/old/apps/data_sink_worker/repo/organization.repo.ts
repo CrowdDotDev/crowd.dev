@@ -137,31 +137,34 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     nameToCreateIdentity?: string,
   ): Promise<void> {
     const keys = Object.keys(data).filter((k) => k !== 'website' && k !== 'name')
-    keys.push('updatedAt')
-    // construct custom column set
-    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
-      table: {
-        table: 'organizationCaches',
-      },
-    })
 
-    const prepared = RepositoryBase.prepare(
-      {
-        ...data,
-        updatedAt: new Date(),
-      },
-      dynamicColumnSet,
-    )
+    if (keys.length > 0) {
+      keys.push('updatedAt')
+      // construct custom column set
+      const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
+        table: {
+          table: 'organizationCaches',
+        },
+      })
 
-    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
-    const condition = this.format('where id = $(id)', { id })
+      const prepared = RepositoryBase.prepare(
+        {
+          ...data,
+          updatedAt: new Date(),
+        },
+        dynamicColumnSet,
+      )
 
-    let result = await this.db().result(`${query} ${condition}`)
+      const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
+      const condition = this.format('where id = $(id)', { id })
 
-    this.checkUpdateRowCount(result.rowCount, 1)
+      const result = await this.db().result(`${query} ${condition}`)
+
+      this.checkUpdateRowCount(result.rowCount, 1)
+    }
 
     if (nameToCreateIdentity) {
-      result = await this.db().result(
+      await this.db().none(
         `
         insert into "organizationCacheIdentities" (id, name, website) values ($(id), $(name), $(website))
         on conflict (name)
@@ -178,7 +181,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     }
 
     if (data.website) {
-      result = await this.db().result(
+      await this.db().none(
         `
         update "organizationCacheIdentities" set website = $(website) where id = $(id) and website is null
       `,
