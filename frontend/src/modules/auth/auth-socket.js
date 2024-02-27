@@ -72,13 +72,18 @@ export const connectSocket = (token) => {
       return;
     }
     const {
-      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId,
+      primaryDisplayName,
+      secondaryDisplayName,
+      primaryId,
+      secondaryId,
+      primaryProjectGroup,
+      secondaryProjectGroup,
     } = parsedData;
 
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${primaryId}`,
+        href: `${window.location.origin}/members/${primaryId}?projectGroup=${primaryProjectGroup}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -86,7 +91,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${secondaryId}`,
+        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${secondaryProjectGroup}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
