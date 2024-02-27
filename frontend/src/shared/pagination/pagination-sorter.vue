@@ -42,9 +42,9 @@
 <script setup>
 import { computed, defineProps, defineEmits } from 'vue';
 import pluralize from 'pluralize';
-import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
-import Message from '@/shared/message/message';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+// import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
+// import Message from '@/shared/message/message';
+// import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const emit = defineEmits([
   'changeSorter',
@@ -91,8 +91,8 @@ const props = defineProps({
   },
 });
 
-const { currentTenant } = mapGetters('auth');
-const { doRefreshCurrentUser } = mapActions('auth');
+// const { currentTenant } = mapGetters('auth');
+// const { doRefreshCurrentUser } = mapActions('auth');
 
 const model = computed({
   get() {
@@ -178,42 +178,42 @@ const onChange = (value) => {
   emit('changeSorter', value);
 };
 
-const doExport = async () => {
-  try {
-    const tenantCsvExportCount = currentTenant.value.csvExportCount;
-    const planExportCountMax = getExportMax(
-      currentTenant.value.plan,
-    );
-    await showExportDialog({
-      tenantCsvExportCount,
-      planExportCountMax,
-      badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
-    });
+// const doExport = async () => {
+//   try {
+//     const tenantCsvExportCount = currentTenant.value.csvExportCount;
+//     const planExportCountMax = getExportMax(
+//       currentTenant.value.plan,
+//     );
+//     await showExportDialog({
+//       tenantCsvExportCount,
+//       planExportCountMax,
+//       badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
+//     });
 
-    await props.export();
+//     await props.export();
 
-    await doRefreshCurrentUser(null);
+//     await doRefreshCurrentUser(null);
 
-    Message.success(
-      'CSV download link will be sent to your e-mail',
-    );
-  } catch (error) {
-    if (error.response?.status === 403) {
-      const planExportCountMax = getExportMax(
-        currentTenant.value.plan,
-      );
+//     Message.success(
+//       'CSV download link will be sent to your e-mail',
+//     );
+//   } catch (error) {
+//     if (error.response?.status === 403) {
+//       const planExportCountMax = getExportMax(
+//         currentTenant.value.plan,
+//       );
 
-      showExportLimitDialog({ planExportCountMax });
-    } else if (error !== 'cancel') {
-      Message.error(
-        'An error has occured while trying to export the CSV file. Please try again',
-        {
-          title: 'CSV Export failed',
-        },
-      );
-    }
-  }
-};
+//       showExportLimitDialog({ planExportCountMax });
+//     } else if (error !== 'cancel') {
+//       Message.error(
+//         'An error has occured while trying to export the CSV file. Please try again',
+//         {
+//           title: 'CSV Export failed',
+//         },
+//       );
+//     }
+//   }
+// };
 </script>
 
 <script>
