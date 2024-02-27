@@ -41,7 +41,7 @@
                   <div
                     class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
-                    Current contact
+                    Current contributor
                   </div>
                 </div>
               </template>
@@ -78,7 +78,7 @@
                   <div
                     class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
-                    Updated contact
+                    Updated contributor
                   </div>
                 </div>
               </template>
@@ -100,7 +100,7 @@
                   <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
                     Unknown
                   </div>
-                  <el-tooltip content="Calculated after contact is unmerged" placement="top">
+                  <el-tooltip content="Calculated after contributor is unmerged" placement="top">
                     <div class="ri-question-line text-base text-gray-400" />
                   </el-tooltip>
                 </div>
@@ -132,7 +132,7 @@
                       <div
                         class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
                       >
-                        <i class="ri-link-unlink-m mr-1" />Unmerged contact
+                        <i class="ri-link-unlink-m mr-1" />Unmerged contributor
                       </div>
                       <el-dropdown
                         placement="bottom-end"
@@ -175,7 +175,7 @@
                     <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
                       Unknown
                     </div>
-                    <el-tooltip content="Calculated after contact is unmerged" placement="top">
+                    <el-tooltip content="Calculated after contributor is unmerged" placement="top">
                       <div class="ri-question-line text-base text-gray-400" />
                     </el-tooltip>
                   </div>
@@ -209,7 +209,7 @@
                 <div class="ri-fingerprint-line text-5xl text-gray-200" />
               </div>
               <p class="text-center text-xs leading-5 text-gray-500">
-                Select the contact identity you want to unmerge
+                Select the contributor identity you want to unmerge
               </p>
               <div class="pt-4">
                 <el-select
@@ -324,15 +324,15 @@ const unmerge = () => {
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
       Message.info(
-        'We’re syncing all activities of the unmerged contact. We will let you know once the process is completed.',
+        'We’re syncing all activities of the unmerged contributor. We will let you know once the process is completed.',
         {
-          title: 'Contacts unmerging in progress',
+          title: 'Contributors unmerging in progress',
         },
       );
       emit('update:modelValue', null);
     })
     .catch((error) => {
-      Message.error('There was an error unmerging contact');
+      Message.error('There was an error unmerging contributor');
     })
     .finally(() => {
       unmerging.value = false;
