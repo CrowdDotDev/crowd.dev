@@ -603,9 +603,9 @@ export class MemberSyncService {
     member.tasks = []
 
     for (const m of members) {
-      member.activeOn.push(...m.activeOn)
+      member.activeOn.push(...(m.activeOn || []))
       member.activityCount += m.activityCount
-      member.activityTypes.push(...m.activityTypes)
+      member.activityTypes.push(...(m.activityTypes || []))
       member.activeDaysCount += m.activeDaysCount
       if (!member.lastActive) {
         member.lastActive = m.lastActive
@@ -623,11 +623,11 @@ export class MemberSyncService {
         member.averageSentiment += m.averageSentiment
       }
       member.tags.push(...m.tags)
-      member.organizations.push(...m.organizations)
-      member.contributions.push(...m.contributions)
-      member.affiliations.push(...m.affiliations)
-      member.notes.push(...m.notes)
-      member.tasks.push(...m.tasks)
+      member.organizations.push(...(m.organizations || []))
+      member.contributions.push(...(m.contributions || []))
+      member.affiliations.push(...(m.affiliations || []))
+      member.notes.push(...(m.notes || []))
+      member.tasks.push(...(m.tasks || []))
     }
 
     // average sentiment with the total number of members that have sentiment set
