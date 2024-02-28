@@ -31,14 +31,6 @@
             @unmerge="unmerge"
           />
         </div>
-        <app-member-view-contributions-cta
-          v-if="!isEnrichmentEnabled"
-        />
-        <app-member-view-contributions
-          v-else-if="member.contributions?.length"
-          :contributions="member.contributions"
-          class="col-span-2"
-        />
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
@@ -79,13 +71,9 @@ import AppMemberViewHeader from '@/modules/member/components/view/member-view-he
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
 import AppMemberActions from '@/modules/member/components/member-actions.vue';
-import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppMemberViewContributionsCta from '@/modules/member/components/view/member-view-contributions-cta.vue';
-import Plans from '@/security/plans';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 
@@ -104,10 +92,7 @@ const { getMemberCustomAttributes } = memberStore;
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const { currentTenant } = mapGetters('auth');
-
 const member = computed(() => store.getters['member/find'](props.id) || {});
-const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
 
 // Unmerge
 const isUnmergeDialogOpen = ref(null);
