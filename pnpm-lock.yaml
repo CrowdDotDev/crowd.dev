@@ -1573,9 +1573,9 @@ importers:
       lodash.get:
         specifier: ~4.4.2
         version: 4.4.2
-      psl:
-        specifier: ^1.9.0
-        version: 1.9.0
+      tldts:
+        specifier: ^6.1.11
+        version: 6.1.11
       uuid:
         specifier: ^9.0.0
         version: 9.0.1
