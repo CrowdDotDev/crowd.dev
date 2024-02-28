@@ -101,7 +101,8 @@ export default {
       return Promise.reject();
     }
     return AuthApiService.ssoGetToken(token)
-      .then((token) => this.getUser(token));
+      .then((token) => this.getUser(token))
+      .catch(() => this.logout());
   },
   signin() {
     return Auth0Service.loginWithRedirect();
