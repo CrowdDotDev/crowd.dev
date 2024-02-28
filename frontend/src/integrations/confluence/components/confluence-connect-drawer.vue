@@ -20,32 +20,32 @@
 
       <el-form class="mt-2" @submit.prevent>
         <el-input
-            id="url"
-            v-model="form.url"
-            class="text-green-500"
-            spellcheck="false"
-            placeholder="Enter Organization URL"
+          id="url"
+          v-model="form.url"
+          class="text-green-500"
+          spellcheck="false"
+          placeholder="Enter Organization URL"
         />
         <el-input
-            id="spaceId"
-            v-model="form.space.id"
-            class="text-green-500 mt-2"
-            spellcheck="false"
-            placeholder="Enter Space ID"
+          id="spaceId"
+          v-model="form.space.id"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter Space ID"
         />
         <el-input
-            id="spaceKey"
-            v-model="form.space.key"
-            class="text-green-500 mt-2"
-            spellcheck="false"
-            placeholder="Enter Space Key"
+          id="spaceKey"
+          v-model="form.space.key"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter Space Key"
         />
         <el-input
-            id="spaceName"
-            v-model="form.space.name"
-            class="text-green-500 mt-2"
-            spellcheck="false"
-            placeholder="Enter Space Name"
+          id="spaceName"
+          v-model="form.space.name"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter Space Name"
         />
       </el-form>
     </template>
