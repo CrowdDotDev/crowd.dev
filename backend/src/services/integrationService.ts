@@ -1283,9 +1283,7 @@ export default class IntegrationService {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.CONFLUENCE,
-          settings: {
-            remotes: integrationData.remotes,
-          },
+          settings: integrationData.settings,
           status: 'done',
         },
         transaction,

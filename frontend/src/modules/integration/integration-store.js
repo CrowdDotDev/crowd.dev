@@ -574,14 +574,12 @@ export default {
 
     async doConfluenceConnect(
       { commit },
-      { remotes, isUpdate },
+      { settings, isUpdate },
     ) {
       try {
         commit('CREATE_STARTED');
 
-        const integration = await IntegrationService.confluenceConnect(
-          remotes,
-        );
+        const integration = await IntegrationService.confluenceConnect(settings);
 
         commit('CREATE_SUCCESS', integration);
 

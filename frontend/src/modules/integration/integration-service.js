@@ -336,10 +336,10 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async confluenceConnect(remotes) {
+  static async confluenceConnect(settings) {
     const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(`/tenant/${tenantId}/confluence-connect`, {
-      remotes,
+      settings,
       ...getSegments(),
     });
 
