@@ -11,7 +11,7 @@ import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { router } from '@/router';
 
-const { authCallback } = useAuthStore();
+const { authCallback, logout } = useAuthStore();
 
 const auth0State = ref<any>(null);
 
@@ -24,6 +24,9 @@ onMounted(() => {
     .then((token) => authCallback(token))
     .then(() => {
       router.push(auth0State.value?.targetUrl ?? '/');
+    })
+    .catch(() => {
+      logout();
     });
 });
 </script>

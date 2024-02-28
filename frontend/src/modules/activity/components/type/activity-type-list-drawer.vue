@@ -144,7 +144,7 @@ const store = useStore();
 const { doFetch } = mapActions('integration');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const {fetchActivityTypes} = activityTypeStore;
+const { fetchActivityTypes } = activityTypeStore;
 // Drawer open
 const isFormModalOpen = ref(false);
 const editableActivityType = ref(null);
